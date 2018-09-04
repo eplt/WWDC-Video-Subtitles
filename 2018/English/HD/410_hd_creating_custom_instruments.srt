@@ -1,0 +1,8804 @@
+1
+00:00:06,516 --> 00:00:13,500
+[ Music ]
+
+
+2
+00:00:18,516 --> 00:00:25,786
+[ Applause ]
+
+
+3
+00:00:26,286 --> 00:00:27,426
+>> Alright, good morning.
+
+
+4
+00:00:27,536 --> 00:00:28,836
+My name is Chad Woolf.
+
+
+5
+00:00:28,956 --> 00:00:30,186
+I am a performance tools
+
+
+6
+00:00:30,186 --> 00:00:31,706
+engineer here at Apple and
+
+
+7
+00:00:31,706 --> 00:00:32,886
+today's session 410.
+
+
+8
+00:00:32,886 --> 00:00:33,976
+We're going to talk about
+
+
+9
+00:00:33,976 --> 00:00:35,336
+creating custom instruments in
+
+
+10
+00:00:35,336 --> 00:00:36,706
+Instruments 10.
+
+
+11
+00:00:37,346 --> 00:00:38,666
+Today's session looks like this.
+
+
+12
+00:00:38,666 --> 00:00:39,576
+We're going to talk a little bit
+
+
+13
+00:00:39,796 --> 00:00:41,226
+about why you might want to
+
+
+14
+00:00:41,226 --> 00:00:42,246
+create custom instruments.
+
+
+15
+00:00:42,296 --> 00:00:43,526
+We're going to go over the
+
+
+16
+00:00:43,526 --> 00:00:45,406
+architecture of Instruments.
+
+
+17
+00:00:45,406 --> 00:00:46,366
+And we have a lot of content
+
+
+18
+00:00:46,366 --> 00:00:47,106
+today, so we have three
+
+
+19
+00:00:47,106 --> 00:00:48,726
+sections: Getting Started,
+
+
+20
+00:00:48,826 --> 00:00:50,256
+Intermediate, and Advanced.
+
+
+21
+00:00:50,316 --> 00:00:51,626
+And then on the way out, we'll
+
+
+22
+00:00:51,626 --> 00:00:52,956
+talk about some best practices,
+
+
+23
+00:00:52,956 --> 00:00:54,036
+some of the things we've learned
+
+
+24
+00:00:54,096 --> 00:00:55,546
+along the way, writing
+
+
+25
+00:00:55,546 --> 00:00:56,346
+instruments on our own.
+
+
+26
+00:00:57,166 --> 00:00:58,846
+So the first one, why would you
+
+
+27
+00:00:58,846 --> 00:00:59,986
+want to create custom
+
+
+28
+00:00:59,986 --> 00:01:00,566
+instruments?
+
+
+29
+00:01:00,996 --> 00:01:02,576
+Instruments already ships with a
+
+
+30
+00:01:02,576 --> 00:01:03,896
+lot of really powerful tools,
+
+
+31
+00:01:03,896 --> 00:01:05,616
+for example here we have System
+
+
+32
+00:01:05,616 --> 00:01:06,776
+Trace where you can see how your
+
+
+33
+00:01:06,776 --> 00:01:08,046
+application is interacting with
+
+
+34
+00:01:08,046 --> 00:01:09,086
+the scheduler and the virtual
+
+
+35
+00:01:09,086 --> 00:01:09,456
+memory.
+
+
+36
+00:01:10,736 --> 00:01:12,076
+We have a new game performance
+
+
+37
+00:01:12,106 --> 00:01:13,396
+template this year that combines
+
+
+38
+00:01:13,396 --> 00:01:14,596
+System Trace and Metal System
+
+
+39
+00:01:14,596 --> 00:01:17,496
+Trace to help you spot glitches
+
+
+40
+00:01:17,496 --> 00:01:19,216
+and missed frames in your
+
+
+41
+00:01:19,216 --> 00:01:19,776
+application.
+
+
+42
+00:01:20,176 --> 00:01:23,276
+And if you're on the network
+
+
+43
+00:01:23,276 --> 00:01:24,916
+portion of your application, we
+
+
+44
+00:01:24,916 --> 00:01:26,226
+also have the Network
+
+
+45
+00:01:26,226 --> 00:01:27,166
+Connections Instrument, which
+
+
+46
+00:01:27,166 --> 00:01:28,916
+can show you TCP/IP traffic
+
+
+47
+00:01:28,916 --> 00:01:30,476
+coming in and out of your app.
+
+
+48
+00:01:30,476 --> 00:01:32,126
+And then, of course, a lot of
+
+
+49
+00:01:32,126 --> 00:01:33,696
+you are familiar with the Time
+
+
+50
+00:01:33,696 --> 00:01:34,156
+Profiler.
+
+
+51
+00:01:34,276 --> 00:01:35,506
+Time Profiler is a great way to
+
+
+52
+00:01:35,506 --> 00:01:37,316
+see where your application is
+
+
+53
+00:01:37,316 --> 00:01:38,866
+spending its time, whether that
+
+
+54
+00:01:38,866 --> 00:01:40,006
+be the networking layer or the
+
+
+55
+00:01:40,006 --> 00:01:41,396
+game engine or some other
+
+
+56
+00:01:41,446 --> 00:01:41,826
+portion.
+
+
+57
+00:01:42,816 --> 00:01:45,756
+Now the common thing here is
+
+
+58
+00:01:45,756 --> 00:01:48,896
+that these are all very useful
+
+
+59
+00:01:48,896 --> 00:01:50,376
+if you know the code that you're
+
+
+60
+00:01:50,376 --> 00:01:51,646
+profiling, right.
+
+
+61
+00:01:51,646 --> 00:01:52,466
+So if you know those IP
+
+
+62
+00:01:52,466 --> 00:01:53,416
+addresses, you know what those
+
+
+63
+00:01:53,416 --> 00:01:54,856
+mean, and you know what the
+
+
+64
+00:01:54,856 --> 00:01:56,306
+different functions mean and the
+
+
+65
+00:01:56,306 --> 00:01:58,236
+call stack of the Time Profiler,
+
+
+66
+00:01:58,306 --> 00:01:59,196
+it makes it a lot easier.
+
+
+67
+00:01:59,966 --> 00:02:01,826
+But what if someone is profiling
+
+
+68
+00:02:01,826 --> 00:02:02,916
+your application and they're not
+
+
+69
+00:02:02,916 --> 00:02:04,176
+familiar with their code, right?
+
+
+70
+00:02:04,176 --> 00:02:05,746
+What if they just want to see is
+
+
+71
+00:02:05,746 --> 00:02:07,216
+the application spending a lot
+
+
+72
+00:02:07,216 --> 00:02:08,265
+of time in the networking layer,
+
+
+73
+00:02:08,316 --> 00:02:10,086
+and, if so, what is it doing?
+
+
+74
+00:02:10,596 --> 00:02:12,946
+Well, a good use for a custom
+
+
+75
+00:02:12,946 --> 00:02:14,566
+instrument would be to try to
+
+
+76
+00:02:14,696 --> 00:02:16,886
+tell the story of what your
+
+
+77
+00:02:16,886 --> 00:02:18,096
+layer or what your application
+
+
+78
+00:02:18,096 --> 00:02:19,936
+is doing in a way that someone
+
+
+79
+00:02:19,936 --> 00:02:21,216
+who doesn't understand the code
+
+
+80
+00:02:21,496 --> 00:02:22,916
+can understand and appreciate
+
+
+81
+00:02:22,916 --> 00:02:22,983
+it.
+
+
+82
+00:02:24,856 --> 00:02:25,986
+Now in the advanced section,
+
+
+83
+00:02:25,986 --> 00:02:27,516
+we're going to show you how to
+
+
+84
+00:02:27,516 --> 00:02:28,596
+take advantage of the Expert
+
+
+85
+00:02:28,596 --> 00:02:30,296
+System Technology that built
+
+
+86
+00:02:30,296 --> 00:02:31,846
+inside of Instruments so that
+
+
+87
+00:02:31,846 --> 00:02:33,766
+you can create an instrument
+
+
+88
+00:02:33,846 --> 00:02:35,366
+that's actually able to look for
+
+
+89
+00:02:35,366 --> 00:02:36,476
+bad patterns and spot
+
+
+90
+00:02:36,476 --> 00:02:38,206
+anti-patterns in your code even
+
+
+91
+00:02:38,206 --> 00:02:38,786
+if you're not there.
+
+
+92
+00:02:40,376 --> 00:02:41,256
+Alright, so let's take a look at
+
+
+93
+00:02:41,256 --> 00:02:42,666
+the architecture that makes this
+
+
+94
+00:02:42,666 --> 00:02:43,156
+possible.
+
+
+95
+00:02:43,626 --> 00:02:45,226
+And to do that, we're going to
+
+
+96
+00:02:45,226 --> 00:02:47,996
+have to start here, back at the
+
+
+97
+00:02:47,996 --> 00:02:48,406
+beginning.
+
+
+98
+00:02:49,196 --> 00:02:51,276
+So in the beginning, Instruments
+
+
+99
+00:02:51,276 --> 00:02:52,656
+works about the same as it does
+
+
+100
+00:02:52,656 --> 00:02:52,866
+today.
+
+
+101
+00:02:52,936 --> 00:02:54,156
+There's still a library.
+
+
+102
+00:02:54,196 --> 00:02:55,546
+You still drag instruments out
+
+
+103
+00:02:55,546 --> 00:02:56,816
+and drop them into your trace
+
+
+104
+00:02:56,816 --> 00:02:58,456
+document and then you press
+
+
+105
+00:02:58,456 --> 00:02:59,346
+Record and it's like running a
+
+
+106
+00:02:59,346 --> 00:03:00,516
+bunch of performance tools at
+
+
+107
+00:03:00,516 --> 00:03:00,946
+once.
+
+
+108
+00:03:01,616 --> 00:03:02,966
+Now the major difference between
+
+
+109
+00:03:02,966 --> 00:03:04,646
+then and now is that back then
+
+
+110
+00:03:04,716 --> 00:03:05,516
+the infrastructure of
+
+
+111
+00:03:05,516 --> 00:03:06,816
+Instruments didn't really do a
+
+
+112
+00:03:06,816 --> 00:03:08,626
+lot to help us write instruments
+
+
+113
+00:03:08,626 --> 00:03:08,976
+quickly.
+
+
+114
+00:03:09,746 --> 00:03:11,606
+And at the time, that was okay
+
+
+115
+00:03:11,606 --> 00:03:12,866
+because we had already inherited
+
+
+116
+00:03:12,916 --> 00:03:14,526
+quite a few assets and
+
+
+117
+00:03:14,526 --> 00:03:15,766
+performance tools that we
+
+
+118
+00:03:15,766 --> 00:03:16,336
+already had.
+
+
+119
+00:03:16,796 --> 00:03:17,956
+They all had their own recording
+
+
+120
+00:03:17,956 --> 00:03:18,726
+technology and their own
+
+
+121
+00:03:18,726 --> 00:03:20,436
+analysis logic and all we had to
+
+
+122
+00:03:20,436 --> 00:03:22,196
+do was build a custom storage
+
+
+123
+00:03:22,196 --> 00:03:23,266
+mechanism to get the data in the
+
+
+124
+00:03:23,266 --> 00:03:25,506
+trace and a custom UI to help
+
+
+125
+00:03:25,506 --> 00:03:26,806
+integrate it with the rest of
+
+
+126
+00:03:27,466 --> 00:03:27,786
+the app.
+
+
+127
+00:03:27,886 --> 00:03:29,816
+Now over time, the maintenance
+
+
+128
+00:03:29,816 --> 00:03:31,126
+costs of Instruments and
+
+
+129
+00:03:31,126 --> 00:03:32,736
+maintaining this model shot up.
+
+
+130
+00:03:33,576 --> 00:03:34,626
+And the reason for that was
+
+
+131
+00:03:34,626 --> 00:03:36,526
+every time we wanted to add a
+
+
+132
+00:03:36,526 --> 00:03:37,876
+new feature we had to modify
+
+
+133
+00:03:37,876 --> 00:03:39,546
+seven custom UIs and seven
+
+
+134
+00:03:39,546 --> 00:03:41,846
+custom storage mechanisms and
+
+
+135
+00:03:42,196 --> 00:03:43,746
+that's not the model we wanted
+
+
+136
+00:03:43,746 --> 00:03:44,676
+you guys to inherent.
+
+
+137
+00:03:44,676 --> 00:03:45,626
+We didn't want you to inherit
+
+
+138
+00:03:45,626 --> 00:03:46,756
+this kind of maintenance costs.
+
+
+139
+00:03:47,216 --> 00:03:48,516
+So before we even talked about
+
+
+140
+00:03:48,516 --> 00:03:49,646
+doing a custom Instruments'
+
+
+141
+00:03:49,646 --> 00:03:51,236
+feature, we needed to solve that
+
+
+142
+00:03:51,236 --> 00:03:52,776
+first and I think we did.
+
+
+143
+00:03:53,586 --> 00:03:54,556
+So in the new version of
+
+
+144
+00:03:54,556 --> 00:03:56,186
+Instruments, instead of having
+
+
+145
+00:03:56,186 --> 00:03:57,516
+custom UIs and custom storage
+
+
+146
+00:03:57,516 --> 00:03:58,906
+mechanisms, we have two
+
+
+147
+00:03:58,906 --> 00:04:00,456
+standardized components and
+
+
+148
+00:04:00,456 --> 00:04:02,286
+that's the Standard UI and the
+
+
+149
+00:04:02,286 --> 00:04:03,116
+Analysis Core.
+
+
+150
+00:04:03,616 --> 00:04:05,056
+Now the Standard UI is what
+
+
+151
+00:04:05,056 --> 00:04:06,606
+implements the entire user
+
+
+152
+00:04:06,606 --> 00:04:07,926
+interface of a modern Instrument
+
+
+153
+00:04:08,666 --> 00:04:09,986
+and it's tightly coupled with
+
+
+154
+00:04:09,986 --> 00:04:10,776
+the Analysis Core.
+
+
+155
+00:04:11,496 --> 00:04:12,756
+The Analysis Core you can think
+
+
+156
+00:04:12,756 --> 00:04:13,976
+of as a bit of a combination
+
+
+157
+00:04:13,976 --> 00:04:16,476
+between a database and an expert
+
+
+158
+00:04:16,476 --> 00:04:16,906
+system.
+
+
+159
+00:04:17,305 --> 00:04:18,516
+And the two these are optimized
+
+
+160
+00:04:18,516 --> 00:04:19,745
+to work on time series data,
+
+
+161
+00:04:19,846 --> 00:04:20,476
+which makes them a great
+
+
+162
+00:04:20,476 --> 00:04:21,406
+foundation for building
+
+
+163
+00:04:21,406 --> 00:04:21,966
+instruments.
+
+
+164
+00:04:22,406 --> 00:04:23,786
+Now when you build an instrument
+
+
+165
+00:04:24,226 --> 00:04:25,406
+with the modern architecture,
+
+
+166
+00:04:25,626 --> 00:04:27,456
+really what you're doing is
+
+
+167
+00:04:27,456 --> 00:04:29,236
+essentially creating a custom
+
+
+168
+00:04:29,876 --> 00:04:30,876
+configuration of both the
+
+
+169
+00:04:30,876 --> 00:04:32,686
+Standard UI and the Analysis
+
+
+170
+00:04:32,736 --> 00:04:32,916
+Core.
+
+
+171
+00:04:34,126 --> 00:04:35,636
+Now if you look at some of the
+
+
+172
+00:04:35,636 --> 00:04:36,826
+screenshots of the powerful
+
+
+173
+00:04:36,826 --> 00:04:38,286
+instruments that I showed in
+
+
+174
+00:04:38,286 --> 00:04:40,006
+beginning, we have the System
+
+
+175
+00:04:40,006 --> 00:04:42,276
+Trace and we have the Game
+
+
+176
+00:04:42,276 --> 00:04:44,196
+Performance template and the
+
+
+177
+00:04:44,196 --> 00:04:46,676
+Network Connections template and
+
+
+178
+00:04:47,146 --> 00:04:48,196
+Time Profiler.
+
+
+179
+00:04:48,886 --> 00:04:50,236
+All of the instruments in all of
+
+
+180
+00:04:50,236 --> 00:04:51,416
+those documents were built
+
+
+181
+00:04:51,476 --> 00:04:53,076
+completely out of the Standard
+
+
+182
+00:04:53,076 --> 00:04:55,246
+UI and the Analysis Core.
+
+
+183
+00:04:55,476 --> 00:04:56,616
+So you can do the exact same
+
+
+184
+00:04:56,616 --> 00:04:57,586
+things that they can do.
+
+
+185
+00:04:58,266 --> 00:05:00,236
+And in Xcode 10 and in
+
+
+186
+00:05:00,236 --> 00:05:01,516
+Instruments 10, we're giving you
+
+
+187
+00:05:01,516 --> 00:05:02,366
+the exact same tools to build
+
+
+188
+00:05:02,366 --> 00:05:02,976
+your instruments.
+
+
+189
+00:05:03,046 --> 00:05:05,966
+So the only difference between
+
+
+190
+00:05:06,086 --> 00:05:07,156
+an instrument that ships with
+
+
+191
+00:05:07,466 --> 00:05:10,336
+Xcode and one that you build is
+
+
+192
+00:05:10,336 --> 00:05:12,206
+just simply who built it.
+
+
+193
+00:05:12,886 --> 00:05:13,846
+Now your instruments will show
+
+
+194
+00:05:13,846 --> 00:05:16,116
+up here in our library and you
+
+
+195
+00:05:16,116 --> 00:05:17,906
+can see like Activity Monitor at
+
+
+196
+00:05:17,906 --> 00:05:18,266
+the top.
+
+
+197
+00:05:19,106 --> 00:05:20,176
+Just like that, you can drag and
+
+
+198
+00:05:20,176 --> 00:05:21,696
+drop your instrument into a
+
+
+199
+00:05:21,696 --> 00:05:22,926
+trace document and take a
+
+
+200
+00:05:22,926 --> 00:05:23,386
+recording.
+
+
+201
+00:05:24,136 --> 00:05:25,076
+And what happens here is the
+
+
+202
+00:05:25,076 --> 00:05:26,036
+Instruments fills in the
+
+
+203
+00:05:26,036 --> 00:05:27,646
+Analysis Core with data and the
+
+
+204
+00:05:27,646 --> 00:05:29,436
+Standard UI reacts to create the
+
+
+205
+00:05:29,436 --> 00:05:30,886
+graphs and the table views.
+
+
+206
+00:05:31,846 --> 00:05:33,696
+Now Instrument has two ways of
+
+
+207
+00:05:33,696 --> 00:05:34,306
+showing data.
+
+
+208
+00:05:34,416 --> 00:05:35,686
+It's got the graph view at the
+
+
+209
+00:05:35,686 --> 00:05:36,876
+top here, which we call a track
+
+
+210
+00:05:36,876 --> 00:05:38,486
+view, and an instrument can
+
+
+211
+00:05:38,486 --> 00:05:40,346
+define more than one graph, if
+
+
+212
+00:05:40,346 --> 00:05:41,186
+it would like to.
+
+
+213
+00:05:42,236 --> 00:05:43,796
+And the way that you choose
+
+
+214
+00:05:43,796 --> 00:05:44,776
+between the graphs that will
+
+
+215
+00:05:44,776 --> 00:05:45,706
+define your instrument is
+
+
+216
+00:05:45,706 --> 00:05:47,056
+there's a small control here
+
+
+217
+00:05:47,056 --> 00:05:48,456
+attached to the Instrument icon
+
+
+218
+00:05:48,776 --> 00:05:49,886
+and we can change this from say
+
+
+219
+00:05:49,986 --> 00:05:52,106
+CPU to Networking.
+
+
+220
+00:05:53,746 --> 00:05:55,966
+Now each graph is allowed to
+
+
+221
+00:05:55,966 --> 00:05:57,036
+define a certain number of
+
+
+222
+00:05:57,036 --> 00:05:57,496
+lanes.
+
+
+223
+00:05:57,736 --> 00:05:58,926
+So here we've defined three
+
+
+224
+00:05:58,926 --> 00:06:00,156
+lanes, graphing three different
+
+
+225
+00:06:00,156 --> 00:06:01,576
+types of CPU utilization.
+
+
+226
+00:06:02,266 --> 00:06:04,436
+And each one of these lanes is
+
+
+227
+00:06:04,436 --> 00:06:05,906
+bound to a different table in
+
+
+228
+00:06:05,906 --> 00:06:07,426
+the Analysis Core or it can be
+
+
+229
+00:06:07,426 --> 00:06:08,796
+bound to the same table but
+
+
+230
+00:06:08,796 --> 00:06:09,646
+you're looking at a different
+
+
+231
+00:06:09,646 --> 00:06:11,046
+column in the table.
+
+
+232
+00:06:12,266 --> 00:06:14,566
+Now the other portion of the
+
+
+233
+00:06:14,566 --> 00:06:16,556
+instrument is the lower portion,
+
+
+234
+00:06:16,556 --> 00:06:17,786
+which is equally as important.
+
+
+235
+00:06:17,786 --> 00:06:18,736
+It's called the Detail View.
+
+
+236
+00:06:18,896 --> 00:06:20,216
+And that's where you can see the
+
+
+237
+00:06:20,216 --> 00:06:22,536
+event-by-event lists and also
+
+
+238
+00:06:22,816 --> 00:06:24,066
+any sort of aggregations and
+
+
+239
+00:06:24,066 --> 00:06:26,086
+summaries of your data.
+
+
+240
+00:06:26,986 --> 00:06:29,306
+Now just like the lanes, oh, I'm
+
+
+241
+00:06:29,306 --> 00:06:31,146
+sorry, just like the graphs, you
+
+
+242
+00:06:31,146 --> 00:06:32,836
+can define a number of details
+
+
+243
+00:06:32,836 --> 00:06:34,176
+for your instrument and you can
+
+
+244
+00:06:34,176 --> 00:06:35,536
+select which detail is active by
+
+
+245
+00:06:35,536 --> 00:06:36,416
+clicking this portion of the
+
+
+246
+00:06:36,416 --> 00:06:37,976
+jump bar and then selecting the
+
+
+247
+00:06:37,976 --> 00:06:39,586
+title of detail that you define.
+
+
+248
+00:06:40,966 --> 00:06:42,616
+Now just like the lanes in the
+
+
+249
+00:06:42,616 --> 00:06:44,786
+graph, all of the details are
+
+
+250
+00:06:44,786 --> 00:06:46,656
+bound to again a table in the
+
+
+251
+00:06:46,656 --> 00:06:48,016
+Analysis Core and that's where
+
+
+252
+00:06:48,016 --> 00:06:48,786
+they receive the data.
+
+
+253
+00:06:49,166 --> 00:06:50,006
+The recording happens.
+
+
+254
+00:06:50,006 --> 00:06:50,966
+The tables fill in.
+
+
+255
+00:06:51,236 --> 00:06:52,626
+And UI reacts and there's no
+
+
+256
+00:06:52,626 --> 00:06:53,976
+special code needed on your
+
+
+257
+00:06:54,996 --> 00:06:55,366
+behalf.
+
+
+258
+00:06:56,156 --> 00:06:58,836
+Now from the perspective of the
+
+
+259
+00:06:58,836 --> 00:07:00,036
+Standard UI, everything in the
+
+
+260
+00:07:00,036 --> 00:07:01,636
+Analysis Core appears to be a
+
+
+261
+00:07:01,746 --> 00:07:02,096
+table.
+
+
+262
+00:07:02,096 --> 00:07:03,166
+So let's talk a little bit about
+
+
+263
+00:07:03,256 --> 00:07:03,986
+tables and what they are.
+
+
+264
+00:07:05,196 --> 00:07:06,916
+Tables are collections of rows
+
+
+265
+00:07:06,916 --> 00:07:07,886
+and they have a structure that's
+
+
+266
+00:07:07,886 --> 00:07:09,516
+defined by a table schema.
+
+
+267
+00:07:09,666 --> 00:07:10,746
+Right, so it's very similar to a
+
+
+268
+00:07:10,746 --> 00:07:11,656
+database application.
+
+
+269
+00:07:12,536 --> 00:07:14,106
+The schema defines the columns
+
+
+270
+00:07:14,106 --> 00:07:15,396
+and the names of the columns and
+
+
+271
+00:07:15,396 --> 00:07:16,236
+also the types.
+
+
+272
+00:07:16,746 --> 00:07:18,246
+Now the Analysis Core uses a
+
+
+273
+00:07:18,246 --> 00:07:19,606
+very rich typing system called
+
+
+274
+00:07:19,606 --> 00:07:21,296
+an engineering type and that
+
+
+275
+00:07:21,296 --> 00:07:22,446
+both tells us how to store the
+
+
+276
+00:07:22,446 --> 00:07:24,216
+data and also how to visualize
+
+
+277
+00:07:24,216 --> 00:07:25,236
+it and analyze it in the
+
+
+278
+00:07:25,236 --> 00:07:25,806
+Standard UI.
+
+
+279
+00:07:27,556 --> 00:07:29,886
+Now in addition to or while the
+
+
+280
+00:07:29,886 --> 00:07:31,426
+schema describes the structure
+
+
+281
+00:07:31,546 --> 00:07:33,246
+of a table, you can use
+
+
+282
+00:07:33,246 --> 00:07:34,516
+attributes which are key/value
+
+
+283
+00:07:34,516 --> 00:07:36,146
+pairs to describe the content.
+
+
+284
+00:07:36,616 --> 00:07:37,586
+So that kind of helps us
+
+
+285
+00:07:37,586 --> 00:07:38,616
+describe what goes into the
+
+
+286
+00:07:38,616 --> 00:07:38,986
+table.
+
+
+287
+00:07:39,566 --> 00:07:42,216
+You can think of schemas as like
+
+
+288
+00:07:42,216 --> 00:07:44,606
+a class in Objective-C or Swift
+
+
+289
+00:07:44,606 --> 00:07:45,596
+whereas the rows are like the
+
+
+290
+00:07:45,596 --> 00:07:46,246
+instances.
+
+
+291
+00:07:46,586 --> 00:07:47,886
+And so it's important that your
+
+
+292
+00:07:48,006 --> 00:07:50,236
+schema names are singular, just
+
+
+293
+00:07:50,236 --> 00:07:51,296
+like we have class names in
+
+
+294
+00:07:51,296 --> 00:07:53,516
+Objective-C that are singular,
+
+
+295
+00:07:53,516 --> 00:07:55,416
+like NSString instead of
+
+
+296
+00:07:55,416 --> 00:07:56,056
+strings.
+
+
+297
+00:07:56,246 --> 00:07:58,136
+So this will be more important
+
+
+298
+00:07:58,136 --> 00:07:58,906
+when we get to the advanced
+
+
+299
+00:07:58,906 --> 00:07:59,876
+section but I wanted to call it
+
+
+300
+00:07:59,876 --> 00:08:01,496
+out now so we can know what
+
+
+301
+00:08:01,496 --> 00:08:03,026
+we're looking at.
+
+
+302
+00:08:03,026 --> 00:08:04,336
+Okay, an example of the schema
+
+
+303
+00:08:04,336 --> 00:08:05,596
+here is tick.
+
+
+304
+00:08:06,136 --> 00:08:07,106
+This is one of schemas that
+
+
+305
+00:08:07,106 --> 00:08:08,926
+comes inside of Instruments and
+
+
+306
+00:08:08,926 --> 00:08:10,286
+it's used to hold a table of
+
+
+307
+00:08:10,286 --> 00:08:11,666
+synthetic clock ticks that we'll
+
+
+308
+00:08:11,666 --> 00:08:13,676
+use later for statistical
+
+
+309
+00:08:13,676 --> 00:08:15,146
+computations in our modelers.
+
+
+310
+00:08:15,916 --> 00:08:17,076
+Now it is very simple.
+
+
+311
+00:08:17,076 --> 00:08:18,456
+It has one column that's defined
+
+
+312
+00:08:18,456 --> 00:08:19,956
+and that's time and it's using
+
+
+313
+00:08:19,956 --> 00:08:20,626
+the engineering type
+
+
+314
+00:08:20,626 --> 00:08:21,356
+sample-time.
+
+
+315
+00:08:22,196 --> 00:08:24,046
+And it also defines an optional
+
+
+316
+00:08:24,276 --> 00:08:25,606
+attribute that can be attached
+
+
+317
+00:08:25,606 --> 00:08:26,796
+to that table instance called
+
+
+318
+00:08:26,796 --> 00:08:27,346
+frequency.
+
+
+319
+00:08:27,856 --> 00:08:30,066
+So if you create a table with a
+
+
+320
+00:08:30,066 --> 00:08:32,096
+frequency equals 10 attribute
+
+
+321
+00:08:32,096 --> 00:08:34,456
+here for our tick schema, then
+
+
+322
+00:08:34,775 --> 00:08:36,576
+the provider of that data knows
+
+
+323
+00:08:36,576 --> 00:08:38,046
+that it needs to fill that table
+
+
+324
+00:08:38,346 --> 00:08:40,326
+with ten timestamps per second,
+
+
+325
+00:08:40,616 --> 00:08:40,806
+right.
+
+
+326
+00:08:40,806 --> 00:08:41,826
+So that's a way to communicate
+
+
+327
+00:08:41,826 --> 00:08:42,806
+what you want filled into the
+
+
+328
+00:08:42,885 --> 00:08:43,176
+table.
+
+
+329
+00:08:44,586 --> 00:08:45,916
+Now with that, I think we have
+
+
+330
+00:08:46,356 --> 00:08:47,766
+enough information to help us
+
+
+331
+00:08:47,766 --> 00:08:48,366
+get started.
+
+
+332
+00:08:48,856 --> 00:08:50,076
+So we're going to show you how
+
+
+333
+00:08:50,076 --> 00:08:52,256
+to create your own Instruments
+
+
+334
+00:08:52,296 --> 00:08:54,046
+package project in Xcode and
+
+
+335
+00:08:54,046 --> 00:08:54,906
+we're going to show you how to
+
+
+336
+00:08:54,906 --> 00:08:55,876
+create your very first
+
+
+337
+00:08:55,876 --> 00:08:57,316
+instrument that graphs these
+
+
+338
+00:08:57,406 --> 00:08:59,196
+ticks and shows these ticks in
+
+
+339
+00:08:59,196 --> 00:08:59,886
+the detail view.
+
+
+340
+00:09:00,376 --> 00:09:01,916
+And to do that, I would like to
+
+
+341
+00:09:01,916 --> 00:09:04,016
+call up my colleague Kacper to
+
+
+342
+00:09:04,016 --> 00:09:04,976
+give you guys a demonstration.
+
+
+343
+00:09:05,516 --> 00:09:07,966
+[ Applause ]
+
+
+344
+00:09:08,466 --> 00:09:09,276
+>> Thank you, everyone.
+
+
+345
+00:09:10,046 --> 00:09:12,136
+Now I will show you how to start
+
+
+346
+00:09:12,136 --> 00:09:13,986
+with creating and running your
+
+
+347
+00:09:13,986 --> 00:09:15,306
+first custom instrument.
+
+
+348
+00:09:16,346 --> 00:09:17,356
+You're going to be using tick
+
+
+349
+00:09:17,356 --> 00:09:19,426
+schema presented by Chad to
+
+
+350
+00:09:19,426 --> 00:09:21,096
+craft instruments during ticks
+
+
+351
+00:09:21,386 --> 00:09:22,556
+with constant frequency.
+
+
+352
+00:09:23,256 --> 00:09:25,426
+You will learn how to describe
+
+
+353
+00:09:25,426 --> 00:09:27,556
+your package, iterate on it
+
+
+354
+00:09:27,596 --> 00:09:29,576
+using Xcode, and tested in
+
+
+355
+00:09:29,576 --> 00:09:30,116
+Instruments.
+
+
+356
+00:09:31,156 --> 00:09:31,866
+Let's get started.
+
+
+357
+00:09:33,266 --> 00:09:34,636
+You create your new Instruments
+
+
+358
+00:09:34,636 --> 00:09:36,596
+packets project just like you
+
+
+359
+00:09:36,596 --> 00:09:37,976
+used to in Xcode.
+
+
+360
+00:09:38,696 --> 00:09:40,216
+You go to a New Xcode Project,
+
+
+361
+00:09:40,996 --> 00:09:42,776
+select macOS platform, and
+
+
+362
+00:09:42,776 --> 00:09:43,706
+Instruments Package.
+
+
+363
+00:09:45,366 --> 00:09:46,146
+You need to fill out your
+
+
+364
+00:09:46,146 --> 00:09:47,566
+product name, which will become
+
+
+365
+00:09:47,566 --> 00:09:48,586
+default name for your
+
+
+366
+00:09:48,586 --> 00:09:49,566
+Instruments Package.
+
+
+367
+00:09:50,026 --> 00:09:51,016
+Let's call it ticks.
+
+
+368
+00:09:51,626 --> 00:09:54,966
+Hit Next and Create.
+
+
+369
+00:09:59,536 --> 00:10:01,626
+Xcode has created project with
+
+
+370
+00:10:01,776 --> 00:10:03,656
+package target and one file,
+
+
+371
+00:10:04,406 --> 00:10:05,706
+package definition.
+
+
+372
+00:10:06,246 --> 00:10:09,286
+Let's look in to it.
+
+
+373
+00:10:10,176 --> 00:10:11,996
+Packages are described in
+
+
+374
+00:10:11,996 --> 00:10:13,406
+XML-based syntax.
+
+
+375
+00:10:13,816 --> 00:10:15,626
+At the beginning, each package
+
+
+376
+00:10:15,626 --> 00:10:18,506
+contains identifier, title, and
+
+
+377
+00:10:18,506 --> 00:10:18,846
+owner.
+
+
+378
+00:10:19,406 --> 00:10:21,146
+These fields will be visible
+
+
+379
+00:10:21,146 --> 00:10:22,436
+when someone attempts to install
+
+
+380
+00:10:22,436 --> 00:10:23,076
+your package.
+
+
+381
+00:10:24,876 --> 00:10:26,466
+Usually, you would start by
+
+
+382
+00:10:26,466 --> 00:10:29,736
+defining your own schema and
+
+
+383
+00:10:29,736 --> 00:10:31,546
+optionally modeler but because
+
+
+384
+00:10:31,756 --> 00:10:32,776
+here we are going to be using
+
+
+385
+00:10:32,816 --> 00:10:34,776
+predefined tick schema, let's
+
+
+386
+00:10:34,776 --> 00:10:36,576
+remove these guides.
+
+
+387
+00:10:38,876 --> 00:10:41,416
+To import tick schema from base
+
+
+388
+00:10:41,416 --> 00:10:43,176
+package, all you need to do is
+
+
+389
+00:10:43,206 --> 00:10:44,926
+to specify import schema element
+
+
+390
+00:10:45,586 --> 00:10:48,596
+and first name of the schema,
+
+
+391
+00:10:48,836 --> 00:10:48,976
+tick.
+
+
+392
+00:10:53,696 --> 00:10:55,546
+Now it's ready to be used by our
+
+
+393
+00:10:55,546 --> 00:10:56,156
+Instrument.
+
+
+394
+00:10:58,516 --> 00:11:00,636
+To make defining more complex
+
+
+395
+00:11:00,636 --> 00:11:02,736
+elements easier for you, we've
+
+
+396
+00:11:02,736 --> 00:11:04,046
+deployed a number of snippets in
+
+
+397
+00:11:04,046 --> 00:11:04,466
+Xcode.
+
+
+398
+00:11:05,296 --> 00:11:07,206
+To use them, just start writing
+
+
+399
+00:11:07,206 --> 00:11:09,146
+your element name, like
+
+
+400
+00:11:09,146 --> 00:11:11,436
+instrument, and hit Return.
+
+
+401
+00:11:11,436 --> 00:11:14,256
+You need to fill out your unique
+
+
+402
+00:11:14,256 --> 00:11:15,976
+identifier for Instrument
+
+
+403
+00:11:20,706 --> 00:11:22,946
+and a few properties that later
+
+
+404
+00:11:22,946 --> 00:11:23,976
+appear in Instruments Library.
+
+
+405
+00:11:29,626 --> 00:11:31,216
+It will be Instrument drawing
+
+
+406
+00:11:31,326 --> 00:11:34,946
+ticks every 10 milliseconds.
+
+
+407
+00:11:39,306 --> 00:11:41,186
+Now it's time to create a table
+
+
+408
+00:11:41,186 --> 00:11:42,696
+that will be instantiated when
+
+
+409
+00:11:42,696 --> 00:11:44,416
+this instrument is dropped from
+
+
+410
+00:11:44,546 --> 00:11:46,456
+library to a trace document.
+
+
+411
+00:11:47,956 --> 00:11:49,346
+Table identifier has to be
+
+
+412
+00:11:49,346 --> 00:11:50,936
+unique within this instrument
+
+
+413
+00:11:50,936 --> 00:11:51,536
+definition.
+
+
+414
+00:11:52,446 --> 00:11:56,116
+Let's call it tick table.
+
+
+415
+00:11:56,226 --> 00:11:57,786
+In schema-ref, we need to
+
+
+416
+00:11:57,786 --> 00:11:58,966
+reference schema that we
+
+
+417
+00:11:58,966 --> 00:12:03,816
+previously imported, tick.
+
+
+418
+00:12:04,516 --> 00:12:05,986
+Now we need to define what will
+
+
+419
+00:12:05,986 --> 00:12:08,126
+appear in [inaudible] view and
+
+
+420
+00:12:08,126 --> 00:12:09,556
+detail view for our instrument.
+
+
+421
+00:12:10,276 --> 00:12:11,966
+I will use graph element.
+
+
+422
+00:12:12,696 --> 00:12:15,886
+We need to fill out title for
+
+
+423
+00:12:15,886 --> 00:12:16,596
+our graph.
+
+
+424
+00:12:16,596 --> 00:12:19,166
+I will call it ticks.
+
+
+425
+00:12:19,486 --> 00:12:21,296
+And title for our lane.
+
+
+426
+00:12:21,916 --> 00:12:25,816
+I need to reference table by
+
+
+427
+00:12:25,816 --> 00:12:28,306
+identifier that was previously
+
+
+428
+00:12:28,306 --> 00:12:30,276
+created here, so I will
+
+
+429
+00:12:30,276 --> 00:12:31,256
+reference tick table.
+
+
+430
+00:12:34,346 --> 00:12:36,376
+And now we will specify plotting
+
+
+431
+00:12:36,376 --> 00:12:37,186
+for our graph.
+
+
+432
+00:12:38,186 --> 00:12:39,646
+I will use plot element.
+
+
+433
+00:12:40,556 --> 00:12:42,926
+And in its most basic form, it
+
+
+434
+00:12:42,926 --> 00:12:44,226
+requires you only to pass
+
+
+435
+00:12:44,226 --> 00:12:45,446
+mnemonic of the column that
+
+
+436
+00:12:45,496 --> 00:12:46,686
+contains value to be graphed.
+
+
+437
+00:12:46,686 --> 00:12:47,746
+We will be graphing time.
+
+
+438
+00:12:48,226 --> 00:12:48,876
+:11
+
+
+439
+00:12:52,696 --> 00:12:53,956
+I would like all of my
+
+
+440
+00:12:53,956 --> 00:12:56,776
+timestamps to be visible in a
+
+
+441
+00:12:56,776 --> 00:12:57,156
+table.
+
+
+442
+00:12:57,826 --> 00:12:59,346
+To do this, I will use list
+
+
+443
+00:12:59,606 --> 00:12:59,976
+element.
+
+
+444
+00:13:02,496 --> 00:13:04,916
+We pass title for a list that
+
+
+445
+00:13:04,916 --> 00:13:06,236
+will appear in the [inaudible]
+
+
+446
+00:13:06,366 --> 00:13:11,516
+of Instrument, table ref, just
+
+
+447
+00:13:11,516 --> 00:13:12,816
+like for lane element before,
+
+
+448
+00:13:12,816 --> 00:13:15,646
+and columns that we would like
+
+
+449
+00:13:15,646 --> 00:13:15,906
+to see.
+
+
+450
+00:13:20,566 --> 00:13:22,556
+Now our package is ready to be
+
+
+451
+00:13:22,556 --> 00:13:24,886
+built, and run in Instruments.
+
+
+452
+00:13:25,946 --> 00:13:27,656
+To do this, you will use Xcode
+
+
+453
+00:13:27,656 --> 00:13:28,716
+scheme run action.
+
+
+454
+00:13:29,676 --> 00:13:29,976
+Let's do it.
+
+
+455
+00:13:33,536 --> 00:13:34,936
+You can see that build error
+
+
+456
+00:13:34,936 --> 00:13:35,336
+appears.
+
+
+457
+00:13:35,906 --> 00:13:37,696
+You have full ID support when
+
+
+458
+00:13:37,696 --> 00:13:38,916
+building instruments packages.
+
+
+459
+00:13:39,336 --> 00:13:41,526
+Here, error appears in line and
+
+
+460
+00:13:41,526 --> 00:13:43,426
+says that column timestamp could
+
+
+461
+00:13:43,426 --> 00:13:45,386
+not be found in schema tick.
+
+
+462
+00:13:45,706 --> 00:13:46,816
+Oh, that's right, because it's
+
+
+463
+00:13:46,816 --> 00:13:47,536
+not timestamp.
+
+
+464
+00:13:47,536 --> 00:13:48,616
+It's supposed to be time.
+
+
+465
+00:13:48,836 --> 00:13:52,676
+I will fix it and run it again.
+
+
+466
+00:13:53,296 --> 00:13:58,256
+You can see it running because
+
+
+467
+00:13:58,256 --> 00:13:59,616
+this new copy of Instruments to
+
+
+468
+00:13:59,616 --> 00:13:59,796
+appear.
+
+
+469
+00:13:59,796 --> 00:14:02,226
+You can recognize the special
+
+
+470
+00:14:02,226 --> 00:14:03,786
+copy by having different icon.
+
+
+471
+00:14:04,816 --> 00:14:06,656
+It loads your package temporally
+
+
+472
+00:14:06,976 --> 00:14:08,226
+only for this run session.
+
+
+473
+00:14:08,796 --> 00:14:10,516
+It allows you to iterate on your
+
+
+474
+00:14:10,516 --> 00:14:11,446
+package more easily.
+
+
+475
+00:14:12,066 --> 00:14:15,666
+To be sure that your package is
+
+
+476
+00:14:15,666 --> 00:14:17,356
+already loaded, we can check it
+
+
+477
+00:14:17,356 --> 00:14:19,346
+out in New Package Management
+
+
+478
+00:14:19,346 --> 00:14:19,686
+UI.
+
+
+479
+00:14:20,396 --> 00:14:22,386
+You can find it in Instruments
+
+
+480
+00:14:22,556 --> 00:14:24,536
+Preferences and Packages
+
+
+481
+00:14:24,536 --> 00:14:25,176
+[inaudible].
+
+
+482
+00:14:25,176 --> 00:14:29,556
+You can see our newly created
+
+
+483
+00:14:29,556 --> 00:14:31,746
+package here along debug batch,
+
+
+484
+00:14:31,886 --> 00:14:33,466
+which means that it's loaded
+
+
+485
+00:14:33,466 --> 00:14:35,736
+only temporarily.
+
+
+486
+00:14:35,736 --> 00:14:37,296
+You see also all of the system
+
+
+487
+00:14:37,296 --> 00:14:37,996
+packages here.
+
+
+488
+00:14:38,396 --> 00:14:39,916
+You can use and link against
+
+
+489
+00:14:40,096 --> 00:14:41,866
+them using subtitle, visible
+
+
+490
+00:14:41,866 --> 00:14:42,196
+here.
+
+
+491
+00:14:42,756 --> 00:14:46,576
+Our ticks package contains ticks
+
+
+492
+00:14:46,576 --> 00:14:47,126
+instrument.
+
+
+493
+00:14:47,526 --> 00:14:52,416
+So let's test it now using blank
+
+
+494
+00:14:52,416 --> 00:14:52,776
+template.
+
+
+495
+00:14:53,396 --> 00:14:55,566
+I will switch my target to my
+
+
+496
+00:14:55,566 --> 00:14:55,966
+MacBook
+
+
+497
+00:15:00,456 --> 00:15:01,586
+and we'll search for my
+
+
+498
+00:15:01,586 --> 00:15:02,946
+instrument in Instruments
+
+
+499
+00:15:02,946 --> 00:15:03,386
+Library.
+
+
+500
+00:15:03,546 --> 00:15:08,106
+I will fill the ticks and it
+
+
+501
+00:15:08,606 --> 00:15:10,586
+appears here with all of the
+
+
+502
+00:15:10,586 --> 00:15:12,226
+properties being filled out from
+
+
+503
+00:15:12,226 --> 00:15:13,156
+the package definition.
+
+
+504
+00:15:13,726 --> 00:15:15,806
+Let's drag and drop it into a
+
+
+505
+00:15:15,806 --> 00:15:15,976
+trace
+
+
+506
+00:15:19,576 --> 00:15:20,976
+and record for just a second.
+
+
+507
+00:15:25,476 --> 00:15:28,486
+You can see the bottom pane was
+
+
+508
+00:15:28,486 --> 00:15:30,506
+propagated with data generated
+
+
+509
+00:15:30,506 --> 00:15:31,676
+every 10 milliseconds.
+
+
+510
+00:15:33,306 --> 00:15:35,336
+Detail and graph are coordinated
+
+
+511
+00:15:35,336 --> 00:15:35,896
+with each other.
+
+
+512
+00:15:36,366 --> 00:15:37,826
+When I click on rows, you can
+
+
+513
+00:15:37,826 --> 00:15:39,766
+see inspection head moving here.
+
+
+514
+00:15:40,796 --> 00:15:42,706
+I can also zoom into a graph
+
+
+515
+00:15:43,096 --> 00:15:48,806
+using Option and Click and Drag.
+
+
+516
+00:15:48,806 --> 00:15:50,316
+Here you can see the ticks are
+
+
+517
+00:15:50,316 --> 00:15:51,656
+indeed being drawn.
+
+
+518
+00:15:53,656 --> 00:15:55,736
+That's how you create your first
+
+
+519
+00:15:55,936 --> 00:15:56,886
+Instruments Package.
+
+
+520
+00:15:57,306 --> 00:15:59,446
+Now back to Chad who will tell
+
+
+521
+00:15:59,446 --> 00:16:00,716
+you more about Standard UI.
+
+
+522
+00:16:01,516 --> 00:16:04,466
+[ Applause ]
+
+
+523
+00:16:04,966 --> 00:16:05,226
+>> Alright.
+
+
+524
+00:16:05,226 --> 00:16:05,986
+Thank you, Kacper.
+
+
+525
+00:16:06,786 --> 00:16:07,906
+Okay, so we've seen how to
+
+
+526
+00:16:07,906 --> 00:16:09,326
+create a very basic instrument.
+
+
+527
+00:16:09,326 --> 00:16:11,136
+We see how to get started with
+
+
+528
+00:16:11,326 --> 00:16:12,476
+creating your first project in
+
+
+529
+00:16:12,526 --> 00:16:12,946
+Xcode.
+
+
+530
+00:16:13,706 --> 00:16:15,126
+Now let's talk about the
+
+
+531
+00:16:15,126 --> 00:16:16,386
+different kind of graphs that we
+
+
+532
+00:16:16,386 --> 00:16:17,416
+have and the different kind of
+
+
+533
+00:16:17,416 --> 00:16:18,846
+details we have and how we can
+
+
+534
+00:16:18,846 --> 00:16:20,466
+potentially do this with real
+
+
+535
+00:16:20,466 --> 00:16:20,716
+data.
+
+
+536
+00:16:21,656 --> 00:16:23,686
+Starting with graph lanes.
+
+
+537
+00:16:24,896 --> 00:16:27,206
+So you saw how Kacper was able
+
+
+538
+00:16:27,206 --> 00:16:28,626
+to define a graph and a lane
+
+
+539
+00:16:28,966 --> 00:16:30,266
+using what we call the plot
+
+
+540
+00:16:30,266 --> 00:16:30,636
+element.
+
+
+541
+00:16:31,066 --> 00:16:34,256
+Now the plot element is a way to
+
+
+542
+00:16:34,366 --> 00:16:36,566
+tell the Standard UI that we
+
+
+543
+00:16:36,566 --> 00:16:38,016
+should be taking the entire
+
+
+544
+00:16:38,016 --> 00:16:39,816
+contents of the table and trying
+
+
+545
+00:16:39,816 --> 00:16:41,336
+to plot it in that particular
+
+
+546
+00:16:41,336 --> 00:16:41,586
+lane.
+
+
+547
+00:16:42,276 --> 00:16:44,406
+Now the way that the plot
+
+
+548
+00:16:44,436 --> 00:16:46,536
+element determines how to graph
+
+
+549
+00:16:46,536 --> 00:16:47,536
+this, what the graphing
+
+
+550
+00:16:47,536 --> 00:16:49,406
+treatment should be, is by
+
+
+551
+00:16:49,406 --> 00:16:51,186
+looking at both the schema and
+
+
+552
+00:16:51,186 --> 00:16:52,446
+the column that was targeted to
+
+
+553
+00:16:52,446 --> 00:16:53,306
+take the value from.
+
+
+554
+00:16:54,026 --> 00:16:55,586
+If the schema is an interval
+
+
+555
+00:16:55,586 --> 00:16:56,856
+schema, meaning that it has a
+
+
+556
+00:16:56,856 --> 00:16:58,286
+time and a duration, or if it's
+
+
+557
+00:16:58,286 --> 00:16:59,636
+a point schema, which means it
+
+
+558
+00:16:59,636 --> 00:17:01,046
+just as a timestamp, they're
+
+
+559
+00:17:01,046 --> 00:17:01,816
+treated differently.
+
+
+560
+00:17:02,586 --> 00:17:04,705
+And if the column being targeted
+
+
+561
+00:17:04,705 --> 00:17:06,945
+has a magnitude, meaning that it
+
+
+562
+00:17:06,945 --> 00:17:08,296
+can draw a bar graph out of it,
+
+
+563
+00:17:08,296 --> 00:17:10,026
+it will draw a bar graph like
+
+
+564
+00:17:10,066 --> 00:17:10,396
+this.
+
+
+565
+00:17:11,126 --> 00:17:13,136
+An alternative here is our Life
+
+
+566
+00:17:13,136 --> 00:17:15,476
+Cycle lane where it's still an
+
+
+567
+00:17:15,476 --> 00:17:16,935
+interval schema but we're
+
+
+568
+00:17:16,935 --> 00:17:18,756
+targeting a column that's a
+
+
+569
+00:17:18,756 --> 00:17:20,366
+state and the state does not
+
+
+570
+00:17:20,366 --> 00:17:21,955
+inherently have a magnitude.
+
+
+571
+00:17:22,185 --> 00:17:23,126
+So it doesn't make sense to draw
+
+
+572
+00:17:23,126 --> 00:17:23,896
+a bar graph there.
+
+
+573
+00:17:24,516 --> 00:17:25,476
+So the Standard UI will
+
+
+574
+00:17:25,476 --> 00:17:27,006
+automatically pick a state style
+
+
+575
+00:17:27,006 --> 00:17:28,976
+treatment which involves drawing
+
+
+576
+00:17:28,976 --> 00:17:31,626
+these intervals with a label in
+
+
+577
+00:17:31,626 --> 00:17:33,096
+a rounded rectangle style so you
+
+
+578
+00:17:33,096 --> 00:17:34,776
+can tell it apart from just a
+
+
+579
+00:17:34,776 --> 00:17:35,656
+flat bar graph.
+
+
+580
+00:17:36,356 --> 00:17:37,296
+Now it's really important that
+
+
+581
+00:17:37,296 --> 00:17:38,336
+the Standard UI be able to pick
+
+
+582
+00:17:38,336 --> 00:17:39,796
+these treatments for you because
+
+
+583
+00:17:39,796 --> 00:17:41,406
+that's what keeps Instruments UI
+
+
+584
+00:17:41,406 --> 00:17:42,086
+consistent.
+
+
+585
+00:17:42,376 --> 00:17:43,616
+So if you define a state graph
+
+
+586
+00:17:43,616 --> 00:17:45,356
+and we define a state graph, the
+
+
+587
+00:17:45,356 --> 00:17:46,896
+Standard UI will enforce that
+
+
+588
+00:17:46,896 --> 00:17:48,046
+they look the same way, which
+
+
+589
+00:17:48,296 --> 00:17:49,686
+makes it a lot easier for user
+
+
+590
+00:17:49,686 --> 00:17:51,526
+of Instruments to move from
+
+
+591
+00:17:51,526 --> 00:17:54,496
+instrument to instrument.
+
+
+592
+00:17:54,496 --> 00:17:57,156
+Now if you want to create graphs
+
+
+593
+00:17:57,156 --> 00:17:58,236
+or the number of lanes
+
+
+594
+00:17:58,236 --> 00:17:59,606
+dynamically, based on the
+
+
+595
+00:17:59,606 --> 00:18:00,926
+contents of the data, you can
+
+
+596
+00:18:00,926 --> 00:18:01,866
+define what's called a plot
+
+
+597
+00:18:01,986 --> 00:18:02,326
+template.
+
+
+598
+00:18:02,996 --> 00:18:04,666
+Now a plot template is defined
+
+
+599
+00:18:04,666 --> 00:18:06,316
+very similarly to a plot except
+
+
+600
+00:18:06,316 --> 00:18:07,406
+there's an extra element in
+
+
+601
+00:18:07,406 --> 00:18:08,936
+there that allows you to choose
+
+
+602
+00:18:08,936 --> 00:18:10,536
+a column in the table and it
+
+
+603
+00:18:10,536 --> 00:18:12,276
+will create a separate row for
+
+
+604
+00:18:12,276 --> 00:18:13,566
+each unique value in that
+
+
+605
+00:18:13,566 --> 00:18:13,956
+column.
+
+
+606
+00:18:16,016 --> 00:18:17,046
+Now if you're looking for just
+
+
+607
+00:18:17,046 --> 00:18:18,456
+spikes or periods of activity,
+
+
+608
+00:18:18,576 --> 00:18:19,126
+we have what's called a
+
+
+609
+00:18:19,126 --> 00:18:21,016
+histogram and what you can do is
+
+
+610
+00:18:21,016 --> 00:18:22,846
+break the timeline over certain
+
+
+611
+00:18:22,846 --> 00:18:24,066
+size buckets, let's say 100
+
+
+612
+00:18:24,066 --> 00:18:25,566
+milliseconds, and then use
+
+
+613
+00:18:25,566 --> 00:18:27,176
+functions like count or sum or
+
+
+614
+00:18:27,176 --> 00:18:29,996
+min or max to sort of drive up
+
+
+615
+00:18:29,996 --> 00:18:31,186
+the magnitude of those buckets
+
+
+616
+00:18:31,416 --> 00:18:32,976
+as the different points or
+
+
+617
+00:18:32,976 --> 00:18:33,946
+intervals are intersecting.
+
+
+618
+00:18:33,946 --> 00:18:36,066
+So it's a great way to look for
+
+
+619
+00:18:36,536 --> 00:18:38,136
+spikes in activity such as here
+
+
+620
+00:18:38,136 --> 00:18:39,046
+in the System Trace where we're
+
+
+621
+00:18:39,046 --> 00:18:40,216
+looking for spikes of activity
+
+
+622
+00:18:40,216 --> 00:18:41,746
+in context switches or virtual
+
+
+623
+00:18:41,746 --> 00:18:42,086
+memory.
+
+
+624
+00:18:42,486 --> 00:18:45,126
+Now let's talk about details.
+
+
+625
+00:18:45,156 --> 00:18:46,926
+Details are on the lower half of
+
+
+626
+00:18:46,926 --> 00:18:47,396
+the UI.
+
+
+627
+00:18:48,486 --> 00:18:49,376
+And you've already seen the
+
+
+628
+00:18:49,376 --> 00:18:50,626
+first one, which is the List.
+
+
+629
+00:18:50,846 --> 00:18:52,266
+That's very simple mapping
+
+
+630
+00:18:52,266 --> 00:18:53,666
+between the Table and Analysis
+
+
+631
+00:18:53,666 --> 00:18:56,896
+Core and a table view in the UI.
+
+
+632
+00:18:56,896 --> 00:19:00,066
+We also have aggregations.
+
+
+633
+00:19:00,176 --> 00:19:01,976
+And aggregations are nice when
+
+
+634
+00:19:01,976 --> 00:19:03,186
+you want to try to subtract out
+
+
+635
+00:19:03,186 --> 00:19:04,586
+the time component and you want
+
+
+636
+00:19:04,586 --> 00:19:05,396
+to look at your data in
+
+
+637
+00:19:05,396 --> 00:19:05,906
+aggregate.
+
+
+638
+00:19:05,906 --> 00:19:06,726
+You want to apply some
+
+
+639
+00:19:06,726 --> 00:19:07,956
+statistics to everything that's
+
+
+640
+00:19:07,956 --> 00:19:08,556
+in that table.
+
+
+641
+00:19:09,376 --> 00:19:10,406
+And so when we define an
+
+
+642
+00:19:10,406 --> 00:19:12,316
+aggregation, what we're doing is
+
+
+643
+00:19:12,316 --> 00:19:13,966
+the columns this time are now
+
+
+644
+00:19:13,966 --> 00:19:14,596
+functions.
+
+
+645
+00:19:14,896 --> 00:19:15,956
+So you can use functions like
+
+
+646
+00:19:16,026 --> 00:19:19,186
+sum, average, count, and several
+
+
+647
+00:19:19,186 --> 00:19:20,436
+other statistical functions to
+
+
+648
+00:19:20,726 --> 00:19:24,396
+help you create the aggregation
+
+
+649
+00:19:24,396 --> 00:19:26,256
+view that you want to create.
+
+
+650
+00:19:28,146 --> 00:19:29,576
+Now the nice part about
+
+
+651
+00:19:29,716 --> 00:19:30,776
+aggregations is that you can
+
+
+652
+00:19:30,776 --> 00:19:32,096
+define a hierarchy as well.
+
+
+653
+00:19:32,266 --> 00:19:33,846
+So here we've defined a process
+
+
+654
+00:19:33,926 --> 00:19:35,296
+thread in virtual memory
+
+
+655
+00:19:35,296 --> 00:19:37,316
+operation hierarchy, so we can
+
+
+656
+00:19:37,316 --> 00:19:38,976
+see these totals broken down by
+
+
+657
+00:19:38,976 --> 00:19:40,626
+the process and then by each
+
+
+658
+00:19:40,626 --> 00:19:41,766
+thread that's in that process
+
+
+659
+00:19:42,086 --> 00:19:43,286
+and then by each type of
+
+
+660
+00:19:43,286 --> 00:19:45,156
+operation that's in that thread,
+
+
+661
+00:19:45,246 --> 00:19:46,036
+in that process.
+
+
+662
+00:19:46,206 --> 00:19:47,556
+So aggregation is a really nice,
+
+
+663
+00:19:47,626 --> 00:19:49,156
+powerful way to look at a lot of
+
+
+664
+00:19:49,156 --> 00:19:50,386
+data in summary.
+
+
+665
+00:19:51,476 --> 00:19:53,396
+Now another type of aggregation
+
+
+666
+00:19:53,396 --> 00:19:54,476
+is called Call Tree.
+
+
+667
+00:19:55,496 --> 00:19:56,696
+Now the Call Tree is useful when
+
+
+668
+00:19:56,696 --> 00:19:57,876
+you have a column that is a
+
+
+669
+00:19:57,876 --> 00:19:59,466
+backtrace and you got another
+
+
+670
+00:19:59,466 --> 00:20:00,246
+column that's a weight.
+
+
+671
+00:20:00,476 --> 00:20:01,316
+You can create weighted
+
+
+672
+00:20:01,316 --> 00:20:02,556
+backtrace or a weighted Call
+
+
+673
+00:20:02,556 --> 00:20:04,546
+Tree view using the Call Tree
+
+
+674
+00:20:04,616 --> 00:20:05,976
+like you see in Time Profiler.
+
+
+675
+00:20:07,136 --> 00:20:09,406
+Now another style is called a
+
+
+676
+00:20:09,406 --> 00:20:09,896
+narrative.
+
+
+677
+00:20:10,096 --> 00:20:12,426
+And the narrative is used when
+
+
+678
+00:20:12,426 --> 00:20:14,166
+you want to convey information
+
+
+679
+00:20:14,376 --> 00:20:15,506
+that's just best left to
+
+
+680
+00:20:15,506 --> 00:20:17,046
+technical language, such as the
+
+
+681
+00:20:17,046 --> 00:20:18,526
+output of an expert system and
+
+
+682
+00:20:18,526 --> 00:20:19,696
+that works hand-in-hand with the
+
+
+683
+00:20:19,696 --> 00:20:21,346
+narrative engineering type.
+
+
+684
+00:20:23,856 --> 00:20:25,776
+Now the last type of detail here
+
+
+685
+00:20:25,866 --> 00:20:26,956
+is called a time slice.
+
+
+686
+00:20:27,086 --> 00:20:28,346
+The time slice looks very much
+
+
+687
+00:20:28,346 --> 00:20:30,176
+like a list except the contents
+
+
+688
+00:20:30,176 --> 00:20:31,866
+are filtered to include only the
+
+
+689
+00:20:31,866 --> 00:20:33,506
+intervals that intersect with
+
+
+690
+00:20:33,506 --> 00:20:34,636
+that blue line you see on the
+
+
+691
+00:20:34,636 --> 00:20:35,086
+graph.
+
+
+692
+00:20:35,236 --> 00:20:36,116
+That's called the inspection
+
+
+693
+00:20:36,116 --> 00:20:36,366
+head.
+
+
+694
+00:20:36,746 --> 00:20:37,866
+So as you move the inspection
+
+
+695
+00:20:37,866 --> 00:20:39,436
+head over the graph, the
+
+
+696
+00:20:39,656 --> 00:20:40,756
+contents of the list will be
+
+
+697
+00:20:40,756 --> 00:20:42,586
+filtered to match what
+
+
+698
+00:20:42,586 --> 00:20:44,056
+intersects with that inspection
+
+
+699
+00:20:44,056 --> 00:20:44,226
+head.
+
+
+700
+00:20:46,776 --> 00:20:49,156
+Now all of these UIs are bound
+
+
+701
+00:20:49,156 --> 00:20:50,896
+to tables in the Analysis Core.
+
+
+702
+00:20:51,306 --> 00:20:53,146
+And when you hit Record, the
+
+
+703
+00:20:53,146 --> 00:20:54,266
+data comes in through the
+
+
+704
+00:20:54,266 --> 00:20:55,586
+Instruments app and fills in the
+
+
+705
+00:20:55,586 --> 00:20:57,176
+data in the Analysis Core.
+
+
+706
+00:20:57,936 --> 00:20:59,396
+So let's talk a little bit more
+
+
+707
+00:20:59,396 --> 00:21:00,976
+about how that process works.
+
+
+708
+00:21:02,786 --> 00:21:04,226
+The first step before you can
+
+
+709
+00:21:04,226 --> 00:21:06,996
+press Record is the Analysis
+
+
+710
+00:21:06,996 --> 00:21:08,416
+Core will be taking the tables
+
+
+711
+00:21:08,416 --> 00:21:09,796
+that are created within it and
+
+
+712
+00:21:09,796 --> 00:21:11,006
+it'll be mapping it and
+
+
+713
+00:21:11,006 --> 00:21:12,576
+allocating storage for it in the
+
+
+714
+00:21:12,576 --> 00:21:12,916
+core.
+
+
+715
+00:21:13,756 --> 00:21:15,236
+Now if a table has the exact
+
+
+716
+00:21:15,236 --> 00:21:16,516
+same schema and the exact same
+
+
+717
+00:21:16,516 --> 00:21:17,796
+attributes, then by definition
+
+
+718
+00:21:17,796 --> 00:21:19,686
+it's the exact same data, so
+
+
+719
+00:21:19,686 --> 00:21:21,126
+it's going to map to the exact
+
+
+720
+00:21:21,166 --> 00:21:21,696
+same store.
+
+
+721
+00:21:23,116 --> 00:21:24,956
+Now for each store, the second
+
+
+722
+00:21:24,956 --> 00:21:26,406
+step is to try to find a
+
+
+723
+00:21:26,406 --> 00:21:27,386
+provider for the data.
+
+
+724
+00:21:27,776 --> 00:21:29,056
+Now sometimes we can record that
+
+
+725
+00:21:29,056 --> 00:21:30,196
+directly from the target through
+
+
+726
+00:21:30,196 --> 00:21:32,196
+the data stream and sometimes we
+
+
+727
+00:21:32,196 --> 00:21:33,346
+have to synthesize the data
+
+
+728
+00:21:33,486 --> 00:21:34,246
+using a modeler.
+
+
+729
+00:21:35,296 --> 00:21:36,876
+Now modelers can require their
+
+
+730
+00:21:36,876 --> 00:21:38,556
+own inputs and those inputs can
+
+
+731
+00:21:38,556 --> 00:21:40,356
+be the outputs of other modelers
+
+
+732
+00:21:40,396 --> 00:21:41,596
+or they can be recorded directly
+
+
+733
+00:21:41,596 --> 00:21:42,926
+from the data stream and that's
+
+
+734
+00:21:42,926 --> 00:21:44,186
+how we synthesize the rest of
+
+
+735
+00:21:44,186 --> 00:21:45,476
+the data that we don't know how
+
+
+736
+00:21:45,476 --> 00:21:46,366
+to directly record.
+
+
+737
+00:21:47,476 --> 00:21:49,516
+Now once we've got data sources
+
+
+738
+00:21:49,516 --> 00:21:51,546
+for all of the stores in the
+
+
+739
+00:21:51,686 --> 00:21:53,786
+Analysis Core, that's what's
+
+
+740
+00:21:53,786 --> 00:21:54,866
+called the binding solution.
+
+
+741
+00:21:55,026 --> 00:21:56,026
+And so the third step is to
+
+
+742
+00:21:56,026 --> 00:21:57,356
+optimize the binding solution.
+
+
+743
+00:21:57,546 --> 00:21:58,806
+And here you see Instruments is
+
+
+744
+00:21:58,806 --> 00:21:59,966
+visualizing its own binding
+
+
+745
+00:21:59,966 --> 00:22:01,546
+solution for what we call the
+
+
+746
+00:22:01,546 --> 00:22:02,216
+thread narrative.
+
+
+747
+00:22:03,706 --> 00:22:04,736
+Now the next part about the
+
+
+748
+00:22:04,736 --> 00:22:06,886
+binding solution is that it's
+
+
+749
+00:22:06,886 --> 00:22:09,056
+trace-wide and so as you're
+
+
+750
+00:22:09,056 --> 00:22:09,916
+dragging and dropping
+
+
+751
+00:22:09,916 --> 00:22:11,196
+instruments into the trace,
+
+
+752
+00:22:11,386 --> 00:22:13,906
+Instruments is computing the
+
+
+753
+00:22:13,906 --> 00:22:15,956
+best possible recording solution
+
+
+754
+00:22:16,166 --> 00:22:17,616
+to try to minimize the recording
+
+
+755
+00:22:17,616 --> 00:22:20,336
+impact on the target.
+
+
+756
+00:22:20,886 --> 00:22:21,786
+Now when you create your own
+
+
+757
+00:22:21,786 --> 00:22:23,256
+tables or when you create table
+
+
+758
+00:22:23,256 --> 00:22:24,196
+instances, you have to give them
+
+
+759
+00:22:24,196 --> 00:22:24,616
+a schema.
+
+
+760
+00:22:25,256 --> 00:22:26,706
+And Instruments already has over
+
+
+761
+00:22:26,766 --> 00:22:28,786
+100 schemas defined.
+
+
+762
+00:22:29,536 --> 00:22:30,896
+And all of these schemas are
+
+
+763
+00:22:30,896 --> 00:22:31,956
+available to you and are
+
+
+764
+00:22:31,956 --> 00:22:33,016
+contained in the packages that
+
+
+765
+00:22:33,016 --> 00:22:33,896
+you saw in the Package
+
+
+766
+00:22:33,896 --> 00:22:34,506
+Management UI.
+
+
+767
+00:22:35,236 --> 00:22:36,376
+You can just simply import the
+
+
+768
+00:22:36,376 --> 00:22:38,466
+schema into your own package.
+
+
+769
+00:22:39,036 --> 00:22:41,216
+Now if that schema is contained
+
+
+770
+00:22:41,216 --> 00:22:42,516
+in a package that's not the base
+
+
+771
+00:22:42,516 --> 00:22:44,246
+package, you have to also link
+
+
+772
+00:22:44,246 --> 00:22:45,756
+that package as a build setting
+
+
+773
+00:22:45,756 --> 00:22:47,086
+in Xcode for Linked Instruments
+
+
+774
+00:22:47,086 --> 00:22:49,046
+Packages that you can set so
+
+
+775
+00:22:49,046 --> 00:22:50,116
+that we can find that extra
+
+
+776
+00:22:50,116 --> 00:22:51,526
+package that you're referring to
+
+
+777
+00:22:51,526 --> 00:22:52,746
+at build time and do some type
+
+
+778
+00:22:52,746 --> 00:22:53,096
+checking.
+
+
+779
+00:22:54,716 --> 00:22:56,276
+Now because all of these schemas
+
+
+780
+00:22:56,276 --> 00:22:57,586
+are defined in other packages
+
+
+781
+00:22:57,676 --> 00:22:59,346
+when you hit Record, all the
+
+
+782
+00:22:59,386 --> 00:23:00,456
+tables with those schemas will
+
+
+783
+00:23:00,456 --> 00:23:02,736
+fill in because they either have
+
+
+784
+00:23:02,736 --> 00:23:04,026
+modelers defined or we know how
+
+
+785
+00:23:04,026 --> 00:23:04,866
+to record it from the data
+
+
+786
+00:23:04,866 --> 00:23:05,176
+stream.
+
+
+787
+00:23:05,176 --> 00:23:06,426
+So these make excellent building
+
+
+788
+00:23:06,426 --> 00:23:07,766
+blocks for your own instruments
+
+
+789
+00:23:08,216 --> 00:23:09,016
+but even better they make
+
+
+790
+00:23:09,086 --> 00:23:10,856
+excellent inputs for writing
+
+
+791
+00:23:10,856 --> 00:23:11,706
+your own modelers.
+
+
+792
+00:23:12,576 --> 00:23:14,356
+Now you write a modeler or you
+
+
+793
+00:23:14,356 --> 00:23:15,316
+define a modeler in your
+
+
+794
+00:23:15,316 --> 00:23:16,896
+Instruments Package with the
+
+
+795
+00:23:16,896 --> 00:23:19,046
+modeler element and you can also
+
+
+796
+00:23:19,046 --> 00:23:22,236
+create a custom output schema
+
+
+797
+00:23:22,346 --> 00:23:23,676
+for that modeler.
+
+
+798
+00:23:24,066 --> 00:23:25,616
+You can use the point-schema for
+
+
+799
+00:23:25,616 --> 00:23:27,336
+just a single point in time or
+
+
+800
+00:23:27,336 --> 00:23:28,416
+you can use the interval schema
+
+
+801
+00:23:28,416 --> 00:23:29,276
+if you have a point and a
+
+
+802
+00:23:29,276 --> 00:23:29,726
+duration.
+
+
+803
+00:23:30,386 --> 00:23:33,216
+Now the modeler is able to
+
+
+804
+00:23:33,216 --> 00:23:35,126
+define what inputs it needs and
+
+
+805
+00:23:35,126 --> 00:23:36,266
+this is what tells the binding
+
+
+806
+00:23:36,266 --> 00:23:37,906
+solution how to fill out the
+
+
+807
+00:23:37,906 --> 00:23:39,706
+rest of that data flow graph.
+
+
+808
+00:23:39,706 --> 00:23:41,976
+And so your modeler will snap
+
+
+809
+00:23:41,976 --> 00:23:43,076
+right into the binding solution.
+
+
+810
+00:23:43,906 --> 00:23:45,756
+Now modelers are actually
+
+
+811
+00:23:45,756 --> 00:23:47,576
+miniature expert systems and
+
+
+812
+00:23:47,576 --> 00:23:48,626
+they are written in the Clips
+
+
+813
+00:23:48,626 --> 00:23:50,136
+language, which means that
+
+
+814
+00:23:50,136 --> 00:23:52,006
+they're very powerful but
+
+
+815
+00:23:52,006 --> 00:23:53,206
+they're also pretty advanced.
+
+
+816
+00:23:53,206 --> 00:23:54,346
+So we're going to save the
+
+
+817
+00:23:54,346 --> 00:23:55,896
+details on how to create
+
+
+818
+00:23:55,896 --> 00:23:57,106
+modelers for the advanced
+
+
+819
+00:23:57,106 --> 00:24:00,366
+section; however, it is really
+
+
+820
+00:24:00,366 --> 00:24:01,336
+important that you be able to
+
+
+821
+00:24:01,336 --> 00:24:02,856
+define your own schemas and we
+
+
+822
+00:24:02,856 --> 00:24:04,826
+have a new os signpost API this
+
+
+823
+00:24:04,826 --> 00:24:06,696
+year, which is a great way to
+
+
+824
+00:24:06,696 --> 00:24:07,736
+get data into Instruments.
+
+
+825
+00:24:08,596 --> 00:24:10,206
+So we've created a little bit of
+
+
+826
+00:24:10,206 --> 00:24:10,756
+a shortcut.
+
+
+827
+00:24:12,056 --> 00:24:13,236
+Inside your package, you can
+
+
+828
+00:24:13,236 --> 00:24:14,246
+define what's called an os
+
+
+829
+00:24:14,246 --> 00:24:16,346
+signpost interval schema and
+
+
+830
+00:24:16,346 --> 00:24:17,616
+what that does is both define
+
+
+831
+00:24:17,616 --> 00:24:20,046
+schema and also give us enough
+
+
+832
+00:24:20,046 --> 00:24:22,006
+instructions to be able to
+
+
+833
+00:24:22,106 --> 00:24:23,446
+generate a modeler on your
+
+
+834
+00:24:23,446 --> 00:24:23,616
+behalf.
+
+
+835
+00:24:24,226 --> 00:24:25,686
+Now inside there, you can
+
+
+836
+00:24:25,686 --> 00:24:26,776
+capture the data that you
+
+
+837
+00:24:26,776 --> 00:24:28,856
+recorded in the metadata of your
+
+
+838
+00:24:28,856 --> 00:24:31,926
+os signpost calls and you can
+
+
+839
+00:24:31,926 --> 00:24:33,986
+use that captured metadata and
+
+
+840
+00:24:33,986 --> 00:24:35,776
+expressions to define how we
+
+
+841
+00:24:35,776 --> 00:24:38,026
+should fill out the columns of
+
+
+842
+00:24:38,236 --> 00:24:38,796
+your schema.
+
+
+843
+00:24:39,816 --> 00:24:41,716
+So we'll look at a really simple
+
+
+844
+00:24:41,716 --> 00:24:42,196
+example.
+
+
+845
+00:24:43,136 --> 00:24:44,556
+Let's say we're going to do JSON
+
+
+846
+00:24:44,556 --> 00:24:46,776
+decoding and we have a signpost
+
+
+847
+00:24:47,026 --> 00:24:48,156
+that we mark the beginning of
+
+
+848
+00:24:48,156 --> 00:24:50,726
+that decoding activity and the
+
+
+849
+00:24:50,726 --> 00:24:52,186
+end of that decoding activity.
+
+
+850
+00:24:52,746 --> 00:24:54,276
+And in the beginning, we'll also
+
+
+851
+00:24:54,276 --> 00:24:55,936
+capture some metadata to
+
+
+852
+00:24:55,936 --> 00:24:57,676
+indicate the size of the JSON
+
+
+853
+00:24:57,676 --> 00:24:59,046
+object that we're about to try
+
+
+854
+00:24:59,046 --> 00:24:59,526
+to parse.
+
+
+855
+00:25:00,876 --> 00:25:01,956
+Now in your Instruments Package
+
+
+856
+00:25:01,956 --> 00:25:03,496
+definition, you can create an os
+
+
+857
+00:25:03,496 --> 00:25:06,136
+signpost interval schema and you
+
+
+858
+00:25:06,136 --> 00:25:08,126
+define the name of your schema
+
+
+859
+00:25:08,126 --> 00:25:08,396
+here.
+
+
+860
+00:25:09,236 --> 00:25:11,656
+You select which signpost you
+
+
+861
+00:25:11,656 --> 00:25:12,726
+would like to have recorded,
+
+
+862
+00:25:12,786 --> 00:25:14,626
+including the signpost name, and
+
+
+863
+00:25:15,086 --> 00:25:16,806
+then here you can use a syntax
+
+
+864
+00:25:16,806 --> 00:25:18,456
+to capture the different pieces
+
+
+865
+00:25:18,456 --> 00:25:20,186
+of metadata from your start
+
+
+866
+00:25:20,186 --> 00:25:21,586
+metadata message.
+
+
+867
+00:25:21,656 --> 00:25:22,986
+And here, we're going to take
+
+
+868
+00:25:23,016 --> 00:25:24,526
+that captured value and we're
+
+
+869
+00:25:24,526 --> 00:25:25,296
+going to use that as the
+
+
+870
+00:25:25,296 --> 00:25:27,016
+expression to teach us how to
+
+
+871
+00:25:27,016 --> 00:25:28,956
+fill in the column for data size
+
+
+872
+00:25:28,956 --> 00:25:30,106
+that we just defined in line
+
+
+873
+00:25:30,106 --> 00:25:30,256
+here.
+
+
+874
+00:25:32,646 --> 00:25:35,756
+Now in Session 405, which is
+
+
+875
+00:25:35,756 --> 00:25:37,686
+Measuring Performance Using
+
+
+876
+00:25:37,686 --> 00:25:39,816
+Logging, I demonstrated the
+
+
+877
+00:25:39,816 --> 00:25:42,906
+Trailblazer application and also
+
+
+878
+00:25:43,216 --> 00:25:44,616
+showed you an instrument that
+
+
+879
+00:25:44,616 --> 00:25:46,056
+you guys could write based on
+
+
+880
+00:25:46,196 --> 00:25:47,366
+the signpost inside that.
+
+
+881
+00:25:47,956 --> 00:25:49,716
+And now that we know a lot more
+
+
+882
+00:25:49,716 --> 00:25:50,696
+about how to write custom
+
+
+883
+00:25:50,696 --> 00:25:52,406
+instruments, I'd like to invite
+
+
+884
+00:25:52,656 --> 00:25:54,696
+Kacper back on stage to give you
+
+
+885
+00:25:54,696 --> 00:25:56,136
+a demonstration and walk-through
+
+
+886
+00:25:56,386 --> 00:25:57,626
+of how we created that package.
+
+
+887
+00:25:58,516 --> 00:26:03,126
+[ Applause ]
+
+
+888
+00:26:03,626 --> 00:26:03,986
+:15
+
+
+889
+00:26:04,076 --> 00:26:04,886
+>> Thank you, Chad.
+
+
+890
+00:26:09,836 --> 00:26:12,576
+So Trailblazer app is an iOS app
+
+
+891
+00:26:12,706 --> 00:26:14,676
+that displays lists of popular
+
+
+892
+00:26:14,796 --> 00:26:16,176
+hiking trails near you.
+
+
+893
+00:26:16,856 --> 00:26:19,686
+As an UI component, UI table
+
+
+894
+00:26:19,686 --> 00:26:19,976
+View.
+
+
+895
+00:26:21,006 --> 00:26:22,766
+Each cell loads image for a
+
+
+896
+00:26:22,766 --> 00:26:24,156
+trail asynchronously.
+
+
+897
+00:26:25,276 --> 00:26:26,936
+To prevent glitches and as an
+
+
+898
+00:26:26,936 --> 00:26:28,876
+optimization when cell is
+
+
+899
+00:26:28,876 --> 00:26:30,376
+reused, we cancel the download.
+
+
+900
+00:26:31,556 --> 00:26:33,276
+To visualize my flow of
+
+
+901
+00:26:33,276 --> 00:26:35,546
+downloads, I wrap every download
+
+
+902
+00:26:35,586 --> 00:26:36,356
+in os signpost call.
+
+
+903
+00:26:36,356 --> 00:26:36,936
+Let's take a look at it.
+
+
+904
+00:26:41,536 --> 00:26:42,556
+When my [inaudible] cell is
+
+
+905
+00:26:42,556 --> 00:26:44,796
+displayed, start Image download
+
+
+906
+00:26:44,796 --> 00:26:45,556
+method is called.
+
+
+907
+00:26:46,046 --> 00:26:48,456
+We create downloader signpost
+
+
+908
+00:26:48,456 --> 00:26:50,946
+ID, which takes os log handle
+
+
+909
+00:26:51,026 --> 00:26:52,466
+and downloader object.
+
+
+910
+00:26:53,306 --> 00:26:55,516
+We then grab address of UI table
+
+
+911
+00:26:55,516 --> 00:26:59,366
+View cell and call os signpost
+
+
+912
+00:26:59,366 --> 00:27:03,016
+begin with os log which is
+
+
+913
+00:27:03,016 --> 00:27:04,676
+coming from signpost.networking.
+
+
+914
+00:27:04,946 --> 00:27:07,336
+Let's take a look at it.
+
+
+915
+00:27:07,336 --> 00:27:08,916
+This log takes our app
+
+
+916
+00:27:08,916 --> 00:27:11,076
+identifier as subsystem and
+
+
+917
+00:27:11,106 --> 00:27:12,296
+networking as category.
+
+
+918
+00:27:15,046 --> 00:27:16,506
+We pass background image name,
+
+
+919
+00:27:17,286 --> 00:27:18,996
+previously created signpost ID
+
+
+920
+00:27:19,436 --> 00:27:20,886
+and message format, which
+
+
+921
+00:27:20,886 --> 00:27:22,016
+includes image name.
+
+
+922
+00:27:23,956 --> 00:27:25,276
+Here, we wrap it in public
+
+
+923
+00:27:25,276 --> 00:27:27,406
+specifier because it's a string
+
+
+924
+00:27:28,286 --> 00:27:30,056
+and caller, which is address of
+
+
+925
+00:27:30,056 --> 00:27:30,406
+a cell.
+
+
+926
+00:27:31,816 --> 00:27:33,916
+Our download could complete in
+
+
+927
+00:27:33,956 --> 00:27:35,476
+two ways, successfully.
+
+
+928
+00:27:36,106 --> 00:27:39,086
+Let's take a look at it now.
+
+
+929
+00:27:39,166 --> 00:27:40,236
+When it completes like that,
+
+
+930
+00:27:40,756 --> 00:27:42,816
+delegate method it's called.
+
+
+931
+00:27:43,866 --> 00:27:45,636
+We create signpost ID just like
+
+
+932
+00:27:45,636 --> 00:27:48,496
+before and call OS signpost end.
+
+
+933
+00:27:49,546 --> 00:27:52,186
+This time we pass status and
+
+
+934
+00:27:52,186 --> 00:27:52,556
+size.
+
+
+935
+00:27:53,876 --> 00:27:56,956
+Value for status is completed.
+
+
+936
+00:27:58,256 --> 00:28:00,996
+And size is set to the image
+
+
+937
+00:28:01,656 --> 00:28:01,786
+size.
+
+
+938
+00:28:02,236 --> 00:28:04,456
+Next let's take a look at our
+
+
+939
+00:28:04,456 --> 00:28:06,166
+prepare for use overwrite.
+
+
+940
+00:28:06,766 --> 00:28:09,546
+When there's running downloader
+
+
+941
+00:28:09,546 --> 00:28:11,116
+in progress, we cancel it.
+
+
+942
+00:28:12,126 --> 00:28:14,076
+We create signpost ID and call
+
+
+943
+00:28:14,076 --> 00:28:16,006
+our signpost end with the same
+
+
+944
+00:28:16,006 --> 00:28:18,016
+format string but now value is
+
+
+945
+00:28:18,016 --> 00:28:20,496
+canceled and size is zero
+
+
+946
+00:28:20,496 --> 00:28:21,896
+because download didn't succeed.
+
+
+947
+00:28:22,406 --> 00:28:25,446
+Let's take a look at our os
+
+
+948
+00:28:25,446 --> 00:28:26,786
+signpost interval schema
+
+
+949
+00:28:26,786 --> 00:28:28,326
+definition and how we captured
+
+
+950
+00:28:28,376 --> 00:28:30,386
+those signpost end package.
+
+
+951
+00:28:32,456 --> 00:28:34,456
+We define our signpost interval
+
+
+952
+00:28:34,456 --> 00:28:36,306
+schema with unique identifier
+
+
+953
+00:28:36,306 --> 00:28:36,936
+and title.
+
+
+954
+00:28:37,686 --> 00:28:40,306
+Then we define our subsystem and
+
+
+955
+00:28:40,306 --> 00:28:41,856
+category, which corresponds to
+
+
+956
+00:28:41,856 --> 00:28:43,326
+the one that we passed when
+
+
+957
+00:28:43,326 --> 00:28:44,596
+creating os log handle.
+
+
+958
+00:28:46,816 --> 00:28:49,346
+We create name element, which
+
+
+959
+00:28:49,346 --> 00:28:50,846
+corresponds to the one that we
+
+
+960
+00:28:50,846 --> 00:28:53,646
+passed in os signpost call and
+
+
+961
+00:28:54,016 --> 00:28:56,156
+start pattern and end pattern.
+
+
+962
+00:28:56,736 --> 00:28:58,496
+These both correspond to the one
+
+
+963
+00:28:58,656 --> 00:29:00,296
+that we passed in os signpost
+
+
+964
+00:29:00,296 --> 00:29:01,756
+begin and end calls.
+
+
+965
+00:29:04,266 --> 00:29:05,966
+Message element is the same as
+
+
+966
+00:29:05,966 --> 00:29:07,596
+the format string you passed but
+
+
+967
+00:29:07,596 --> 00:29:10,326
+instead of format arguments, you
+
+
+968
+00:29:10,326 --> 00:29:12,516
+pass variables here to capture
+
+
+969
+00:29:12,516 --> 00:29:14,406
+the values that you passed when
+
+
+970
+00:29:14,406 --> 00:29:15,556
+calling os signpost.
+
+
+971
+00:29:16,066 --> 00:29:18,786
+Let's take a look at how we fill
+
+
+972
+00:29:18,786 --> 00:29:20,576
+out those values in our columns.
+
+
+973
+00:29:23,926 --> 00:29:26,876
+Here, you can see status column.
+
+
+974
+00:29:27,066 --> 00:29:28,566
+It's type of string because it's
+
+
+975
+00:29:28,566 --> 00:29:30,246
+either completed or canceled,
+
+
+976
+00:29:31,486 --> 00:29:32,756
+and we fill it out with the
+
+
+977
+00:29:32,756 --> 00:29:34,956
+value of status variable.
+
+
+978
+00:29:36,676 --> 00:29:38,806
+Because expression element could
+
+
+979
+00:29:38,926 --> 00:29:40,826
+take arbitrary Clips expression,
+
+
+980
+00:29:41,706 --> 00:29:42,586
+we could also do more
+
+
+981
+00:29:42,586 --> 00:29:44,156
+sophisticated things in it.
+
+
+982
+00:29:44,816 --> 00:29:47,056
+Here, we could compute event
+
+
+983
+00:29:47,056 --> 00:29:49,006
+impact by looking at size.
+
+
+984
+00:29:49,846 --> 00:29:51,536
+If it's greater than 3 and 1/2
+
+
+985
+00:29:51,536 --> 00:29:53,326
+megabytes, we say that impact is
+
+
+986
+00:29:53,416 --> 00:29:56,056
+high, else impact of operation
+
+
+987
+00:29:56,056 --> 00:29:56,516
+is low.
+
+
+988
+00:29:58,076 --> 00:30:00,236
+That's our definition for os
+
+
+989
+00:30:00,236 --> 00:30:00,976
+signpost interval schema.
+
+
+990
+00:30:01,106 --> 00:30:03,376
+Now let's take a look at table
+
+
+991
+00:30:03,376 --> 00:30:04,066
+creation.
+
+
+992
+00:30:05,796 --> 00:30:07,696
+For schema ref, we pass
+
+
+993
+00:30:08,096 --> 00:30:10,456
+identifier of our os signpost
+
+
+994
+00:30:10,456 --> 00:30:12,616
+interval schema and create
+
+
+995
+00:30:12,616 --> 00:30:13,846
+unique identifier for this
+
+
+996
+00:30:13,846 --> 00:30:14,686
+specific table.
+
+
+997
+00:30:15,906 --> 00:30:17,736
+Then, we can reference it in our
+
+
+998
+00:30:17,736 --> 00:30:18,876
+UI definitions.
+
+
+999
+00:30:20,296 --> 00:30:22,346
+For graph, we create a single
+
+
+1000
+00:30:22,346 --> 00:30:22,676
+lane.
+
+
+1001
+00:30:23,796 --> 00:30:26,036
+It takes our table and this time
+
+
+1002
+00:30:26,036 --> 00:30:27,706
+it graphs by using the plot
+
+
+1003
+00:30:27,706 --> 00:30:28,056
+template.
+
+
+1004
+00:30:28,796 --> 00:30:30,586
+Plot template is dynamic way of
+
+
+1005
+00:30:30,586 --> 00:30:31,476
+creating graphs.
+
+
+1006
+00:30:32,146 --> 00:30:35,446
+It looks at the table, at the
+
+
+1007
+00:30:35,446 --> 00:30:37,386
+column that was passed in
+
+
+1008
+00:30:37,386 --> 00:30:40,126
+instance by element and for each
+
+
+1009
+00:30:40,226 --> 00:30:41,966
+unique value of this column, it
+
+
+1010
+00:30:42,006 --> 00:30:44,436
+creates plot.
+
+
+1011
+00:30:44,606 --> 00:30:46,436
+Label format element allows us
+
+
+1012
+00:30:46,486 --> 00:30:49,606
+to create format title for this
+
+
+1013
+00:30:49,606 --> 00:30:49,966
+plot.
+
+
+1014
+00:30:50,336 --> 00:30:52,426
+Here it's img column and the
+
+
+1015
+00:30:52,426 --> 00:30:53,956
+value from image name column.
+
+
+1016
+00:30:54,516 --> 00:30:57,166
+We pass image name as a value of
+
+
+1017
+00:30:57,166 --> 00:30:57,656
+our plot.
+
+
+1018
+00:30:58,766 --> 00:31:00,156
+Each of our planes will be
+
+
+1019
+00:31:00,206 --> 00:31:03,166
+colored with column of impact
+
+
+1020
+00:31:03,326 --> 00:31:06,076
+and label on our plane will be
+
+
+1021
+00:31:06,076 --> 00:31:06,976
+taken from image size.
+
+
+1022
+00:31:09,436 --> 00:31:12,796
+Next, we have a list.
+
+
+1023
+00:31:12,796 --> 00:31:14,726
+You already saw this one in
+
+
+1024
+00:31:14,756 --> 00:31:15,526
+ticks example.
+
+
+1025
+00:31:16,866 --> 00:31:18,176
+Here, we pass all of the columns
+
+
+1026
+00:31:18,176 --> 00:31:21,286
+that you would like to see.
+
+
+1027
+00:31:21,536 --> 00:31:22,766
+Next, aggregation.
+
+
+1028
+00:31:23,726 --> 00:31:25,266
+This aggregation will track all
+
+
+1029
+00:31:25,266 --> 00:31:26,406
+of the completed downloads.
+
+
+1030
+00:31:27,236 --> 00:31:29,836
+Because our table contains both
+
+
+1031
+00:31:29,836 --> 00:31:31,146
+completed and canceled
+
+
+1032
+00:31:31,146 --> 00:31:32,406
+downloads, we need to apply
+
+
+1033
+00:31:32,406 --> 00:31:34,436
+slice element to filter some of
+
+
+1034
+00:31:34,436 --> 00:31:34,836
+the data.
+
+
+1035
+00:31:36,016 --> 00:31:37,866
+In slice element we specify
+
+
+1036
+00:31:37,866 --> 00:31:39,456
+column that slice will be
+
+
+1037
+00:31:39,456 --> 00:31:42,066
+applied on and predicate value
+
+
+1038
+00:31:42,596 --> 00:31:43,496
+that has to be matched.
+
+
+1039
+00:31:43,926 --> 00:31:45,546
+Here, we want to take only
+
+
+1040
+00:31:45,546 --> 00:31:47,056
+completed rows from this table.
+
+
+1041
+00:31:48,306 --> 00:31:50,746
+We define hierarchy, which is
+
+
+1042
+00:31:50,746 --> 00:31:52,406
+only one level hierarchy with
+
+
+1043
+00:31:52,486 --> 00:31:55,276
+image name and columns that will
+
+
+1044
+00:31:55,276 --> 00:31:55,836
+be visible.
+
+
+1045
+00:31:56,676 --> 00:31:58,786
+For each image name, we will
+
+
+1046
+00:31:58,786 --> 00:32:02,156
+specify count and image size.
+
+
+1047
+00:32:02,156 --> 00:32:04,146
+So we will be summing sizes of
+
+
+1048
+00:32:04,326 --> 00:32:04,916
+an image.
+
+
+1049
+00:32:05,386 --> 00:32:09,426
+Next, we have image, time slice,
+
+
+1050
+00:32:10,456 --> 00:32:10,746
+sorry.
+
+
+1051
+00:32:10,746 --> 00:32:12,186
+We specify all of the columns
+
+
+1052
+00:32:12,186 --> 00:32:13,046
+that will be visible.
+
+
+1053
+00:32:16,096 --> 00:32:18,636
+And to use our instrument more
+
+
+1054
+00:32:18,636 --> 00:32:22,796
+easily, we can specify our
+
+
+1055
+00:32:22,796 --> 00:32:23,566
+custom template.
+
+
+1056
+00:32:24,126 --> 00:32:26,876
+Now let's try and build, and run
+
+
+1057
+00:32:26,986 --> 00:32:27,306
+our package.
+
+
+1058
+00:32:34,416 --> 00:32:35,946
+You can see the template appears
+
+
+1059
+00:32:36,096 --> 00:32:36,336
+here.
+
+
+1060
+00:32:36,396 --> 00:32:36,976
+I can choose it,
+
+
+1061
+00:32:41,536 --> 00:32:43,916
+and target my iPhone and
+
+
+1062
+00:32:43,916 --> 00:32:45,186
+Trailblazer app.
+
+
+1063
+00:32:48,956 --> 00:32:50,976
+I will record for just a while.
+
+
+1064
+00:33:00,716 --> 00:33:03,786
+You can see that track view was
+
+
+1065
+00:33:03,786 --> 00:33:04,936
+propagated with data.
+
+
+1066
+00:33:06,616 --> 00:33:08,746
+Each plot was created for each
+
+
+1067
+00:33:08,746 --> 00:33:09,636
+image name.
+
+
+1068
+00:33:11,366 --> 00:33:12,816
+You can see that label format
+
+
+1069
+00:33:12,816 --> 00:33:14,366
+matches the one that we passed
+
+
+1070
+00:33:14,366 --> 00:33:15,586
+in package definition.
+
+
+1071
+00:33:16,596 --> 00:33:19,056
+And if download is higher rather
+
+
+1072
+00:33:19,056 --> 00:33:21,176
+than 3 and 1/2 megabytes, our
+
+
+1073
+00:33:21,176 --> 00:33:22,406
+plane is colored in red.
+
+
+1074
+00:33:23,596 --> 00:33:25,266
+Size appears on the plane.
+
+
+1075
+00:33:25,786 --> 00:33:28,576
+Next, we can take a look at all
+
+
+1076
+00:33:28,576 --> 00:33:30,286
+of the details.
+
+
+1077
+00:33:32,436 --> 00:33:35,146
+Firstly, we have list downloads.
+
+
+1078
+00:33:36,066 --> 00:33:38,096
+This is just a list of all the
+
+
+1079
+00:33:38,096 --> 00:33:38,976
+downloads that happened.
+
+
+1080
+00:33:39,636 --> 00:33:42,346
+We can choose our aggregation,
+
+
+1081
+00:33:42,866 --> 00:33:46,746
+which divides all of the
+
+
+1082
+00:33:46,746 --> 00:33:48,236
+downloads by image name.
+
+
+1083
+00:33:48,616 --> 00:33:49,926
+You can see that it on top we
+
+
+1084
+00:33:49,926 --> 00:33:51,856
+downloaded 12 images.
+
+
+1085
+00:33:52,156 --> 00:33:55,886
+And image for location seven was
+
+
+1086
+00:33:55,886 --> 00:33:59,436
+downloaded two times.
+
+
+1087
+00:33:59,616 --> 00:34:00,876
+Next, we can take a look at
+
+
+1088
+00:34:00,876 --> 00:34:02,676
+active requests.
+
+
+1089
+00:34:03,296 --> 00:34:05,166
+Here, you can see that when I'm
+
+
+1090
+00:34:05,166 --> 00:34:07,386
+grabbing my inspection head,
+
+
+1091
+00:34:09,356 --> 00:34:12,786
+data in detail view changes.
+
+
+1092
+00:34:13,646 --> 00:34:15,835
+We can track multiple active
+
+
+1093
+00:34:15,876 --> 00:34:17,505
+requests and see what was the
+
+
+1094
+00:34:17,505 --> 00:34:19,106
+duration at the time of current
+
+
+1095
+00:34:19,106 --> 00:34:20,426
+inspection head.
+
+
+1096
+00:34:21,896 --> 00:34:23,976
+If you would like to take a look
+
+
+1097
+00:34:23,976 --> 00:34:25,286
+at your data from different
+
+
+1098
+00:34:25,536 --> 00:34:26,545
+perspective, you would like to
+
+
+1099
+00:34:26,545 --> 00:34:28,226
+take a look at your stores and
+
+
+1100
+00:34:28,226 --> 00:34:31,056
+modelers, we give you this by
+
+
+1101
+00:34:31,056 --> 00:34:32,606
+using the Instrument inspector.
+
+
+1102
+00:34:33,576 --> 00:34:34,976
+This is a way to debug your
+
+
+1103
+00:34:34,976 --> 00:34:36,076
+custom instruments.
+
+
+1104
+00:34:36,716 --> 00:34:38,396
+Here, you can see that I
+
+
+1105
+00:34:38,396 --> 00:34:41,646
+selected Stores step and I see
+
+
+1106
+00:34:41,976 --> 00:34:43,416
+store for os signpost being
+
+
+1107
+00:34:43,456 --> 00:34:43,876
+created.
+
+
+1108
+00:34:44,556 --> 00:34:46,916
+It looks at networking category
+
+
+1109
+00:34:47,335 --> 00:34:48,956
+and com apple trailblazer
+
+
+1110
+00:34:48,956 --> 00:34:51,846
+subsystem and we gather 24 rows
+
+
+1111
+00:34:51,985 --> 00:34:52,216
+here.
+
+
+1112
+00:34:53,235 --> 00:34:55,376
+Then, we can see our created
+
+
+1113
+00:34:55,466 --> 00:34:57,216
+table image download, which has
+
+
+1114
+00:34:57,366 --> 00:34:57,896
+12 rows.
+
+
+1115
+00:35:02,156 --> 00:35:04,326
+In bottom area, you see whole
+
+
+1116
+00:35:04,326 --> 00:35:04,976
+content of this table.
+
+
+1117
+00:35:07,396 --> 00:35:09,146
+Next, we can jump to modelers
+
+
+1118
+00:35:09,546 --> 00:35:10,706
+and we can see that we have
+
+
+1119
+00:35:10,806 --> 00:35:12,576
+auto-generated os log modeler
+
+
+1120
+00:35:12,716 --> 00:35:12,936
+here.
+
+
+1121
+00:35:13,456 --> 00:35:16,606
+It took 24 rows and outputted 12
+
+
+1122
+00:35:16,676 --> 00:35:16,916
+rows.
+
+
+1123
+00:35:18,346 --> 00:35:19,636
+On the right, you can see
+
+
+1124
+00:35:19,636 --> 00:35:20,756
+binding solution here.
+
+
+1125
+00:35:21,546 --> 00:35:23,826
+So our generated os log modeler
+
+
+1126
+00:35:24,206 --> 00:35:26,026
+took data from os signpost table
+
+
+1127
+00:35:26,026 --> 00:35:27,826
+and put it into image download
+
+
+1128
+00:35:27,866 --> 00:35:28,216
+table.
+
+
+1129
+00:35:29,386 --> 00:35:31,296
+Then it was consumed by our
+
+
+1130
+00:35:31,296 --> 00:35:31,886
+instrument.
+
+
+1131
+00:35:32,446 --> 00:35:35,766
+So that's how you capture your
+
+
+1132
+00:35:35,766 --> 00:35:37,966
+os signpost invocations, create
+
+
+1133
+00:35:38,036 --> 00:35:40,366
+UI, and look at your data using
+
+
+1134
+00:35:40,366 --> 00:35:41,376
+Instrument inspector.
+
+
+1135
+00:35:42,036 --> 00:35:43,866
+Now let's go back to Chad who
+
+
+1136
+00:35:43,916 --> 00:35:44,846
+will tell you more about
+
+
+1137
+00:35:44,846 --> 00:35:45,836
+advanced modeling.
+
+
+1138
+00:35:46,516 --> 00:35:50,500
+[ Applause ]
+
+
+1139
+00:35:54,716 --> 00:35:55,056
+>> Alright.
+
+
+1140
+00:35:55,326 --> 00:35:56,006
+Thank you, Kacper.
+
+
+1141
+00:35:57,646 --> 00:35:59,366
+Okay, so now we've seen how you
+
+
+1142
+00:35:59,366 --> 00:36:01,686
+can combine os signpost data
+
+
+1143
+00:36:01,746 --> 00:36:03,396
+with custom instruments.
+
+
+1144
+00:36:03,776 --> 00:36:04,806
+And we think that you'll be able
+
+
+1145
+00:36:04,806 --> 00:36:07,566
+to take this, I think you'll be
+
+
+1146
+00:36:07,566 --> 00:36:08,666
+able to take these two, this
+
+
+1147
+00:36:08,666 --> 00:36:10,106
+combination pretty far.
+
+
+1148
+00:36:10,886 --> 00:36:13,846
+Now, we can talk about some of
+
+
+1149
+00:36:13,846 --> 00:36:15,026
+the advanced topics,
+
+
+1150
+00:36:15,056 --> 00:36:16,546
+specifically how you create and
+
+
+1151
+00:36:16,546 --> 00:36:18,286
+define modelers.
+
+
+1152
+00:36:19,366 --> 00:36:20,466
+Now a modeler conceptually is
+
+
+1153
+00:36:20,466 --> 00:36:21,296
+very simple machine.
+
+
+1154
+00:36:21,296 --> 00:36:23,156
+It takes a series of inputs.
+
+
+1155
+00:36:23,266 --> 00:36:24,256
+It does some reasoning over
+
+
+1156
+00:36:24,256 --> 00:36:25,806
+those inputs and produces
+
+
+1157
+00:36:25,806 --> 00:36:26,376
+outputs.
+
+
+1158
+00:36:27,326 --> 00:36:28,506
+The inputs of the modelers are
+
+
+1159
+00:36:28,506 --> 00:36:30,246
+always perfectly time ordered
+
+
+1160
+00:36:30,736 --> 00:36:32,116
+and so if you request several
+
+
+1161
+00:36:32,116 --> 00:36:33,506
+different input tables, those
+
+
+1162
+00:36:33,506 --> 00:36:34,756
+tables are first time ordered
+
+
+1163
+00:36:34,756 --> 00:36:36,246
+and then merged into a
+
+
+1164
+00:36:36,246 --> 00:36:38,646
+time-ordered queue, which feeds
+
+
+1165
+00:36:38,646 --> 00:36:39,406
+the working memory.
+
+
+1166
+00:36:39,916 --> 00:36:41,356
+So as we pull these events off
+
+
+1167
+00:36:41,356 --> 00:36:42,476
+one by one, they're entered into
+
+
+1168
+00:36:42,536 --> 00:36:43,776
+what's called the working memory
+
+
+1169
+00:36:43,776 --> 00:36:44,356
+of the modeler.
+
+
+1170
+00:36:45,236 --> 00:36:47,886
+And as the modeler sees the
+
+
+1171
+00:36:47,886 --> 00:36:49,306
+evolution of this working
+
+
+1172
+00:36:49,306 --> 00:36:51,006
+memory, it can draw inference.
+
+
+1173
+00:36:51,226 --> 00:36:52,766
+And when it sees a pattern that
+
+
+1174
+00:36:52,766 --> 00:36:54,086
+it wants to produce an output
+
+
+1175
+00:36:54,086 --> 00:36:56,206
+for, it simply writes it to its
+
+
+1176
+00:36:56,206 --> 00:36:57,406
+outbound output tables.
+
+
+1177
+00:36:58,166 --> 00:37:00,256
+Let's walk over like a really
+
+
+1178
+00:37:00,406 --> 00:37:01,766
+kind of playful example of how
+
+
+1179
+00:37:01,766 --> 00:37:03,336
+you might use a modeler.
+
+
+1180
+00:37:03,606 --> 00:37:05,966
+So let's say you define a schema
+
+
+1181
+00:37:06,106 --> 00:37:07,406
+called playing with matches,
+
+
+1182
+00:37:07,636 --> 00:37:07,906
+right.
+
+
+1183
+00:37:08,006 --> 00:37:10,166
+This is an os signpost interval
+
+
+1184
+00:37:10,166 --> 00:37:12,666
+schema and it's for an os
+
+
+1185
+00:37:12,876 --> 00:37:14,156
+signpost that you've defined
+
+
+1186
+00:37:14,156 --> 00:37:15,036
+where you're going to do some
+
+
+1187
+00:37:15,036 --> 00:37:16,816
+sort of dangerous operation in
+
+
+1188
+00:37:16,816 --> 00:37:17,226
+your code.
+
+
+1189
+00:37:17,726 --> 00:37:19,996
+And we define another schema
+
+
+1190
+00:37:20,156 --> 00:37:21,766
+called app on fire, right.
+
+
+1191
+00:37:22,186 --> 00:37:23,916
+It's also a signpost schema but
+
+
+1192
+00:37:24,066 --> 00:37:25,206
+these signposts mean that the
+
+
+1193
+00:37:25,206 --> 00:37:27,386
+application has entered into a
+
+
+1194
+00:37:27,386 --> 00:37:28,986
+bad state and we really want to
+
+
+1195
+00:37:28,986 --> 00:37:29,396
+know why.
+
+
+1196
+00:37:30,406 --> 00:37:31,816
+So you create an output schema,
+
+
+1197
+00:37:31,816 --> 00:37:33,306
+which is a point schema, that's
+
+
+1198
+00:37:33,306 --> 00:37:34,426
+going to hold the object that
+
+
+1199
+00:37:34,426 --> 00:37:35,836
+was playing with matches and the
+
+
+1200
+00:37:35,836 --> 00:37:37,476
+time at which the fire started.
+
+
+1201
+00:37:37,956 --> 00:37:38,676
+We are going to call that the
+
+
+1202
+00:37:38,676 --> 00:37:39,796
+started a fire schema.
+
+
+1203
+00:37:39,796 --> 00:37:43,376
+Now the modeler's world looks
+
+
+1204
+00:37:43,476 --> 00:37:44,066
+like this.
+
+
+1205
+00:37:44,226 --> 00:37:46,686
+So we have all of our inputs set
+
+
+1206
+00:37:46,686 --> 00:37:48,486
+up in time order ready to go and
+
+
+1207
+00:37:48,486 --> 00:37:51,096
+this dashed line on the left is
+
+
+1208
+00:37:51,096 --> 00:37:52,436
+what's called the modeler's
+
+
+1209
+00:37:52,536 --> 00:37:53,126
+clock.
+
+
+1210
+00:37:54,136 --> 00:37:55,976
+Now when we grab the first input
+
+
+1211
+00:37:55,976 --> 00:37:57,206
+and we enter that into the
+
+
+1212
+00:37:57,206 --> 00:37:58,636
+working memory, the modeler's
+
+
+1213
+00:37:58,686 --> 00:37:59,686
+clock moves to the start of that
+
+
+1214
+00:37:59,686 --> 00:38:03,076
+interval and then we grab the
+
+
+1215
+00:38:03,076 --> 00:38:04,666
+next input, the modeler's clock
+
+
+1216
+00:38:04,666 --> 00:38:06,036
+again moves to the beginning of
+
+
+1217
+00:38:06,036 --> 00:38:07,226
+that interval and we enter that
+
+
+1218
+00:38:07,226 --> 00:38:08,046
+into the working memory.
+
+
+1219
+00:38:08,836 --> 00:38:10,376
+Now the modeler sees both of
+
+
+1220
+00:38:10,376 --> 00:38:12,656
+these in the working memory and
+
+
+1221
+00:38:12,656 --> 00:38:14,366
+it can see that if playing with
+
+
+1222
+00:38:14,366 --> 00:38:16,256
+matches started before the app
+
+
+1223
+00:38:16,256 --> 00:38:17,336
+is on fire, it doesn't really
+
+
+1224
+00:38:17,336 --> 00:38:18,886
+make much difference, if it's
+
+
+1225
+00:38:19,176 --> 00:38:19,956
+the other way around, it's
+
+
+1226
+00:38:19,956 --> 00:38:22,406
+already on fire, then we can
+
+
+1227
+00:38:22,406 --> 00:38:24,086
+draw a logical conclusion here
+
+
+1228
+00:38:25,396 --> 00:38:27,936
+called the cause of fire and we
+
+
+1229
+00:38:27,936 --> 00:38:29,526
+can enter that into the working
+
+
+1230
+00:38:29,526 --> 00:38:29,846
+memory.
+
+
+1231
+00:38:31,676 --> 00:38:33,456
+Now as we grab this third input,
+
+
+1232
+00:38:33,756 --> 00:38:34,986
+you'll notice that the modeler
+
+
+1233
+00:38:34,986 --> 00:38:36,636
+clock has moved and it no longer
+
+
+1234
+00:38:36,636 --> 00:38:38,396
+intersects with our first two
+
+
+1235
+00:38:38,396 --> 00:38:38,996
+inputs.
+
+
+1236
+00:38:39,516 --> 00:38:41,256
+And so those are removed from
+
+
+1237
+00:38:41,256 --> 00:38:41,956
+the working memory.
+
+
+1238
+00:38:42,766 --> 00:38:44,636
+Now if the cause of fire had
+
+
+1239
+00:38:44,636 --> 00:38:45,886
+what's called logical support,
+
+
+1240
+00:38:46,326 --> 00:38:48,236
+it would also be removed from
+
+
+1241
+00:38:50,256 --> 00:38:50,556
+memory.
+
+
+1242
+00:38:50,856 --> 00:38:52,926
+Now to recap, the clock is
+
+
+1243
+00:38:52,926 --> 00:38:54,336
+always set to the current input
+
+
+1244
+00:38:54,386 --> 00:38:54,926
+timestamp.
+
+
+1245
+00:38:55,556 --> 00:38:57,576
+And for an input to remain in
+
+
+1246
+00:38:57,576 --> 00:38:58,936
+the working memory, it must
+
+
+1247
+00:38:58,936 --> 00:39:01,836
+intersect with the current clock
+
+
+1248
+00:39:01,836 --> 00:39:02,406
+in the modeler.
+
+
+1249
+00:39:02,956 --> 00:39:04,156
+This is what helps us establish
+
+
+1250
+00:39:04,236 --> 00:39:04,876
+coincidence.
+
+
+1251
+00:39:04,876 --> 00:39:06,606
+It allows us to prune out the
+
+
+1252
+00:39:06,606 --> 00:39:08,626
+old data and it also allows us
+
+
+1253
+00:39:08,666 --> 00:39:10,186
+to see if there are inputs that
+
+
+1254
+00:39:10,186 --> 00:39:13,386
+are possibly correlated in time.
+
+
+1255
+00:39:13,916 --> 00:39:15,026
+Now the way that a modeler
+
+
+1256
+00:39:15,156 --> 00:39:16,766
+reasons about its working memory
+
+
+1257
+00:39:17,066 --> 00:39:19,196
+is defined by you through what's
+
+
+1258
+00:39:19,196 --> 00:39:20,426
+called a production system.
+
+
+1259
+00:39:21,496 --> 00:39:23,466
+Production systems work on facts
+
+
+1260
+00:39:23,466 --> 00:39:25,306
+in the working memory and
+
+
+1261
+00:39:25,306 --> 00:39:26,486
+they're defined by rules that
+
+
+1262
+00:39:26,486 --> 00:39:28,176
+have a left-hand side, a
+
+
+1263
+00:39:28,176 --> 00:39:29,706
+production operator, and the
+
+
+1264
+00:39:29,706 --> 00:39:30,346
+right-hand side.
+
+
+1265
+00:39:31,106 --> 00:39:32,896
+The left-hand side is a pattern
+
+
+1266
+00:39:33,306 --> 00:39:35,106
+in working memory that has to
+
+
+1267
+00:39:35,106 --> 00:39:37,336
+occur to activate the rule and
+
+
+1268
+00:39:37,336 --> 00:39:38,976
+the right-hand side are the
+
+
+1269
+00:39:38,976 --> 00:39:40,426
+actions that will happen when
+
+
+1270
+00:39:40,426 --> 00:39:41,576
+that rule fires.
+
+
+1271
+00:39:42,036 --> 00:39:43,306
+Now the actions could include
+
+
+1272
+00:39:43,746 --> 00:39:45,686
+adding a row to an output table
+
+
+1273
+00:39:45,866 --> 00:39:48,476
+or include asserting a new fact
+
+
+1274
+00:39:48,526 --> 00:39:50,896
+into the working memory as the
+
+
+1275
+00:39:50,896 --> 00:39:52,566
+modeling process progresses.
+
+
+1276
+00:39:54,186 --> 00:39:56,826
+So facts come from two sources.
+
+
+1277
+00:39:56,926 --> 00:39:58,046
+One, they're from the table
+
+
+1278
+00:39:58,046 --> 00:39:59,566
+inputs that you saw, so will
+
+
+1279
+00:39:59,566 --> 00:40:01,206
+automatically assert these as
+
+
+1280
+00:40:01,206 --> 00:40:03,336
+facts using the rules that I
+
+
+1281
+00:40:03,336 --> 00:40:04,246
+showed you with the modeling
+
+
+1282
+00:40:04,246 --> 00:40:06,376
+clock, and they can also be
+
+
+1283
+00:40:06,376 --> 00:40:07,846
+produced by assertions from the
+
+
+1284
+00:40:07,846 --> 00:40:09,866
+right-hand side of a production.
+
+
+1285
+00:40:11,066 --> 00:40:12,196
+Now if you're going to create
+
+
+1286
+00:40:12,196 --> 00:40:14,336
+your own facts, Clips allows you
+
+
+1287
+00:40:14,336 --> 00:40:15,316
+to find what's called a fact
+
+
+1288
+00:40:15,426 --> 00:40:16,106
+template, which allows you to
+
+
+1289
+00:40:16,106 --> 00:40:17,196
+provide structure to your fact
+
+
+1290
+00:40:17,196 --> 00:40:17,976
+and do some basic type checking.
+
+
+1291
+00:40:18,046 --> 00:40:21,306
+So let's take a look at some
+
+
+1292
+00:40:21,306 --> 00:40:22,356
+rules in Clips.
+
+
+1293
+00:40:23,226 --> 00:40:24,326
+Our first rule that we're going
+
+
+1294
+00:40:24,326 --> 00:40:25,466
+to look at is called found
+
+
+1295
+00:40:25,466 --> 00:40:25,926
+cause.
+
+
+1296
+00:40:27,306 --> 00:40:30,446
+And what that says is if there
+
+
+1297
+00:40:30,446 --> 00:40:31,806
+is an object who's playing with
+
+
+1298
+00:40:31,806 --> 00:40:35,526
+matches at t1, and the app is on
+
+
+1299
+00:40:35,526 --> 00:40:38,996
+fire at t2, and t1 happened
+
+
+1300
+00:40:39,286 --> 00:40:41,466
+before t2, then on the
+
+
+1301
+00:40:41,466 --> 00:40:42,236
+right-hand side of this
+
+
+1302
+00:40:42,236 --> 00:40:43,756
+production, we can assert a new
+
+
+1303
+00:40:43,756 --> 00:40:46,026
+fact called cause of fire with
+
+
+1304
+00:40:46,076 --> 00:40:47,326
+the object that started the
+
+
+1305
+00:40:47,326 --> 00:40:47,616
+fire.
+
+
+1306
+00:40:48,196 --> 00:40:49,336
+Now that will be entered into
+
+
+1307
+00:40:49,426 --> 00:40:50,096
+the working memory.
+
+
+1308
+00:40:51,136 --> 00:40:53,156
+Now we come down to our second
+
+
+1309
+00:40:53,156 --> 00:40:54,666
+rule, which is called record a
+
+
+1310
+00:40:54,666 --> 00:40:58,296
+cause, if we have an app on fire
+
+
+1311
+00:40:58,296 --> 00:41:00,166
+at some start time and we know
+
+
+1312
+00:41:00,166 --> 00:41:01,796
+the cause of the fire and we
+
+
+1313
+00:41:01,796 --> 00:41:03,536
+have a table that's bound to our
+
+
+1314
+00:41:03,536 --> 00:41:05,876
+append side, that's the output
+
+
+1315
+00:41:05,876 --> 00:41:08,876
+side of the modeler, and that
+
+
+1316
+00:41:08,946 --> 00:41:11,336
+table happens to be the schema
+
+
+1317
+00:41:11,336 --> 00:41:12,926
+that we define called started a
+
+
+1318
+00:41:12,926 --> 00:41:16,776
+fire, then we can create a row
+
+
+1319
+00:41:16,776 --> 00:41:18,126
+in that table and then set the
+
+
+1320
+00:41:18,246 --> 00:41:19,946
+time and who started the fire to
+
+
+1321
+00:41:19,946 --> 00:41:21,276
+the values that we captured up
+
+
+1322
+00:41:21,276 --> 00:41:23,826
+here in the pattern.
+
+
+1323
+00:41:23,906 --> 00:41:25,826
+Now with that, we basically
+
+
+1324
+00:41:25,826 --> 00:41:27,756
+created our very first expert
+
+
+1325
+00:41:27,756 --> 00:41:29,356
+system to look for bad patterns
+
+
+1326
+00:41:29,356 --> 00:41:30,776
+in our application with these
+
+
+1327
+00:41:30,776 --> 00:41:31,406
+two rules.
+
+
+1328
+00:41:32,436 --> 00:41:34,376
+Now you may have noticed that
+
+
+1329
+00:41:34,376 --> 00:41:36,016
+the rules were prepended by
+
+
+1330
+00:41:36,016 --> 00:41:38,396
+either modeler or recorder.
+
+
+1331
+00:41:38,966 --> 00:41:39,546
+Those are what are called
+
+
+1332
+00:41:39,546 --> 00:41:41,606
+modules in Clips and they allow
+
+
+1333
+00:41:41,606 --> 00:41:43,916
+you to both group rules but also
+
+
+1334
+00:41:43,916 --> 00:41:45,426
+control the execution order of
+
+
+1335
+00:41:45,426 --> 00:41:45,956
+the rules.
+
+
+1336
+00:41:46,526 --> 00:41:48,556
+So for example, if you kept all
+
+
+1337
+00:41:48,556 --> 00:41:50,946
+of your output, all of the rules
+
+
+1338
+00:41:50,946 --> 00:41:52,176
+that produced output the output
+
+
+1339
+00:41:52,176 --> 00:41:54,006
+tables in the recorder module,
+
+
+1340
+00:41:55,116 --> 00:41:57,536
+then you can be sure that you
+
+
+1341
+00:41:57,536 --> 00:41:59,896
+won't write an output while
+
+
+1342
+00:41:59,896 --> 00:42:00,456
+you're in the middle of the
+
+
+1343
+00:42:00,456 --> 00:42:01,916
+reasoning process in modeler
+
+
+1344
+00:42:02,246 --> 00:42:03,566
+because all the rules in modeler
+
+
+1345
+00:42:03,566 --> 00:42:05,246
+have to execute before any of
+
+
+1346
+00:42:05,246 --> 00:42:06,966
+the rules in recorder can
+
+
+1347
+00:42:06,966 --> 00:42:07,746
+actually execute.
+
+
+1348
+00:42:08,686 --> 00:42:10,736
+Now I mentioned the term before
+
+
+1349
+00:42:10,736 --> 00:42:12,296
+logical support.
+
+
+1350
+00:42:12,776 --> 00:42:14,556
+What logical support is usually
+
+
+1351
+00:42:14,776 --> 00:42:17,066
+tied to what are called peer
+
+
+1352
+00:42:17,066 --> 00:42:18,586
+inference rules and those are
+
+
+1353
+00:42:18,586 --> 00:42:20,336
+rules that you say, well, if A
+
+
+1354
+00:42:20,336 --> 00:42:21,736
+and B, then C.
+
+
+1355
+00:42:22,156 --> 00:42:23,756
+Right. So by adding logical
+
+
+1356
+00:42:23,756 --> 00:42:25,286
+support to your production, what
+
+
+1357
+00:42:25,286 --> 00:42:29,646
+you're saying is if A and B are
+
+
+1358
+00:42:29,646 --> 00:42:30,786
+no longer present in working
+
+
+1359
+00:42:30,786 --> 00:42:32,126
+memory, then C should
+
+
+1360
+00:42:32,126 --> 00:42:33,606
+automatically be retracted.
+
+
+1361
+00:42:33,656 --> 00:42:35,726
+So what we're saying is C is
+
+
+1362
+00:42:35,726 --> 00:42:37,016
+logically supported by the
+
+
+1363
+00:42:37,016 --> 00:42:38,326
+existence of A and B.
+
+
+1364
+00:42:38,806 --> 00:42:40,346
+Now this is important because it
+
+
+1365
+00:42:40,346 --> 00:42:41,606
+limits working memory bloat
+
+
+1366
+00:42:41,606 --> 00:42:43,156
+which helps with resource
+
+
+1367
+00:42:43,156 --> 00:42:44,436
+consumption but it's also
+
+
+1368
+00:42:44,436 --> 00:42:46,096
+important to remove facts from
+
+
+1369
+00:42:46,096 --> 00:42:47,356
+working memory that are no
+
+
+1370
+00:42:47,356 --> 00:42:48,076
+longer valid.
+
+
+1371
+00:42:48,326 --> 00:42:49,486
+And if A and B are no longer
+
+
+1372
+00:42:49,486 --> 00:42:50,966
+valid, then you should really
+
+
+1373
+00:42:50,966 --> 00:42:51,526
+remove C.
+
+
+1374
+00:42:52,076 --> 00:42:54,596
+So to add logical support to
+
+
+1375
+00:42:54,826 --> 00:42:57,606
+your production, your rule here,
+
+
+1376
+00:42:57,906 --> 00:42:59,826
+you just wrap the pattern with
+
+
+1377
+00:42:59,866 --> 00:43:01,226
+the keyword logical and then
+
+
+1378
+00:43:01,226 --> 00:43:02,146
+anything you assert on the
+
+
+1379
+00:43:02,146 --> 00:43:03,866
+right-hand side of the rule will
+
+
+1380
+00:43:03,866 --> 00:43:05,986
+be automatically retracted when
+
+
+1381
+00:43:05,986 --> 00:43:06,836
+these move forward.
+
+
+1382
+00:43:07,056 --> 00:43:08,566
+And you'll notice these two
+
+
+1383
+00:43:08,816 --> 00:43:10,566
+rules, I'm sorry, these two
+
+
+1384
+00:43:11,146 --> 00:43:12,876
+facts here are the names that
+
+
+1385
+00:43:12,876 --> 00:43:14,326
+come from our schema.
+
+
+1386
+00:43:14,766 --> 00:43:16,446
+So those are inputs and so when
+
+
+1387
+00:43:16,446 --> 00:43:17,176
+the modeler's clock move
+
+
+1388
+00:43:17,176 --> 00:43:18,456
+forward, those will
+
+
+1389
+00:43:18,456 --> 00:43:19,636
+automatically be retracted.
+
+
+1390
+00:43:22,196 --> 00:43:23,626
+Okay, so now we know the basics
+
+
+1391
+00:43:23,626 --> 00:43:25,476
+of how to create a modeler in
+
+
+1392
+00:43:25,476 --> 00:43:27,336
+our package and we've seen some
+
+
+1393
+00:43:27,436 --> 00:43:29,746
+of the Clips language and rules.
+
+
+1394
+00:43:30,186 --> 00:43:32,096
+So let's take a look and see if
+
+
+1395
+00:43:32,096 --> 00:43:34,626
+we can add an expert system to
+
+
+1396
+00:43:34,626 --> 00:43:37,646
+our networking instrument to
+
+
+1397
+00:43:37,646 --> 00:43:39,216
+find bad patterns and potential
+
+
+1398
+00:43:39,426 --> 00:43:41,106
+misuses in our networking layer.
+
+
+1399
+00:43:41,706 --> 00:43:43,286
+And to do that, I'd like to
+
+
+1400
+00:43:43,286 --> 00:43:44,656
+invite Kacper up for one last
+
+
+1401
+00:43:44,656 --> 00:43:44,886
+demo.
+
+
+1402
+00:43:45,516 --> 00:43:50,500
+[ Applause ]
+
+
+1403
+00:43:55,016 --> 00:43:56,486
+>> So now with the existing
+
+
+1404
+00:43:56,526 --> 00:43:58,176
+logging, I will try to write
+
+
+1405
+00:43:58,246 --> 00:43:59,796
+modeler to detect some
+
+
+1406
+00:43:59,796 --> 00:44:00,956
+anti-patterns in our app
+
+
+1407
+00:44:00,956 --> 00:44:01,976
+networking behavior.
+
+
+1408
+00:44:02,756 --> 00:44:03,656
+I was playing with my
+
+
+1409
+00:44:03,656 --> 00:44:05,646
+Trailblazer app and it seemed
+
+
+1410
+00:44:05,646 --> 00:44:07,086
+that if I'm scrolling pretty
+
+
+1411
+00:44:07,136 --> 00:44:08,746
+fast, there are some glitches
+
+
+1412
+00:44:08,746 --> 00:44:09,476
+visible here.
+
+
+1413
+00:44:09,906 --> 00:44:11,886
+So image is replaced multiple
+
+
+1414
+00:44:11,886 --> 00:44:14,516
+times, so I suspect that our
+
+
+1415
+00:44:14,516 --> 00:44:15,906
+cancel doesn't really work.
+
+
+1416
+00:44:17,366 --> 00:44:18,846
+I would like to write modeler
+
+
+1417
+00:44:18,916 --> 00:44:19,736
+that detects that.
+
+
+1418
+00:44:21,186 --> 00:44:23,746
+So let's take a look in our
+
+
+1419
+00:44:23,746 --> 00:44:24,736
+package definition.
+
+
+1420
+00:44:25,246 --> 00:44:27,246
+We will start by writing modeler
+
+
+1421
+00:44:27,466 --> 00:44:27,916
+element.
+
+
+1422
+00:44:28,636 --> 00:44:31,336
+Modeler has identifier, title,
+
+
+1423
+00:44:31,336 --> 00:44:32,366
+and purpose.
+
+
+1424
+00:44:33,336 --> 00:44:35,316
+These fields will be extracted
+
+
+1425
+00:44:35,316 --> 00:44:36,406
+to your documentation.
+
+
+1426
+00:44:37,536 --> 00:44:39,366
+We specify production system
+
+
+1427
+00:44:39,366 --> 00:44:41,576
+path which contains all of the
+
+
+1428
+00:44:41,576 --> 00:44:42,756
+logic for our modeler.
+
+
+1429
+00:44:45,086 --> 00:44:46,986
+Then, we define output of our
+
+
+1430
+00:44:46,986 --> 00:44:47,466
+modeler.
+
+
+1431
+00:44:48,086 --> 00:44:49,526
+It will be downloader narrative
+
+
+1432
+00:44:49,526 --> 00:44:50,006
+schema.
+
+
+1433
+00:44:50,916 --> 00:44:53,506
+Required input for our modeler
+
+
+1434
+00:44:53,506 --> 00:44:55,646
+will be os signpost table.
+
+
+1435
+00:44:56,556 --> 00:44:58,836
+This table contains begin and
+
+
+1436
+00:44:58,836 --> 00:44:59,686
+end events.
+
+
+1437
+00:45:00,926 --> 00:45:02,076
+Now let's take a look at
+
+
+1438
+00:45:02,526 --> 00:45:03,816
+definition for downloader
+
+
+1439
+00:45:03,816 --> 00:45:04,946
+narrative schema.
+
+
+1440
+00:45:10,896 --> 00:45:13,006
+This is point schema that
+
+
+1441
+00:45:13,046 --> 00:45:15,026
+defines two columns, timestamp
+
+
+1442
+00:45:15,526 --> 00:45:17,216
+which tracks the time of logging
+
+
+1443
+00:45:17,216 --> 00:45:19,046
+that diagnostic message and
+
+
+1444
+00:45:20,176 --> 00:45:22,156
+description that has information
+
+
+1445
+00:45:22,156 --> 00:45:23,666
+about what's gone wrong.
+
+
+1446
+00:45:26,116 --> 00:45:28,346
+Then, we can create this table
+
+
+1447
+00:45:28,676 --> 00:45:30,086
+in our instrument definition.
+
+
+1448
+00:45:30,656 --> 00:45:33,316
+We pass downloader narrative
+
+
+1449
+00:45:33,316 --> 00:45:35,456
+schema ref and unique
+
+
+1450
+00:45:35,456 --> 00:45:36,206
+identifier.
+
+
+1451
+00:45:37,896 --> 00:45:40,006
+Then, we could use it in our
+
+
+1452
+00:45:40,136 --> 00:45:42,206
+narrative element definition.
+
+
+1453
+00:45:44,556 --> 00:45:46,266
+Here, we define narrative.
+
+
+1454
+00:45:46,686 --> 00:45:49,006
+We pass table ref for the table
+
+
+1455
+00:45:49,006 --> 00:45:51,466
+we previously created, define
+
+
+1456
+00:45:51,546 --> 00:45:53,766
+time column, and narrative
+
+
+1457
+00:45:55,616 --> 00:45:55,846
+column.
+
+
+1458
+00:45:55,936 --> 00:45:57,876
+Now we are ready to define logic
+
+
+1459
+00:45:57,876 --> 00:45:58,756
+for our modeler.
+
+
+1460
+00:46:00,256 --> 00:46:01,826
+To do this, I will create file
+
+
+1461
+00:46:01,826 --> 00:46:03,736
+that I previously referenced in
+
+
+1462
+00:46:03,736 --> 00:46:04,766
+modeler definition.
+
+
+1463
+00:46:05,566 --> 00:46:07,256
+To create Clips file, you go to
+
+
+1464
+00:46:07,256 --> 00:46:12,796
+File, New, select macOS
+
+
+1465
+00:46:14,276 --> 00:46:15,786
+platform, Other section, and
+
+
+1466
+00:46:15,786 --> 00:46:16,366
+Clips file.
+
+
+1467
+00:46:19,196 --> 00:46:19,976
+I will fill out the name
+
+
+1468
+00:46:23,976 --> 00:46:27,586
+and create.
+
+
+1469
+00:46:27,966 --> 00:46:30,286
+So algorithm for detecting
+
+
+1470
+00:46:30,286 --> 00:46:31,936
+whether one cell is doing more
+
+
+1471
+00:46:31,936 --> 00:46:33,486
+than one request at a time will
+
+
+1472
+00:46:33,486 --> 00:46:34,256
+be as follows.
+
+
+1473
+00:46:35,046 --> 00:46:37,036
+We'll be tracking every request
+
+
+1474
+00:46:37,036 --> 00:46:38,756
+as a fact in working memory.
+
+
+1475
+00:46:39,196 --> 00:46:40,856
+Firstly, we need to create
+
+
+1476
+00:46:41,046 --> 00:46:42,946
+template for this fact.
+
+
+1477
+00:46:44,376 --> 00:46:47,696
+So every fact will be storing
+
+
+1478
+00:46:47,786 --> 00:46:49,996
+time, caller address, which is
+
+
+1479
+00:46:49,996 --> 00:46:53,236
+cell address, signpost id that
+
+
+1480
+00:46:53,236 --> 00:46:56,286
+we captured, and the image name
+
+
+1481
+00:46:56,286 --> 00:46:57,286
+that we are requesting.
+
+
+1482
+00:46:57,806 --> 00:46:59,346
+We will call this fact started
+
+
+1483
+00:46:59,406 --> 00:46:59,796
+download.
+
+
+1484
+00:47:01,036 --> 00:47:03,296
+Then, you'll write modeler rule
+
+
+1485
+00:47:03,296 --> 00:47:05,066
+that creates this fact in
+
+
+1486
+00:47:05,066 --> 00:47:05,816
+working memory.
+
+
+1487
+00:47:08,576 --> 00:47:11,286
+This rule looks at os signpost
+
+
+1488
+00:47:11,326 --> 00:47:11,676
+table.
+
+
+1489
+00:47:12,536 --> 00:47:15,336
+We specify subsystem, name, and
+
+
+1490
+00:47:15,426 --> 00:47:18,006
+event type begin and we capture
+
+
+1491
+00:47:18,006 --> 00:47:19,336
+all of the information that we
+
+
+1492
+00:47:19,336 --> 00:47:20,306
+want to have.
+
+
+1493
+00:47:21,186 --> 00:47:22,926
+So we capture image name, caller
+
+
+1494
+00:47:22,926 --> 00:47:25,026
+address, time, and signpost
+
+
+1495
+00:47:25,026 --> 00:47:25,586
+identifier.
+
+
+1496
+00:47:25,586 --> 00:47:28,306
+Then, we assert new fact to
+
+
+1497
+00:47:28,436 --> 00:47:28,956
+working memory.
+
+
+1498
+00:47:34,056 --> 00:47:36,676
+To clean it up after download
+
+
+1499
+00:47:36,746 --> 00:47:39,406
+finishes, we need to retract
+
+
+1500
+00:47:39,406 --> 00:47:40,666
+this fact from working memory.
+
+
+1501
+00:47:44,426 --> 00:47:46,066
+Here, we are looking at the same
+
+
+1502
+00:47:46,066 --> 00:47:48,606
+table but we are looking at only
+
+
+1503
+00:47:48,866 --> 00:47:51,736
+event of type end.
+
+
+1504
+00:47:52,866 --> 00:47:54,246
+We capture identifier of the
+
+
+1505
+00:47:54,246 --> 00:47:54,836
+signpost.
+
+
+1506
+00:47:55,756 --> 00:47:57,426
+And here, we are using the fact
+
+
+1507
+00:47:57,846 --> 00:48:00,096
+that signpost begin and end has
+
+
+1508
+00:48:00,136 --> 00:48:01,526
+to have the same identifier.
+
+
+1509
+00:48:02,706 --> 00:48:04,336
+We are looking in working memory
+
+
+1510
+00:48:04,566 --> 00:48:07,296
+for a fact that has a signpost
+
+
+1511
+00:48:07,296 --> 00:48:09,726
+identifier that we captured and
+
+
+1512
+00:48:09,726 --> 00:48:11,346
+retract this fact.
+
+
+1513
+00:48:14,116 --> 00:48:16,286
+Then, we can write our recorder
+
+
+1514
+00:48:16,286 --> 00:48:18,546
+rule that will generate all of
+
+
+1515
+00:48:18,546 --> 00:48:18,976
+the narrative data.
+
+
+1516
+00:48:24,216 --> 00:48:27,106
+This recorder rule looks at all
+
+
+1517
+00:48:27,106 --> 00:48:28,546
+of the started download facts
+
+
+1518
+00:48:28,726 --> 00:48:29,986
+and captures them.
+
+
+1519
+00:48:30,616 --> 00:48:32,136
+We captured time, caller
+
+
+1520
+00:48:32,136 --> 00:48:33,696
+address, and image name.
+
+
+1521
+00:48:34,796 --> 00:48:36,936
+If that's true and there is
+
+
+1522
+00:48:37,606 --> 00:48:39,176
+another started download which
+
+
+1523
+00:48:39,216 --> 00:48:40,996
+has the same caller address, you
+
+
+1524
+00:48:40,996 --> 00:48:42,786
+can notice that variables
+
+
+1525
+00:48:42,786 --> 00:48:44,646
+referenced here are the same and
+
+
+1526
+00:48:45,376 --> 00:48:48,616
+happened before the first fact.
+
+
+1527
+00:48:49,606 --> 00:48:51,136
+We notice that there is some
+
+
+1528
+00:48:51,136 --> 00:48:52,326
+anti-pattern and there is
+
+
+1529
+00:48:52,326 --> 00:48:53,616
+overlap in our request.
+
+
+1530
+00:48:54,716 --> 00:48:56,086
+We can then check whether we
+
+
+1531
+00:48:56,086 --> 00:48:57,346
+have access to downloader
+
+
+1532
+00:48:57,346 --> 00:49:01,386
+narrative schema, create new row
+
+
+1533
+00:49:01,386 --> 00:49:05,766
+in it, set time column to the
+
+
+1534
+00:49:05,856 --> 00:49:08,976
+time of the first fact, and set
+
+
+1535
+00:49:08,976 --> 00:49:10,266
+your narrative description.
+
+
+1536
+00:49:11,036 --> 00:49:13,796
+You'll output some information
+
+
+1537
+00:49:13,796 --> 00:49:15,486
+about the problem so that
+
+
+1538
+00:49:15,846 --> 00:49:19,216
+someone could debug it later.
+
+
+1539
+00:49:19,456 --> 00:49:21,466
+Now I can run Instrument against
+
+
+1540
+00:49:21,466 --> 00:49:21,916
+our app.
+
+
+1541
+00:49:22,636 --> 00:49:24,956
+Let's run it again.
+
+
+1542
+00:49:32,216 --> 00:49:33,946
+Choose Trailblazer Networking in
+
+
+1543
+00:49:33,946 --> 00:49:38,156
+template again, and record.
+
+
+1544
+00:49:38,936 --> 00:49:41,766
+I will try to perform some fast
+
+
+1545
+00:49:41,766 --> 00:49:44,236
+scrolling here and take a look
+
+
+1546
+00:49:44,236 --> 00:49:44,976
+at my narrative table.
+
+
+1547
+00:49:49,636 --> 00:49:51,836
+You can see that narrative table
+
+
+1548
+00:49:51,886 --> 00:49:53,406
+contains lots of diagnostic
+
+
+1549
+00:49:53,406 --> 00:49:55,066
+messages being outputted.
+
+
+1550
+00:49:56,026 --> 00:49:57,706
+So we can see that there are
+
+
+1551
+00:49:57,706 --> 00:49:59,126
+some problems and we can later
+
+
+1552
+00:49:59,126 --> 00:49:59,866
+investigate it.
+
+
+1553
+00:50:00,876 --> 00:50:03,086
+You can see that narrative is
+
+
+1554
+00:50:03,176 --> 00:50:04,186
+interactive detail.
+
+
+1555
+00:50:04,876 --> 00:50:06,526
+You could for example check all
+
+
+1556
+00:50:06,526 --> 00:50:07,746
+of the arguments being passed
+
+
+1557
+00:50:07,876 --> 00:50:09,066
+and you can filter.
+
+
+1558
+00:50:09,496 --> 00:50:11,586
+So we can add this caller
+
+
+1559
+00:50:11,586 --> 00:50:13,826
+address as a detail filter and
+
+
+1560
+00:50:13,826 --> 00:50:15,476
+have this detail filter.
+
+
+1561
+00:50:17,476 --> 00:50:19,386
+Now, let's back to Chad who will
+
+
+1562
+00:50:19,386 --> 00:50:21,146
+tell you more about some best
+
+
+1563
+00:50:21,216 --> 00:50:22,696
+practices when developing
+
+
+1564
+00:50:22,736 --> 00:50:23,446
+instruments.
+
+
+1565
+00:50:24,516 --> 00:50:29,896
+[ Applause ]
+
+
+1566
+00:50:30,396 --> 00:50:30,646
+>> Alright.
+
+
+1567
+00:50:30,646 --> 00:50:31,326
+Thank you, Kacper.
+
+
+1568
+00:50:32,076 --> 00:50:34,616
+So we've seen how we can create
+
+
+1569
+00:50:34,616 --> 00:50:36,546
+some basic expert systems in
+
+
+1570
+00:50:36,546 --> 00:50:37,016
+Instruments.
+
+
+1571
+00:50:37,106 --> 00:50:39,656
+Alright, so let's talk about
+
+
+1572
+00:50:39,826 --> 00:50:42,316
+some best practices that we've
+
+
+1573
+00:50:42,316 --> 00:50:43,156
+learned along the way.
+
+
+1574
+00:50:43,416 --> 00:50:46,796
+And the first one is to write
+
+
+1575
+00:50:46,796 --> 00:50:47,986
+more than one instrument.
+
+
+1576
+00:50:48,236 --> 00:50:49,566
+Now I don't mean get practice
+
+
+1577
+00:50:49,566 --> 00:50:50,286
+writing instruments.
+
+
+1578
+00:50:50,776 --> 00:50:52,146
+What I mean is that if you own
+
+
+1579
+00:50:52,146 --> 00:50:52,926
+an instrument already and you
+
+
+1580
+00:50:52,926 --> 00:50:54,096
+want to add some features to it,
+
+
+1581
+00:50:54,396 --> 00:50:55,486
+sometimes it's really tempting
+
+
+1582
+00:50:55,486 --> 00:50:56,826
+to just add them, add extra
+
+
+1583
+00:50:56,826 --> 00:50:57,826
+graphs or details to your
+
+
+1584
+00:50:57,826 --> 00:50:59,346
+instrument, but you should
+
+
+1585
+00:50:59,346 --> 00:51:00,306
+really be thinking, you know,
+
+
+1586
+00:51:00,306 --> 00:51:01,876
+can this be its own instrument.
+
+
+1587
+00:51:02,226 --> 00:51:03,216
+And the reason for that is if
+
+
+1588
+00:51:03,216 --> 00:51:05,366
+you create finer-grained
+
+
+1589
+00:51:05,726 --> 00:51:07,326
+instruments, you give the users
+
+
+1590
+00:51:07,326 --> 00:51:08,206
+of Instruments a lot more
+
+
+1591
+00:51:08,206 --> 00:51:08,766
+choices.
+
+
+1592
+00:51:09,256 --> 00:51:10,686
+They can drag just the
+
+
+1593
+00:51:10,686 --> 00:51:11,716
+instruments that they want out
+
+
+1594
+00:51:11,716 --> 00:51:13,156
+of the library and that will
+
+
+1595
+00:51:13,156 --> 00:51:14,996
+minimize the recording impact on
+
+
+1596
+00:51:14,996 --> 00:51:15,496
+the target.
+
+
+1597
+00:51:15,876 --> 00:51:17,306
+If you focus on one instrument
+
+
+1598
+00:51:17,306 --> 00:51:18,546
+with lots of features, it's kind
+
+
+1599
+00:51:18,546 --> 00:51:19,416
+of like an all-or-nothing
+
+
+1600
+00:51:19,416 --> 00:51:20,026
+proposal there.
+
+
+1601
+00:51:20,986 --> 00:51:24,616
+Now, if you want to create a
+
+
+1602
+00:51:24,616 --> 00:51:26,066
+combination of instruments that
+
+
+1603
+00:51:26,636 --> 00:51:27,476
+are going to be targeted at a
+
+
+1604
+00:51:27,476 --> 00:51:29,666
+certain problem, you want to see
+
+
+1605
+00:51:29,666 --> 00:51:30,486
+all these instruments used
+
+
+1606
+00:51:30,486 --> 00:51:31,366
+together at the same time,
+
+
+1607
+00:51:31,366 --> 00:51:33,616
+rather, then what you can do is
+
+
+1608
+00:51:33,616 --> 00:51:34,976
+create your own custom template
+
+
+1609
+00:51:35,146 --> 00:51:36,156
+like we did for the networking.
+
+
+1610
+00:51:36,696 --> 00:51:37,896
+And so what you do to get that
+
+
+1611
+00:51:37,896 --> 00:51:39,486
+started on that is create a
+
+
+1612
+00:51:39,486 --> 00:51:40,966
+document, drag the instruments
+
+
+1613
+00:51:40,966 --> 00:51:42,126
+in the way that you want to see
+
+
+1614
+00:51:42,126 --> 00:51:44,116
+them, configure them, go to File
+
+
+1615
+00:51:44,116 --> 00:51:44,926
+and then say, "save as
+
+
+1616
+00:51:44,926 --> 00:51:45,316
+template."
+
+
+1617
+00:51:45,706 --> 00:51:46,696
+And then you can use that
+
+
+1618
+00:51:46,696 --> 00:51:48,656
+template inside your package
+
+
+1619
+00:51:48,836 --> 00:51:50,666
+using the element that Kacper
+
+
+1620
+00:51:50,666 --> 00:51:52,016
+had added to our Networking
+
+
+1621
+00:51:52,216 --> 00:51:52,496
+Template.
+
+
+1622
+00:51:53,226 --> 00:51:54,606
+So writing with more than one
+
+
+1623
+00:51:54,606 --> 00:51:55,836
+instrument is a lot better way
+
+
+1624
+00:51:55,836 --> 00:51:56,486
+to use tool.
+
+
+1625
+00:51:58,046 --> 00:51:59,436
+The second one is immediate mode
+
+
+1626
+00:51:59,436 --> 00:52:00,336
+is hard.
+
+
+1627
+00:52:01,156 --> 00:52:03,256
+Immediate mode refers to the
+
+
+1628
+00:52:03,256 --> 00:52:04,616
+recording mode of Instruments
+
+
+1629
+00:52:04,916 --> 00:52:07,016
+where we're visualizing the data
+
+
+1630
+00:52:07,016 --> 00:52:08,916
+as it's coming in, in near
+
+
+1631
+00:52:08,916 --> 00:52:10,586
+real-time, and the reason it's
+
+
+1632
+00:52:10,586 --> 00:52:12,156
+hard, well there's really two
+
+
+1633
+00:52:12,156 --> 00:52:12,766
+reasons it's hard.
+
+
+1634
+00:52:12,856 --> 00:52:14,246
+The first one is it requires
+
+
+1635
+00:52:14,246 --> 00:52:16,006
+some additional support that as
+
+
+1636
+00:52:16,006 --> 00:52:17,176
+much as we wanted to cover
+
+
+1637
+00:52:17,176 --> 00:52:18,436
+today, we just couldn't.
+
+
+1638
+00:52:18,436 --> 00:52:19,546
+We just didn't have the time.
+
+
+1639
+00:52:19,956 --> 00:52:20,726
+And so we're going to be working
+
+
+1640
+00:52:20,726 --> 00:52:21,936
+on the documentation for that.
+
+
+1641
+00:52:22,426 --> 00:52:24,156
+But the second reason, and this
+
+
+1642
+00:52:24,156 --> 00:52:26,456
+is the more important reason, is
+
+
+1643
+00:52:26,456 --> 00:52:28,606
+that, well it's interval data,
+
+
+1644
+00:52:29,076 --> 00:52:29,296
+right.
+
+
+1645
+00:52:29,296 --> 00:52:31,236
+So intervals can't be entered
+
+
+1646
+00:52:31,236 --> 00:52:32,766
+into the tables in the Analysis
+
+
+1647
+00:52:32,766 --> 00:52:34,406
+Core until they're closed,
+
+
+1648
+00:52:34,406 --> 00:52:35,316
+meaning that we've seen both the
+
+
+1649
+00:52:35,316 --> 00:52:36,346
+begin and the end.
+
+
+1650
+00:52:36,496 --> 00:52:37,576
+And so when you're looking at a
+
+
+1651
+00:52:37,576 --> 00:52:39,386
+recording live, you have a bunch
+
+
+1652
+00:52:39,386 --> 00:52:40,176
+of what are called open
+
+
+1653
+00:52:40,176 --> 00:52:40,696
+intervals.
+
+
+1654
+00:52:40,886 --> 00:52:42,216
+Now if your modelers require
+
+
+1655
+00:52:42,216 --> 00:52:43,506
+these as inputs, which is
+
+
+1656
+00:52:43,586 --> 00:52:45,576
+totally feasible, then what
+
+
+1657
+00:52:45,576 --> 00:52:46,956
+you'll notice is that if there's
+
+
+1658
+00:52:46,956 --> 00:52:48,936
+an open interval upstream, well
+
+
+1659
+00:52:48,936 --> 00:52:50,426
+all of the modeler clocks
+
+
+1660
+00:52:50,426 --> 00:52:52,266
+downstream have to stop until
+
+
+1661
+00:52:52,266 --> 00:52:53,716
+that interval is closed because
+
+
+1662
+00:52:53,716 --> 00:52:55,186
+remember, the modeler's vision
+
+
+1663
+00:52:55,186 --> 00:52:56,986
+is all in time order.
+
+
+1664
+00:52:57,116 --> 00:52:58,796
+So it can't move that clock
+
+
+1665
+00:52:58,796 --> 00:53:00,196
+forward until all those
+
+
+1666
+00:53:00,196 --> 00:53:01,516
+intervals upstream have closed.
+
+
+1667
+00:53:02,076 --> 00:53:03,086
+So if you have some intervals
+
+
+1668
+00:53:03,086 --> 00:53:04,856
+that have a long run, what
+
+
+1669
+00:53:04,856 --> 00:53:06,636
+you'll notice is that the output
+
+
+1670
+00:53:06,636 --> 00:53:08,276
+of your modeler appears to stop.
+
+
+1671
+00:53:08,986 --> 00:53:11,336
+And when the user hits the stop
+
+
+1672
+00:53:11,626 --> 00:53:13,506
+recording button, well then all
+
+
+1673
+00:53:13,556 --> 00:53:14,516
+open intervals close and
+
+
+1674
+00:53:14,516 --> 00:53:15,836
+everything processes as normal
+
+
+1675
+00:53:15,976 --> 00:53:17,136
+and the data fills in.
+
+
+1676
+00:53:17,606 --> 00:53:18,536
+But that's not a great user
+
+
+1677
+00:53:18,536 --> 00:53:19,036
+experience.
+
+
+1678
+00:53:19,416 --> 00:53:21,676
+So if you hit that, you have one
+
+
+1679
+00:53:21,676 --> 00:53:22,396
+of two options.
+
+
+1680
+00:53:22,396 --> 00:53:24,686
+The first one is to opt your
+
+
+1681
+00:53:24,686 --> 00:53:26,066
+instruments out of immediate
+
+
+1682
+00:53:26,066 --> 00:53:27,376
+mode support and you can do that
+
+
+1683
+00:53:27,376 --> 00:53:28,846
+by adding a limitation element
+
+
+1684
+00:53:28,916 --> 00:53:31,396
+to your instrument and the
+
+
+1685
+00:53:31,396 --> 00:53:34,096
+second is to move off the
+
+
+1686
+00:53:34,096 --> 00:53:35,746
+interval data as input to your
+
+
+1687
+00:53:35,746 --> 00:53:38,136
+modeler, just like we did in our
+
+
+1688
+00:53:38,136 --> 00:53:39,246
+demonstration here for our
+
+
+1689
+00:53:39,246 --> 00:53:39,856
+expert system.
+
+
+1690
+00:53:39,856 --> 00:53:41,316
+We were actually using the os
+
+
+1691
+00:53:41,316 --> 00:53:42,746
+signpost point events rather
+
+
+1692
+00:53:42,746 --> 00:53:44,176
+than using the intervals.
+
+
+1693
+00:53:45,316 --> 00:53:47,156
+So I know we make it look easy
+
+
+1694
+00:53:47,326 --> 00:53:49,086
+but immediate mode is a little
+
+
+1695
+00:53:49,086 --> 00:53:50,046
+tricky to implement.
+
+
+1696
+00:53:50,436 --> 00:53:53,386
+And then third, one of the
+
+
+1697
+00:53:53,386 --> 00:53:55,056
+things that's really important
+
+
+1698
+00:53:55,056 --> 00:53:56,256
+if you're creating instruments
+
+
+1699
+00:53:56,256 --> 00:53:57,046
+that are going to be targeting
+
+
+1700
+00:53:57,046 --> 00:53:59,156
+high volumes of input data is
+
+
+1701
+00:53:59,156 --> 00:54:00,646
+that the last five-second
+
+
+1702
+00:54:00,646 --> 00:54:03,466
+recording mode is by far the
+
+
+1703
+00:54:03,466 --> 00:54:04,066
+most efficient.
+
+
+1704
+00:54:04,346 --> 00:54:05,816
+Now the way you switch that is
+
+
+1705
+00:54:05,816 --> 00:54:07,256
+in the recording options of your
+
+
+1706
+00:54:07,256 --> 00:54:08,886
+trace document, you'll see that
+
+
+1707
+00:54:08,886 --> 00:54:09,776
+you have a choice between
+
+
+1708
+00:54:09,776 --> 00:54:11,256
+immediate, deferred, and this
+
+
+1709
+00:54:11,256 --> 00:54:12,676
+last end seconds mode.
+
+
+1710
+00:54:13,246 --> 00:54:14,486
+That is going to be a lot more
+
+
+1711
+00:54:14,486 --> 00:54:16,476
+efficient because what it allows
+
+
+1712
+00:54:16,476 --> 00:54:18,016
+the recording technology to do
+
+
+1713
+00:54:18,296 --> 00:54:19,666
+is use buffering to improve
+
+
+1714
+00:54:19,716 --> 00:54:20,906
+performance so that it's not
+
+
+1715
+00:54:20,906 --> 00:54:21,896
+trying to feed the data to
+
+
+1716
+00:54:21,896 --> 00:54:22,976
+Instruments in real time.
+
+
+1717
+00:54:23,376 --> 00:54:24,586
+Now this can have a profound
+
+
+1718
+00:54:24,586 --> 00:54:26,876
+effect and it can have a huge
+
+
+1719
+00:54:26,876 --> 00:54:28,286
+effect on signpost data where it
+
+
+1720
+00:54:28,286 --> 00:54:29,856
+can be up to ten times faster
+
+
+1721
+00:54:30,096 --> 00:54:31,756
+inside five-second mode.
+
+
+1722
+00:54:32,246 --> 00:54:33,326
+Now of course the trade-off is
+
+
+1723
+00:54:33,466 --> 00:54:34,796
+that you're only seeing the last
+
+
+1724
+00:54:34,796 --> 00:54:37,136
+five seconds of data but for
+
+
+1725
+00:54:37,296 --> 00:54:39,056
+instruments that produce high
+
+
+1726
+00:54:39,056 --> 00:54:40,736
+volumes of data, that's usually
+
+
+1727
+00:54:40,736 --> 00:54:41,276
+a good thing.
+
+
+1728
+00:54:41,446 --> 00:54:43,016
+So this is the common mode for a
+
+
+1729
+00:54:43,016 --> 00:54:45,346
+System Trace and a Metal System
+
+
+1730
+00:54:45,346 --> 00:54:46,486
+Trace and Game Performance
+
+
+1731
+00:54:46,536 --> 00:54:46,916
+template.
+
+
+1732
+00:54:47,176 --> 00:54:48,566
+And if you're targeting one of
+
+
+1733
+00:54:48,566 --> 00:54:50,066
+those kinds of applications, I
+
+
+1734
+00:54:50,066 --> 00:54:51,546
+would also opt your instrument
+
+
+1735
+00:54:51,546 --> 00:54:53,136
+out of supporting immediate mode
+
+
+1736
+00:54:53,476 --> 00:54:54,506
+just so that your user
+
+
+1737
+00:54:54,506 --> 00:54:56,096
+experience is not terrible or
+
+
+1738
+00:54:56,096 --> 00:54:58,086
+Instruments gets way behind on
+
+
+1739
+00:54:58,086 --> 00:54:59,236
+trying to get the data or you
+
+
+1740
+00:54:59,236 --> 00:55:00,286
+run into that problem with the
+
+
+1741
+00:55:00,286 --> 00:55:00,746
+intervals.
+
+
+1742
+00:55:02,926 --> 00:55:04,326
+That is the end of the session.
+
+
+1743
+00:55:04,896 --> 00:55:08,026
+So we did a lot of work here to
+
+
+1744
+00:55:08,026 --> 00:55:09,116
+create the Instruments feature
+
+
+1745
+00:55:09,116 --> 00:55:10,456
+and we're really, really excited
+
+
+1746
+00:55:10,456 --> 00:55:11,386
+that we were able to get it out
+
+
+1747
+00:55:11,386 --> 00:55:12,306
+to you guys this year.
+
+
+1748
+00:55:12,686 --> 00:55:14,636
+And so we can't wait to see what
+
+
+1749
+00:55:14,636 --> 00:55:15,566
+you guys are able to accomplish
+
+
+1750
+00:55:15,566 --> 00:55:15,746
+with it.
+
+
+1751
+00:55:16,146 --> 00:55:17,906
+So if you'd like to see us and
+
+
+1752
+00:55:17,906 --> 00:55:18,926
+talk to us about custom
+
+
+1753
+00:55:18,926 --> 00:55:21,176
+instruments, we have a lab in
+
+
+1754
+00:55:21,566 --> 00:55:23,986
+lab eight today at 3:00 and also
+
+
+1755
+00:55:23,986 --> 00:55:25,916
+Session 405 goes over in detail
+
+
+1756
+00:55:25,916 --> 00:55:27,256
+how to use os signpost API which
+
+
+1757
+00:55:27,256 --> 00:55:28,586
+is a great way to get data into
+
+
+1758
+00:55:28,586 --> 00:55:29,156
+Instruments.
+
+
+1759
+00:55:29,856 --> 00:55:30,606
+So enjoy the rest of the
+
+
+1760
+00:55:30,606 --> 00:55:30,976
+conference.
+
+
+1761
+00:55:31,516 --> 00:55:34,500
+[ Applause ]
+

@@ -1,0 +1,6884 @@
+1
+00:00:08,516 --> 00:00:15,500
+[ Music ]
+
+
+2
+00:00:25,516 --> 00:00:29,596
+[ Applause ]
+
+
+3
+00:00:30,096 --> 00:00:31,336
+>> Hello, and good morning
+
+
+4
+00:00:31,336 --> 00:00:31,906
+everybody.
+
+
+5
+00:00:31,906 --> 00:00:32,896
+I'm glad you could all make it
+
+
+6
+00:00:32,896 --> 00:00:33,536
+out this morning.
+
+
+7
+00:00:34,026 --> 00:00:35,316
+My name is David Owens.
+
+
+8
+00:00:35,446 --> 00:00:37,006
+And I'm an engineer on the Xcode
+
+
+9
+00:00:37,006 --> 00:00:37,346
+team.
+
+
+10
+00:00:37,706 --> 00:00:39,566
+And today, with my colleague
+
+
+11
+00:00:39,566 --> 00:00:41,026
+Jordan Rose, who's an engineer
+
+
+12
+00:00:41,026 --> 00:00:42,556
+on the Swift team, we're going
+
+
+13
+00:00:42,556 --> 00:00:44,406
+to be talking to you about
+
+
+14
+00:00:44,406 --> 00:00:46,136
+building faster in Xcode.
+
+
+15
+00:00:47,056 --> 00:00:48,626
+Now, depending on your projects,
+
+
+16
+00:00:48,686 --> 00:00:49,826
+their configurations, and their
+
+
+17
+00:00:49,826 --> 00:00:51,516
+complexities, there's going to
+
+
+18
+00:00:51,516 --> 00:00:52,106
+be a different set of
+
+
+19
+00:00:52,106 --> 00:00:53,646
+opportunities that you're going
+
+
+20
+00:00:53,646 --> 00:00:55,396
+to be able to take to improve,
+
+
+21
+00:00:55,536 --> 00:00:57,496
+or in some cases, significantly
+
+
+22
+00:00:57,496 --> 00:00:58,936
+improve the way in which your
+
+
+23
+00:00:58,936 --> 00:00:59,736
+builds perform.
+
+
+24
+00:01:00,996 --> 00:01:02,696
+So today, when we talk about
+
+
+25
+00:01:02,696 --> 00:01:04,036
+building faster in Xcode, we're
+
+
+26
+00:01:04,646 --> 00:01:05,856
+going to be looking at it in two
+
+
+27
+00:01:05,856 --> 00:01:06,786
+different perspectives.
+
+
+28
+00:01:07,356 --> 00:01:10,166
+The first is going to be around
+
+
+29
+00:01:10,166 --> 00:01:12,056
+increasing your overall build
+
+
+30
+00:01:12,056 --> 00:01:12,636
+efficiency.
+
+
+31
+00:01:12,636 --> 00:01:15,356
+And the second, it'll be about
+
+
+32
+00:01:15,356 --> 00:01:16,696
+reducing the amount of work that
+
+
+33
+00:01:16,696 --> 00:01:18,306
+you do on your builds, and
+
+
+34
+00:01:18,306 --> 00:01:19,656
+especially your incremental
+
+
+35
+00:01:19,656 --> 00:01:20,116
+builds.
+
+
+36
+00:01:21,756 --> 00:01:22,966
+Now, I'm going to be walking you
+
+
+37
+00:01:22,966 --> 00:01:23,556
+through some of the
+
+
+38
+00:01:23,556 --> 00:01:25,326
+project-level items, including
+
+
+39
+00:01:25,326 --> 00:01:26,626
+how to parallelize your build
+
+
+40
+00:01:26,696 --> 00:01:27,296
+process.
+
+
+41
+00:01:27,846 --> 00:01:29,146
+How to declare and configure
+
+
+42
+00:01:29,146 --> 00:01:30,506
+your run script phases.
+
+
+43
+00:01:31,256 --> 00:01:32,306
+And I'll be walking you through
+
+
+44
+00:01:32,606 --> 00:01:34,266
+some new functionality in Xcode
+
+
+45
+00:01:34,266 --> 00:01:34,596
+10
+
+
+46
+00:01:34,916 --> 00:01:36,016
+around measuring your build
+
+
+47
+00:01:38,256 --> 00:01:38,386
+times.
+
+
+48
+00:01:38,566 --> 00:01:39,446
+Now, Jordan is going to be
+
+
+49
+00:01:39,446 --> 00:01:40,556
+walking us through some of the
+
+
+50
+00:01:40,626 --> 00:01:41,716
+source-level improvements that
+
+
+51
+00:01:41,716 --> 00:01:43,056
+we can make to our projects,
+
+
+52
+00:01:43,516 --> 00:01:44,636
+including understanding our
+
+
+53
+00:01:44,636 --> 00:01:45,756
+dependence using Swift.
+
+
+54
+00:01:46,486 --> 00:01:47,926
+Dealing with complex expressions
+
+
+55
+00:01:47,926 --> 00:01:48,486
+in Swift.
+
+
+56
+00:01:49,436 --> 00:01:50,416
+And how to limit your
+
+
+57
+00:01:50,416 --> 00:01:52,436
+Objective-C to Swift interfaces.
+
+
+58
+00:01:54,016 --> 00:01:55,126
+So let's talk about
+
+
+59
+00:01:55,126 --> 00:01:56,056
+parallelizing your build.
+
+
+60
+00:01:56,676 --> 00:01:58,816
+Now, Xcode configures your
+
+
+61
+00:01:58,816 --> 00:02:00,086
+projects through the use of
+
+
+62
+00:02:00,086 --> 00:02:00,736
+targets.
+
+
+63
+00:02:01,606 --> 00:02:04,016
+And targets specify the output
+
+
+64
+00:02:04,016 --> 00:02:04,976
+or the product that you would
+
+
+65
+00:02:04,976 --> 00:02:05,566
+like to build.
+
+
+66
+00:02:06,226 --> 00:02:07,916
+Some examples are iOS app,
+
+
+67
+00:02:08,756 --> 00:02:10,545
+framework, and unit tests.
+
+
+68
+00:02:11,276 --> 00:02:12,776
+Now, there's another piece of
+
+
+69
+00:02:12,776 --> 00:02:13,846
+information, that's the
+
+
+70
+00:02:13,846 --> 00:02:15,046
+dependency between these
+
+
+71
+00:02:15,046 --> 00:02:15,696
+targets.
+
+
+72
+00:02:16,226 --> 00:02:17,886
+And Xcode provides us two ways
+
+
+73
+00:02:18,326 --> 00:02:19,526
+to define our dependencies.
+
+
+74
+00:02:19,816 --> 00:02:21,556
+There's an explicit means, which
+
+
+75
+00:02:21,556 --> 00:02:22,396
+we do through the target
+
+
+76
+00:02:22,396 --> 00:02:23,436
+dependencies phase.
+
+
+77
+00:02:24,046 --> 00:02:25,276
+And there's an implicit means,
+
+
+78
+00:02:25,336 --> 00:02:26,586
+which is primarily done through
+
+
+79
+00:02:26,586 --> 00:02:28,116
+the linked binary with libraries
+
+
+80
+00:02:28,116 --> 00:02:28,526
+phase.
+
+
+81
+00:02:28,926 --> 00:02:29,806
+And we'll be taking a look at
+
+
+82
+00:02:29,806 --> 00:02:32,026
+those more in depth in just a
+
+
+83
+00:02:32,026 --> 00:02:32,696
+few moments.
+
+
+84
+00:02:33,426 --> 00:02:34,546
+Now, throughout this section I
+
+
+85
+00:02:34,546 --> 00:02:35,956
+want to use a sample project to
+
+
+86
+00:02:35,956 --> 00:02:36,996
+ground our discussion.
+
+
+87
+00:02:37,686 --> 00:02:38,656
+And so we're going to take a
+
+
+88
+00:02:38,656 --> 00:02:40,006
+look at a dependency graph for
+
+
+89
+00:02:40,006 --> 00:02:40,686
+that project.
+
+
+90
+00:02:41,706 --> 00:02:43,736
+Now, a dependency graph is
+
+
+91
+00:02:43,796 --> 00:02:45,416
+simply a listing of all of the
+
+
+92
+00:02:45,416 --> 00:02:46,006
+targets.
+
+
+93
+00:02:46,146 --> 00:02:47,206
+And this case we're going to
+
+
+94
+00:02:47,206 --> 00:02:48,236
+have five targets that we're
+
+
+95
+00:02:48,236 --> 00:02:48,896
+going to be building.
+
+
+96
+00:02:50,226 --> 00:02:51,336
+And it has that dependency
+
+
+97
+00:02:51,336 --> 00:02:52,906
+information between those
+
+
+98
+00:02:52,906 --> 00:02:53,466
+targets.
+
+
+99
+00:02:54,376 --> 00:02:55,966
+And based on these two pieces of
+
+
+100
+00:02:55,966 --> 00:02:58,696
+information Xcode can derive our
+
+
+101
+00:02:58,696 --> 00:02:59,226
+build order.
+
+
+102
+00:02:59,226 --> 00:03:01,696
+Now, let's take a look at what
+
+
+103
+00:03:01,696 --> 00:03:02,966
+this looks like on a timeline
+
+
+104
+00:03:02,966 --> 00:03:03,246
+graph.
+
+
+105
+00:03:03,306 --> 00:03:08,086
+So as we can see, each of these
+
+
+106
+00:03:08,086 --> 00:03:09,486
+targets are building in in
+
+
+107
+00:03:09,486 --> 00:03:10,876
+order, sequentially.
+
+
+108
+00:03:11,396 --> 00:03:12,796
+And they each have to wait until
+
+
+109
+00:03:12,796 --> 00:03:13,946
+the previous target is done
+
+
+110
+00:03:13,946 --> 00:03:14,386
+building.
+
+
+111
+00:03:14,786 --> 00:03:16,366
+Now, there's nothing wrong with
+
+
+112
+00:03:16,366 --> 00:03:17,946
+this build timeline, per se.
+
+
+113
+00:03:18,356 --> 00:03:20,436
+But it does represent a waste of
+
+
+114
+00:03:20,436 --> 00:03:22,026
+potential hardware utilization,
+
+
+115
+00:03:22,376 --> 00:03:23,146
+especially if you have a
+
+
+116
+00:03:23,146 --> 00:03:24,326
+multi-core or a mini-core
+
+
+117
+00:03:24,326 --> 00:03:25,846
+machine like an iMac Pro.
+
+
+118
+00:03:26,726 --> 00:03:28,356
+And what that means to you is a
+
+
+119
+00:03:28,356 --> 00:03:29,616
+waste of time as a developer.
+
+
+120
+00:03:30,346 --> 00:03:32,416
+So instead, we want to move to
+
+
+121
+00:03:32,416 --> 00:03:34,466
+something that looks more like
+
+
+122
+00:03:37,476 --> 00:03:37,576
+this.
+
+
+123
+00:03:37,786 --> 00:03:38,846
+Now, there's a couple things --
+
+
+124
+00:03:38,846 --> 00:03:39,876
+or a few things I want to note
+
+
+125
+00:03:39,876 --> 00:03:40,456
+about this.
+
+
+126
+00:03:40,926 --> 00:03:42,726
+First, the amount of work that
+
+
+127
+00:03:42,726 --> 00:03:43,936
+we actually did in building our
+
+
+128
+00:03:43,936 --> 00:03:45,286
+project, it did not change.
+
+
+129
+00:03:46,696 --> 00:03:48,806
+However, the time to build did
+
+
+130
+00:03:48,806 --> 00:03:49,456
+decrease.
+
+
+131
+00:03:50,126 --> 00:03:51,396
+And in this case, it actually
+
+
+132
+00:03:51,396 --> 00:03:52,426
+decreased by a fairly
+
+
+133
+00:03:52,426 --> 00:03:53,486
+significant margin.
+
+
+134
+00:03:53,946 --> 00:03:56,196
+And we were able to decrease our
+
+
+135
+00:03:56,196 --> 00:03:57,666
+build time by making better
+
+
+136
+00:03:57,726 --> 00:03:59,466
+utilization of the hardware that
+
+
+137
+00:03:59,466 --> 00:04:02,736
+we have available to us.
+
+
+138
+00:04:02,946 --> 00:04:04,736
+So, if parallelization -- or
+
+
+139
+00:04:04,736 --> 00:04:07,366
+parallelization is such a good
+
+
+140
+00:04:07,366 --> 00:04:09,036
+thing, why don't we just create
+
+
+141
+00:04:09,036 --> 00:04:10,126
+a build graph that looks like
+
+
+142
+00:04:10,126 --> 00:04:10,326
+this?
+
+
+143
+00:04:10,536 --> 00:04:11,796
+We just build everything at once
+
+
+144
+00:04:11,796 --> 00:04:13,016
+up front in our build timeline.
+
+
+145
+00:04:14,156 --> 00:04:16,276
+Well, in the best case, you're
+
+
+146
+00:04:16,276 --> 00:04:17,516
+going to deterministic build
+
+
+147
+00:04:17,856 --> 00:04:18,875
+errors.
+
+
+148
+00:04:19,096 --> 00:04:20,596
+And this because that dependency
+
+
+149
+00:04:20,596 --> 00:04:22,076
+information is actually a vital
+
+
+150
+00:04:22,076 --> 00:04:23,326
+part of your project
+
+
+151
+00:04:23,326 --> 00:04:24,136
+configuration.
+
+
+152
+00:04:24,796 --> 00:04:25,916
+And when it's set up like this,
+
+
+153
+00:04:26,636 --> 00:04:28,306
+you're trying to build, for
+
+
+154
+00:04:28,306 --> 00:04:29,956
+example, your game target before
+
+
+155
+00:04:29,956 --> 00:04:31,196
+you've built your dependencies.
+
+
+156
+00:04:31,456 --> 00:04:32,526
+So, this is not a good state to
+
+
+157
+00:04:32,526 --> 00:04:32,816
+be in.
+
+
+158
+00:04:34,176 --> 00:04:35,216
+So, how do we get there?
+
+
+159
+00:04:35,876 --> 00:04:37,906
+How do we get from the long,
+
+
+160
+00:04:37,906 --> 00:04:39,896
+serialized build timeline to the
+
+
+161
+00:04:39,896 --> 00:04:43,486
+better parallelized build time?
+
+
+162
+00:04:44,356 --> 00:04:45,586
+Well first, we need to make sure
+
+
+163
+00:04:45,586 --> 00:04:48,206
+that Xcode is actually set up
+
+
+164
+00:04:48,206 --> 00:04:49,446
+and configured to allow our
+
+
+165
+00:04:49,446 --> 00:04:51,076
+targets to be built in parallel.
+
+
+166
+00:04:51,126 --> 00:04:52,516
+And we do that through the
+
+
+167
+00:04:52,516 --> 00:04:53,056
+Scheme Editor.
+
+
+168
+00:04:53,796 --> 00:04:54,876
+You can get to the Scheme Editor
+
+
+169
+00:04:54,876 --> 00:04:56,226
+by opening the Scheme Chooser
+
+
+170
+00:04:57,176 --> 00:04:58,366
+and selecting Edit Scheme.
+
+
+171
+00:04:58,836 --> 00:05:00,696
+And specifically, you'll need to
+
+
+172
+00:05:00,696 --> 00:05:01,826
+look at the Build Action.
+
+
+173
+00:05:02,936 --> 00:05:05,046
+And in there, the Build Options.
+
+
+174
+00:05:05,366 --> 00:05:06,866
+Now, there are two listed here.
+
+
+175
+00:05:07,196 --> 00:05:08,866
+The first is Parallelize Build.
+
+
+176
+00:05:08,986 --> 00:05:10,916
+And the second is Find Implicit
+
+
+177
+00:05:10,916 --> 00:05:11,656
+Dependencies.
+
+
+178
+00:05:12,426 --> 00:05:13,856
+You'll want to check Parallelize
+
+
+179
+00:05:13,926 --> 00:05:14,146
+Build.
+
+
+180
+00:05:14,706 --> 00:05:16,176
+This will allow Xcode to use the
+
+
+181
+00:05:16,176 --> 00:05:17,656
+dependency information across
+
+
+182
+00:05:17,656 --> 00:05:19,296
+your targets so that it can
+
+
+183
+00:05:19,296 --> 00:05:20,846
+attempt to build your targets in
+
+
+184
+00:05:20,846 --> 00:05:21,376
+parallel.
+
+
+185
+00:05:21,956 --> 00:05:24,646
+So let's look at how your
+
+
+186
+00:05:24,936 --> 00:05:25,996
+dependencies are actually
+
+
+187
+00:05:25,996 --> 00:05:27,116
+configured within Xcode.
+
+
+188
+00:05:28,286 --> 00:05:29,406
+This is done through the Build
+
+
+189
+00:05:29,406 --> 00:05:30,036
+Phase Editor.
+
+
+190
+00:05:30,586 --> 00:05:31,496
+And you can get to the Build
+
+
+191
+00:05:31,496 --> 00:05:33,616
+Phase Editor by going to your
+
+
+192
+00:05:33,616 --> 00:05:35,566
+Project Navigator and selecting
+
+
+193
+00:05:35,566 --> 00:05:36,116
+your project.
+
+
+194
+00:05:36,636 --> 00:05:37,806
+In this case we're looking at
+
+
+195
+00:05:37,806 --> 00:05:39,556
+the Game Target -- or the Game
+
+
+196
+00:05:39,556 --> 00:05:39,916
+Project.
+
+
+197
+00:05:40,326 --> 00:05:43,296
+Next, you want to click on Build
+
+
+198
+00:05:43,296 --> 00:05:43,816
+Phases.
+
+
+199
+00:05:44,916 --> 00:05:46,036
+So, let's take a look at the
+
+
+200
+00:05:46,036 --> 00:05:46,626
+Game Target.
+
+
+201
+00:05:46,866 --> 00:05:47,946
+This is the Build Phase Editor
+
+
+202
+00:05:47,946 --> 00:05:48,806
+for our Game Target.
+
+
+203
+00:05:48,886 --> 00:05:50,156
+And we're going to look at how
+
+
+204
+00:05:50,156 --> 00:05:51,536
+its dependencies are configured.
+
+
+205
+00:05:52,056 --> 00:05:52,826
+And I want to call your
+
+
+206
+00:05:52,826 --> 00:05:54,916
+attention first to the Link
+
+
+207
+00:05:55,186 --> 00:05:57,166
+Binary with Libraries phase.
+
+
+208
+00:05:57,836 --> 00:05:59,446
+Now, this is the phase of your
+
+
+209
+00:05:59,446 --> 00:06:00,746
+build process where you define
+
+
+210
+00:06:00,746 --> 00:06:01,866
+all of the items that you would
+
+
+211
+00:06:01,916 --> 00:06:03,566
+like to link with your target.
+
+
+212
+00:06:04,676 --> 00:06:06,046
+In this case I have two items.
+
+
+213
+00:06:06,046 --> 00:06:08,346
+I have Physics and Utilities.
+
+
+214
+00:06:08,716 --> 00:06:11,526
+Now, these are targets within
+
+
+215
+00:06:11,526 --> 00:06:12,856
+our project and our workspace.
+
+
+216
+00:06:13,086 --> 00:06:14,696
+So Xcode can create an implicit
+
+
+217
+00:06:14,696 --> 00:06:16,716
+dependency on those targets.
+
+
+218
+00:06:17,766 --> 00:06:19,356
+If you're using other linking
+
+
+219
+00:06:19,356 --> 00:06:22,156
+features such as Autolink or the
+
+
+220
+00:06:22,216 --> 00:06:23,756
+other LD Build Flags build
+
+
+221
+00:06:23,786 --> 00:06:25,416
+setting, those are not going to
+
+
+222
+00:06:25,416 --> 00:06:27,256
+be made available to you here
+
+
+223
+00:06:27,256 --> 00:06:27,846
+implicitly.
+
+
+224
+00:06:28,166 --> 00:06:29,236
+So you either have to make an
+
+
+225
+00:06:29,236 --> 00:06:30,636
+explicit dependency in this
+
+
+226
+00:06:30,686 --> 00:06:33,756
+build phase, or in the Target
+
+
+227
+00:06:33,756 --> 00:06:34,996
+Dependencies build phase.
+
+
+228
+00:06:35,396 --> 00:06:37,806
+So you can see here that we have
+
+
+229
+00:06:37,806 --> 00:06:38,686
+another item here called
+
+
+230
+00:06:38,686 --> 00:06:39,206
+Shaders.
+
+
+231
+00:06:39,616 --> 00:06:42,106
+And Shaders is something that is
+
+
+232
+00:06:42,106 --> 00:06:43,926
+not used at link time, but
+
+
+233
+00:06:43,926 --> 00:06:45,776
+instead it's used by another
+
+
+234
+00:06:45,776 --> 00:06:47,126
+build phase within our current
+
+
+235
+00:06:47,126 --> 00:06:47,456
+target.
+
+
+236
+00:06:48,096 --> 00:06:49,316
+So it's important that we let
+
+
+237
+00:06:49,316 --> 00:06:50,926
+Xcode know that this is a
+
+
+238
+00:06:50,926 --> 00:06:52,256
+dependency and that we need to
+
+
+239
+00:06:52,256 --> 00:06:54,506
+wait for the Shaders to finish
+
+
+240
+00:06:54,566 --> 00:06:57,046
+its compilation and build before
+
+
+241
+00:06:57,046 --> 00:06:57,886
+we can actually build the
+
+
+242
+00:06:57,886 --> 00:06:58,876
+current target we're on.
+
+
+243
+00:06:59,406 --> 00:07:02,336
+Now, this target actually exists
+
+
+244
+00:07:02,336 --> 00:07:03,256
+in a different project.
+
+
+245
+00:07:03,846 --> 00:07:05,626
+And if you would like to make a
+
+
+246
+00:07:05,626 --> 00:07:06,826
+reference to that project you
+
+
+247
+00:07:06,826 --> 00:07:08,376
+can do so by dragging the
+
+
+248
+00:07:08,376 --> 00:07:10,266
+project as a child of the
+
+
+249
+00:07:10,266 --> 00:07:11,346
+current project you're working
+
+
+250
+00:07:11,346 --> 00:07:11,526
+in.
+
+
+251
+00:07:11,526 --> 00:07:13,776
+So I want to walk through the
+
+
+252
+00:07:13,776 --> 00:07:14,806
+rest of the dependencies of our
+
+
+253
+00:07:14,806 --> 00:07:15,276
+project.
+
+
+254
+00:07:16,576 --> 00:07:17,916
+Our Shaders target has a
+
+
+255
+00:07:17,916 --> 00:07:19,196
+dependency on our Utilities
+
+
+256
+00:07:19,196 --> 00:07:19,506
+target.
+
+
+257
+00:07:20,886 --> 00:07:22,196
+Our Utilities target has a
+
+
+258
+00:07:22,196 --> 00:07:23,806
+dependency on our Physics
+
+
+259
+00:07:23,806 --> 00:07:24,106
+target.
+
+
+260
+00:07:25,146 --> 00:07:27,206
+And lastly, our Tests have a
+
+
+261
+00:07:27,206 --> 00:07:30,516
+dependency on our Shaders and
+
+
+262
+00:07:30,516 --> 00:07:31,676
+our Utilities targets.
+
+
+263
+00:07:32,616 --> 00:07:33,206
+So now that we have an
+
+
+264
+00:07:33,206 --> 00:07:34,296
+understanding of the
+
+
+265
+00:07:34,296 --> 00:07:35,806
+configuration of our project,
+
+
+266
+00:07:35,806 --> 00:07:37,266
+let's look at the steps that are
+
+
+267
+00:07:37,266 --> 00:07:38,996
+necessary to turn this
+
+
+268
+00:07:38,996 --> 00:07:41,106
+serialized build process into
+
+
+269
+00:07:41,446 --> 00:07:43,106
+one that we can build more in
+
+
+270
+00:07:43,106 --> 00:07:43,556
+parallel.
+
+
+271
+00:07:44,136 --> 00:07:45,286
+And we're going to start by
+
+
+272
+00:07:45,286 --> 00:07:46,136
+looking at our test
+
+
+273
+00:07:46,136 --> 00:07:46,746
+dependencies.
+
+
+274
+00:07:48,876 --> 00:07:50,566
+Now, I've broken down the
+
+
+275
+00:07:50,566 --> 00:07:51,556
+dependencies into three
+
+
+276
+00:07:51,556 --> 00:07:52,366
+different classes of
+
+
+277
+00:07:52,366 --> 00:07:53,556
+dependencies that I want to talk
+
+
+278
+00:07:53,556 --> 00:07:53,896
+about.
+
+
+279
+00:07:54,466 --> 00:07:55,866
+This first dependency is the
+
+
+280
+00:07:55,866 --> 00:07:57,366
+dependency that I call the "Do
+
+
+281
+00:07:57,366 --> 00:07:58,646
+Everything" dependency.
+
+
+282
+00:07:59,316 --> 00:08:00,566
+Right? It should a little bit
+
+
+283
+00:08:00,566 --> 00:08:01,946
+clear here that this test is
+
+
+284
+00:08:02,036 --> 00:08:03,686
+testing way too many components.
+
+
+285
+00:08:04,056 --> 00:08:05,096
+It's testing our Game.
+
+
+286
+00:08:05,516 --> 00:08:06,596
+It's testing our Shaders.
+
+
+287
+00:08:07,236 --> 00:08:08,606
+And it's testing our Utilities.
+
+
+288
+00:08:10,056 --> 00:08:11,866
+Now in this case, it'd be better
+
+
+289
+00:08:11,866 --> 00:08:13,426
+to simply break up our tests so
+
+
+290
+00:08:13,426 --> 00:08:14,366
+that it's testing each
+
+
+291
+00:08:14,366 --> 00:08:15,356
+individual component.
+
+
+292
+00:08:15,356 --> 00:08:17,586
+And we're going to see by doing
+
+
+293
+00:08:17,586 --> 00:08:18,686
+this, we're going to introduce
+
+
+294
+00:08:18,686 --> 00:08:20,416
+our first bit of parallelism
+
+
+295
+00:08:20,466 --> 00:08:21,766
+into our build process.
+
+
+296
+00:08:23,306 --> 00:08:25,246
+Right? Our test target, which
+
+
+297
+00:08:25,246 --> 00:08:26,676
+was built in all three can now
+
+
+298
+00:08:26,736 --> 00:08:27,926
+build just the component that
+
+
+299
+00:08:27,926 --> 00:08:28,956
+it's looking for in the Game
+
+
+300
+00:08:28,956 --> 00:08:29,466
+tests.
+
+
+301
+00:08:30,436 --> 00:08:31,896
+And then our Shaders tests and
+
+
+302
+00:08:31,896 --> 00:08:33,816
+our Utilities tests can be moved
+
+
+303
+00:08:33,816 --> 00:08:34,996
+to be built in parallel with our
+
+
+304
+00:08:34,996 --> 00:08:35,775
+other targets.
+
+
+305
+00:08:36,066 --> 00:08:37,236
+And they can be built as soon as
+
+
+306
+00:08:37,236 --> 00:08:38,395
+their respective components are
+
+
+307
+00:08:38,395 --> 00:08:40,456
+done, Shaders and Utilities.
+
+
+308
+00:08:42,285 --> 00:08:44,626
+Now, the next type of dependency
+
+
+309
+00:08:44,626 --> 00:08:46,696
+I want to look at is the
+
+
+310
+00:08:46,696 --> 00:08:48,526
+dependency that I call the "Nosy
+
+
+311
+00:08:48,526 --> 00:08:49,126
+Neighbors."
+
+
+312
+00:08:49,706 --> 00:08:51,596
+This is the dependency that
+
+
+313
+00:08:51,596 --> 00:08:53,426
+needs to exist.
+
+
+314
+00:08:53,586 --> 00:08:54,806
+It's look at another target.
+
+
+315
+00:08:55,136 --> 00:08:56,636
+But it only needs a little bit
+
+
+316
+00:08:56,636 --> 00:08:57,226
+of that target.
+
+
+317
+00:08:57,946 --> 00:08:59,276
+But instead it's getting
+
+
+318
+00:08:59,276 --> 00:09:00,146
+everything that's in that
+
+
+319
+00:09:00,146 --> 00:09:00,426
+target.
+
+
+320
+00:09:01,226 --> 00:09:02,386
+So if we look at our game, it
+
+
+321
+00:09:02,806 --> 00:09:04,506
+has a dependency on Physics,
+
+
+322
+00:09:04,676 --> 00:09:05,696
+Shaders, and Utilities.
+
+
+323
+00:09:06,046 --> 00:09:06,906
+This is actually okay.
+
+
+324
+00:09:08,196 --> 00:09:09,936
+The suspect one is the
+
+
+325
+00:09:09,936 --> 00:09:11,306
+dependency between our Shaders
+
+
+326
+00:09:11,306 --> 00:09:13,026
+target and our Utilities target.
+
+
+327
+00:09:13,786 --> 00:09:15,436
+Now, our Shaders target produces
+
+
+328
+00:09:15,436 --> 00:09:16,936
+a meta library, which is
+
+
+329
+00:09:16,936 --> 00:09:18,556
+essentially just a bundle of GPU
+
+
+330
+00:09:18,556 --> 00:09:19,596
+code that's going to run on our
+
+
+331
+00:09:19,596 --> 00:09:20,256
+graphics card.
+
+
+332
+00:09:21,376 --> 00:09:23,286
+And our Utilities target just
+
+
+333
+00:09:23,286 --> 00:09:24,696
+produces a normal frame, which
+
+
+334
+00:09:24,696 --> 00:09:25,666
+is just CPU code.
+
+
+335
+00:09:25,936 --> 00:09:26,906
+So there's already a little bit
+
+
+336
+00:09:26,906 --> 00:09:28,946
+of a suspect dependency here.
+
+
+337
+00:09:29,506 --> 00:09:30,926
+When we dig into it we see that
+
+
+338
+00:09:30,926 --> 00:09:32,796
+the utilities target actually
+
+
+339
+00:09:32,796 --> 00:09:34,466
+has a build phase in it that's
+
+
+340
+00:09:34,466 --> 00:09:36,316
+generating some information
+
+
+341
+00:09:36,316 --> 00:09:37,566
+that's used by both targets.
+
+
+342
+00:09:37,826 --> 00:09:38,726
+Which is totally fine.
+
+
+343
+00:09:39,276 --> 00:09:40,466
+It's just that Shaders doesn't
+
+
+344
+00:09:40,466 --> 00:09:42,016
+need anything else from the
+
+
+345
+00:09:42,016 --> 00:09:42,796
+Utilities target.
+
+
+346
+00:09:43,306 --> 00:09:46,016
+So it's best to break out that
+
+
+347
+00:09:46,016 --> 00:09:47,356
+into its own target.
+
+
+348
+00:09:48,226 --> 00:09:49,666
+And we're going to see that this
+
+
+349
+00:09:49,666 --> 00:09:50,866
+small incremental change
+
+
+350
+00:09:50,866 --> 00:09:52,196
+actually has a large and
+
+
+351
+00:09:52,196 --> 00:09:53,666
+significant impact on our
+
+
+352
+00:09:53,666 --> 00:09:54,746
+overall build timeline.
+
+
+353
+00:09:56,826 --> 00:09:58,446
+So the new green box that just
+
+
+354
+00:09:58,446 --> 00:09:59,896
+moved in is our new code target.
+
+
+355
+00:10:00,186 --> 00:10:01,476
+So we were able to shrink our
+
+
+356
+00:10:01,476 --> 00:10:03,426
+utilities target down because we
+
+
+357
+00:10:03,426 --> 00:10:05,346
+moved that work into Code Gen.
+
+
+358
+00:10:06,076 --> 00:10:07,426
+And since Code Gen has no other
+
+
+359
+00:10:07,426 --> 00:10:09,336
+dependencies, it can move to the
+
+
+360
+00:10:09,336 --> 00:10:11,176
+very front of our build process.
+
+
+361
+00:10:11,506 --> 00:10:13,056
+It can also be built in parallel
+
+
+362
+00:10:13,346 --> 00:10:14,516
+with our Physics target, which
+
+
+363
+00:10:14,516 --> 00:10:15,686
+is the red box on the bottom.
+
+
+364
+00:10:17,146 --> 00:10:18,756
+And lastly, because Shaders no
+
+
+365
+00:10:18,756 --> 00:10:20,436
+longer depends on Utilities, it
+
+
+366
+00:10:20,436 --> 00:10:21,616
+doesn't have to wait for both
+
+
+367
+00:10:21,616 --> 00:10:24,686
+Utilities and the Physics target
+
+
+368
+00:10:24,936 --> 00:10:25,396
+to be built.
+
+
+369
+00:10:25,686 --> 00:10:26,896
+And instead it can be built as
+
+
+370
+00:10:26,896 --> 00:10:29,046
+soon as that Code Gen target is
+
+
+371
+00:10:30,456 --> 00:10:30,566
+done.
+
+
+372
+00:10:30,766 --> 00:10:31,986
+Now, the last dependency I want
+
+
+373
+00:10:31,986 --> 00:10:33,476
+to talk to you about are the
+
+
+374
+00:10:33,476 --> 00:10:34,926
+ones that I call the "Forgotten
+
+
+375
+00:10:34,926 --> 00:10:35,336
+Ones."
+
+
+376
+00:10:35,826 --> 00:10:37,906
+Throughout the evolution or the
+
+
+377
+00:10:37,906 --> 00:10:40,376
+lifecycle of our products and
+
+
+378
+00:10:40,376 --> 00:10:42,956
+our code, we tend to move code
+
+
+379
+00:10:42,956 --> 00:10:44,106
+around and delete things.
+
+
+380
+00:10:44,106 --> 00:10:45,046
+And we get things like dead
+
+
+381
+00:10:45,096 --> 00:10:45,356
+code.
+
+
+382
+00:10:45,766 --> 00:10:47,056
+Well, we get the same thing that
+
+
+383
+00:10:47,056 --> 00:10:48,326
+happens with our dependencies.
+
+
+384
+00:10:48,706 --> 00:10:49,816
+Sometimes we simply forget to
+
+
+385
+00:10:49,816 --> 00:10:50,376
+clean them up.
+
+
+386
+00:10:51,386 --> 00:10:52,506
+And so in these cases, it's
+
+
+387
+00:10:52,926 --> 00:10:54,306
+actually safe to just remove
+
+
+388
+00:10:54,306 --> 00:10:54,976
+that dependency.
+
+
+389
+00:10:56,456 --> 00:10:58,276
+And this last change tightens up
+
+
+390
+00:10:58,276 --> 00:11:00,396
+or build graph even further by
+
+
+391
+00:11:00,396 --> 00:11:03,156
+allowing the Utilities target to
+
+
+392
+00:11:03,156 --> 00:11:04,716
+be built right after the Code
+
+
+393
+00:11:04,716 --> 00:11:06,146
+Gen target instead of having to
+
+
+394
+00:11:06,146 --> 00:11:07,196
+wait for all of the Physics
+
+
+395
+00:11:07,196 --> 00:11:11,156
+target to be done.
+
+
+396
+00:11:11,346 --> 00:11:13,746
+Now, previously in Xcode, when
+
+
+397
+00:11:13,746 --> 00:11:15,046
+you built targets that have a
+
+
+398
+00:11:15,046 --> 00:11:16,396
+dependency on another target,
+
+
+399
+00:11:16,396 --> 00:11:18,326
+you have to wait for the
+
+
+400
+00:11:18,326 --> 00:11:19,646
+dependent target to finish its
+
+
+401
+00:11:19,646 --> 00:11:21,236
+entire build process.
+
+
+402
+00:11:21,756 --> 00:11:23,096
+Well, we have a new feature in
+
+
+403
+00:11:23,096 --> 00:11:24,916
+Xcode 10 that allows us to
+
+
+404
+00:11:24,916 --> 00:11:27,046
+introduce some parallelism into
+
+
+405
+00:11:27,046 --> 00:11:28,086
+your build for free.
+
+
+406
+00:11:28,596 --> 00:11:32,226
+And we do this by starting the
+
+
+407
+00:11:32,226 --> 00:11:34,626
+compilation of your target as
+
+
+408
+00:11:34,626 --> 00:11:36,596
+soon as the build phases that go
+
+
+409
+00:11:36,596 --> 00:11:38,666
+into its dependencies that
+
+
+410
+00:11:38,706 --> 00:11:40,206
+satisfy our compilation are
+
+
+411
+00:11:40,206 --> 00:11:40,636
+complete.
+
+
+412
+00:11:41,696 --> 00:11:42,926
+So things like linking can now
+
+
+413
+00:11:42,926 --> 00:11:43,746
+be done in parallel.
+
+
+414
+00:11:45,936 --> 00:11:47,486
+Now, if you have run script
+
+
+415
+00:11:47,486 --> 00:11:49,266
+phases, this is one of those
+
+
+416
+00:11:49,316 --> 00:11:50,896
+build phases that your target is
+
+
+417
+00:11:50,996 --> 00:11:53,216
+going to have to wait on to
+
+
+418
+00:11:53,216 --> 00:11:54,796
+finish in order before it can
+
+
+419
+00:11:54,796 --> 00:11:56,436
+start taking advantage of some
+
+
+420
+00:11:56,806 --> 00:11:58,476
+of these new parallelization
+
+
+421
+00:11:58,476 --> 00:11:58,886
+benefits.
+
+
+422
+00:11:58,956 --> 00:12:01,476
+So let's talk about run script
+
+
+423
+00:12:01,476 --> 00:12:01,976
+phases.
+
+
+424
+00:12:02,776 --> 00:12:04,116
+Run script phases allow you to
+
+
+425
+00:12:04,116 --> 00:12:05,636
+customize your build process to
+
+
+426
+00:12:05,636 --> 00:12:06,496
+meet your needs.
+
+
+427
+00:12:07,066 --> 00:12:08,436
+And so with this flexibility
+
+
+428
+00:12:08,826 --> 00:12:10,436
+comes some responsibility for
+
+
+429
+00:12:10,436 --> 00:12:11,906
+you as a developer as well.
+
+
+430
+00:12:12,316 --> 00:12:13,206
+And so we want to walk you
+
+
+431
+00:12:13,206 --> 00:12:14,266
+through the configuration
+
+
+432
+00:12:14,266 --> 00:12:15,856
+process and make sure that you
+
+
+433
+00:12:15,856 --> 00:12:17,196
+have your run script phases set
+
+
+434
+00:12:17,196 --> 00:12:18,866
+up and configured well so that
+
+
+435
+00:12:18,866 --> 00:12:19,856
+your builds behave.
+
+
+436
+00:12:22,116 --> 00:12:24,446
+Now, this is your Script Phase
+
+
+437
+00:12:24,446 --> 00:12:24,786
+Editor.
+
+
+438
+00:12:25,226 --> 00:12:26,566
+It can also be found within your
+
+
+439
+00:12:26,566 --> 00:12:27,356
+Build Phase Editor.
+
+
+440
+00:12:27,356 --> 00:12:28,766
+Now I want to call your
+
+
+441
+00:12:28,766 --> 00:12:31,406
+attention to first the script
+
+
+442
+00:12:31,696 --> 00:12:32,176
+body here.
+
+
+443
+00:12:32,786 --> 00:12:33,916
+You can either put your entire
+
+
+444
+00:12:33,916 --> 00:12:34,916
+script contents here.
+
+
+445
+00:12:34,916 --> 00:12:36,176
+Or you can do what I've done and
+
+
+446
+00:12:36,176 --> 00:12:37,456
+reference another script that's
+
+
+447
+00:12:37,456 --> 00:12:38,286
+within your project.
+
+
+448
+00:12:39,666 --> 00:12:40,876
+Now, throughout the entirety of
+
+
+449
+00:12:40,876 --> 00:12:42,806
+your run script phase, there are
+
+
+450
+00:12:42,806 --> 00:12:43,996
+a set of build settings that are
+
+
+451
+00:12:43,996 --> 00:12:44,746
+available to you.
+
+
+452
+00:12:44,906 --> 00:12:45,926
+And I'm making use of one of
+
+
+453
+00:12:45,926 --> 00:12:47,266
+those right now, which is the
+
+
+454
+00:12:47,266 --> 00:12:47,746
+source group.
+
+
+455
+00:12:48,956 --> 00:12:50,506
+This gives you a convenient way
+
+
+456
+00:12:50,506 --> 00:12:52,646
+to not have to provide absolute
+
+
+457
+00:12:52,646 --> 00:12:54,336
+paths or try to do some relative
+
+
+458
+00:12:54,336 --> 00:12:55,956
+path hacks to get your stuff to
+
+
+459
+00:12:55,956 --> 00:12:56,116
+work.
+
+
+460
+00:12:57,436 --> 00:12:59,676
+The next section are you input
+
+
+461
+00:12:59,676 --> 00:13:00,136
+files.
+
+
+462
+00:13:00,836 --> 00:13:02,286
+Now, these are very important
+
+
+463
+00:13:02,286 --> 00:13:03,536
+for your run script phase.
+
+
+464
+00:13:03,896 --> 00:13:05,356
+As this is one of the key pieces
+
+
+465
+00:13:05,356 --> 00:13:07,126
+of information that the Xcode
+
+
+466
+00:13:07,126 --> 00:13:08,386
+Build System will use to
+
+
+467
+00:13:08,386 --> 00:13:09,606
+determine if your run scripts
+
+
+468
+00:13:09,606 --> 00:13:12,146
+should actually run or not.
+
+
+469
+00:13:12,146 --> 00:13:13,946
+So this should include any file
+
+
+470
+00:13:13,946 --> 00:13:15,986
+that your run script phase, the
+
+
+471
+00:13:16,026 --> 00:13:17,426
+script content, is actually
+
+
+472
+00:13:17,426 --> 00:13:18,986
+going to read or look at during
+
+
+473
+00:13:18,986 --> 00:13:19,646
+its process.
+
+
+474
+00:13:21,096 --> 00:13:23,306
+Now, some of you may have a lot
+
+
+475
+00:13:23,876 --> 00:13:25,316
+of inputs into your run script
+
+
+476
+00:13:25,316 --> 00:13:25,676
+phase.
+
+
+477
+00:13:25,816 --> 00:13:27,086
+And so this task might seem a
+
+
+478
+00:13:27,086 --> 00:13:27,906
+little bit daunting.
+
+
+479
+00:13:28,506 --> 00:13:31,046
+And so new in Xcode 10 we have
+
+
+480
+00:13:31,046 --> 00:13:32,666
+the ability for you -- or we've
+
+
+481
+00:13:32,666 --> 00:13:33,776
+provided you the ability to
+
+
+482
+00:13:33,776 --> 00:13:34,966
+maintain this list in an
+
+
+483
+00:13:34,966 --> 00:13:37,426
+external file, something we call
+
+
+484
+00:13:37,426 --> 00:13:38,236
+a File List.
+
+
+485
+00:13:39,626 --> 00:13:41,056
+Now, a file list is a simple
+
+
+486
+00:13:41,256 --> 00:13:42,996
+text file that has all of its
+
+
+487
+00:13:42,996 --> 00:13:44,826
+inputs listed on its own line.
+
+
+488
+00:13:46,226 --> 00:13:47,246
+You get access to all of the
+
+
+489
+00:13:47,246 --> 00:13:48,866
+same build settings that were
+
+
+490
+00:13:48,866 --> 00:13:49,946
+available to you throughout the
+
+
+491
+00:13:49,946 --> 00:13:51,026
+context of your run script
+
+
+492
+00:13:51,026 --> 00:13:51,456
+phase.
+
+
+493
+00:13:52,656 --> 00:13:53,806
+The important thing to note
+
+
+494
+00:13:53,806 --> 00:13:54,796
+here, though, is that these
+
+
+495
+00:13:54,796 --> 00:13:56,376
+files cannot be modified or
+
+
+496
+00:13:56,376 --> 00:13:57,606
+generated throughout your build
+
+
+497
+00:13:57,646 --> 00:13:58,306
+process.
+
+
+498
+00:13:58,766 --> 00:14:00,796
+They are read when your build
+
+
+499
+00:14:00,796 --> 00:14:01,666
+process starts.
+
+
+500
+00:14:02,086 --> 00:14:03,376
+And all that information is used
+
+
+501
+00:14:03,376 --> 00:14:03,576
+then.
+
+
+502
+00:14:03,576 --> 00:14:07,216
+Next I want to talk to you about
+
+
+503
+00:14:07,216 --> 00:14:08,266
+your output files.
+
+
+504
+00:14:08,516 --> 00:14:09,596
+Your output files are another
+
+
+505
+00:14:09,596 --> 00:14:10,886
+key piece of information that's
+
+
+506
+00:14:10,886 --> 00:14:11,816
+used throughout your build
+
+
+507
+00:14:11,866 --> 00:14:12,396
+process.
+
+
+508
+00:14:13,016 --> 00:14:14,086
+And Xcode will use this
+
+
+509
+00:14:14,086 --> 00:14:15,926
+information to determine if your
+
+
+510
+00:14:15,926 --> 00:14:17,436
+run script phase actually needs
+
+
+511
+00:14:17,436 --> 00:14:17,786
+to run.
+
+
+512
+00:14:17,886 --> 00:14:20,616
+And of course, we have support
+
+
+513
+00:14:20,616 --> 00:14:23,026
+for output files -- or file
+
+
+514
+00:14:23,026 --> 00:14:24,166
+lists for your output files as
+
+
+515
+00:14:24,166 --> 00:14:24,376
+well.
+
+
+516
+00:14:25,336 --> 00:14:27,066
+So I want to recap for you when
+
+
+517
+00:14:27,066 --> 00:14:28,186
+your run script phase is
+
+
+518
+00:14:28,186 --> 00:14:28,726
+actually run.
+
+
+519
+00:14:29,856 --> 00:14:31,186
+If you have no input files
+
+
+520
+00:14:31,186 --> 00:14:33,896
+declared, the Xcode build system
+
+
+521
+00:14:34,076 --> 00:14:35,186
+will need to run to your run
+
+
+522
+00:14:35,186 --> 00:14:36,566
+script phase on every single
+
+
+523
+00:14:36,566 --> 00:14:36,896
+build.
+
+
+524
+00:14:37,556 --> 00:14:38,936
+So this is one of key reasons
+
+
+525
+00:14:38,936 --> 00:14:40,106
+it's important to declare your
+
+
+526
+00:14:40,106 --> 00:14:40,626
+inputs.
+
+
+527
+00:14:42,006 --> 00:14:43,476
+Now if any of your input files
+
+
+528
+00:14:43,476 --> 00:14:45,396
+change, including the contents
+
+
+529
+00:14:45,396 --> 00:14:47,996
+of your file lists or any of the
+
+
+530
+00:14:47,996 --> 00:14:49,506
+inputs that the file lists point
+
+
+531
+00:14:49,506 --> 00:14:51,376
+to, Xcode will know that it
+
+
+532
+00:14:51,376 --> 00:14:52,596
+needs to rerun your run script
+
+
+533
+00:14:52,596 --> 00:14:53,196
+phase for you.
+
+
+534
+00:14:53,696 --> 00:14:56,216
+And finally, if any of your
+
+
+535
+00:14:56,216 --> 00:14:58,426
+output files are missing, the
+
+
+536
+00:14:58,426 --> 00:14:59,876
+Xcode build system will run your
+
+
+537
+00:14:59,876 --> 00:15:01,116
+run script phase to give you the
+
+
+538
+00:15:01,116 --> 00:15:03,126
+opportunity to generate those
+
+
+539
+00:15:03,366 --> 00:15:04,606
+missing output files.
+
+
+540
+00:15:05,836 --> 00:15:08,446
+Now also new in Xcode 10, we
+
+
+541
+00:15:08,446 --> 00:15:10,466
+have documentation for the run
+
+
+542
+00:15:10,466 --> 00:15:11,396
+script phases.
+
+
+543
+00:15:12,516 --> 00:15:16,916
+[ Applause ]
+
+
+544
+00:15:17,416 --> 00:15:18,746
+So, it goes through more detail
+
+
+545
+00:15:18,746 --> 00:15:19,966
+of what I just explained and it
+
+
+546
+00:15:19,966 --> 00:15:20,726
+tells you about all of the
+
+
+547
+00:15:20,726 --> 00:15:21,886
+additional build settings that
+
+
+548
+00:15:21,886 --> 00:15:22,956
+are made available to you,
+
+
+549
+00:15:23,256 --> 00:15:24,546
+including how you can use those
+
+
+550
+00:15:24,736 --> 00:15:26,146
+file lists within your own
+
+
+551
+00:15:26,146 --> 00:15:26,906
+script content.
+
+
+552
+00:15:28,216 --> 00:15:29,636
+Now, when setting up your run
+
+
+553
+00:15:29,636 --> 00:15:30,896
+script phases and declaring all
+
+
+554
+00:15:30,896 --> 00:15:32,166
+of these new dependencies, and
+
+
+555
+00:15:32,166 --> 00:15:34,046
+including when you modify the
+
+
+556
+00:15:34,046 --> 00:15:35,316
+dependencies in your targets,
+
+
+557
+00:15:35,866 --> 00:15:37,596
+you may run into a dependency
+
+
+558
+00:15:37,596 --> 00:15:37,986
+cycle.
+
+
+559
+00:15:38,636 --> 00:15:40,386
+And a dependency cycle is simply
+
+
+560
+00:15:40,516 --> 00:15:42,036
+an interdependency graph
+
+
+561
+00:15:42,036 --> 00:15:43,226
+somewhere there is a loop that's
+
+
+562
+00:15:43,226 --> 00:15:43,706
+created.
+
+
+563
+00:15:44,836 --> 00:15:46,346
+Well, new in Xcode 10 we have
+
+
+564
+00:15:46,346 --> 00:15:48,586
+better diagnostics to detect
+
+
+565
+00:15:48,586 --> 00:15:49,836
+these cycles and will give you
+
+
+566
+00:15:49,836 --> 00:15:51,546
+an error, including the ability
+
+
+567
+00:15:51,546 --> 00:15:53,046
+for you to expand this box to
+
+
+568
+00:15:53,046 --> 00:15:54,406
+get all of the inputs that the
+
+
+569
+00:15:54,406 --> 00:15:56,076
+Xcode build system knows that
+
+
+570
+00:15:56,076 --> 00:15:57,516
+went into creating the cycle.
+
+
+571
+00:15:58,916 --> 00:16:01,016
+So, cycles are bad for a couple
+
+
+572
+00:16:01,746 --> 00:16:02,636
+of reasons.
+
+
+573
+00:16:02,716 --> 00:16:04,516
+One, they represent a
+
+
+574
+00:16:04,516 --> 00:16:05,956
+configuration issue within your
+
+
+575
+00:16:05,956 --> 00:16:06,386
+project.
+
+
+576
+00:16:07,306 --> 00:16:08,846
+And two, they can be the source
+
+
+577
+00:16:08,846 --> 00:16:10,176
+of spurious rebuilds within your
+
+
+578
+00:16:10,176 --> 00:16:10,676
+project.
+
+
+579
+00:16:11,126 --> 00:16:12,346
+Or of getting out-of-date
+
+
+580
+00:16:12,346 --> 00:16:13,346
+information in your build
+
+
+581
+00:16:13,386 --> 00:16:13,956
+process.
+
+
+582
+00:16:15,176 --> 00:16:17,236
+So we also have updated health
+
+
+583
+00:16:17,286 --> 00:16:19,156
+topics on dependency cycles,
+
+
+584
+00:16:20,026 --> 00:16:22,356
+including some specific sections
+
+
+585
+00:16:22,356 --> 00:16:26,086
+that we call out of the most
+
+
+586
+00:16:26,086 --> 00:16:28,236
+likely dependency cycles that
+
+
+587
+00:16:28,236 --> 00:16:29,626
+you run into, and ways that you
+
+
+588
+00:16:29,626 --> 00:16:30,276
+can fix those.
+
+
+589
+00:16:30,796 --> 00:16:34,636
+So, the last thing I want to
+
+
+590
+00:16:34,636 --> 00:16:35,966
+talk to you about today, is
+
+
+591
+00:16:35,966 --> 00:16:37,256
+measuring your build time.
+
+
+592
+00:16:37,516 --> 00:16:39,406
+We have two new pieces of
+
+
+593
+00:16:39,406 --> 00:16:40,666
+functionality in Xcode 10 for
+
+
+594
+00:16:40,666 --> 00:16:40,976
+this.
+
+
+595
+00:16:42,436 --> 00:16:45,026
+The first is we have introduced
+
+
+596
+00:16:45,126 --> 00:16:47,016
+in-line task times to give you
+
+
+597
+00:16:47,016 --> 00:16:48,226
+the duration that each of your
+
+
+598
+00:16:48,226 --> 00:16:49,586
+tasks has taken to run.
+
+
+599
+00:16:49,586 --> 00:16:52,796
+Now, I want to point out
+
+
+600
+00:16:52,796 --> 00:16:54,156
+something about your build logs.
+
+
+601
+00:16:54,586 --> 00:16:55,886
+There's a filter bar across the
+
+
+602
+00:16:55,886 --> 00:16:56,236
+top.
+
+
+603
+00:16:57,166 --> 00:16:58,956
+And specifically, the All the
+
+
+604
+00:16:58,956 --> 00:17:00,866
+Recent filters.
+
+
+605
+00:17:02,236 --> 00:17:03,306
+When you have "All" selected,
+
+
+606
+00:17:03,306 --> 00:17:04,626
+it's going to show you all of
+
+
+607
+00:17:04,626 --> 00:17:05,866
+the tasks that went into
+
+
+608
+00:17:05,866 --> 00:17:07,586
+creating your entire final
+
+
+609
+00:17:07,586 --> 00:17:08,506
+product outputs.
+
+
+610
+00:17:09,396 --> 00:17:10,435
+Which is usually not what you
+
+
+611
+00:17:10,435 --> 00:17:11,116
+want to look at.
+
+
+612
+00:17:11,546 --> 00:17:12,455
+What you want to look at,
+
+
+613
+00:17:12,455 --> 00:17:13,616
+especially when you're trying to
+
+
+614
+00:17:13,616 --> 00:17:15,486
+diagnose issues in your
+
+
+615
+00:17:15,486 --> 00:17:16,965
+incremental builds, is the
+
+
+616
+00:17:16,965 --> 00:17:17,586
+Recent tab.
+
+
+617
+00:17:18,506 --> 00:17:20,646
+That's going to show you all of
+
+
+618
+00:17:20,646 --> 00:17:22,096
+the build paths that went into
+
+
+619
+00:17:22,266 --> 00:17:23,886
+the previous build operation.
+
+
+620
+00:17:26,536 --> 00:17:29,056
+Now, another new feature in
+
+
+621
+00:17:29,056 --> 00:17:31,236
+Xcode 10 is a timing summary.
+
+
+622
+00:17:31,526 --> 00:17:32,616
+And you can get to this timing
+
+
+623
+00:17:32,616 --> 00:17:34,326
+summary by going to the Product
+
+
+624
+00:17:34,326 --> 00:17:36,066
+menu, selecting Perform with
+
+
+625
+00:17:36,066 --> 00:17:38,196
+Action, and Build with Timing
+
+
+626
+00:17:38,196 --> 00:17:38,576
+Summary.
+
+
+627
+00:17:39,796 --> 00:17:40,736
+When you do that, you're going
+
+
+628
+00:17:40,736 --> 00:17:42,046
+to get a new log section out at
+
+
+629
+00:17:42,046 --> 00:17:43,046
+the end of your build log.
+
+
+630
+00:17:43,116 --> 00:17:47,606
+And if we focus in, you're going
+
+
+631
+00:17:47,606 --> 00:17:48,346
+to see that it's going to give
+
+
+632
+00:17:48,346 --> 00:17:50,026
+you an aggregate timing of all
+
+
+633
+00:17:50,026 --> 00:17:51,866
+of the tasks that went into your
+
+
+634
+00:17:51,866 --> 00:17:53,116
+last build operation.
+
+
+635
+00:17:53,916 --> 00:17:54,786
+So this is another important
+
+
+636
+00:17:54,786 --> 00:17:56,586
+reason to look at the Recent
+
+
+637
+00:17:56,736 --> 00:17:57,376
+filter tab.
+
+
+638
+00:17:57,856 --> 00:18:00,196
+And there's one specifically I
+
+
+639
+00:18:00,196 --> 00:18:01,936
+want to point to, the Phase
+
+
+640
+00:18:01,936 --> 00:18:03,086
+Script Execution.
+
+
+641
+00:18:03,836 --> 00:18:05,196
+So, you can see in our last
+
+
+642
+00:18:05,196 --> 00:18:06,966
+build that we just did, we had a
+
+
+643
+00:18:06,966 --> 00:18:07,886
+shell script that ran.
+
+
+644
+00:18:07,886 --> 00:18:08,816
+There was only one of them.
+
+
+645
+00:18:08,816 --> 00:18:09,676
+It says one task.
+
+
+646
+00:18:10,276 --> 00:18:11,726
+And it's taken 5 seconds.
+
+
+647
+00:18:12,496 --> 00:18:14,266
+If you're seeing these on every
+
+
+648
+00:18:14,266 --> 00:18:15,476
+single one of your incremental
+
+
+649
+00:18:15,476 --> 00:18:17,126
+builds, this is a good
+
+
+650
+00:18:17,126 --> 00:18:18,506
+indication that you have
+
+
+651
+00:18:18,506 --> 00:18:19,796
+something misconfigured in your
+
+
+652
+00:18:19,796 --> 00:18:20,556
+run script phase.
+
+
+653
+00:18:20,996 --> 00:18:21,836
+And that's something you might
+
+
+654
+00:18:21,836 --> 00:18:23,726
+want to address to help decrease
+
+
+655
+00:18:23,726 --> 00:18:24,986
+your overall build times.
+
+
+656
+00:18:28,456 --> 00:18:29,906
+Now, this build timing summary
+
+
+657
+00:18:30,256 --> 00:18:32,526
+is also available to you from
+
+
+658
+00:18:32,616 --> 00:18:34,796
+the Command line by passing in
+
+
+659
+00:18:35,096 --> 00:18:36,536
+the Show Build Timing Summary
+
+
+660
+00:18:36,536 --> 00:18:37,456
+flag.
+
+
+661
+00:18:39,566 --> 00:18:40,976
+And so now I want to bring up
+
+
+662
+00:18:40,976 --> 00:18:42,186
+Jordan, who's going to talk to
+
+
+663
+00:18:42,186 --> 00:18:42,926
+you about some of the
+
+
+664
+00:18:42,926 --> 00:18:44,166
+source-level improvements that
+
+
+665
+00:18:44,166 --> 00:18:45,186
+you can make to your project.
+
+
+666
+00:18:46,516 --> 00:18:51,966
+[ Applause ]
+
+
+667
+00:18:52,466 --> 00:18:53,176
+>> Thanks, David.
+
+
+668
+00:18:53,996 --> 00:18:54,456
+All right.
+
+
+669
+00:18:54,456 --> 00:18:56,066
+So we've gone over a bunch of
+
+
+670
+00:18:56,066 --> 00:18:57,936
+ways where you can improve your
+
+
+671
+00:18:57,936 --> 00:18:59,906
+Xcode projects just by doing one
+
+
+672
+00:18:59,906 --> 00:19:00,886
+small change.
+
+
+673
+00:19:01,266 --> 00:19:02,116
+And before we get to the
+
+
+674
+00:19:02,116 --> 00:19:03,346
+source-level and file-level
+
+
+675
+00:19:03,346 --> 00:19:05,256
+topics, I want to talk about one
+
+
+676
+00:19:05,256 --> 00:19:07,016
+more that's new in Xcode 10.
+
+
+677
+00:19:07,016 --> 00:19:10,656
+And it's a particular workaround
+
+
+678
+00:19:10,656 --> 00:19:11,626
+that we know that some of you
+
+
+679
+00:19:11,626 --> 00:19:13,096
+have been using on your projects
+
+
+680
+00:19:13,346 --> 00:19:14,666
+to make them build faster if
+
+
+681
+00:19:14,666 --> 00:19:15,976
+they have a lot of Swift files.
+
+
+682
+00:19:17,696 --> 00:19:18,936
+You've already heard about this.
+
+
+683
+00:19:19,636 --> 00:19:21,026
+It's the Whole Module setting
+
+
+684
+00:19:21,026 --> 00:19:22,186
+being used in a debug
+
+
+685
+00:19:22,186 --> 00:19:23,166
+configuration.
+
+
+686
+00:19:23,966 --> 00:19:25,266
+So, in previous versions of
+
+
+687
+00:19:25,266 --> 00:19:27,236
+Xcode, for some projects,
+
+
+688
+00:19:27,236 --> 00:19:28,446
+turning on the Whole Module
+
+
+689
+00:19:28,446 --> 00:19:30,646
+Compilation mode, even for debug
+
+
+690
+00:19:30,706 --> 00:19:32,496
+builds, produced a faster
+
+
+691
+00:19:32,496 --> 00:19:34,886
+overall build than when used in
+
+
+692
+00:19:34,886 --> 00:19:36,336
+Default Incremental Modes.
+
+
+693
+00:19:37,326 --> 00:19:39,186
+And, this did improve build
+
+
+694
+00:19:39,246 --> 00:19:40,846
+times because it was able to
+
+
+695
+00:19:40,846 --> 00:19:42,656
+share -- Swift's compiler was
+
+
+696
+00:19:42,656 --> 00:19:44,546
+able to share work across files
+
+
+697
+00:19:44,916 --> 00:19:46,026
+in a way that the Incremental
+
+
+698
+00:19:46,026 --> 00:19:46,846
+Mode was not.
+
+
+699
+00:19:47,386 --> 00:19:48,576
+But it also meant that you were
+
+
+700
+00:19:48,576 --> 00:19:49,806
+giving up your incremental
+
+
+701
+00:19:49,806 --> 00:19:51,286
+builds and would rebuild the
+
+
+702
+00:19:51,286 --> 00:19:52,826
+entire target's worth of Swift
+
+
+703
+00:19:52,826 --> 00:19:54,446
+files every time.
+
+
+704
+00:19:55,346 --> 00:19:57,266
+So in Xcode 10 we've improved
+
+
+705
+00:19:57,266 --> 00:19:58,926
+the incremental build to have
+
+
+706
+00:19:58,926 --> 00:20:00,546
+some of that same work sharing
+
+
+707
+00:20:00,546 --> 00:20:01,416
+across files.
+
+
+708
+00:20:01,416 --> 00:20:02,986
+So you should no longer need to
+
+
+709
+00:20:02,986 --> 00:20:04,646
+use Whole Module mode to get
+
+
+710
+00:20:04,646 --> 00:20:06,660
+good build times.
+
+
+711
+00:20:08,516 --> 00:20:11,376
+[ Applause ]
+
+
+712
+00:20:11,876 --> 00:20:13,066
+So, if you've done this in your
+
+
+713
+00:20:13,066 --> 00:20:14,846
+project, then you should go back
+
+
+714
+00:20:14,846 --> 00:20:15,966
+to your Build Settings Editor
+
+
+715
+00:20:16,176 --> 00:20:17,246
+and select the debug
+
+
+716
+00:20:17,246 --> 00:20:18,426
+configuration under the
+
+
+717
+00:20:18,426 --> 00:20:19,866
+Compilation Mode build setting
+
+
+718
+00:20:20,316 --> 00:20:21,466
+and hit Delete.
+
+
+719
+00:20:22,186 --> 00:20:23,606
+That will get it back to Xcode's
+
+
+720
+00:20:23,606 --> 00:20:24,926
+default setting of an
+
+
+721
+00:20:24,926 --> 00:20:25,716
+incremental build.
+
+
+722
+00:20:25,846 --> 00:20:27,916
+I'm not going to talk much more
+
+
+723
+00:20:27,916 --> 00:20:29,236
+about this because you already
+
+
+724
+00:20:29,236 --> 00:20:29,826
+heard about it.
+
+
+725
+00:20:30,096 --> 00:20:31,066
+We mentioned it in the "What's
+
+
+726
+00:20:31,066 --> 00:20:32,596
+New in Swift" talk on Tuesday.
+
+
+727
+00:20:33,056 --> 00:20:35,206
+And if you do want to know more,
+
+
+728
+00:20:35,336 --> 00:20:36,786
+we'll cover this and other
+
+
+729
+00:20:36,786 --> 00:20:37,956
+topics about your build in
+
+
+730
+00:20:37,956 --> 00:20:39,496
+greater depth in tomorrow's
+
+
+731
+00:20:39,496 --> 00:20:40,966
+session "Behind the Scenes of
+
+
+732
+00:20:40,966 --> 00:20:42,266
+the Xcode Build Process."
+
+
+733
+00:20:42,266 --> 00:20:46,606
+So we have a lot of topics that
+
+
+734
+00:20:46,606 --> 00:20:47,346
+we're trying to get through
+
+
+735
+00:20:47,346 --> 00:20:47,786
+today.
+
+
+736
+00:20:47,786 --> 00:20:49,376
+And David's already covered half
+
+
+737
+00:20:49,376 --> 00:20:49,766
+of them.
+
+
+738
+00:20:50,006 --> 00:20:51,346
+I'm going to talk about the
+
+
+739
+00:20:51,346 --> 00:20:53,156
+remaining three dealing with
+
+
+740
+00:20:53,156 --> 00:20:54,806
+complex expressions at the top
+
+
+741
+00:20:54,806 --> 00:20:55,606
+of that list.
+
+
+742
+00:20:56,506 --> 00:20:58,186
+And the reason for this is
+
+
+743
+00:20:58,186 --> 00:20:59,126
+because it's the best one that
+
+
+744
+00:20:59,126 --> 00:21:01,966
+exemplifies a key takeaway for
+
+
+745
+00:21:01,966 --> 00:21:03,066
+both of our sections.
+
+
+746
+00:21:03,866 --> 00:21:05,206
+When a build is taking a long
+
+
+747
+00:21:05,206 --> 00:21:07,266
+time, there's often a key piece
+
+
+748
+00:21:07,266 --> 00:21:08,556
+of information that you can
+
+
+749
+00:21:08,556 --> 00:21:11,076
+provide to Xcode to improve the
+
+
+750
+00:21:11,076 --> 00:21:11,896
+situation.
+
+
+751
+00:21:13,036 --> 00:21:13,946
+And so we're going to look at
+
+
+752
+00:21:13,946 --> 00:21:16,006
+that first in the context of
+
+
+753
+00:21:16,006 --> 00:21:17,446
+complex Swift expressions.
+
+
+754
+00:21:18,066 --> 00:21:21,546
+So here's an example of some
+
+
+755
+00:21:21,546 --> 00:21:22,836
+code from my latest project.
+
+
+756
+00:21:23,966 --> 00:21:26,406
+And the problem with this struct
+
+
+757
+00:21:26,966 --> 00:21:28,666
+is that I use it all over the
+
+
+758
+00:21:28,666 --> 00:21:29,206
+place.
+
+
+759
+00:21:30,076 --> 00:21:31,496
+And it's perfectly fine to have
+
+
+760
+00:21:31,496 --> 00:21:31,926
+a struct.
+
+
+761
+00:21:32,166 --> 00:21:33,016
+It's perfectly fine to have a
+
+
+762
+00:21:33,016 --> 00:21:34,136
+struct with a property.
+
+
+763
+00:21:34,136 --> 00:21:35,346
+And it's fine to have a struct
+
+
+764
+00:21:35,596 --> 00:21:37,496
+with a property with an inferred
+
+
+765
+00:21:37,496 --> 00:21:37,826
+type.
+
+
+766
+00:21:38,516 --> 00:21:39,696
+But the expression that we're
+
+
+767
+00:21:39,696 --> 00:21:41,806
+inferring that type from here is
+
+
+768
+00:21:41,806 --> 00:21:43,236
+a little bit complicated.
+
+
+769
+00:21:43,416 --> 00:21:44,986
+It's not something simple like
+
+
+770
+00:21:45,256 --> 00:21:47,146
+-- Oh, I took out a build from
+
+
+771
+00:21:47,146 --> 00:21:47,806
+my slides.
+
+
+772
+00:21:48,126 --> 00:21:50,096
+So I've given away the answer
+
+
+773
+00:21:50,096 --> 00:21:50,426
+here.
+
+
+774
+00:21:50,586 --> 00:21:53,316
+If this were something like 0.0,
+
+
+775
+00:21:53,816 --> 00:21:55,506
+then this inference of double
+
+
+776
+00:21:55,506 --> 00:21:56,736
+here wouldn't really have been
+
+
+777
+00:21:56,736 --> 00:21:57,636
+necessary.
+
+
+778
+00:21:58,126 --> 00:21:59,696
+But since we've got this big,
+
+
+779
+00:21:59,696 --> 00:22:01,256
+complicated expression involving
+
+
+780
+00:22:01,256 --> 00:22:03,236
+reduced and the power function
+
+
+781
+00:22:03,236 --> 00:22:06,586
+from the system frameworks, you
+
+
+782
+00:22:06,586 --> 00:22:08,026
+might not have even guessed that
+
+
+783
+00:22:08,026 --> 00:22:09,566
+"double" was inferred type of
+
+
+784
+00:22:09,566 --> 00:22:10,296
+this property.
+
+
+785
+00:22:11,066 --> 00:22:12,126
+And so by providing this
+
+
+786
+00:22:12,126 --> 00:22:14,076
+information here, you've saved
+
+
+787
+00:22:14,076 --> 00:22:15,406
+work that the compiler would
+
+
+788
+00:22:15,406 --> 00:22:17,796
+have to do in every file that
+
+
+789
+00:22:17,826 --> 00:22:18,876
+uses this struct.
+
+
+790
+00:22:19,626 --> 00:22:21,636
+And you've also saved work that
+
+
+791
+00:22:21,636 --> 00:22:23,046
+your coworkers would have to do
+
+
+792
+00:22:23,336 --> 00:22:25,086
+to figure out what really is the
+
+
+793
+00:22:25,086 --> 00:22:26,086
+type of that big number
+
+
+794
+00:22:26,086 --> 00:22:26,576
+property.
+
+
+795
+00:22:27,156 --> 00:22:30,166
+So a lot of times you can get
+
+
+796
+00:22:30,166 --> 00:22:31,226
+this extra key piece of
+
+
+797
+00:22:31,226 --> 00:22:32,596
+information that will help your
+
+
+798
+00:22:32,596 --> 00:22:34,786
+build times is also an example
+
+
+799
+00:22:34,786 --> 00:22:36,036
+of a good software engineering
+
+
+800
+00:22:36,036 --> 00:22:36,666
+practice.
+
+
+801
+00:22:37,806 --> 00:22:38,846
+Let's take a look at another
+
+
+802
+00:22:38,846 --> 00:22:40,516
+example involving closures.
+
+
+803
+00:22:41,536 --> 00:22:43,286
+This time I'm trying to define a
+
+
+804
+00:22:43,286 --> 00:22:44,936
+function that will return the
+
+
+805
+00:22:44,936 --> 00:22:47,156
+sum of the non-optional values
+
+
+806
+00:22:47,156 --> 00:22:48,186
+of its arguments.
+
+
+807
+00:22:48,926 --> 00:22:50,156
+And if all three arguments are
+
+
+808
+00:22:50,156 --> 00:22:51,826
+nil, it will return nil.
+
+
+809
+00:22:53,136 --> 00:22:54,696
+And I'm trying to use one of
+
+
+810
+00:22:54,696 --> 00:22:56,726
+Swift's cool features where if
+
+
+811
+00:22:56,726 --> 00:22:58,526
+you have a closure with a single
+
+
+812
+00:22:58,526 --> 00:23:00,646
+expression in its body, then the
+
+
+813
+00:23:00,646 --> 00:23:02,026
+compiler will use that
+
+
+814
+00:23:02,026 --> 00:23:03,986
+expression to help determine the
+
+
+815
+00:23:03,986 --> 00:23:04,976
+type of the closure.
+
+
+816
+00:23:05,786 --> 00:23:06,926
+Sometimes this is really
+
+
+817
+00:23:06,926 --> 00:23:07,506
+convenient.
+
+
+818
+00:23:08,086 --> 00:23:10,126
+Other times it can lead to code
+
+
+819
+00:23:10,126 --> 00:23:10,976
+like this.
+
+
+820
+00:23:12,506 --> 00:23:13,916
+That's pretty ugly.
+
+
+821
+00:23:13,916 --> 00:23:14,846
+I don't think I'm going to get
+
+
+822
+00:23:14,846 --> 00:23:16,046
+past code review with that one.
+
+
+823
+00:23:17,276 --> 00:23:18,796
+We've got some nested turnery
+
+
+824
+00:23:18,796 --> 00:23:20,876
+operators and some explicit
+
+
+825
+00:23:20,876 --> 00:23:22,316
+comparisons against nil.
+
+
+826
+00:23:22,406 --> 00:23:23,886
+And then a force and wrap to go
+
+
+827
+00:23:23,886 --> 00:23:24,636
+with it.
+
+
+828
+00:23:24,636 --> 00:23:26,046
+I don't really think this is
+
+
+829
+00:23:26,046 --> 00:23:26,676
+going to fly.
+
+
+830
+00:23:27,316 --> 00:23:28,686
+And it's got another problem,
+
+
+831
+00:23:28,686 --> 00:23:29,086
+too.
+
+
+832
+00:23:29,626 --> 00:23:31,136
+Because this expression is
+
+
+833
+00:23:31,136 --> 00:23:32,976
+getting so large, with so many
+
+
+834
+00:23:32,976 --> 00:23:35,316
+independent pieces, the Swift
+
+
+835
+00:23:35,316 --> 00:23:36,996
+compiler will report that it's
+
+
+836
+00:23:36,996 --> 00:23:38,656
+not able to compile this in a
+
+
+837
+00:23:38,656 --> 00:23:39,906
+reasonable amount of time.
+
+
+838
+00:23:40,966 --> 00:23:42,186
+Now, this is the ultimate in
+
+
+839
+00:23:42,186 --> 00:23:43,646
+slow builds when even the
+
+
+840
+00:23:43,646 --> 00:23:44,646
+compiler gives up.
+
+
+841
+00:23:45,776 --> 00:23:46,826
+And really, it's telling me
+
+
+842
+00:23:46,826 --> 00:23:48,046
+something about this code.
+
+
+843
+00:23:48,876 --> 00:23:50,906
+So, my first option here would
+
+
+844
+00:23:50,906 --> 00:23:52,026
+be to do the same thing as the
+
+
+845
+00:23:52,026 --> 00:23:53,786
+previous example and provide
+
+
+846
+00:23:53,786 --> 00:23:54,806
+additional types.
+
+
+847
+00:23:55,186 --> 00:23:56,586
+With a closure, you can do that
+
+
+848
+00:23:56,586 --> 00:23:57,906
+just before the In Key word.
+
+
+849
+00:23:59,156 --> 00:24:01,446
+But, this may not be the best
+
+
+850
+00:24:01,446 --> 00:24:02,706
+solution for this particular
+
+
+851
+00:24:02,706 --> 00:24:03,256
+problem.
+
+
+852
+00:24:03,536 --> 00:24:04,676
+So let's go back to what we had
+
+
+853
+00:24:04,676 --> 00:24:05,116
+before.
+
+
+854
+00:24:06,686 --> 00:24:08,416
+Recall that I said that I'm
+
+
+855
+00:24:08,416 --> 00:24:09,646
+trying to write a single
+
+
+856
+00:24:09,646 --> 00:24:11,596
+expression here so that it can
+
+
+857
+00:24:11,596 --> 00:24:13,026
+be used to help determine the
+
+
+858
+00:24:13,026 --> 00:24:13,996
+type of the closure.
+
+
+859
+00:24:15,176 --> 00:24:16,846
+But in this case, that's not
+
+
+860
+00:24:16,846 --> 00:24:17,856
+really necessary.
+
+
+861
+00:24:18,716 --> 00:24:20,316
+We already know from the call to
+
+
+862
+00:24:20,316 --> 00:24:22,366
+Reduce what this closure has to
+
+
+863
+00:24:22,366 --> 00:24:22,916
+be.
+
+
+864
+00:24:23,266 --> 00:24:24,716
+Reduce is being called on an
+
+
+865
+00:24:24,716 --> 00:24:26,156
+array of optional integers.
+
+
+866
+00:24:26,766 --> 00:24:28,736
+And the result type has to match
+
+
+867
+00:24:28,776 --> 00:24:30,126
+the return type of the function.
+
+
+868
+00:24:31,076 --> 00:24:33,186
+So we already know that this
+
+
+869
+00:24:33,486 --> 00:24:35,576
+callback for Reduce is going to
+
+
+870
+00:24:35,576 --> 00:24:37,106
+be operating just on optional
+
+
+871
+00:24:37,106 --> 00:24:37,746
+integers.
+
+
+872
+00:24:38,336 --> 00:24:40,136
+That means there's no need to
+
+
+873
+00:24:40,136 --> 00:24:41,576
+put a single expression in that
+
+
+874
+00:24:41,576 --> 00:24:42,046
+closure.
+
+
+875
+00:24:42,436 --> 00:24:44,626
+And it's perfectly okay to break
+
+
+876
+00:24:44,626 --> 00:24:46,146
+it up into separate, more
+
+
+877
+00:24:46,146 --> 00:24:47,146
+readable statements.
+
+
+878
+00:24:48,556 --> 00:24:49,966
+So here's a direct translation
+
+
+879
+00:24:49,966 --> 00:24:51,306
+of the code that I had before.
+
+
+880
+00:24:52,616 --> 00:24:53,936
+But I also have the freedom now
+
+
+881
+00:24:54,326 --> 00:24:55,206
+to make it something more
+
+
+882
+00:24:55,206 --> 00:24:55,776
+Swifty.
+
+
+883
+00:24:56,196 --> 00:24:57,806
+This is a lot more readable.
+
+
+884
+00:24:58,076 --> 00:24:59,346
+A lot more maintainable.
+
+
+885
+00:24:59,686 --> 00:25:01,226
+And it compiles in a quick,
+
+
+886
+00:25:01,296 --> 00:25:02,596
+reasonable amount of time.
+
+
+887
+00:25:03,106 --> 00:25:06,336
+Now, the last example I'm going
+
+
+888
+00:25:06,336 --> 00:25:07,856
+to show in this section is
+
+
+889
+00:25:07,856 --> 00:25:09,236
+something that won't apply quite
+
+
+890
+00:25:09,236 --> 00:25:10,786
+as broadly as the previous two.
+
+
+891
+00:25:11,396 --> 00:25:13,256
+It's about this type Any Object.
+
+
+892
+00:25:14,766 --> 00:25:17,516
+Now, Any Object is a convenient
+
+
+893
+00:25:17,516 --> 00:25:20,026
+type that describes any class
+
+
+894
+00:25:20,026 --> 00:25:20,646
+instance.
+
+
+895
+00:25:20,736 --> 00:25:22,226
+So not a struct or an enum.
+
+
+896
+00:25:22,326 --> 00:25:23,416
+Definitely a class.
+
+
+897
+00:25:23,526 --> 00:25:24,666
+But we don't know which one.
+
+
+898
+00:25:25,726 --> 00:25:27,076
+But it also has an additional
+
+
+899
+00:25:27,076 --> 00:25:28,736
+feature carried over from
+
+
+900
+00:25:28,736 --> 00:25:30,376
+Objective-C's ID type.
+
+
+901
+00:25:31,206 --> 00:25:33,146
+And that's this method call
+
+
+902
+00:25:33,146 --> 00:25:33,886
+syntax.
+
+
+903
+00:25:34,106 --> 00:25:36,066
+If you try to call a method or
+
+
+904
+00:25:36,066 --> 00:25:38,096
+access a property on a value of
+
+
+905
+00:25:38,156 --> 00:25:40,936
+type Any Object, Swift will
+
+
+906
+00:25:40,936 --> 00:25:42,816
+allow you to do so, as long as
+
+
+907
+00:25:42,816 --> 00:25:45,146
+that method is visible somewhere
+
+
+908
+00:25:45,146 --> 00:25:47,106
+in your project and exposed to
+
+
+909
+00:25:47,106 --> 00:25:48,416
+the Objective-C runtime.
+
+
+910
+00:25:49,416 --> 00:25:50,956
+However, this does come at a
+
+
+911
+00:25:50,956 --> 00:25:51,576
+cost.
+
+
+912
+00:25:52,346 --> 00:25:53,976
+Because the compiler doesn't
+
+
+913
+00:25:53,976 --> 00:25:55,306
+know which method you're going
+
+
+914
+00:25:55,306 --> 00:25:57,616
+to call, it has to go search out
+
+
+915
+00:25:57,616 --> 00:25:59,516
+any possible implementations
+
+
+916
+00:25:59,756 --> 00:26:00,986
+throughout your project and the
+
+
+917
+00:26:00,986 --> 00:26:03,516
+frameworks you import and assume
+
+
+918
+00:26:03,516 --> 00:26:04,576
+that they might be the one
+
+
+919
+00:26:04,576 --> 00:26:05,746
+that's going to be used.
+
+
+920
+00:26:06,756 --> 00:26:08,316
+It has to do this because if
+
+
+921
+00:26:08,316 --> 00:26:09,706
+none of them match, it needs to
+
+
+922
+00:26:09,706 --> 00:26:10,776
+present you with an error.
+
+
+923
+00:26:12,586 --> 00:26:14,966
+So instead, we can do something
+
+
+924
+00:26:14,966 --> 00:26:16,706
+much better and much more,
+
+
+925
+00:26:16,706 --> 00:26:18,616
+again, declarative of our
+
+
+926
+00:26:18,616 --> 00:26:19,106
+intent.
+
+
+927
+00:26:19,626 --> 00:26:21,096
+We can define a protocol.
+
+
+928
+00:26:21,866 --> 00:26:22,696
+Now, this can be done in the
+
+
+929
+00:26:22,696 --> 00:26:24,876
+same file, or a different file,
+
+
+930
+00:26:25,426 --> 00:26:27,236
+but the important part is that
+
+
+931
+00:26:27,236 --> 00:26:28,616
+once we change this delegate
+
+
+932
+00:26:28,616 --> 00:26:30,546
+property to use our protocol
+
+
+933
+00:26:30,626 --> 00:26:32,756
+instead of Any Object, the
+
+
+934
+00:26:32,756 --> 00:26:34,806
+compiler knows exactly which
+
+
+935
+00:26:34,806 --> 00:26:35,826
+method it's calling.
+
+
+936
+00:26:37,186 --> 00:26:38,276
+And now you also have the
+
+
+937
+00:26:38,276 --> 00:26:39,546
+opportunity for all of your
+
+
+938
+00:26:39,546 --> 00:26:41,846
+implementing types to be checked
+
+
+939
+00:26:42,026 --> 00:26:43,336
+that they implement the method
+
+
+940
+00:26:43,386 --> 00:26:43,866
+correctly.
+
+
+941
+00:26:46,496 --> 00:26:48,186
+So, we've talked about several
+
+
+942
+00:26:48,186 --> 00:26:50,576
+techniques here for decreasing
+
+
+943
+00:26:50,576 --> 00:26:51,856
+the amount of work the compiler
+
+
+944
+00:26:51,856 --> 00:26:53,816
+does once it's already decided
+
+
+945
+00:26:53,816 --> 00:26:55,136
+to recompile a file.
+
+
+946
+00:26:56,106 --> 00:26:58,486
+But what about not recompiling
+
+
+947
+00:26:58,486 --> 00:26:59,556
+the file at all?
+
+
+948
+00:26:59,956 --> 00:27:01,696
+What makes the compiler choose
+
+
+949
+00:27:01,926 --> 00:27:03,186
+whether a file needs to be
+
+
+950
+00:27:03,186 --> 00:27:03,906
+recompiled?
+
+
+951
+00:27:04,636 --> 00:27:06,536
+For that, we need to understand
+
+
+952
+00:27:06,536 --> 00:27:07,836
+Swift's dependency model.
+
+
+953
+00:27:09,496 --> 00:27:12,326
+Now, Swift's dependency model is
+
+
+954
+00:27:12,356 --> 00:27:13,686
+based around files.
+
+
+955
+00:27:14,056 --> 00:27:15,366
+And it's a little bit tricky
+
+
+956
+00:27:15,466 --> 00:27:17,186
+because in Swift there are no
+
+
+957
+00:27:17,186 --> 00:27:17,926
+header files.
+
+
+958
+00:27:18,546 --> 00:27:20,236
+We just see everything that's
+
+
+959
+00:27:20,796 --> 00:27:22,626
+defined somewhere in our target
+
+
+960
+00:27:22,706 --> 00:27:23,286
+by default.
+
+
+961
+00:27:24,256 --> 00:27:25,486
+In this case, I'm declaring a
+
+
+962
+00:27:25,486 --> 00:27:26,936
+struct point in the file on the
+
+
+963
+00:27:26,936 --> 00:27:27,316
+left.
+
+
+964
+00:27:27,866 --> 00:27:29,176
+And if I bring in a file on the
+
+
+965
+00:27:29,176 --> 00:27:31,106
+right, the compiler knows that
+
+
+966
+00:27:31,106 --> 00:27:32,916
+I'm referring to that first
+
+
+967
+00:27:32,916 --> 00:27:33,656
+declaration.
+
+
+968
+00:27:34,316 --> 00:27:35,766
+The same is true for the use of
+
+
+969
+00:27:35,766 --> 00:27:37,466
+the X and Y properties in that
+
+
+970
+00:27:37,466 --> 00:27:41,216
+file on the right.
+
+
+971
+00:27:41,416 --> 00:27:43,286
+Now, this file-based dependency
+
+
+972
+00:27:43,286 --> 00:27:44,776
+means that if I change the file
+
+
+973
+00:27:44,776 --> 00:27:47,846
+on the left, both files will
+
+
+974
+00:27:47,846 --> 00:27:49,086
+need to be recompiled.
+
+
+975
+00:27:50,306 --> 00:27:51,686
+And that's important because
+
+
+976
+00:27:51,686 --> 00:27:52,886
+we're actually trying to call
+
+
+977
+00:27:52,886 --> 00:27:53,816
+this initializer.
+
+
+978
+00:27:54,016 --> 00:27:55,326
+And we want to make sure that
+
+
+979
+00:27:55,326 --> 00:27:56,486
+we're calling it correctly.
+
+
+980
+00:27:57,036 --> 00:28:00,306
+The compiler is smart enough to
+
+
+981
+00:28:00,306 --> 00:28:01,976
+know that when you make change
+
+
+982
+00:28:01,976 --> 00:28:04,136
+within a function body, in this
+
+
+983
+00:28:04,166 --> 00:28:05,586
+case making the assertion more
+
+
+984
+00:28:05,586 --> 00:28:09,056
+appropriate, that only that file
+
+
+985
+00:28:09,056 --> 00:28:10,316
+will need to be recompiled.
+
+
+986
+00:28:11,136 --> 00:28:13,446
+Other files won't have to change
+
+
+987
+00:28:13,616 --> 00:28:15,556
+how they use the API's from the
+
+
+988
+00:28:15,586 --> 00:28:16,196
+first file.
+
+
+989
+00:28:16,646 --> 00:28:20,206
+However, it does need to be
+
+
+990
+00:28:20,206 --> 00:28:20,946
+conservative.
+
+
+991
+00:28:21,096 --> 00:28:22,916
+And so if I add a separate type
+
+
+992
+00:28:22,916 --> 00:28:25,326
+to this file, a human can tell
+
+
+993
+00:28:25,326 --> 00:28:26,706
+that this path segment struct
+
+
+994
+00:28:26,906 --> 00:28:28,336
+won't affect the file on the
+
+
+995
+00:28:28,336 --> 00:28:28,636
+right.
+
+
+996
+00:28:29,256 --> 00:28:30,596
+But the compiler will still be
+
+
+997
+00:28:30,596 --> 00:28:31,876
+conservative and rebuild them
+
+
+998
+00:28:31,876 --> 00:28:32,186
+both.
+
+
+999
+00:28:32,726 --> 00:28:36,116
+Let's see how this applies to
+
+
+1000
+00:28:36,116 --> 00:28:37,456
+the game example that David was
+
+
+1001
+00:28:37,456 --> 00:28:38,216
+using earlier.
+
+
+1002
+00:28:39,246 --> 00:28:40,576
+So here we have the app target
+
+
+1003
+00:28:40,576 --> 00:28:41,856
+and the Utilities framework.
+
+
+1004
+00:28:41,856 --> 00:28:42,766
+And I'm showing some of the
+
+
+1005
+00:28:42,766 --> 00:28:44,016
+Swift files that are in each
+
+
+1006
+00:28:44,016 --> 00:28:44,426
+target.
+
+
+1007
+00:28:45,586 --> 00:28:47,096
+So if I change a file in the App
+
+
+1008
+00:28:47,096 --> 00:28:50,636
+target, well, we know already
+
+
+1009
+00:28:50,636 --> 00:28:51,616
+that that file needs to be
+
+
+1010
+00:28:51,616 --> 00:28:52,286
+recompiled.
+
+
+1011
+00:28:52,436 --> 00:28:53,606
+And of course, anything that
+
+
+1012
+00:28:53,606 --> 00:28:55,146
+depends on that file will also
+
+
+1013
+00:28:55,146 --> 00:28:56,236
+need to be recompiled.
+
+
+1014
+00:28:57,026 --> 00:28:58,316
+But there's no chance that
+
+
+1015
+00:28:58,316 --> 00:28:59,716
+anything within the utilities
+
+
+1016
+00:28:59,756 --> 00:29:01,376
+target will be recompiled.
+
+
+1017
+00:29:02,276 --> 00:29:03,326
+It's in a separate target.
+
+
+1018
+00:29:03,326 --> 00:29:05,576
+It has an explicit dependency.
+
+
+1019
+00:29:05,676 --> 00:29:07,426
+And it doesn't have implicit
+
+
+1020
+00:29:07,426 --> 00:29:09,406
+visibility between those two
+
+
+1021
+00:29:09,406 --> 00:29:12,456
+sets of files.
+
+
+1022
+00:29:12,626 --> 00:29:15,286
+Now, similarly, if I change
+
+
+1023
+00:29:15,286 --> 00:29:16,376
+something in the framework
+
+
+1024
+00:29:16,376 --> 00:29:17,896
+target, then I would need to
+
+
+1025
+00:29:17,896 --> 00:29:20,246
+recompile that file and anything
+
+
+1026
+00:29:20,246 --> 00:29:21,416
+else in the utilities framework
+
+
+1027
+00:29:21,416 --> 00:29:22,236
+that depends on it.
+
+
+1028
+00:29:23,156 --> 00:29:24,696
+However, these dependencies are
+
+
+1029
+00:29:24,696 --> 00:29:25,776
+more coarse-grained.
+
+
+1030
+00:29:26,236 --> 00:29:28,296
+And so Xcode will also recompile
+
+
+1031
+00:29:28,296 --> 00:29:29,906
+everything that's in the Game
+
+
+1032
+00:29:29,906 --> 00:29:32,136
+target as well, unless the
+
+
+1033
+00:29:32,136 --> 00:29:34,016
+changes are entirely confined to
+
+
+1034
+00:29:34,016 --> 00:29:34,846
+function bodies.
+
+
+1035
+00:29:35,436 --> 00:29:38,996
+So to recap those rules, the
+
+
+1036
+00:29:38,996 --> 00:29:39,906
+compiler needs to be
+
+
+1037
+00:29:39,906 --> 00:29:40,746
+conservative.
+
+
+1038
+00:29:41,056 --> 00:29:42,506
+Even if a human can tell that a
+
+
+1039
+00:29:42,506 --> 00:29:43,656
+change doesn't affect other
+
+
+1040
+00:29:43,656 --> 00:29:45,506
+files, that doesn't necessarily
+
+
+1041
+00:29:45,506 --> 00:29:46,936
+mean that the compiler can.
+
+
+1042
+00:29:47,716 --> 00:29:49,486
+However, one change that the
+
+
+1043
+00:29:49,486 --> 00:29:51,136
+compiler does know how to handle
+
+
+1044
+00:29:51,536 --> 00:29:52,696
+is function bodies.
+
+
+1045
+00:29:52,936 --> 00:29:54,196
+It knows that this doesn't
+
+
+1046
+00:29:54,196 --> 00:29:55,576
+affect the file's interface.
+
+
+1047
+00:29:55,896 --> 00:29:57,776
+And therefore, will not require
+
+
+1048
+00:29:57,776 --> 00:29:59,406
+other files to be recompiled.
+
+
+1049
+00:30:02,406 --> 00:30:04,146
+This per-file dependency basis
+
+
+1050
+00:30:04,146 --> 00:30:06,006
+happens within a module, which
+
+
+1051
+00:30:06,006 --> 00:30:08,386
+is where Swift declarations are
+
+
+1052
+00:30:08,386 --> 00:30:09,606
+implicitly visible to one
+
+
+1053
+00:30:09,606 --> 00:30:10,026
+another.
+
+
+1054
+00:30:10,876 --> 00:30:11,666
+When you're dealing with
+
+
+1055
+00:30:11,666 --> 00:30:13,756
+cross-module dependencies via
+
+
+1056
+00:30:13,756 --> 00:30:15,006
+your imports or your bridging
+
+
+1057
+00:30:15,006 --> 00:30:16,736
+header, these are dependencies
+
+
+1058
+00:30:16,736 --> 00:30:17,846
+on the entire target.
+
+
+1059
+00:30:18,386 --> 00:30:21,836
+So this is all good information
+
+
+1060
+00:30:21,836 --> 00:30:24,266
+about Swift dependencies, and
+
+
+1061
+00:30:24,266 --> 00:30:25,546
+Swift targets.
+
+
+1062
+00:30:25,856 --> 00:30:27,336
+But I know a lot of you out here
+
+
+1063
+00:30:27,546 --> 00:30:29,256
+have mixed Objective-C and Swift
+
+
+1064
+00:30:29,256 --> 00:30:29,766
+targets.
+
+
+1065
+00:30:29,976 --> 00:30:31,336
+And so the last section is going
+
+
+1066
+00:30:31,336 --> 00:30:33,276
+to be focused on that, on how to
+
+
+1067
+00:30:33,276 --> 00:30:34,696
+reduce the interface between the
+
+
+1068
+00:30:34,696 --> 00:30:36,306
+Swift and the Objective-C code
+
+
+1069
+00:30:36,726 --> 00:30:37,756
+in a mixed-source app.
+
+
+1070
+00:30:38,976 --> 00:30:40,506
+And to do this, we're going to
+
+
+1071
+00:30:40,506 --> 00:30:42,236
+have to talk about the parts of
+
+
+1072
+00:30:42,236 --> 00:30:42,966
+a mixed-source app.
+
+
+1073
+00:30:44,096 --> 00:30:44,996
+And this diagram's going to get
+
+
+1074
+00:30:44,996 --> 00:30:46,286
+a little complicated, so bear
+
+
+1075
+00:30:46,286 --> 00:30:46,796
+with me.
+
+
+1076
+00:30:46,796 --> 00:30:48,356
+And if you're watching on video,
+
+
+1077
+00:30:48,406 --> 00:30:49,216
+you may need to pause and
+
+
+1078
+00:30:49,216 --> 00:30:49,626
+restart.
+
+
+1079
+00:30:50,386 --> 00:30:51,106
+Feel free.
+
+
+1080
+00:30:52,406 --> 00:30:54,306
+We start off with the headers
+
+
+1081
+00:30:54,676 --> 00:30:56,256
+that describe your Objective-C
+
+
+1082
+00:30:56,256 --> 00:30:56,926
+interface.
+
+
+1083
+00:30:57,646 --> 00:30:58,756
+This is the parts of your app
+
+
+1084
+00:30:58,796 --> 00:31:00,136
+that are written in Objective-C
+
+
+1085
+00:31:00,296 --> 00:31:01,496
+that you may want to expose to
+
+
+1086
+00:31:01,496 --> 00:31:01,896
+Swift.
+
+
+1087
+00:31:02,376 --> 00:31:03,966
+Or perhaps you're just declaring
+
+
+1088
+00:31:03,966 --> 00:31:05,656
+headers for other Objective-C
+
+
+1089
+00:31:05,656 --> 00:31:07,046
+parts of your app.
+
+
+1090
+00:31:08,246 --> 00:31:09,416
+Then we have the bridging
+
+
+1091
+00:31:09,416 --> 00:31:09,796
+header.
+
+
+1092
+00:31:10,236 --> 00:31:11,696
+This is the header that collects
+
+
+1093
+00:31:11,696 --> 00:31:13,416
+all of the information that you
+
+
+1094
+00:31:13,416 --> 00:31:15,566
+want to expose to the Swift part
+
+
+1095
+00:31:15,566 --> 00:31:16,886
+of your app.
+
+
+1096
+00:31:17,766 --> 00:31:19,656
+This is a build setting in Xcode
+
+
+1097
+00:31:19,786 --> 00:31:21,076
+that controls which header is
+
+
+1098
+00:31:21,076 --> 00:31:21,616
+used.
+
+
+1099
+00:31:21,836 --> 00:31:23,756
+And once it's set, the Swift
+
+
+1100
+00:31:23,756 --> 00:31:25,846
+compiler will know to expose
+
+
+1101
+00:31:25,846 --> 00:31:27,906
+those Objective-C interfaces to
+
+
+1102
+00:31:27,906 --> 00:31:28,736
+your Swift code.
+
+
+1103
+00:31:30,216 --> 00:31:32,196
+The Swift compiler will then
+
+
+1104
+00:31:32,196 --> 00:31:34,616
+produce a generated header,
+
+
+1105
+00:31:35,036 --> 00:31:36,266
+which does the same thing in
+
+
+1106
+00:31:36,266 --> 00:31:36,796
+reverse.
+
+
+1107
+00:31:37,246 --> 00:31:39,026
+It describes which parts of your
+
+
+1108
+00:31:39,026 --> 00:31:41,526
+Swift code will be exposed to
+
+
+1109
+00:31:41,526 --> 00:31:42,496
+Objective-C.
+
+
+1110
+00:31:43,796 --> 00:31:45,656
+That can then be used in your
+
+
+1111
+00:31:45,656 --> 00:31:47,046
+Objective-C implementation
+
+
+1112
+00:31:47,046 --> 00:31:49,976
+files, which probably also use
+
+
+1113
+00:31:49,976 --> 00:31:50,926
+some of those headers from the
+
+
+1114
+00:31:50,926 --> 00:31:51,436
+first step.
+
+
+1115
+00:31:51,956 --> 00:31:53,896
+And then of course, you might
+
+
+1116
+00:31:53,896 --> 00:31:55,946
+have Objective-C code that is
+
+
+1117
+00:31:55,946 --> 00:31:57,566
+not dependent on any of the
+
+
+1118
+00:31:57,566 --> 00:31:58,246
+Swift code.
+
+
+1119
+00:31:58,846 --> 00:32:00,106
+But that's less interesting for
+
+
+1120
+00:32:00,106 --> 00:32:01,596
+this part of the talk.
+
+
+1121
+00:32:02,316 --> 00:32:03,486
+So, I'll step through that from
+
+
+1122
+00:32:03,486 --> 00:32:04,626
+left to right again.
+
+
+1123
+00:32:05,836 --> 00:32:07,746
+We have the Objective-C headers.
+
+
+1124
+00:32:08,996 --> 00:32:10,706
+The bridging header for getting
+
+
+1125
+00:32:10,706 --> 00:32:11,766
+some of that information into
+
+
+1126
+00:32:11,766 --> 00:32:12,176
+Swift.
+
+
+1127
+00:32:13,296 --> 00:32:14,906
+Your Swift implementation files.
+
+
+1128
+00:32:15,976 --> 00:32:17,556
+A generated header for
+
+
+1129
+00:32:17,556 --> 00:32:19,076
+presenting that information back
+
+
+1130
+00:32:19,076 --> 00:32:20,176
+to Objective-C.
+
+
+1131
+00:32:20,686 --> 00:32:21,966
+And then finally, your
+
+
+1132
+00:32:21,966 --> 00:32:23,426
+Objective-C implementation
+
+
+1133
+00:32:23,426 --> 00:32:24,036
+files.
+
+
+1134
+00:32:24,506 --> 00:32:28,536
+And in a diagram like this, all
+
+
+1135
+00:32:28,536 --> 00:32:30,456
+of these arrows represent
+
+
+1136
+00:32:30,456 --> 00:32:31,396
+dependencies.
+
+
+1137
+00:32:31,476 --> 00:32:32,876
+Not dependencies on a target
+
+
+1138
+00:32:32,876 --> 00:32:34,966
+level, but within on a
+
+
+1139
+00:32:35,186 --> 00:32:36,996
+file-by-file level within a
+
+
+1140
+00:32:36,996 --> 00:32:37,516
+target.
+
+
+1141
+00:32:38,336 --> 00:32:40,216
+And so, what we want to do is
+
+
+1142
+00:32:40,216 --> 00:32:41,556
+focus on the generated header
+
+
+1143
+00:32:41,556 --> 00:32:43,046
+and the bridging header, because
+
+
+1144
+00:32:43,046 --> 00:32:44,546
+if we can shrink the content in
+
+
+1145
+00:32:44,546 --> 00:32:46,916
+these headers, then we know that
+
+
+1146
+00:32:46,916 --> 00:32:48,326
+there's fewer chances for things
+
+
+1147
+00:32:48,326 --> 00:32:49,056
+to change.
+
+
+1148
+00:32:49,366 --> 00:32:51,096
+And therefore, less need to
+
+
+1149
+00:32:51,096 --> 00:32:51,596
+rebuild.
+
+
+1150
+00:32:52,206 --> 00:32:54,116
+So let's take a look.
+
+
+1151
+00:32:54,916 --> 00:32:56,486
+For the generated header, your
+
+
+1152
+00:32:56,486 --> 00:32:57,906
+strongest tool is going to be
+
+
+1153
+00:32:57,906 --> 00:32:58,866
+the private key word.
+
+
+1154
+00:32:59,486 --> 00:33:01,086
+So in this example, I have a
+
+
+1155
+00:33:01,086 --> 00:33:02,126
+view controller that I'm
+
+
+1156
+00:33:02,126 --> 00:33:03,036
+defining in Swift.
+
+
+1157
+00:33:03,316 --> 00:33:04,476
+And it has an it an IBOutlet
+
+
+1158
+00:33:04,516 --> 00:33:06,636
+property and an IBAction method.
+
+
+1159
+00:33:07,606 --> 00:33:09,526
+By default, these will be
+
+
+1160
+00:33:09,526 --> 00:33:11,966
+exposed in your generated header
+
+
+1161
+00:33:12,426 --> 00:33:14,166
+because they're methods and
+
+
+1162
+00:33:14,166 --> 00:33:15,356
+properties exposed to
+
+
+1163
+00:33:15,356 --> 00:33:16,596
+Objective-C.
+
+
+1164
+00:33:17,226 --> 00:33:18,426
+And they're not declared as
+
+
+1165
+00:33:18,426 --> 00:33:18,876
+private.
+
+
+1166
+00:33:20,276 --> 00:33:22,216
+But most of the time you don't
+
+
+1167
+00:33:22,216 --> 00:33:23,756
+need to expose these to any
+
+
+1168
+00:33:23,756 --> 00:33:24,986
+other files in your project.
+
+
+1169
+00:33:25,376 --> 00:33:26,276
+They're just for interacting
+
+
+1170
+00:33:26,276 --> 00:33:27,206
+with Interface Builder.
+
+
+1171
+00:33:28,286 --> 00:33:30,326
+And so, in this case, I can mark
+
+
+1172
+00:33:30,366 --> 00:33:32,636
+these private and watch as the
+
+
+1173
+00:33:32,676 --> 00:33:34,396
+property and method vanish from
+
+
+1174
+00:33:34,466 --> 00:33:35,396
+the generated header.
+
+
+1175
+00:33:37,216 --> 00:33:39,606
+Another example of this is when
+
+
+1176
+00:33:39,606 --> 00:33:41,746
+dealing with methods exposed to
+
+
+1177
+00:33:41,746 --> 00:33:43,526
+Objective-C for use with
+
+
+1178
+00:33:43,526 --> 00:33:45,106
+Objective-C runtime features
+
+
+1179
+00:33:45,106 --> 00:33:46,126
+like #selector.
+
+
+1180
+00:33:46,786 --> 00:33:47,886
+In this case, I'm using
+
+
+1181
+00:33:47,886 --> 00:33:49,476
+foundations Notification Center
+
+
+1182
+00:33:49,476 --> 00:33:51,646
+API, which takes a selector to
+
+
+1183
+00:33:51,646 --> 00:33:53,166
+use as a callback when the
+
+
+1184
+00:33:53,166 --> 00:33:54,326
+notification is sent.
+
+
+1185
+00:33:55,896 --> 00:33:58,026
+Once again, the only requirement
+
+
+1186
+00:33:58,086 --> 00:33:59,086
+here is that the method is
+
+
+1187
+00:33:59,086 --> 00:34:00,816
+exposed to Objective-C.
+
+
+1188
+00:34:00,916 --> 00:34:02,056
+It doesn't actually need to be
+
+
+1189
+00:34:02,056 --> 00:34:03,786
+used from any other files in my
+
+
+1190
+00:34:03,786 --> 00:34:06,046
+project, Swift or Objective-C.
+
+
+1191
+00:34:06,486 --> 00:34:09,286
+So I can mark it private.
+
+
+1192
+00:34:10,106 --> 00:34:11,775
+And once again have that
+
+
+1193
+00:34:11,775 --> 00:34:13,326
+reduction in the shape of my
+
+
+1194
+00:34:13,326 --> 00:34:14,176
+generated header.
+
+
+1195
+00:34:14,815 --> 00:34:17,255
+In cases like this, there's
+
+
+1196
+00:34:17,255 --> 00:34:19,246
+often another option as well.
+
+
+1197
+00:34:19,596 --> 00:34:20,585
+And that's to switch to
+
+
+1198
+00:34:20,585 --> 00:34:21,896
+block-based API's.
+
+
+1199
+00:34:22,775 --> 00:34:24,166
+In many cases, this can even
+
+
+1200
+00:34:24,166 --> 00:34:25,866
+clear up your code because you
+
+
+1201
+00:34:25,866 --> 00:34:27,536
+can implicitly capture state
+
+
+1202
+00:34:27,666 --> 00:34:28,485
+from the function that's
+
+
+1203
+00:34:28,485 --> 00:34:30,016
+registering for the notification
+
+
+1204
+00:34:30,396 --> 00:34:31,516
+rather than having to carry it
+
+
+1205
+00:34:31,516 --> 00:34:33,065
+along as some kind of context
+
+
+1206
+00:34:33,065 --> 00:34:33,456
+object.
+
+
+1207
+00:34:34,076 --> 00:34:37,286
+Now, the last tip for reducing
+
+
+1208
+00:34:37,286 --> 00:34:38,485
+the contents of your generated
+
+
+1209
+00:34:38,485 --> 00:34:41,235
+header is actually a very old
+
+
+1210
+00:34:41,235 --> 00:34:41,576
+one.
+
+
+1211
+00:34:41,815 --> 00:34:43,255
+You can migrate to Swift 4.
+
+
+1212
+00:34:44,366 --> 00:34:45,646
+And you've already heard that
+
+
+1213
+00:34:45,646 --> 00:34:46,706
+you're going to have to do that
+
+
+1214
+00:34:46,706 --> 00:34:47,216
+this year.
+
+
+1215
+00:34:47,596 --> 00:34:49,076
+That Xcode 10 will be the last
+
+
+1216
+00:34:49,076 --> 00:34:51,795
+set of releases where Swift 3
+
+
+1217
+00:34:51,795 --> 00:34:52,886
+mode is supported.
+
+
+1218
+00:34:53,976 --> 00:34:56,386
+And so, this is something you'll
+
+
+1219
+00:34:56,386 --> 00:34:57,946
+be doing anyway.
+
+
+1220
+00:34:57,976 --> 00:34:59,166
+Edit. Convert.
+
+
+1221
+00:34:59,316 --> 00:35:01,076
+To Current Swift Syntax.
+
+
+1222
+00:35:02,496 --> 00:35:04,126
+However, when you do this
+
+
+1223
+00:35:04,396 --> 00:35:06,906
+migration, you may have actually
+
+
+1224
+00:35:06,906 --> 00:35:09,936
+selected to keep the Swift 3
+
+
+1225
+00:35:09,936 --> 00:35:11,446
+compatibility mode for a
+
+
+1226
+00:35:11,446 --> 00:35:12,576
+particular build setting.
+
+
+1227
+00:35:12,696 --> 00:35:14,776
+And that's the Swift 3 @objc
+
+
+1228
+00:35:14,776 --> 00:35:15,406
+imprints.
+
+
+1229
+00:35:16,196 --> 00:35:17,086
+This is an option when you
+
+
+1230
+00:35:17,086 --> 00:35:19,316
+migrate to Swift 4 to keep on a
+
+
+1231
+00:35:19,316 --> 00:35:22,176
+rule from Swift 3 which exposes
+
+
+1232
+00:35:22,176 --> 00:35:23,686
+internal methods and properties
+
+
+1233
+00:35:23,736 --> 00:35:26,416
+to Objective-C automatically on
+
+
+1234
+00:35:26,416 --> 00:35:30,096
+any subclass of NS Object.
+
+
+1235
+00:35:30,236 --> 00:35:31,626
+Now, if you are writing in Swift
+
+
+1236
+00:35:31,666 --> 00:35:33,416
+3, you may be relying on this
+
+
+1237
+00:35:33,416 --> 00:35:33,846
+feature.
+
+
+1238
+00:35:34,196 --> 00:35:35,936
+But there's a lot of cases where
+
+
+1239
+00:35:36,086 --> 00:35:37,626
+you were not actually depending
+
+
+1240
+00:35:37,626 --> 00:35:38,806
+on this in any way.
+
+
+1241
+00:35:39,446 --> 00:35:40,586
+Not in the runtime sense.
+
+
+1242
+00:35:40,746 --> 00:35:42,226
+And definitely not at compile
+
+
+1243
+00:35:42,226 --> 00:35:42,616
+time.
+
+
+1244
+00:35:43,666 --> 00:35:45,466
+So, once you get to the point
+
+
+1245
+00:35:45,816 --> 00:35:47,256
+where you've explicitly marked
+
+
+1246
+00:35:47,256 --> 00:35:48,176
+all of your Objective-C
+
+
+1247
+00:35:48,176 --> 00:35:51,506
+dependencies as either @objc or
+
+
+1248
+00:35:52,016 --> 00:35:54,116
+IBOutlet, IBAction, whatever, as
+
+
+1249
+00:35:54,116 --> 00:35:56,096
+appropriate, then you can also
+
+
+1250
+00:35:56,096 --> 00:35:57,826
+select this build setting and
+
+
+1251
+00:35:57,826 --> 00:35:59,186
+hit Delete to get it back to the
+
+
+1252
+00:35:59,186 --> 00:36:01,176
+default mode where the OB-C
+
+
+1253
+00:36:01,176 --> 00:36:02,866
+attribute will only be inferred
+
+
+1254
+00:36:03,566 --> 00:36:05,316
+for methods and properties that
+
+
+1255
+00:36:05,316 --> 00:36:08,176
+satisfy protocol requirements or
+
+
+1256
+00:36:08,176 --> 00:36:09,716
+those that override methods that
+
+
+1257
+00:36:09,716 --> 00:36:10,806
+come from Objective-C.
+
+
+1258
+00:36:11,306 --> 00:36:14,576
+So we've talked a lot about the
+
+
+1259
+00:36:14,576 --> 00:36:15,856
+generated header and what you
+
+
+1260
+00:36:15,856 --> 00:36:17,026
+can do to your Swift code.
+
+
+1261
+00:36:17,416 --> 00:36:19,306
+But you have Objective-C code as
+
+
+1262
+00:36:19,306 --> 00:36:19,816
+well.
+
+
+1263
+00:36:20,066 --> 00:36:21,386
+And the Objective-C code,
+
+
+1264
+00:36:21,386 --> 00:36:23,596
+likewise, causes rebuilds.
+
+
+1265
+00:36:24,656 --> 00:36:25,846
+And so a bridging header looks
+
+
+1266
+00:36:25,846 --> 00:36:27,186
+something like this, usually.
+
+
+1267
+00:36:27,186 --> 00:36:28,556
+It's got a bunch of other
+
+
+1268
+00:36:28,556 --> 00:36:29,996
+headers in the project that
+
+
+1269
+00:36:29,996 --> 00:36:30,976
+you're trying to expose to
+
+
+1270
+00:36:30,976 --> 00:36:31,386
+Swift.
+
+
+1271
+00:36:32,616 --> 00:36:34,016
+And we can zoom in on one of
+
+
+1272
+00:36:34,016 --> 00:36:34,886
+these headers here, the
+
+
+1273
+00:36:34,886 --> 00:36:37,436
+MyViewController header and see
+
+
+1274
+00:36:37,436 --> 00:36:38,716
+that it's a perfectly normal
+
+
+1275
+00:36:38,716 --> 00:36:39,526
+declaration of a view
+
+
+1276
+00:36:39,526 --> 00:36:40,086
+controller.
+
+
+1277
+00:36:40,616 --> 00:36:42,476
+But also that it itself includes
+
+
+1278
+00:36:42,476 --> 00:36:43,196
+another header.
+
+
+1279
+00:36:44,376 --> 00:36:46,006
+What that means is that if any
+
+
+1280
+00:36:46,006 --> 00:36:48,126
+of these headers change, the
+
+
+1281
+00:36:48,126 --> 00:36:49,886
+Swift code in your target has to
+
+
+1282
+00:36:49,886 --> 00:36:51,866
+be recompiled because it might
+
+
+1283
+00:36:51,866 --> 00:36:52,856
+depend on something that
+
+
+1284
+00:36:52,856 --> 00:36:53,356
+changed.
+
+
+1285
+00:36:54,616 --> 00:36:56,206
+This is suboptimal.
+
+
+1286
+00:36:56,466 --> 00:36:59,886
+And now we can notice that in
+
+
+1287
+00:36:59,886 --> 00:37:01,656
+this example, the only reason
+
+
+1288
+00:37:01,656 --> 00:37:03,096
+we're importing the MyNetwork
+
+
+1289
+00:37:03,096 --> 00:37:04,986
+Manager header is to declare
+
+
+1290
+00:37:04,986 --> 00:37:06,436
+this property, this network
+
+
+1291
+00:37:06,436 --> 00:37:07,606
+manager property on the view
+
+
+1292
+00:37:07,606 --> 00:37:08,176
+controller.
+
+
+1293
+00:37:09,576 --> 00:37:11,986
+And it's possible that that
+
+
+1294
+00:37:11,986 --> 00:37:14,036
+property is never actually used
+
+
+1295
+00:37:14,036 --> 00:37:14,816
+from Swift.
+
+
+1296
+00:37:15,436 --> 00:37:17,876
+In which case, it's unnecessary
+
+
+1297
+00:37:17,876 --> 00:37:19,376
+for us to be declaring it here.
+
+
+1298
+00:37:20,346 --> 00:37:21,976
+So what you can do is use
+
+
+1299
+00:37:21,976 --> 00:37:23,886
+categories, Objective-C's
+
+
+1300
+00:37:23,886 --> 00:37:25,486
+equivalent of extensions, to
+
+
+1301
+00:37:25,486 --> 00:37:26,866
+break up this interface.
+
+
+1302
+00:37:27,606 --> 00:37:28,566
+So I'm going to define a new
+
+
+1303
+00:37:28,566 --> 00:37:30,186
+file here, MyViewController
+
+
+1304
+00:37:30,186 --> 00:37:32,526
+Internal, and use the special
+
+
+1305
+00:37:32,526 --> 00:37:34,586
+nameless category syntax that
+
+
+1306
+00:37:34,586 --> 00:37:36,116
+allows me to declare additional
+
+
+1307
+00:37:36,116 --> 00:37:37,896
+properties while still taking
+
+
+1308
+00:37:37,896 --> 00:37:39,346
+advantage of the property
+
+
+1309
+00:37:39,346 --> 00:37:41,276
+synthesis feature in my main Add
+
+
+1310
+00:37:41,276 --> 00:37:42,326
+Implementation block.
+
+
+1311
+00:37:42,436 --> 00:37:47,066
+Now I can just move the import
+
+
+1312
+00:37:47,066 --> 00:37:48,066
+and the property down to the
+
+
+1313
+00:37:48,066 --> 00:37:48,696
+category.
+
+
+1314
+00:37:49,426 --> 00:37:50,066
+And voila!
+
+
+1315
+00:37:50,796 --> 00:37:52,316
+The headers that are being
+
+
+1316
+00:37:52,316 --> 00:37:54,636
+imported into Swift have gotten
+
+
+1317
+00:37:54,636 --> 00:37:56,536
+much smaller and are much less
+
+
+1318
+00:37:56,536 --> 00:37:58,246
+likely to change now and cause
+
+
+1319
+00:37:58,246 --> 00:37:59,506
+an unnecessary rebuild.
+
+
+1320
+00:38:00,476 --> 00:38:01,566
+And there's one more note.
+
+
+1321
+00:38:02,636 --> 00:38:04,206
+This file here that I defined,
+
+
+1322
+00:38:04,796 --> 00:38:06,626
+well, it's possible that nothing
+
+
+1323
+00:38:06,626 --> 00:38:08,256
+else in my Objective-C code
+
+
+1324
+00:38:08,256 --> 00:38:09,586
+needs to access this property,
+
+
+1325
+00:38:09,656 --> 00:38:09,966
+either.
+
+
+1326
+00:38:11,156 --> 00:38:12,796
+In which case, there's no need
+
+
+1327
+00:38:12,796 --> 00:38:13,786
+for a separate file.
+
+
+1328
+00:38:14,266 --> 00:38:16,256
+I can put this category directly
+
+
+1329
+00:38:16,256 --> 00:38:17,176
+into my .m.
+
+
+1330
+00:38:18,356 --> 00:38:19,676
+There's nothing wrong with doing
+
+
+1331
+00:38:19,676 --> 00:38:19,946
+this.
+
+
+1332
+00:38:20,056 --> 00:38:21,316
+Everything will work fine.
+
+
+1333
+00:38:21,646 --> 00:38:23,076
+And as I said before, property
+
+
+1334
+00:38:23,076 --> 00:38:24,736
+synthesis will still work for
+
+
+1335
+00:38:24,736 --> 00:38:26,046
+the network manager property.
+
+
+1336
+00:38:26,536 --> 00:38:28,976
+So what have we seen?
+
+
+1337
+00:38:29,946 --> 00:38:32,636
+We used private and block-based
+
+
+1338
+00:38:32,636 --> 00:38:34,456
+API's, and turning off that
+
+
+1339
+00:38:34,456 --> 00:38:35,906
+Build setting to shrink the
+
+
+1340
+00:38:35,906 --> 00:38:37,276
+contents of the generated
+
+
+1341
+00:38:37,276 --> 00:38:37,586
+header.
+
+
+1342
+00:38:38,786 --> 00:38:40,826
+And, we've broken out separate
+
+
+1343
+00:38:40,826 --> 00:38:42,736
+contents from the Objective-C
+
+
+1344
+00:38:42,736 --> 00:38:44,266
+headers that we declared, which
+
+
+1345
+00:38:44,266 --> 00:38:45,536
+shrink the contents of the
+
+
+1346
+00:38:45,576 --> 00:38:46,306
+bridging header.
+
+
+1347
+00:38:47,096 --> 00:38:49,076
+Less content means less work
+
+
+1348
+00:38:49,076 --> 00:38:49,996
+done on each build.
+
+
+1349
+00:38:50,336 --> 00:38:51,856
+And it also means fewer
+
+
+1350
+00:38:51,856 --> 00:38:53,916
+opportunities for changes, which
+
+
+1351
+00:38:53,916 --> 00:38:55,406
+means fewer chances for
+
+
+1352
+00:38:55,406 --> 00:38:56,026
+rebuilds.
+
+
+1353
+00:38:56,686 --> 00:38:57,936
+We win on both counts.
+
+
+1354
+00:38:59,126 --> 00:39:01,066
+So let's wrap things up.
+
+
+1355
+00:39:02,316 --> 00:39:04,646
+David and I talked a lot about
+
+
+1356
+00:39:04,946 --> 00:39:06,486
+quite a few different topics, of
+
+
+1357
+00:39:06,486 --> 00:39:07,556
+ways that you can get more
+
+
+1358
+00:39:07,556 --> 00:39:09,186
+information from Xcode and that
+
+
+1359
+00:39:09,186 --> 00:39:10,906
+you can provide more information
+
+
+1360
+00:39:11,196 --> 00:39:13,596
+to Xcode in ways that can speed
+
+
+1361
+00:39:13,596 --> 00:39:14,256
+up your builds.
+
+
+1362
+00:39:14,646 --> 00:39:16,266
+And this covers both increasing
+
+
+1363
+00:39:16,266 --> 00:39:17,366
+the build efficiency when you're
+
+
+1364
+00:39:17,366 --> 00:39:19,426
+doing a build and reducing the
+
+
+1365
+00:39:19,426 --> 00:39:21,116
+work that you have to do at all
+
+
+1366
+00:39:21,256 --> 00:39:21,956
+in a rebuild.
+
+
+1367
+00:39:23,416 --> 00:39:25,266
+So, we went through this kind of
+
+
+1368
+00:39:25,266 --> 00:39:25,436
+fast.
+
+
+1369
+00:39:25,616 --> 00:39:26,816
+So if you want to see it again,
+
+
+1370
+00:39:26,816 --> 00:39:27,956
+check out the video page.
+
+
+1371
+00:39:27,956 --> 00:39:29,486
+And you can also come find us in
+
+
+1372
+00:39:29,486 --> 00:39:31,746
+the labs at noon today and
+
+
+1373
+00:39:31,746 --> 00:39:33,326
+tomorrow in the afternoon.
+
+
+1374
+00:39:33,326 --> 00:39:33,936
+Thank you very much.
+
+
+1375
+00:39:34,086 --> 00:39:35,336
+Enjoy the rest of the
+
+
+1376
+00:39:35,336 --> 00:39:36,426
+conference.
+
+
+1377
+00:39:37,176 --> 00:39:39,500
+[ Applause ]
+

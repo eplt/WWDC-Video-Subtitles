@@ -1,0 +1,6424 @@
+1
+00:00:07,516 --> 00:00:16,516
+[ Music ]
+
+
+2
+00:00:17,516 --> 00:00:24,946
+[ Applause ]
+
+
+3
+00:00:25,446 --> 00:00:27,606
+>> Good afternoon, and welcome
+
+
+4
+00:00:27,606 --> 00:00:28,036
+to WWDC.
+
+
+5
+00:00:28,416 --> 00:00:29,756
+I know I'm competing now with
+
+
+6
+00:00:29,826 --> 00:00:31,606
+the coffee and cookies, but I
+
+
+7
+00:00:31,606 --> 00:00:32,606
+don't know if the coffee is
+
+
+8
+00:00:32,606 --> 00:00:33,976
+gluten free and the cookies are
+
+
+9
+00:00:33,976 --> 00:00:35,456
+actually caffeine free, so stick
+
+
+10
+00:00:35,456 --> 00:00:35,896
+with me.
+
+
+11
+00:00:36,256 --> 00:00:37,606
+My name is Frank Doepke and I'm
+
+
+12
+00:00:37,606 --> 00:00:38,696
+going to talk about some
+
+
+13
+00:00:38,696 --> 00:00:39,906
+interesting stuff that you can
+
+
+14
+00:00:39,906 --> 00:00:41,606
+do with Computer Vision using
+
+
+15
+00:00:41,606 --> 00:00:43,186
+Core ML and Division Framework.
+
+
+16
+00:00:44,396 --> 00:00:45,236
+So, what are we going to talk
+
+
+17
+00:00:45,236 --> 00:00:45,716
+about today?
+
+
+18
+00:00:46,676 --> 00:00:47,826
+First, you might have heard that
+
+
+19
+00:00:47,826 --> 00:00:49,046
+we have something special for
+
+
+20
+00:00:49,046 --> 00:00:51,186
+you in terms of custom image
+
+
+21
+00:00:51,186 --> 00:00:52,136
+classification.
+
+
+22
+00:00:53,306 --> 00:00:54,256
+Then we're going to do some
+
+
+23
+00:00:54,256 --> 00:00:55,226
+object recognition.
+
+
+24
+00:00:55,226 --> 00:00:57,596
+And last but not least, I'm
+
+
+25
+00:00:57,596 --> 00:00:59,116
+going to raise your level of
+
+
+26
+00:00:59,116 --> 00:01:00,536
+Vision awareness by diving into
+
+
+27
+00:01:00,536 --> 00:01:01,576
+some of the fundamentals.
+
+
+28
+00:01:04,245 --> 00:01:05,116
+Now, Custom Image
+
+
+29
+00:01:05,116 --> 00:01:08,396
+Classification, we've seen the
+
+
+30
+00:01:08,396 --> 00:01:10,156
+advantages already in some of
+
+
+31
+00:01:10,156 --> 00:01:12,176
+the presentations earlier, and
+
+
+32
+00:01:12,176 --> 00:01:13,176
+we see like what we can do with
+
+
+33
+00:01:13,176 --> 00:01:15,206
+flowers and fruits and I like
+
+
+34
+00:01:15,206 --> 00:01:16,476
+flowers and fruits as much as
+
+
+35
+00:01:16,476 --> 00:01:17,256
+everybody else.
+
+
+36
+00:01:17,526 --> 00:01:18,566
+Sorry, Lizzie, but I thought
+
+
+37
+00:01:18,566 --> 00:01:19,426
+we'd do something a bit more
+
+
+38
+00:01:19,426 --> 00:01:20,216
+technical here.
+
+
+39
+00:01:20,946 --> 00:01:23,346
+So, the idea is, what can we do
+
+
+40
+00:01:23,346 --> 00:01:24,886
+if we create a shop and we are
+
+
+41
+00:01:24,886 --> 00:01:26,286
+all geeks, so let's build a shop
+
+
+42
+00:01:26,336 --> 00:01:27,416
+where we can build robots.
+
+
+43
+00:01:27,596 --> 00:01:28,626
+So, there are some parts that we
+
+
+44
+00:01:28,626 --> 00:01:29,586
+need to identify.
+
+
+45
+00:01:30,376 --> 00:01:31,756
+And I thought it would be great
+
+
+46
+00:01:31,756 --> 00:01:33,016
+if I have an app that actually
+
+
+47
+00:01:33,016 --> 00:01:35,096
+can help customers in my store
+
+
+48
+00:01:35,096 --> 00:01:36,716
+identify what these objects are.
+
+
+49
+00:01:38,336 --> 00:01:39,446
+So, we've got to train a
+
+
+50
+00:01:39,446 --> 00:01:41,726
+customer classifier for that.
+
+
+51
+00:01:41,726 --> 00:01:44,136
+Then, once we have our
+
+
+52
+00:01:44,136 --> 00:01:46,306
+classifier, we build an iOS app
+
+
+53
+00:01:46,306 --> 00:01:47,736
+around that, that we can
+
+
+54
+00:01:47,736 --> 00:01:49,056
+actually run on all devices.
+
+
+55
+00:01:50,126 --> 00:01:52,186
+And when going through this, I'm
+
+
+56
+00:01:52,186 --> 00:01:53,186
+going to go through some of the
+
+
+57
+00:01:53,426 --> 00:01:54,596
+common pitfalls when you
+
+
+58
+00:01:54,596 --> 00:01:55,696
+actually want to do any of this
+
+
+59
+00:01:55,766 --> 00:01:57,466
+stuff and try to guide you
+
+
+60
+00:01:57,466 --> 00:01:58,646
+through that.
+
+
+61
+00:01:59,376 --> 00:02:02,276
+Let's start with our training.
+
+
+62
+00:02:03,426 --> 00:02:04,216
+So, how do we train?
+
+
+63
+00:02:04,216 --> 00:02:05,446
+We use of course, Create ML.
+
+
+64
+00:02:06,586 --> 00:02:08,235
+The first step of course we have
+
+
+65
+00:02:08,235 --> 00:02:09,596
+to do, is we have to take
+
+
+66
+00:02:09,596 --> 00:02:10,036
+pictures.
+
+
+67
+00:02:11,426 --> 00:02:13,816
+Then we put them in folders and
+
+
+68
+00:02:13,816 --> 00:02:15,426
+we use the folder names as our
+
+
+69
+00:02:15,426 --> 00:02:16,616
+classification labels.
+
+
+70
+00:02:18,876 --> 00:02:20,586
+Now, the biggest question that
+
+
+71
+00:02:20,586 --> 00:02:22,256
+everybody has, "How much data do
+
+
+72
+00:02:22,256 --> 00:02:22,576
+I need?"
+
+
+73
+00:02:23,426 --> 00:02:25,646
+The first thing is, well, we
+
+
+74
+00:02:25,646 --> 00:02:28,126
+need a minimum of about 10
+
+
+75
+00:02:28,456 --> 00:02:31,456
+images per category, but that's
+
+
+76
+00:02:31,456 --> 00:02:32,266
+on the low side.
+
+
+77
+00:02:32,266 --> 00:02:33,026
+You definitely want to have
+
+
+78
+00:02:33,076 --> 00:02:33,426
+more.
+
+
+79
+00:02:33,646 --> 00:02:34,846
+The more, the better, actually
+
+
+80
+00:02:34,846 --> 00:02:36,306
+your classifier will perform
+
+
+81
+00:02:36,306 --> 00:02:36,546
+better.
+
+
+82
+00:02:38,406 --> 00:02:39,966
+Another thing to look out for is
+
+
+83
+00:02:40,076 --> 00:02:41,586
+highly imbalanced data sets.
+
+
+84
+00:02:41,656 --> 00:02:42,546
+What do I mean by that?
+
+
+85
+00:02:43,016 --> 00:02:44,196
+When a data set has like
+
+
+86
+00:02:44,196 --> 00:02:45,656
+thousands of images in one
+
+
+87
+00:02:45,656 --> 00:02:46,976
+category, and only ten in the
+
+
+88
+00:02:46,976 --> 00:02:48,776
+other one, this model will not
+
+
+89
+00:02:48,836 --> 00:02:49,586
+train really well.
+
+
+90
+00:02:49,586 --> 00:02:50,746
+So, you want to have like an
+
+
+91
+00:02:50,746 --> 00:02:52,626
+equal distribution between most
+
+
+92
+00:02:52,626 --> 00:02:53,366
+of your categories.
+
+
+93
+00:02:55,696 --> 00:02:57,496
+Another thing that we actually
+
+
+94
+00:02:57,756 --> 00:02:59,356
+introduce, is augmentation.
+
+
+95
+00:03:00,146 --> 00:03:01,436
+Augmentation will help you to
+
+
+96
+00:03:01,436 --> 00:03:04,216
+make this model more robust, but
+
+
+97
+00:03:04,216 --> 00:03:05,396
+it doesn't really replace the
+
+
+98
+00:03:05,396 --> 00:03:06,016
+variety.
+
+
+99
+00:03:06,016 --> 00:03:07,856
+So, you still want to have lots
+
+
+100
+00:03:07,856 --> 00:03:09,736
+of images of your objects that
+
+
+101
+00:03:09,736 --> 00:03:10,616
+you want to classify.
+
+
+102
+00:03:11,326 --> 00:03:12,966
+But, with the augmentation, what
+
+
+103
+00:03:12,966 --> 00:03:14,336
+we're going to do is, we take an
+
+
+104
+00:03:14,336 --> 00:03:15,496
+image and we perturb it.
+
+
+105
+00:03:15,496 --> 00:03:17,936
+So, we have noised it, we blur
+
+
+106
+00:03:17,936 --> 00:03:19,766
+it, we rotate it, flip it, so it
+
+
+107
+00:03:19,766 --> 00:03:20,676
+looks different to the
+
+
+108
+00:03:20,676 --> 00:03:21,886
+classifier actually when we
+
+
+109
+00:03:21,886 --> 00:03:22,926
+train it.
+
+
+110
+00:03:24,096 --> 00:03:25,616
+Let's look a little bit under
+
+
+111
+00:03:25,616 --> 00:03:26,776
+the hood of how our training
+
+
+112
+00:03:26,776 --> 00:03:28,186
+actually works.
+
+
+113
+00:03:29,426 --> 00:03:30,496
+You might have already heard it,
+
+
+114
+00:03:30,576 --> 00:03:32,076
+the term, transfer learning.
+
+
+115
+00:03:32,076 --> 00:03:32,966
+And this is what we're going to
+
+
+116
+00:03:32,966 --> 00:03:34,626
+use in Create ML when we train
+
+
+117
+00:03:34,626 --> 00:03:35,376
+our classifier.
+
+
+118
+00:03:36,366 --> 00:03:37,716
+So, we start with a pretrained
+
+
+119
+00:03:37,716 --> 00:03:39,266
+model, and that's where all the
+
+
+120
+00:03:39,266 --> 00:03:40,676
+heavy lifting actually happens.
+
+
+121
+00:03:40,676 --> 00:03:42,386
+These models train normally for
+
+
+122
+00:03:42,386 --> 00:03:44,216
+weeks, and with millions of
+
+
+123
+00:03:44,256 --> 00:03:46,136
+images, and that is the first
+
+
+124
+00:03:46,136 --> 00:03:47,476
+starting point that you need to
+
+
+125
+00:03:47,476 --> 00:03:49,696
+actually work with this.
+
+
+126
+00:03:50,306 --> 00:03:52,136
+Out of this model, we can use
+
+
+127
+00:03:52,136 --> 00:03:53,496
+this as a feature extractor.
+
+
+128
+00:03:53,496 --> 00:03:54,866
+This gives us a feature vector
+
+
+129
+00:03:54,866 --> 00:03:56,186
+which is pretty much a numerical
+
+
+130
+00:03:56,186 --> 00:03:57,586
+description of what we have in
+
+
+131
+00:03:57,586 --> 00:03:58,246
+our image.
+
+
+132
+00:03:59,446 --> 00:04:01,446
+Now, you bring in your data and
+
+
+133
+00:04:01,446 --> 00:04:02,956
+we train the set, what we call
+
+
+134
+00:04:02,956 --> 00:04:04,026
+the last layer, which is the
+
+
+135
+00:04:04,026 --> 00:04:06,366
+real classifier, on your label
+
+
+136
+00:04:06,366 --> 00:04:08,636
+data and out comes your custom
+
+
+137
+00:04:08,636 --> 00:04:08,976
+model.
+
+
+138
+00:04:09,746 --> 00:04:12,786
+Now, I mentioned already this
+
+
+139
+00:04:12,786 --> 00:04:14,506
+large, first pretrained model.
+
+
+140
+00:04:15,406 --> 00:04:16,426
+And we have something new in
+
+
+141
+00:04:16,426 --> 00:04:17,396
+Vision for this [inaudible].
+
+
+142
+00:04:17,396 --> 00:04:18,596
+This is what we call the Vision
+
+
+143
+00:04:18,596 --> 00:04:19,815
+FeaturePrint for Scenes.
+
+
+144
+00:04:21,055 --> 00:04:22,676
+It's available through Create ML
+
+
+145
+00:04:23,406 --> 00:04:24,896
+and it allows you to train an
+
+
+146
+00:04:24,896 --> 00:04:25,796
+image classifier.
+
+
+147
+00:04:27,766 --> 00:04:29,236
+It has been trained on a very
+
+
+148
+00:04:29,236 --> 00:04:31,836
+large data set, and it is
+
+
+149
+00:04:31,836 --> 00:04:33,766
+capable of categorizing over a
+
+
+150
+00:04:33,766 --> 00:04:34,936
+thousand categories.
+
+
+151
+00:04:35,386 --> 00:04:37,296
+That's a pretty good
+
+
+152
+00:04:37,296 --> 00:04:38,206
+distribution that you can
+
+
+153
+00:04:38,206 --> 00:04:38,726
+actually use [inaudible].
+
+
+154
+00:04:39,756 --> 00:04:41,866
+And we've already used it.
+
+
+155
+00:04:41,866 --> 00:04:43,036
+Over the last few years, through
+
+
+156
+00:04:43,036 --> 00:04:44,006
+some of the user [inaudible]
+
+
+157
+00:04:44,006 --> 00:04:45,216
+pictures that you've seen in
+
+
+158
+00:04:45,216 --> 00:04:47,056
+photos, have been actually using
+
+
+159
+00:04:47,436 --> 00:04:48,366
+this model underneath.
+
+
+160
+00:04:49,976 --> 00:04:51,036
+We're also going to continuously
+
+
+161
+00:04:51,036 --> 00:04:52,676
+improve on that model, but
+
+
+162
+00:04:52,676 --> 00:04:53,776
+there's a small caveat that I
+
+
+163
+00:04:53,776 --> 00:04:54,966
+would like to kind of highlight
+
+
+164
+00:04:54,966 --> 00:04:55,186
+here.
+
+
+165
+00:04:56,336 --> 00:04:57,856
+When we come out with a new
+
+
+166
+00:04:57,856 --> 00:04:59,766
+version of that model, you will
+
+
+167
+00:04:59,766 --> 00:05:00,986
+not necessarily automatically
+
+
+168
+00:05:00,986 --> 00:05:02,536
+get the benefits unless you
+
+
+169
+00:05:02,536 --> 00:05:03,996
+retrain [inaudible] new model.
+
+
+170
+00:05:04,666 --> 00:05:06,096
+So, if you start developing with
+
+
+171
+00:05:06,186 --> 00:05:07,536
+this, this year, and you want to
+
+
+172
+00:05:07,676 --> 00:05:08,666
+you know, take advantage of
+
+
+173
+00:05:08,756 --> 00:05:09,866
+whatever we come out over the
+
+
+174
+00:05:09,866 --> 00:05:11,876
+next years, hold onto your data
+
+
+175
+00:05:11,876 --> 00:05:14,036
+sets so you can actually retrain
+
+
+176
+00:05:14,036 --> 00:05:15,046
+[inaudible].
+
+
+177
+00:05:15,046 --> 00:05:18,896
+A few more things about our
+
+
+178
+00:05:18,896 --> 00:05:21,986
+feature extractor.
+
+
+179
+00:05:21,986 --> 00:05:23,656
+It's already on the device, and
+
+
+180
+00:05:23,656 --> 00:05:24,816
+that was kind of an important
+
+
+181
+00:05:24,816 --> 00:05:27,716
+decision for us, because it
+
+
+182
+00:05:27,716 --> 00:05:29,306
+makes the disc footprint for
+
+
+183
+00:05:29,306 --> 00:05:30,776
+your models significantly
+
+
+184
+00:05:30,776 --> 00:05:31,276
+smaller.
+
+
+185
+00:05:32,136 --> 00:05:33,286
+So, let's compare a little bit.
+
+
+186
+00:05:34,106 --> 00:05:36,136
+So, I chose some common, you
+
+
+187
+00:05:36,136 --> 00:05:37,806
+know, available models that we
+
+
+188
+00:05:37,806 --> 00:05:38,486
+use today.
+
+
+189
+00:05:38,926 --> 00:05:40,156
+The first thing would be Resnet.
+
+
+190
+00:05:40,156 --> 00:05:42,106
+So, if I train my classifier on
+
+
+191
+00:05:42,106 --> 00:05:43,446
+top of Resnet, how big is my
+
+
+192
+00:05:43,446 --> 00:05:43,816
+model?
+
+
+193
+00:05:44,486 --> 00:05:45,496
+Ninety-eight megabytes.
+
+
+194
+00:05:47,386 --> 00:05:48,486
+If I use Squeezenet, so
+
+
+195
+00:05:48,486 --> 00:05:49,806
+Squeezenet is a much smaller
+
+
+196
+00:05:49,806 --> 00:05:50,146
+model.
+
+
+197
+00:05:50,146 --> 00:05:51,216
+It's not capable of
+
+
+198
+00:05:51,266 --> 00:05:52,306
+differentiating as many
+
+
+199
+00:05:52,306 --> 00:05:54,876
+categories, and that's 5
+
+
+200
+00:05:54,916 --> 00:05:55,406
+megabytes.
+
+
+201
+00:05:55,406 --> 00:05:57,176
+So, it's about saving there, but
+
+
+202
+00:05:57,636 --> 00:05:58,806
+it will not be as versatile.
+
+
+203
+00:05:58,806 --> 00:06:00,316
+Now, how about Vision?
+
+
+204
+00:06:01,806 --> 00:06:03,116
+It's less than a megabyte in
+
+
+205
+00:06:03,116 --> 00:06:03,726
+most cases.
+
+
+206
+00:06:04,356 --> 00:06:07,506
+The other thing of course why we
+
+
+207
+00:06:07,506 --> 00:06:08,406
+believe that this is a good
+
+
+208
+00:06:08,406 --> 00:06:10,586
+choice for use, it's already
+
+
+209
+00:06:10,586 --> 00:06:11,276
+optimized.
+
+
+210
+00:06:11,706 --> 00:06:13,116
+And we know a few things about
+
+
+211
+00:06:13,116 --> 00:06:15,546
+our hardware or GPUs and CPUS
+
+
+212
+00:06:15,546 --> 00:06:18,746
+and we really optimized a lot on
+
+
+213
+00:06:18,746 --> 00:06:20,026
+that model so that it performs
+
+
+214
+00:06:20,026 --> 00:06:21,296
+best on our devices.
+
+
+215
+00:06:21,906 --> 00:06:25,246
+So, how do we train [inaudible]?
+
+
+216
+00:06:27,036 --> 00:06:28,206
+We start with some labeled
+
+
+217
+00:06:28,206 --> 00:06:30,106
+images, and bring them into
+
+
+218
+00:06:30,106 --> 00:06:32,566
+Create ML, and Create ML knows
+
+
+219
+00:06:32,566 --> 00:06:33,876
+how to extract [inaudible]
+
+
+220
+00:06:33,876 --> 00:06:35,216
+Vision Feature Print.
+
+
+221
+00:06:36,636 --> 00:06:38,776
+It trains our classifier and
+
+
+222
+00:06:38,776 --> 00:06:40,506
+that classifier is all what
+
+
+223
+00:06:40,506 --> 00:06:41,616
+[inaudible] will go into our
+
+
+224
+00:06:41,616 --> 00:06:42,386
+Core ML model.
+
+
+225
+00:06:42,546 --> 00:06:43,786
+That's why it is so small.
+
+
+226
+00:06:43,786 --> 00:06:46,136
+Now, when it comes time that I
+
+
+227
+00:06:46,136 --> 00:06:47,676
+actually want to analyze an
+
+
+228
+00:06:47,676 --> 00:06:50,416
+image, all I have to do is use
+
+
+229
+00:06:50,416 --> 00:06:53,336
+my image and model, and now in
+
+
+230
+00:06:53,336 --> 00:06:56,036
+Vision or in Core ML, it knows
+
+
+231
+00:06:56,036 --> 00:06:57,166
+another [inaudible] again how to
+
+
+232
+00:06:57,166 --> 00:06:58,276
+train -- sorry.
+
+
+233
+00:06:58,426 --> 00:06:59,036
+Not train.
+
+
+234
+00:06:59,036 --> 00:07:00,936
+In this case, use our Vision
+
+
+235
+00:07:00,936 --> 00:07:02,686
+Feature Print and we'll
+
+
+236
+00:07:02,686 --> 00:07:04,036
+[inaudible] the classification.
+
+
+237
+00:07:04,786 --> 00:07:08,636
+So, that was everything we
+
+
+238
+00:07:08,636 --> 00:07:09,456
+needed to know about the
+
+
+239
+00:07:09,456 --> 00:07:09,926
+training.
+
+
+240
+00:07:11,206 --> 00:07:12,616
+But, I said there was some
+
+
+241
+00:07:12,766 --> 00:07:13,976
+caveats that you want to kind of
+
+
+242
+00:07:13,976 --> 00:07:15,186
+look at when we deal with the
+
+
+243
+00:07:16,326 --> 00:07:16,866
+app.
+
+
+244
+00:07:16,866 --> 00:07:20,326
+So, first thing, we only want to
+
+
+245
+00:07:20,326 --> 00:07:21,826
+actually run our classifier when
+
+
+246
+00:07:21,826 --> 00:07:22,606
+we really have to.
+
+
+247
+00:07:24,526 --> 00:07:25,666
+Classifiers are deep
+
+
+248
+00:07:25,666 --> 00:07:26,966
+convolutional networks that are
+
+
+249
+00:07:26,966 --> 00:07:28,426
+pretty computational intensive.
+
+
+250
+00:07:28,696 --> 00:07:30,996
+So, when we run those, it will
+
+
+251
+00:07:30,996 --> 00:07:32,646
+definitely use up kind of you
+
+
+252
+00:07:32,646 --> 00:07:33,996
+know, some electrons running on
+
+
+253
+00:07:33,996 --> 00:07:35,116
+the CPU and GPU.
+
+
+254
+00:07:35,116 --> 00:07:36,546
+So, you don't want to use this
+
+
+255
+00:07:36,846 --> 00:07:37,956
+unless you really have to.
+
+
+256
+00:07:38,776 --> 00:07:40,326
+In the example that I'm going to
+
+
+257
+00:07:40,326 --> 00:07:43,116
+show in my demo laters, I really
+
+
+258
+00:07:43,116 --> 00:07:44,206
+only want to classify if
+
+
+259
+00:07:44,206 --> 00:07:45,816
+actually the person looks really
+
+
+260
+00:07:45,816 --> 00:07:47,026
+at an item and not when just a
+
+
+261
+00:07:47,026 --> 00:07:48,086
+camera moves around.
+
+
+262
+00:07:49,816 --> 00:07:52,186
+So, I'm asking the question, "Am
+
+
+263
+00:07:52,186 --> 00:07:53,006
+I holding still?"
+
+
+264
+00:07:53,066 --> 00:07:54,216
+and then I'm going to run my
+
+
+265
+00:07:54,216 --> 00:07:54,846
+classifier.
+
+
+266
+00:07:56,106 --> 00:07:56,846
+How do I do this?
+
+
+267
+00:07:56,846 --> 00:07:59,096
+By using Vision, I can use
+
+
+268
+00:07:59,096 --> 00:07:59,906
+Registration.
+
+
+269
+00:08:00,156 --> 00:08:01,496
+Registration means I can take
+
+
+270
+00:08:01,536 --> 00:08:03,696
+two images and align them with
+
+
+271
+00:08:03,696 --> 00:08:04,006
+each other.
+
+
+272
+00:08:04,006 --> 00:08:04,836
+And you're going to tell me,
+
+
+273
+00:08:04,836 --> 00:08:06,026
+"Okay, if you shift it by this
+
+
+274
+00:08:06,026 --> 00:08:07,566
+amount of pixels, this is
+
+
+275
+00:08:07,566 --> 00:08:08,306
+actually in how they would
+
+
+276
+00:08:08,306 --> 00:08:08,946
+actually match."
+
+
+277
+00:08:09,606 --> 00:08:11,116
+This is a pretty cheap and fast
+
+
+278
+00:08:11,116 --> 00:08:13,626
+algorithm, and it will tell me
+
+
+279
+00:08:13,626 --> 00:08:15,376
+if I hold the camera still or if
+
+
+280
+00:08:15,376 --> 00:08:16,976
+anything is moving in front of
+
+
+281
+00:08:17,696 --> 00:08:19,816
+the camera.
+
+
+282
+00:08:19,816 --> 00:08:21,616
+I used VN Translational Image
+
+
+283
+00:08:21,616 --> 00:08:22,696
+Registration Request.
+
+
+284
+00:08:22,696 --> 00:08:23,736
+I know that is a mouthful.
+
+
+285
+00:08:25,106 --> 00:08:26,976
+But that will give me all this
+
+
+286
+00:08:26,976 --> 00:08:27,606
+information.
+
+
+287
+00:08:28,186 --> 00:08:29,666
+So, to visualize this first,
+
+
+288
+00:08:29,666 --> 00:08:31,006
+let's look at the little video.
+
+
+289
+00:08:31,436 --> 00:08:33,025
+What I'm doing in this video is
+
+
+290
+00:08:33,025 --> 00:08:34,616
+I show basically a little yellow
+
+
+291
+00:08:34,616 --> 00:08:36,515
+line that shows me how basically
+
+
+292
+00:08:36,566 --> 00:08:38,196
+my camera has moved or the
+
+
+293
+00:08:38,246 --> 00:08:39,556
+Registration requests have moved
+
+
+294
+00:08:39,556 --> 00:08:41,446
+over the last couple of frames.
+
+
+295
+00:08:41,956 --> 00:08:42,946
+So, what out for that yellow
+
+
+296
+00:08:42,946 --> 00:08:44,546
+line and see if it's long, then
+
+
+297
+00:08:44,546 --> 00:08:45,766
+I have moved the camera around
+
+
+298
+00:08:45,766 --> 00:08:46,606
+quite a bit, and when I'm
+
+
+299
+00:08:46,606 --> 00:08:47,736
+holding it still, it should
+
+
+300
+00:08:47,736 --> 00:08:48,866
+actually be a very small line.
+
+
+301
+00:08:49,546 --> 00:08:51,866
+So, you see the camera is
+
+
+302
+00:08:51,866 --> 00:08:53,446
+moving, and now I'm focusing on
+
+
+303
+00:08:53,446 --> 00:08:55,496
+this, and it gets very short.
+
+
+304
+00:08:57,016 --> 00:08:58,026
+So, that's just a good idea.
+
+
+305
+00:08:58,026 --> 00:08:58,846
+It's like, "Okay, now I'm
+
+
+306
+00:08:58,846 --> 00:08:59,366
+holding still.
+
+
+307
+00:08:59,366 --> 00:09:00,346
+Now, I want to run my
+
+
+308
+00:09:00,346 --> 00:09:00,976
+classifier."
+
+
+309
+00:09:01,426 --> 00:09:05,106
+Next thing to keep in mind is,
+
+
+310
+00:09:06,056 --> 00:09:06,976
+have a backup plan.
+
+
+311
+00:09:07,666 --> 00:09:08,446
+It's always good to have a
+
+
+312
+00:09:08,446 --> 00:09:08,996
+backup plan.
+
+
+313
+00:09:09,816 --> 00:09:11,786
+Classifications can be wrong.
+
+
+314
+00:09:12,956 --> 00:09:15,296
+And what that means, even if my
+
+
+315
+00:09:15,296 --> 00:09:16,636
+classification actually has a
+
+
+316
+00:09:16,636 --> 00:09:18,416
+high confidence, I need to kind
+
+
+317
+00:09:18,416 --> 00:09:19,676
+of plan for sometimes that it
+
+
+318
+00:09:19,676 --> 00:09:20,936
+doesn't work quite correctly.
+
+
+319
+00:09:22,526 --> 00:09:23,776
+The one thing that I did in my
+
+
+320
+00:09:23,776 --> 00:09:25,186
+example here, as you will see
+
+
+321
+00:09:25,186 --> 00:09:26,376
+later on, I have something
+
+
+322
+00:09:26,376 --> 00:09:27,216
+wherefore which I don't have a
+
+
+323
+00:09:27,216 --> 00:09:28,046
+physical object.
+
+
+324
+00:09:28,046 --> 00:09:29,156
+So, how do I solve that?
+
+
+325
+00:09:29,676 --> 00:09:31,006
+In my example, I'm using our
+
+
+326
+00:09:31,006 --> 00:09:32,326
+backward detector that we have
+
+
+327
+00:09:32,326 --> 00:09:34,046
+in the Vision Framework to read
+
+
+328
+00:09:34,046 --> 00:09:35,356
+some data backward label to
+
+
+329
+00:09:35,356 --> 00:09:36,156
+identify this.
+
+
+330
+00:09:37,256 --> 00:09:38,406
+Alright, enough of slides.
+
+
+331
+00:09:39,226 --> 00:09:41,946
+Who wants to see the demo?
+
+
+332
+00:09:42,516 --> 00:09:52,586
+[ Applause ]
+
+
+333
+00:09:53,086 --> 00:09:54,006
+Okay, what you see on the
+
+
+334
+00:09:54,006 --> 00:09:55,746
+right-hand side of the screen is
+
+
+335
+00:09:55,746 --> 00:09:56,776
+my device.
+
+
+336
+00:09:57,536 --> 00:09:58,746
+I'm going to start now my little
+
+
+337
+00:09:59,446 --> 00:10:00,716
+robot shop application.
+
+
+338
+00:10:01,276 --> 00:10:02,826
+And when you see I'm moving
+
+
+339
+00:10:02,826 --> 00:10:03,876
+around, there's nothing
+
+
+340
+00:10:03,876 --> 00:10:04,406
+happening.
+
+
+341
+00:10:04,826 --> 00:10:06,626
+When I hold still, and I point
+
+
+342
+00:10:06,626 --> 00:10:08,246
+it at something, I should see a
+
+
+343
+00:10:08,246 --> 00:10:10,246
+yellow line and then voila, yes
+
+
+344
+00:10:10,306 --> 00:10:11,366
+step is a stepper motor.
+
+
+345
+00:10:12,176 --> 00:10:13,336
+Okay? Let's see what else do we
+
+
+346
+00:10:13,336 --> 00:10:14,316
+have here on this table?
+
+
+347
+00:10:14,876 --> 00:10:19,916
+That is my micro controller.
+
+
+348
+00:10:20,586 --> 00:10:24,846
+That's a stepper motor driver.
+
+
+349
+00:10:25,186 --> 00:10:26,196
+We can also like you know, pick
+
+
+350
+00:10:26,196 --> 00:10:27,486
+something up and hold it.
+
+
+351
+00:10:28,426 --> 00:10:31,266
+Yes, this is a closed loop belt.
+
+
+352
+00:10:35,336 --> 00:10:36,496
+What do we have here?
+
+
+353
+00:10:36,496 --> 00:10:37,116
+Lead screw.
+
+
+354
+00:10:37,626 --> 00:10:39,446
+And as I said, you can also look
+
+
+355
+00:10:39,446 --> 00:10:42,076
+at the barcode here, if I get my
+
+
+356
+00:10:42,076 --> 00:10:43,086
+cable [inaudible] long enough.
+
+
+357
+00:10:44,416 --> 00:10:47,846
+And that is my training course.
+
+
+358
+00:10:48,446 --> 00:10:48,986
+>> Hey, Frank?
+
+
+359
+00:10:48,986 --> 00:10:51,426
+>> Of course, for that I
+
+
+360
+00:10:51,426 --> 00:10:51,626
+didn't--
+
+
+361
+00:10:51,746 --> 00:10:51,976
+>> Frank?
+
+
+362
+00:10:52,066 --> 00:10:56,106
+>> What's going on?
+
+
+363
+00:10:56,226 --> 00:10:57,706
+>> Frank, yes, I'm going to need
+
+
+364
+00:10:57,706 --> 00:10:59,286
+you to add another robot part to
+
+
+365
+00:10:59,286 --> 00:10:59,876
+your demo.
+
+
+366
+00:11:00,156 --> 00:11:00,746
+>> This is Brett.
+
+
+367
+00:11:00,746 --> 00:11:01,546
+That's my manager.
+
+
+368
+00:11:02,556 --> 00:11:05,046
+>> That'd be great.
+
+
+369
+00:11:09,066 --> 00:11:10,356
+>> As usual, management, last
+
+
+370
+00:11:10,356 --> 00:11:12,016
+minute requests.
+
+
+371
+00:11:12,236 --> 00:11:12,996
+>> I'll make sure you get
+
+
+372
+00:11:12,996 --> 00:11:14,126
+another copy of that memo.
+
+
+373
+00:11:14,376 --> 00:11:16,326
+>> I'm not going to come in on
+
+
+374
+00:11:16,326 --> 00:11:17,366
+Saturday for this.
+
+
+375
+00:11:18,296 --> 00:11:19,296
+Alright, well what do we have
+
+
+376
+00:11:19,356 --> 00:11:19,496
+here?
+
+
+377
+00:11:19,496 --> 00:11:20,876
+We have a [inaudible] motor.
+
+
+378
+00:11:20,876 --> 00:11:23,016
+Alright, let's see.
+
+
+379
+00:11:23,016 --> 00:11:23,876
+It might just work.
+
+
+380
+00:11:23,876 --> 00:11:26,606
+Let me try this.
+
+
+381
+00:11:28,146 --> 00:11:29,156
+Do I get away with that?
+
+
+382
+00:11:29,396 --> 00:11:31,976
+No, it can't really read this
+
+
+383
+00:11:31,976 --> 00:11:32,416
+object.
+
+
+384
+00:11:32,416 --> 00:11:33,156
+Perhaps so?
+
+
+385
+00:11:33,636 --> 00:11:34,856
+It's -- no, it's not a stepper
+
+
+386
+00:11:34,856 --> 00:11:35,206
+motor.
+
+
+387
+00:11:35,956 --> 00:11:36,576
+So, that's a bug.
+
+
+388
+00:11:37,136 --> 00:11:39,086
+I guess we need to fix that.
+
+
+389
+00:11:39,896 --> 00:11:40,836
+Who wants to fix this?
+
+
+390
+00:11:41,786 --> 00:11:46,176
+Who wants to fix this?
+
+
+391
+00:11:46,556 --> 00:11:47,256
+Alright.
+
+
+392
+00:11:49,476 --> 00:11:51,486
+So, what I have to do now is I
+
+
+393
+00:11:51,486 --> 00:11:52,656
+have to take some pictures of
+
+
+394
+00:11:53,276 --> 00:11:54,006
+the aforementioned, [inaudible]
+
+
+395
+00:11:54,136 --> 00:11:54,856
+motor.
+
+
+396
+00:11:55,006 --> 00:11:57,206
+So, I need to go to the studio
+
+
+397
+00:11:57,206 --> 00:11:59,276
+and you know, set up the lights,
+
+
+398
+00:11:59,916 --> 00:12:03,086
+or I use my favorite camera that
+
+
+399
+00:12:03,086 --> 00:12:03,916
+I already have here.
+
+
+400
+00:12:05,326 --> 00:12:06,716
+Now, let's see.
+
+
+401
+00:12:06,916 --> 00:12:07,836
+We're going to take a bunch of
+
+
+402
+00:12:07,836 --> 00:12:08,916
+pictures of our [inaudible]
+
+
+403
+00:12:08,986 --> 00:12:09,526
+motor.
+
+
+404
+00:12:09,526 --> 00:12:13,406
+And it's kind of important to
+
+
+405
+00:12:13,406 --> 00:12:14,816
+just kind of vary it and don't
+
+
+406
+00:12:14,816 --> 00:12:16,186
+have anything else really in the
+
+
+407
+00:12:16,186 --> 00:12:16,716
+frame.
+
+
+408
+00:12:21,426 --> 00:12:24,316
+So, I'm going for a [inaudible].
+
+
+409
+00:12:24,316 --> 00:12:26,116
+I need to have at least ten
+
+
+410
+00:12:26,116 --> 00:12:26,926
+different images.
+
+
+411
+00:12:27,526 --> 00:12:28,066
+Good choices.
+
+
+412
+00:12:28,066 --> 00:12:29,626
+I always just like to put it on
+
+
+413
+00:12:29,626 --> 00:12:30,576
+a different background.
+
+
+414
+00:12:31,376 --> 00:12:36,306
+And make sure that we get a few
+
+
+415
+00:12:36,306 --> 00:12:37,036
+captured here.
+
+
+416
+00:12:37,776 --> 00:12:39,116
+Perhaps I'm going to hold it a
+
+
+417
+00:12:39,496 --> 00:12:46,996
+little bit in my hand.
+
+
+418
+00:12:46,996 --> 00:12:48,906
+Okay, so we have now a number of
+
+
+419
+00:12:48,906 --> 00:12:49,326
+images.
+
+
+420
+00:12:51,366 --> 00:12:52,346
+Now, I'm going to go over to my
+
+
+421
+00:12:52,346 --> 00:12:53,726
+Mac and actually show you how to
+
+
+422
+00:12:53,726 --> 00:12:54,736
+actually do then the training
+
+
+423
+00:12:54,736 --> 00:12:56,876
+work for that.
+
+
+424
+00:12:57,276 --> 00:13:01,196
+Okay, I'm bringing up my image
+
+
+425
+00:13:01,196 --> 00:13:02,656
+capture application and let me
+
+
+426
+00:13:02,656 --> 00:13:06,016
+for a moment just hide my
+
+
+427
+00:13:06,016 --> 00:13:06,083
+[inaudible].
+
+
+428
+00:13:09,196 --> 00:13:10,976
+If I now look in my Finder, you
+
+
+429
+00:13:10,976 --> 00:13:12,036
+can actually see I have my
+
+
+430
+00:13:12,036 --> 00:13:13,496
+training set, which I used
+
+
+431
+00:13:13,496 --> 00:13:14,846
+already earlier to train and
+
+
+432
+00:13:14,846 --> 00:13:16,276
+model that I've been using in my
+
+
+433
+00:13:16,276 --> 00:13:16,976
+application.
+
+
+434
+00:13:17,826 --> 00:13:18,936
+And I need to create now a new
+
+
+435
+00:13:18,936 --> 00:13:23,346
+folder, and let's call that
+
+
+436
+00:13:25,516 --> 00:13:25,686
+Servo.
+
+
+437
+00:13:25,816 --> 00:13:27,186
+And from Image Capture, I can
+
+
+438
+00:13:27,186 --> 00:13:29,616
+now simply take all the pictures
+
+
+439
+00:13:29,616 --> 00:13:35,156
+that I just captured and drag
+
+
+440
+00:13:35,216 --> 00:13:40,996
+them into my Servo.
+
+
+441
+00:13:41,176 --> 00:13:43,596
+Alright, so now we have that
+
+
+442
+00:13:43,596 --> 00:13:44,016
+added.
+
+
+443
+00:13:44,626 --> 00:13:45,836
+Now, I need to train my model
+
+
+444
+00:13:45,836 --> 00:13:48,716
+again since my manager just
+
+
+445
+00:13:48,716 --> 00:13:49,856
+ruined what I've done earlier.
+
+
+446
+00:13:50,586 --> 00:13:50,936
+Okay.
+
+
+447
+00:13:52,296 --> 00:13:53,956
+I used a simple scripting
+
+
+448
+00:13:53,956 --> 00:13:55,136
+playground here.
+
+
+449
+00:13:55,136 --> 00:13:57,216
+Not the UI, just because well,
+
+
+450
+00:13:57,596 --> 00:13:58,616
+this might be something I want
+
+
+451
+00:13:58,616 --> 00:13:59,666
+to later on incorporate as a
+
+
+452
+00:13:59,666 --> 00:14:01,406
+build step into my application.
+
+
+453
+00:14:02,436 --> 00:14:03,526
+So, I'm pointing it simply at
+
+
+454
+00:14:03,526 --> 00:14:05,066
+the data set that we just added
+
+
+455
+00:14:05,066 --> 00:14:07,416
+our folder to, and I'm just
+
+
+456
+00:14:07,416 --> 00:14:08,236
+simply going to train my
+
+
+457
+00:14:08,236 --> 00:14:09,986
+classifier, and in the end,
+
+
+458
+00:14:10,136 --> 00:14:11,176
+write out my model.
+
+
+459
+00:14:12,246 --> 00:14:14,396
+So, what's going to happen now
+
+
+460
+00:14:14,396 --> 00:14:16,266
+as you can see, we're off to the
+
+
+461
+00:14:16,266 --> 00:14:16,636
+races.
+
+
+462
+00:14:17,416 --> 00:14:18,766
+It's going to go through all
+
+
+463
+00:14:18,766 --> 00:14:21,626
+these images that we've already
+
+
+464
+00:14:22,306 --> 00:14:23,546
+put into our folders and
+
+
+465
+00:14:23,546 --> 00:14:25,096
+extracts the scene print from
+
+
+466
+00:14:25,096 --> 00:14:25,376
+that.
+
+
+467
+00:14:25,626 --> 00:14:26,946
+It does all the scaling down
+
+
+468
+00:14:26,946 --> 00:14:29,906
+that has to happen and will then
+
+
+469
+00:14:29,906 --> 00:14:31,196
+in the end, train and model
+
+
+470
+00:14:31,196 --> 00:14:32,026
+based on that.
+
+
+471
+00:14:32,216 --> 00:14:33,506
+So, it's a pretty complex task,
+
+
+472
+00:14:33,506 --> 00:14:35,076
+but you see for you, it's really
+
+
+473
+00:14:35,166 --> 00:14:37,086
+just one line of code, and in
+
+
+474
+00:14:37,086 --> 00:14:38,236
+the end, you should get out of
+
+
+475
+00:14:38,236 --> 00:14:39,686
+it, a model that you can
+
+
+476
+00:14:39,686 --> 00:14:40,406
+actually use in your
+
+
+477
+00:14:40,406 --> 00:14:40,976
+application.
+
+
+478
+00:14:41,806 --> 00:14:43,076
+Let's see as it just finishes.
+
+
+479
+00:14:43,756 --> 00:14:45,696
+We're almost there.
+
+
+480
+00:14:46,156 --> 00:14:48,776
+And voila, we have our model.
+
+
+481
+00:14:51,106 --> 00:14:54,936
+Now, that model, I've already
+
+
+482
+00:14:54,936 --> 00:14:56,936
+referenced in my robot shop
+
+
+483
+00:14:56,936 --> 00:14:57,696
+application.
+
+
+484
+00:14:57,696 --> 00:14:58,896
+This is what we see here now.
+
+
+485
+00:14:59,526 --> 00:15:01,306
+As you can see, this is my image
+
+
+486
+00:15:01,306 --> 00:15:01,916
+classifier.
+
+
+487
+00:15:01,916 --> 00:15:03,826
+It's 148 kilobytes.
+
+
+488
+00:15:04,506 --> 00:15:06,206
+That's smaller than the little
+
+
+489
+00:15:06,206 --> 00:15:07,566
+startup screen that I actually
+
+
+490
+00:15:08,816 --> 00:15:08,906
+have.
+
+
+491
+00:15:09,516 --> 00:15:15,496
+[ Applause ]
+
+
+492
+00:15:15,996 --> 00:15:16,726
+So, one thing I want to
+
+
+493
+00:15:16,726 --> 00:15:17,666
+highlight here already, and
+
+
+494
+00:15:17,666 --> 00:15:18,616
+we're going to go into that a
+
+
+495
+00:15:18,616 --> 00:15:19,706
+little bit later.
+
+
+496
+00:15:19,706 --> 00:15:21,836
+So, this image, that I need to
+
+
+497
+00:15:21,836 --> 00:15:23,206
+pass into this has to be of a--
+
+
+498
+00:15:23,266 --> 00:15:26,196
+a color image and a 299 by 299
+
+
+499
+00:15:26,196 --> 00:15:26,606
+pixels.
+
+
+500
+00:15:26,816 --> 00:15:28,026
+Strange layout but this is
+
+
+501
+00:15:28,026 --> 00:15:29,466
+actually what a lot of these
+
+
+502
+00:15:29,466 --> 00:15:30,366
+classifiers will do.
+
+
+503
+00:15:31,406 --> 00:15:31,786
+Alright.
+
+
+504
+00:15:32,596 --> 00:15:34,406
+So, now I have hopefully a model
+
+
+505
+00:15:34,406 --> 00:15:35,486
+that will understand it.
+
+
+506
+00:15:36,006 --> 00:15:37,026
+Now, I need to go into my
+
+
+507
+00:15:37,416 --> 00:15:39,226
+sophisticated product database
+
+
+508
+00:15:39,226 --> 00:15:40,606
+which is just a key list.
+
+
+509
+00:15:42,186 --> 00:15:43,906
+And I'm going to add my Servo to
+
+
+510
+00:15:44,636 --> 00:15:45,086
+that.
+
+
+511
+00:15:47,816 --> 00:15:49,436
+So, I'm going to rename this one
+
+
+512
+00:15:49,436 --> 00:15:49,676
+here.
+
+
+513
+00:15:49,676 --> 00:15:50,676
+This is Servo.
+
+
+514
+00:15:51,376 --> 00:15:54,306
+I'm giving it a label.
+
+
+515
+00:15:54,306 --> 00:15:55,176
+This is actually what we're
+
+
+516
+00:15:55,176 --> 00:15:55,876
+going to see.
+
+
+517
+00:15:56,416 --> 00:16:01,396
+This is a servo motor and let's
+
+
+518
+00:16:01,396 --> 00:16:06,606
+say this is a motor that goes
+
+
+519
+00:16:07,386 --> 00:16:10,286
+swish, swish.
+
+
+520
+00:16:11,706 --> 00:16:12,946
+Very technical.
+
+
+521
+00:16:13,296 --> 00:16:13,596
+Alright.
+
+
+522
+00:16:14,826 --> 00:16:15,726
+Let's see if this works.
+
+
+523
+00:16:17,236 --> 00:16:18,636
+I'm going to run my application
+
+
+524
+00:16:19,406 --> 00:16:19,496
+now.
+
+
+525
+00:16:21,316 --> 00:16:28,776
+That's -- okay.
+
+
+526
+00:16:30,046 --> 00:16:32,136
+Let's try it.
+
+
+527
+00:16:32,836 --> 00:16:33,956
+There's our servo motor.
+
+
+528
+00:16:34,516 --> 00:16:41,266
+[ Applause ]
+
+
+529
+00:16:41,766 --> 00:16:43,676
+Just to put this in perspective.
+
+
+530
+00:16:43,676 --> 00:16:44,956
+This was a world first that you
+
+
+531
+00:16:44,956 --> 00:16:45,356
+saw.
+
+
+532
+00:16:45,406 --> 00:16:47,066
+A classifier being trained live
+
+
+533
+00:16:47,066 --> 00:16:48,516
+on stage, from photos, all the
+
+
+534
+00:16:48,516 --> 00:16:49,886
+way into the final application.
+
+
+535
+00:16:50,586 --> 00:16:51,896
+I was a bit sweating about this
+
+
+536
+00:16:51,896 --> 00:16:52,176
+demo [laughter].
+
+
+537
+00:16:55,686 --> 00:16:55,996
+Thank you.
+
+
+538
+00:17:01,866 --> 00:17:04,006
+Now we've seen how it works.
+
+
+539
+00:17:04,006 --> 00:17:05,136
+There's a few things I want to
+
+
+540
+00:17:05,136 --> 00:17:06,326
+highlight actually when we
+
+
+541
+00:17:06,326 --> 00:17:08,786
+actually go through the code.
+
+
+542
+00:17:09,016 --> 00:17:09,796
+So, I promise, we're going to
+
+
+543
+00:17:09,796 --> 00:17:11,465
+live code here a little bit.
+
+
+544
+00:17:12,006 --> 00:17:15,165
+Okay, let me take everything
+
+
+545
+00:17:15,165 --> 00:17:16,146
+away that we don't need to look
+
+
+546
+00:17:16,146 --> 00:17:16,606
+at right now.
+
+
+547
+00:17:16,606 --> 00:17:21,496
+And make this a bit bigger.
+
+
+548
+00:17:22,185 --> 00:17:24,685
+Okay, so, how did I solve all
+
+
+549
+00:17:24,685 --> 00:17:24,915
+this?
+
+
+550
+00:17:25,445 --> 00:17:26,906
+So, we started, we actually
+
+
+551
+00:17:27,226 --> 00:17:28,666
+created a Sequence Request
+
+
+552
+00:17:28,666 --> 00:17:28,906
+Handler.
+
+
+553
+00:17:29,076 --> 00:17:30,106
+This is the one that I'm going
+
+
+554
+00:17:30,106 --> 00:17:31,816
+to use for my registration work,
+
+
+555
+00:17:32,126 --> 00:17:33,696
+just as Sergei already explained
+
+
+556
+00:17:33,696 --> 00:17:35,446
+in the earlier session, this is
+
+
+557
+00:17:35,446 --> 00:17:36,646
+good for tracking objects.
+
+
+558
+00:17:38,016 --> 00:17:39,956
+I will create my request, put
+
+
+559
+00:17:39,956 --> 00:17:41,676
+them into one array, and now
+
+
+560
+00:17:41,676 --> 00:17:42,686
+what do you see here for the
+
+
+561
+00:17:42,686 --> 00:17:43,336
+registration?
+
+
+562
+00:17:43,336 --> 00:17:45,146
+Just keeping like the last 15
+
+
+563
+00:17:45,146 --> 00:17:47,106
+registration results, and then
+
+
+564
+00:17:47,106 --> 00:17:48,466
+I'm going to do some analysis on
+
+
+565
+00:17:48,466 --> 00:17:49,496
+that and see if actually I'm
+
+
+566
+00:17:49,496 --> 00:17:50,076
+holding still.
+
+
+567
+00:17:51,316 --> 00:17:52,616
+I'm going to keep one buffer
+
+
+568
+00:17:52,616 --> 00:17:54,456
+that I'm holding onto while I'm
+
+
+569
+00:17:54,456 --> 00:17:55,346
+analyzing this.
+
+
+570
+00:17:55,346 --> 00:17:56,316
+This is actually when I run my
+
+
+571
+00:17:56,316 --> 00:17:57,326
+classification.
+
+
+572
+00:17:58,746 --> 00:18:00,406
+And since this can be a longer
+
+
+573
+00:18:00,406 --> 00:18:01,716
+running task, I'm actually going
+
+
+574
+00:18:01,716 --> 00:18:03,086
+to run this on a separate queue.
+
+
+575
+00:18:03,566 --> 00:18:06,926
+Alright, here's some code that I
+
+
+576
+00:18:06,926 --> 00:18:09,046
+actually just used to open.
+
+
+577
+00:18:09,096 --> 00:18:10,646
+This is actually like the little
+
+
+578
+00:18:10,646 --> 00:18:11,296
+panel that we saw.
+
+
+579
+00:18:11,546 --> 00:18:12,636
+But the important part is
+
+
+580
+00:18:12,636 --> 00:18:13,806
+actually, "So, how do I setup my
+
+
+581
+00:18:13,806 --> 00:18:14,216
+Vision task?"
+
+
+582
+00:18:14,216 --> 00:18:16,266
+So, I'm going to do two tasks.
+
+
+583
+00:18:16,266 --> 00:18:17,716
+I'm going to do a barcode
+
+
+584
+00:18:17,716 --> 00:18:19,546
+request and I'm going to do my
+
+
+585
+00:18:19,546 --> 00:18:20,816
+classification request.
+
+
+586
+00:18:21,346 --> 00:18:22,916
+So, I set up my barcode request.
+
+
+587
+00:18:23,946 --> 00:18:25,596
+And in my completion handler, I
+
+
+588
+00:18:25,596 --> 00:18:27,176
+simple look at, "Do I get
+
+
+589
+00:18:27,176 --> 00:18:29,376
+something back?"
+
+
+590
+00:18:29,616 --> 00:18:31,176
+and also just since I'm only
+
+
+591
+00:18:31,176 --> 00:18:32,756
+expecting one barcode, I only
+
+
+592
+00:18:32,756 --> 00:18:34,036
+look at the very first one.
+
+
+593
+00:18:35,086 --> 00:18:35,936
+Can I decode it?
+
+
+594
+00:18:36,106 --> 00:18:37,296
+If I get a string out of it, I
+
+
+595
+00:18:37,296 --> 00:18:38,596
+use that actually to look up --
+
+
+596
+00:18:38,636 --> 00:18:39,616
+that's actually how it worked
+
+
+597
+00:18:39,616 --> 00:18:40,866
+with my barcodes to see then --
+
+
+598
+00:18:40,966 --> 00:18:42,146
+oh, yes, that is my training
+
+
+599
+00:18:42,146 --> 00:18:42,213
+[inaudible].
+
+
+600
+00:18:42,213 --> 00:18:44,786
+Alright, so I add that as one of
+
+
+601
+00:18:44,816 --> 00:18:46,906
+the requests that I want to run.
+
+
+602
+00:18:47,496 --> 00:18:48,596
+Now, I'm setting up my
+
+
+603
+00:18:48,596 --> 00:18:49,466
+classification.
+
+
+604
+00:18:50,036 --> 00:18:51,006
+So, in this case, what I've
+
+
+605
+00:18:51,076 --> 00:18:53,586
+done, I used my classifier and
+
+
+606
+00:18:53,586 --> 00:18:55,196
+I'm loading simply this from my
+
+
+607
+00:18:55,776 --> 00:18:58,906
+bundle and create my model from
+
+
+608
+00:18:58,906 --> 00:18:59,136
+there.
+
+
+609
+00:18:59,416 --> 00:19:00,566
+Now, I'm not using the code
+
+
+610
+00:19:00,566 --> 00:19:02,036
+completion from Core ML in this
+
+
+611
+00:19:02,036 --> 00:19:03,946
+case, because this is the only
+
+
+612
+00:19:03,946 --> 00:19:05,136
+line of Core ML that I'm
+
+
+613
+00:19:05,136 --> 00:19:05,916
+actually using my whole
+
+
+614
+00:19:05,916 --> 00:19:07,536
+application, and it allows me to
+
+
+615
+00:19:07,536 --> 00:19:08,936
+do my custom kind of error
+
+
+616
+00:19:08,936 --> 00:19:09,276
+handling.
+
+
+617
+00:19:09,396 --> 00:19:10,866
+But, you can choose also to use
+
+
+618
+00:19:10,866 --> 00:19:12,226
+the code completion already from
+
+
+619
+00:19:12,226 --> 00:19:12,676
+Core ML.
+
+
+620
+00:19:12,776 --> 00:19:13,936
+Both are absolutely valid.
+
+
+621
+00:19:14,866 --> 00:19:16,316
+Now, I create my Vision model
+
+
+622
+00:19:16,316 --> 00:19:17,196
+from that.
+
+
+623
+00:19:17,196 --> 00:19:19,826
+My Vision Core ML Model, and my
+
+
+624
+00:19:19,826 --> 00:19:20,416
+request.
+
+
+625
+00:19:20,816 --> 00:19:22,736
+And again, simply when the
+
+
+626
+00:19:22,736 --> 00:19:24,576
+request returns, meaning I'm
+
+
+627
+00:19:24,576 --> 00:19:26,236
+executing my completion handler.
+
+
+628
+00:19:26,756 --> 00:19:29,046
+I simply look, "What kind of
+
+
+629
+00:19:29,266 --> 00:19:30,626
+specifications did I get back?"
+
+
+630
+00:19:31,786 --> 00:19:33,386
+And then I set this threshold
+
+
+631
+00:19:33,386 --> 00:19:33,676
+here.
+
+
+632
+00:19:34,236 --> 00:19:35,396
+Now, this is one that I
+
+
+633
+00:19:35,396 --> 00:19:36,676
+empirically set against a
+
+
+634
+00:19:36,676 --> 00:19:37,396
+confidence goal.
+
+
+635
+00:19:37,396 --> 00:19:38,876
+I'm using 0.98.
+
+
+636
+00:19:39,026 --> 00:19:41,466
+So, a 98% confidence that this
+
+
+637
+00:19:41,466 --> 00:19:43,496
+is actually correct.
+
+
+638
+00:19:43,496 --> 00:19:44,506
+Why am I doing that?
+
+
+639
+00:19:45,156 --> 00:19:46,766
+That allows me to filter out
+
+
+640
+00:19:46,766 --> 00:19:47,516
+actually when I'm looking at
+
+
+641
+00:19:47,516 --> 00:19:48,646
+something, and maybe not quite
+
+
+642
+00:19:48,646 --> 00:19:49,426
+sure what that is.
+
+
+643
+00:19:49,426 --> 00:19:50,146
+Maybe we'll see that in a
+
+
+644
+00:19:50,146 --> 00:19:51,036
+moment, actually what that
+
+
+645
+00:19:51,036 --> 00:19:51,376
+means.
+
+
+646
+00:19:52,606 --> 00:19:54,516
+So now, I have all my requests.
+
+
+647
+00:19:55,556 --> 00:19:56,916
+When it comes to the time that I
+
+
+648
+00:19:56,916 --> 00:19:57,996
+actually want to execute them, I
+
+
+649
+00:19:57,996 --> 00:19:59,366
+created a little function here
+
+
+650
+00:19:59,366 --> 00:20:01,036
+that actually mean, "analyze on
+
+
+651
+00:20:01,036 --> 00:20:01,836
+the current image."
+
+
+652
+00:20:02,516 --> 00:20:04,496
+So, when it's time to analyze
+
+
+653
+00:20:04,496 --> 00:20:07,446
+it, I get my device orientation,
+
+
+654
+00:20:07,446 --> 00:20:09,326
+which is important to know how
+
+
+655
+00:20:09,326 --> 00:20:10,936
+am I holding my phone.
+
+
+656
+00:20:11,886 --> 00:20:13,116
+I create an image request
+
+
+657
+00:20:13,116 --> 00:20:14,966
+handler on that buffer that we
+
+
+658
+00:20:15,536 --> 00:20:16,626
+currently want to process.
+
+
+659
+00:20:17,936 --> 00:20:21,016
+And asynchronously, I let it
+
+
+660
+00:20:21,046 --> 00:20:22,586
+perform its work.
+
+
+661
+00:20:24,056 --> 00:20:25,226
+That's all I have to do
+
+
+662
+00:20:25,226 --> 00:20:26,476
+basically for actually doing the
+
+
+663
+00:20:26,476 --> 00:20:28,706
+processing with Core ML and
+
+
+664
+00:20:28,706 --> 00:20:29,506
+barcode reading.
+
+
+665
+00:20:30,326 --> 00:20:32,556
+Now, a few things, just okay.
+
+
+666
+00:20:32,556 --> 00:20:33,976
+How do I do the scene stability
+
+
+667
+00:20:33,976 --> 00:20:34,306
+part?
+
+
+668
+00:20:34,766 --> 00:20:36,076
+So, I have a queue that I can
+
+
+669
+00:20:36,076 --> 00:20:36,536
+reset.
+
+
+670
+00:20:36,766 --> 00:20:38,916
+I can add my points into that.
+
+
+671
+00:20:39,966 --> 00:20:41,376
+And then simply I had created a
+
+
+672
+00:20:41,376 --> 00:20:43,396
+function that allows me to look
+
+
+673
+00:20:43,396 --> 00:20:44,776
+basically through the queue of
+
+
+674
+00:20:44,856 --> 00:20:46,096
+points that I've recorded.
+
+
+675
+00:20:46,526 --> 00:20:47,806
+And then setting like, "Well, if
+
+
+676
+00:20:47,806 --> 00:20:49,986
+they all sum together, only show
+
+
+677
+00:20:49,986 --> 00:20:51,576
+a distance of like 20 pixels."
+
+
+678
+00:20:51,576 --> 00:20:52,876
+Again, that's an empirical value
+
+
+679
+00:20:52,876 --> 00:20:53,546
+that I chose.
+
+
+680
+00:20:53,876 --> 00:20:55,376
+Then I know the scene is stable.
+
+
+681
+00:20:55,376 --> 00:20:56,366
+So, I'm holding stable.
+
+
+682
+00:20:56,366 --> 00:20:57,646
+Nothing is moving in front of my
+
+
+683
+00:20:57,646 --> 00:20:58,076
+camera.
+
+
+684
+00:20:58,866 --> 00:21:01,326
+And then comes our part of catch
+
+
+685
+00:21:01,326 --> 00:21:01,766
+the output.
+
+
+686
+00:21:01,766 --> 00:21:02,786
+So, this is the call that
+
+
+687
+00:21:02,786 --> 00:21:04,746
+actually AV Foundation calls
+
+
+688
+00:21:04,746 --> 00:21:05,416
+[inaudible] buffers from the
+
+
+689
+00:21:05,416 --> 00:21:05,866
+camera.
+
+
+690
+00:21:06,726 --> 00:21:08,056
+I'm making sure that I you know,
+
+
+691
+00:21:08,056 --> 00:21:09,486
+hold onto the previous pixel
+
+
+692
+00:21:09,486 --> 00:21:11,026
+buffer because that's what I'm
+
+
+693
+00:21:11,026 --> 00:21:12,486
+going to compare against for my
+
+
+694
+00:21:12,636 --> 00:21:15,996
+registration, and swap those out
+
+
+695
+00:21:15,996 --> 00:21:17,006
+after I'm done with that.
+
+
+696
+00:21:17,956 --> 00:21:19,196
+So, I create my Translational
+
+
+697
+00:21:19,196 --> 00:21:20,646
+Image Registration Request with
+
+
+698
+00:21:20,646 --> 00:21:21,416
+my current buffer.
+
+
+699
+00:21:21,416 --> 00:21:24,136
+And then on the Sequence Request
+
+
+700
+00:21:24,136 --> 00:21:25,916
+Handler, I simply perform my
+
+
+701
+00:21:25,916 --> 00:21:26,496
+request.
+
+
+702
+00:21:27,376 --> 00:21:28,956
+Now, I get my observations back.
+
+
+703
+00:21:29,616 --> 00:21:30,546
+I can check if they are all
+
+
+704
+00:21:30,546 --> 00:21:30,956
+okay.
+
+
+705
+00:21:31,716 --> 00:21:33,146
+And add them into my array.
+
+
+706
+00:21:34,496 --> 00:21:36,476
+And last but not least, I check
+
+
+707
+00:21:36,796 --> 00:21:37,786
+if the scene's stable.
+
+
+708
+00:21:38,566 --> 00:21:39,966
+Then I bring up my little,
+
+
+709
+00:21:39,966 --> 00:21:41,856
+yellow box which is [inaudible]
+
+
+710
+00:21:42,326 --> 00:21:43,216
+detection overlay.
+
+
+711
+00:21:44,466 --> 00:21:45,946
+I know this is my currently
+
+
+712
+00:21:45,946 --> 00:21:46,866
+analyzed buffer.
+
+
+713
+00:21:47,766 --> 00:21:51,296
+And simply ask it to form its
+
+
+714
+00:21:51,296 --> 00:21:52,276
+analysis on that.
+
+
+715
+00:21:52,906 --> 00:21:55,746
+The one thing that you saw that
+
+
+716
+00:21:55,746 --> 00:21:57,936
+I did at the end of the
+
+
+717
+00:21:58,426 --> 00:22:00,056
+asynchronous call, in the
+
+
+718
+00:22:00,056 --> 00:22:01,266
+currently analyzed buffer, I
+
+
+719
+00:22:01,266 --> 00:22:02,206
+released that buffer.
+
+
+720
+00:22:02,816 --> 00:22:04,736
+And you see here that I check if
+
+
+721
+00:22:04,776 --> 00:22:05,856
+there is a buffer currently
+
+
+722
+00:22:05,856 --> 00:22:06,486
+being used.
+
+
+723
+00:22:06,896 --> 00:22:08,496
+Now, that allows me to make sure
+
+
+724
+00:22:08,496 --> 00:22:09,916
+that I'm only really working on
+
+
+725
+00:22:09,916 --> 00:22:10,736
+one buffer, and I'm not
+
+
+726
+00:22:10,736 --> 00:22:12,036
+constantly queueing up more and
+
+
+727
+00:22:12,036 --> 00:22:13,156
+more buffers while they're still
+
+
+728
+00:22:13,156 --> 00:22:13,936
+running in the background,
+
+
+729
+00:22:13,936 --> 00:22:15,036
+because that will starve the
+
+
+730
+00:22:15,036 --> 00:22:15,986
+camera from frames.
+
+
+731
+00:22:17,436 --> 00:22:18,756
+Alright, so when we run this,
+
+
+732
+00:22:18,856 --> 00:22:19,896
+there's a few things I want to
+
+
+733
+00:22:19,896 --> 00:22:20,756
+highlight actually.
+
+
+734
+00:22:20,946 --> 00:22:23,046
+So, let me bring up Number 1,
+
+
+735
+00:22:24,446 --> 00:22:25,856
+our console here a little bit on
+
+
+736
+00:22:25,856 --> 00:22:26,336
+the bottom.
+
+
+737
+00:22:26,736 --> 00:22:28,176
+And you can actually see, when
+
+
+738
+00:22:28,176 --> 00:22:30,146
+I'm running this at first, and
+
+
+739
+00:22:30,146 --> 00:22:32,226
+so, I'm going to run this right
+
+
+740
+00:22:32,226 --> 00:22:32,736
+now here.
+
+
+741
+00:22:33,466 --> 00:22:36,566
+Hopefully you should actually
+
+
+742
+00:22:36,566 --> 00:22:37,136
+see something.
+
+
+743
+00:22:38,406 --> 00:22:39,786
+You see that the confidence
+
+
+744
+00:22:39,786 --> 00:22:41,056
+scores are pretty low because
+
+
+745
+00:22:41,056 --> 00:22:42,606
+I'm actually [inaudible] over
+
+
+746
+00:22:42,606 --> 00:22:42,746
+the [inaudible].
+
+
+747
+00:22:42,746 --> 00:22:44,116
+It's not really sure what I'm
+
+
+748
+00:22:44,116 --> 00:22:44,856
+really looking at.
+
+
+749
+00:22:45,576 --> 00:22:46,816
+The moment actually I point it
+
+
+750
+00:22:46,816 --> 00:22:47,736
+at something that it should
+
+
+751
+00:22:47,736 --> 00:22:50,986
+identify, boom, our confidence
+
+
+752
+00:22:50,986 --> 00:22:52,176
+score goes really high and
+
+
+753
+00:22:52,176 --> 00:22:53,566
+that's actually how I'm sure
+
+
+754
+00:22:53,566 --> 00:22:54,826
+that this is really the object I
+
+
+755
+00:22:54,826 --> 00:22:55,416
+want to show.
+
+
+756
+00:22:56,906 --> 00:22:58,016
+Now, another thing I wanted to
+
+
+757
+00:22:58,076 --> 00:23:02,666
+demo, let's look actually what
+
+
+758
+00:23:02,666 --> 00:23:04,836
+happens in terms of the CPU.
+
+
+759
+00:23:05,256 --> 00:23:08,206
+Alright, so right now, I'm not
+
+
+760
+00:23:08,206 --> 00:23:08,846
+doing anything.
+
+
+761
+00:23:08,846 --> 00:23:11,466
+I'm just showing my screen.
+
+
+762
+00:23:12,256 --> 00:23:13,656
+So, when I'm just moving the
+
+
+763
+00:23:13,656 --> 00:23:16,366
+camera around, scene is not
+
+
+764
+00:23:16,366 --> 00:23:18,976
+stable, I'm using about 22% of
+
+
+765
+00:23:18,976 --> 00:23:19,476
+the CPU.
+
+
+766
+00:23:19,476 --> 00:23:21,326
+Now, if I hold it stable and
+
+
+767
+00:23:21,326 --> 00:23:22,506
+actually the classifier runs,
+
+
+768
+00:23:22,506 --> 00:23:23,916
+you see how the CPU goes up.
+
+
+769
+00:23:24,486 --> 00:23:25,686
+And that's why I always
+
+
+770
+00:23:25,686 --> 00:23:27,736
+recommend only run these tasks
+
+
+771
+00:23:27,736 --> 00:23:28,486
+when you really need.
+
+
+772
+00:23:29,046 --> 00:23:33,466
+Alright, that was a lot to take
+
+
+773
+00:23:33,466 --> 00:23:33,756
+in.
+
+
+774
+00:23:34,146 --> 00:23:36,256
+Let's go back to the slides and
+
+
+775
+00:23:36,256 --> 00:23:37,376
+recap a little bit what we have
+
+
+776
+00:23:37,376 --> 00:23:38,306
+just seen to now.
+
+
+777
+00:23:39,846 --> 00:23:40,926
+So, go right to the slides.
+
+
+778
+00:23:41,516 --> 00:23:47,736
+[ Applause ]
+
+
+779
+00:23:48,236 --> 00:23:49,076
+Okay, recap.
+
+
+780
+00:23:49,586 --> 00:23:51,566
+First thing, how did we achieve
+
+
+781
+00:23:51,566 --> 00:23:52,556
+our scene stability?
+
+
+782
+00:23:53,296 --> 00:23:55,206
+We used a sequence request
+
+
+783
+00:23:55,206 --> 00:23:56,706
+handler together with the VN
+
+
+784
+00:23:56,706 --> 00:23:58,166
+Translational Image Registration
+
+
+785
+00:23:58,166 --> 00:24:01,186
+Request, to compare against the
+
+
+786
+00:24:01,186 --> 00:24:02,026
+previous frame.
+
+
+787
+00:24:03,436 --> 00:24:04,916
+Out of that, we get our
+
+
+788
+00:24:04,916 --> 00:24:07,406
+translation as of terms of an
+
+
+789
+00:24:07,406 --> 00:24:08,826
+alignment transform which tells
+
+
+790
+00:24:08,826 --> 00:24:10,296
+me the X and Y of like how the
+
+
+791
+00:24:10,296 --> 00:24:13,116
+previous frame has shifted to
+
+
+792
+00:24:13,116 --> 00:24:13,966
+[inaudible] the current one.
+
+
+793
+00:24:15,986 --> 00:24:17,126
+Then we talked about that we
+
+
+794
+00:24:17,126 --> 00:24:18,596
+want to only analyze the scene
+
+
+795
+00:24:18,596 --> 00:24:19,326
+when it's stable.
+
+
+796
+00:24:20,266 --> 00:24:22,896
+And for that, we created our VN
+
+
+797
+00:24:22,896 --> 00:24:24,156
+Image Request Handler off the
+
+
+798
+00:24:24,156 --> 00:24:24,986
+current buffer.
+
+
+799
+00:24:25,396 --> 00:24:28,116
+And we passed in together both
+
+
+800
+00:24:28,116 --> 00:24:30,636
+the barcode detection and the
+
+
+801
+00:24:30,636 --> 00:24:31,586
+classification.
+
+
+802
+00:24:32,206 --> 00:24:34,086
+So, that allows Vision to do its
+
+
+803
+00:24:34,086 --> 00:24:35,956
+optimization underneath the
+
+
+804
+00:24:35,956 --> 00:24:37,936
+covers and can actually perform
+
+
+805
+00:24:37,936 --> 00:24:39,056
+much faster than if you would
+
+
+806
+00:24:39,236 --> 00:24:40,536
+run them as separate requests.
+
+
+807
+00:24:41,006 --> 00:24:44,606
+Next was the part about thinking
+
+
+808
+00:24:44,606 --> 00:24:46,636
+about how many buffers do I hold
+
+
+809
+00:24:46,636 --> 00:24:47,166
+in flight?
+
+
+810
+00:24:47,636 --> 00:24:48,976
+And that's why I say manage your
+
+
+811
+00:24:48,976 --> 00:24:49,436
+buffers.
+
+
+812
+00:24:50,966 --> 00:24:52,396
+Some Vision requests, like these
+
+
+813
+00:24:52,816 --> 00:24:54,696
+convolutional networks, can take
+
+
+814
+00:24:54,696 --> 00:24:55,316
+a bit longer.
+
+
+815
+00:24:55,966 --> 00:24:57,396
+And these longer running tasks
+
+
+816
+00:24:57,396 --> 00:24:59,016
+are better to perform on a
+
+
+817
+00:24:59,016 --> 00:25:01,216
+background queue, so that
+
+
+818
+00:25:01,216 --> 00:25:02,366
+[inaudible] or whatever you do
+
+
+819
+00:25:02,366 --> 00:25:03,176
+in the camera, can actually
+
+
+820
+00:25:03,176 --> 00:25:04,306
+continuously running.
+
+
+821
+00:25:05,036 --> 00:25:06,256
+But to do this particularly with
+
+
+822
+00:25:06,256 --> 00:25:07,656
+the camera, you do not want to
+
+
+823
+00:25:07,656 --> 00:25:08,866
+continuously queue up the
+
+
+824
+00:25:08,866 --> 00:25:10,266
+buffers coming from the camera.
+
+
+825
+00:25:10,266 --> 00:25:11,336
+So, you want to drop busy
+
+
+826
+00:25:11,336 --> 00:25:11,826
+buffers.
+
+
+827
+00:25:12,216 --> 00:25:14,006
+In this case, I said I only work
+
+
+828
+00:25:14,006 --> 00:25:14,526
+with one.
+
+
+829
+00:25:14,526 --> 00:25:15,756
+That's actually in my use case
+
+
+830
+00:25:15,756 --> 00:25:16,816
+scenario works pretty well.
+
+
+831
+00:25:17,286 --> 00:25:18,586
+So, I have a queue of 1, and
+
+
+832
+00:25:18,586 --> 00:25:19,666
+that's why I simply held onto
+
+
+833
+00:25:19,666 --> 00:25:21,156
+one buffer and check, as long as
+
+
+834
+00:25:21,156 --> 00:25:22,506
+that one is running, I'm not
+
+
+835
+00:25:22,506 --> 00:25:23,536
+queuing new buffers up.
+
+
+836
+00:25:23,956 --> 00:25:25,906
+Once I'm done with it, I can
+
+
+837
+00:25:25,906 --> 00:25:30,266
+reset and work on the next
+
+
+838
+00:25:30,876 --> 00:25:31,056
+buffer.
+
+
+839
+00:25:31,206 --> 00:25:33,336
+Now, you might ask, "Why am I
+
+
+840
+00:25:33,336 --> 00:25:34,906
+using Vision when I can run this
+
+
+841
+00:25:34,906 --> 00:25:35,696
+model in Core ML?
+
+
+842
+00:25:35,696 --> 00:25:36,646
+It's a Core ML model."
+
+
+843
+00:25:38,206 --> 00:25:40,196
+Well, there is one thing why
+
+
+844
+00:25:40,196 --> 00:25:41,236
+this is important to actually
+
+
+845
+00:25:41,236 --> 00:25:41,746
+use Vision.
+
+
+846
+00:25:42,316 --> 00:25:43,676
+Let's go back and look what we
+
+
+847
+00:25:43,676 --> 00:25:45,196
+saw when we looked at our model.
+
+
+848
+00:25:45,646 --> 00:25:47,616
+It was the strange number of 299
+
+
+849
+00:25:47,616 --> 00:25:48,936
+by 299 pixels.
+
+
+850
+00:25:49,626 --> 00:25:50,886
+Now, this is simply how this
+
+
+851
+00:25:50,886 --> 00:25:51,666
+model is trained.
+
+
+852
+00:25:51,666 --> 00:25:53,036
+This is what it wants to ingest.
+
+
+853
+00:25:53,886 --> 00:25:54,996
+But our camera gives us
+
+
+854
+00:25:54,996 --> 00:25:57,206
+something like 640 by 480 or
+
+
+855
+00:25:57,206 --> 00:25:58,746
+larger resolutions if you want.
+
+
+856
+00:25:59,876 --> 00:26:02,156
+Now, Vision is going to do all
+
+
+857
+00:26:02,156 --> 00:26:03,766
+the work by taking these
+
+
+858
+00:26:03,766 --> 00:26:04,646
+[inaudible] buffers as they come
+
+
+859
+00:26:04,646 --> 00:26:05,976
+from the camera, converts it
+
+
+860
+00:26:05,976 --> 00:26:07,466
+into RGB and scales it down and
+
+
+861
+00:26:07,466 --> 00:26:08,606
+you don't have to write any code
+
+
+862
+00:26:08,606 --> 00:26:09,836
+for that.
+
+
+863
+00:26:10,326 --> 00:26:11,506
+That makes it much easier to
+
+
+864
+00:26:11,576 --> 00:26:13,026
+drive these Core ML models for
+
+
+865
+00:26:13,026 --> 00:26:14,436
+image requests through Vision.
+
+
+866
+00:26:15,056 --> 00:26:18,146
+So, that was image
+
+
+867
+00:26:18,146 --> 00:26:19,106
+classification.
+
+
+868
+00:26:19,346 --> 00:26:20,996
+Next, we talk about object
+
+
+869
+00:26:20,996 --> 00:26:21,546
+recognition.
+
+
+870
+00:26:22,186 --> 00:26:25,406
+Now, a little warning.
+
+
+871
+00:26:25,406 --> 00:26:26,726
+In this demo, actually a live
+
+
+872
+00:26:26,726 --> 00:26:27,876
+croissant might actually get
+
+
+873
+00:26:27,876 --> 00:26:28,506
+hurt on stage.
+
+
+874
+00:26:28,506 --> 00:26:29,796
+So, for the squeamish ones,
+
+
+875
+00:26:29,796 --> 00:26:32,466
+please look away.
+
+
+876
+00:26:34,726 --> 00:26:36,966
+So, what we're using for our
+
+
+877
+00:26:36,966 --> 00:26:38,826
+object recognition is a model
+
+
+878
+00:26:38,826 --> 00:26:40,926
+that is based on this YOLO
+
+
+879
+00:26:40,926 --> 00:26:42,676
+technique, You Only Look Once.
+
+
+880
+00:26:43,096 --> 00:26:44,786
+That is a pretty fast-running
+
+
+881
+00:26:44,786 --> 00:26:46,646
+model that allows us to get the
+
+
+882
+00:26:46,646 --> 00:26:49,326
+bounding boxes off objects and a
+
+
+883
+00:26:49,326 --> 00:26:50,856
+label for that.
+
+
+884
+00:26:50,906 --> 00:26:52,346
+And it finds multiple of them in
+
+
+885
+00:26:52,346 --> 00:26:52,676
+the screen.
+
+
+886
+00:26:52,676 --> 00:26:53,906
+As you see in the screenshots.
+
+
+887
+00:26:56,256 --> 00:26:59,626
+The advantage of those is that I
+
+
+888
+00:26:59,626 --> 00:27:00,726
+get actually like where they
+
+
+889
+00:27:00,726 --> 00:27:02,216
+are, but I won't get as many
+
+
+890
+00:27:02,216 --> 00:27:03,816
+classifications as I can do with
+
+
+891
+00:27:03,816 --> 00:27:05,306
+like our overall image
+
+
+892
+00:27:05,306 --> 00:27:05,946
+classifier.
+
+
+893
+00:27:06,556 --> 00:27:08,666
+The training is also a little
+
+
+894
+00:27:08,666 --> 00:27:10,286
+bit more involved, and with
+
+
+895
+00:27:10,356 --> 00:27:11,576
+that, I would like to actually
+
+
+896
+00:27:11,576 --> 00:27:13,466
+refer you to the Turi Create
+
+
+897
+00:27:13,466 --> 00:27:14,826
+session that was, I believe,
+
+
+898
+00:27:14,876 --> 00:27:16,286
+yesterday, where they actually
+
+
+899
+00:27:16,286 --> 00:27:17,716
+showed you how to train these
+
+
+900
+00:27:17,746 --> 00:27:18,436
+kind of models.
+
+
+901
+00:27:18,746 --> 00:27:20,106
+These models are also a little
+
+
+902
+00:27:20,686 --> 00:27:21,646
+bit bigger.
+
+
+903
+00:27:21,836 --> 00:27:24,066
+So, how does this look?
+
+
+904
+00:27:24,066 --> 00:27:31,006
+Let's go over to our demo.
+
+
+905
+00:27:31,606 --> 00:27:35,946
+Robot shop is closed.
+
+
+906
+00:27:39,466 --> 00:27:40,846
+Time for breakfast.
+
+
+907
+00:27:42,296 --> 00:27:42,706
+Alright.
+
+
+908
+00:27:43,626 --> 00:27:45,196
+Let me bring up my quick
+
+
+909
+00:27:45,196 --> 00:27:46,726
+template here and I have my new
+
+
+910
+00:27:46,726 --> 00:27:47,876
+little application.
+
+
+911
+00:27:47,876 --> 00:27:49,406
+It is my Breakfast Finder.
+
+
+912
+00:27:49,976 --> 00:27:53,186
+And what do we see?
+
+
+913
+00:27:53,536 --> 00:27:55,446
+Oh, we have a croissant, we have
+
+
+914
+00:27:55,446 --> 00:27:57,616
+a bagel, and we can identify the
+
+
+915
+00:27:57,616 --> 00:27:58,356
+banana.
+
+
+916
+00:28:00,196 --> 00:28:01,436
+And see, they can all be kind of
+
+
+917
+00:28:01,436 --> 00:28:02,466
+like in the frame.
+
+
+918
+00:28:02,566 --> 00:28:03,626
+I'm going to detect them.
+
+
+919
+00:28:04,916 --> 00:28:06,616
+So, some mention in these
+
+
+920
+00:28:06,616 --> 00:28:07,736
+cooking shows, normally they
+
+
+921
+00:28:07,736 --> 00:28:09,476
+show you how to do it, but then
+
+
+922
+00:28:09,476 --> 00:28:10,876
+pull the prebaked stuff out of
+
+
+923
+00:28:10,876 --> 00:28:11,356
+the oven.
+
+
+924
+00:28:12,546 --> 00:28:15,016
+Well, this model, actually has
+
+
+925
+00:28:15,046 --> 00:28:16,916
+been baked way before this
+
+
+926
+00:28:16,916 --> 00:28:18,356
+croissant has been baked, and I
+
+
+927
+00:28:18,356 --> 00:28:19,026
+can prove this.
+
+
+928
+00:28:21,766 --> 00:28:22,456
+It's fresh.
+
+
+929
+00:28:22,656 --> 00:28:24,916
+And still a croissant.
+
+
+930
+00:28:25,516 --> 00:28:33,926
+[ Applause ]
+
+
+931
+00:28:34,426 --> 00:28:34,816
+Alright.
+
+
+932
+00:28:35,706 --> 00:28:40,426
+It's fresh but still, got to
+
+
+933
+00:28:41,056 --> 00:28:41,146
+chew.
+
+
+934
+00:28:43,306 --> 00:28:46,766
+Let's look quickly how this
+
+
+935
+00:28:46,766 --> 00:28:52,666
+looks in the code.
+
+
+936
+00:28:53,266 --> 00:28:54,736
+So, what did I do differently?
+
+
+937
+00:28:55,916 --> 00:28:57,116
+[Inaudible] actually in the
+
+
+938
+00:28:57,116 --> 00:28:58,296
+terms of like setting up my
+
+
+939
+00:28:58,296 --> 00:28:58,956
+request.
+
+
+940
+00:28:59,746 --> 00:29:02,726
+All I have to do is use my Core
+
+
+941
+00:29:02,726 --> 00:29:04,376
+ML model, just as I did in the
+
+
+942
+00:29:04,466 --> 00:29:06,596
+previous example, create my Core
+
+
+943
+00:29:06,596 --> 00:29:09,276
+ML request, and afterwards, I'm
+
+
+944
+00:29:09,356 --> 00:29:10,906
+looking actually at simply, "How
+
+
+945
+00:29:10,906 --> 00:29:12,026
+do I draw my results?"
+
+
+946
+00:29:13,066 --> 00:29:17,856
+Now this is where we have
+
+
+947
+00:29:17,856 --> 00:29:20,076
+something new to make this
+
+
+948
+00:29:20,076 --> 00:29:21,096
+[inaudible] a little bit easier.
+
+
+949
+00:29:21,876 --> 00:29:24,066
+And when we look at all of this,
+
+
+950
+00:29:24,776 --> 00:29:27,066
+we get a new object that is the
+
+
+951
+00:29:27,066 --> 00:29:28,106
+[inaudible] recognized --
+
+
+952
+00:29:28,816 --> 00:29:30,886
+Recognized Object Observation,
+
+
+953
+00:29:31,626 --> 00:29:33,256
+and out of that, I get my
+
+
+954
+00:29:33,256 --> 00:29:35,786
+bounding box, and my observation
+
+
+955
+00:29:35,786 --> 00:29:36,766
+of like the labels.
+
+
+956
+00:29:38,006 --> 00:29:38,826
+Now, that's one thing I would
+
+
+957
+00:29:38,826 --> 00:29:39,736
+like to show you here.
+
+
+958
+00:29:40,936 --> 00:29:42,276
+Let's run our application from
+
+
+959
+00:29:42,276 --> 00:29:43,506
+here and I put a break point.
+
+
+960
+00:29:51,066 --> 00:29:51,796
+Okay.
+
+
+961
+00:29:52,726 --> 00:29:55,206
+Alright, we are now on our break
+
+
+962
+00:29:55,206 --> 00:29:55,476
+point.
+
+
+963
+00:29:56,276 --> 00:29:57,956
+So that I only look at the first
+
+
+964
+00:29:57,956 --> 00:29:58,226
+label.
+
+
+965
+00:29:58,226 --> 00:29:59,886
+So, what we are doing when we
+
+
+966
+00:29:59,886 --> 00:30:01,456
+actually process these results,
+
+
+967
+00:30:02,036 --> 00:30:11,676
+I'm going to take this, let's
+
+
+968
+00:30:11,876 --> 00:30:17,116
+try object observation, labels.
+
+
+969
+00:30:17,156 --> 00:30:21,076
+So, what you actually see is
+
+
+970
+00:30:21,076 --> 00:30:22,826
+that I get more than one back.
+
+
+971
+00:30:23,376 --> 00:30:25,336
+I get my bagel, my banana,
+
+
+972
+00:30:25,566 --> 00:30:26,576
+coffee -- I didn't bring any
+
+
+973
+00:30:26,576 --> 00:30:27,096
+coffee today.
+
+
+974
+00:30:27,096 --> 00:30:28,266
+Sorry about that.
+
+
+975
+00:30:28,266 --> 00:30:30,726
+And croissant, egg, and waffle.
+
+
+976
+00:30:30,946 --> 00:30:32,786
+Now, they are sorted in the
+
+
+977
+00:30:32,786 --> 00:30:33,856
+order of like the highest
+
+
+978
+00:30:33,856 --> 00:30:34,866
+confidence on the top.
+
+
+979
+00:30:35,036 --> 00:30:36,536
+Usually, this is the one that
+
+
+980
+00:30:36,536 --> 00:30:37,226
+you're interested in.
+
+
+981
+00:30:37,226 --> 00:30:38,006
+That's why I'm taking the
+
+
+982
+00:30:38,006 --> 00:30:39,306
+shortcut here and just looking
+
+
+983
+00:30:39,306 --> 00:30:40,046
+at the first one.
+
+
+984
+00:30:40,316 --> 00:30:41,856
+But you always get all of the
+
+
+985
+00:30:41,856 --> 00:30:43,686
+classifications back in terms of
+
+
+986
+00:30:43,686 --> 00:30:45,586
+an array of the ones that we
+
+
+987
+00:30:45,586 --> 00:30:46,876
+actually support in the model.
+
+
+988
+00:30:48,576 --> 00:30:48,986
+Alright.
+
+
+989
+00:30:49,966 --> 00:30:51,396
+That was our Breakfast Finder.
+
+
+990
+00:30:51,396 --> 00:30:52,786
+Let's go back to the slides, and
+
+
+991
+00:30:52,786 --> 00:30:53,566
+this time, I'm pushing the
+
+
+992
+00:30:53,566 --> 00:30:53,886
+button.
+
+
+993
+00:30:54,146 --> 00:30:54,286
+Good.
+
+
+994
+00:30:58,536 --> 00:31:00,346
+So, we made this possible
+
+
+995
+00:31:00,736 --> 00:31:02,826
+through a new API and that is
+
+
+996
+00:31:02,826 --> 00:31:04,376
+our VN Recognized Object
+
+
+997
+00:31:04,376 --> 00:31:04,986
+Observation.
+
+
+998
+00:31:06,486 --> 00:31:08,896
+It comes automatically when we
+
+
+999
+00:31:08,986 --> 00:31:11,336
+perform a Core ML model request,
+
+
+1000
+00:31:11,476 --> 00:31:13,776
+and if that model is actually
+
+
+1001
+00:31:13,776 --> 00:31:16,586
+using an object detector as a
+
+
+1002
+00:31:16,586 --> 00:31:17,086
+space.
+
+
+1003
+00:31:18,666 --> 00:31:22,486
+Like in this example, it is
+
+
+1004
+00:31:22,486 --> 00:31:23,786
+based on the YOLO based models.
+
+
+1005
+00:31:23,966 --> 00:31:25,236
+Now, you might say, "Well, I
+
+
+1006
+00:31:25,236 --> 00:31:26,896
+could have already run YOLO like
+
+
+1007
+00:31:26,896 --> 00:31:27,306
+last year.
+
+
+1008
+00:31:27,306 --> 00:31:28,376
+There were a bunch of articles
+
+
+1009
+00:31:28,376 --> 00:31:29,106
+that I saw on the web."
+
+
+1010
+00:31:29,896 --> 00:31:31,206
+But look at how much code they
+
+
+1011
+00:31:31,206 --> 00:31:33,056
+actually had to write to take
+
+
+1012
+00:31:33,056 --> 00:31:34,776
+the output of this model, to
+
+
+1013
+00:31:34,776 --> 00:31:35,936
+then put it into something that
+
+
+1014
+00:31:35,936 --> 00:31:36,526
+you can use.
+
+
+1015
+00:31:36,666 --> 00:31:38,086
+And here, we only had a few
+
+
+1016
+00:31:38,086 --> 00:31:38,696
+lines of code.
+
+
+1017
+00:31:38,816 --> 00:31:40,346
+So, it makes YOLO models really,
+
+
+1018
+00:31:40,346 --> 00:31:41,256
+really easy to use now.
+
+
+1019
+00:31:41,256 --> 00:31:43,336
+Let's go once more over this in
+
+
+1020
+00:31:43,336 --> 00:31:43,746
+the code.
+
+
+1021
+00:31:44,316 --> 00:31:45,536
+So, I create my model.
+
+
+1022
+00:31:46,336 --> 00:31:47,426
+From the model, I create my
+
+
+1023
+00:31:47,426 --> 00:31:48,006
+request.
+
+
+1024
+00:31:48,986 --> 00:31:51,196
+And in my completion handler, I
+
+
+1025
+00:31:51,196 --> 00:31:52,606
+can simply look at the area of
+
+
+1026
+00:31:52,606 --> 00:31:54,066
+objects, because we saw we can
+
+
+1027
+00:31:54,066 --> 00:31:55,366
+get multiple objects back.
+
+
+1028
+00:31:55,996 --> 00:31:57,396
+I get my labels from that, my
+
+
+1029
+00:31:57,396 --> 00:31:59,546
+bounding box, and I can show my
+
+
+1030
+00:31:59,546 --> 00:32:00,286
+Breakfast Finder.
+
+
+1031
+00:32:00,926 --> 00:32:04,966
+Now, there's one more thing I
+
+
+1032
+00:32:04,966 --> 00:32:06,216
+would like to highlight in this
+
+
+1033
+00:32:06,216 --> 00:32:06,756
+example.
+
+
+1034
+00:32:08,426 --> 00:32:09,646
+You saw how these boxes were a
+
+
+1035
+00:32:09,646 --> 00:32:10,666
+little bit jittering around
+
+
+1036
+00:32:10,666 --> 00:32:11,496
+because I was running the
+
+
+1037
+00:32:11,496 --> 00:32:12,896
+detector frame by frame, by
+
+
+1038
+00:32:12,896 --> 00:32:13,636
+frame, by frame.
+
+
+1039
+00:32:14,346 --> 00:32:16,506
+Tracking can often be a better
+
+
+1040
+00:32:16,506 --> 00:32:17,086
+choice here.
+
+
+1041
+00:32:17,376 --> 00:32:20,216
+Why? Tracking is much faster
+
+
+1042
+00:32:20,216 --> 00:32:21,646
+even in terms of like running,
+
+
+1043
+00:32:21,646 --> 00:32:22,936
+than actually these models would
+
+
+1044
+00:32:22,936 --> 00:32:23,116
+run.
+
+
+1045
+00:32:25,276 --> 00:32:27,136
+So, redetection takes more time
+
+
+1046
+00:32:27,136 --> 00:32:28,976
+than actually running a tracking
+
+
+1047
+00:32:28,976 --> 00:32:29,566
+request.
+
+
+1048
+00:32:31,306 --> 00:32:33,056
+I can use the tracker basically
+
+
+1049
+00:32:33,056 --> 00:32:34,306
+if I want to follow now an
+
+
+1050
+00:32:34,306 --> 00:32:37,416
+object on the screen because
+
+
+1051
+00:32:37,416 --> 00:32:38,376
+it's a lighter algorithm.
+
+
+1052
+00:32:38,376 --> 00:32:39,306
+It runs faster.
+
+
+1053
+00:32:39,906 --> 00:32:41,846
+And on top of it, we have
+
+
+1054
+00:32:41,906 --> 00:32:43,666
+temporal smoothing so that these
+
+
+1055
+00:32:43,716 --> 00:32:44,896
+boxes will not jitter around
+
+
+1056
+00:32:44,896 --> 00:32:46,616
+anymore and if you see some of
+
+
+1057
+00:32:46,616 --> 00:32:47,836
+our tracking examples, they
+
+
+1058
+00:32:47,836 --> 00:32:48,946
+actually move nicely and
+
+
+1059
+00:32:48,946 --> 00:32:50,046
+smoothly across the screen.
+
+
+1060
+00:32:50,966 --> 00:32:52,156
+If you want to learn more about
+
+
+1061
+00:32:52,156 --> 00:32:54,996
+tracking, the previous session
+
+
+1062
+00:32:54,996 --> 00:32:56,106
+from my colleague Sergei,
+
+
+1063
+00:32:56,106 --> 00:32:58,216
+actually talks about how to do
+
+
+1064
+00:32:58,216 --> 00:33:00,546
+all the implementation work of
+
+
+1065
+00:33:01,216 --> 00:33:01,386
+that.
+
+
+1066
+00:33:02,076 --> 00:33:04,426
+Alright, last but not least,
+
+
+1067
+00:33:04,426 --> 00:33:06,006
+let's enhance our Vision mastery
+
+
+1068
+00:33:06,006 --> 00:33:06,876
+and go into some of our
+
+
+1069
+00:33:06,876 --> 00:33:07,586
+fundamentals.
+
+
+1070
+00:33:08,556 --> 00:33:10,256
+Few things are important to know
+
+
+1071
+00:33:10,256 --> 00:33:11,246
+when dealing with the Vision
+
+
+1072
+00:33:11,246 --> 00:33:11,756
+framework.
+
+
+1073
+00:33:12,976 --> 00:33:14,206
+First and foremost, and this is
+
+
+1074
+00:33:14,206 --> 00:33:16,006
+a common source of problems,
+
+
+1075
+00:33:17,056 --> 00:33:18,066
+image orientation.
+
+
+1076
+00:33:20,016 --> 00:33:21,546
+Now, not all of our Vision
+
+
+1077
+00:33:21,546 --> 00:33:22,916
+algorithms are orientation
+
+
+1078
+00:33:22,916 --> 00:33:23,496
+agnostic.
+
+
+1079
+00:33:24,096 --> 00:33:25,106
+You might have heard early that
+
+
+1080
+00:33:25,106 --> 00:33:26,436
+we have a new face detector that
+
+
+1081
+00:33:26,436 --> 00:33:28,436
+is orientation agnostic.
+
+
+1082
+00:33:29,136 --> 00:33:30,656
+But the previous one was not.
+
+
+1083
+00:33:32,156 --> 00:33:33,636
+This means we need to know what
+
+
+1084
+00:33:33,636 --> 00:33:35,016
+is the upright position of the
+
+
+1085
+00:33:35,016 --> 00:33:35,406
+image?
+
+
+1086
+00:33:36,296 --> 00:33:38,436
+And it can be deceiving because
+
+
+1087
+00:33:38,436 --> 00:33:39,866
+if you look at it and preview on
+
+
+1088
+00:33:39,866 --> 00:33:41,376
+the final, my image looks
+
+
+1089
+00:33:41,376 --> 00:33:43,046
+upright, but that is not how it
+
+
+1090
+00:33:43,046 --> 00:33:43,906
+is stored on disk.
+
+
+1091
+00:33:45,026 --> 00:33:46,466
+There is something that tells us
+
+
+1092
+00:33:46,466 --> 00:33:48,206
+how the device is oriented, and
+
+
+1093
+00:33:48,206 --> 00:33:49,086
+this is called the EXIF
+
+
+1094
+00:33:49,086 --> 00:33:49,896
+Orientation.
+
+
+1095
+00:33:50,976 --> 00:33:53,856
+So, if an image is captured,
+
+
+1096
+00:33:53,856 --> 00:33:54,866
+that's normally in the sensor
+
+
+1097
+00:33:54,866 --> 00:33:56,346
+orientation, with the EXIF, we
+
+
+1098
+00:33:56,346 --> 00:33:57,716
+know what is actually upright
+
+
+1099
+00:33:57,906 --> 00:34:00,096
+and if you pass an URL into
+
+
+1100
+00:34:00,096 --> 00:34:03,176
+Vision as our input, Vision is
+
+
+1101
+00:34:03,176 --> 00:34:04,306
+actually going to do all that
+
+
+1102
+00:34:04,306 --> 00:34:05,446
+work basically for you and
+
+
+1103
+00:34:05,446 --> 00:34:06,456
+actually read this EXIF
+
+
+1104
+00:34:06,456 --> 00:34:07,786
+information from the file.
+
+
+1105
+00:34:09,246 --> 00:34:10,746
+But like when -- as we showed in
+
+
+1106
+00:34:10,746 --> 00:34:12,496
+the demos earlier, if I use my
+
+
+1107
+00:34:12,496 --> 00:34:14,335
+live capture feed, I need to
+
+
+1108
+00:34:14,335 --> 00:34:15,585
+actually pass this information
+
+
+1109
+00:34:15,585 --> 00:34:15,775
+in.
+
+
+1110
+00:34:16,335 --> 00:34:17,996
+So, I have to look at what does
+
+
+1111
+00:34:17,996 --> 00:34:20,036
+my orientation from my UI device
+
+
+1112
+00:34:20,096 --> 00:34:22,286
+current orientation and convert
+
+
+1113
+00:34:22,286 --> 00:34:23,456
+this [inaudible] to CG Image
+
+
+1114
+00:34:23,516 --> 00:34:24,666
+Property Orientation because we
+
+
+1115
+00:34:24,666 --> 00:34:26,126
+need it in the form of an EXIF
+
+
+1116
+00:34:26,126 --> 00:34:26,755
+orientation.
+
+
+1117
+00:34:27,356 --> 00:34:30,536
+Next, let's talk a little bit
+
+
+1118
+00:34:30,536 --> 00:34:31,946
+about our coordinate system.
+
+
+1119
+00:34:33,485 --> 00:34:35,295
+For Vision, the origin is always
+
+
+1120
+00:34:35,295 --> 00:34:37,706
+in the lower, left corner.
+
+
+1121
+00:34:37,806 --> 00:34:40,206
+And all processing is done in
+
+
+1122
+00:34:40,206 --> 00:34:41,646
+the up right -- if the image
+
+
+1123
+00:34:41,646 --> 00:34:42,996
+would be in an upright position,
+
+
+1124
+00:34:43,446 --> 00:34:44,585
+hence the orientation is
+
+
+1125
+00:34:44,585 --> 00:34:45,106
+important.
+
+
+1126
+00:34:47,266 --> 00:34:48,576
+All our processing is really
+
+
+1127
+00:34:48,576 --> 00:34:49,996
+done in a normalized coordinate
+
+
+1128
+00:34:49,996 --> 00:34:52,266
+space, except the registration
+
+
+1129
+00:34:52,266 --> 00:34:52,996
+where we actually need to know
+
+
+1130
+00:34:52,996 --> 00:34:54,216
+how many pixels [inaudible].
+
+
+1131
+00:34:54,896 --> 00:34:56,406
+So, normalized coordinates means
+
+
+1132
+00:34:56,856 --> 00:34:58,166
+our coordinates go from zero,
+
+
+1133
+00:34:58,166 --> 00:35:00,306
+zero, to 1,1, in the upper right
+
+
+1134
+00:35:00,336 --> 00:35:00,626
+corner.
+
+
+1135
+00:35:02,406 --> 00:35:04,016
+Now what you see here is to that
+
+
+1136
+00:35:04,116 --> 00:35:05,896
+performed face and landmark
+
+
+1137
+00:35:05,896 --> 00:35:06,916
+detection request.
+
+
+1138
+00:35:07,326 --> 00:35:09,036
+And you will see that I get the
+
+
+1139
+00:35:09,036 --> 00:35:10,496
+bounding box for my face, and
+
+
+1140
+00:35:10,496 --> 00:35:11,956
+the landmarks are actually
+
+
+1141
+00:35:11,956 --> 00:35:14,196
+reported in relative coordinates
+
+
+1142
+00:35:14,236 --> 00:35:17,106
+to that bounding box.
+
+
+1143
+00:35:17,296 --> 00:35:18,526
+If you need to go back into the
+
+
+1144
+00:35:18,526 --> 00:35:19,996
+image coordinate space, we have
+
+
+1145
+00:35:20,096 --> 00:35:22,006
+utility functions and VNUtils
+
+
+1146
+00:35:22,006 --> 00:35:22,946
+like the VN Image [inaudible]
+
+
+1147
+00:35:22,946 --> 00:35:25,476
+from normalized way to convert
+
+
+1148
+00:35:25,606 --> 00:35:28,006
+back and forth between those
+
+
+1149
+00:35:29,676 --> 00:35:30,056
+coordinates.
+
+
+1150
+00:35:31,416 --> 00:35:32,336
+Next, let's talk about
+
+
+1151
+00:35:32,336 --> 00:35:33,156
+confidence scores.
+
+
+1152
+00:35:33,156 --> 00:35:34,376
+We touched a little bit on this
+
+
+1153
+00:35:34,426 --> 00:35:36,076
+already during our robot shot
+
+
+1154
+00:35:36,076 --> 00:35:36,626
+example.
+
+
+1155
+00:35:36,626 --> 00:35:40,186
+A lot of our algorithms can
+
+
+1156
+00:35:40,186 --> 00:35:42,006
+express how confident they are
+
+
+1157
+00:35:42,006 --> 00:35:42,796
+in their results.
+
+
+1158
+00:35:43,746 --> 00:35:46,436
+And that is kind of an important
+
+
+1159
+00:35:46,436 --> 00:35:47,886
+part to know when I want to
+
+
+1160
+00:35:48,226 --> 00:35:49,706
+analyze later on what I get out
+
+
+1161
+00:35:49,706 --> 00:35:50,446
+of these results.
+
+
+1162
+00:35:50,536 --> 00:35:51,716
+So, if I have a low confidence
+
+
+1163
+00:35:51,716 --> 00:35:53,216
+of zero, or do I have a high
+
+
+1164
+00:35:53,216 --> 00:35:56,566
+confidence of 1?
+
+
+1165
+00:35:57,576 --> 00:36:02,676
+Clicker. Here we go.
+
+
+1166
+00:36:02,856 --> 00:36:03,086
+Alright.
+
+
+1167
+00:36:03,646 --> 00:36:05,606
+Unfortunately, not all
+
+
+1168
+00:36:05,606 --> 00:36:06,936
+algorithms will have the same
+
+
+1169
+00:36:06,936 --> 00:36:08,736
+scale in terms of like how they
+
+
+1170
+00:36:08,736 --> 00:36:10,156
+report their confidence scores.
+
+
+1171
+00:36:10,316 --> 00:36:12,356
+For instance, if we look at our
+
+
+1172
+00:36:12,356 --> 00:36:14,096
+text detector, it pretty much
+
+
+1173
+00:36:14,096 --> 00:36:15,336
+always returns a confidence
+
+
+1174
+00:36:15,336 --> 00:36:17,256
+score of 1 because if it doesn't
+
+
+1175
+00:36:17,256 --> 00:36:18,356
+think there's text, it's not
+
+
+1176
+00:36:18,356 --> 00:36:19,476
+going to return the bounding box
+
+
+1177
+00:36:19,476 --> 00:36:20,306
+in the first place.
+
+
+1178
+00:36:21,296 --> 00:36:23,646
+But as we saw, the classifiers
+
+
+1179
+00:36:23,856 --> 00:36:25,436
+have a very large range actually
+
+
+1180
+00:36:25,506 --> 00:36:26,736
+of what this confidence score
+
+
+1181
+00:36:26,736 --> 00:36:27,146
+could be.
+
+
+1182
+00:36:27,646 --> 00:36:28,866
+Let's look at a few examples.
+
+
+1183
+00:36:30,056 --> 00:36:33,356
+In my first example, I used an
+
+
+1184
+00:36:33,356 --> 00:36:34,696
+image from our robot shop
+
+
+1185
+00:36:34,696 --> 00:36:37,356
+example and I ran my own model
+
+
+1186
+00:36:37,356 --> 00:36:37,606
+on it.
+
+
+1187
+00:36:38,356 --> 00:36:40,076
+And sure enough, it had a very
+
+
+1188
+00:36:40,076 --> 00:36:41,326
+high confidence, this is a
+
+
+1189
+00:36:41,326 --> 00:36:42,006
+stepper motor.
+
+
+1190
+00:36:43,756 --> 00:36:45,996
+Now, on this next examples, I'm
+
+
+1191
+00:36:45,996 --> 00:36:47,296
+going to use some of the models
+
+
+1192
+00:36:47,296 --> 00:36:48,326
+that we have in our model
+
+
+1193
+00:36:48,326 --> 00:36:48,786
+gallery.
+
+
+1194
+00:36:49,836 --> 00:36:51,076
+So, don't get me wrong.
+
+
+1195
+00:36:51,076 --> 00:36:52,166
+I don't want to compare the
+
+
+1196
+00:36:52,166 --> 00:36:53,296
+quality of the models.
+
+
+1197
+00:36:53,296 --> 00:36:54,406
+It's about like actually what
+
+
+1198
+00:36:54,406 --> 00:36:56,126
+did confidence they return and
+
+
+1199
+00:36:56,126 --> 00:36:57,106
+what actually want to do with
+
+
+1200
+00:36:57,196 --> 00:36:57,436
+this.
+
+
+1201
+00:36:58,616 --> 00:36:59,836
+So, what did this tell us
+
+
+1202
+00:36:59,836 --> 00:37:00,966
+basically when we want to
+
+
+1203
+00:37:01,016 --> 00:37:02,536
+classify this image?
+
+
+1204
+00:37:03,176 --> 00:37:05,916
+Well, it's not that bad, but
+
+
+1205
+00:37:06,046 --> 00:37:07,376
+it's really sure about it
+
+
+1206
+00:37:07,376 --> 00:37:07,646
+either.
+
+
+1207
+00:37:08,166 --> 00:37:11,116
+The confidence score of 0.395 is
+
+
+1208
+00:37:11,116 --> 00:37:12,666
+not particularly high, but yes,
+
+
+1209
+00:37:12,696 --> 00:37:14,076
+it has a sand part, there's some
+
+
+1210
+00:37:14,076 --> 00:37:14,806
+beach involved.
+
+
+1211
+00:37:15,566 --> 00:37:18,336
+So, that's usable basically as a
+
+
+1212
+00:37:18,336 --> 00:37:19,616
+result when I want to search for
+
+
+1213
+00:37:19,616 --> 00:37:21,006
+it, but might I label the image
+
+
+1214
+00:37:21,046 --> 00:37:21,396
+with that?
+
+
+1215
+00:37:21,586 --> 00:37:22,756
+It's probably questionable.
+
+
+1216
+00:37:23,096 --> 00:37:25,536
+Let's look at this next example.
+
+
+1217
+00:37:27,076 --> 00:37:27,886
+Girl on a scooter.
+
+
+1218
+00:37:28,606 --> 00:37:29,716
+What did the classifier do with
+
+
+1219
+00:37:29,766 --> 00:37:30,036
+this?
+
+
+1220
+00:37:31,786 --> 00:37:32,766
+Well, I'm not sure she's so
+
+
+1221
+00:37:32,766 --> 00:37:33,796
+happy to be called a sweet
+
+
+1222
+00:37:33,796 --> 00:37:34,276
+potato.
+
+
+1223
+00:37:34,786 --> 00:37:40,916
+Let's look at one more example.
+
+
+1224
+00:37:41,416 --> 00:37:42,716
+So, here's a screen shot of my
+
+
+1225
+00:37:42,716 --> 00:37:43,066
+code.
+
+
+1226
+00:37:44,206 --> 00:37:45,476
+What does the classifier do with
+
+
+1227
+00:37:45,726 --> 00:37:46,966
+that?
+
+
+1228
+00:37:47,366 --> 00:37:48,786
+It thinks it's a website.
+
+
+1229
+00:37:48,936 --> 00:37:49,976
+Computers are so dumb.
+
+
+1230
+00:37:53,626 --> 00:37:55,376
+So, some conclusions about our
+
+
+1231
+00:37:55,376 --> 00:37:56,186
+confidence scores.
+
+
+1232
+00:37:58,306 --> 00:38:00,626
+Does 1.0 always mean it's a 100%
+
+
+1233
+00:38:00,626 --> 00:38:00,976
+correct?
+
+
+1234
+00:38:01,366 --> 00:38:02,456
+Not necessarily.
+
+
+1235
+00:38:02,896 --> 00:38:04,326
+It will fill the criteria of the
+
+
+1236
+00:38:04,326 --> 00:38:06,486
+algorithm, but our perception,
+
+
+1237
+00:38:06,486 --> 00:38:07,766
+as we saw particularly with the
+
+
+1238
+00:38:07,766 --> 00:38:09,666
+sweet potato is quite different.
+
+
+1239
+00:38:10,586 --> 00:38:12,646
+So, when you create an
+
+
+1240
+00:38:12,646 --> 00:38:13,966
+application that wants to take
+
+
+1241
+00:38:13,966 --> 00:38:15,736
+advantage of that, please keep
+
+
+1242
+00:38:15,736 --> 00:38:16,376
+that in mind.
+
+
+1243
+00:38:16,916 --> 00:38:17,316
+Think of it.
+
+
+1244
+00:38:17,316 --> 00:38:18,396
+If you would write a medical
+
+
+1245
+00:38:18,396 --> 00:38:19,606
+application and saying, "Oh, you
+
+
+1246
+00:38:19,606 --> 00:38:21,906
+have cancer," that might be a
+
+
+1247
+00:38:21,906 --> 00:38:23,626
+very strong argument where you
+
+
+1248
+00:38:23,626 --> 00:38:25,036
+want to probably soften that a
+
+
+1249
+00:38:25,036 --> 00:38:26,196
+little bit depending on like how
+
+
+1250
+00:38:26,196 --> 00:38:27,346
+sure you can really be on the
+
+
+1251
+00:38:27,346 --> 00:38:27,796
+results.
+
+
+1252
+00:38:29,326 --> 00:38:31,676
+So, there are two techniques
+
+
+1253
+00:38:31,676 --> 00:38:32,896
+that you can use for this.
+
+
+1254
+00:38:33,506 --> 00:38:35,016
+As we saw in the robot shot
+
+
+1255
+00:38:35,016 --> 00:38:36,776
+example, I used a threshold on
+
+
+1256
+00:38:36,776 --> 00:38:37,916
+the confidence score because I
+
+
+1257
+00:38:37,916 --> 00:38:39,766
+really label the image and I you
+
+
+1258
+00:38:39,946 --> 00:38:40,926
+know, when it's actually
+
+
+1259
+00:38:40,926 --> 00:38:41,746
+filtering everything out that
+
+
+1260
+00:38:41,746 --> 00:38:42,956
+had a low confidence score.
+
+
+1261
+00:38:43,676 --> 00:38:44,646
+If on the other hand, I want to
+
+
+1262
+00:38:44,646 --> 00:38:46,126
+create a search application, I
+
+
+1263
+00:38:46,126 --> 00:38:47,686
+might actually use some of the
+
+
+1264
+00:38:47,686 --> 00:38:50,856
+images that I had and still show
+
+
+1265
+00:38:50,856 --> 00:38:52,506
+them, probably on the bottom of
+
+
+1266
+00:38:52,546 --> 00:38:53,586
+the search because there's still
+
+
+1267
+00:38:53,586 --> 00:38:55,326
+a valid choice, perhaps in the
+
+
+1268
+00:38:55,326 --> 00:38:56,016
+search results.
+
+
+1269
+00:38:59,916 --> 00:39:03,186
+As usual, we find some more
+
+
+1270
+00:39:03,186 --> 00:39:04,486
+information on our website.
+
+
+1271
+00:39:04,946 --> 00:39:06,626
+And we have our lab tomorrow at
+
+
+1272
+00:39:06,626 --> 00:39:08,396
+3 p.m. Please stop by.
+
+
+1273
+00:39:08,576 --> 00:39:09,736
+Ask your questions.
+
+
+1274
+00:39:09,736 --> 00:39:10,556
+We're there to help you.
+
+
+1275
+00:39:10,596 --> 00:39:12,916
+And with that, I would first of
+
+
+1276
+00:39:12,916 --> 00:39:14,686
+all like to thank you all for
+
+
+1277
+00:39:14,686 --> 00:39:15,846
+these great application that you
+
+
+1278
+00:39:15,846 --> 00:39:17,046
+create with our technology.
+
+
+1279
+00:39:17,116 --> 00:39:18,756
+I'm looking forward to see what
+
+
+1280
+00:39:18,756 --> 00:39:19,536
+you can do with this.
+
+
+1281
+00:39:19,936 --> 00:39:21,256
+And thank you all for coming to
+
+
+1282
+00:39:21,256 --> 00:39:21,676
+WWDC.
+
+
+1283
+00:39:21,676 --> 00:39:22,696
+Have a great rest of the show.
+
+
+1284
+00:39:22,696 --> 00:39:23,296
+Thank you.
+
+
+1285
+00:39:24,516 --> 00:39:32,050
+[ Applause ]
+

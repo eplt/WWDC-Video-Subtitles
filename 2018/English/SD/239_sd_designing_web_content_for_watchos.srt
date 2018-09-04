@@ -1,0 +1,1289 @@
+1
+00:00:06,516 --> 00:00:15,500
+[ Music ]
+
+
+2
+00:00:20,086 --> 00:00:21,136
+>> Welcome to designing web
+
+
+3
+00:00:21,136 --> 00:00:22,606
+content for watchOS.
+
+
+4
+00:00:22,856 --> 00:00:24,366
+My name is Wenson and I'm on the
+
+
+5
+00:00:24,366 --> 00:00:25,066
+WebKit team.
+
+
+6
+00:00:25,586 --> 00:00:27,586
+In watchOS 5, we're introducing
+
+
+7
+00:00:27,586 --> 00:00:29,546
+the ability to render rich HTML
+
+
+8
+00:00:29,546 --> 00:00:31,176
+content on Apple Watch using
+
+
+9
+00:00:31,176 --> 00:00:31,676
+WebKit.
+
+
+10
+00:00:32,406 --> 00:00:34,016
+Before we explore how it works,
+
+
+11
+00:00:34,396 --> 00:00:35,586
+let's go over a couple of the
+
+
+12
+00:00:35,586 --> 00:00:37,296
+ways WebKit enriches the user
+
+
+13
+00:00:37,296 --> 00:00:38,876
+experience on watchOS.
+
+
+14
+00:00:40,676 --> 00:00:43,206
+Previously in mail, rich HTML
+
+
+15
+00:00:43,206 --> 00:00:44,646
+mail messages would be rendered
+
+
+16
+00:00:44,646 --> 00:00:46,786
+in a text-only format requiring
+
+
+17
+00:00:46,786 --> 00:00:48,366
+the user to go to another device
+
+
+18
+00:00:48,366 --> 00:00:49,506
+for the full experience.
+
+
+19
+00:00:50,396 --> 00:00:52,936
+New in watchOS 5, the full HTML
+
+
+20
+00:00:52,936 --> 00:00:54,326
+mail message can now render on
+
+
+21
+00:00:54,326 --> 00:00:55,936
+Apple Watch in cases where
+
+
+22
+00:00:55,936 --> 00:00:57,586
+text-only formatting cannot
+
+
+23
+00:00:57,586 --> 00:00:59,066
+express the full content of the
+
+
+24
+00:00:59,066 --> 00:00:59,566
+message.
+
+
+25
+00:01:01,656 --> 00:01:02,926
+When tapping links in mail or
+
+
+26
+00:01:02,926 --> 00:01:04,836
+messages, we'd previously direct
+
+
+27
+00:01:04,836 --> 00:01:06,396
+the user to iPhone in order to
+
+
+28
+00:01:06,396 --> 00:01:07,336
+view the web page.
+
+
+29
+00:01:07,936 --> 00:01:10,196
+Also new in watchOS 5, the user
+
+
+30
+00:01:10,196 --> 00:01:11,746
+can now tap links to view and
+
+
+31
+00:01:11,746 --> 00:01:12,996
+interact with the web page
+
+
+32
+00:01:12,996 --> 00:01:14,396
+directly on Apple Watch.
+
+
+33
+00:01:18,866 --> 00:01:20,226
+In this session, we'll explore
+
+
+34
+00:01:20,226 --> 00:01:21,736
+the techniques WebKit uses to
+
+
+35
+00:01:21,736 --> 00:01:23,206
+adapt existing content to
+
+
+36
+00:01:23,206 --> 00:01:25,266
+watchOS and introduce a new
+
+
+37
+00:01:25,266 --> 00:01:26,506
+mechanism you can use to
+
+
+38
+00:01:26,506 --> 00:01:28,016
+optimize your content for
+
+
+39
+00:01:28,016 --> 00:01:29,296
+display on Apple Watch.
+
+
+40
+00:01:29,696 --> 00:01:31,206
+We'll also cover some other
+
+
+41
+00:01:31,206 --> 00:01:32,486
+important details you need to
+
+
+42
+00:01:32,486 --> 00:01:34,126
+know to ensure that users
+
+
+43
+00:01:34,126 --> 00:01:35,316
+viewing and interacting with
+
+
+44
+00:01:35,316 --> 00:01:36,656
+your content will have a great
+
+
+45
+00:01:36,656 --> 00:01:37,436
+experience.
+
+
+46
+00:01:38,296 --> 00:01:41,446
+I'd like to start by discussing
+
+
+47
+00:01:41,446 --> 00:01:43,176
+how WebKit works on Apple Watch.
+
+
+48
+00:01:45,126 --> 00:01:47,066
+Out of the box, WebKit supports
+
+
+49
+00:01:47,066 --> 00:01:48,126
+the gestures you're already
+
+
+50
+00:01:48,126 --> 00:01:48,836
+familiar with.
+
+
+51
+00:01:50,356 --> 00:01:51,816
+Turning the digital crown
+
+
+52
+00:01:51,816 --> 00:01:53,406
+scrolls vertically and you can
+
+
+53
+00:01:53,406 --> 00:01:54,696
+also drag your finger on the
+
+
+54
+00:01:54,696 --> 00:01:56,026
+screen to scroll the page.
+
+
+55
+00:01:59,996 --> 00:02:01,566
+Double tapping zooms into the
+
+
+56
+00:02:01,566 --> 00:02:03,256
+page and a subsequent double tab
+
+
+57
+00:02:03,406 --> 00:02:04,376
+zooms back out.
+
+
+58
+00:02:06,246 --> 00:02:07,676
+Lastly, a firm press reveals
+
+
+59
+00:02:07,676 --> 00:02:09,246
+back and forward buttons, but
+
+
+60
+00:02:09,246 --> 00:02:10,795
+you can also swipe forwards or
+
+
+61
+00:02:10,795 --> 00:02:12,036
+backwards to navigate through
+
+
+62
+00:02:12,036 --> 00:02:12,646
+your history.
+
+
+63
+00:02:13,266 --> 00:02:14,986
+It's important to note that we
+
+
+64
+00:02:14,986 --> 00:02:16,276
+optimized WebKit for quickly
+
+
+65
+00:02:16,276 --> 00:02:17,286
+consuming content.
+
+
+66
+00:02:17,896 --> 00:02:19,106
+Therefore, a limited set of
+
+
+67
+00:02:19,106 --> 00:02:20,396
+features are not supported at
+
+
+68
+00:02:20,396 --> 00:02:20,966
+this time.
+
+
+69
+00:02:21,726 --> 00:02:23,206
+These include video playback,
+
+
+70
+00:02:23,336 --> 00:02:25,006
+service workers, and web fonts.
+
+
+71
+00:02:26,536 --> 00:02:27,906
+Now let's see how WebKit lays
+
+
+72
+00:02:27,906 --> 00:02:29,616
+out web pages on Apple Watch.
+
+
+73
+00:02:32,086 --> 00:02:33,436
+Most responsive content is
+
+
+74
+00:02:33,436 --> 00:02:34,786
+already well proportioned when
+
+
+75
+00:02:34,786 --> 00:02:37,206
+laid out at 320 CSS pixels, the
+
+
+76
+00:02:37,206 --> 00:02:38,516
+width of iPhone SE.
+
+
+77
+00:02:40,096 --> 00:02:41,146
+We ensure that it's also
+
+
+78
+00:02:41,146 --> 00:02:42,626
+well-proportioned on Apple Watch
+
+
+79
+00:02:42,626 --> 00:02:44,196
+by laying out at this width and
+
+
+80
+00:02:44,196 --> 00:02:45,766
+then computing the initial scale
+
+
+81
+00:02:45,766 --> 00:02:47,056
+of the page such that the
+
+
+82
+00:02:47,056 --> 00:02:48,396
+content width fits within the
+
+
+83
+00:02:48,396 --> 00:02:48,976
+viewport.
+
+
+84
+00:02:49,586 --> 00:02:51,206
+This means that text and images
+
+
+85
+00:02:51,206 --> 00:02:52,636
+may appear smaller but the
+
+
+86
+00:02:52,636 --> 00:02:54,046
+overall layout of the page is
+
+
+87
+00:02:54,046 --> 00:02:54,626
+preserved.
+
+
+88
+00:02:56,736 --> 00:02:58,216
+When this technique is used, the
+
+
+89
+00:02:58,216 --> 00:03:00,056
+viewport meta-tags initial scale
+
+
+90
+00:03:00,056 --> 00:03:01,546
+is ignored in favor of an
+
+
+91
+00:03:01,546 --> 00:03:02,926
+initial scale that contains the
+
+
+92
+00:03:02,926 --> 00:03:04,686
+entire content of the page.
+
+
+93
+00:03:06,336 --> 00:03:07,846
+Additionally, inner width is
+
+
+94
+00:03:07,846 --> 00:03:10,356
+inflated to a minimum of 320 CSS
+
+
+95
+00:03:10,356 --> 00:03:10,866
+pixels.
+
+
+96
+00:03:10,896 --> 00:03:12,676
+And when using media queries,
+
+
+97
+00:03:12,966 --> 00:03:14,246
+the device width will also
+
+
+98
+00:03:14,246 --> 00:03:16,196
+appear to be 320 CSS pixels
+
+
+99
+00:03:16,536 --> 00:03:17,746
+rather than the true width of
+
+
+100
+00:03:17,746 --> 00:03:18,426
+Apple Watch.
+
+
+101
+00:03:20,096 --> 00:03:21,726
+By shrinking to fit, we also
+
+
+102
+00:03:21,726 --> 00:03:23,256
+avoid horizontal scrolling on
+
+
+103
+00:03:23,256 --> 00:03:24,796
+pages where content is wider
+
+
+104
+00:03:24,796 --> 00:03:25,616
+than the viewport.
+
+
+105
+00:03:27,706 --> 00:03:30,606
+These heuristics adapt existing
+
+
+106
+00:03:30,606 --> 00:03:32,246
+content to Apple Watch, but you
+
+
+107
+00:03:32,246 --> 00:03:33,626
+can override them when designing
+
+
+108
+00:03:33,626 --> 00:03:34,936
+content tailored for this form
+
+
+109
+00:03:34,936 --> 00:03:35,366
+factor.
+
+
+110
+00:03:36,106 --> 00:03:37,346
+Let's look at an example.
+
+
+111
+00:03:37,916 --> 00:03:40,596
+I've written a web page that
+
+
+112
+00:03:40,596 --> 00:03:42,056
+contains a gallery of photos I
+
+
+113
+00:03:42,056 --> 00:03:43,276
+took from a recent trip to
+
+
+114
+00:03:43,276 --> 00:03:44,926
+Vietnam, and I'd like to share
+
+
+115
+00:03:44,926 --> 00:03:45,766
+it with my friends.
+
+
+116
+00:03:47,246 --> 00:03:48,316
+If I send them a link to this
+
+
+117
+00:03:48,316 --> 00:03:49,956
+page using messages, they can
+
+
+118
+00:03:49,956 --> 00:03:51,036
+view it on Apple Watch.
+
+
+119
+00:03:51,806 --> 00:03:52,996
+Right now it's laying out at a
+
+
+120
+00:03:52,996 --> 00:03:55,036
+width of 320 CSS pixels and
+
+
+121
+00:03:55,036 --> 00:03:56,056
+shrinking down to fit.
+
+
+122
+00:03:56,936 --> 00:03:58,286
+However, I've also written this
+
+
+123
+00:03:58,286 --> 00:03:59,746
+page to be responsive on Apple
+
+
+124
+00:03:59,746 --> 00:04:01,686
+Watch by using a media query to
+
+
+125
+00:04:01,686 --> 00:04:03,476
+limit my two-column layout only
+
+
+126
+00:04:03,476 --> 00:04:05,676
+to viewports larger than 320 CSS
+
+
+127
+00:04:05,676 --> 00:04:06,196
+pixels.
+
+
+128
+00:04:07,676 --> 00:04:09,146
+Now all I need to do is tell
+
+
+129
+00:04:09,146 --> 00:04:10,776
+WebKit that this page is already
+
+
+130
+00:04:10,776 --> 00:04:12,616
+optimized for Apple Watch and
+
+
+131
+00:04:12,616 --> 00:04:13,556
+doesn't need the default
+
+
+132
+00:04:13,556 --> 00:04:14,376
+adaptations.
+
+
+133
+00:04:15,086 --> 00:04:16,636
+To do this, I simply include a
+
+
+134
+00:04:16,636 --> 00:04:18,146
+new meta-tag in the head of my
+
+
+135
+00:04:18,146 --> 00:04:20,086
+document with name equal to
+
+
+136
+00:04:20,086 --> 00:04:22,346
+disabled-adaptations and content
+
+
+137
+00:04:22,346 --> 00:04:23,126
+equal to watch.
+
+
+138
+00:04:24,186 --> 00:04:25,456
+I'm using this new disabled
+
+
+139
+00:04:25,456 --> 00:04:27,556
+adaptations meta-tag along side
+
+
+140
+00:04:27,556 --> 00:04:29,026
+the existing viewport meta-tag
+
+
+141
+00:04:29,026 --> 00:04:30,616
+I'm already using to ensure
+
+
+142
+00:04:30,616 --> 00:04:32,506
+responsive layout on iPhone and
+
+
+143
+00:04:33,326 --> 00:04:33,776
+iPad.
+
+
+144
+00:04:33,866 --> 00:04:35,246
+This allows WebKit to treat the
+
+
+145
+00:04:35,246 --> 00:04:36,706
+viewport's device width as the
+
+
+146
+00:04:36,706 --> 00:04:38,146
+real width of Apple Watch.
+
+
+147
+00:04:40,966 --> 00:04:42,276
+Let's now switch gears and talk
+
+
+148
+00:04:42,276 --> 00:04:43,616
+about some best practices for
+
+
+149
+00:04:43,616 --> 00:04:44,446
+form controls.
+
+
+150
+00:04:45,416 --> 00:04:46,866
+WebKit supports interaction with
+
+
+151
+00:04:46,866 --> 00:04:48,376
+form controls out-of-the-box.
+
+
+152
+00:04:49,036 --> 00:04:50,626
+To ensure a great experience for
+
+
+153
+00:04:50,626 --> 00:04:51,836
+users when designing form
+
+
+154
+00:04:51,836 --> 00:04:53,496
+controls and inputs, it's
+
+
+155
+00:04:53,496 --> 00:04:54,636
+important to keep a couple of
+
+
+156
+00:04:54,636 --> 00:04:55,476
+things in mind.
+
+
+157
+00:04:56,896 --> 00:04:58,386
+First, choose the appropriate
+
+
+158
+00:04:58,386 --> 00:04:59,886
+type attribute and element tag
+
+
+159
+00:04:59,886 --> 00:05:00,886
+for your form controls.
+
+
+160
+00:05:01,686 --> 00:05:03,046
+WebKit supports a variety of
+
+
+161
+00:05:03,046 --> 00:05:04,496
+form control types including
+
+
+162
+00:05:04,496 --> 00:05:06,396
+passwords, numeric and telephone
+
+
+163
+00:05:06,396 --> 00:05:08,376
+fields, date, time, and select
+
+
+164
+00:05:08,376 --> 00:05:08,836
+menus.
+
+
+165
+00:05:09,596 --> 00:05:10,846
+Choosing the most relevant type
+
+
+166
+00:05:10,846 --> 00:05:12,106
+attribute allows WebKit to
+
+
+167
+00:05:12,106 --> 00:05:13,406
+present the most appropriate
+
+
+168
+00:05:13,406 --> 00:05:15,106
+interface to handle user input.
+
+
+169
+00:05:16,956 --> 00:05:18,426
+Secondly, it's important to note
+
+
+170
+00:05:18,426 --> 00:05:20,776
+that unlike iOS and macOS, input
+
+
+171
+00:05:20,776 --> 00:05:22,266
+methods on watchOS require
+
+
+172
+00:05:22,266 --> 00:05:23,486
+full-screen interaction.
+
+
+173
+00:05:24,646 --> 00:05:25,986
+Label your form controls or
+
+
+174
+00:05:25,986 --> 00:05:27,346
+specify aria label or
+
+
+175
+00:05:27,346 --> 00:05:28,566
+placeholder attributes to
+
+
+176
+00:05:28,566 --> 00:05:29,896
+provide additional context in
+
+
+177
+00:05:29,896 --> 00:05:31,176
+the status bar when a
+
+
+178
+00:05:31,176 --> 00:05:32,336
+full-screen input view is
+
+
+179
+00:05:32,336 --> 00:05:32,826
+presented.
+
+
+180
+00:05:34,796 --> 00:05:36,826
+Lastly, let's dive into Safari
+
+
+181
+00:05:36,826 --> 00:05:37,206
+Reader.
+
+
+182
+00:05:38,766 --> 00:05:40,156
+You may already be familiar with
+
+
+183
+00:05:40,156 --> 00:05:42,346
+Safari Reader, a feature on iOS
+
+
+184
+00:05:42,346 --> 00:05:44,056
+and macOS that reformats text
+
+
+185
+00:05:44,056 --> 00:05:45,246
+heavy web pages to make them
+
+
+186
+00:05:45,246 --> 00:05:45,976
+easier to read.
+
+
+187
+00:05:49,686 --> 00:05:51,016
+We've brought Reader to watchOS
+
+
+188
+00:05:51,016 --> 00:05:52,326
+5 where it automatically
+
+
+189
+00:05:52,326 --> 00:05:53,666
+activates when following links
+
+
+190
+00:05:53,666 --> 00:05:54,966
+to text heavy web pages.
+
+
+191
+00:05:55,236 --> 00:05:57,116
+It's important to ensure that
+
+
+192
+00:05:57,116 --> 00:05:58,496
+Reader draws out the key parts
+
+
+193
+00:05:58,496 --> 00:05:59,896
+of your web page by using
+
+
+194
+00:05:59,896 --> 00:06:01,466
+semantic markup to reinforce the
+
+
+195
+00:06:01,466 --> 00:06:02,886
+meaning and purpose of elements
+
+
+196
+00:06:02,886 --> 00:06:03,686
+in the document.
+
+
+197
+00:06:04,566 --> 00:06:05,756
+Let's walk through an example.
+
+
+198
+00:06:07,076 --> 00:06:08,936
+First, we indicate which parts
+
+
+199
+00:06:08,936 --> 00:06:09,846
+of the page are the most
+
+
+200
+00:06:09,846 --> 00:06:11,166
+important by wrapping it in an
+
+
+201
+00:06:11,166 --> 00:06:11,866
+article tag.
+
+
+202
+00:06:12,566 --> 00:06:14,166
+Specifically, enclosing these
+
+
+203
+00:06:14,166 --> 00:06:15,306
+header elements inside the
+
+
+204
+00:06:15,306 --> 00:06:16,886
+article ensure that they all
+
+
+205
+00:06:16,886 --> 00:06:17,686
+appear in Reader.
+
+
+206
+00:06:19,326 --> 00:06:20,776
+Reader also styles each header
+
+
+207
+00:06:20,776 --> 00:06:22,316
+element differently depending on
+
+
+208
+00:06:22,316 --> 00:06:23,546
+the value of its itemprop
+
+
+209
+00:06:23,546 --> 00:06:24,236
+attribute.
+
+
+210
+00:06:24,806 --> 00:06:26,476
+Using itemprop, we're able to
+
+
+211
+00:06:26,476 --> 00:06:27,596
+ensure that the author,
+
+
+212
+00:06:27,596 --> 00:06:29,466
+publication date, title, and
+
+
+213
+00:06:29,466 --> 00:06:30,786
+subheading are prominently
+
+
+214
+00:06:30,786 --> 00:06:31,216
+featured.
+
+
+215
+00:06:34,796 --> 00:06:36,146
+This paragraph contains content
+
+
+216
+00:06:36,146 --> 00:06:37,596
+that is of strong importance and
+
+
+217
+00:06:37,596 --> 00:06:38,426
+other content that is
+
+
+218
+00:06:38,426 --> 00:06:41,046
+emphasized, so we put this text
+
+
+219
+00:06:41,206 --> 00:06:42,896
+under strong and em elements.
+
+
+220
+00:06:43,546 --> 00:06:45,226
+Reader recognizes these tags and
+
+
+221
+00:06:45,226 --> 00:06:46,806
+preserves their semantic styles.
+
+
+222
+00:06:49,536 --> 00:06:52,726
+For this image, we use figure
+
+
+223
+00:06:52,726 --> 00:06:54,146
+and figcaption elements to let
+
+
+224
+00:06:54,146 --> 00:06:55,386
+the Reader know that the image
+
+
+225
+00:06:55,386 --> 00:06:56,566
+is associated with the below
+
+
+226
+00:06:56,566 --> 00:06:57,056
+caption.
+
+
+227
+00:06:57,826 --> 00:06:59,306
+Reader then positions the image
+
+
+228
+00:06:59,306 --> 00:07:00,486
+alongside its caption.
+
+
+229
+00:07:04,056 --> 00:07:05,956
+For this quoted paragraph, we
+
+
+230
+00:07:05,956 --> 00:07:07,276
+use a blockquote element rather
+
+
+231
+00:07:07,276 --> 00:07:08,166
+than a stylediv.
+
+
+232
+00:07:08,796 --> 00:07:10,096
+Reader automatically styles
+
+
+233
+00:07:10,096 --> 00:07:11,336
+these blocksquote elements as
+
+
+234
+00:07:11,336 --> 00:07:11,956
+appropriate.
+
+
+235
+00:07:14,616 --> 00:07:15,966
+Lastly, adding open graph
+
+
+236
+00:07:15,966 --> 00:07:17,656
+meta-tags gives more context to
+
+
+237
+00:07:17,656 --> 00:07:19,266
+Reader and also ensures that
+
+
+238
+00:07:19,266 --> 00:07:20,536
+links to the article look great
+
+
+239
+00:07:20,536 --> 00:07:21,106
+when shared.
+
+
+240
+00:07:23,246 --> 00:07:24,706
+For more information about open
+
+
+241
+00:07:24,706 --> 00:07:26,176
+graph meta-tags and rich links,
+
+
+242
+00:07:26,516 --> 00:07:28,096
+check out our video on Ensuring
+
+
+243
+00:07:28,096 --> 00:07:29,306
+Beautiful Rich Links.
+
+
+244
+00:07:31,446 --> 00:07:32,906
+To recap this session, we've
+
+
+245
+00:07:32,906 --> 00:07:34,426
+seen how WebKit adapts existing
+
+
+246
+00:07:34,426 --> 00:07:34,946
+content.
+
+
+247
+00:07:34,946 --> 00:07:36,746
+And we've also seen what you can
+
+
+248
+00:07:36,746 --> 00:07:38,176
+do to optimize content for
+
+
+249
+00:07:38,176 --> 00:07:39,306
+layout in Apple Watch.
+
+
+250
+00:07:40,096 --> 00:07:41,296
+Finally, we covered best
+
+
+251
+00:07:41,296 --> 00:07:43,326
+practices for form controls and
+
+
+252
+00:07:43,326 --> 00:07:44,936
+also learned how to ensure that
+
+
+253
+00:07:44,936 --> 00:07:46,496
+Reader brings out the key parts
+
+
+254
+00:07:46,496 --> 00:07:47,536
+of your web page.
+
+
+255
+00:07:49,656 --> 00:07:51,016
+We're so excited to bring the
+
+
+256
+00:07:51,016 --> 00:07:52,986
+power of the web to watchOS and
+
+
+257
+00:07:52,986 --> 00:07:54,536
+can't wait to see what content
+
+
+258
+00:07:54,536 --> 00:07:55,936
+you create for Apple Watch.
+

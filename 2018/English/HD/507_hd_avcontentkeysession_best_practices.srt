@@ -1,0 +1,2259 @@
+1
+00:00:07,516 --> 00:00:15,500
+[ Music ]
+
+
+2
+00:00:18,046 --> 00:00:19,436
+>> Hello, and thanks for tuning
+
+
+3
+00:00:19,436 --> 00:00:19,736
+in.
+
+
+4
+00:00:20,276 --> 00:00:22,486
+My name is Anil Katti and I'm an
+
+
+5
+00:00:22,486 --> 00:00:24,216
+AVFoundation Engineer at Apple.
+
+
+6
+00:00:25,286 --> 00:00:27,316
+Today, I'm going to present some
+
+
+7
+00:00:27,316 --> 00:00:29,156
+best practices and recommended
+
+
+8
+00:00:29,156 --> 00:00:30,886
+patterns for adopting
+
+
+9
+00:00:30,886 --> 00:00:32,226
+AVContentKeySession API.
+
+
+10
+00:00:33,756 --> 00:00:36,126
+AVContentKeySession is an
+
+
+11
+00:00:36,126 --> 00:00:38,386
+AVFoundation API that enables
+
+
+12
+00:00:38,386 --> 00:00:39,946
+delivery of FairPlay Streaming
+
+
+13
+00:00:39,946 --> 00:00:41,836
+keys on Apple platforms.
+
+
+14
+00:00:43,836 --> 00:00:45,366
+So, here's what I'll cover in
+
+
+15
+00:00:45,366 --> 00:00:45,986
+the session.
+
+
+16
+00:00:46,476 --> 00:00:47,876
+I'll start with an overview of
+
+
+17
+00:00:47,876 --> 00:00:49,456
+FairPlay streaming and
+
+
+18
+00:00:49,456 --> 00:00:50,546
+AVContentKeySession.
+
+
+19
+00:00:50,906 --> 00:00:52,856
+I'll then present some ways you
+
+
+20
+00:00:52,856 --> 00:00:55,216
+can optimize playback using
+
+
+21
+00:00:55,216 --> 00:00:56,206
+AVContentKeySession.
+
+
+22
+00:00:56,926 --> 00:00:58,436
+I'll, also, cover some common
+
+
+23
+00:00:58,436 --> 00:00:59,936
+pitfalls around FairPlay
+
+
+24
+00:00:59,936 --> 00:01:01,846
+Streaming key delivery and
+
+
+25
+00:01:01,846 --> 00:01:04,376
+answer a few frequently asked
+
+
+26
+00:01:04,376 --> 00:01:06,146
+questions from developers, along
+
+
+27
+00:01:06,146 --> 00:01:06,476
+the way.
+
+
+28
+00:01:07,776 --> 00:01:09,546
+So, let's get started.
+
+
+29
+00:01:10,696 --> 00:01:11,846
+FairPlay Streaming was
+
+
+30
+00:01:11,846 --> 00:01:14,306
+introduced back in 2015 to help
+
+
+31
+00:01:14,446 --> 00:01:16,416
+protect HLS streams delivered to
+
+
+32
+00:01:16,416 --> 00:01:17,196
+our platforms.
+
+
+33
+00:01:18,216 --> 00:01:20,026
+FairPlay Streaming specification
+
+
+34
+00:01:20,156 --> 00:01:22,586
+specifies a set of steps an app
+
+
+35
+00:01:22,586 --> 00:01:24,316
+needs to follow in order to
+
+
+36
+00:01:24,316 --> 00:01:25,716
+securely deliver content
+
+
+37
+00:01:25,716 --> 00:01:27,706
+decryption keys so the platform
+
+
+38
+00:01:27,706 --> 00:01:29,476
+could decrypt and play back
+
+
+39
+00:01:29,606 --> 00:01:30,596
+encrypted media.
+
+
+40
+00:01:32,616 --> 00:01:33,806
+While delivering FairPlay
+
+
+41
+00:01:33,806 --> 00:01:36,506
+Streaming keys your app works as
+
+
+42
+00:01:36,506 --> 00:01:38,306
+a liaison between the platform
+
+
+43
+00:01:38,656 --> 00:01:39,996
+and your key server.
+
+
+44
+00:01:41,206 --> 00:01:43,096
+When it receives an on-demand
+
+
+45
+00:01:43,096 --> 00:01:44,836
+key loading request from
+
+
+46
+00:01:44,836 --> 00:01:46,886
+AVFoundation it, in turn,
+
+
+47
+00:01:46,996 --> 00:01:48,976
+requests for an Encrypted Key
+
+
+48
+00:01:48,976 --> 00:01:51,756
+Request, also known as SPC.
+
+
+49
+00:01:52,176 --> 00:01:54,576
+The SPC is then sent to the key
+
+
+50
+00:01:54,576 --> 00:01:57,996
+server, which responds back with
+
+
+51
+00:01:58,116 --> 00:02:00,496
+an Encrypted Key Response, also
+
+
+52
+00:02:00,496 --> 00:02:01,996
+known as CKC.
+
+
+53
+00:02:02,486 --> 00:02:05,046
+Finally, the app provided CKC
+
+
+54
+00:02:05,046 --> 00:02:07,426
+back to AVFoundation so it could
+
+
+55
+00:02:07,826 --> 00:02:09,726
+start decryption and playback.
+
+
+56
+00:02:11,286 --> 00:02:13,886
+Until recently, apps used the
+
+
+57
+00:02:13,886 --> 00:02:16,136
+generic AVFoundation API called
+
+
+58
+00:02:16,136 --> 00:02:18,036
+AVAssetResourceLoader to deliver
+
+
+59
+00:02:18,036 --> 00:02:19,166
+content decryption keys.
+
+
+60
+00:02:20,676 --> 00:02:23,126
+But last year we introduced the
+
+
+61
+00:02:23,126 --> 00:02:25,336
+new AVFoundation Class called
+
+
+62
+00:02:25,336 --> 00:02:27,036
+AVContentKeySession that was
+
+
+63
+00:02:27,036 --> 00:02:28,436
+designed specifically around
+
+
+64
+00:02:28,436 --> 00:02:29,586
+content decryption keys.
+
+
+65
+00:02:31,776 --> 00:02:33,836
+We had two goals in mind for
+
+
+66
+00:02:33,836 --> 00:02:35,036
+AVContentKeySession.
+
+
+67
+00:02:35,826 --> 00:02:38,076
+One, to simplify key loading
+
+
+68
+00:02:38,076 --> 00:02:40,356
+process and provide applications
+
+
+69
+00:02:40,356 --> 00:02:42,086
+better control over the life
+
+
+70
+00:02:42,086 --> 00:02:43,226
+cycle of content decryption
+
+
+71
+00:02:43,226 --> 00:02:43,686
+keys.
+
+
+72
+00:02:43,936 --> 00:02:47,406
+And two, serve as a home for new
+
+
+73
+00:02:47,406 --> 00:02:48,866
+content protection features.
+
+
+74
+00:02:51,076 --> 00:02:53,006
+AVContentKeySession adoption has
+
+
+75
+00:02:53,006 --> 00:02:54,196
+been great, so far.
+
+
+76
+00:02:54,556 --> 00:02:56,266
+And already, a majority of
+
+
+77
+00:02:56,266 --> 00:02:57,546
+FairPlay Streaming keys
+
+
+78
+00:02:58,016 --> 00:03:00,336
+delivered on our platforms come
+
+
+79
+00:03:00,336 --> 00:03:01,676
+through AVContentKeySession.
+
+
+80
+00:03:03,156 --> 00:03:05,286
+The API has helped developers
+
+
+81
+00:03:05,286 --> 00:03:06,856
+optimize key delivery in their
+
+
+82
+00:03:06,856 --> 00:03:07,726
+applications.
+
+
+83
+00:03:08,876 --> 00:03:10,436
+I will present some ways you
+
+
+84
+00:03:10,436 --> 00:03:11,876
+could get more out of the API.
+
+
+85
+00:03:11,876 --> 00:03:14,206
+But before that, let's see what
+
+
+86
+00:03:14,206 --> 00:03:15,256
+makes AVContentKeySession
+
+
+87
+00:03:15,256 --> 00:03:15,816
+different.
+
+
+88
+00:03:17,456 --> 00:03:19,656
+With AVAssetResourceLoader
+
+
+89
+00:03:19,656 --> 00:03:22,266
+applications could load keys
+
+
+90
+00:03:22,266 --> 00:03:24,426
+only when AVFoundation requires
+
+
+91
+00:03:24,426 --> 00:03:26,766
+one and sends an on-demand key
+
+
+92
+00:03:26,766 --> 00:03:27,626
+loading request.
+
+
+93
+00:03:28,956 --> 00:03:30,786
+This, typically, happens when
+
+
+94
+00:03:30,786 --> 00:03:31,816
+AVFoundation downloads
+
+
+95
+00:03:31,816 --> 00:03:33,506
+playlists, parses them, and then
+
+
+96
+00:03:33,506 --> 00:03:35,346
+finds out that the content is
+
+
+97
+00:03:35,986 --> 00:03:36,736
+encrypted.
+
+
+98
+00:03:36,736 --> 00:03:38,206
+Further, AVFoundation could send
+
+
+99
+00:03:38,206 --> 00:03:39,886
+these key loading requests at
+
+
+100
+00:03:39,886 --> 00:03:41,306
+any point during playback.
+
+
+101
+00:03:41,926 --> 00:03:44,106
+For example, AVFoundation sends
+
+
+102
+00:03:44,366 --> 00:03:45,996
+new key loading requests if it's
+
+
+103
+00:03:46,086 --> 00:03:49,466
+switched to a radian that uses a
+
+
+104
+00:03:49,466 --> 00:03:50,616
+different key in the middle of
+
+
+105
+00:03:50,616 --> 00:03:51,306
+the playback.
+
+
+106
+00:03:52,476 --> 00:03:53,596
+AVContentKeySession,
+
+
+107
+00:03:53,596 --> 00:03:55,056
+essentially, changes that model.
+
+
+108
+00:03:56,246 --> 00:03:58,086
+It decouples key loading from
+
+
+109
+00:03:58,086 --> 00:04:00,026
+media loading or playback and
+
+
+110
+00:04:00,026 --> 00:04:02,066
+gives applications more control
+
+
+111
+00:04:02,146 --> 00:04:03,816
+over the timing of key loading.
+
+
+112
+00:04:04,996 --> 00:04:06,756
+AVContentKeySession allows
+
+
+113
+00:04:06,756 --> 00:04:08,776
+applications to initiate key
+
+
+114
+00:04:08,776 --> 00:04:10,516
+loading on their own at any
+
+
+115
+00:04:10,516 --> 00:04:11,246
+point in time.
+
+
+116
+00:04:12,246 --> 00:04:13,986
+This opens up new use cases,
+
+
+117
+00:04:14,546 --> 00:04:16,136
+allows applications to optimize
+
+
+118
+00:04:16,136 --> 00:04:17,966
+key delivery, and improve
+
+
+119
+00:04:17,966 --> 00:04:19,276
+different aspects of playback
+
+
+120
+00:04:19,276 --> 00:04:19,956
+experience.
+
+
+121
+00:04:22,416 --> 00:04:24,646
+Playback startup is one such
+
+
+122
+00:04:24,646 --> 00:04:26,066
+thing AVContentKeySession could
+
+
+123
+00:04:26,066 --> 00:04:26,906
+help improve.
+
+
+124
+00:04:28,706 --> 00:04:30,076
+Instead of waiting for
+
+
+125
+00:04:30,076 --> 00:04:32,426
+AVFoundation to send on demand
+
+
+126
+00:04:32,426 --> 00:04:33,526
+key loading requests.
+
+
+127
+00:04:33,526 --> 00:04:36,096
+After requesting playback, you
+
+
+128
+00:04:36,096 --> 00:04:38,816
+could use AVContentKeySession to
+
+
+129
+00:04:38,816 --> 00:04:41,256
+proactively load keys that you
+
+
+130
+00:04:41,256 --> 00:04:42,736
+predict might be required in the
+
+
+131
+00:04:42,736 --> 00:04:44,596
+near future based on user
+
+
+132
+00:04:44,596 --> 00:04:45,196
+actions.
+
+
+133
+00:04:46,736 --> 00:04:48,236
+You could do all this, even
+
+
+134
+00:04:48,236 --> 00:04:49,536
+before a user picks something to
+
+
+135
+00:04:49,536 --> 00:04:49,896
+play.
+
+
+136
+00:04:51,196 --> 00:04:52,976
+We call this key preloading or
+
+
+137
+00:04:52,976 --> 00:04:53,896
+prewarming.
+
+
+138
+00:04:55,416 --> 00:04:58,016
+Further, if you have assets that
+
+
+139
+00:04:58,016 --> 00:04:59,606
+use multiple keys across
+
+
+140
+00:04:59,606 --> 00:05:01,156
+different radians, you could
+
+
+141
+00:05:01,156 --> 00:05:03,256
+batch up all key requests before
+
+
+142
+00:05:03,356 --> 00:05:04,756
+even talking to your key server.
+
+
+143
+00:05:05,906 --> 00:05:08,036
+This reduces some load on the
+
+
+144
+00:05:08,036 --> 00:05:10,126
+key server, and also, eliminates
+
+
+145
+00:05:10,126 --> 00:05:11,556
+round trips for each keys.
+
+
+146
+00:05:14,636 --> 00:05:16,136
+You could initiate key loading
+
+
+147
+00:05:16,136 --> 00:05:17,166
+process by calling
+
+
+148
+00:05:17,166 --> 00:05:18,786
+processContentKeyRequest method
+
+
+149
+00:05:18,996 --> 00:05:20,796
+on an AVContentKeySession
+
+
+150
+00:05:20,796 --> 00:05:21,356
+instance.
+
+
+151
+00:05:22,716 --> 00:05:24,126
+Once you call this method
+
+
+152
+00:05:24,306 --> 00:05:26,566
+AVContentKeySession will send
+
+
+153
+00:05:26,566 --> 00:05:28,056
+you an AVContentKeyRequest
+
+
+154
+00:05:28,056 --> 00:05:29,936
+object by invoking the delegate
+
+
+155
+00:05:29,936 --> 00:05:30,436
+callback.
+
+
+156
+00:05:31,436 --> 00:05:33,676
+AVContentKeySession allows you
+
+
+157
+00:05:33,676 --> 00:05:35,166
+to perform FairPlay Streaming
+
+
+158
+00:05:35,166 --> 00:05:37,676
+specific operations like request
+
+
+159
+00:05:37,676 --> 00:05:39,736
+encrypted key requests and
+
+
+160
+00:05:39,736 --> 00:05:41,306
+respond with encrypted key
+
+
+161
+00:05:41,306 --> 00:05:41,886
+response.
+
+
+162
+00:05:44,566 --> 00:05:46,706
+Okay. So, now let's say you have
+
+
+163
+00:05:46,706 --> 00:05:47,826
+successfully preloaded a
+
+
+164
+00:05:47,826 --> 00:05:48,626
+particular key.
+
+
+165
+00:05:49,366 --> 00:05:51,006
+Is it possible that the key is
+
+
+166
+00:05:51,006 --> 00:05:52,316
+requested again after the
+
+
+167
+00:05:52,316 --> 00:05:53,256
+playback starts?
+
+
+168
+00:05:54,146 --> 00:05:55,436
+Yes, that's possible.
+
+
+169
+00:05:56,326 --> 00:05:58,386
+The app could receive an
+
+
+170
+00:05:58,386 --> 00:06:00,656
+on-demand key loading request if
+
+
+171
+00:06:00,656 --> 00:06:01,966
+the playback route changes, for
+
+
+172
+00:06:01,966 --> 00:06:02,526
+instance.
+
+
+173
+00:06:03,736 --> 00:06:05,836
+Keep in mind that the user could
+
+
+174
+00:06:05,836 --> 00:06:07,596
+decide to AirPlay the content to
+
+
+175
+00:06:07,596 --> 00:06:10,356
+an Apple TV or plug in a
+
+
+176
+00:06:10,356 --> 00:06:11,856
+Lightning to Digital AV adapter.
+
+
+177
+00:06:12,326 --> 00:06:14,546
+And in these cases, we need new
+
+
+178
+00:06:14,836 --> 00:06:16,016
+keys for decryption.
+
+
+179
+00:06:17,856 --> 00:06:20,116
+So, the app should always be
+
+
+180
+00:06:20,116 --> 00:06:22,776
+prepared to answer on-demand key
+
+
+181
+00:06:22,776 --> 00:06:24,656
+loading requests, even when it
+
+
+182
+00:06:24,656 --> 00:06:25,606
+preloads keys.
+
+
+183
+00:06:28,636 --> 00:06:30,226
+Here's another frequently asked
+
+
+184
+00:06:30,226 --> 00:06:31,386
+question around this topic.
+
+
+185
+00:06:32,086 --> 00:06:33,776
+How could the app preload all
+
+
+186
+00:06:33,776 --> 00:06:36,206
+keys that might be required
+
+
+187
+00:06:36,206 --> 00:06:37,026
+during playback?
+
+
+188
+00:06:38,336 --> 00:06:40,366
+Well, in order to preload a key,
+
+
+189
+00:06:40,686 --> 00:06:42,046
+you need the corresponding key
+
+
+190
+00:06:42,046 --> 00:06:42,746
+identifier.
+
+
+191
+00:06:43,286 --> 00:06:45,266
+The one that's specified in
+
+
+192
+00:06:45,266 --> 00:06:46,766
+EXT-X-KEY tag in the HLS
+
+
+193
+00:06:46,766 --> 00:06:47,676
+playlist.
+
+
+194
+00:06:49,236 --> 00:06:51,436
+We recommend that you obtain all
+
+
+195
+00:06:51,436 --> 00:06:54,286
+key identifiers and asset
+
+
+196
+00:06:54,576 --> 00:06:55,806
+[inaudible] from your server in
+
+
+197
+00:06:55,806 --> 00:06:56,846
+an out-of-band fashion.
+
+
+198
+00:06:58,196 --> 00:07:00,626
+Another option is to include all
+
+
+199
+00:07:00,626 --> 00:07:02,566
+key identifiers in the master
+
+
+200
+00:07:02,566 --> 00:07:05,106
+playlist as session keys while
+
+
+201
+00:07:05,106 --> 00:07:06,996
+authoring the content and use
+
+
+202
+00:07:06,996 --> 00:07:08,496
+preloads eligible content keys
+
+
+203
+00:07:08,496 --> 00:07:09,746
+property on
+
+
+204
+00:07:09,746 --> 00:07:10,676
+AVAssetResourceLoader.
+
+
+205
+00:07:12,126 --> 00:07:14,206
+At this point I would like to
+
+
+206
+00:07:14,206 --> 00:07:15,486
+point out that we have a
+
+
+207
+00:07:15,486 --> 00:07:17,446
+dedicated session about
+
+
+208
+00:07:17,446 --> 00:07:19,006
+optimizing HLS performance in
+
+
+209
+00:07:19,006 --> 00:07:20,506
+general, not just key delivery.
+
+
+210
+00:07:21,706 --> 00:07:24,816
+You should definitely check that
+
+
+211
+00:07:25,396 --> 00:07:25,606
+out.
+
+
+212
+00:07:26,526 --> 00:07:27,936
+Moving on from preloading,
+
+
+213
+00:07:28,156 --> 00:07:29,956
+AVContentKeySession could also
+
+
+214
+00:07:29,956 --> 00:07:31,916
+help you scale your live
+
+
+215
+00:07:31,916 --> 00:07:32,426
+offering.
+
+
+216
+00:07:33,176 --> 00:07:34,226
+Are you wondering how?
+
+
+217
+00:07:35,226 --> 00:07:36,796
+Well, you could use
+
+
+218
+00:07:36,796 --> 00:07:38,536
+AVContentKeySession to disperse
+
+
+219
+00:07:38,536 --> 00:07:40,386
+key loading requests from
+
+
+220
+00:07:40,386 --> 00:07:41,896
+clients that are streaming your
+
+
+221
+00:07:41,896 --> 00:07:42,686
+live content.
+
+
+222
+00:07:44,036 --> 00:07:46,346
+Typically, live streams rotate
+
+
+223
+00:07:46,806 --> 00:07:49,026
+keys periodically in order to
+
+
+224
+00:07:49,026 --> 00:07:50,516
+add an extra layer of protection
+
+
+225
+00:07:50,516 --> 00:07:51,456
+for the content.
+
+
+226
+00:07:51,886 --> 00:07:55,126
+It is easy to imagine that these
+
+
+227
+00:07:55,126 --> 00:07:56,676
+keys appear at the exact same
+
+
+228
+00:07:56,676 --> 00:07:58,616
+time when clients refresh live
+
+
+229
+00:07:58,616 --> 00:07:59,296
+playlists.
+
+
+230
+00:07:59,666 --> 00:08:02,026
+When that happens, millions of
+
+
+231
+00:08:02,056 --> 00:08:04,086
+clients request keys, all at
+
+
+232
+00:08:04,086 --> 00:08:06,306
+once, resulting in huge impulse
+
+
+233
+00:08:06,306 --> 00:08:07,446
+load on the key server.
+
+
+234
+00:08:08,816 --> 00:08:11,056
+When you disperse this key
+
+
+235
+00:08:11,056 --> 00:08:12,846
+request event across a small
+
+
+236
+00:08:12,846 --> 00:08:14,996
+time window before they appear
+
+
+237
+00:08:15,156 --> 00:08:16,936
+and before the EXT-X-KEY tag
+
+
+238
+00:08:16,936 --> 00:08:18,796
+appears in the playlist, you're,
+
+
+239
+00:08:18,796 --> 00:08:20,266
+basically, load balancing
+
+
+240
+00:08:20,266 --> 00:08:21,466
+requests reaching your key
+
+
+241
+00:08:21,466 --> 00:08:21,866
+server.
+
+
+242
+00:08:24,446 --> 00:08:25,966
+We covered this use case in
+
+
+243
+00:08:25,966 --> 00:08:28,096
+detail with sample code during
+
+
+244
+00:08:28,096 --> 00:08:30,336
+last year's session on HLS.
+
+
+245
+00:08:30,816 --> 00:08:32,086
+So, do check out the sessions
+
+
+246
+00:08:32,086 --> 00:08:33,256
+were recording on
+
+
+247
+00:08:33,256 --> 00:08:36,476
+developerapple.com or WWDC app.
+
+
+248
+00:08:38,535 --> 00:08:40,046
+Apart from allowing you to
+
+
+249
+00:08:40,046 --> 00:08:42,015
+manage and deliver content
+
+
+250
+00:08:42,015 --> 00:08:43,025
+decryption keys
+
+
+251
+00:08:43,326 --> 00:08:45,516
+AVContentKeySession also serves
+
+
+252
+00:08:45,516 --> 00:08:47,796
+as a home for new FairPlay
+
+
+253
+00:08:47,796 --> 00:08:48,966
+Streaming content protection
+
+
+254
+00:08:48,966 --> 00:08:49,626
+features.
+
+
+255
+00:08:50,676 --> 00:08:52,296
+We released one such feature
+
+
+256
+00:08:52,296 --> 00:08:52,896
+last year.
+
+
+257
+00:08:53,966 --> 00:08:55,646
+We call it Offline Rentals.
+
+
+258
+00:08:56,606 --> 00:08:58,466
+Offline Rentals is a FairPlay
+
+
+259
+00:08:58,466 --> 00:09:00,346
+Streaming feature that allows
+
+
+260
+00:09:00,346 --> 00:09:02,646
+you to specify two expiration
+
+
+261
+00:09:02,646 --> 00:09:04,566
+durations on persistent keys;
+
+
+262
+00:09:05,176 --> 00:09:07,126
+storage and playback duration.
+
+
+263
+00:09:08,956 --> 00:09:11,046
+Storage duration specifies for
+
+
+264
+00:09:11,046 --> 00:09:13,196
+how long you wish the key to be
+
+
+265
+00:09:13,196 --> 00:09:15,336
+valid while it is sitting in
+
+
+266
+00:09:15,336 --> 00:09:16,006
+your storage.
+
+
+267
+00:09:16,506 --> 00:09:18,446
+That is, before being used for
+
+
+268
+00:09:18,446 --> 00:09:19,016
+playback.
+
+
+269
+00:09:19,456 --> 00:09:22,686
+It is, typically, large, like 30
+
+
+270
+00:09:22,686 --> 00:09:23,076
+days.
+
+
+271
+00:09:24,436 --> 00:09:25,966
+Playback duration, on the other
+
+
+272
+00:09:25,966 --> 00:09:28,896
+hand, specifies how long you
+
+
+273
+00:09:28,896 --> 00:09:31,176
+with the key to be valid after
+
+
+274
+00:09:31,176 --> 00:09:32,346
+it was used for playback.
+
+
+275
+00:09:32,906 --> 00:09:34,216
+It is, typically, shorter than
+
+
+276
+00:09:34,216 --> 00:09:35,116
+storage duration.
+
+
+277
+00:09:35,496 --> 00:09:36,786
+For example, 24 hours.
+
+
+278
+00:09:38,696 --> 00:09:40,396
+This feature allows you to
+
+
+279
+00:09:40,396 --> 00:09:42,006
+specify such expiration
+
+
+280
+00:09:42,006 --> 00:09:43,826
+durations when you create
+
+
+281
+00:09:44,086 --> 00:09:45,946
+persistent keys and the platform
+
+
+282
+00:09:45,946 --> 00:09:47,406
+ensures that the two expiration
+
+
+283
+00:09:47,406 --> 00:09:49,556
+durations are enforced, even
+
+
+284
+00:09:49,556 --> 00:09:50,706
+when the device is offline.
+
+
+285
+00:09:51,936 --> 00:09:53,806
+So, you might be wondering how
+
+
+286
+00:09:53,806 --> 00:09:55,396
+and where can you specify these
+
+
+287
+00:09:55,396 --> 00:09:56,716
+two expiration durations.
+
+
+288
+00:09:58,136 --> 00:10:00,396
+FairPlay introduced a new TLLV
+
+
+289
+00:10:00,396 --> 00:10:02,526
+called Offline Key TLLV for this
+
+
+290
+00:10:02,526 --> 00:10:03,076
+purpose.
+
+
+291
+00:10:04,046 --> 00:10:06,176
+This has to be signaled in the
+
+
+292
+00:10:06,176 --> 00:10:07,386
+CKC that is used while
+
+
+293
+00:10:07,386 --> 00:10:08,936
+requesting persistent key.
+
+
+294
+00:10:11,966 --> 00:10:14,026
+In terms of code, you generate a
+
+
+295
+00:10:14,026 --> 00:10:16,216
+persistent key by calling this
+
+
+296
+00:10:16,216 --> 00:10:17,286
+method on
+
+
+297
+00:10:17,286 --> 00:10:18,776
+AVPersistableContentKeyRequest
+
+
+298
+00:10:18,776 --> 00:10:19,196
+Object.
+
+
+299
+00:10:20,376 --> 00:10:22,126
+This returns a persistent key
+
+
+300
+00:10:22,126 --> 00:10:24,246
+data blob that you should save
+
+
+301
+00:10:24,246 --> 00:10:26,666
+in your app storage and use it
+
+
+302
+00:10:26,836 --> 00:10:28,256
+to answer future key loading
+
+
+303
+00:10:28,256 --> 00:10:29,406
+requests.
+
+
+304
+00:10:30,606 --> 00:10:32,166
+Note that this key is valid
+
+
+305
+00:10:32,526 --> 00:10:33,776
+until the end of storage
+
+
+306
+00:10:33,776 --> 00:10:35,306
+duration, 30 days from our
+
+
+307
+00:10:35,306 --> 00:10:35,816
+example.
+
+
+308
+00:10:37,426 --> 00:10:39,456
+So, when you use this key to
+
+
+309
+00:10:39,456 --> 00:10:41,046
+start the playback for the first
+
+
+310
+00:10:41,046 --> 00:10:43,486
+time you might receive an
+
+
+311
+00:10:43,516 --> 00:10:46,316
+updated persistent key through a
+
+
+312
+00:10:46,316 --> 00:10:47,606
+new delegate callback.
+
+
+313
+00:10:49,476 --> 00:10:50,556
+When the delegate callback is
+
+
+314
+00:10:50,556 --> 00:10:52,446
+involved you should discard the
+
+
+315
+00:10:52,446 --> 00:10:54,696
+original persistent key and save
+
+
+316
+00:10:54,696 --> 00:10:56,206
+this updated persistent key in
+
+
+317
+00:10:56,206 --> 00:10:57,246
+your app storage.
+
+
+318
+00:10:58,926 --> 00:11:01,436
+You should use this to answer
+
+
+319
+00:11:01,436 --> 00:11:02,946
+future key loading requests.
+
+
+320
+00:11:03,386 --> 00:11:05,856
+Note that this updated
+
+
+321
+00:11:05,856 --> 00:11:07,966
+persistent key is valid until
+
+
+322
+00:11:07,966 --> 00:11:10,146
+the end of playback duration, 24
+
+
+323
+00:11:10,146 --> 00:11:11,116
+hours from our example.
+
+
+324
+00:11:13,536 --> 00:11:16,276
+So, with that, let's shift gears
+
+
+325
+00:11:16,276 --> 00:11:17,926
+and talk about error handling,
+
+
+326
+00:11:17,926 --> 00:11:18,246
+now.
+
+
+327
+00:11:19,696 --> 00:11:21,236
+Error handling is one of the
+
+
+328
+00:11:21,236 --> 00:11:23,386
+most important topics from the
+
+
+329
+00:11:23,386 --> 00:11:25,036
+perspective of improving
+
+
+330
+00:11:25,036 --> 00:11:26,256
+playback experience.
+
+
+331
+00:11:27,976 --> 00:11:29,556
+Successfully loading keys
+
+
+332
+00:11:29,596 --> 00:11:31,406
+involves a number of steps and
+
+
+333
+00:11:31,406 --> 00:11:32,996
+something is bound to fail at
+
+
+334
+00:11:32,996 --> 00:11:34,096
+some point or another.
+
+
+335
+00:11:35,116 --> 00:11:36,686
+So, when something fails the
+
+
+336
+00:11:36,686 --> 00:11:38,176
+first thing you should do is
+
+
+337
+00:11:38,176 --> 00:11:39,706
+report the failure back to
+
+
+338
+00:11:39,706 --> 00:11:41,226
+AVFoundation using
+
+
+339
+00:11:41,226 --> 00:11:42,596
+AVContentKeyRequest or
+
+
+340
+00:11:42,596 --> 00:11:44,216
+AVAssetResourceLoadingRequest.
+
+
+341
+00:11:45,546 --> 00:11:47,296
+Some errors are fatal and some
+
+
+342
+00:11:47,296 --> 00:11:47,766
+are not.
+
+
+343
+00:11:48,086 --> 00:11:49,436
+You should help platform make
+
+
+344
+00:11:49,436 --> 00:11:50,146
+that decision.
+
+
+345
+00:11:51,356 --> 00:11:52,976
+Another thing you should do is
+
+
+346
+00:11:52,976 --> 00:11:54,976
+monitor error logs and access
+
+
+347
+00:11:54,976 --> 00:11:56,666
+logs, investigate the root
+
+
+348
+00:11:56,666 --> 00:11:57,006
+cause.
+
+
+349
+00:11:57,006 --> 00:11:58,746
+And try to mitigate errors so
+
+
+350
+00:11:58,746 --> 00:12:00,446
+your users can get the best
+
+
+351
+00:12:00,446 --> 00:12:01,696
+experience they deserve on our
+
+
+352
+00:12:01,696 --> 00:12:02,436
+platforms.
+
+
+353
+00:12:04,516 --> 00:12:05,576
+If you haven't already, you
+
+
+354
+00:12:05,576 --> 00:12:07,376
+should also check out one of our
+
+
+355
+00:12:07,376 --> 00:12:08,836
+recorded sessions from last year
+
+
+356
+00:12:08,836 --> 00:12:10,306
+to learn more about error
+
+
+357
+00:12:10,306 --> 00:12:11,356
+handling, in general.
+
+
+358
+00:12:14,876 --> 00:12:16,486
+Over the years we've seen
+
+
+359
+00:12:16,486 --> 00:12:17,746
+developers fall into a few
+
+
+360
+00:12:17,746 --> 00:12:18,906
+pitfalls around FairPlay
+
+
+361
+00:12:18,906 --> 00:12:19,916
+Streaming key delivery.
+
+
+362
+00:12:20,916 --> 00:12:23,126
+We have seen apps that hold on
+
+
+363
+00:12:23,126 --> 00:12:24,706
+to key responses for too long.
+
+
+364
+00:12:24,706 --> 00:12:27,616
+When AVFoundation sends you a
+
+
+365
+00:12:27,616 --> 00:12:29,226
+key loading request you should
+
+
+366
+00:12:29,226 --> 00:12:31,186
+provide a response as soon as
+
+
+367
+00:12:31,186 --> 00:12:31,656
+possible.
+
+
+368
+00:12:32,676 --> 00:12:34,456
+Delays in key delivery could
+
+
+369
+00:12:34,456 --> 00:12:36,486
+result in playback timing out.
+
+
+370
+00:12:37,116 --> 00:12:38,696
+By the way, you should be able
+
+
+371
+00:12:38,696 --> 00:12:40,956
+to identify and debug timeouts
+
+
+372
+00:12:41,246 --> 00:12:43,206
+by surveying your playerItems
+
+
+373
+00:12:43,206 --> 00:12:44,046
+accessLogs.
+
+
+374
+00:12:46,416 --> 00:12:48,506
+Another pitfall is around HDCP
+
+
+375
+00:12:48,506 --> 00:12:49,256
+enforcement.
+
+
+376
+00:12:50,266 --> 00:12:51,876
+It is important to keep in mind
+
+
+377
+00:12:52,076 --> 00:12:54,146
+that HDCP requirement for your
+
+
+378
+00:12:54,206 --> 00:12:56,576
+assets is signaled inside
+
+
+379
+00:12:56,576 --> 00:12:58,756
+encrypted key response from your
+
+
+380
+00:12:58,756 --> 00:12:59,416
+key server.
+
+
+381
+00:13:01,376 --> 00:13:03,986
+If you wish to enforce different
+
+
+382
+00:13:03,986 --> 00:13:05,306
+HDCP levels for different
+
+
+383
+00:13:05,306 --> 00:13:06,876
+radians, you should specify
+
+
+384
+00:13:06,876 --> 00:13:08,256
+different key identifiers for
+
+
+385
+00:13:08,256 --> 00:13:09,106
+those radians.
+
+
+386
+00:13:09,426 --> 00:13:11,396
+And provide appropriate key
+
+
+387
+00:13:11,396 --> 00:13:12,836
+responses from your key server.
+
+
+388
+00:13:15,576 --> 00:13:17,576
+Lastly, you should be careful
+
+
+389
+00:13:17,576 --> 00:13:19,086
+while responding to key loading
+
+
+390
+00:13:19,086 --> 00:13:20,956
+requests with persistent keys
+
+
+391
+00:13:21,766 --> 00:13:24,036
+because persistent keys are tied
+
+
+392
+00:13:24,036 --> 00:13:24,966
+to the device they were
+
+
+393
+00:13:24,966 --> 00:13:25,836
+generated on.
+
+
+394
+00:13:26,516 --> 00:13:28,966
+For example, you should not use
+
+
+395
+00:13:29,186 --> 00:13:30,606
+a persistent key to respond to a
+
+
+396
+00:13:30,606 --> 00:13:32,546
+key loading request from an
+
+
+397
+00:13:32,546 --> 00:13:33,366
+AirPlay session.
+
+
+398
+00:13:34,866 --> 00:13:36,426
+Doing so will result in playback
+
+
+399
+00:13:36,426 --> 00:13:36,886
+failure.
+
+
+400
+00:13:38,756 --> 00:13:41,406
+We made some API changes in iOS
+
+
+401
+00:13:41,406 --> 00:13:44,126
+11.2 to help you avoid and catch
+
+
+402
+00:13:44,126 --> 00:13:45,956
+such issues sooner, rather than
+
+
+403
+00:13:45,956 --> 00:13:46,346
+later.
+
+
+404
+00:13:46,896 --> 00:13:48,316
+Let me walk you through some
+
+
+405
+00:13:48,316 --> 00:13:49,616
+code snippets to explain.
+
+
+406
+00:13:52,196 --> 00:13:53,076
+If you are using
+
+
+407
+00:13:53,076 --> 00:13:54,406
+AVContentKeySession to deliver
+
+
+408
+00:13:54,406 --> 00:13:56,926
+keys, now you won't even be able
+
+
+409
+00:13:56,926 --> 00:13:58,856
+to RequestPersistableContentKey
+
+
+410
+00:13:58,856 --> 00:14:00,636
+request object if the
+
+
+411
+00:14:00,636 --> 00:14:02,586
+AVContentKeyRequest cannot
+
+
+412
+00:14:02,586 --> 00:14:04,386
+accept the persistent key as a
+
+
+413
+00:14:04,386 --> 00:14:04,886
+response.
+
+
+414
+00:14:07,036 --> 00:14:08,126
+So, when requesting a
+
+
+415
+00:14:08,126 --> 00:14:10,226
+PersistableContentKeyRequest
+
+
+416
+00:14:10,306 --> 00:14:11,836
+field you should respond with an
+
+
+417
+00:14:11,836 --> 00:14:13,206
+online FairPlay Streaming key
+
+
+418
+00:14:13,206 --> 00:14:14,236
+from your key server.
+
+
+419
+00:14:16,886 --> 00:14:17,976
+If you are using
+
+
+420
+00:14:17,976 --> 00:14:19,956
+AVAssetResourceLoader, before
+
+
+421
+00:14:19,956 --> 00:14:21,326
+responding with a persistent key
+
+
+422
+00:14:21,326 --> 00:14:23,266
+data blob you should check if
+
+
+423
+00:14:23,266 --> 00:14:24,886
+persistent key is listed as one
+
+
+424
+00:14:24,886 --> 00:14:27,226
+of the accepted content types in
+
+
+425
+00:14:27,226 --> 00:14:28,276
+the newly introduced
+
+
+426
+00:14:28,586 --> 00:14:30,126
+allowedContentTypes property.
+
+
+427
+00:14:31,736 --> 00:14:33,226
+So, I hope this provided some
+
+
+428
+00:14:33,226 --> 00:14:35,346
+overview of AVContentKeySession
+
+
+429
+00:14:35,346 --> 00:14:36,836
+and clarified a few questions
+
+
+430
+00:14:36,836 --> 00:14:37,666
+you might have had.
+
+
+431
+00:14:38,176 --> 00:14:40,276
+To summarize, we covered what
+
+
+432
+00:14:40,276 --> 00:14:41,576
+makes AVContentKeySession
+
+
+433
+00:14:41,576 --> 00:14:42,216
+different.
+
+
+434
+00:14:42,676 --> 00:14:44,856
+We saw how this API could be
+
+
+435
+00:14:44,856 --> 00:14:46,986
+used to improve playback startup
+
+
+436
+00:14:47,286 --> 00:14:48,866
+and scale live streaming.
+
+
+437
+00:14:50,016 --> 00:14:51,166
+We spoke a little bit about
+
+
+438
+00:14:51,166 --> 00:14:52,966
+Offline Rentals, what it really
+
+
+439
+00:14:52,966 --> 00:14:54,826
+is, and how to do it the right
+
+
+440
+00:14:54,826 --> 00:14:55,126
+way.
+
+
+441
+00:14:56,236 --> 00:14:58,336
+We, finally, highlighted best
+
+
+442
+00:14:58,336 --> 00:15:00,116
+practices around handling errors
+
+
+443
+00:15:00,116 --> 00:15:01,226
+while delivering FairPlay
+
+
+444
+00:15:01,226 --> 00:15:03,376
+Streaming keys and common
+
+
+445
+00:15:03,376 --> 00:15:04,526
+pitfalls that you should be
+
+
+446
+00:15:04,526 --> 00:15:06,986
+aware of.
+
+
+447
+00:15:08,356 --> 00:15:09,636
+Thank you, for listening.
+
+
+448
+00:15:09,986 --> 00:15:10,686
+And please, visit
+
+
+449
+00:15:10,686 --> 00:15:12,496
+developer.apple.com for more
+
+
+450
+00:15:12,496 --> 00:15:13,836
+information about this session
+
+
+451
+00:15:13,896 --> 00:15:15,186
+and other related sessions.
+
+
+452
+00:15:15,626 --> 00:15:15,976
+Thanks.
+

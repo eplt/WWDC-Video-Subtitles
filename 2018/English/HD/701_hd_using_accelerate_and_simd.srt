@@ -1,0 +1,5434 @@
+1
+00:00:06,516 --> 00:00:15,500
+[ Music ]
+
+
+2
+00:00:22,346 --> 00:00:22,996
+>> Good morning.
+
+
+3
+00:00:23,426 --> 00:00:24,156
+How is everybody?
+
+
+4
+00:00:24,756 --> 00:00:24,846
+>> Good.
+
+
+5
+00:00:25,516 --> 00:00:28,886
+[ Applause ]
+
+
+6
+00:00:29,386 --> 00:00:30,816
+>> My name is Matthew Badin, and
+
+
+7
+00:00:30,816 --> 00:00:31,706
+I'm an engineer at Apple.
+
+
+8
+00:00:32,526 --> 00:00:33,646
+Welcome to the Using Accelerate
+
+
+9
+00:00:33,646 --> 00:00:34,376
+and simd session.
+
+
+10
+00:00:37,026 --> 00:00:38,096
+So my colleague Luke Chang and I
+
+
+11
+00:00:38,096 --> 00:00:39,046
+are pretty excited today.
+
+
+12
+00:00:39,046 --> 00:00:40,756
+We get to talk to you about all
+
+
+13
+00:00:40,756 --> 00:00:41,716
+the great APIs that are
+
+
+14
+00:00:41,716 --> 00:00:43,206
+available in Accelerate and its
+
+
+15
+00:00:43,206 --> 00:00:44,656
+associated frameworks, and we're
+
+
+16
+00:00:45,426 --> 00:00:46,386
+going to start by taking a
+
+
+17
+00:00:46,386 --> 00:00:47,716
+high-level overview of
+
+
+18
+00:00:47,716 --> 00:00:48,696
+Accelerate and some of the
+
+
+19
+00:00:48,696 --> 00:00:49,596
+high-performance libraries that
+
+
+20
+00:00:49,596 --> 00:00:51,216
+are contained inside it.
+
+
+21
+00:00:51,576 --> 00:00:52,516
+We're then going to take a deep
+
+
+22
+00:00:52,516 --> 00:00:54,196
+dive into a few of libraries,
+
+
+23
+00:00:54,756 --> 00:00:56,346
+and we're going to start by
+
+
+24
+00:00:56,346 --> 00:00:57,196
+taking a look at vDSP.
+
+
+25
+00:00:57,196 --> 00:00:59,766
+We have two examples for you.
+
+
+26
+00:01:00,996 --> 00:01:01,826
+The first one, we're going to
+
+
+27
+00:01:01,826 --> 00:01:03,036
+show you how to extract signal
+
+
+28
+00:01:03,036 --> 00:01:04,686
+from noise, and then we're going
+
+
+29
+00:01:04,686 --> 00:01:06,346
+to show you how you can remove
+
+
+30
+00:01:06,466 --> 00:01:07,666
+certain types of artifacts from
+
+
+31
+00:01:07,666 --> 00:01:07,996
+an image.
+
+
+32
+00:01:09,426 --> 00:01:10,696
+We're then going to take a look
+
+
+33
+00:01:10,696 --> 00:01:12,406
+at simd, and we're going to show
+
+
+34
+00:01:12,406 --> 00:01:13,656
+you how you can use quaternions
+
+
+35
+00:01:13,656 --> 00:01:14,986
+to represent rotations in three
+
+
+36
+00:01:14,986 --> 00:01:15,446
+dimensions.
+
+
+37
+00:01:16,056 --> 00:01:19,526
+I'm then going to pass off the
+
+
+38
+00:01:19,526 --> 00:01:20,646
+presentation to my colleague,
+
+
+39
+00:01:20,646 --> 00:01:21,926
+Luke Cheng, who's going to show
+
+
+40
+00:01:21,926 --> 00:01:22,726
+you some of the interesting
+
+
+41
+00:01:22,726 --> 00:01:23,646
+things that you can do with
+
+
+42
+00:01:23,646 --> 00:01:24,116
+vImage.
+
+
+43
+00:01:25,256 --> 00:01:27,116
+So with that, let's get started.
+
+
+44
+00:01:27,736 --> 00:01:30,226
+So you're probably asking
+
+
+45
+00:01:30,226 --> 00:01:31,266
+yourself exactly this.
+
+
+46
+00:01:31,656 --> 00:01:33,026
+What on Earth is Accelerate?
+
+
+47
+00:01:33,596 --> 00:01:37,276
+So the primary purpose of
+
+
+48
+00:01:37,276 --> 00:01:38,616
+Accelerate is to provide
+
+
+49
+00:01:38,906 --> 00:01:40,236
+thousands of low-level math
+
+
+50
+00:01:40,236 --> 00:01:42,146
+primitives, and we provide these
+
+
+51
+00:01:42,146 --> 00:01:43,606
+primitives across all of Apple's
+
+
+52
+00:01:43,606 --> 00:01:44,186
+platforms.
+
+
+53
+00:01:44,846 --> 00:01:46,376
+So this includes not only iOS
+
+
+54
+00:01:46,376 --> 00:01:48,436
+and macOS but watchOS and tvOS
+
+
+55
+00:01:48,436 --> 00:01:48,796
+as well.
+
+
+56
+00:01:51,536 --> 00:01:52,796
+Most of these primitives are
+
+
+57
+00:01:52,796 --> 00:01:53,546
+hand-tuned to the
+
+
+58
+00:01:53,546 --> 00:01:54,846
+microarchitecture of the
+
+
+59
+00:01:54,846 --> 00:01:55,316
+processor.
+
+
+60
+00:01:56,156 --> 00:01:57,596
+So this means we get excellent
+
+
+61
+00:01:57,596 --> 00:01:58,276
+performance.
+
+
+62
+00:01:58,766 --> 00:02:01,536
+And this performance translates
+
+
+63
+00:02:01,536 --> 00:02:02,956
+directly into energy savings.
+
+
+64
+00:02:03,756 --> 00:02:05,646
+So if you're an app developer
+
+
+65
+00:02:05,816 --> 00:02:06,696
+and you use the Accelerate
+
+
+66
+00:02:06,696 --> 00:02:08,276
+framework, not only will your
+
+
+67
+00:02:08,276 --> 00:02:09,876
+application run faster, but
+
+
+68
+00:02:09,876 --> 00:02:10,816
+you'll also use less battery
+
+
+69
+00:02:10,816 --> 00:02:11,146
+life.
+
+
+70
+00:02:11,846 --> 00:02:12,776
+This means your users are going
+
+
+71
+00:02:12,776 --> 00:02:13,676
+to have an overall better
+
+
+72
+00:02:13,676 --> 00:02:13,976
+experience.
+
+
+73
+00:02:18,446 --> 00:02:20,416
+Now, because we provide so many
+
+
+74
+00:02:20,416 --> 00:02:22,496
+primitives, we find it useful to
+
+
+75
+00:02:22,496 --> 00:02:24,186
+organize or group them into
+
+
+76
+00:02:24,186 --> 00:02:25,406
+domain-specific libraries.
+
+
+77
+00:02:26,706 --> 00:02:28,676
+So, for instance, we group all
+
+
+78
+00:02:28,676 --> 00:02:29,926
+the signal processing primitives
+
+
+79
+00:02:29,996 --> 00:02:31,026
+under vDSP.
+
+
+80
+00:02:32,156 --> 00:02:33,256
+So, for instance, this would be
+
+
+81
+00:02:33,256 --> 00:02:35,196
+your FFTs or your DFTs and your
+
+
+82
+00:02:35,196 --> 00:02:36,636
+DCTs, your fast Fourier
+
+
+83
+00:02:36,636 --> 00:02:37,956
+transforms, your discrete cosine
+
+
+84
+00:02:37,956 --> 00:02:38,516
+transforms.
+
+
+85
+00:02:40,186 --> 00:02:42,786
+VImage contains the image
+
+
+86
+00:02:42,786 --> 00:02:43,586
+processing primitives.
+
+
+87
+00:02:44,306 --> 00:02:45,506
+If you're doing color space
+
+
+88
+00:02:45,506 --> 00:02:46,976
+conversions, this is the library
+
+
+89
+00:02:48,296 --> 00:02:49,836
+for you.
+
+
+90
+00:02:49,836 --> 00:02:51,056
+VForce contains vector versions
+
+
+91
+00:02:51,056 --> 00:02:52,196
+of the transcendental functions.
+
+
+92
+00:02:52,466 --> 00:02:55,906
+So for instance sine and cosine.
+
+
+93
+00:02:56,616 --> 00:02:57,906
+We also have support for dense
+
+
+94
+00:02:57,906 --> 00:03:00,596
+linear algebra as well as sparse
+
+
+95
+00:03:00,596 --> 00:03:03,336
+linear algebra, and we have a
+
+
+96
+00:03:03,336 --> 00:03:05,176
+specialized library for neural
+
+
+97
+00:03:05,176 --> 00:03:06,626
+networks called BNNS.
+
+
+98
+00:03:06,626 --> 00:03:07,896
+It stands for Basic Neural
+
+
+99
+00:03:07,896 --> 00:03:08,726
+Network Subroutines.
+
+
+100
+00:03:09,766 --> 00:03:10,916
+Not strictly part of the
+
+
+101
+00:03:10,916 --> 00:03:12,596
+Accelerate framework but very
+
+
+102
+00:03:12,596 --> 00:03:13,716
+closely related, and we find
+
+
+103
+00:03:13,716 --> 00:03:14,796
+these libraries very useful,
+
+
+104
+00:03:15,126 --> 00:03:16,656
+include libraries like simd,
+
+
+105
+00:03:17,406 --> 00:03:18,336
+which is a vector programming
+
+
+106
+00:03:18,336 --> 00:03:20,636
+aid for the CPU, and
+
+
+107
+00:03:20,636 --> 00:03:21,956
+Compression, which contains
+
+
+108
+00:03:22,036 --> 00:03:23,386
+several different lossless data
+
+
+109
+00:03:23,386 --> 00:03:24,136
+compression algorithms.
+
+
+110
+00:03:24,136 --> 00:03:27,116
+So let's take a look at our
+
+
+111
+00:03:27,116 --> 00:03:27,766
+first library.
+
+
+112
+00:03:28,266 --> 00:03:30,646
+We're going to take a look at
+
+
+113
+00:03:31,366 --> 00:03:31,776
+vDSP.
+
+
+114
+00:03:31,916 --> 00:03:33,186
+VDSP is a state-of-the-art
+
+
+115
+00:03:33,186 --> 00:03:34,346
+signal processing library, and
+
+
+116
+00:03:34,516 --> 00:03:35,556
+it contains a wide range of
+
+
+117
+00:03:35,556 --> 00:03:36,606
+signal processing primitives.
+
+
+118
+00:03:37,706 --> 00:03:39,016
+These range from basic
+
+
+119
+00:03:39,016 --> 00:03:40,456
+arithmetic operations on arrays
+
+
+120
+00:03:40,766 --> 00:03:43,396
+such as add and subtract as well
+
+
+121
+00:03:43,396 --> 00:03:44,806
+as more complicated operations
+
+
+122
+00:03:44,996 --> 00:03:47,716
+like convolution and FFTs.
+
+
+123
+00:03:47,716 --> 00:03:50,306
+If you're a successful app
+
+
+124
+00:03:50,306 --> 00:03:51,846
+developer and maybe in the past
+
+
+125
+00:03:51,846 --> 00:03:54,196
+you have avoided FFTs, I want to
+
+
+126
+00:03:54,196 --> 00:03:55,156
+show you how we make that easy
+
+
+127
+00:03:55,156 --> 00:03:55,776
+with Accelerate.
+
+
+128
+00:03:56,286 --> 00:03:57,326
+With just a few lines of code,
+
+
+129
+00:03:57,486 --> 00:03:58,286
+you can make that work.
+
+
+130
+00:03:59,206 --> 00:03:59,946
+And I have an example.
+
+
+131
+00:03:59,946 --> 00:04:00,696
+I'm going to show you how to
+
+
+132
+00:04:00,726 --> 00:04:01,976
+extract signal from noise.
+
+
+133
+00:04:15,046 --> 00:04:15,936
+So what we have here is an audio
+
+
+134
+00:04:15,936 --> 00:04:16,315
+signal.
+
+
+135
+00:04:16,706 --> 00:04:18,005
+This is the base signal.
+
+
+136
+00:04:18,116 --> 00:04:19,346
+We haven't added any noise to it
+
+
+137
+00:04:19,346 --> 00:04:20,926
+yet, and you'll notice I have
+
+
+138
+00:04:20,926 --> 00:04:21,946
+two sliders at the bottom.
+
+
+139
+00:04:22,506 --> 00:04:24,196
+In the lower left I have a
+
+
+140
+00:04:24,196 --> 00:04:27,236
+slider that lets me add noise,
+
+
+141
+00:04:27,966 --> 00:04:30,316
+and you can see that.
+
+
+142
+00:04:30,506 --> 00:04:31,976
+And I also have a second slider
+
+
+143
+00:04:31,976 --> 00:04:33,196
+that let's me remove this noise
+
+
+144
+00:04:34,666 --> 00:04:35,366
+called Threshold.
+
+
+145
+00:04:37,316 --> 00:04:38,216
+You'll also notice I have a
+
+
+146
+00:04:38,216 --> 00:04:39,306
+toggle switch in the lower
+
+
+147
+00:04:39,306 --> 00:04:39,566
+right.
+
+
+148
+00:04:40,946 --> 00:04:42,596
+This lets me look at this under
+
+
+149
+00:04:42,596 --> 00:04:43,276
+a different domain.
+
+
+150
+00:04:43,436 --> 00:04:45,456
+So currently we're looking at
+
+
+151
+00:04:45,456 --> 00:04:46,696
+this signal under the time
+
+
+152
+00:04:46,696 --> 00:04:47,026
+domain.
+
+
+153
+00:04:47,026 --> 00:04:48,276
+We're going to do some analysis
+
+
+154
+00:04:49,226 --> 00:04:50,416
+and see this signal in the
+
+
+155
+00:04:50,416 --> 00:04:51,056
+frequency domain.
+
+
+156
+00:04:51,606 --> 00:04:54,396
+You can see all the spikes on
+
+
+157
+00:04:54,396 --> 00:04:54,836
+the left.
+
+
+158
+00:04:55,416 --> 00:04:56,296
+Those are the frequency
+
+
+159
+00:04:56,296 --> 00:04:59,806
+components of the signal.
+
+
+160
+00:04:59,986 --> 00:05:01,626
+You'll also notice the blue bar.
+
+
+161
+00:05:02,496 --> 00:05:04,396
+The blue bar is the threshold
+
+
+162
+00:05:04,396 --> 00:05:05,416
+slider, so you can see I can
+
+
+163
+00:05:05,416 --> 00:05:06,266
+move it.
+
+
+164
+00:05:07,596 --> 00:05:10,026
+So what I'm going to do now is
+
+
+165
+00:05:10,516 --> 00:05:11,386
+add some more noise to the
+
+
+166
+00:05:11,386 --> 00:05:11,746
+signal.
+
+
+167
+00:05:12,706 --> 00:05:13,656
+Actually, let's add quite a bit
+
+
+168
+00:05:13,656 --> 00:05:13,976
+of noise.
+
+
+169
+00:05:18,466 --> 00:05:19,526
+So you can see the signal that
+
+
+170
+00:05:19,526 --> 00:05:21,286
+I'm still interested in is
+
+
+171
+00:05:21,426 --> 00:05:22,896
+represented by the spikes on the
+
+
+172
+00:05:22,896 --> 00:05:24,896
+left or another way of looking
+
+
+173
+00:05:24,896 --> 00:05:26,036
+at it is the spikes with the
+
+
+174
+00:05:26,106 --> 00:05:28,326
+tallest height, and what we've
+
+
+175
+00:05:28,326 --> 00:05:29,366
+added, the type of noise we're
+
+
+176
+00:05:29,366 --> 00:05:30,406
+adding to this, is background
+
+
+177
+00:05:30,406 --> 00:05:30,726
+noise.
+
+
+178
+00:05:31,406 --> 00:05:32,176
+So it's kind of evenly
+
+
+179
+00:05:32,176 --> 00:05:34,026
+distributed spikes everywhere,
+
+
+180
+00:05:34,026 --> 00:05:36,746
+but they're low-level spikes.
+
+
+181
+00:05:37,126 --> 00:05:38,876
+So now I'm going to remove this
+
+
+182
+00:05:38,876 --> 00:05:40,276
+noise, and the way I'm going to
+
+
+183
+00:05:40,276 --> 00:05:41,196
+do this is I'm going to move
+
+
+184
+00:05:41,196 --> 00:05:42,436
+this threshold slightly higher.
+
+
+185
+00:05:44,146 --> 00:05:45,956
+As I do this, what's happening
+
+
+186
+00:05:45,956 --> 00:05:47,816
+is, behind the scenes, is we're
+
+
+187
+00:05:47,816 --> 00:05:50,246
+identifying any frequency
+
+
+188
+00:05:50,246 --> 00:05:51,146
+component less than this
+
+
+189
+00:05:51,146 --> 00:05:52,466
+threshold and removing it.
+
+
+190
+00:05:52,646 --> 00:05:54,166
+We're saying effectively if
+
+
+191
+00:05:54,166 --> 00:05:55,876
+there is any spike with a height
+
+
+192
+00:05:55,876 --> 00:05:57,056
+less than this blue bar, we're
+
+
+193
+00:05:57,416 --> 00:05:58,586
+going to pretend it's noise and
+
+
+194
+00:05:58,586 --> 00:05:59,726
+remove it.
+
+
+195
+00:06:00,996 --> 00:06:02,186
+So if I keep sliding this
+
+
+196
+00:06:02,186 --> 00:06:02,566
+higher,
+
+
+197
+00:06:05,976 --> 00:06:07,276
+eventually I've removed all the
+
+
+198
+00:06:07,276 --> 00:06:07,616
+noise.
+
+
+199
+00:06:07,946 --> 00:06:12,186
+And if I go back to the time
+
+
+200
+00:06:12,186 --> 00:06:12,866
+domain, you can see that I
+
+
+201
+00:06:12,866 --> 00:06:13,636
+removed the noise.
+
+
+202
+00:06:14,066 --> 00:06:14,916
+And in case you don't believe
+
+
+203
+00:06:14,946 --> 00:06:17,166
+me, we can remove the threshold,
+
+
+204
+00:06:17,976 --> 00:06:19,096
+and this is what this looks like
+
+
+205
+00:06:19,496 --> 00:06:21,096
+with all the noise still added.
+
+
+206
+00:06:21,666 --> 00:06:23,606
+So let me show you how we do
+
+
+207
+00:06:23,606 --> 00:06:23,856
+that.
+
+
+208
+00:06:30,046 --> 00:06:30,876
+At a high level what we're going
+
+
+209
+00:06:30,876 --> 00:06:32,146
+to do is first perform an
+
+
+210
+00:06:32,146 --> 00:06:33,256
+analysis on a signal.
+
+
+211
+00:06:33,656 --> 00:06:34,686
+That's what the switch let me
+
+
+212
+00:06:34,686 --> 00:06:34,846
+do.
+
+
+213
+00:06:36,246 --> 00:06:37,936
+We're then going to identify the
+
+
+214
+00:06:37,936 --> 00:06:38,956
+frequency components that
+
+
+215
+00:06:38,956 --> 00:06:40,426
+represent the noise and remove
+
+
+216
+00:06:40,426 --> 00:06:40,616
+them.
+
+
+217
+00:06:41,926 --> 00:06:43,016
+After we have done that, we're
+
+
+218
+00:06:43,016 --> 00:06:44,366
+going to reconstruct the audio
+
+
+219
+00:06:44,366 --> 00:06:44,686
+signal.
+
+
+220
+00:06:44,686 --> 00:06:45,966
+So let me show you some code.
+
+
+221
+00:06:50,176 --> 00:06:51,446
+What we're going to use here is
+
+
+222
+00:06:51,446 --> 00:06:53,296
+a discrete cosine transform or a
+
+
+223
+00:06:53,296 --> 00:06:53,786
+DCT.
+
+
+224
+00:06:55,496 --> 00:06:56,666
+You can see here the DCT
+
+
+225
+00:06:56,666 --> 00:06:57,476
+CreateSetup.
+
+
+226
+00:06:58,516 --> 00:07:01,046
+This context is going to
+
+
+227
+00:07:01,586 --> 00:07:02,576
+describe the type of work we're
+
+
+228
+00:07:02,576 --> 00:07:03,746
+going to do as well as give us
+
+
+229
+00:07:03,746 --> 00:07:04,896
+space to perform this work.
+
+
+230
+00:07:06,396 --> 00:07:08,276
+In this case, we're going to use
+
+
+231
+00:07:08,276 --> 00:07:09,986
+a type 2 DCT.
+
+
+232
+00:07:10,596 --> 00:07:11,476
+We're then going to pass this
+
+
+233
+00:07:11,476 --> 00:07:13,506
+context to an execute function.
+
+
+234
+00:07:16,016 --> 00:07:18,026
+This will actually perform the
+
+
+235
+00:07:18,026 --> 00:07:18,316
+work.
+
+
+236
+00:07:21,466 --> 00:07:22,756
+Once we've performed the
+
+
+237
+00:07:22,756 --> 00:07:23,996
+analysis, we want to remove the
+
+
+238
+00:07:23,996 --> 00:07:24,356
+noise.
+
+
+239
+00:07:24,746 --> 00:07:25,616
+This right here is where the
+
+
+240
+00:07:25,616 --> 00:07:26,296
+magic happens.
+
+
+241
+00:07:27,326 --> 00:07:28,496
+This routine is going to
+
+
+242
+00:07:28,496 --> 00:07:30,396
+identify any frequency component
+
+
+243
+00:07:30,396 --> 00:07:32,516
+less than that threshold and
+
+
+244
+00:07:32,586 --> 00:07:33,256
+make it zero.
+
+
+245
+00:07:33,616 --> 00:07:36,486
+It's going to zero it out.
+
+
+246
+00:07:36,756 --> 00:07:37,736
+After we've done that, we want
+
+
+247
+00:07:37,736 --> 00:07:38,916
+to reconstruct the audio signal.
+
+
+248
+00:07:43,406 --> 00:07:44,156
+Again, we're going to need to
+
+
+249
+00:07:44,156 --> 00:07:45,336
+use CreateSetup to create
+
+
+250
+00:07:45,336 --> 00:07:45,976
+context.
+
+
+251
+00:07:47,456 --> 00:07:49,996
+In this case, we're going to use
+
+
+252
+00:07:49,996 --> 00:07:52,736
+a type 3 DCT to reconstruct the
+
+
+253
+00:07:52,736 --> 00:07:52,976
+signal.
+
+
+254
+00:07:56,436 --> 00:07:58,926
+We're then going to pass this
+
+
+255
+00:07:58,926 --> 00:08:00,676
+context DCT execute, and this
+
+
+256
+00:08:00,676 --> 00:08:02,036
+will actually perform the work
+
+
+257
+00:08:02,036 --> 00:08:02,886
+of reconstructing the audio
+
+
+258
+00:08:02,886 --> 00:08:03,216
+signal.
+
+
+259
+00:08:05,316 --> 00:08:08,356
+So what we've shown you is an
+
+
+260
+00:08:08,356 --> 00:08:09,546
+example of how you can remove
+
+
+261
+00:08:09,546 --> 00:08:11,026
+certain types of noise from an
+
+
+262
+00:08:11,026 --> 00:08:11,966
+audio signal using vDSP.
+
+
+263
+00:08:11,966 --> 00:08:14,436
+I want to show you an example of
+
+
+264
+00:08:14,436 --> 00:08:15,396
+how we can remove certain types
+
+
+265
+00:08:15,396 --> 00:08:17,126
+of noise from an image also
+
+
+266
+00:08:17,126 --> 00:08:17,836
+using vDSP.
+
+
+267
+00:08:18,496 --> 00:08:22,496
+In this case, we're going to
+
+
+268
+00:08:22,566 --> 00:08:23,596
+restore an old newspaper
+
+
+269
+00:08:23,596 --> 00:08:23,966
+photograph.
+
+
+270
+00:08:32,086 --> 00:08:32,816
+So what we've done is we've
+
+
+271
+00:08:32,816 --> 00:08:35,916
+taken this image, and we've
+
+
+272
+00:08:36,275 --> 00:08:38,525
+applied a two-tone screen to it.
+
+
+273
+00:08:39,296 --> 00:08:40,796
+So this could represent an old
+
+
+274
+00:08:40,796 --> 00:08:41,716
+newspaper photograph.
+
+
+275
+00:08:41,916 --> 00:08:42,746
+And what we're going to try to
+
+
+276
+00:08:42,746 --> 00:08:45,236
+do is remove this screen.
+
+
+277
+00:08:45,236 --> 00:08:46,086
+We're going to try to remove the
+
+
+278
+00:08:46,086 --> 00:08:47,456
+artifacts that you see.
+
+
+279
+00:08:48,296 --> 00:08:49,636
+Currently, we're in off, so
+
+
+280
+00:08:49,636 --> 00:08:50,506
+we're not doing anything.
+
+
+281
+00:08:51,126 --> 00:08:52,476
+What we're going to do is
+
+
+282
+00:08:52,476 --> 00:08:53,586
+actually take a sample of this
+
+
+283
+00:08:53,586 --> 00:08:55,196
+screen, and we're going to
+
+
+284
+00:08:55,196 --> 00:08:56,796
+create a mask from that sample
+
+
+285
+00:08:56,796 --> 00:08:58,076
+and then apply that to the image
+
+
+286
+00:08:58,076 --> 00:08:58,796
+to try to remove it.
+
+
+287
+00:08:58,796 --> 00:09:00,576
+So let me show you the first
+
+
+288
+00:09:00,576 --> 00:09:00,956
+attempt.
+
+
+289
+00:09:05,066 --> 00:09:06,346
+So what we're doing is we are
+
+
+290
+00:09:06,346 --> 00:09:08,306
+identifying a frequency
+
+
+291
+00:09:08,306 --> 00:09:09,366
+component at a certain
+
+
+292
+00:09:09,366 --> 00:09:11,276
+threshold, and any frequency
+
+
+293
+00:09:11,276 --> 00:09:13,286
+component higher than that
+
+
+294
+00:09:13,286 --> 00:09:16,496
+threshold we're going to remove.
+
+
+295
+00:09:17,066 --> 00:09:17,866
+And you see, if we set the
+
+
+296
+00:09:17,866 --> 00:09:20,486
+threshold too low, not only do
+
+
+297
+00:09:20,486 --> 00:09:22,466
+we remove the artifacts, but we
+
+
+298
+00:09:22,466 --> 00:09:23,326
+also remove quite a bit of the
+
+
+299
+00:09:23,326 --> 00:09:23,896
+image as well.
+
+
+300
+00:09:27,716 --> 00:09:29,336
+If we set it too high, you can
+
+
+301
+00:09:29,756 --> 00:09:34,486
+see that we didn't do much of
+
+
+302
+00:09:37,756 --> 00:09:37,976
+anything.
+
+
+303
+00:09:38,986 --> 00:09:39,976
+Medium seems about right.
+
+
+304
+00:09:40,836 --> 00:09:42,386
+Medium seems too correctly
+
+
+305
+00:09:42,386 --> 00:09:45,136
+identify the artifacts in the
+
+
+306
+00:09:45,136 --> 00:09:47,316
+image without damaging too much
+
+
+307
+00:09:47,316 --> 00:09:47,726
+of the image.
+
+
+308
+00:09:48,366 --> 00:09:49,626
+So let me show you how we do
+
+
+309
+00:09:49,626 --> 00:09:49,876
+that.
+
+
+310
+00:09:55,316 --> 00:09:56,346
+At a high level what we're going
+
+
+311
+00:09:56,346 --> 00:09:57,986
+to do is we're going to perform
+
+
+312
+00:09:57,986 --> 00:09:59,626
+an FFT on the image and the
+
+
+313
+00:09:59,626 --> 00:09:59,976
+sample.
+
+
+314
+00:10:01,296 --> 00:10:02,276
+We're then going to create a
+
+
+315
+00:10:02,276 --> 00:10:04,516
+mask from that sample and apply
+
+
+316
+00:10:04,626 --> 00:10:06,956
+it to the image.
+
+
+317
+00:10:07,436 --> 00:10:08,336
+Once we've done that, we're
+
+
+318
+00:10:08,336 --> 00:10:09,576
+going to reconstruct the
+
+
+319
+00:10:09,576 --> 00:10:10,176
+original image.
+
+
+320
+00:10:10,516 --> 00:10:11,826
+So let me walk you through some
+
+
+321
+00:10:11,826 --> 00:10:11,976
+code.
+
+
+322
+00:10:14,736 --> 00:10:18,396
+We're going to do an FFT.
+
+
+323
+00:10:18,516 --> 00:10:19,306
+This means it needs to be a
+
+
+324
+00:10:19,306 --> 00:10:19,936
+power of 2.
+
+
+325
+00:10:20,306 --> 00:10:21,236
+That's why you see the log2
+
+
+326
+00:10:21,236 --> 00:10:21,496
+call.
+
+
+327
+00:10:21,496 --> 00:10:24,796
+The 1024 x 1024 is the size of
+
+
+328
+00:10:24,796 --> 00:10:25,226
+the image.
+
+
+329
+00:10:28,646 --> 00:10:30,106
+We're then going to pass it to
+
+
+330
+00:10:30,106 --> 00:10:30,846
+fft2d zrop.
+
+
+331
+00:10:31,226 --> 00:10:32,076
+This is quite a mouthful.
+
+
+332
+00:10:32,506 --> 00:10:33,976
+The important part here is the
+
+
+333
+00:10:33,976 --> 00:10:35,616
+op stands for out of place.
+
+
+334
+00:10:35,616 --> 00:10:36,746
+So we're going to have to create
+
+
+335
+00:10:36,746 --> 00:10:38,346
+some temporary space just for
+
+
+336
+00:10:38,346 --> 00:10:38,756
+the result.
+
+
+337
+00:10:39,256 --> 00:10:42,876
+We're going to store in this
+
+
+338
+00:10:42,876 --> 00:10:44,346
+complex structure, and
+
+
+339
+00:10:44,486 --> 00:10:45,226
+effectively this says we're
+
+
+340
+00:10:45,226 --> 00:10:46,176
+going to store the complex
+
+
+341
+00:10:46,176 --> 00:10:48,526
+number in two arrays with the
+
+
+342
+00:10:48,526 --> 00:10:49,926
+real component in one array and
+
+
+343
+00:10:49,956 --> 00:10:51,366
+the imaginary component in the
+
+
+344
+00:10:51,686 --> 00:10:51,866
+second.
+
+
+345
+00:10:52,856 --> 00:10:53,816
+We also need to specify a
+
+
+346
+00:10:53,816 --> 00:10:54,296
+direction.
+
+
+347
+00:10:54,746 --> 00:10:55,596
+In this case we're going to do a
+
+
+348
+00:10:55,596 --> 00:10:56,406
+forward FFT.
+
+
+349
+00:11:01,636 --> 00:11:04,736
+Now the artifact removal is a
+
+
+350
+00:11:04,736 --> 00:11:06,886
+little bit more advanced, so I'm
+
+
+351
+00:11:06,886 --> 00:11:07,646
+only going to go through this at
+
+
+352
+00:11:07,646 --> 00:11:08,736
+a very high level.
+
+
+353
+00:11:09,116 --> 00:11:10,056
+I recommend you download the
+
+
+354
+00:11:10,056 --> 00:11:11,126
+sample application that's
+
+
+355
+00:11:11,126 --> 00:11:13,066
+available online right now, and
+
+
+356
+00:11:13,066 --> 00:11:14,666
+each one of these routines is
+
+
+357
+00:11:14,946 --> 00:11:16,726
+also documented under vDSP, and
+
+
+358
+00:11:16,726 --> 00:11:17,536
+we have excellent online
+
+
+359
+00:11:17,536 --> 00:11:18,176
+documentation.
+
+
+360
+00:11:18,766 --> 00:11:21,726
+A high level what we're going to
+
+
+361
+00:11:21,726 --> 00:11:22,926
+do is we're going to identify
+
+
+362
+00:11:22,926 --> 00:11:24,346
+the magnitude of the frequency
+
+
+363
+00:11:24,346 --> 00:11:25,686
+components, in this case with
+
+
+364
+00:11:25,686 --> 00:11:26,166
+the sample.
+
+
+365
+00:11:27,116 --> 00:11:28,956
+We're then going to identify the
+
+
+366
+00:11:28,956 --> 00:11:30,046
+components we want to remove.
+
+
+367
+00:11:31,316 --> 00:11:33,806
+We're then going to create a
+
+
+368
+00:11:33,806 --> 00:11:35,916
+mask from that.
+
+
+369
+00:11:36,436 --> 00:11:37,936
+And once we've done that, we're
+
+
+370
+00:11:37,936 --> 00:11:39,136
+going to apply that mask to the
+
+
+371
+00:11:39,136 --> 00:11:39,506
+image.
+
+
+372
+00:11:40,856 --> 00:11:42,196
+Effectively what we're doing is
+
+
+373
+00:11:42,196 --> 00:11:44,066
+we're multiplying by 0 the
+
+
+374
+00:11:44,066 --> 00:11:45,446
+components we want to remove and
+
+
+375
+00:11:45,446 --> 00:11:46,796
+by 1 the components we want to
+
+
+376
+00:11:46,796 --> 00:11:46,976
+keep.
+
+
+377
+00:11:52,336 --> 00:11:53,756
+We're going to use zrop again to
+
+
+378
+00:11:53,756 --> 00:11:54,636
+reconstruct the image.
+
+
+379
+00:11:55,066 --> 00:11:56,306
+Because this is an FFT, we get
+
+
+380
+00:11:56,306 --> 00:11:57,376
+to reuse the context.
+
+
+381
+00:12:01,076 --> 00:12:03,876
+In this case, one key detail is
+
+
+382
+00:12:03,916 --> 00:12:05,266
+we're going to store the image
+
+
+383
+00:12:05,316 --> 00:12:06,896
+in two arrays because this is a
+
+
+384
+00:12:06,896 --> 00:12:07,646
+complex structure.
+
+
+385
+00:12:08,136 --> 00:12:09,366
+So the even pixels are going to
+
+
+386
+00:12:09,366 --> 00:12:10,496
+be in the real array, and the
+
+
+387
+00:12:10,496 --> 00:12:11,576
+odd pixels are going to be in
+
+
+388
+00:12:11,576 --> 00:12:12,086
+the imaginary.
+
+
+389
+00:12:12,656 --> 00:12:16,136
+And again we're going to specify
+
+
+390
+00:12:16,136 --> 00:12:16,596
+a direction.
+
+
+391
+00:12:16,596 --> 00:12:17,436
+In this case, we're going to use
+
+
+392
+00:12:17,436 --> 00:12:18,576
+an inverse FFT.
+
+
+393
+00:12:18,726 --> 00:12:21,066
+So now I want to shift gears for
+
+
+394
+00:12:21,066 --> 00:12:21,536
+a moment.
+
+
+395
+00:12:22,096 --> 00:12:23,536
+Previously we showed you two
+
+
+396
+00:12:23,536 --> 00:12:27,616
+examples, and we had two working
+
+
+397
+00:12:27,616 --> 00:12:29,616
+examples for vDSP, and then we
+
+
+398
+00:12:29,616 --> 00:12:30,876
+worked backwards, and we showed
+
+
+399
+00:12:30,876 --> 00:12:33,786
+you how we constructed these
+
+
+400
+00:12:34,116 --> 00:12:34,706
+examples.
+
+
+401
+00:12:34,706 --> 00:12:35,576
+We worked backwards and showed
+
+
+402
+00:12:35,576 --> 00:12:36,756
+you the moving pieces.
+
+
+403
+00:12:37,586 --> 00:12:39,086
+For this next library, what I
+
+
+404
+00:12:39,086 --> 00:12:40,286
+want to do is start at the basic
+
+
+405
+00:12:40,286 --> 00:12:40,816
+components.
+
+
+406
+00:12:41,256 --> 00:12:42,636
+I want to build up to a result.
+
+
+407
+00:12:42,636 --> 00:12:44,066
+So we're going to take a look at
+
+
+408
+00:12:44,066 --> 00:12:46,066
+simd, and we're going to start
+
+
+409
+00:12:46,066 --> 00:12:46,956
+at the basic low-level
+
+
+410
+00:12:46,956 --> 00:12:48,246
+primitives, and we're going to
+
+
+411
+00:12:48,246 --> 00:12:50,116
+build up to rotations.
+
+
+412
+00:12:50,116 --> 00:12:51,336
+In this case, rotations of 3D
+
+
+413
+00:12:51,336 --> 00:12:51,836
+objects.
+
+
+414
+00:12:52,896 --> 00:12:57,556
+At a high level, simd is an
+
+
+415
+00:12:57,556 --> 00:12:58,776
+abstraction for the vector
+
+
+416
+00:12:58,776 --> 00:12:59,476
+processing unit.
+
+
+417
+00:13:00,556 --> 00:13:02,306
+So what this lets you do is
+
+
+418
+00:13:02,716 --> 00:13:04,156
+declare vector and matrix
+
+
+419
+00:13:04,156 --> 00:13:06,256
+objects, and you get to perform
+
+
+420
+00:13:06,256 --> 00:13:08,046
+operations on these objects, and
+
+
+421
+00:13:08,046 --> 00:13:09,256
+this will map directly to the
+
+
+422
+00:13:09,256 --> 00:13:10,056
+vector hardware of the
+
+
+423
+00:13:10,056 --> 00:13:10,506
+processor.
+
+
+424
+00:13:11,626 --> 00:13:12,866
+So let me show you a coding
+
+
+425
+00:13:12,866 --> 00:13:13,296
+example.
+
+
+426
+00:13:13,296 --> 00:13:16,866
+So what we're going to do here
+
+
+427
+00:13:16,866 --> 00:13:17,886
+is we're going to take two
+
+
+428
+00:13:17,886 --> 00:13:18,716
+arrays, and we're going to
+
+
+429
+00:13:18,716 --> 00:13:19,896
+average the components.
+
+
+430
+00:13:19,896 --> 00:13:21,916
+So we're going to iteratively go
+
+
+431
+00:13:21,916 --> 00:13:23,146
+through each of the scaler
+
+
+432
+00:13:23,146 --> 00:13:24,526
+components, add them together,
+
+
+433
+00:13:24,526 --> 00:13:25,186
+and divide by 2.
+
+
+434
+00:13:25,366 --> 00:13:28,636
+This is going to be really slow.
+
+
+435
+00:13:30,816 --> 00:13:32,486
+Instead, you can declare these
+
+
+436
+00:13:32,486 --> 00:13:34,366
+arrays as simd float4 vector
+
+
+437
+00:13:34,366 --> 00:13:34,796
+types.
+
+
+438
+00:13:36,116 --> 00:13:38,606
+So then we can perform basic
+
+
+439
+00:13:38,606 --> 00:13:40,906
+arithmetic operations on these
+
+
+440
+00:13:40,906 --> 00:13:41,436
+objects.
+
+
+441
+00:13:42,086 --> 00:13:44,516
+So not only can you express the
+
+
+442
+00:13:44,516 --> 00:13:45,996
+computation more naturally, but
+
+
+443
+00:13:45,996 --> 00:13:47,916
+this will also run about as fast
+
+
+444
+00:13:47,916 --> 00:13:48,356
+as it can.
+
+
+445
+00:13:49,036 --> 00:13:51,056
+And this will work across all of
+
+
+446
+00:13:51,056 --> 00:13:51,826
+Apple's platforms.
+
+
+447
+00:13:56,066 --> 00:13:57,276
+Simd has a tremendous amount of
+
+
+448
+00:13:57,276 --> 00:13:57,846
+functionality.
+
+
+449
+00:13:58,906 --> 00:14:00,686
+In addition to vector and matrix
+
+
+450
+00:14:00,686 --> 00:14:03,696
+objects and allowing you to
+
+
+451
+00:14:03,696 --> 00:14:06,016
+perform arithmetic operations on
+
+
+452
+00:14:06,016 --> 00:14:06,636
+these objects.
+
+
+453
+00:14:07,236 --> 00:14:09,896
+It has extensions.
+
+
+454
+00:14:09,896 --> 00:14:11,886
+So for instance, dot products
+
+
+455
+00:14:12,766 --> 00:14:13,826
+and clamp.
+
+
+456
+00:14:14,286 --> 00:14:15,176
+It also has support for the
+
+
+457
+00:14:15,176 --> 00:14:16,346
+transcendental functions, so for
+
+
+458
+00:14:16,346 --> 00:14:20,096
+instance sine and cosine as well
+
+
+459
+00:14:20,096 --> 00:14:20,816
+as quaternions.
+
+
+460
+00:14:21,536 --> 00:14:23,116
+Quaternions are very useful for
+
+
+461
+00:14:23,116 --> 00:14:24,416
+representing rotations in three
+
+
+462
+00:14:24,416 --> 00:14:25,996
+dimensions, and I actually want
+
+
+463
+00:14:25,996 --> 00:14:27,076
+to talk a little bit more about
+
+
+464
+00:14:27,116 --> 00:14:27,346
+those.
+
+
+465
+00:14:27,346 --> 00:14:30,836
+So I'm going to walk you through
+
+
+466
+00:14:30,946 --> 00:14:31,856
+a coding example.
+
+
+467
+00:14:32,376 --> 00:14:34,666
+There's quite a bit to unpack
+
+
+468
+00:14:34,666 --> 00:14:34,836
+here.
+
+
+469
+00:14:35,416 --> 00:14:36,566
+So we're going to start on the
+
+
+470
+00:14:36,566 --> 00:14:36,826
+right.
+
+
+471
+00:14:37,596 --> 00:14:38,416
+We have a unit sphere.
+
+
+472
+00:14:38,486 --> 00:14:39,696
+That's what this gray sphere is.
+
+
+473
+00:14:39,956 --> 00:14:41,526
+And you'll notice this red dot.
+
+
+474
+00:14:42,136 --> 00:14:44,206
+And that's actually the tip of
+
+
+475
+00:14:44,206 --> 00:14:44,686
+this vector.
+
+
+476
+00:14:45,976 --> 00:14:47,576
+We've declared a simd float3
+
+
+477
+00:14:47,576 --> 00:14:47,986
+vector.
+
+
+478
+00:14:48,166 --> 00:14:49,656
+We've set the x and y components
+
+
+479
+00:14:49,656 --> 00:14:51,576
+to 0 and the z component to 1.
+
+
+480
+00:14:52,176 --> 00:14:53,156
+So it's coming out at us.
+
+
+481
+00:14:53,656 --> 00:14:55,696
+And that red dot is represented
+
+
+482
+00:14:55,696 --> 00:14:56,946
+by the tip of that vector.
+
+
+483
+00:14:58,926 --> 00:14:59,796
+We're now going to perform a
+
+
+484
+00:14:59,796 --> 00:15:01,406
+rotation on this vector using a
+
+
+485
+00:15:01,406 --> 00:15:01,896
+quaternion.
+
+
+486
+00:15:03,136 --> 00:15:04,836
+Technically, we're rotating the
+
+
+487
+00:15:04,836 --> 00:15:06,176
+entire scene, but for purposes
+
+
+488
+00:15:06,176 --> 00:15:07,066
+of illustration, we're going to
+
+
+489
+00:15:07,066 --> 00:15:08,256
+say we're rotating this vector.
+
+
+490
+00:15:10,066 --> 00:15:11,116
+When using a quaternion for
+
+
+491
+00:15:11,116 --> 00:15:12,896
+rotations, you need to specify
+
+
+492
+00:15:12,896 --> 00:15:14,406
+an axis and angle of rotation.
+
+
+493
+00:15:14,666 --> 00:15:16,716
+Or to put it another way, what
+
+
+494
+00:15:17,006 --> 00:15:18,386
+are you rotating about and by
+
+
+495
+00:15:18,386 --> 00:15:18,956
+how much.
+
+
+496
+00:15:19,696 --> 00:15:21,126
+So we're going to rotate about
+
+
+497
+00:15:21,126 --> 00:15:22,506
+the x axis, and we're going to
+
+
+498
+00:15:22,506 --> 00:15:26,426
+rotate pi over 3 radians up.
+
+
+499
+00:15:27,706 --> 00:15:28,736
+You apply the rotation by
+
+
+500
+00:15:28,736 --> 00:15:30,046
+calling the simd act function.
+
+
+501
+00:15:31,476 --> 00:15:33,256
+This applies the action of the
+
+
+502
+00:15:33,256 --> 00:15:34,326
+quaternion on that vector and
+
+
+503
+00:15:34,326 --> 00:15:35,646
+returns a rotated vector.
+
+
+504
+00:15:36,106 --> 00:15:37,786
+So let's take a look at that
+
+
+505
+00:15:37,786 --> 00:15:37,946
+now.
+
+
+506
+00:15:47,256 --> 00:15:48,566
+So normally you're not
+
+
+507
+00:15:48,566 --> 00:15:49,846
+interested in rotating along a
+
+
+508
+00:15:49,846 --> 00:15:50,626
+single axis.
+
+
+509
+00:15:50,676 --> 00:15:51,856
+You usually want to rotate along
+
+
+510
+00:15:51,856 --> 00:15:54,906
+multiple axes, and if you're
+
+
+511
+00:15:54,906 --> 00:15:55,856
+already familiar with rotation
+
+
+512
+00:15:55,856 --> 00:15:56,996
+matrices, this is going to seem
+
+
+513
+00:15:56,996 --> 00:15:57,566
+very natural.
+
+
+514
+00:16:00,186 --> 00:16:01,376
+Like rotation matrices, you can
+
+
+515
+00:16:01,376 --> 00:16:02,426
+combine the rotations using
+
+
+516
+00:16:02,426 --> 00:16:03,826
+multiplication, and also like
+
+
+517
+00:16:03,826 --> 00:16:04,876
+rotation matrices, the
+
+
+518
+00:16:04,876 --> 00:16:05,826
+multiplication is not
+
+
+519
+00:16:05,866 --> 00:16:06,406
+commutative.
+
+
+520
+00:16:06,936 --> 00:16:08,406
+So this means if you change the
+
+
+521
+00:16:08,406 --> 00:16:09,366
+order of the operands, you will
+
+
+522
+00:16:09,476 --> 00:16:10,206
+change the order of the
+
+
+523
+00:16:10,206 --> 00:16:10,706
+rotations.
+
+
+524
+00:16:11,846 --> 00:16:14,406
+So effectively what we're going
+
+
+525
+00:16:14,406 --> 00:16:15,766
+to do here is rotate pi over 3
+
+
+526
+00:16:15,766 --> 00:16:17,996
+radians up, and then pi over 3
+
+
+527
+00:16:17,996 --> 00:16:18,826
+radians to the right.
+
+
+528
+00:16:19,016 --> 00:16:19,906
+And we're going to combine that
+
+
+529
+00:16:19,906 --> 00:16:20,916
+into a single rotation.
+
+
+530
+00:16:26,136 --> 00:16:27,766
+Some of the more interesting
+
+
+531
+00:16:27,766 --> 00:16:28,876
+things you can actually do with
+
+
+532
+00:16:28,876 --> 00:16:30,136
+quaternions and simd is
+
+
+533
+00:16:30,136 --> 00:16:31,756
+interpolation, and we support
+
+
+534
+00:16:31,756 --> 00:16:33,186
+two types of interpolation.
+
+
+535
+00:16:34,936 --> 00:16:35,876
+The first is Slerp.
+
+
+536
+00:16:36,516 --> 00:16:39,106
+It stands for Spherical Linear
+
+
+537
+00:16:39,106 --> 00:16:42,326
+Interpolation, and there are
+
+
+538
+00:16:42,326 --> 00:16:44,206
+actually two variants of it.
+
+
+539
+00:16:45,476 --> 00:16:48,926
+We have simd slerp, which will
+
+
+540
+00:16:48,926 --> 00:16:49,886
+find the shortest arc between
+
+
+541
+00:16:49,886 --> 00:16:51,266
+these two points, in this case
+
+
+542
+00:16:51,306 --> 00:16:52,296
+between the blue and the green,
+
+
+543
+00:16:53,276 --> 00:16:55,096
+and we have simd slerp longest,
+
+
+544
+00:16:55,096 --> 00:16:56,196
+which will find the longest arc.
+
+
+545
+00:16:56,196 --> 00:16:57,156
+So you'll actually see it go
+
+
+546
+00:16:57,156 --> 00:16:57,976
+behind the unit sphere.
+
+
+547
+00:17:07,195 --> 00:17:08,546
+The second variant is Spline.
+
+
+548
+00:17:09,826 --> 00:17:11,126
+Spline is really more useful if
+
+
+549
+00:17:11,126 --> 00:17:12,396
+you have more than two
+
+
+550
+00:17:12,396 --> 00:17:12,996
+rotations.
+
+
+551
+00:17:13,116 --> 00:17:14,066
+So, for instance, here we're
+
+
+552
+00:17:14,066 --> 00:17:16,205
+going to interpolate between an
+
+
+553
+00:17:16,205 --> 00:17:18,226
+array of rotations, and there's
+
+
+554
+00:17:18,226 --> 00:17:19,256
+quite a bit of boilerplate code
+
+
+555
+00:17:19,256 --> 00:17:20,526
+here, so I want you to focus
+
+
+556
+00:17:20,526 --> 00:17:21,476
+just on the Spline call.
+
+
+557
+00:17:23,695 --> 00:17:25,695
+Effectively what we're doing is
+
+
+558
+00:17:25,695 --> 00:17:27,175
+just iterating through all the
+
+
+559
+00:17:27,175 --> 00:17:28,465
+individual rotations and
+
+
+560
+00:17:28,465 --> 00:17:28,946
+applying Spline.
+
+
+561
+00:17:34,546 --> 00:17:35,516
+So the thing you have to specify
+
+
+562
+00:17:35,516 --> 00:17:37,426
+with Spline is not only the two
+
+
+563
+00:17:38,086 --> 00:17:39,136
+rotations that you wish to
+
+
+564
+00:17:39,136 --> 00:17:40,696
+interpolate between but also the
+
+
+565
+00:17:40,696 --> 00:17:42,176
+previous and the next as well.
+
+
+566
+00:17:42,296 --> 00:17:44,856
+And this is what this looks
+
+
+567
+00:17:44,856 --> 00:17:44,976
+like.
+
+
+568
+00:17:52,076 --> 00:17:53,056
+So if you're a game developer,
+
+
+569
+00:17:53,056 --> 00:17:54,146
+you're probably not interested
+
+
+570
+00:17:54,146 --> 00:17:55,476
+in rotating individual vectors.
+
+
+571
+00:17:55,476 --> 00:17:56,486
+You're probably interested in
+
+
+572
+00:17:56,486 --> 00:17:57,286
+rotating objects.
+
+
+573
+00:17:57,976 --> 00:17:58,766
+So we have that for you.
+
+
+574
+00:17:58,906 --> 00:17:59,936
+We have a cube.
+
+
+575
+00:18:00,396 --> 00:18:02,376
+It's represented by multiple
+
+
+576
+00:18:02,376 --> 00:18:03,676
+vectors, and it's going to go
+
+
+577
+00:18:03,676 --> 00:18:04,286
+through a series of eight
+
+
+578
+00:18:04,286 --> 00:18:04,886
+rotations.
+
+
+579
+00:18:05,486 --> 00:18:06,546
+On the left, we're going to
+
+
+580
+00:18:06,546 --> 00:18:07,766
+trace those rotations using
+
+
+581
+00:18:07,836 --> 00:18:09,166
+Slerp, and on the right we're
+
+
+582
+00:18:09,166 --> 00:18:09,996
+going to use Spline.
+
+
+583
+00:18:10,316 --> 00:18:11,406
+So let me show you what Slerp
+
+
+584
+00:18:11,406 --> 00:18:11,836
+looks like.
+
+
+585
+00:18:20,066 --> 00:18:20,676
+And you can see because it's a
+
+
+586
+00:18:20,676 --> 00:18:21,826
+linear interpolation, every
+
+
+587
+00:18:21,826 --> 00:18:23,306
+single time it changes direction
+
+
+588
+00:18:23,356 --> 00:18:24,616
+you get these sharp corners.
+
+
+589
+00:18:25,346 --> 00:18:26,576
+Whereas if we look at Spline --
+
+
+590
+00:18:35,156 --> 00:18:35,846
+Because it's aware of the
+
+
+591
+00:18:35,846 --> 00:18:37,446
+previous and next rotation as
+
+
+592
+00:18:37,446 --> 00:18:38,426
+well, you end up with these
+
+
+593
+00:18:38,426 --> 00:18:39,146
+rounded corners.
+
+
+594
+00:18:39,736 --> 00:18:40,506
+So let's see that again.
+
+
+595
+00:18:52,726 --> 00:18:53,466
+So now I went through all those
+
+
+596
+00:18:53,466 --> 00:18:55,846
+topics pretty quickly, so as a
+
+
+597
+00:18:55,846 --> 00:18:58,866
+quick recap, we started by
+
+
+598
+00:18:58,866 --> 00:19:00,566
+taking a look at vDSP, and we
+
+
+599
+00:19:00,566 --> 00:19:01,546
+showed you two examples.
+
+
+600
+00:19:01,746 --> 00:19:02,786
+The first was how to extract a
+
+
+601
+00:19:02,786 --> 00:19:04,776
+signal from noise, and the
+
+
+602
+00:19:04,776 --> 00:19:06,136
+second was how to remove certain
+
+
+603
+00:19:06,136 --> 00:19:07,276
+types of artifacts from an
+
+
+604
+00:19:07,276 --> 00:19:07,586
+image.
+
+
+605
+00:19:08,996 --> 00:19:10,606
+We then took a look at simd, and
+
+
+606
+00:19:10,606 --> 00:19:11,456
+I showed you how you can
+
+
+607
+00:19:11,456 --> 00:19:12,776
+represent rotations in three
+
+
+608
+00:19:12,776 --> 00:19:13,996
+dimensions using quaternions.
+
+
+609
+00:19:14,466 --> 00:19:16,196
+I'm now going to pass off the
+
+
+610
+00:19:16,196 --> 00:19:17,216
+presentation to my colleague,
+
+
+611
+00:19:17,216 --> 00:19:18,686
+Luke Chang, who's going to show
+
+
+612
+00:19:18,686 --> 00:19:19,376
+you some of the interesting
+
+
+613
+00:19:19,376 --> 00:19:20,376
+things you can do with vImage.
+
+
+614
+00:19:21,516 --> 00:19:26,246
+[ Applause ]
+
+
+615
+00:19:26,746 --> 00:19:27,356
+>> Thank you, Matthew.
+
+
+616
+00:19:30,206 --> 00:19:30,916
+Hello everyone.
+
+
+617
+00:19:31,276 --> 00:19:32,546
+My name is Luke Chang.
+
+
+618
+00:19:32,546 --> 00:19:33,786
+I'm an engineer in Vector and
+
+
+619
+00:19:33,786 --> 00:19:34,456
+Numerics group.
+
+
+620
+00:19:35,226 --> 00:19:36,576
+Today, I'm going to talk about
+
+
+621
+00:19:36,576 --> 00:19:39,176
+vImage, what vImage offers, and
+
+
+622
+00:19:39,176 --> 00:19:41,086
+how easy it is to use vImage in
+
+
+623
+00:19:41,086 --> 00:19:41,626
+your apps.
+
+
+624
+00:19:41,816 --> 00:19:43,796
+With just a few lines of code,
+
+
+625
+00:19:43,796 --> 00:19:45,836
+you can create engaging video
+
+
+626
+00:19:45,836 --> 00:19:46,906
+effects in your app.
+
+
+627
+00:19:47,446 --> 00:19:49,636
+Let's get right to it.
+
+
+628
+00:19:50,876 --> 00:19:52,856
+VImage is our image processing
+
+
+629
+00:19:52,856 --> 00:19:53,346
+library.
+
+
+630
+00:19:53,816 --> 00:19:55,886
+It has several components.
+
+
+631
+00:19:56,146 --> 00:19:58,386
+The first component is the
+
+
+632
+00:19:58,386 --> 00:19:59,216
+conversion function.
+
+
+633
+00:20:00,206 --> 00:20:01,746
+Conversion function help you
+
+
+634
+00:20:02,636 --> 00:20:04,536
+move image between different
+
+
+635
+00:20:04,536 --> 00:20:05,416
+image formats.
+
+
+636
+00:20:06,486 --> 00:20:08,746
+Different image formats have
+
+
+637
+00:20:08,746 --> 00:20:09,826
+different advantages.
+
+
+638
+00:20:10,176 --> 00:20:13,296
+For example, RGV format matches
+
+
+639
+00:20:13,296 --> 00:20:15,266
+the pixels on your display, so
+
+
+640
+00:20:15,266 --> 00:20:16,216
+it's best for the display.
+
+
+641
+00:20:17,166 --> 00:20:19,406
+On the other hand, we have YCbCr
+
+
+642
+00:20:19,406 --> 00:20:21,946
+image, which is similar to how
+
+
+643
+00:20:21,946 --> 00:20:23,396
+human perceive the image.
+
+
+644
+00:20:24,026 --> 00:20:25,876
+Human eyes recognize brightness,
+
+
+645
+00:20:26,286 --> 00:20:27,696
+which is the luminance channel.
+
+
+646
+00:20:28,526 --> 00:20:30,096
+Also, the color, which is the
+
+
+647
+00:20:30,096 --> 00:20:30,926
+chrominance channel.
+
+
+648
+00:20:32,156 --> 00:20:35,196
+Also, camera uses YCbCr format
+
+
+649
+00:20:35,196 --> 00:20:36,346
+to capture images.
+
+
+650
+00:20:37,066 --> 00:20:39,426
+So converging function helps you
+
+
+651
+00:20:39,426 --> 00:20:41,156
+easily move images between these
+
+
+652
+00:20:41,156 --> 00:20:41,636
+formats.
+
+
+653
+00:20:43,726 --> 00:20:45,586
+Next, we have geometry function.
+
+
+654
+00:20:46,956 --> 00:20:48,676
+Geometry function changes the
+
+
+655
+00:20:48,676 --> 00:20:50,966
+size or orientation of the
+
+
+656
+00:20:50,966 --> 00:20:51,466
+image.
+
+
+657
+00:20:52,176 --> 00:20:54,936
+We have vImage scale that can do
+
+
+658
+00:20:54,936 --> 00:20:56,756
+enlarge or shrink the image.
+
+
+659
+00:20:57,476 --> 00:20:59,466
+We use Lanczos algorithm, so
+
+
+660
+00:20:59,606 --> 00:21:01,416
+we'll have high-quality output
+
+
+661
+00:21:01,606 --> 00:21:02,666
+after the operation.
+
+
+662
+00:21:03,366 --> 00:21:06,186
+We also have vImage rotate that
+
+
+663
+00:21:06,186 --> 00:21:07,826
+can rotate image clockwise or
+
+
+664
+00:21:07,826 --> 00:21:08,906
+counterclockwise.
+
+
+665
+00:21:09,346 --> 00:21:13,016
+Next, convolution function.
+
+
+666
+00:21:13,486 --> 00:21:15,616
+The most notable effect of
+
+
+667
+00:21:15,616 --> 00:21:17,576
+convolution function is the blur
+
+
+668
+00:21:17,576 --> 00:21:17,846
+effect.
+
+
+669
+00:21:18,836 --> 00:21:20,296
+You see blur effect all the
+
+
+670
+00:21:20,296 --> 00:21:23,116
+time, in UI, in photography.
+
+
+671
+00:21:23,326 --> 00:21:25,086
+If you want to phase something
+
+
+672
+00:21:25,086 --> 00:21:26,656
+into the background, you can
+
+
+673
+00:21:26,656 --> 00:21:28,576
+apply the blur function, blur
+
+
+674
+00:21:29,986 --> 00:21:30,156
+effect.
+
+
+675
+00:21:31,126 --> 00:21:32,786
+Next, transform function.
+
+
+676
+00:21:33,796 --> 00:21:35,616
+Transform function is basically
+
+
+677
+00:21:35,616 --> 00:21:36,786
+a matrix multiply.
+
+
+678
+00:21:37,446 --> 00:21:39,346
+It lets you operate on the data
+
+
+679
+00:21:39,346 --> 00:21:40,586
+channel of each pixel.
+
+
+680
+00:21:41,256 --> 00:21:42,576
+Let's say you want to increase
+
+
+681
+00:21:42,576 --> 00:21:44,736
+red or increase green, you can
+
+
+682
+00:21:44,736 --> 00:21:46,016
+do that with transform
+
+
+683
+00:21:46,016 --> 00:21:46,566
+functions.
+
+
+684
+00:21:48,196 --> 00:21:49,426
+Morphology.
+
+
+685
+00:21:50,456 --> 00:21:52,926
+Morphology changes the size or
+
+
+686
+00:21:52,926 --> 00:21:54,866
+shape of the objects in the
+
+
+687
+00:21:54,866 --> 00:21:56,926
+image, not the image itself.
+
+
+688
+00:21:57,916 --> 00:22:00,646
+We have vImage erode, vImage
+
+
+689
+00:22:00,646 --> 00:22:02,566
+dilate to make the object
+
+
+690
+00:22:02,566 --> 00:22:04,016
+smaller and bigger.
+
+
+691
+00:22:04,856 --> 00:22:06,996
+If you're feeling adventurous,
+
+
+692
+00:22:06,996 --> 00:22:08,506
+you can actually provide a
+
+
+693
+00:22:08,506 --> 00:22:10,336
+custom shape of kernels to these
+
+
+694
+00:22:10,336 --> 00:22:13,126
+functions, and vImage erode and
+
+
+695
+00:22:13,126 --> 00:22:15,436
+dilate will make the object
+
+
+696
+00:22:15,436 --> 00:22:17,246
+smaller or bigger according to
+
+
+697
+00:22:17,246 --> 00:22:18,396
+the kernel you provided.
+
+
+698
+00:22:20,406 --> 00:22:21,986
+Those are the five things in
+
+
+699
+00:22:21,986 --> 00:22:22,576
+vImage.
+
+
+700
+00:22:22,786 --> 00:22:24,626
+Now, I want to show you a demo
+
+
+701
+00:22:24,626 --> 00:22:26,256
+app that we wrote based on
+
+
+702
+00:22:26,256 --> 00:22:28,096
+vImage and show you what kind of
+
+
+703
+00:22:28,096 --> 00:22:28,976
+effect you can get from vImage.
+
+
+704
+00:22:34,046 --> 00:22:35,566
+What I have here is a lab that
+
+
+705
+00:22:35,606 --> 00:22:37,496
+captures images using the back
+
+
+706
+00:22:37,496 --> 00:22:40,936
+camera and put the image onto
+
+
+707
+00:22:40,936 --> 00:22:41,456
+the screen.
+
+
+708
+00:22:42,466 --> 00:22:44,656
+And we're doing in real-time.
+
+
+709
+00:22:44,656 --> 00:22:45,956
+This is a live stream, so you
+
+
+710
+00:22:45,956 --> 00:22:47,666
+can see the drinking bird doing
+
+
+711
+00:22:47,666 --> 00:22:49,696
+its motion next to the roses.
+
+
+712
+00:22:50,656 --> 00:22:51,806
+All right, the first effect I
+
+
+713
+00:22:51,806 --> 00:22:53,206
+want to show you is the color
+
+
+714
+00:22:53,206 --> 00:22:54,256
+saturation effect.
+
+
+715
+00:22:54,856 --> 00:22:57,246
+You can see this effect in a lot
+
+
+716
+00:22:57,246 --> 00:22:59,406
+of photo editing software.
+
+
+717
+00:23:00,136 --> 00:23:01,676
+So I want to bring out the
+
+
+718
+00:23:01,676 --> 00:23:02,316
+color.
+
+
+719
+00:23:02,586 --> 00:23:04,826
+What I can do is move this
+
+
+720
+00:23:04,826 --> 00:23:09,576
+slider to the right to make the
+
+
+721
+00:23:09,576 --> 00:23:11,586
+red really red and green really
+
+
+722
+00:23:11,586 --> 00:23:11,866
+green.
+
+
+723
+00:23:13,646 --> 00:23:15,706
+And on the other side, I have
+
+
+724
+00:23:15,706 --> 00:23:16,666
+white roses.
+
+
+725
+00:23:17,366 --> 00:23:20,066
+I feel that the color of white
+
+
+726
+00:23:20,066 --> 00:23:21,346
+roses is not that interesting to
+
+
+727
+00:23:21,346 --> 00:23:21,636
+me.
+
+
+728
+00:23:21,636 --> 00:23:23,136
+I would like to direct the focus
+
+
+729
+00:23:23,136 --> 00:23:24,916
+of my audience to the
+
+
+730
+00:23:24,916 --> 00:23:27,426
+composition and the contrast of
+
+
+731
+00:23:27,426 --> 00:23:28,056
+this image.
+
+
+732
+00:23:28,996 --> 00:23:32,386
+I can slide to the left to
+
+
+733
+00:23:32,386 --> 00:23:36,376
+desaturate the image to the
+
+
+734
+00:23:36,376 --> 00:23:38,586
+point that this becomes a black
+
+
+735
+00:23:38,586 --> 00:23:39,406
+and white image.
+
+
+736
+00:23:39,906 --> 00:23:41,636
+So now color is no more
+
+
+737
+00:23:41,636 --> 00:23:43,596
+distraction in this image, and
+
+
+738
+00:23:43,696 --> 00:23:45,126
+the viewer can focus on the
+
+
+739
+00:23:45,126 --> 00:23:46,826
+composition and contrast.
+
+
+740
+00:23:48,266 --> 00:23:50,976
+Okay. So, how do we do this?
+
+
+741
+00:23:56,046 --> 00:23:57,116
+There are several steps we need
+
+
+742
+00:23:57,116 --> 00:23:57,536
+to take.
+
+
+743
+00:23:57,876 --> 00:24:00,246
+First, of course, we have to get
+
+
+744
+00:24:00,306 --> 00:24:02,186
+the image from the camera, and
+
+
+745
+00:24:03,476 --> 00:24:05,836
+then we want to use vImage to
+
+
+746
+00:24:05,836 --> 00:24:08,746
+process, to apply the effect, so
+
+
+747
+00:24:08,746 --> 00:24:10,436
+we have to prepare the input and
+
+
+748
+00:24:10,436 --> 00:24:12,036
+output buffer for vImage.
+
+
+749
+00:24:13,456 --> 00:24:15,576
+Then we actually calling vImage
+
+
+750
+00:24:15,576 --> 00:24:16,756
+functions to apply these
+
+
+751
+00:24:16,756 --> 00:24:19,936
+effects, and we display the
+
+
+752
+00:24:19,936 --> 00:24:21,186
+output to the screen.
+
+
+753
+00:24:22,046 --> 00:24:25,286
+Let me jump ahead and talk about
+
+
+754
+00:24:25,286 --> 00:24:27,006
+how do we apply effects using
+
+
+755
+00:24:27,006 --> 00:24:27,956
+vImage functions.
+
+
+756
+00:24:29,076 --> 00:24:32,096
+The effect I show you is a color
+
+
+757
+00:24:32,096 --> 00:24:34,306
+saturation effect, and here is
+
+
+758
+00:24:34,306 --> 00:24:35,966
+the formula to do color
+
+
+759
+00:24:35,966 --> 00:24:36,616
+saturation.
+
+
+760
+00:24:37,426 --> 00:24:38,886
+Basically, we want to remove the
+
+
+761
+00:24:38,886 --> 00:24:41,886
+bias from the pixel, and using
+
+
+762
+00:24:41,886 --> 00:24:43,376
+multiplication to apply the
+
+
+763
+00:24:43,376 --> 00:24:46,746
+saturation effects, and then we
+
+
+764
+00:24:46,746 --> 00:24:48,326
+put the bias back to the pixel.
+
+
+765
+00:24:49,686 --> 00:24:51,786
+VImage has exactly the function
+
+
+766
+00:24:51,786 --> 00:24:54,116
+to do this operation, which is
+
+
+767
+00:24:54,496 --> 00:24:55,956
+vImage matrix multiply.
+
+
+768
+00:24:58,246 --> 00:25:00,206
+VImage matrix multiply takes the
+
+
+769
+00:25:00,206 --> 00:25:03,476
+preBias, in this case minus 128,
+
+
+770
+00:25:03,766 --> 00:25:06,786
+to remove the bias, and because
+
+
+771
+00:25:06,786 --> 00:25:08,276
+the saturation is [inaudible]
+
+
+772
+00:25:08,276 --> 00:25:10,466
+point and the image is an
+
+
+773
+00:25:10,466 --> 00:25:13,046
+integer, we want to convert this
+
+
+774
+00:25:13,046 --> 00:25:14,746
+saturation value first into
+
+
+775
+00:25:14,746 --> 00:25:15,806
+fixed point format.
+
+
+776
+00:25:16,366 --> 00:25:18,256
+We chose Q12 as the fixed point
+
+
+777
+00:25:18,256 --> 00:25:20,026
+format, hence a divisor of
+
+
+778
+00:25:20,026 --> 00:25:21,236
+0x100.
+
+
+779
+00:25:21,776 --> 00:25:24,086
+And then we have the postBias
+
+
+780
+00:25:24,086 --> 00:25:26,336
+128 times the divisor, just to
+
+
+781
+00:25:26,336 --> 00:25:27,796
+put the bias back to the pixel.
+
+
+782
+00:25:28,336 --> 00:25:32,036
+And the matrix itself is really,
+
+
+783
+00:25:32,036 --> 00:25:32,626
+really simple.
+
+
+784
+00:25:33,136 --> 00:25:35,006
+All we want to do is just doing
+
+
+785
+00:25:35,006 --> 00:25:37,246
+a scaling of CbCr channel.
+
+
+786
+00:25:37,546 --> 00:25:39,016
+So the matrix itself is just a
+
+
+787
+00:25:39,016 --> 00:25:42,026
+scaler, want to multiply CbCr
+
+
+788
+00:25:42,026 --> 00:25:43,966
+channel with this scaler.
+
+
+789
+00:25:44,836 --> 00:25:47,126
+We have all the information, so
+
+
+790
+00:25:47,126 --> 00:25:49,026
+let's call vImageMatrixMultiply,
+
+
+791
+00:25:49,906 --> 00:25:51,906
+and with just one line of code,
+
+
+792
+00:25:51,906 --> 00:25:53,606
+one function call, you can
+
+
+793
+00:25:53,666 --> 00:25:56,126
+achieve the saturation effect.
+
+
+794
+00:25:56,906 --> 00:25:58,616
+Now let me come back to other
+
+
+795
+00:25:58,616 --> 00:25:59,746
+steps that we need to take.
+
+
+796
+00:26:01,226 --> 00:26:03,256
+We need to take the image from
+
+
+797
+00:26:03,256 --> 00:26:03,726
+the camera.
+
+
+798
+00:26:04,036 --> 00:26:06,516
+How do we do that?
+
+
+799
+00:26:06,556 --> 00:26:07,546
+We need to write a delegate
+
+
+800
+00:26:07,546 --> 00:26:10,616
+method, and what camera gives us
+
+
+801
+00:26:10,616 --> 00:26:12,246
+is a CV image buffer.
+
+
+802
+00:26:13,376 --> 00:26:14,806
+So we get the buffer.
+
+
+803
+00:26:14,806 --> 00:26:17,706
+We have to make sure this buffer
+
+
+804
+00:26:17,706 --> 00:26:19,586
+is accessible to CPU.
+
+
+805
+00:26:19,956 --> 00:26:21,186
+That's where vImage lives.
+
+
+806
+00:26:21,806 --> 00:26:24,196
+After we apply the effects,
+
+
+807
+00:26:24,676 --> 00:26:26,026
+whatever effects that may be,
+
+
+808
+00:26:26,426 --> 00:26:28,416
+and we have to unlock the base
+
+
+809
+00:26:28,416 --> 00:26:31,066
+address of this pixel buffer so
+
+
+810
+00:26:31,066 --> 00:26:32,736
+that the camera can reuse this
+
+
+811
+00:26:32,736 --> 00:26:33,386
+piece of memory.
+
+
+812
+00:26:36,556 --> 00:26:38,236
+The second step, we have to
+
+
+813
+00:26:38,236 --> 00:26:40,116
+prepare the vImage input and
+
+
+814
+00:26:40,116 --> 00:26:40,706
+output buffer.
+
+
+815
+00:26:43,276 --> 00:26:45,486
+We already have this image in CV
+
+
+816
+00:26:45,546 --> 00:26:46,616
+image buffer.
+
+
+817
+00:26:46,736 --> 00:26:48,676
+All we need to do is just get
+
+
+818
+00:26:48,676 --> 00:26:50,696
+the information such as height
+
+
+819
+00:26:51,336 --> 00:26:54,206
+and width, and then we can
+
+
+820
+00:26:54,366 --> 00:26:55,856
+package this into a vImage
+
+
+821
+00:26:55,856 --> 00:26:57,906
+buffer object so it can be
+
+
+822
+00:26:57,906 --> 00:26:59,376
+consumed by vImage library.
+
+
+823
+00:26:59,806 --> 00:27:01,346
+We do this for luminance and
+
+
+824
+00:27:01,346 --> 00:27:02,046
+chrominance channel.
+
+
+825
+00:27:03,586 --> 00:27:05,256
+Now we need to prepare an output
+
+
+826
+00:27:05,256 --> 00:27:05,566
+buffer.
+
+
+827
+00:27:06,596 --> 00:27:08,496
+Remember, we don't have a piece
+
+
+828
+00:27:08,496 --> 00:27:09,796
+of memory allocated to the
+
+
+829
+00:27:09,796 --> 00:27:11,736
+output image yet, so we need to
+
+
+830
+00:27:11,736 --> 00:27:13,776
+do that, and vImage has a
+
+
+831
+00:27:13,776 --> 00:27:15,446
+convenience function, vImage
+
+
+832
+00:27:15,446 --> 00:27:18,116
+buffer in it, to do just that.
+
+
+833
+00:27:18,756 --> 00:27:21,196
+Given this height, width, and
+
+
+834
+00:27:21,646 --> 00:27:24,906
+bits per pixel, vImage buffer in
+
+
+835
+00:27:24,906 --> 00:27:26,626
+it will allocate a memory that's
+
+
+836
+00:27:26,626 --> 00:27:27,936
+large enough to hold this image
+
+
+837
+00:27:28,016 --> 00:27:29,516
+and then also create a vImage
+
+
+838
+00:27:29,556 --> 00:27:31,486
+buffer object so it can be
+
+
+839
+00:27:31,486 --> 00:27:33,286
+consumed by the vImage library.
+
+
+840
+00:27:33,756 --> 00:27:38,466
+Last step is put this process
+
+
+841
+00:27:38,856 --> 00:27:40,076
+image to the screen.
+
+
+842
+00:27:40,556 --> 00:27:46,596
+Like I said before, RGB is
+
+
+843
+00:27:46,596 --> 00:27:47,656
+really the best format for
+
+
+844
+00:27:47,656 --> 00:27:49,456
+display, so let's use the
+
+
+845
+00:27:49,456 --> 00:27:51,296
+conversion function to convert
+
+
+846
+00:27:51,296 --> 00:27:54,016
+YCbCr image into a RGB image.
+
+
+847
+00:27:54,316 --> 00:27:56,906
+And then because the UI expect
+
+
+848
+00:27:56,906 --> 00:27:59,196
+the cgImage object, we have to
+
+
+849
+00:27:59,196 --> 00:27:59,856
+create one.
+
+
+850
+00:28:00,206 --> 00:28:02,776
+There is a convenience function
+
+
+851
+00:28:02,776 --> 00:28:03,296
+in vImage.
+
+
+852
+00:28:03,356 --> 00:28:06,606
+vImageCreatesCGImage FromBuffer
+
+
+853
+00:28:07,566 --> 00:28:09,606
+that helps you to create a
+
+
+854
+00:28:09,606 --> 00:28:11,286
+cgImage based on the buffer you
+
+
+855
+00:28:11,286 --> 00:28:12,596
+already have in vImage.
+
+
+856
+00:28:13,896 --> 00:28:15,566
+One thing to note is that we're
+
+
+857
+00:28:15,566 --> 00:28:17,706
+not actually copying the large
+
+
+858
+00:28:17,706 --> 00:28:19,636
+data buffer in the image from
+
+
+859
+00:28:19,636 --> 00:28:20,726
+one place to another.
+
+
+860
+00:28:21,206 --> 00:28:23,426
+We're simply creating a cgImage
+
+
+861
+00:28:23,426 --> 00:28:25,956
+object that adds a container to
+
+
+862
+00:28:25,956 --> 00:28:27,306
+this image buffer.
+
+
+863
+00:28:28,216 --> 00:28:29,876
+So we are only filling in the
+
+
+864
+00:28:29,876 --> 00:28:31,716
+information that cgImage needs,
+
+
+865
+00:28:31,716 --> 00:28:33,576
+create a cgImage objects,
+
+
+866
+00:28:33,716 --> 00:28:35,966
+instead of copying data around.
+
+
+867
+00:28:36,556 --> 00:28:39,136
+Once we have that, we can send
+
+
+868
+00:28:39,136 --> 00:28:41,456
+the cgImage object to the image
+
+
+869
+00:28:41,456 --> 00:28:43,616
+view, and it will be displayed
+
+
+870
+00:28:43,706 --> 00:28:44,406
+on the screen.
+
+
+871
+00:28:45,016 --> 00:28:45,796
+So it's that simple.
+
+
+872
+00:28:46,286 --> 00:28:48,146
+Four steps and you can create
+
+
+873
+00:28:48,146 --> 00:28:50,626
+your own effects, we show you
+
+
+874
+00:28:50,626 --> 00:28:51,656
+the saturation effects.
+
+
+875
+00:28:52,026 --> 00:28:54,736
+Now, there are other effects we
+
+
+876
+00:28:54,736 --> 00:28:56,166
+can do with vImage.
+
+
+877
+00:28:56,816 --> 00:28:59,116
+We can do a rotation, like I
+
+
+878
+00:28:59,116 --> 00:29:00,716
+said before, rotate the image
+
+
+879
+00:29:00,916 --> 00:29:02,946
+clockwise, counterclockwise.
+
+
+880
+00:29:03,336 --> 00:29:05,736
+We can do blur or phase
+
+
+881
+00:29:05,736 --> 00:29:07,026
+something into the background.
+
+
+882
+00:29:07,536 --> 00:29:10,966
+And you feel, if you feel like
+
+
+883
+00:29:10,966 --> 00:29:12,136
+you want to add some retro
+
+
+884
+00:29:12,136 --> 00:29:13,716
+feeling to your images, you can
+
+
+885
+00:29:13,716 --> 00:29:15,376
+do dithering for black and white
+
+
+886
+00:29:15,376 --> 00:29:18,026
+images, and color quantization
+
+
+887
+00:29:18,206 --> 00:29:19,226
+for color images.
+
+
+888
+00:29:20,066 --> 00:29:21,436
+Let me show you how they look
+
+
+889
+00:29:21,436 --> 00:29:22,976
+like in the app.
+
+
+890
+00:29:36,536 --> 00:29:38,346
+So, again, I have the slider
+
+
+891
+00:29:38,346 --> 00:29:40,156
+here to control the rotation.
+
+
+892
+00:29:40,916 --> 00:29:44,346
+I can do rotate counterclockwise
+
+
+893
+00:29:45,976 --> 00:29:48,586
+or rotate clockwise.
+
+
+894
+00:29:49,146 --> 00:29:52,866
+Now I want to try the blurring
+
+
+895
+00:29:52,866 --> 00:29:53,206
+effect.
+
+
+896
+00:29:53,556 --> 00:29:55,016
+Let me click on the one here.
+
+
+897
+00:29:56,026 --> 00:30:01,246
+And I can apply more blurring or
+
+
+898
+00:30:01,856 --> 00:30:04,116
+slide to the left, bring the
+
+
+899
+00:30:04,116 --> 00:30:05,796
+roses back to the foreground.
+
+
+900
+00:30:07,756 --> 00:30:10,726
+For black and white, I can use
+
+
+901
+00:30:11,596 --> 00:30:11,796
+dithering.
+
+
+902
+00:30:12,316 --> 00:30:14,916
+Now this black and white image,
+
+
+903
+00:30:15,066 --> 00:30:16,846
+the gray scale is represented
+
+
+904
+00:30:16,846 --> 00:30:18,666
+now by the density of the dots,
+
+
+905
+00:30:18,886 --> 00:30:19,976
+that's the dithering effect.
+
+
+906
+00:30:20,156 --> 00:30:21,766
+And we use the accents and
+
+
+907
+00:30:21,916 --> 00:30:24,146
+dithering algorithm for this,
+
+
+908
+00:30:24,206 --> 00:30:25,326
+and I will show you how to do it
+
+
+909
+00:30:25,326 --> 00:30:28,076
+later, and for color
+
+
+910
+00:30:28,076 --> 00:30:29,766
+quantization, we have lookup
+
+
+911
+00:30:29,766 --> 00:30:30,126
+table.
+
+
+912
+00:30:30,446 --> 00:30:32,626
+And I can move this slider to
+
+
+913
+00:30:32,626 --> 00:30:34,186
+increase the quantization level.
+
+
+914
+00:30:34,426 --> 00:30:35,996
+As I move the slider to the
+
+
+915
+00:30:35,996 --> 00:30:39,006
+right, fewer and fewer color is
+
+
+916
+00:30:39,006 --> 00:30:40,646
+available in this image.
+
+
+917
+00:30:41,386 --> 00:30:44,766
+That's sort of creative, that's
+
+
+918
+00:30:44,766 --> 00:30:46,616
+how your computer screen looks
+
+
+919
+00:30:46,616 --> 00:30:49,706
+like in the '90's or in the
+
+
+920
+00:30:49,886 --> 00:30:49,996
+'80's.
+
+
+921
+00:30:50,486 --> 00:30:50,936
+All right.
+
+
+922
+00:30:51,286 --> 00:30:54,306
+So let me show you how we do
+
+
+923
+00:30:54,306 --> 00:30:54,516
+that.
+
+
+924
+00:30:58,536 --> 00:30:59,836
+For rotation effect, you can
+
+
+925
+00:30:59,836 --> 00:31:03,036
+call vImageRotate and given the
+
+
+926
+00:31:03,036 --> 00:31:05,006
+angle of rotation, it will do
+
+
+927
+00:31:05,006 --> 00:31:06,726
+counterclockwise or clockwise to
+
+
+928
+00:31:06,726 --> 00:31:07,956
+better align your images.
+
+
+929
+00:31:09,276 --> 00:31:11,766
+For the blur effect, we use
+
+
+930
+00:31:11,846 --> 00:31:12,536
+TentConvolve.
+
+
+931
+00:31:13,676 --> 00:31:15,066
+The blur effect is controlled by
+
+
+932
+00:31:15,066 --> 00:31:15,976
+the size of the kernel.
+
+
+933
+00:31:16,446 --> 00:31:18,086
+The larger the kernel, the more
+
+
+934
+00:31:18,086 --> 00:31:19,746
+blur you'll get.
+
+
+935
+00:31:20,916 --> 00:31:22,996
+Dither effect is basically
+
+
+936
+00:31:22,996 --> 00:31:25,276
+converting an 8-bit image into a
+
+
+937
+00:31:25,276 --> 00:31:26,116
+1-bit image.
+
+
+938
+00:31:26,306 --> 00:31:27,446
+At the same time, you can
+
+
+939
+00:31:27,446 --> 00:31:29,146
+specify a dithering algorithm.
+
+
+940
+00:31:29,736 --> 00:31:30,886
+In this case, we used the
+
+
+941
+00:31:30,966 --> 00:31:32,526
+Atkinson dithering algorithm.
+
+
+942
+00:31:33,016 --> 00:31:37,646
+Color quantization, we used the
+
+
+943
+00:31:37,646 --> 00:31:39,706
+quantization level to create a
+
+
+944
+00:31:39,706 --> 00:31:41,536
+lookup table for the RGB
+
+
+945
+00:31:41,536 --> 00:31:43,976
+channel, and we call
+
+
+946
+00:31:44,076 --> 00:31:46,596
+vImageTableLookUp to apply this
+
+
+947
+00:31:46,596 --> 00:31:48,806
+table lookup to RGB channels to
+
+
+948
+00:31:48,966 --> 00:31:50,476
+limit the number of colors on
+
+
+949
+00:31:50,476 --> 00:31:50,816
+the screen.
+
+
+950
+00:31:52,106 --> 00:31:55,606
+Those are the four additional
+
+
+951
+00:31:55,606 --> 00:31:56,796
+effects I wanted to show you,
+
+
+952
+00:31:57,106 --> 00:31:59,416
+and I think now is a good time
+
+
+953
+00:31:59,416 --> 00:32:00,986
+to move onto the next topic.
+
+
+954
+00:32:01,616 --> 00:32:05,446
+LINPACK Benchmark.
+
+
+955
+00:32:06,076 --> 00:32:07,866
+We talked about the
+
+
+956
+00:32:07,866 --> 00:32:09,426
+functionality of Accelerate.
+
+
+957
+00:32:09,986 --> 00:32:12,026
+We talk about how easy it is to
+
+
+958
+00:32:12,026 --> 00:32:13,616
+use in Accelerate in your apps.
+
+
+959
+00:32:14,456 --> 00:32:16,456
+We haven't talked about how fast
+
+
+960
+00:32:16,456 --> 00:32:17,766
+Accelerate really is.
+
+
+961
+00:32:18,676 --> 00:32:20,026
+And LINPACK Benchmark is a
+
+
+962
+00:32:20,026 --> 00:32:23,326
+perfect tool to do that.
+
+
+963
+00:32:23,526 --> 00:32:24,706
+What is LINPACK Benchmark?
+
+
+964
+00:32:25,796 --> 00:32:26,826
+Basically, it's trying to
+
+
+965
+00:32:26,826 --> 00:32:28,956
+measure how fast you can solve a
+
+
+966
+00:32:28,956 --> 00:32:30,446
+linear system on your machine.
+
+
+967
+00:32:31,816 --> 00:32:32,586
+There are actually three
+
+
+968
+00:32:32,586 --> 00:32:34,526
+different LINPACK Benchmarks.
+
+
+969
+00:32:34,686 --> 00:32:36,136
+The first one is solving a
+
+
+970
+00:32:36,136 --> 00:32:37,916
+100-by-100 linear system.
+
+
+971
+00:32:38,516 --> 00:32:40,086
+The second one is solving a
+
+
+972
+00:32:40,086 --> 00:32:41,356
+1000-by-1000.
+
+
+973
+00:32:41,706 --> 00:32:44,526
+The last one, which is the most
+
+
+974
+00:32:44,526 --> 00:32:46,286
+interesting one, that's the one
+
+
+975
+00:32:46,286 --> 00:32:48,236
+we're going to use today, is no
+
+
+976
+00:32:48,236 --> 00:32:48,776
+holds barred.
+
+
+977
+00:32:49,216 --> 00:32:50,856
+You can solve as large a system
+
+
+978
+00:32:50,856 --> 00:32:53,486
+you want to fully utilize every
+
+
+979
+00:32:53,486 --> 00:32:54,906
+last bit of the computational
+
+
+980
+00:32:54,906 --> 00:32:55,996
+power on your machine.
+
+
+981
+00:32:56,496 --> 00:32:59,136
+Let's see the performance of
+
+
+982
+00:32:59,436 --> 00:33:01,646
+iPhone X using Accelerate.
+
+
+983
+00:33:02,816 --> 00:33:04,376
+The performance is measured in
+
+
+984
+00:33:04,376 --> 00:33:08,226
+gigaflops, for double precisions
+
+
+985
+00:33:08,226 --> 00:33:11,696
+catch up with iPhone 5S, iPhone
+
+
+986
+00:33:11,696 --> 00:33:18,906
+6, iPhone 6S, iPhone 7, iPhone X
+
+
+987
+00:33:18,906 --> 00:33:21,786
+comes in around 28.7 gigaflops.
+
+
+988
+00:33:22,346 --> 00:33:23,456
+That's double precision.
+
+
+989
+00:33:23,906 --> 00:33:25,346
+Let's look at single precision.
+
+
+990
+00:33:26,776 --> 00:33:32,086
+Again, we run out of space, we
+
+
+991
+00:33:32,086 --> 00:33:33,646
+have to shrink to try to make it
+
+
+992
+00:33:33,686 --> 00:33:34,736
+come closer.
+
+
+993
+00:33:36,226 --> 00:33:40,796
+IPhone X comes in at 68
+
+
+994
+00:33:40,796 --> 00:33:41,526
+gigaflops.
+
+
+995
+00:33:42,776 --> 00:33:44,936
+Now you might be thinking, this
+
+
+996
+00:33:44,936 --> 00:33:46,416
+is not that surprising.
+
+
+997
+00:33:47,246 --> 00:33:48,826
+However, it improves over time,
+
+
+998
+00:33:48,826 --> 00:33:50,816
+so the performance improves over
+
+
+999
+00:33:50,816 --> 00:33:53,296
+time as well, but in fact,
+
+
+1000
+00:33:53,756 --> 00:33:55,156
+that's only half of the story.
+
+
+1001
+00:33:55,586 --> 00:33:57,496
+When there is a micro
+
+
+1002
+00:33:57,496 --> 00:33:58,676
+architecture change to have
+
+
+1003
+00:33:58,676 --> 00:34:00,316
+additional computational power
+
+
+1004
+00:34:00,316 --> 00:34:02,146
+into a machine, you need the
+
+
+1005
+00:34:02,146 --> 00:34:03,456
+matching [inaudible] to fully
+
+
+1006
+00:34:03,456 --> 00:34:05,086
+utilize this additional
+
+
+1007
+00:34:05,086 --> 00:34:05,956
+computational power.
+
+
+1008
+00:34:06,726 --> 00:34:07,936
+And that is where we come in.
+
+
+1009
+00:34:09,016 --> 00:34:11,056
+Remember, this is the same
+
+
+1010
+00:34:11,056 --> 00:34:12,786
+LINPACK Benchmark executable
+
+
+1011
+00:34:13,275 --> 00:34:15,076
+running on all five generations
+
+
+1012
+00:34:15,076 --> 00:34:15,976
+of iPhones.
+
+
+1013
+00:34:16,505 --> 00:34:17,496
+They all got the best
+
+
+1014
+00:34:17,496 --> 00:34:19,005
+performance using Accelerate
+
+
+1015
+00:34:20,326 --> 00:34:22,806
+without changing a bit.
+
+
+1016
+00:34:23,386 --> 00:34:24,656
+The same is also true for your
+
+
+1017
+00:34:24,656 --> 00:34:25,076
+apps.
+
+
+1018
+00:34:25,636 --> 00:34:27,545
+If you use Accelerate in your
+
+
+1019
+00:34:27,545 --> 00:34:29,315
+apps, you'll get the best
+
+
+1020
+00:34:29,315 --> 00:34:32,795
+performance automatically on all
+
+
+1021
+00:34:32,795 --> 00:34:34,096
+the architectures we support.
+
+
+1022
+00:34:35,416 --> 00:34:38,786
+Moreover, Accelerate supports
+
+
+1023
+00:34:39,016 --> 00:34:40,386
+across platforms.
+
+
+1024
+00:34:41,065 --> 00:34:43,525
+Accelerate works on macOS, iOS,
+
+
+1025
+00:34:43,806 --> 00:34:45,456
+tvOS, watchOS.
+
+
+1026
+00:34:47,315 --> 00:34:48,996
+So let's say if tomorrow Apple
+
+
+1027
+00:34:48,996 --> 00:34:49,946
+comes out with a new
+
+
+1028
+00:34:49,946 --> 00:34:51,996
+architecture or new platform,
+
+
+1029
+00:34:52,485 --> 00:34:53,436
+you don't have to worry about
+
+
+1030
+00:34:53,436 --> 00:34:53,636
+it.
+
+
+1031
+00:34:54,505 --> 00:34:56,606
+All you need to do, the most
+
+
+1032
+00:34:56,606 --> 00:34:58,596
+you'll ever need to do is just
+
+
+1033
+00:34:58,596 --> 00:35:00,256
+to rebuild your apps, link
+
+
+1034
+00:35:00,256 --> 00:35:01,406
+against Accelerate.
+
+
+1035
+00:35:01,806 --> 00:35:03,306
+You will automatically get the
+
+
+1036
+00:35:03,306 --> 00:35:05,706
+best performance on the latest
+
+
+1037
+00:35:05,776 --> 00:35:07,036
+release platform or
+
+
+1038
+00:35:07,036 --> 00:35:07,606
+architecture.
+
+
+1039
+00:35:08,096 --> 00:35:14,866
+Just as a summary, we talk about
+
+
+1040
+00:35:14,866 --> 00:35:16,446
+Accelerate supports a wide
+
+
+1041
+00:35:16,446 --> 00:35:18,026
+variety of functionalities.
+
+
+1042
+00:35:18,816 --> 00:35:20,166
+More than likely, you will find
+
+
+1043
+00:35:20,226 --> 00:35:21,036
+something you need in
+
+
+1044
+00:35:21,036 --> 00:35:21,706
+Accelerate.
+
+
+1045
+00:35:22,106 --> 00:35:23,936
+If you need something that's not
+
+
+1046
+00:35:23,936 --> 00:35:25,616
+available, please feel free to
+
+
+1047
+00:35:25,616 --> 00:35:27,036
+file feature requests.
+
+
+1048
+00:35:27,426 --> 00:35:29,126
+We constantly look at this
+
+
+1049
+00:35:29,126 --> 00:35:31,056
+feature request, evaluate them,
+
+
+1050
+00:35:31,136 --> 00:35:32,246
+and then put into builds.
+
+
+1051
+00:35:32,846 --> 00:35:34,666
+Actually, some of our best
+
+
+1052
+00:35:34,666 --> 00:35:36,696
+features come from feature
+
+
+1053
+00:35:36,696 --> 00:35:37,286
+requests.
+
+
+1054
+00:35:38,716 --> 00:35:40,576
+Accelerate is easy to use.
+
+
+1055
+00:35:40,986 --> 00:35:42,646
+Most of the time it's just one
+
+
+1056
+00:35:42,646 --> 00:35:43,916
+function call and the job is
+
+
+1057
+00:35:43,916 --> 00:35:44,106
+done.
+
+
+1058
+00:35:45,516 --> 00:35:47,566
+It's fast and energy efficient,
+
+
+1059
+00:35:48,216 --> 00:35:50,226
+so your app is more responsive
+
+
+1060
+00:35:50,506 --> 00:35:52,516
+and the battery life is longer.
+
+
+1061
+00:35:53,866 --> 00:35:55,486
+Accelerate is portable across
+
+
+1062
+00:35:55,486 --> 00:35:57,336
+platforms and architectures.
+
+
+1063
+00:35:57,636 --> 00:35:59,196
+You get the best performance on
+
+
+1064
+00:35:59,196 --> 00:36:01,676
+all the platforms we support and
+
+
+1065
+00:36:01,716 --> 00:36:02,906
+all the architectures we
+
+
+1066
+00:36:02,906 --> 00:36:05,326
+support, and the best part is,
+
+
+1067
+00:36:05,476 --> 00:36:07,776
+you don't have to change your
+
+
+1068
+00:36:08,676 --> 00:36:08,796
+code.
+
+
+1069
+00:36:09,126 --> 00:36:10,526
+For more information, you can go
+
+
+1070
+00:36:10,526 --> 00:36:12,376
+to our online documentation at
+
+
+1071
+00:36:12,376 --> 00:36:15,266
+developer.apple.com, and all our
+
+
+1072
+00:36:15,706 --> 00:36:17,506
+demo apps, simple code, and
+
+
+1073
+00:36:17,536 --> 00:36:18,556
+session material will be
+
+
+1074
+00:36:18,556 --> 00:36:19,616
+available online.
+
+
+1075
+00:36:20,646 --> 00:36:22,266
+We have a lab session tomorrow
+
+
+1076
+00:36:22,266 --> 00:36:23,486
+afternoon at 2.
+
+
+1077
+00:36:24,236 --> 00:36:25,196
+I look forward to seeing you
+
+
+1078
+00:36:25,196 --> 00:36:26,036
+guys there.
+
+
+1079
+00:36:26,036 --> 00:36:27,956
+If you have any questions or you
+
+
+1080
+00:36:27,956 --> 00:36:28,956
+want to learn more about
+
+
+1081
+00:36:28,956 --> 00:36:31,106
+Accelerate, I'd love to see you
+
+
+1082
+00:36:31,106 --> 00:36:31,286
+there.
+
+
+1083
+00:36:33,116 --> 00:36:34,716
+That's all for our presentation
+
+
+1084
+00:36:34,716 --> 00:36:35,096
+today.
+
+
+1085
+00:36:35,096 --> 00:36:36,176
+Thank you all for coming.
+
+
+1086
+00:36:36,376 --> 00:36:36,976
+Have a great day.
+
+
+1087
+00:36:37,516 --> 00:36:40,500
+[ Applause ]
+

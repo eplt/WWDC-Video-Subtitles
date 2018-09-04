@@ -1,0 +1,5489 @@
+1
+00:00:07,516 --> 00:00:16,500
+[ Music ]
+
+
+2
+00:00:18,516 --> 00:00:23,500
+[ Applause ]
+
+
+3
+00:00:24,106 --> 00:00:25,606
+>> Hello, everybody.
+
+
+4
+00:00:26,116 --> 00:00:27,516
+Welcome to Image and Graphics
+
+
+5
+00:00:27,556 --> 00:00:28,366
+Best Practices.
+
+
+6
+00:00:28,906 --> 00:00:29,626
+My name's Kyle.
+
+
+7
+00:00:29,896 --> 00:00:30,806
+I work on UIKit.
+
+
+8
+00:00:30,916 --> 00:00:32,235
+And today, I'm going to be
+
+
+9
+00:00:32,235 --> 00:00:33,796
+sharing with you some techniques
+
+
+10
+00:00:33,836 --> 00:00:35,066
+and some strategies for
+
+
+11
+00:00:35,066 --> 00:00:36,056
+efficiently working with
+
+
+12
+00:00:36,056 --> 00:00:37,866
+graphical content in your
+
+
+13
+00:00:37,866 --> 00:00:38,596
+applications.
+
+
+14
+00:00:39,156 --> 00:00:40,516
+We're going to take a tour of
+
+
+15
+00:00:40,516 --> 00:00:41,456
+the framework stack.
+
+
+16
+00:00:41,716 --> 00:00:43,146
+First, we're going to start with
+
+
+17
+00:00:43,146 --> 00:00:45,646
+UIImage and UIImageView, which
+
+
+18
+00:00:45,646 --> 00:00:48,146
+are UIKit's high level tools for
+
+
+19
+00:00:48,146 --> 00:00:49,446
+working with graphical content
+
+
+20
+00:00:49,446 --> 00:00:51,076
+in your app.
+
+
+21
+00:00:51,076 --> 00:00:52,316
+Then, we're going to focus on
+
+
+22
+00:00:52,726 --> 00:00:54,236
+how you can best do custom
+
+
+23
+00:00:54,236 --> 00:00:55,666
+drawing inside of your
+
+
+24
+00:00:55,666 --> 00:00:56,946
+applications with UIKit.
+
+
+25
+00:00:57,466 --> 00:00:58,996
+And finally, we're going to
+
+
+26
+00:00:58,996 --> 00:01:00,786
+touch, briefly, on integrating
+
+
+27
+00:01:00,786 --> 00:01:02,806
+advanced CPU and GPU
+
+
+28
+00:01:02,806 --> 00:01:04,516
+technologies into your
+
+
+29
+00:01:04,516 --> 00:01:05,296
+applications.
+
+
+30
+00:01:06,466 --> 00:01:07,626
+And throughout this talk we're
+
+
+31
+00:01:07,626 --> 00:01:09,336
+going to be focusing primarily
+
+
+32
+00:01:09,336 --> 00:01:11,706
+on our use of two scarce
+
+
+33
+00:01:11,706 --> 00:01:14,116
+resources on the device; memory
+
+
+34
+00:01:14,516 --> 00:01:15,336
+and CPU.
+
+
+35
+00:01:16,026 --> 00:01:17,216
+And we tend to think of these
+
+
+36
+00:01:17,216 --> 00:01:19,296
+things as separate quantities.
+
+
+37
+00:01:19,636 --> 00:01:20,716
+They have their own tracks in
+
+
+38
+00:01:20,716 --> 00:01:21,746
+the debug navigator.
+
+
+39
+00:01:22,116 --> 00:01:23,966
+They have their own instruments
+
+
+40
+00:01:23,966 --> 00:01:25,336
+in the instruments application.
+
+
+41
+00:01:25,886 --> 00:01:27,406
+But really, they're intricately
+
+
+42
+00:01:27,406 --> 00:01:27,786
+linked.
+
+
+43
+00:01:28,906 --> 00:01:31,736
+And it might be apparent that as
+
+
+44
+00:01:31,906 --> 00:01:34,206
+your application uses more CPU,
+
+
+45
+00:01:34,346 --> 00:01:36,406
+that has a negative impact on
+
+
+46
+00:01:36,406 --> 00:01:38,116
+the battery life and the
+
+
+47
+00:01:38,116 --> 00:01:39,076
+responsiveness of your
+
+
+48
+00:01:39,076 --> 00:01:39,706
+application.
+
+
+49
+00:01:39,986 --> 00:01:42,146
+But what might be less obvious
+
+
+50
+00:01:42,466 --> 00:01:44,876
+is that as your application and
+
+
+51
+00:01:44,876 --> 00:01:46,426
+other applications on the system
+
+
+52
+00:01:46,726 --> 00:01:49,306
+consume more memory, that also
+
+
+53
+00:01:49,306 --> 00:01:51,236
+causes more CPU utilization.
+
+
+54
+00:01:51,656 --> 00:01:52,966
+Which, has further detrimental
+
+
+55
+00:01:52,966 --> 00:01:55,046
+effects on battery life and
+
+
+56
+00:01:55,046 --> 00:01:55,546
+performance.
+
+
+57
+00:01:55,546 --> 00:01:57,216
+So, we're going to focus on how
+
+
+58
+00:01:57,216 --> 00:01:58,406
+to improve our use of these
+
+
+59
+00:01:58,406 --> 00:01:59,006
+resources.
+
+
+60
+00:01:59,876 --> 00:02:03,006
+What better context for
+
+
+61
+00:02:03,006 --> 00:02:04,066
+discussing this problem than an
+
+
+62
+00:02:04,066 --> 00:02:05,956
+application that works pretty
+
+
+63
+00:02:05,956 --> 00:02:07,566
+extensively with photographic
+
+
+64
+00:02:07,566 --> 00:02:09,946
+content, like the Photos app?
+
+
+65
+00:02:10,186 --> 00:02:11,346
+You see, we're editing a photo
+
+
+66
+00:02:11,346 --> 00:02:11,636
+here.
+
+
+67
+00:02:11,916 --> 00:02:13,626
+And as I mentioned previously,
+
+
+68
+00:02:13,626 --> 00:02:16,256
+UIImages, UIKits, high level
+
+
+69
+00:02:16,386 --> 00:02:18,166
+class for dealing with image
+
+
+70
+00:02:18,166 --> 00:02:18,516
+data.
+
+
+71
+00:02:18,696 --> 00:02:19,936
+So, we have a UIImage
+
+
+72
+00:02:20,296 --> 00:02:22,436
+representing this rich content.
+
+
+73
+00:02:23,306 --> 00:02:24,986
+And we tend to divide graphical
+
+
+74
+00:02:24,986 --> 00:02:26,336
+content in our applications into
+
+
+75
+00:02:26,336 --> 00:02:28,166
+two categories; rich content
+
+
+76
+00:02:28,166 --> 00:02:29,686
+like this photograph and
+
+
+77
+00:02:29,686 --> 00:02:30,606
+iconography.
+
+
+78
+00:02:31,346 --> 00:02:33,726
+UIImage is also the data type in
+
+
+79
+00:02:33,726 --> 00:02:35,296
+UIKit that we use to represent
+
+
+80
+00:02:35,296 --> 00:02:37,186
+things like the icon displayed
+
+
+81
+00:02:37,186 --> 00:02:37,746
+in this button.
+
+
+82
+00:02:38,266 --> 00:02:41,616
+And as I mentioned previously,
+
+
+83
+00:02:42,356 --> 00:02:44,786
+UIImageView is the class that
+
+
+84
+00:02:44,786 --> 00:02:46,396
+UIKit provides for displaying a
+
+
+85
+00:02:46,396 --> 00:02:47,076
+UIImage.
+
+
+86
+00:02:47,386 --> 00:02:51,976
+Now, in classical MVC style
+
+
+87
+00:02:52,536 --> 00:02:54,356
+UIImage can be thought of as a
+
+
+88
+00:02:54,356 --> 00:02:55,106
+model object.
+
+
+89
+00:02:55,406 --> 00:02:57,146
+And UIImageView, of course, as
+
+
+90
+00:02:57,146 --> 00:02:58,586
+the name implies, is a view.
+
+
+91
+00:02:58,926 --> 00:03:01,286
+And these objects in their roles
+
+
+92
+00:03:01,286 --> 00:03:02,726
+as model and view, have
+
+
+93
+00:03:02,726 --> 00:03:04,236
+traditional responsibilities.
+
+
+94
+00:03:04,926 --> 00:03:06,736
+UIImage is responsible for
+
+
+95
+00:03:06,736 --> 00:03:07,816
+loading image content.
+
+
+96
+00:03:08,016 --> 00:03:09,856
+And UIImageView is responsible
+
+
+97
+00:03:09,856 --> 00:03:11,586
+for displaying it, for rendering
+
+
+98
+00:03:12,976 --> 00:03:13,066
+it.
+
+
+99
+00:03:13,486 --> 00:03:14,336
+Now, we can think of this as a
+
+
+100
+00:03:14,336 --> 00:03:15,836
+simple relationship that we
+
+
+101
+00:03:15,836 --> 00:03:16,866
+establish once.
+
+
+102
+00:03:17,066 --> 00:03:18,336
+It's a one-way relationship.
+
+
+103
+00:03:19,176 --> 00:03:20,956
+Bu the actual story is a little
+
+
+104
+00:03:20,956 --> 00:03:21,896
+bit more complicated.
+
+
+105
+00:03:23,106 --> 00:03:25,146
+In addition to rendering being a
+
+
+106
+00:03:25,146 --> 00:03:26,476
+continuous process, rather than
+
+
+107
+00:03:26,476 --> 00:03:28,706
+a one-time event, there's this
+
+
+108
+00:03:28,706 --> 00:03:29,706
+hidden phase.
+
+
+109
+00:03:30,026 --> 00:03:31,786
+It's really important to
+
+
+110
+00:03:31,786 --> 00:03:33,096
+understand in order to measure
+
+
+111
+00:03:33,096 --> 00:03:33,826
+the performance of your
+
+
+112
+00:03:33,826 --> 00:03:34,416
+application.
+
+
+113
+00:03:34,516 --> 00:03:35,916
+And this phase is called
+
+
+114
+00:03:35,916 --> 00:03:36,476
+decoding.
+
+
+115
+00:03:37,816 --> 00:03:38,576
+But in order to discuss
+
+
+116
+00:03:38,606 --> 00:03:40,326
+decoding, I first need to
+
+
+117
+00:03:40,326 --> 00:03:41,646
+discuss a concept called a
+
+
+118
+00:03:41,646 --> 00:03:42,016
+buffer.
+
+
+119
+00:03:42,856 --> 00:03:44,976
+A buffer is just a contiguous
+
+
+120
+00:03:44,976 --> 00:03:45,866
+region of memory.
+
+
+121
+00:03:46,386 --> 00:03:47,476
+But we tend to use the term
+
+
+122
+00:03:47,476 --> 00:03:49,036
+buffer when we're discussing
+
+
+123
+00:03:49,036 --> 00:03:50,696
+memory that's composed of a
+
+
+124
+00:03:50,696 --> 00:03:53,196
+sequence of elements of the same
+
+
+125
+00:03:53,196 --> 00:03:55,286
+size, usually, of the same
+
+
+126
+00:03:55,286 --> 00:03:56,446
+internal construction.
+
+
+127
+00:03:57,506 --> 00:03:59,366
+And for our purposes, one really
+
+
+128
+00:03:59,366 --> 00:04:01,266
+important kind of buffer is an
+
+
+129
+00:04:01,266 --> 00:04:01,946
+image buffer.
+
+
+130
+00:04:02,156 --> 00:04:03,896
+This is a term we use for buffer
+
+
+131
+00:04:04,276 --> 00:04:05,486
+that holds the in-memory
+
+
+132
+00:04:05,486 --> 00:04:07,796
+representation of some image.
+
+
+133
+00:04:08,826 --> 00:04:10,136
+Each element of this buffer
+
+
+134
+00:04:10,596 --> 00:04:12,226
+describes the color and
+
+
+135
+00:04:12,226 --> 00:04:14,586
+transparency of a single pixel
+
+
+136
+00:04:15,136 --> 00:04:15,886
+in our image.
+
+
+137
+00:04:16,136 --> 00:04:19,476
+And consequently, the size of
+
+
+138
+00:04:19,476 --> 00:04:20,766
+this buffer in memory is
+
+
+139
+00:04:20,766 --> 00:04:22,706
+proportional to the size of the
+
+
+140
+00:04:22,756 --> 00:04:23,856
+image that it contains.
+
+
+141
+00:04:25,366 --> 00:04:26,856
+One particularly important
+
+
+142
+00:04:26,856 --> 00:04:29,636
+example of a buffer is called
+
+
+143
+00:04:29,636 --> 00:04:30,256
+the frame buffer.
+
+
+144
+00:04:31,186 --> 00:04:32,566
+And the frame buffer is what
+
+
+145
+00:04:32,566 --> 00:04:34,616
+holds the actual rendered output
+
+
+146
+00:04:34,776 --> 00:04:35,646
+of your application.
+
+
+147
+00:04:36,916 --> 00:04:38,516
+So, as your application updates
+
+
+148
+00:04:38,516 --> 00:04:41,186
+its view hierarchy UIKit will
+
+
+149
+00:04:41,186 --> 00:04:43,446
+render the application's window
+
+
+150
+00:04:43,446 --> 00:04:45,516
+and all of its subviews into the
+
+
+151
+00:04:45,516 --> 00:04:46,116
+frame buffer.
+
+
+152
+00:04:46,916 --> 00:04:48,556
+And that frame buffer provides
+
+
+153
+00:04:48,786 --> 00:04:50,806
+per pixel color information that
+
+
+154
+00:04:50,806 --> 00:04:52,786
+the display hardware will read
+
+
+155
+00:04:52,786 --> 00:04:53,856
+in order to illuminate the
+
+
+156
+00:04:53,856 --> 00:04:55,106
+pixels on the display.
+
+
+157
+00:04:58,246 --> 00:04:59,936
+Now, that last part happens at a
+
+
+158
+00:04:59,936 --> 00:05:00,616
+fixed interval.
+
+
+159
+00:05:00,866 --> 00:05:03,376
+It can happen at 60 fps.
+
+
+160
+00:05:03,456 --> 00:05:05,836
+So, every 1/60th of a second.
+
+
+161
+00:05:05,836 --> 00:05:08,006
+Or on an iPad with ProMotion
+
+
+162
+00:05:08,006 --> 00:05:09,496
+Display, it can happen as fast
+
+
+163
+00:05:09,646 --> 00:05:11,936
+as every 1/120th of a second.
+
+
+164
+00:05:12,406 --> 00:05:15,156
+And if nothing's changed in your
+
+
+165
+00:05:15,156 --> 00:05:16,586
+application, the display
+
+
+166
+00:05:16,586 --> 00:05:17,976
+hardware will get the same data
+
+
+167
+00:05:17,976 --> 00:05:19,546
+back out of the frame buffer
+
+
+168
+00:05:19,786 --> 00:05:20,926
+that it saw, previously.
+
+
+169
+00:05:21,836 --> 00:05:25,326
+But as you change the content of
+
+
+170
+00:05:25,326 --> 00:05:26,456
+the views in your application,
+
+
+171
+00:05:26,456 --> 00:05:28,226
+for example, you assign a new
+
+
+172
+00:05:28,226 --> 00:05:29,906
+UIImage to our image view, here.
+
+
+173
+00:05:31,066 --> 00:05:32,826
+UIKit will re-render your
+
+
+174
+00:05:32,826 --> 00:05:34,366
+application's window into the
+
+
+175
+00:05:34,366 --> 00:05:34,986
+frame buffer.
+
+
+176
+00:05:34,986 --> 00:05:36,786
+And the next time the display
+
+
+177
+00:05:36,786 --> 00:05:37,926
+hardware pulls from the frame
+
+
+178
+00:05:37,926 --> 00:05:39,406
+buffer it'll get your new
+
+
+179
+00:05:39,406 --> 00:05:39,946
+content.
+
+
+180
+00:05:40,516 --> 00:05:43,036
+Now, you can contrast an image
+
+
+181
+00:05:43,036 --> 00:05:44,606
+buffer to another kind of
+
+
+182
+00:05:44,606 --> 00:05:46,376
+buffer, a data buffer, which is
+
+
+183
+00:05:46,376 --> 00:05:47,896
+just a buffer that contains a
+
+
+184
+00:05:47,896 --> 00:05:48,846
+sequence of bytes.
+
+
+185
+00:05:49,926 --> 00:05:51,116
+In our case, we're concerned
+
+
+186
+00:05:51,116 --> 00:05:53,026
+about data buffers that contain
+
+
+187
+00:05:53,356 --> 00:05:54,306
+image files.
+
+
+188
+00:05:54,646 --> 00:05:55,606
+Perhaps, we've downloaded them
+
+
+189
+00:05:55,606 --> 00:05:57,366
+from the network or we've loaded
+
+
+190
+00:05:57,366 --> 00:05:58,586
+them from disk.
+
+
+191
+00:05:59,356 --> 00:06:00,976
+A data buffer that contains an
+
+
+192
+00:06:00,976 --> 00:06:02,576
+image file, typically, begins
+
+
+193
+00:06:02,716 --> 00:06:04,496
+with some metadata describing
+
+
+194
+00:06:04,496 --> 00:06:05,586
+the size of the image that's
+
+
+195
+00:06:05,586 --> 00:06:06,746
+stored in that data buffer.
+
+
+196
+00:06:07,856 --> 00:06:09,066
+And then, contains the image
+
+
+197
+00:06:09,066 --> 00:06:11,086
+data itself, which is encoded in
+
+
+198
+00:06:11,086 --> 00:06:13,556
+some form like JPEG compression
+
+
+199
+00:06:13,636 --> 00:06:13,916
+or PNG.
+
+
+200
+00:06:13,916 --> 00:06:17,356
+Which means that the bytes
+
+
+201
+00:06:17,666 --> 00:06:19,026
+subsequent to that metadata
+
+
+202
+00:06:19,626 --> 00:06:20,876
+don't, actually, directly
+
+
+203
+00:06:20,876 --> 00:06:22,536
+describe anything about the
+
+
+204
+00:06:22,536 --> 00:06:26,686
+pixels in the image.
+
+
+205
+00:06:27,006 --> 00:06:28,856
+So, we can take a deeper look at
+
+
+206
+00:06:28,856 --> 00:06:30,576
+this pipeline that we've set up.
+
+
+207
+00:06:31,086 --> 00:06:32,866
+We have a UIImageView here and
+
+
+208
+00:06:32,866 --> 00:06:34,086
+we've highlighted the region of
+
+
+209
+00:06:34,086 --> 00:06:35,596
+the frame buffer that will be
+
+
+210
+00:06:35,996 --> 00:06:37,546
+populated by the image view's
+
+
+211
+00:06:37,546 --> 00:06:38,036
+rendering.
+
+
+212
+00:06:38,396 --> 00:06:40,156
+And we've assigned a UIImage to
+
+
+213
+00:06:40,156 --> 00:06:40,786
+this image view.
+
+
+214
+00:06:41,316 --> 00:06:43,486
+It's got a data buffer that
+
+
+215
+00:06:43,486 --> 00:06:44,916
+represents the content of an
+
+
+216
+00:06:44,916 --> 00:06:45,606
+image file.
+
+
+217
+00:06:45,606 --> 00:06:46,786
+Perhaps, downloaded from the
+
+
+218
+00:06:46,786 --> 00:06:48,306
+network or read from disk.
+
+
+219
+00:06:49,196 --> 00:06:50,326
+But we need to be able to
+
+
+220
+00:06:50,326 --> 00:06:52,886
+populate the frame buffer with
+
+
+221
+00:06:52,956 --> 00:06:54,146
+per pixel data.
+
+
+222
+00:06:55,436 --> 00:06:58,176
+So, in order to do that UIImage
+
+
+223
+00:06:58,256 --> 00:06:59,986
+will allocate an image buffer
+
+
+224
+00:07:00,606 --> 00:07:02,386
+whose size is equal to the size
+
+
+225
+00:07:02,386 --> 00:07:03,976
+of the image that is contained
+
+
+226
+00:07:03,976 --> 00:07:04,706
+in the data buffer.
+
+
+227
+00:07:04,746 --> 00:07:06,936
+And perform an operation called
+
+
+228
+00:07:06,936 --> 00:07:09,876
+decoding that will convert the
+
+
+229
+00:07:10,306 --> 00:07:12,396
+JPEG or PNG or other encoded
+
+
+230
+00:07:12,396 --> 00:07:15,776
+image data into per pixel image
+
+
+231
+00:07:15,806 --> 00:07:16,436
+information.
+
+
+232
+00:07:17,056 --> 00:07:18,436
+And then, depending on the
+
+
+233
+00:07:18,436 --> 00:07:19,876
+content mode of our image view.
+
+
+234
+00:07:20,766 --> 00:07:22,266
+When UIKit asks the image view
+
+
+235
+00:07:22,266 --> 00:07:25,546
+to render it will copy and scale
+
+
+236
+00:07:26,096 --> 00:07:27,626
+the image data from the image
+
+
+237
+00:07:27,626 --> 00:07:29,326
+buffer as it copies it into the
+
+
+238
+00:07:29,326 --> 00:07:29,896
+frame buffer.
+
+
+239
+00:07:30,396 --> 00:07:34,986
+Now, that decoding phase can be
+
+
+240
+00:07:35,096 --> 00:07:37,166
+CPU intensive, particularly, for
+
+
+241
+00:07:37,166 --> 00:07:37,976
+large images.
+
+
+242
+00:07:38,426 --> 00:07:40,316
+So, rather than do that work
+
+
+243
+00:07:40,316 --> 00:07:42,176
+every time UIKit asks the image
+
+
+244
+00:07:42,176 --> 00:07:44,726
+view to render, UIImage will
+
+
+245
+00:07:44,726 --> 00:07:46,606
+hang onto that image buffer, so
+
+
+246
+00:07:46,826 --> 00:07:48,056
+that it only does that work
+
+
+247
+00:07:48,056 --> 00:07:48,506
+once.
+
+
+248
+00:07:49,476 --> 00:07:51,096
+Consequently, your application,
+
+
+249
+00:07:51,456 --> 00:07:52,536
+for every image that gets
+
+
+250
+00:07:52,536 --> 00:07:54,556
+decoded, could have a persistent
+
+
+251
+00:07:54,556 --> 00:07:56,086
+and large memory allocation
+
+
+252
+00:07:56,086 --> 00:07:56,606
+hanging out.
+
+
+253
+00:07:57,416 --> 00:07:59,236
+And this allocation, as I
+
+
+254
+00:07:59,236 --> 00:08:00,446
+mentioned earlier, is
+
+
+255
+00:08:00,446 --> 00:08:01,956
+proportional to the size of the
+
+
+256
+00:08:02,036 --> 00:08:02,786
+input image.
+
+
+257
+00:08:03,116 --> 00:08:04,616
+Not necessarily, the size of the
+
+
+258
+00:08:04,616 --> 00:08:05,946
+image view that's actually
+
+
+259
+00:08:05,946 --> 00:08:07,006
+rendered in the frame buffer.
+
+
+260
+00:08:07,196 --> 00:08:09,196
+And this can have some pretty
+
+
+261
+00:08:09,196 --> 00:08:10,346
+negative consequences on
+
+
+262
+00:08:10,346 --> 00:08:11,026
+performance.
+
+
+263
+00:08:12,416 --> 00:08:14,806
+The large allocation that is in
+
+
+264
+00:08:14,806 --> 00:08:16,356
+your application's address space
+
+
+265
+00:08:16,706 --> 00:08:18,356
+could force other related
+
+
+266
+00:08:18,356 --> 00:08:20,896
+content apart from content that
+
+
+267
+00:08:20,896 --> 00:08:21,876
+it wants to reference.
+
+
+268
+00:08:21,916 --> 00:08:23,436
+This is called fragmentation.
+
+
+269
+00:08:25,596 --> 00:08:27,476
+Eventually, if your application
+
+
+270
+00:08:27,476 --> 00:08:29,116
+starts accumulating a lot of
+
+
+271
+00:08:29,116 --> 00:08:30,956
+memory usage the operating
+
+
+272
+00:08:30,956 --> 00:08:32,326
+system will step in and start
+
+
+273
+00:08:32,326 --> 00:08:34,006
+transparently compressing the
+
+
+274
+00:08:34,006 --> 00:08:35,586
+content of physical memory.
+
+
+275
+00:08:36,736 --> 00:08:38,126
+Now, the CPU needs to be
+
+
+276
+00:08:38,126 --> 00:08:39,946
+involved in this operation so in
+
+
+277
+00:08:39,946 --> 00:08:41,576
+addition to any CPU usage in
+
+
+278
+00:08:41,576 --> 00:08:42,936
+your own application.
+
+
+279
+00:08:43,356 --> 00:08:45,326
+You could be increasing global
+
+
+280
+00:08:45,326 --> 00:08:46,676
+CPU usage that you have no
+
+
+281
+00:08:46,676 --> 00:08:47,336
+control over.
+
+
+282
+00:08:48,986 --> 00:08:50,346
+Eventually, your application
+
+
+283
+00:08:50,626 --> 00:08:51,956
+could start consuming so much
+
+
+284
+00:08:51,956 --> 00:08:53,706
+physical memory that the OS
+
+
+285
+00:08:53,706 --> 00:08:55,036
+needs to start terminating
+
+
+286
+00:08:55,036 --> 00:08:55,816
+processes.
+
+
+287
+00:08:56,426 --> 00:08:57,756
+And it'll start with background
+
+
+288
+00:08:57,756 --> 00:08:59,186
+processes of low priority.
+
+
+289
+00:08:59,546 --> 00:09:01,676
+And, eventually, if your
+
+
+290
+00:09:01,676 --> 00:09:02,776
+application consumes enough
+
+
+291
+00:09:02,776 --> 00:09:04,736
+memory, your application itself
+
+
+292
+00:09:04,736 --> 00:09:05,556
+could get terminated.
+
+
+293
+00:09:06,266 --> 00:09:07,306
+And some of those background
+
+
+294
+00:09:07,306 --> 00:09:08,536
+processes are doing important
+
+
+295
+00:09:08,536 --> 00:09:09,586
+work on behalf of the user.
+
+
+296
+00:09:09,906 --> 00:09:10,986
+So, they might get started up
+
+
+297
+00:09:10,986 --> 00:09:11,906
+again as soon as they get
+
+
+298
+00:09:11,906 --> 00:09:12,456
+terminated.
+
+
+299
+00:09:13,586 --> 00:09:15,086
+So, even though your application
+
+
+300
+00:09:15,396 --> 00:09:16,666
+might only be consuming memory
+
+
+301
+00:09:16,666 --> 00:09:18,546
+for a short period of time, it
+
+
+302
+00:09:18,546 --> 00:09:20,456
+can have this really long-tail
+
+
+303
+00:09:20,456 --> 00:09:22,996
+effect on CPU utilization.
+
+
+304
+00:09:24,106 --> 00:09:25,626
+So, we want to reduce the amount
+
+
+305
+00:09:25,626 --> 00:09:26,876
+of memory that our application
+
+
+306
+00:09:26,876 --> 00:09:27,436
+uses.
+
+
+307
+00:09:27,556 --> 00:09:28,596
+And we can get ahead of the
+
+
+308
+00:09:28,596 --> 00:09:30,406
+curve with a technique called
+
+
+309
+00:09:30,406 --> 00:09:31,146
+downsampling.
+
+
+310
+00:09:32,336 --> 00:09:34,236
+Now, here we see a little bit
+
+
+311
+00:09:34,416 --> 00:09:35,726
+more detail about our image
+
+
+312
+00:09:35,726 --> 00:09:36,606
+rendering pipeline.
+
+
+313
+00:09:37,006 --> 00:09:38,346
+Including the fact that the
+
+
+314
+00:09:38,346 --> 00:09:39,236
+image view we're going to
+
+
+315
+00:09:39,236 --> 00:09:41,206
+display our image in is actually
+
+
+316
+00:09:41,206 --> 00:09:42,906
+smaller than the image we're
+
+
+317
+00:09:42,906 --> 00:09:44,366
+going to display inside of it.
+
+
+318
+00:09:44,996 --> 00:09:47,096
+Normally, the core animation
+
+
+319
+00:09:47,376 --> 00:09:48,656
+framework would be responsible
+
+
+320
+00:09:48,656 --> 00:09:50,346
+for shrinking that image down
+
+
+321
+00:09:50,346 --> 00:09:52,326
+during the rendering phase, but
+
+
+322
+00:09:52,326 --> 00:09:54,226
+we can save some memory by using
+
+
+323
+00:09:54,226 --> 00:09:55,526
+this downsampling technique.
+
+
+324
+00:09:55,666 --> 00:09:56,906
+And what we're going to do,
+
+
+325
+00:09:56,906 --> 00:09:58,596
+essentially, is capture that
+
+
+326
+00:09:58,596 --> 00:10:01,106
+shrinking operation into an
+
+
+327
+00:10:01,106 --> 00:10:02,166
+object called the thumbnail.
+
+
+328
+00:10:03,046 --> 00:10:04,986
+And we're going to wind up with
+
+
+329
+00:10:04,986 --> 00:10:08,486
+a lower total memory usage,
+
+
+330
+00:10:08,656 --> 00:10:09,586
+because we're going to have a
+
+
+331
+00:10:09,586 --> 00:10:11,166
+smaller decoded image buffer.
+
+
+332
+00:10:12,286 --> 00:10:14,596
+So, we set up an image source,
+
+
+333
+00:10:14,746 --> 00:10:16,656
+create a thumbnail, and then
+
+
+334
+00:10:16,656 --> 00:10:18,446
+capture that decoded image
+
+
+335
+00:10:18,446 --> 00:10:19,796
+buffer into UIImage.
+
+
+336
+00:10:19,946 --> 00:10:22,026
+And assign that UIImage to our
+
+
+337
+00:10:22,026 --> 00:10:22,476
+image view.
+
+
+338
+00:10:22,976 --> 00:10:24,606
+And then, we can discard the
+
+
+339
+00:10:24,606 --> 00:10:25,726
+original data buffer that
+
+
+340
+00:10:25,726 --> 00:10:26,646
+contained our image.
+
+
+341
+00:10:26,916 --> 00:10:28,176
+And we're left with a much
+
+
+342
+00:10:28,256 --> 00:10:29,726
+smaller long-term memory
+
+
+343
+00:10:29,726 --> 00:10:31,086
+footprint for our application.
+
+
+344
+00:10:31,646 --> 00:10:33,236
+The code to do that has a few
+
+
+345
+00:10:33,236 --> 00:10:33,546
+steps.
+
+
+346
+00:10:33,546 --> 00:10:34,636
+So, I'm going to walk you
+
+
+347
+00:10:34,636 --> 00:10:34,966
+through them.
+
+
+348
+00:10:34,966 --> 00:10:36,926
+I'm not going to do extremely
+
+
+349
+00:10:36,926 --> 00:10:37,896
+low-level detail.
+
+
+350
+00:10:37,896 --> 00:10:39,076
+But I'll highlight the important
+
+
+351
+00:10:39,076 --> 00:10:39,446
+bits.
+
+
+352
+00:10:40,316 --> 00:10:41,336
+First, we're going to create a
+
+
+353
+00:10:41,336 --> 00:10:42,556
+CGImageSource object.
+
+
+354
+00:10:43,206 --> 00:10:46,426
+And CGImageSourceCreate can take
+
+
+355
+00:10:46,426 --> 00:10:47,786
+an option dictionary.
+
+
+356
+00:10:47,786 --> 00:10:48,786
+And the important option we're
+
+
+357
+00:10:48,786 --> 00:10:50,346
+going to pass here, is this
+
+
+358
+00:10:50,466 --> 00:10:51,666
+ShouldCache flag.
+
+
+359
+00:10:52,076 --> 00:10:53,596
+And this tells the Core Graphics
+
+
+360
+00:10:53,596 --> 00:10:54,986
+framework that we're just
+
+
+361
+00:10:54,986 --> 00:10:56,696
+creating an object to represent
+
+
+362
+00:10:57,386 --> 00:10:59,276
+the information stored in the
+
+
+363
+00:10:59,276 --> 00:11:00,366
+file at this URL.
+
+
+364
+00:11:01,746 --> 00:11:03,546
+Don't go ahead and decode this
+
+
+365
+00:11:03,546 --> 00:11:04,476
+image immediately.
+
+
+366
+00:11:04,586 --> 00:11:05,716
+Just create an object that
+
+
+367
+00:11:05,716 --> 00:11:06,236
+represents.
+
+
+368
+00:11:06,236 --> 00:11:07,676
+We're going to need information
+
+
+369
+00:11:07,676 --> 00:11:08,636
+from this URL.
+
+
+370
+00:11:09,146 --> 00:11:12,336
+Then, we're going to calculate
+
+
+371
+00:11:12,916 --> 00:11:14,076
+on the horizontal and vertical
+
+
+372
+00:11:14,076 --> 00:11:14,676
+axis.
+
+
+373
+00:11:14,976 --> 00:11:16,166
+Based on the scale that we're
+
+
+374
+00:11:16,166 --> 00:11:18,116
+going and point size we're going
+
+
+375
+00:11:18,116 --> 00:11:20,356
+to render at, which is the
+
+
+376
+00:11:20,356 --> 00:11:21,756
+larger dimension in pixels.
+
+
+377
+00:11:22,656 --> 00:11:24,806
+Calculate that information, and
+
+
+378
+00:11:24,806 --> 00:11:25,706
+then create an options
+
+
+379
+00:11:25,706 --> 00:11:27,386
+dictionary for our thumbnail.
+
+
+380
+00:11:28,286 --> 00:11:29,186
+There are a couple of options
+
+
+381
+00:11:29,186 --> 00:11:29,806
+listed here.
+
+
+382
+00:11:30,116 --> 00:11:30,646
+You can look in the
+
+
+383
+00:11:30,646 --> 00:11:32,246
+documentation for exactly what
+
+
+384
+00:11:32,246 --> 00:11:32,886
+these options do.
+
+
+385
+00:11:32,886 --> 00:11:34,856
+But the very important one is
+
+
+386
+00:11:34,856 --> 00:11:37,026
+this CacheImmediately option.
+
+
+387
+00:11:37,546 --> 00:11:39,936
+By passing this option here,
+
+
+388
+00:11:40,246 --> 00:11:41,946
+we're telling Core Graphics that
+
+
+389
+00:11:42,126 --> 00:11:43,456
+when I ask you to create the
+
+
+390
+00:11:43,456 --> 00:11:45,376
+thumbnail that's the exact
+
+
+391
+00:11:45,376 --> 00:11:47,126
+moment you should create the
+
+
+392
+00:11:47,126 --> 00:11:48,446
+decoded image buffer for me.
+
+
+393
+00:11:49,626 --> 00:11:51,186
+So, we have exact control over
+
+
+394
+00:11:51,186 --> 00:11:52,616
+when we take that CPU hit for
+
+
+395
+00:11:52,616 --> 00:11:53,076
+decoding.
+
+
+396
+00:11:55,516 --> 00:11:57,746
+Then, we create the thumbnail,
+
+
+397
+00:11:57,746 --> 00:11:59,856
+which is a CGImage, that we get
+
+
+398
+00:11:59,856 --> 00:12:00,166
+back.
+
+
+399
+00:12:00,716 --> 00:12:01,886
+Wrap that in the UIImage and
+
+
+400
+00:12:01,886 --> 00:12:02,806
+return it from our helper
+
+
+401
+00:12:02,806 --> 00:12:03,656
+function that we've written
+
+
+402
+00:12:03,656 --> 00:12:03,826
+here.
+
+
+403
+00:12:04,366 --> 00:12:06,866
+So, to give you an idea of the
+
+
+404
+00:12:06,866 --> 00:12:08,346
+magnitude of savings that this
+
+
+405
+00:12:08,346 --> 00:12:10,086
+technique gives us, we're just
+
+
+406
+00:12:10,086 --> 00:12:11,216
+displaying the full screen image
+
+
+407
+00:12:11,216 --> 00:12:11,386
+here.
+
+
+408
+00:12:11,846 --> 00:12:12,586
+This is a photograph.
+
+
+409
+00:12:12,586 --> 00:12:14,286
+It's 3,000 by 2,000 pixels.
+
+
+410
+00:12:14,626 --> 00:12:16,136
+If we do no optimization, just
+
+
+411
+00:12:16,136 --> 00:12:17,536
+throw UIImageView in the
+
+
+412
+00:12:17,536 --> 00:12:19,216
+storyboard and assign our image
+
+
+413
+00:12:19,216 --> 00:12:20,996
+to it, this application takes
+
+
+414
+00:12:20,996 --> 00:12:23,606
+31.5 megabytes just sitting
+
+
+415
+00:12:23,606 --> 00:12:24,116
+doing nothing.
+
+
+416
+00:12:24,116 --> 00:12:27,006
+Now, using this downsampling
+
+
+417
+00:12:27,006 --> 00:12:29,266
+technique and only producing an
+
+
+418
+00:12:29,266 --> 00:12:30,406
+image buffer that's the size of
+
+
+419
+00:12:30,406 --> 00:12:32,616
+the actual display, we can get
+
+
+420
+00:12:32,616 --> 00:12:33,526
+the memory usage of this
+
+
+421
+00:12:33,526 --> 00:12:35,816
+application down to 18.4
+
+
+422
+00:12:35,816 --> 00:12:36,376
+megabytes.
+
+
+423
+00:12:36,536 --> 00:12:38,786
+And that is a huge reduction in
+
+
+424
+00:12:38,786 --> 00:12:39,486
+memory usage.
+
+
+425
+00:12:41,508 --> 00:12:43,508
+[ Applause ]
+
+
+426
+00:12:44,366 --> 00:12:45,846
+Thanks for the applause, but you
+
+
+427
+00:12:45,846 --> 00:12:46,806
+should all get the applause for
+
+
+428
+00:12:46,806 --> 00:12:47,666
+implementing this technique in
+
+
+429
+00:12:47,666 --> 00:12:48,336
+your applications.
+
+
+430
+00:12:48,966 --> 00:12:51,336
+You can imagine how much of a
+
+
+431
+00:12:51,336 --> 00:12:52,856
+big deal this is for an app
+
+
+432
+00:12:52,856 --> 00:12:54,276
+that's displaying a lot of
+
+
+433
+00:12:54,276 --> 00:12:56,286
+potentially large input images
+
+
+434
+00:12:56,866 --> 00:12:58,726
+in a small space on screen.
+
+
+435
+00:12:59,446 --> 00:13:02,606
+For example, the Camera Roll.
+
+
+436
+00:13:02,666 --> 00:13:03,936
+You might implement such a view
+
+
+437
+00:13:04,136 --> 00:13:05,326
+using UICollectionView.
+
+
+438
+00:13:05,576 --> 00:13:06,986
+So, here we've implemented cell
+
+
+439
+00:13:06,986 --> 00:13:08,326
+for item at indexPath.
+
+
+440
+00:13:08,396 --> 00:13:10,426
+And we're using our helper
+
+
+441
+00:13:10,506 --> 00:13:11,666
+function that we wrote earlier
+
+
+442
+00:13:11,946 --> 00:13:13,916
+to downsample the images to the
+
+
+443
+00:13:13,916 --> 00:13:14,826
+size that they're going to be
+
+
+444
+00:13:14,826 --> 00:13:16,676
+displayed at when the cell is
+
+
+445
+00:13:16,676 --> 00:13:18,126
+actually put on the screen.
+
+
+446
+00:13:19,416 --> 00:13:21,376
+So, you think this is a pretty
+
+
+447
+00:13:21,376 --> 00:13:22,196
+good thing to do, right?
+
+
+448
+00:13:22,196 --> 00:13:23,736
+Like rather than having these
+
+
+449
+00:13:23,736 --> 00:13:24,856
+large allocations hanging
+
+
+450
+00:13:24,856 --> 00:13:26,056
+around, we're reducing our
+
+
+451
+00:13:26,056 --> 00:13:26,846
+memory usage.
+
+
+452
+00:13:27,416 --> 00:13:29,306
+Unfortunately, that doesn't save
+
+
+453
+00:13:29,306 --> 00:13:30,776
+us from another problem that's
+
+
+454
+00:13:30,776 --> 00:13:32,846
+common in scrollable views like
+
+
+455
+00:13:32,846 --> 00:13:33,986
+table views and collection
+
+
+456
+00:13:33,986 --> 00:13:34,206
+views.
+
+
+457
+00:13:35,196 --> 00:13:36,836
+It's a, probably seen this
+
+
+458
+00:13:36,836 --> 00:13:37,176
+before.
+
+
+459
+00:13:37,176 --> 00:13:37,706
+You scroll through an
+
+
+460
+00:13:37,706 --> 00:13:39,246
+application and it starts
+
+
+461
+00:13:39,246 --> 00:13:40,606
+hitching as you scroll.
+
+
+462
+00:13:41,186 --> 00:13:44,276
+What's happening here is that as
+
+
+463
+00:13:44,276 --> 00:13:46,726
+we're scrolling the CPU is
+
+
+464
+00:13:46,726 --> 00:13:49,546
+relatively idle, or the work
+
+
+465
+00:13:49,546 --> 00:13:50,996
+that it does can be done before
+
+
+466
+00:13:50,996 --> 00:13:52,376
+the display hardware needs the
+
+
+467
+00:13:52,376 --> 00:13:54,716
+next copy of the frame buffer.
+
+
+468
+00:13:55,576 --> 00:13:57,886
+So, we see fluid motion as the
+
+
+469
+00:13:58,196 --> 00:13:59,786
+frame buffer is updated and the
+
+
+470
+00:13:59,786 --> 00:14:00,986
+display hardware is able to get
+
+
+471
+00:14:00,986 --> 00:14:02,256
+the new frame on time.
+
+
+472
+00:14:03,146 --> 00:14:04,776
+But now, we're about to display
+
+
+473
+00:14:04,776 --> 00:14:05,776
+another row of images.
+
+
+474
+00:14:06,116 --> 00:14:07,636
+And we're about to ask Core
+
+
+475
+00:14:07,636 --> 00:14:09,476
+Graphics to decode those images
+
+
+476
+00:14:10,386 --> 00:14:11,646
+before we hand the cells back to
+
+
+477
+00:14:11,646 --> 00:14:12,466
+UICollectionView.
+
+
+478
+00:14:13,096 --> 00:14:14,896
+And that could take a lot of CPU
+
+
+479
+00:14:14,896 --> 00:14:15,236
+time.
+
+
+480
+00:14:16,346 --> 00:14:17,456
+So much so, that we don't get
+
+
+481
+00:14:17,456 --> 00:14:19,396
+around to re-rendering the frame
+
+
+482
+00:14:19,396 --> 00:14:19,736
+buffer.
+
+
+483
+00:14:20,716 --> 00:14:21,726
+But the display hardware is
+
+
+484
+00:14:21,726 --> 00:14:22,906
+operating on a fixed interval.
+
+
+485
+00:14:23,846 --> 00:14:25,546
+So, from the user's perspective
+
+
+486
+00:14:26,036 --> 00:14:27,436
+the application has just
+
+
+487
+00:14:28,976 --> 00:14:29,216
+stuttered.
+
+
+488
+00:14:29,306 --> 00:14:30,366
+Now, we're done decoding these
+
+
+489
+00:14:30,366 --> 00:14:31,466
+images, we're able to provide
+
+
+490
+00:14:31,466 --> 00:14:32,436
+those cells back to
+
+
+491
+00:14:32,656 --> 00:14:33,656
+UICollectionView.
+
+
+492
+00:14:34,006 --> 00:14:36,316
+And animation continues on, as
+
+
+493
+00:14:36,316 --> 00:14:36,766
+before.
+
+
+494
+00:14:37,856 --> 00:14:39,126
+Just saw a visual hitch, there.
+
+
+495
+00:14:40,486 --> 00:14:42,196
+Now, in addition to the obvious
+
+
+496
+00:14:42,196 --> 00:14:44,386
+responsiveness consequences of
+
+
+497
+00:14:44,386 --> 00:14:46,766
+this behavior, there's a more
+
+
+498
+00:14:46,766 --> 00:14:48,846
+subtle detrimental effect on
+
+
+499
+00:14:48,846 --> 00:14:49,706
+battery life.
+
+
+500
+00:14:50,366 --> 00:14:52,026
+Because iOS is very good at
+
+
+501
+00:14:52,026 --> 00:14:54,246
+managing the power demand on the
+
+
+502
+00:14:54,246 --> 00:14:56,966
+batter when there is a smooth
+
+
+503
+00:14:57,006 --> 00:14:59,316
+constant demand on the CPUs.
+
+
+504
+00:14:59,646 --> 00:15:00,876
+And what we have here are
+
+
+505
+00:15:00,876 --> 00:15:01,596
+spikes.
+
+
+506
+00:15:01,596 --> 00:15:03,486
+As new rows are about to come
+
+
+507
+00:15:03,486 --> 00:15:04,906
+into view on the scroll view,
+
+
+508
+00:15:05,966 --> 00:15:07,886
+we're spiking the CPU usage.
+
+
+509
+00:15:08,046 --> 00:15:09,566
+And then, returning back down to
+
+
+510
+00:15:09,566 --> 00:15:10,316
+a low level.
+
+
+511
+00:15:10,746 --> 00:15:13,456
+So, there are two techniques we
+
+
+512
+00:15:13,456 --> 00:15:16,336
+can use to smooth out our CPU
+
+
+513
+00:15:16,396 --> 00:15:16,806
+usage.
+
+
+514
+00:15:17,566 --> 00:15:18,846
+The first one is prefetching.
+
+
+515
+00:15:19,766 --> 00:15:21,876
+And if you want to know a whole
+
+
+516
+00:15:21,876 --> 00:15:24,036
+lot about prefetching check out
+
+
+517
+00:15:24,146 --> 00:15:25,096
+the A Tour of CollectionView
+
+
+518
+00:15:25,096 --> 00:15:26,856
+Talk from this year's WWDC.
+
+
+519
+00:15:27,466 --> 00:15:29,096
+But the general ideas here, is
+
+
+520
+00:15:29,096 --> 00:15:30,856
+that prefetching allows
+
+
+521
+00:15:30,856 --> 00:15:32,396
+CollectionView to inform our
+
+
+522
+00:15:32,396 --> 00:15:34,616
+data source that it doesn't need
+
+
+523
+00:15:34,616 --> 00:15:36,726
+a cell right now, but it will in
+
+
+524
+00:15:36,726 --> 00:15:37,696
+the very near future.
+
+
+525
+00:15:37,976 --> 00:15:39,106
+So, if you have any work to do,
+
+
+526
+00:15:39,416 --> 00:15:40,556
+maybe, you can get a head start.
+
+
+527
+00:15:40,976 --> 00:15:42,836
+That allows us spread out CPU
+
+
+528
+00:15:42,836 --> 00:15:44,006
+usage out over time.
+
+
+529
+00:15:45,276 --> 00:15:46,476
+So, we've reduced the maximum
+
+
+530
+00:15:46,476 --> 00:15:47,836
+size of the CPU usage.
+
+
+531
+00:15:48,236 --> 00:15:51,436
+Another technique we can use is
+
+
+532
+00:15:51,436 --> 00:15:52,106
+performing work in the
+
+
+533
+00:15:52,106 --> 00:15:52,646
+background.
+
+
+534
+00:15:53,286 --> 00:15:54,156
+So, now that we've spread out
+
+
+535
+00:15:54,156 --> 00:15:55,686
+work over time we can, also,
+
+
+536
+00:15:55,686 --> 00:15:57,206
+spread it out over available
+
+
+537
+00:15:57,206 --> 00:15:57,786
+CPUs.
+
+
+538
+00:15:58,296 --> 00:16:03,076
+The consequences of this are
+
+
+539
+00:16:03,076 --> 00:16:04,526
+that your application is more
+
+
+540
+00:16:04,526 --> 00:16:07,056
+responsive and the device has a
+
+
+541
+00:16:07,056 --> 00:16:07,956
+longer battery life.
+
+
+542
+00:16:08,466 --> 00:16:10,816
+So, to put this in action here,
+
+
+543
+00:16:11,476 --> 00:16:13,626
+we've got a implementation of
+
+
+544
+00:16:13,626 --> 00:16:15,086
+the prefetch method on our data
+
+
+545
+00:16:15,086 --> 00:16:15,516
+source.
+
+
+546
+00:16:16,496 --> 00:16:17,436
+And it's going to call our
+
+
+547
+00:16:17,436 --> 00:16:19,726
+helper function to produce a
+
+
+548
+00:16:19,986 --> 00:16:23,086
+downsampled version of the image
+
+
+549
+00:16:23,086 --> 00:16:24,096
+that we're about to display in
+
+
+550
+00:16:24,096 --> 00:16:25,396
+this CollectionView cell.
+
+
+551
+00:16:25,826 --> 00:16:28,926
+And it does this by dispatching
+
+
+552
+00:16:28,926 --> 00:16:30,916
+work to one of the global
+
+
+553
+00:16:30,916 --> 00:16:31,856
+asynchronous queues.
+
+
+554
+00:16:33,706 --> 00:16:34,006
+Great.
+
+
+555
+00:16:34,006 --> 00:16:34,716
+Our work is happening in the
+
+
+556
+00:16:34,716 --> 00:16:35,166
+background.
+
+
+557
+00:16:35,266 --> 00:16:36,466
+This is what we wanted to do.
+
+
+558
+00:16:37,506 --> 00:16:39,786
+But there is a potential flaw
+
+
+559
+00:16:39,786 --> 00:16:40,056
+here.
+
+
+560
+00:16:40,516 --> 00:16:42,486
+And it's a phenomenon that we
+
+
+561
+00:16:42,486 --> 00:16:43,616
+like to call thread explosion.
+
+
+562
+00:16:44,296 --> 00:16:46,046
+And this is what happens when we
+
+
+563
+00:16:46,046 --> 00:16:47,656
+ask the system to do more work
+
+
+564
+00:16:47,886 --> 00:16:50,486
+than there are CPUs available to
+
+
+565
+00:16:50,846 --> 00:16:51,376
+do it.
+
+
+566
+00:16:51,436 --> 00:16:52,326
+If we're going to display a
+
+
+567
+00:16:52,326 --> 00:16:54,246
+whole number of images, like 6-8
+
+
+568
+00:16:54,246 --> 00:16:55,836
+images at a time, but we're
+
+
+569
+00:16:55,836 --> 00:16:56,956
+running on a device that only
+
+
+570
+00:16:57,016 --> 00:16:59,746
+has 2 CPUs, we can't do all of
+
+
+571
+00:16:59,746 --> 00:17:00,966
+that work at once.
+
+
+572
+00:17:00,966 --> 00:17:02,396
+We can't parallelize over CPUs
+
+
+573
+00:17:02,396 --> 00:17:03,346
+that don't exist.
+
+
+574
+00:17:03,906 --> 00:17:07,445
+Now, to avoid deadlock when we
+
+
+575
+00:17:07,445 --> 00:17:08,896
+dispatch asynchronously to a
+
+
+576
+00:17:08,896 --> 00:17:11,556
+global queue, GCD is going to
+
+
+577
+00:17:11,556 --> 00:17:14,016
+create new threads to capture
+
+
+578
+00:17:14,016 --> 00:17:15,215
+the work we're asking it to do.
+
+
+579
+00:17:15,215 --> 00:17:17,046
+And then, the CPUs are going to
+
+
+580
+00:17:17,046 --> 00:17:18,915
+spend a lot of time moving
+
+
+581
+00:17:18,915 --> 00:17:20,726
+between those threads to try and
+
+
+582
+00:17:20,726 --> 00:17:22,886
+make incremental progress on all
+
+
+583
+00:17:22,886 --> 00:17:23,856
+of the work we asked the
+
+
+584
+00:17:23,856 --> 00:17:25,175
+operating system to do for us.
+
+
+585
+00:17:25,506 --> 00:17:26,695
+And switching between those
+
+
+586
+00:17:26,695 --> 00:17:28,086
+threads, actually, has a pretty
+
+
+587
+00:17:28,086 --> 00:17:28,966
+significant overhead.
+
+
+588
+00:17:29,456 --> 00:17:33,796
+We'd do a lot better if one or
+
+
+589
+00:17:33,796 --> 00:17:35,146
+more of the CPUs just got a
+
+
+590
+00:17:35,146 --> 00:17:37,606
+chance to get images out the
+
+
+591
+00:17:37,606 --> 00:17:38,066
+door.
+
+
+592
+00:17:39,196 --> 00:17:39,906
+So, we're going to borrow a
+
+
+593
+00:17:39,906 --> 00:17:42,446
+technique that was presented
+
+
+594
+00:17:42,446 --> 00:17:44,556
+last year in the Modernizing
+
+
+595
+00:17:44,556 --> 00:17:45,856
+Grand Central Dispatch Usage
+
+
+596
+00:17:45,856 --> 00:17:46,216
+talk.
+
+
+597
+00:17:46,326 --> 00:17:47,586
+And we're going to synchronize
+
+
+598
+00:17:47,586 --> 00:17:48,526
+some work, or I'm sorry.
+
+
+599
+00:17:48,526 --> 00:17:49,396
+Not synchronize, we're going to
+
+
+600
+00:17:49,396 --> 00:17:51,326
+serialize some work.
+
+
+601
+00:17:52,456 --> 00:17:54,746
+So, rather than simply
+
+
+602
+00:17:54,746 --> 00:17:55,936
+dispatching work to one of the
+
+
+603
+00:17:55,936 --> 00:17:57,176
+global asynchronous queues,
+
+
+604
+00:17:58,146 --> 00:17:59,526
+we're going to create a serial
+
+
+605
+00:17:59,526 --> 00:17:59,826
+queue.
+
+
+606
+00:18:01,166 --> 00:18:02,646
+And inside of our implementation
+
+
+607
+00:18:02,696 --> 00:18:05,436
+of the prefetch method we're
+
+
+608
+00:18:05,436 --> 00:18:06,906
+going to asynchronously dispatch
+
+
+609
+00:18:06,906 --> 00:18:07,416
+to that queue.
+
+
+610
+00:18:07,416 --> 00:18:09,216
+Now, it does mean that an
+
+
+611
+00:18:09,216 --> 00:18:10,876
+individual image might not start
+
+
+612
+00:18:10,876 --> 00:18:12,316
+making progress until later than
+
+
+613
+00:18:12,316 --> 00:18:12,776
+before.
+
+
+614
+00:18:13,576 --> 00:18:15,006
+But it also means that the CPU
+
+
+615
+00:18:15,006 --> 00:18:16,356
+is going to spend less time
+
+
+616
+00:18:17,086 --> 00:18:18,506
+switching between bits of work
+
+
+617
+00:18:18,506 --> 00:18:21,356
+that it can do.
+
+
+618
+00:18:21,496 --> 00:18:22,376
+Now, these images that we're
+
+
+619
+00:18:22,376 --> 00:18:23,316
+displaying can come from a
+
+
+620
+00:18:23,316 --> 00:18:24,326
+number of places.
+
+
+621
+00:18:25,086 --> 00:18:26,416
+They might come with our
+
+
+622
+00:18:26,416 --> 00:18:28,706
+application, in which case they
+
+
+623
+00:18:28,706 --> 00:18:29,686
+might be stored in an image
+
+
+624
+00:18:29,686 --> 00:18:30,126
+asset.
+
+
+625
+00:18:30,566 --> 00:18:31,456
+Or they might be stored in a
+
+
+626
+00:18:31,456 --> 00:18:32,776
+file instead of our application
+
+
+627
+00:18:32,776 --> 00:18:33,146
+wrapper.
+
+
+628
+00:18:33,746 --> 00:18:34,696
+Or they could come from the
+
+
+629
+00:18:34,696 --> 00:18:35,146
+network.
+
+
+630
+00:18:35,936 --> 00:18:37,586
+Or they could be in a document
+
+
+631
+00:18:37,766 --> 00:18:39,436
+that's stored in the application
+
+
+632
+00:18:39,486 --> 00:18:40,446
+documents directory.
+
+
+633
+00:18:40,726 --> 00:18:42,646
+They could be stored in a cache.
+
+
+634
+00:18:43,666 --> 00:18:45,086
+But for artwork that comes with
+
+
+635
+00:18:45,086 --> 00:18:47,506
+your application, we strongly
+
+
+636
+00:18:47,506 --> 00:18:49,416
+encourage you to use image
+
+
+637
+00:18:49,416 --> 00:18:49,986
+assets.
+
+
+638
+00:18:50,916 --> 00:18:52,016
+And there are a number of
+
+
+639
+00:18:52,016 --> 00:18:52,736
+reasons why.
+
+
+640
+00:18:54,526 --> 00:18:56,436
+Image assets are optimized for
+
+
+641
+00:18:56,436 --> 00:18:57,836
+name based and trait-based
+
+
+642
+00:18:57,836 --> 00:18:58,226
+lookup.
+
+
+643
+00:18:58,606 --> 00:19:00,006
+It's faster to look up an image
+
+
+644
+00:19:00,006 --> 00:19:01,756
+asset in the asset catalog, than
+
+
+645
+00:19:01,756 --> 00:19:03,146
+it is to search for files on
+
+
+646
+00:19:03,146 --> 00:19:04,286
+disk that have a certain naming
+
+
+647
+00:19:04,286 --> 00:19:04,636
+scheme.
+
+
+648
+00:19:05,096 --> 00:19:08,246
+The asset catalog runtime has,
+
+
+649
+00:19:08,246 --> 00:19:10,046
+also, got some really good
+
+
+650
+00:19:10,046 --> 00:19:11,556
+smarts in it for managing buffer
+
+
+651
+00:19:11,556 --> 00:19:12,096
+sizes.
+
+
+652
+00:19:12,386 --> 00:19:14,566
+And there are, also, some
+
+
+653
+00:19:14,566 --> 00:19:16,026
+features unrelated to runtime
+
+
+654
+00:19:16,026 --> 00:19:17,876
+performance that are exclusive
+
+
+655
+00:19:17,876 --> 00:19:18,766
+to image assets.
+
+
+656
+00:19:19,086 --> 00:19:20,326
+Including features like per
+
+
+657
+00:19:20,326 --> 00:19:21,776
+device thinning, which mean that
+
+
+658
+00:19:21,776 --> 00:19:23,306
+your application only downloads
+
+
+659
+00:19:23,616 --> 00:19:24,626
+image resources that are
+
+
+660
+00:19:24,626 --> 00:19:25,876
+relevant to the device that it's
+
+
+661
+00:19:25,876 --> 00:19:27,886
+going to run on and vector
+
+
+662
+00:19:27,886 --> 00:19:28,396
+artwork.
+
+
+663
+00:19:30,416 --> 00:19:32,076
+The vector artwork was a feature
+
+
+664
+00:19:32,076 --> 00:19:33,546
+that was introduced in iOS 11.
+
+
+665
+00:19:33,616 --> 00:19:34,876
+And you enable it by checking
+
+
+666
+00:19:34,876 --> 00:19:36,196
+the Preserve Vector Data
+
+
+667
+00:19:36,616 --> 00:19:38,576
+checkbox in the editor for your
+
+
+668
+00:19:38,576 --> 00:19:39,246
+image asset.
+
+
+669
+00:19:39,246 --> 00:19:41,896
+And the upshot of this is that
+
+
+670
+00:19:42,046 --> 00:19:43,496
+if your image gets rendered in
+
+
+671
+00:19:43,496 --> 00:19:45,236
+an image view that is larger or
+
+
+672
+00:19:45,236 --> 00:19:46,476
+smaller than the native size of
+
+
+673
+00:19:46,476 --> 00:19:48,266
+the image it doesn't get blurry.
+
+
+674
+00:19:49,376 --> 00:19:50,456
+The image is, actually,
+
+
+675
+00:19:50,456 --> 00:19:51,966
+re-rasterized from the vector
+
+
+676
+00:19:51,966 --> 00:19:53,586
+artwork so that it has nice
+
+
+677
+00:19:53,586 --> 00:19:54,416
+crisp edges.
+
+
+678
+00:19:55,686 --> 00:19:57,076
+One place that we use this in
+
+
+679
+00:19:57,076 --> 00:19:57,956
+the operating system.
+
+
+680
+00:19:58,266 --> 00:20:00,386
+If you turn on dynamic type to a
+
+
+681
+00:20:00,386 --> 00:20:01,956
+very large size in the
+
+
+682
+00:20:01,956 --> 00:20:02,976
+Accessibility settings.
+
+
+683
+00:20:03,246 --> 00:20:05,596
+And then you tap and hold on an
+
+
+684
+00:20:05,596 --> 00:20:07,606
+item in the tab bar a little HUD
+
+
+685
+00:20:07,606 --> 00:20:10,286
+shows up as a magnified view of
+
+
+686
+00:20:10,286 --> 00:20:11,886
+the item that you're currently
+
+
+687
+00:20:11,886 --> 00:20:12,786
+holding your finger over.
+
+
+688
+00:20:14,086 --> 00:20:16,056
+So, if you want your artwork to
+
+
+689
+00:20:16,056 --> 00:20:18,086
+look good in places like this
+
+
+690
+00:20:18,756 --> 00:20:19,856
+check the Preserve Vector
+
+
+691
+00:20:19,856 --> 00:20:21,716
+Artwork checkbox in.
+
+
+692
+00:20:21,716 --> 00:20:22,056
+I'm sorry.
+
+
+693
+00:20:22,056 --> 00:20:22,866
+The Preserve Vector Data
+
+
+694
+00:20:22,866 --> 00:20:24,846
+checkbox in the image asset
+
+
+695
+00:20:25,326 --> 00:20:25,886
+inspector.
+
+
+696
+00:20:26,536 --> 00:20:27,786
+Now, the way this works is very
+
+
+697
+00:20:27,786 --> 00:20:29,486
+similar to the pipeline we saw
+
+
+698
+00:20:29,486 --> 00:20:29,936
+before.
+
+
+699
+00:20:29,936 --> 00:20:32,726
+Rather than a decode phase, we
+
+
+700
+00:20:32,726 --> 00:20:34,686
+have a rasterize phase that's
+
+
+701
+00:20:34,686 --> 00:20:35,796
+responsible for taking the
+
+
+702
+00:20:35,796 --> 00:20:38,586
+vector data and turning it into
+
+
+703
+00:20:38,586 --> 00:20:39,976
+bitmap data that can be copied
+
+
+704
+00:20:39,976 --> 00:20:40,786
+to the frame buffer.
+
+
+705
+00:20:45,046 --> 00:20:46,036
+Now, if we had to do this for
+
+
+706
+00:20:46,036 --> 00:20:47,026
+all of the vector artwork in
+
+
+707
+00:20:47,026 --> 00:20:48,786
+your application we would be
+
+
+708
+00:20:49,046 --> 00:20:50,586
+consuming a lot more CPU.
+
+
+709
+00:20:50,856 --> 00:20:52,006
+So, there's an optimization we
+
+
+710
+00:20:52,006 --> 00:20:52,476
+make here.
+
+
+711
+00:20:53,156 --> 00:20:55,096
+If you have an image that has
+
+
+712
+00:20:55,096 --> 00:20:56,456
+Preserve Vector Data checked,
+
+
+713
+00:20:57,266 --> 00:20:58,906
+but you render it at the normal
+
+
+714
+00:20:58,906 --> 00:20:59,386
+size.
+
+
+715
+00:20:59,386 --> 00:21:02,686
+The asset catalog compiler has,
+
+
+716
+00:21:02,686 --> 00:21:05,266
+actually, already produced a
+
+
+717
+00:21:05,266 --> 00:21:06,906
+pre-rasterized version of that
+
+
+718
+00:21:06,906 --> 00:21:08,396
+image and stored it in the asset
+
+
+719
+00:21:08,396 --> 00:21:08,936
+catalog.
+
+
+720
+00:21:09,426 --> 00:21:10,766
+So, rather than doing the
+
+
+721
+00:21:10,766 --> 00:21:12,926
+complicated math of rasterizing
+
+
+722
+00:21:12,926 --> 00:21:14,156
+your vector artwork into a
+
+
+723
+00:21:14,156 --> 00:21:17,026
+bitmap, we can just decode that
+
+
+724
+00:21:17,026 --> 00:21:18,276
+image that's stored in the asset
+
+
+725
+00:21:18,276 --> 00:21:21,296
+catalog and render it directly
+
+
+726
+00:21:21,296 --> 00:21:22,106
+into the frame buffer.
+
+
+727
+00:21:24,156 --> 00:21:26,716
+If you're planning on rendering
+
+
+728
+00:21:27,106 --> 00:21:29,576
+artwork at a few fixed sizes.
+
+
+729
+00:21:29,576 --> 00:21:31,056
+Maybe, you have a small version
+
+
+730
+00:21:31,056 --> 00:21:33,206
+and a large version of an icon.
+
+
+731
+00:21:33,816 --> 00:21:35,096
+Rather than relying on the
+
+
+732
+00:21:35,096 --> 00:21:37,136
+Preserve Vector Data checkbox,
+
+
+733
+00:21:37,736 --> 00:21:39,686
+create two image assets that
+
+
+734
+00:21:39,686 --> 00:21:41,506
+have the two sizes that you know
+
+
+735
+00:21:41,506 --> 00:21:42,356
+you're going to render your
+
+
+736
+00:21:42,356 --> 00:21:43,386
+image at.
+
+
+737
+00:21:44,696 --> 00:21:46,826
+That will allow the optimization
+
+
+738
+00:21:47,746 --> 00:21:49,816
+to take the CPU hit of
+
+
+739
+00:21:49,816 --> 00:21:51,176
+rasterizing your artwork at
+
+
+740
+00:21:51,176 --> 00:21:53,536
+compile time, rather than every
+
+
+741
+00:21:53,536 --> 00:21:55,576
+time the image is drawn into the
+
+
+742
+00:21:56,016 --> 00:21:57,926
+frame buffer.
+
+
+743
+00:21:58,266 --> 00:21:59,646
+So, we've seen how to work with
+
+
+744
+00:22:00,016 --> 00:22:01,596
+UIImage and UIImageView.
+
+
+745
+00:22:02,846 --> 00:22:04,176
+But that's not all of the
+
+
+746
+00:22:04,176 --> 00:22:05,256
+graphical work that your
+
+
+747
+00:22:05,256 --> 00:22:06,006
+application does.
+
+
+748
+00:22:06,006 --> 00:22:07,316
+Sometimes, your application
+
+
+749
+00:22:07,616 --> 00:22:09,496
+draws content at runtime.
+
+
+750
+00:22:12,016 --> 00:22:13,586
+The example of this happening
+
+
+751
+00:22:14,256 --> 00:22:15,956
+might be seen in something like
+
+
+752
+00:22:16,006 --> 00:22:18,856
+this editing view in the Photos
+
+
+753
+00:22:18,856 --> 00:22:19,446
+application.
+
+
+754
+00:22:20,996 --> 00:22:23,236
+The UIButton that's displaying
+
+
+755
+00:22:23,536 --> 00:22:26,146
+an icon and UIButton can use
+
+
+756
+00:22:26,146 --> 00:22:27,176
+UIImageView directly.
+
+
+757
+00:22:28,376 --> 00:22:29,726
+But UIButton doesn't support the
+
+
+758
+00:22:29,726 --> 00:22:32,056
+style of this Live button, here,
+
+
+759
+00:22:32,056 --> 00:22:33,396
+that you can tap to enable or
+
+
+760
+00:22:33,396 --> 00:22:35,216
+disable the Live Photo.
+
+
+761
+00:22:36,256 --> 00:22:37,136
+So, we're going to have to do
+
+
+762
+00:22:37,136 --> 00:22:38,346
+some work here, ourselves.
+
+
+763
+00:22:38,486 --> 00:22:41,326
+And one implementation of this
+
+
+764
+00:22:41,326 --> 00:22:43,606
+might be to subclass UIView and
+
+
+765
+00:22:43,606 --> 00:22:44,606
+implement the draw method.
+
+
+766
+00:22:45,096 --> 00:22:47,226
+And this implementation here
+
+
+767
+00:22:47,586 --> 00:22:49,716
+draws a yellow roundRect, draws
+
+
+768
+00:22:49,716 --> 00:22:51,276
+some text, and an image on top
+
+
+769
+00:22:51,916 --> 00:22:53,366
+of it.
+
+
+770
+00:22:53,626 --> 00:22:55,036
+Don't recommend this approach
+
+
+771
+00:22:55,866 --> 00:22:57,156
+for a couple of reasons.
+
+
+772
+00:22:58,066 --> 00:23:01,256
+Let's compare this view subclass
+
+
+773
+00:23:02,006 --> 00:23:03,366
+to our UIImageView.
+
+
+774
+00:23:03,366 --> 00:23:05,116
+Now, as you may already be
+
+
+775
+00:23:05,116 --> 00:23:07,556
+aware, every UIView is,
+
+
+776
+00:23:07,556 --> 00:23:09,446
+actually, backed by a CALayer in
+
+
+777
+00:23:09,446 --> 00:23:10,546
+the Core Animation runtime.
+
+
+778
+00:23:11,496 --> 00:23:13,426
+And for our image view, the
+
+
+779
+00:23:13,426 --> 00:23:15,416
+image view creates the, asks the
+
+
+780
+00:23:15,416 --> 00:23:17,096
+image to create the decoded
+
+
+781
+00:23:17,096 --> 00:23:17,736
+image buffer.
+
+
+782
+00:23:18,476 --> 00:23:20,366
+And then, hands that decoded
+
+
+783
+00:23:20,366 --> 00:23:23,216
+image over to CALayer to use as
+
+
+784
+00:23:23,216 --> 00:23:24,366
+the content of its layer.
+
+
+785
+00:23:25,556 --> 00:23:27,296
+For our custom view that
+
+
+786
+00:23:27,296 --> 00:23:30,546
+overrode draw, it's similar, but
+
+
+787
+00:23:30,706 --> 00:23:31,476
+slightly different.
+
+
+788
+00:23:31,686 --> 00:23:32,886
+The layers responsible for
+
+
+789
+00:23:32,886 --> 00:23:34,876
+creating an image buffer to hold
+
+
+790
+00:23:34,876 --> 00:23:36,636
+the contents of our draw method,
+
+
+791
+00:23:36,766 --> 00:23:39,586
+and then our view, excuses draw
+
+
+792
+00:23:39,586 --> 00:23:42,176
+function and populates the
+
+
+793
+00:23:42,176 --> 00:23:43,266
+contents of that image buffer.
+
+
+794
+00:23:43,636 --> 00:23:45,116
+Which is then, copied into the
+
+
+795
+00:23:45,116 --> 00:23:47,256
+frame buffer as needed by the
+
+
+796
+00:23:47,256 --> 00:23:47,906
+display hardware.
+
+
+797
+00:23:54,046 --> 00:23:56,116
+In order to understand how much
+
+
+798
+00:23:56,116 --> 00:23:57,376
+this is costing us and why we
+
+
+799
+00:23:57,376 --> 00:23:58,306
+should, perhaps, pursue
+
+
+800
+00:23:58,306 --> 00:23:59,746
+alternative ways of implementing
+
+
+801
+00:23:59,746 --> 00:24:00,336
+this UI.
+
+
+802
+00:24:01,556 --> 00:24:02,676
+The backing store that we're
+
+
+803
+00:24:02,676 --> 00:24:04,746
+using here, the image buffer
+
+
+804
+00:24:04,746 --> 00:24:06,506
+that's attached to the CALayer,
+
+
+805
+00:24:06,886 --> 00:24:08,216
+the size of that is proportional
+
+
+806
+00:24:08,576 --> 00:24:09,256
+to the view that we're
+
+
+807
+00:24:09,256 --> 00:24:09,826
+displaying.
+
+
+808
+00:24:11,146 --> 00:24:12,266
+Now, one new feature and
+
+
+809
+00:24:12,266 --> 00:24:13,746
+optimization that we have in iOS
+
+
+810
+00:24:13,746 --> 00:24:16,786
+12 is that the size of the
+
+
+811
+00:24:16,786 --> 00:24:18,976
+elements in that backing store
+
+
+812
+00:24:19,406 --> 00:24:21,206
+will, actually, grow dynamically
+
+
+813
+00:24:21,596 --> 00:24:22,456
+depending on whether you're
+
+
+814
+00:24:22,456 --> 00:24:24,006
+drawing any color content.
+
+
+815
+00:24:24,206 --> 00:24:25,596
+And whether that color content
+
+
+816
+00:24:25,596 --> 00:24:27,286
+is within or outside of the
+
+
+817
+00:24:27,286 --> 00:24:28,426
+standard color range.
+
+
+818
+00:24:28,926 --> 00:24:30,356
+So, if you're drawing wide color
+
+
+819
+00:24:30,356 --> 00:24:32,516
+content using extended SRGB
+
+
+820
+00:24:32,516 --> 00:24:34,856
+colors, the backing store will,
+
+
+821
+00:24:34,856 --> 00:24:37,586
+actually, be larger than the
+
+
+822
+00:24:37,586 --> 00:24:38,896
+backing store would be if you
+
+
+823
+00:24:38,896 --> 00:24:41,276
+used only colors within the zero
+
+
+824
+00:24:41,276 --> 00:24:42,036
+to one range.
+
+
+825
+00:24:42,516 --> 00:24:45,766
+Now, in previous versions of
+
+
+826
+00:24:45,766 --> 00:24:47,626
+iOS, you could set the contents
+
+
+827
+00:24:47,626 --> 00:24:49,876
+format property on CALayer as a
+
+
+828
+00:24:49,876 --> 00:24:51,416
+hint to Core Animation saying,
+
+
+829
+00:24:51,416 --> 00:24:52,836
+''I know I am not going to need
+
+
+830
+00:24:53,096 --> 00:24:54,496
+to support wide color content in
+
+
+831
+00:24:54,496 --> 00:24:56,026
+this view'', or, ''I know I am
+
+
+832
+00:24:56,026 --> 00:24:57,136
+going to need to support wide
+
+
+833
+00:24:57,136 --> 00:24:58,256
+color content in this view''.
+
+
+834
+00:24:58,586 --> 00:25:00,206
+Now, if you do this, you're
+
+
+835
+00:25:00,206 --> 00:25:01,556
+actually going to be disabling
+
+
+836
+00:25:02,146 --> 00:25:03,726
+the optimization that we
+
+
+837
+00:25:03,726 --> 00:25:04,906
+introduced in iOS 12.
+
+
+838
+00:25:05,426 --> 00:25:07,456
+So, check your implementations
+
+
+839
+00:25:07,456 --> 00:25:08,456
+of layerWillDraw.
+
+
+840
+00:25:08,806 --> 00:25:10,016
+Make sure you're not going to
+
+
+841
+00:25:10,016 --> 00:25:10,926
+accidentally defeat an
+
+
+842
+00:25:10,926 --> 00:25:12,236
+optimization that could benefit
+
+
+843
+00:25:12,236 --> 00:25:13,916
+your code when running on iOS
+
+
+844
+00:25:13,916 --> 00:25:14,236
+12.
+
+
+845
+00:25:16,696 --> 00:25:19,376
+But we can do better than just
+
+
+846
+00:25:19,646 --> 00:25:21,786
+hinting at whether we need a
+
+
+847
+00:25:21,786 --> 00:25:23,106
+wide color capable backing
+
+
+848
+00:25:23,106 --> 00:25:23,446
+store.
+
+
+849
+00:25:23,836 --> 00:25:25,146
+We can, actually, reduce the
+
+
+850
+00:25:25,146 --> 00:25:26,386
+total amount of backing storage
+
+
+851
+00:25:26,386 --> 00:25:27,636
+that our application needs.
+
+
+852
+00:25:27,636 --> 00:25:29,616
+We can do that by refactoring
+
+
+853
+00:25:29,676 --> 00:25:31,526
+this larger view into smaller
+
+
+854
+00:25:31,526 --> 00:25:32,206
+subviews.
+
+
+855
+00:25:32,926 --> 00:25:34,586
+And reducing or eliminating
+
+
+856
+00:25:34,656 --> 00:25:36,026
+places that override the draw
+
+
+857
+00:25:36,026 --> 00:25:36,496
+function.
+
+
+858
+00:25:37,016 --> 00:25:39,306
+This will help us eliminate
+
+
+859
+00:25:39,306 --> 00:25:40,806
+duplicate copies of image data
+
+
+860
+00:25:41,076 --> 00:25:42,016
+that exist in memory.
+
+
+861
+00:25:42,166 --> 00:25:43,966
+And it will allow us to use
+
+
+862
+00:25:43,966 --> 00:25:46,256
+optimized properties of UIView
+
+
+863
+00:25:46,256 --> 00:25:47,336
+that don't require a backing
+
+
+864
+00:25:47,336 --> 00:25:47,706
+store.
+
+
+865
+00:25:48,236 --> 00:25:52,246
+So, as I mentioned, overriding
+
+
+866
+00:25:52,246 --> 00:25:53,776
+the draw method will require
+
+
+867
+00:25:53,776 --> 00:25:55,206
+creating a backing store to go
+
+
+868
+00:25:55,206 --> 00:25:56,056
+with your CALayer.
+
+
+869
+00:25:56,526 --> 00:25:58,286
+But some of the properties in
+
+
+870
+00:25:58,286 --> 00:26:00,236
+UIView can still work, even if
+
+
+871
+00:26:00,236 --> 00:26:01,336
+you don't override draw.
+
+
+872
+00:26:01,766 --> 00:26:03,026
+For example, setting the
+
+
+873
+00:26:03,026 --> 00:26:04,546
+background color of a UIView
+
+
+874
+00:26:04,796 --> 00:26:06,196
+doesn't require creating a
+
+
+875
+00:26:06,196 --> 00:26:08,036
+backing store, unless you're
+
+
+876
+00:26:08,036 --> 00:26:09,026
+using a pattern color.
+
+
+877
+00:26:09,486 --> 00:26:10,716
+So, I recommend not using
+
+
+878
+00:26:10,716 --> 00:26:11,536
+patterned colors with a
+
+
+879
+00:26:11,536 --> 00:26:12,736
+background color property on
+
+
+880
+00:26:12,736 --> 00:26:13,296
+UIView.
+
+
+881
+00:26:14,836 --> 00:26:17,176
+Instead, create a UIImageView.
+
+
+882
+00:26:17,746 --> 00:26:19,316
+Assign your image to that image
+
+
+883
+00:26:19,316 --> 00:26:19,536
+view.
+
+
+884
+00:26:20,056 --> 00:26:21,256
+And use the functions on
+
+
+885
+00:26:21,256 --> 00:26:23,466
+UIImageView to set your tiling
+
+
+886
+00:26:23,466 --> 00:26:24,576
+parameters appropriately.
+
+
+887
+00:26:25,086 --> 00:26:29,466
+When we want to clip the corners
+
+
+888
+00:26:29,796 --> 00:26:32,466
+of that rounded rectangle, we
+
+
+889
+00:26:32,466 --> 00:26:33,836
+want to use the CALayer
+
+
+890
+00:26:33,836 --> 00:26:34,986
+cornerRadius property.
+
+
+891
+00:26:35,776 --> 00:26:37,536
+Because Core Animation is able
+
+
+892
+00:26:37,536 --> 00:26:39,886
+to render clipped corners
+
+
+893
+00:26:40,206 --> 00:26:41,626
+without taking any extra memory
+
+
+894
+00:26:41,626 --> 00:26:42,426
+allocations.
+
+
+895
+00:26:43,416 --> 00:26:44,556
+If we, instead, use the more
+
+
+896
+00:26:44,556 --> 00:26:46,966
+powerful maskView or maskLayer
+
+
+897
+00:26:46,966 --> 00:26:49,176
+properties we'd wind up taking
+
+
+898
+00:26:49,176 --> 00:26:50,666
+in extra allocation to store
+
+
+899
+00:26:50,666 --> 00:26:51,986
+that mask.
+
+
+900
+00:26:53,216 --> 00:26:55,006
+If you have a more complicated
+
+
+901
+00:26:55,006 --> 00:26:56,996
+background that has transparent
+
+
+902
+00:26:56,996 --> 00:26:59,246
+areas that can't be expressed by
+
+
+903
+00:26:59,246 --> 00:27:00,346
+the cornerRadius property,
+
+
+904
+00:27:00,726 --> 00:27:01,876
+again, consider using a
+
+
+905
+00:27:01,876 --> 00:27:02,686
+UIImageView.
+
+
+906
+00:27:03,876 --> 00:27:05,346
+Store that information in your
+
+
+907
+00:27:05,346 --> 00:27:07,236
+asset catalog or render it at
+
+
+908
+00:27:07,236 --> 00:27:07,856
+runtime.
+
+
+909
+00:27:08,266 --> 00:27:09,906
+And provide that as an image to
+
+
+910
+00:27:09,906 --> 00:27:11,016
+the image view, rather than
+
+
+911
+00:27:11,016 --> 00:27:12,476
+using maskView or maskLayer.
+
+
+912
+00:27:14,556 --> 00:27:17,296
+Finally, for that icon, the Live
+
+
+913
+00:27:17,626 --> 00:27:20,706
+Photo icon, UIImageView is
+
+
+914
+00:27:20,706 --> 00:27:23,556
+capable of colorizing monochrome
+
+
+915
+00:27:23,556 --> 00:27:25,856
+artwork without taking any extra
+
+
+916
+00:27:25,856 --> 00:27:26,636
+allocations.
+
+
+917
+00:27:27,876 --> 00:27:29,336
+The first thing you want to do
+
+
+918
+00:27:29,336 --> 00:27:31,116
+is either check the, not check
+
+
+919
+00:27:31,116 --> 00:27:32,276
+the checkbox, but set the
+
+
+920
+00:27:32,276 --> 00:27:33,856
+property in the image asset
+
+
+921
+00:27:33,856 --> 00:27:36,016
+editor, the render mode property
+
+
+922
+00:27:36,016 --> 00:27:36,986
+to always template.
+
+
+923
+00:27:37,666 --> 00:27:39,166
+Or use the withRenderingMode
+
+
+924
+00:27:39,166 --> 00:27:41,326
+function on UIImageView to
+
+
+925
+00:27:41,326 --> 00:27:42,626
+create a UIImage whose rendering
+
+
+926
+00:27:42,626 --> 00:27:43,726
+mode is always template.
+
+
+927
+00:27:44,886 --> 00:27:45,986
+Then, assign that image to an
+
+
+928
+00:27:45,986 --> 00:27:47,736
+image view and set the tintColor
+
+
+929
+00:27:47,736 --> 00:27:49,366
+of that image view to the color
+
+
+930
+00:27:49,366 --> 00:27:51,006
+you want the image to render in.
+
+
+931
+00:27:52,156 --> 00:27:53,826
+UIImage, as it's rendering your
+
+
+932
+00:27:53,826 --> 00:27:55,886
+image to the frame buffer, will
+
+
+933
+00:27:55,886 --> 00:27:58,826
+apply that solid color during
+
+
+934
+00:27:58,826 --> 00:28:00,026
+that copy operation.
+
+
+935
+00:28:00,536 --> 00:28:02,046
+Rather than having to hold on to
+
+
+936
+00:28:02,046 --> 00:28:03,476
+a separate copy of your image
+
+
+937
+00:28:03,886 --> 00:28:06,036
+with your solid color applied to
+
+
+938
+00:28:07,666 --> 00:28:07,746
+it.
+
+
+939
+00:28:08,006 --> 00:28:09,246
+Another optimization built into
+
+
+940
+00:28:09,246 --> 00:28:12,626
+UIKit provided view, UILabel is
+
+
+941
+00:28:12,626 --> 00:28:16,046
+able to use 75% less memory when
+
+
+942
+00:28:16,046 --> 00:28:18,486
+displaying monochrome text than
+
+
+943
+00:28:18,486 --> 00:28:19,756
+when displaying color text or
+
+
+944
+00:28:19,756 --> 00:28:20,336
+emojis.
+
+
+945
+00:28:21,496 --> 00:28:22,786
+If you want to know more about
+
+
+946
+00:28:22,786 --> 00:28:24,136
+how this optimization works in
+
+
+947
+00:28:24,136 --> 00:28:25,936
+detail and how to apply it to
+
+
+948
+00:28:25,936 --> 00:28:27,306
+your custom subclasses of
+
+
+949
+00:28:27,306 --> 00:28:29,736
+UIView, check out the iOS Memory
+
+
+950
+00:28:29,736 --> 00:28:30,786
+Deep Dive session.
+
+
+951
+00:28:31,356 --> 00:28:32,616
+Goes into great detail about
+
+
+952
+00:28:32,616 --> 00:28:34,636
+this backing store format called
+
+
+953
+00:28:35,186 --> 00:28:35,253
+A8.
+
+
+954
+00:28:38,306 --> 00:28:39,646
+Sometimes, you want to render
+
+
+955
+00:28:41,096 --> 00:28:44,256
+artwork offscreen stored in an
+
+
+956
+00:28:44,356 --> 00:28:45,506
+image buffer in memory.
+
+
+957
+00:28:45,736 --> 00:28:47,536
+And the class UIKit provides to
+
+
+958
+00:28:47,536 --> 00:28:48,376
+do that is
+
+
+959
+00:28:48,376 --> 00:28:49,826
+UIGraphicsImageRenderer.
+
+
+960
+00:28:50,796 --> 00:28:52,036
+There's another function that's
+
+
+961
+00:28:52,036 --> 00:28:52,456
+older;
+
+
+962
+00:28:53,156 --> 00:28:55,116
+UIGraphicsBeginImageContext.
+
+
+963
+00:28:55,446 --> 00:28:56,656
+But please, don't use that.
+
+
+964
+00:28:57,076 --> 00:28:58,386
+Because only Graphics Image
+
+
+965
+00:28:58,386 --> 00:29:00,186
+Renderer is capable of correctly
+
+
+966
+00:29:00,186 --> 00:29:02,146
+rendering wide color content.
+
+
+967
+00:29:02,186 --> 00:29:04,646
+What you can do in your
+
+
+968
+00:29:04,646 --> 00:29:05,716
+applications is use
+
+
+969
+00:29:05,716 --> 00:29:07,466
+UIGraphicsImageRenderer to
+
+
+970
+00:29:07,466 --> 00:29:08,946
+render to an offscreen place.
+
+
+971
+00:29:09,216 --> 00:29:10,586
+And then, use UIImageView to
+
+
+972
+00:29:10,586 --> 00:29:12,446
+display that, efficiently, on
+
+
+973
+00:29:12,446 --> 00:29:12,886
+the screen.
+
+
+974
+00:29:14,756 --> 00:29:16,496
+Similarly, to the optimization
+
+
+975
+00:29:16,496 --> 00:29:19,406
+that we've introduced in CALayer
+
+
+976
+00:29:19,406 --> 00:29:20,336
+backing stores.
+
+
+977
+00:29:20,626 --> 00:29:22,126
+We've, also, made
+
+
+978
+00:29:22,126 --> 00:29:24,246
+UIGraphicsImageRenderer capable
+
+
+979
+00:29:24,246 --> 00:29:25,946
+of dynamically growing the size
+
+
+980
+00:29:26,166 --> 00:29:27,456
+of its image buffer, depending
+
+
+981
+00:29:27,516 --> 00:29:30,076
+on the actions you perform in
+
+
+982
+00:29:30,076 --> 00:29:30,976
+the actions block.
+
+
+983
+00:29:33,656 --> 00:29:35,876
+If you are running your code on
+
+
+984
+00:29:35,916 --> 00:29:37,436
+a operating system prior to iOS
+
+
+985
+00:29:37,436 --> 00:29:38,846
+12, you can use the
+
+
+986
+00:29:38,846 --> 00:29:41,166
+prefersExtendedRange property on
+
+
+987
+00:29:41,166 --> 00:29:43,666
+UIGraphicsImageRendererFormat to
+
+
+988
+00:29:43,666 --> 00:29:45,256
+tell UIKit whether you plan on
+
+
+989
+00:29:45,256 --> 00:29:46,906
+drawing wide color content or
+
+
+990
+00:29:47,386 --> 00:29:47,486
+not.
+
+
+991
+00:29:50,196 --> 00:29:52,036
+But there's a medium middle
+
+
+992
+00:29:52,036 --> 00:29:52,646
+ground here.
+
+
+993
+00:29:53,356 --> 00:29:55,256
+If you're primarily rendering an
+
+
+994
+00:29:55,256 --> 00:29:56,956
+image in to a graphic image
+
+
+995
+00:29:56,956 --> 00:29:59,456
+renderer, that image may use a
+
+
+996
+00:29:59,456 --> 00:30:02,456
+color space that required values
+
+
+997
+00:30:02,456 --> 00:30:04,786
+outside of the range of SRGB.
+
+
+998
+00:30:05,666 --> 00:30:07,906
+But doesn't, actually, require a
+
+
+999
+00:30:07,906 --> 00:30:09,676
+larger element size to store
+
+
+1000
+00:30:09,676 --> 00:30:10,456
+that information.
+
+
+1001
+00:30:10,936 --> 00:30:13,776
+So, UIImage has a image renderer
+
+
+1002
+00:30:13,776 --> 00:30:15,726
+format property that you can use
+
+
+1003
+00:30:15,766 --> 00:30:16,106
+to get a
+
+
+1004
+00:30:16,106 --> 00:30:17,986
+UIGraphicsImageRendererFormat
+
+
+1005
+00:30:17,986 --> 00:30:19,826
+object preconstructed for
+
+
+1006
+00:30:19,826 --> 00:30:21,916
+optimal storage of re-rendering
+
+
+1007
+00:30:21,916 --> 00:30:22,436
+that image.
+
+
+1008
+00:30:27,046 --> 00:30:27,836
+Lastly, we're going to talk a
+
+
+1009
+00:30:27,836 --> 00:30:28,876
+little bit about how to
+
+
+1010
+00:30:28,876 --> 00:30:31,276
+integrate advanced CPU and GPU
+
+
+1011
+00:30:31,396 --> 00:30:32,726
+technologies that we provide in
+
+
+1012
+00:30:32,726 --> 00:30:35,046
+iOS into your applications.
+
+
+1013
+00:30:36,416 --> 00:30:38,876
+So, if you've got a lot of
+
+
+1014
+00:30:38,876 --> 00:30:40,586
+advanced processing to do to
+
+
+1015
+00:30:40,586 --> 00:30:42,416
+your images, perhaps, in real
+
+
+1016
+00:30:42,416 --> 00:30:44,786
+time, consider using Core Image.
+
+
+1017
+00:30:46,016 --> 00:30:48,426
+Core Image is a framework that
+
+
+1018
+00:30:48,426 --> 00:30:49,826
+allows you to create a recipe
+
+
+1019
+00:30:49,826 --> 00:30:51,826
+for processing an image and
+
+
+1020
+00:30:51,826 --> 00:30:53,966
+handle that on the CPU or on the
+
+
+1021
+00:30:53,966 --> 00:30:54,516
+GPU.
+
+
+1022
+00:30:55,736 --> 00:30:57,226
+If you create a UIImage from a
+
+
+1023
+00:30:57,226 --> 00:30:59,366
+CIImage and hand that to
+
+
+1024
+00:30:59,366 --> 00:31:01,666
+UIImageView, UIImageView will
+
+
+1025
+00:31:01,666 --> 00:31:04,006
+take care to execute that recipe
+
+
+1026
+00:31:04,416 --> 00:31:05,256
+on the GPU.
+
+
+1027
+00:31:05,726 --> 00:31:08,286
+This is efficient and it keeps
+
+
+1028
+00:31:08,286 --> 00:31:09,606
+the CPU free for doing other
+
+
+1029
+00:31:09,606 --> 00:31:10,646
+work in your application.
+
+
+1030
+00:31:11,176 --> 00:31:13,686
+In order to use it create your
+
+
+1031
+00:31:13,686 --> 00:31:15,736
+CIImage as normal, and then use
+
+
+1032
+00:31:15,736 --> 00:31:17,606
+the UIImage ciImage initializer.
+
+
+1033
+00:31:19,296 --> 00:31:20,816
+There are other advanced
+
+
+1034
+00:31:20,816 --> 00:31:23,066
+frameworks for processing and
+
+
+1035
+00:31:23,066 --> 00:31:25,426
+rendering graphical content that
+
+
+1036
+00:31:25,426 --> 00:31:27,276
+are available on iOS, including
+
+
+1037
+00:31:27,606 --> 00:31:29,796
+Metal, Vison, and Accelerate.
+
+
+1038
+00:31:30,696 --> 00:31:32,406
+And one of the data types that
+
+
+1039
+00:31:32,406 --> 00:31:33,756
+is common among these frameworks
+
+
+1040
+00:31:33,966 --> 00:31:35,186
+is CVPixelBuffer.
+
+
+1041
+00:31:35,506 --> 00:31:37,526
+And this is a data type that
+
+
+1042
+00:31:37,526 --> 00:31:39,986
+represents a buffer that can be
+
+
+1043
+00:31:39,986 --> 00:31:42,436
+in use or not in use on the CPU
+
+
+1044
+00:31:42,676 --> 00:31:43,476
+or on the GPU.
+
+
+1045
+00:31:44,436 --> 00:31:45,566
+When constructing one of these
+
+
+1046
+00:31:45,566 --> 00:31:47,416
+pixel buffers make sure to use
+
+
+1047
+00:31:47,416 --> 00:31:48,546
+the best initializer.
+
+
+1048
+00:31:48,646 --> 00:31:49,816
+The one that's closest to the
+
+
+1049
+00:31:49,816 --> 00:31:51,566
+representation you have at hand.
+
+
+1050
+00:31:52,766 --> 00:31:54,696
+Don't unwind any of the decoding
+
+
+1051
+00:31:54,696 --> 00:31:54,926
+work.
+
+
+1052
+00:31:55,226 --> 00:31:57,006
+It's already been done by the
+
+
+1053
+00:31:57,006 --> 00:31:58,836
+existing UIImage or CGImage
+
+
+1054
+00:31:59,116 --> 00:32:00,146
+representations.
+
+
+1055
+00:32:01,156 --> 00:32:02,946
+And be careful when moving data
+
+
+1056
+00:32:02,946 --> 00:32:04,816
+between the CPU and the GPU, so
+
+
+1057
+00:32:04,866 --> 00:32:05,996
+that you don't just wind up
+
+
+1058
+00:32:06,046 --> 00:32:07,116
+trading off work between the
+
+
+1059
+00:32:07,116 --> 00:32:07,466
+two.
+
+
+1060
+00:32:07,506 --> 00:32:08,816
+You can, actually, get them to
+
+
+1061
+00:32:08,816 --> 00:32:10,026
+execute in parallel.
+
+
+1062
+00:32:11,216 --> 00:32:12,726
+Finally, check out the
+
+
+1063
+00:32:12,726 --> 00:32:14,846
+Accelerate and simd session for
+
+
+1064
+00:32:14,846 --> 00:32:16,186
+information on how to properly
+
+
+1065
+00:32:16,186 --> 00:32:18,116
+format your buffers for being
+
+
+1066
+00:32:18,116 --> 00:32:19,636
+processed by the Accelerator
+
+
+1067
+00:32:19,636 --> 00:32:20,036
+framework.
+
+
+1068
+00:32:20,506 --> 00:32:24,116
+So, to summarize a few key
+
+
+1069
+00:32:24,116 --> 00:32:24,736
+points.
+
+
+1070
+00:32:25,936 --> 00:32:27,346
+Implement prefetch in your table
+
+
+1071
+00:32:27,346 --> 00:32:28,466
+views and collection views, so
+
+
+1072
+00:32:28,666 --> 00:32:29,866
+that you can get some work done
+
+
+1073
+00:32:29,866 --> 00:32:31,346
+in advance and avoid hitching.
+
+
+1074
+00:32:33,116 --> 00:32:34,096
+Make sure that you're not
+
+
+1075
+00:32:34,096 --> 00:32:36,356
+defeating any optimizations that
+
+
+1076
+00:32:36,356 --> 00:32:38,706
+UIKit is providing to reduce the
+
+
+1077
+00:32:38,706 --> 00:32:40,006
+size of the backing stores
+
+
+1078
+00:32:40,006 --> 00:32:41,346
+associated with your views.
+
+
+1079
+00:32:43,356 --> 00:32:45,096
+If you're bundling artwork with
+
+
+1080
+00:32:45,096 --> 00:32:46,976
+your applications store it in
+
+
+1081
+00:32:46,976 --> 00:32:47,936
+the asset catalog.
+
+
+1082
+00:32:49,126 --> 00:32:50,886
+Don't store it in files that are
+
+
+1083
+00:32:50,886 --> 00:32:52,426
+associated with your app.
+
+
+1084
+00:32:53,536 --> 00:32:55,036
+And finally, if you're rendering
+
+
+1085
+00:32:55,036 --> 00:32:56,256
+the same icons at different
+
+
+1086
+00:32:56,256 --> 00:32:58,856
+sizes don't over-rely on the
+
+
+1087
+00:32:58,856 --> 00:33:00,466
+Preserve Vector Data checkbox.
+
+
+1088
+00:33:02,686 --> 00:33:04,806
+For more information there is a
+
+
+1089
+00:33:04,806 --> 00:33:06,256
+couple of related sessions,
+
+
+1090
+00:33:06,436 --> 00:33:08,816
+including one about actually
+
+
+1091
+00:33:08,816 --> 00:33:11,396
+investigating your performance
+
+
+1092
+00:33:11,396 --> 00:33:11,956
+problems.
+
+
+1093
+00:33:12,066 --> 00:33:13,976
+And we'll also have labs,
+
+
+1094
+00:33:14,576 --> 00:33:15,846
+tomorrow and Friday.
+
+
+1095
+00:33:15,896 --> 00:33:17,126
+And if you have any questions,
+
+
+1096
+00:33:17,416 --> 00:33:18,486
+come see us in the labs.
+
+
+1097
+00:33:18,486 --> 00:33:20,566
+Thanks for watching.
+
+
+1098
+00:33:21,516 --> 00:33:24,506
+[ Applause ]
+

@@ -1,0 +1,2049 @@
+1
+00:00:06,516 --> 00:00:16,500
+[ Music ]
+
+
+2
+00:00:22,136 --> 00:00:23,776
+>> Welcome to session 508,
+
+
+3
+00:00:24,066 --> 00:00:25,576
+Getting and Using a MapKit JS
+
+
+4
+00:00:25,576 --> 00:00:25,916
+Key.
+
+
+5
+00:00:26,406 --> 00:00:27,806
+I'm Eric Gelinas from the MapKit
+
+
+6
+00:00:27,806 --> 00:00:28,396
+JS team.
+
+
+7
+00:00:29,156 --> 00:00:31,106
+In this video, we will learn how
+
+
+8
+00:00:31,106 --> 00:00:33,206
+MapKit JS authorization works,
+
+
+9
+00:00:33,716 --> 00:00:36,526
+create a MapKit JS key, create
+
+
+10
+00:00:36,526 --> 00:00:38,336
+an authorization token, and in
+
+
+11
+00:00:38,336 --> 00:00:40,926
+the end we'll make a map.
+
+
+12
+00:00:40,926 --> 00:00:42,066
+Let's dive into how
+
+
+13
+00:00:42,066 --> 00:00:44,256
+authorization works in MapKit
+
+
+14
+00:00:45,616 --> 00:00:45,696
+JS.
+
+
+15
+00:00:45,926 --> 00:00:47,076
+Anything you host on the web,
+
+
+16
+00:00:47,076 --> 00:00:48,936
+including MapKit JS is in plain
+
+
+17
+00:00:48,936 --> 00:00:49,346
+text.
+
+
+18
+00:00:49,926 --> 00:00:51,206
+One of the great things about
+
+
+19
+00:00:51,206 --> 00:00:52,476
+the web is the ability to learn
+
+
+20
+00:00:52,476 --> 00:00:54,036
+techniques from others simply by
+
+
+21
+00:00:54,036 --> 00:00:54,826
+viewing source.
+
+
+22
+00:00:56,246 --> 00:00:57,936
+Just open the web inspector and
+
+
+23
+00:00:57,936 --> 00:00:58,746
+see how it's done.
+
+
+24
+00:00:59,236 --> 00:01:00,216
+See a map you like?
+
+
+25
+00:01:00,626 --> 00:01:02,016
+View its source, see how it
+
+
+26
+00:01:02,016 --> 00:01:02,526
+works.
+
+
+27
+00:01:02,916 --> 00:01:04,135
+It's certainly how I learned.
+
+
+28
+00:01:05,846 --> 00:01:07,396
+Unfortunately, that sometimes
+
+
+29
+00:01:07,396 --> 00:01:08,596
+means that your API
+
+
+30
+00:01:08,596 --> 00:01:10,006
+authorization credentials can
+
+
+31
+00:01:10,006 --> 00:01:11,796
+get copied and used by mistake
+
+
+32
+00:01:11,796 --> 00:01:14,076
+without your permission and that
+
+
+33
+00:01:14,076 --> 00:01:16,106
+unauthorized use can count
+
+
+34
+00:01:16,106 --> 00:01:17,316
+against your usage limits.
+
+
+35
+00:01:18,196 --> 00:01:19,846
+Once the limit is reached, your
+
+
+36
+00:01:19,846 --> 00:01:21,526
+site may no longer be able to
+
+
+37
+00:01:21,526 --> 00:01:22,426
+display maps.
+
+
+38
+00:01:23,216 --> 00:01:24,946
+The MapKit JS authorization
+
+
+39
+00:01:24,946 --> 00:01:26,066
+system is designed to give you
+
+
+40
+00:01:26,066 --> 00:01:27,456
+more control over how your
+
+
+41
+00:01:27,456 --> 00:01:28,566
+credentials are used.
+
+
+42
+00:01:29,106 --> 00:01:31,806
+You can set a time when access
+
+
+43
+00:01:31,806 --> 00:01:34,306
+should expire and restrict
+
+
+44
+00:01:34,306 --> 00:01:35,966
+access to a specific domain.
+
+
+45
+00:01:36,306 --> 00:01:38,306
+It's the web and others will
+
+
+46
+00:01:38,306 --> 00:01:39,576
+still be able to view course and
+
+
+47
+00:01:39,576 --> 00:01:40,386
+poke around in the web
+
+
+48
+00:01:40,386 --> 00:01:42,436
+inspector, but if somebody ends
+
+
+49
+00:01:42,436 --> 00:01:43,666
+up with your credentials for any
+
+
+50
+00:01:43,666 --> 00:01:45,016
+reason, there will be limits on
+
+
+51
+00:01:45,016 --> 00:01:45,936
+how they can use it.
+
+
+52
+00:01:47,476 --> 00:01:50,076
+Let's discuss how MapKit JS
+
+
+53
+00:01:50,076 --> 00:01:51,406
+authorization works at a high
+
+
+54
+00:01:51,406 --> 00:01:51,836
+level.
+
+
+55
+00:01:52,896 --> 00:01:54,956
+Once you have a MapKit JS key,
+
+
+56
+00:01:55,436 --> 00:01:56,916
+you'll save it somewhere safe.
+
+
+57
+00:01:57,586 --> 00:01:58,796
+This will never be shared over
+
+
+58
+00:01:58,796 --> 00:01:59,236
+the web.
+
+
+59
+00:01:59,446 --> 00:02:01,616
+Instead, you'll create tokens
+
+
+60
+00:02:01,786 --> 00:02:03,216
+with restrictions and signed
+
+
+61
+00:02:03,216 --> 00:02:03,916
+with your key.
+
+
+62
+00:02:04,626 --> 00:02:06,346
+This token is what you will use
+
+
+63
+00:02:06,346 --> 00:02:09,256
+to authorize with the MapKit JS
+
+
+64
+00:02:10,436 --> 00:02:10,556
+API.
+
+
+65
+00:02:10,886 --> 00:02:12,506
+So, let's see how creating a
+
+
+66
+00:02:12,506 --> 00:02:14,056
+MapKit JS key works.
+
+
+67
+00:02:14,646 --> 00:02:17,066
+A MapKit JS key is your
+
+
+68
+00:02:17,066 --> 00:02:18,176
+credential to use with the
+
+
+69
+00:02:18,176 --> 00:02:19,466
+MapKit JS API.
+
+
+70
+00:02:20,576 --> 00:02:21,846
+This is a one-time set-up.
+
+
+71
+00:02:21,956 --> 00:02:22,486
+Here's how.
+
+
+72
+00:02:23,276 --> 00:02:24,536
+Create a maps identifier.
+
+
+73
+00:02:25,566 --> 00:02:27,616
+Create a MapKit JS key and
+
+
+74
+00:02:27,616 --> 00:02:28,546
+associate it what that
+
+
+75
+00:02:28,546 --> 00:02:29,236
+identifier.
+
+
+76
+00:02:29,766 --> 00:02:32,026
+And download your key and save
+
+
+77
+00:02:32,026 --> 00:02:33,096
+it to a save place.
+
+
+78
+00:02:34,696 --> 00:02:36,396
+Before we start, head over to
+
+
+79
+00:02:36,396 --> 00:02:38,876
+developer.apple.com/account and
+
+
+80
+00:02:38,876 --> 00:02:39,376
+log in.
+
+
+81
+00:02:40,486 --> 00:02:41,866
+From there, click on
+
+
+82
+00:02:41,866 --> 00:02:43,766
+Certificates, IDs, and Profiles
+
+
+83
+00:02:43,766 --> 00:02:44,706
+in the left-hand menu.
+
+
+84
+00:02:47,106 --> 00:02:48,786
+Our first step is to create a
+
+
+85
+00:02:48,786 --> 00:02:49,856
+maps identifier.
+
+
+86
+00:02:50,436 --> 00:02:52,206
+This identifies your project in
+
+
+87
+00:02:52,206 --> 00:02:54,486
+the Apple Developer website, but
+
+
+88
+00:02:54,486 --> 00:02:56,216
+it also serves to track usage
+
+
+89
+00:02:56,216 --> 00:02:56,706
+limits.
+
+
+90
+00:02:58,946 --> 00:03:00,866
+You may want to create different
+
+
+91
+00:03:00,866 --> 00:03:02,366
+identifiers for production and
+
+
+92
+00:03:02,366 --> 00:03:03,546
+development environments.
+
+
+93
+00:03:04,376 --> 00:03:05,846
+To create a maps identifier,
+
+
+94
+00:03:06,636 --> 00:03:09,196
+select Maps IDs from the menu.
+
+
+95
+00:03:10,326 --> 00:03:12,236
+Click the + button in the upper
+
+
+96
+00:03:12,236 --> 00:03:12,626
+right.
+
+
+97
+00:03:13,936 --> 00:03:15,096
+Give this identifier a
+
+
+98
+00:03:15,096 --> 00:03:15,786
+description.
+
+
+99
+00:03:16,336 --> 00:03:17,336
+The description should be the
+
+
+100
+00:03:17,336 --> 00:03:19,056
+name of your website as it will
+
+
+101
+00:03:19,056 --> 00:03:19,866
+appear to users.
+
+
+102
+00:03:21,426 --> 00:03:22,916
+Give this identifier a unique
+
+
+103
+00:03:22,916 --> 00:03:23,306
+ID.
+
+
+104
+00:03:23,866 --> 00:03:25,626
+We recommend using reverse
+
+
+105
+00:03:25,626 --> 00:03:27,676
+domain style for this ID and it
+
+
+106
+00:03:27,676 --> 00:03:28,786
+will need to start with the
+
+
+107
+00:03:28,786 --> 00:03:29,836
+string maps.
+
+
+108
+00:03:32,106 --> 00:03:32,916
+For example,
+
+
+109
+00:03:33,286 --> 00:03:37,926
+maps.com.yourdomainname.yourapp.
+
+
+110
+00:03:40,446 --> 00:03:41,926
+Now we'll create a MapKit JS
+
+
+111
+00:03:41,926 --> 00:03:42,306
+key.
+
+
+112
+00:03:42,816 --> 00:03:44,286
+This key is a secret shared
+
+
+113
+00:03:44,286 --> 00:03:46,136
+between you and Apple and should
+
+
+114
+00:03:46,136 --> 00:03:47,396
+never be stored in front end
+
+
+115
+00:03:47,396 --> 00:03:48,966
+code, checked into source
+
+
+116
+00:03:48,966 --> 00:03:50,716
+control, or shared with others.
+
+
+117
+00:03:52,086 --> 00:03:54,776
+First, click on All under the
+
+
+118
+00:03:54,776 --> 00:03:56,526
+Keys subheading in the left-hand
+
+
+119
+00:03:56,526 --> 00:03:56,836
+menu.
+
+
+120
+00:03:58,396 --> 00:04:00,886
+Then, click the + icon in the
+
+
+121
+00:04:00,886 --> 00:04:01,296
+header.
+
+
+122
+00:04:02,716 --> 00:04:04,826
+Then, give this new key a name.
+
+
+123
+00:04:06,936 --> 00:04:09,166
+Then check the MapKit JS
+
+
+124
+00:04:09,166 --> 00:04:09,906
+checkbox.
+
+
+125
+00:04:11,376 --> 00:04:12,986
+Then, click the Configure
+
+
+126
+00:04:12,986 --> 00:04:13,376
+button.
+
+
+127
+00:04:13,716 --> 00:04:15,456
+Now that you've created a new
+
+
+128
+00:04:15,456 --> 00:04:18,026
+key, we can associate it with
+
+
+129
+00:04:18,026 --> 00:04:19,446
+the maps identifier you created
+
+
+130
+00:04:19,446 --> 00:04:22,476
+earlier from the maps drop-down
+
+
+131
+00:04:22,676 --> 00:04:23,036
+menu.
+
+
+132
+00:04:23,496 --> 00:04:25,826
+Maps identifiers can only be
+
+
+133
+00:04:25,826 --> 00:04:27,336
+associated with one key at a
+
+
+134
+00:04:27,336 --> 00:04:27,586
+time.
+
+
+135
+00:04:28,996 --> 00:04:30,386
+When you've selected your maps
+
+
+136
+00:04:30,386 --> 00:04:32,196
+identifier, click Continue.
+
+
+137
+00:04:33,846 --> 00:04:36,416
+Finally, review your changes
+
+
+138
+00:04:36,416 --> 00:04:38,716
+when prompted and click Confirm.
+
+
+139
+00:04:40,896 --> 00:04:41,946
+Your key is now ready to
+
+
+140
+00:04:41,946 --> 00:04:42,486
+download.
+
+
+141
+00:04:43,166 --> 00:04:44,546
+Click the Download button to
+
+
+142
+00:04:44,546 --> 00:04:46,206
+save your auth key file to your
+
+
+143
+00:04:46,206 --> 00:04:46,726
+computer.
+
+
+144
+00:04:47,226 --> 00:04:48,726
+You can only download this file
+
+
+145
+00:04:48,726 --> 00:04:50,226
+once, so keep it in a safe
+
+
+146
+00:04:50,226 --> 00:04:50,766
+place.
+
+
+147
+00:04:51,236 --> 00:04:52,996
+If you do lose it, you'll need
+
+
+148
+00:04:52,996 --> 00:04:54,416
+to create a new key and then
+
+
+149
+00:04:54,416 --> 00:04:55,606
+revoke the old key.
+
+
+150
+00:04:57,196 --> 00:04:59,146
+When downloaded, your auth key
+
+
+151
+00:04:59,146 --> 00:05:00,396
+file will look something like
+
+
+152
+00:05:00,396 --> 00:05:00,856
+this.
+
+
+153
+00:05:01,356 --> 00:05:04,106
+As I said before, this key is
+
+
+154
+00:05:04,106 --> 00:05:05,576
+meant to be a secret between you
+
+
+155
+00:05:05,576 --> 00:05:06,136
+and Apple.
+
+
+156
+00:05:07,066 --> 00:05:08,516
+This is the only time you'll be
+
+
+157
+00:05:08,516 --> 00:05:10,006
+able to download your auth key
+
+
+158
+00:05:10,006 --> 00:05:10,446
+file.
+
+
+159
+00:05:10,906 --> 00:05:12,416
+We recommend you quickly save it
+
+
+160
+00:05:12,416 --> 00:05:13,236
+somewhere safe.
+
+
+161
+00:05:14,296 --> 00:05:16,576
+If you ever lose your key or it
+
+
+162
+00:05:16,576 --> 00:05:18,426
+is compromised, you can always
+
+
+163
+00:05:18,426 --> 00:05:19,816
+come back to the Apple Developer
+
+
+164
+00:05:19,816 --> 00:05:21,436
+website to revoke it and create
+
+
+165
+00:05:21,436 --> 00:05:21,946
+a new key.
+
+
+166
+00:05:25,306 --> 00:05:26,976
+You just created a MapKit JS
+
+
+167
+00:05:26,976 --> 00:05:27,356
+key.
+
+
+168
+00:05:27,386 --> 00:05:29,536
+Now we will create authorization
+
+
+169
+00:05:29,536 --> 00:05:31,246
+tokens which can be used to
+
+
+170
+00:05:31,246 --> 00:05:33,066
+authorize MapKit JS over the
+
+
+171
+00:05:33,066 --> 00:05:33,326
+web.
+
+
+172
+00:05:36,296 --> 00:05:38,246
+Tokens are created containing
+
+
+173
+00:05:38,246 --> 00:05:40,086
+your developer credentials and
+
+
+174
+00:05:40,086 --> 00:05:41,626
+are signed with your auth key
+
+
+175
+00:05:41,626 --> 00:05:42,116
+file.
+
+
+176
+00:05:43,026 --> 00:05:44,586
+Claims are added to this token,
+
+
+177
+00:05:44,776 --> 00:05:46,256
+which are used by Apple to
+
+
+178
+00:05:46,256 --> 00:05:48,386
+verify a client's authorization.
+
+
+179
+00:05:49,846 --> 00:05:51,576
+Let's dive deeper into how to
+
+
+180
+00:05:51,576 --> 00:05:53,406
+make authorization tokens.
+
+
+181
+00:05:55,316 --> 00:05:57,426
+MapKit JS authorization tokens
+
+
+182
+00:05:57,426 --> 00:06:00,786
+are based on JSON Web Tokens RFC
+
+
+183
+00:06:00,786 --> 00:06:04,416
+7519, or JWT for short.
+
+
+184
+00:06:04,996 --> 00:06:06,256
+This is an industry standard
+
+
+185
+00:06:06,256 --> 00:06:07,856
+designed to specifically
+
+
+186
+00:06:08,456 --> 00:06:10,406
+transmit authorization claims
+
+
+187
+00:06:10,406 --> 00:06:11,046
+over the web.
+
+
+188
+00:06:12,186 --> 00:06:14,036
+You can find more information on
+
+
+189
+00:06:14,036 --> 00:06:16,316
+this standard at jwt.io.
+
+
+190
+00:06:17,886 --> 00:06:19,266
+There you will also find
+
+
+191
+00:06:19,266 --> 00:06:21,756
+libraries for signing JWT tokens
+
+
+192
+00:06:21,756 --> 00:06:23,386
+in most programming languages.
+
+
+193
+00:06:25,226 --> 00:06:27,466
+All JWT tokens are made of the
+
+
+194
+00:06:27,466 --> 00:06:28,666
+following three parts.
+
+
+195
+00:06:28,946 --> 00:06:33,216
+A header, a payload, and a
+
+
+196
+00:06:33,216 --> 00:06:36,376
+signature separated by periods
+
+
+197
+00:06:36,376 --> 00:06:38,876
+and each Base64 URL encoded,
+
+
+198
+00:06:39,196 --> 00:06:41,056
+making a token which can easily
+
+
+199
+00:06:41,056 --> 00:06:42,696
+be passed to a request header.
+
+
+200
+00:06:44,806 --> 00:06:46,726
+We have two recommended JWT
+
+
+201
+00:06:46,726 --> 00:06:47,996
+configurations for your
+
+
+202
+00:06:47,996 --> 00:06:50,256
+authorization token: short-lived
+
+
+203
+00:06:50,256 --> 00:06:52,376
+tokens and long-lived tokens.
+
+
+204
+00:06:54,716 --> 00:06:56,006
+Let's start with short-lived
+
+
+205
+00:06:56,006 --> 00:06:56,536
+tokens.
+
+
+206
+00:06:57,076 --> 00:06:58,726
+These authorization tokens offer
+
+
+207
+00:06:58,726 --> 00:07:00,206
+the most protection against
+
+
+208
+00:07:00,206 --> 00:07:02,186
+misuse by ensuring that
+
+
+209
+00:07:02,186 --> 00:07:03,966
+authorization tokens can't be
+
+
+210
+00:07:03,966 --> 00:07:05,896
+used for long if copied from
+
+
+211
+00:07:05,896 --> 00:07:06,596
+your source code.
+
+
+212
+00:07:07,836 --> 00:07:09,196
+This approach requires that you
+
+
+213
+00:07:09,196 --> 00:07:11,026
+provide a server endpoint to
+
+
+214
+00:07:11,026 --> 00:07:13,126
+respond to requests for MapKit
+
+
+215
+00:07:13,126 --> 00:07:14,946
+JS for new authorization tokens.
+
+
+216
+00:07:15,716 --> 00:07:17,776
+MapKit will refresh from this
+
+
+217
+00:07:17,776 --> 00:07:19,436
+endpoint any time it needs to
+
+
+218
+00:07:19,436 --> 00:07:21,196
+authorize throughout a user's
+
+
+219
+00:07:21,196 --> 00:07:21,706
+session.
+
+
+220
+00:07:23,376 --> 00:07:25,766
+First, the payload must contain
+
+
+221
+00:07:25,916 --> 00:07:28,676
+an ISS claim, which is your
+
+
+222
+00:07:28,676 --> 00:07:30,476
+Apple Developer Program ID.
+
+
+223
+00:07:30,476 --> 00:07:34,066
+You can find your Team ID in the
+
+
+224
+00:07:34,066 --> 00:07:35,716
+account section of the Apple
+
+
+225
+00:07:35,716 --> 00:07:36,726
+Developer website.
+
+
+226
+00:07:36,996 --> 00:07:40,696
+An IAT claim, which is when this
+
+
+227
+00:07:40,696 --> 00:07:42,796
+authorization token was issued
+
+
+228
+00:07:42,796 --> 00:07:43,586
+in seconds.
+
+
+229
+00:07:43,826 --> 00:07:47,146
+An EXP claim, which is when this
+
+
+230
+00:07:47,146 --> 00:07:48,846
+authorization token is meant to
+
+
+231
+00:07:48,846 --> 00:07:50,166
+expire in seconds.
+
+
+232
+00:07:50,976 --> 00:07:52,536
+For short-lived tokens, we
+
+
+233
+00:07:52,536 --> 00:07:53,736
+recommend 30 minutes.
+
+
+234
+00:07:54,196 --> 00:07:56,516
+And, finally, a claim of origin.
+
+
+235
+00:07:57,156 --> 00:07:59,526
+This can restrict browser access
+
+
+236
+00:07:59,816 --> 00:08:01,536
+by matching the origin header
+
+
+237
+00:08:01,536 --> 00:08:01,946
+string.
+
+
+238
+00:08:03,026 --> 00:08:04,506
+Though this claim is optional,
+
+
+239
+00:08:04,646 --> 00:08:06,436
+we recommend it be used for all
+
+
+240
+00:08:06,436 --> 00:08:08,316
+authorization tokens, especially
+
+
+241
+00:08:08,316 --> 00:08:08,926
+in production.
+
+
+242
+00:08:10,506 --> 00:08:12,806
+Second, the auth key file
+
+
+243
+00:08:12,806 --> 00:08:14,546
+contents which you downloaded
+
+
+244
+00:08:14,546 --> 00:08:15,056
+earlier.
+
+
+245
+00:08:15,726 --> 00:08:17,756
+This full file including white
+
+
+246
+00:08:17,756 --> 00:08:19,696
+space, header, and footer,
+
+
+247
+00:08:20,046 --> 00:08:21,296
+should be used to sign this
+
+
+248
+00:08:21,296 --> 00:08:21,776
+token.
+
+
+249
+00:08:22,406 --> 00:08:24,516
+See the documentation for your
+
+
+250
+00:08:24,516 --> 00:08:26,526
+JWT signing library for
+
+
+251
+00:08:26,526 --> 00:08:27,816
+instructions specific to your
+
+
+252
+00:08:27,816 --> 00:08:28,686
+programming language.
+
+
+253
+00:08:29,986 --> 00:08:32,275
+Finally, the header section of
+
+
+254
+00:08:32,275 --> 00:08:35,535
+the JWT token will contain a KID
+
+
+255
+00:08:35,535 --> 00:08:38,035
+claim, which is your MapKit JS
+
+
+256
+00:08:38,035 --> 00:08:38,606
+key ID.
+
+
+257
+00:08:38,606 --> 00:08:40,876
+Note that this is not the same
+
+
+258
+00:08:40,876 --> 00:08:42,236
+as your maps identifier.
+
+
+259
+00:08:42,486 --> 00:08:45,836
+A TYP claim, which should be the
+
+
+260
+00:08:45,836 --> 00:08:48,806
+string JWT to identify this is a
+
+
+261
+00:08:48,806 --> 00:08:51,936
+JWT-style token, and an ALG
+
+
+262
+00:08:51,936 --> 00:08:53,856
+claim, which is the hashing
+
+
+263
+00:08:53,856 --> 00:08:54,926
+algorithm to use.
+
+
+264
+00:08:55,566 --> 00:09:00,306
+This must be set to ES256, which
+
+
+265
+00:09:00,306 --> 00:09:02,276
+when passed to your JWT signing
+
+
+266
+00:09:02,276 --> 00:09:05,326
+library will output a JWT token
+
+
+267
+00:09:05,656 --> 00:09:07,756
+ready to be used by MapKit JS.
+
+
+268
+00:09:08,656 --> 00:09:09,996
+Since short-lived tokens may
+
+
+269
+00:09:09,996 --> 00:09:11,706
+expire before your user is done
+
+
+270
+00:09:11,706 --> 00:09:13,336
+with their session, your server
+
+
+271
+00:09:13,336 --> 00:09:14,926
+will need to provide an endpoint
+
+
+272
+00:09:14,926 --> 00:09:16,916
+for MapKit JS which will respond
+
+
+273
+00:09:16,916 --> 00:09:18,316
+to requests to new tokens.
+
+
+274
+00:09:18,936 --> 00:09:20,426
+Later, I'll show you how to make
+
+
+275
+00:09:20,426 --> 00:09:21,906
+MapKit JS aware of your
+
+
+276
+00:09:21,906 --> 00:09:23,856
+endpoint, but for now, here's an
+
+
+277
+00:09:23,856 --> 00:09:25,286
+example of an endpoint that I've
+
+
+278
+00:09:25,286 --> 00:09:27,326
+created as an express JS route.
+
+
+279
+00:09:28,556 --> 00:09:30,546
+This route simply returns a new
+
+
+280
+00:09:30,546 --> 00:09:32,626
+access token set to expire in
+
+
+281
+00:09:32,626 --> 00:09:35,496
+1800 seconds or 30 minutes every
+
+
+282
+00:09:35,496 --> 00:09:36,256
+time it's called.
+
+
+283
+00:09:36,946 --> 00:09:38,326
+Regardless of your token's
+
+
+284
+00:09:38,326 --> 00:09:40,976
+expiry, MapKit JS will call this
+
+
+285
+00:09:40,976 --> 00:09:42,456
+endpoint any time it needs to
+
+
+286
+00:09:42,456 --> 00:09:44,176
+authorize throughout a user's
+
+
+287
+00:09:44,176 --> 00:09:44,966
+active session.
+
+
+288
+00:09:46,786 --> 00:09:48,236
+Since your endpoint needs to
+
+
+289
+00:09:48,236 --> 00:09:49,896
+return a new token every time
+
+
+290
+00:09:49,896 --> 00:09:51,566
+it's called, you'll need to let
+
+
+291
+00:09:51,566 --> 00:09:53,166
+browsers know not to cache.
+
+
+292
+00:09:53,876 --> 00:09:55,426
+You can do this by setting cache
+
+
+293
+00:09:55,426 --> 00:09:56,316
+control headers.
+
+
+294
+00:09:57,856 --> 00:09:59,506
+If set up correctly, you should
+
+
+295
+00:09:59,506 --> 00:10:00,556
+have a route on your server
+
+
+296
+00:10:00,556 --> 00:10:02,126
+which returns a token looking
+
+
+297
+00:10:02,126 --> 00:10:03,076
+something like this.
+
+
+298
+00:10:05,576 --> 00:10:06,956
+A long-lived token is different.
+
+
+299
+00:10:07,556 --> 00:10:09,096
+Its expiry is set much further
+
+
+300
+00:10:09,096 --> 00:10:09,336
+out.
+
+
+301
+00:10:09,926 --> 00:10:11,536
+You can use the same token for
+
+
+302
+00:10:11,536 --> 00:10:12,956
+many requests over a longer
+
+
+303
+00:10:12,956 --> 00:10:13,696
+period of time.
+
+
+304
+00:10:14,446 --> 00:10:15,876
+This type of token doesn't
+
+
+305
+00:10:15,876 --> 00:10:18,126
+require a server since the token
+
+
+306
+00:10:18,126 --> 00:10:19,936
+is not likely to expire during a
+
+
+307
+00:10:19,936 --> 00:10:20,776
+user's session.
+
+
+308
+00:10:21,396 --> 00:10:23,866
+For that reason, it can be
+
+
+309
+00:10:23,866 --> 00:10:25,886
+easily used on static websites
+
+
+310
+00:10:25,886 --> 00:10:27,146
+or in development environments.
+
+
+311
+00:10:28,006 --> 00:10:29,846
+You can sync expiration and
+
+
+312
+00:10:29,846 --> 00:10:31,916
+renewal of this token with your
+
+
+313
+00:10:31,916 --> 00:10:32,756
+release cycle.
+
+
+314
+00:10:33,276 --> 00:10:34,776
+We strongly recommend that you
+
+
+315
+00:10:34,776 --> 00:10:36,236
+attach an origin claim to
+
+
+316
+00:10:36,236 --> 00:10:37,246
+long-lived tokens.
+
+
+317
+00:10:37,666 --> 00:10:38,676
+Let's see how this is done.
+
+
+318
+00:10:38,676 --> 00:10:42,246
+In this example, we set
+
+
+319
+00:10:42,246 --> 00:10:43,946
+long-lived tokens to expire in
+
+
+320
+00:10:43,946 --> 00:10:44,656
+six months.
+
+
+321
+00:10:45,356 --> 00:10:47,216
+As I said before, you can tailor
+
+
+322
+00:10:47,216 --> 00:10:48,326
+this to your application's
+
+
+323
+00:10:48,326 --> 00:10:48,746
+needs.
+
+
+324
+00:10:49,366 --> 00:10:51,006
+For example, if your team has a
+
+
+325
+00:10:51,006 --> 00:10:53,246
+two-week release cycle, you can
+
+
+326
+00:10:53,246 --> 00:10:54,966
+set your expectation to sync
+
+
+327
+00:10:54,966 --> 00:10:57,186
+with that or even add a couple
+
+
+328
+00:10:57,186 --> 00:10:58,166
+weeks as a buffer.
+
+
+329
+00:10:59,626 --> 00:11:02,246
+Setting the origin claim is
+
+
+330
+00:11:02,246 --> 00:11:03,656
+always recommended, but
+
+
+331
+00:11:03,656 --> 00:11:05,296
+especially on tokens with long
+
+
+332
+00:11:05,296 --> 00:11:05,956
+expiry.
+
+
+333
+00:11:06,276 --> 00:11:07,756
+This is your strongest defense
+
+
+334
+00:11:07,756 --> 00:11:08,826
+against misuse of your
+
+
+335
+00:11:08,826 --> 00:11:09,426
+credentials.
+
+
+336
+00:11:11,236 --> 00:11:12,886
+Now with this token handy, we're
+
+
+337
+00:11:12,886 --> 00:11:13,756
+ready to make a map.
+
+
+338
+00:11:15,546 --> 00:11:17,096
+The simplest example of this is
+
+
+339
+00:11:17,096 --> 00:11:18,586
+to create an HTML page,
+
+
+340
+00:11:19,266 --> 00:11:21,946
+including a script tag linking
+
+
+341
+00:11:21,946 --> 00:11:24,376
+to MapKit JS on the Apple CDN.
+
+
+342
+00:11:26,116 --> 00:11:27,286
+Remember when I said that I
+
+
+343
+00:11:27,286 --> 00:11:28,476
+would show you how to make
+
+
+344
+00:11:28,476 --> 00:11:30,446
+MapKit JS aware of your token
+
+
+345
+00:11:30,446 --> 00:11:31,036
+endpoint?
+
+
+346
+00:11:31,116 --> 00:11:33,426
+That happens when you provide a
+
+
+347
+00:11:33,426 --> 00:11:35,166
+callback function when you
+
+
+348
+00:11:35,166 --> 00:11:36,776
+initialize MapKit JS.
+
+
+349
+00:11:37,586 --> 00:11:39,736
+For short-lived tokens, MapKit
+
+
+350
+00:11:39,736 --> 00:11:41,316
+JS will fetch new tokens as
+
+
+351
+00:11:41,316 --> 00:11:42,886
+needed throughout an active
+
+
+352
+00:11:42,886 --> 00:11:43,686
+user's session.
+
+
+353
+00:11:46,326 --> 00:11:48,866
+Note that when MapKit JS invokes
+
+
+354
+00:11:48,866 --> 00:11:50,726
+your callback function, it'll
+
+
+355
+00:11:50,726 --> 00:11:52,676
+pass it a function, which for
+
+
+356
+00:11:52,676 --> 00:11:54,256
+this example we're calling done.
+
+
+357
+00:11:55,166 --> 00:11:56,826
+Call this function with your new
+
+
+358
+00:11:56,826 --> 00:11:58,956
+token to allow MapKit JS to
+
+
+359
+00:11:58,956 --> 00:12:00,706
+proceed with the authorization
+
+
+360
+00:12:00,706 --> 00:12:01,306
+process.
+
+
+361
+00:12:03,366 --> 00:12:04,516
+If you're using long-lived
+
+
+362
+00:12:04,516 --> 00:12:06,416
+tokens, simply call the done
+
+
+363
+00:12:06,416 --> 00:12:08,136
+function immediately in the body
+
+
+364
+00:12:08,136 --> 00:12:09,846
+of the authorization callback
+
+
+365
+00:12:09,846 --> 00:12:10,406
+function.
+
+
+366
+00:12:11,146 --> 00:12:12,936
+MapKit JS will use the same
+
+
+367
+00:12:12,936 --> 00:12:14,846
+long-lived token any time it
+
+
+368
+00:12:14,846 --> 00:12:16,756
+needs to refresh its
+
+
+369
+00:12:16,756 --> 00:12:17,536
+authorization.
+
+
+370
+00:12:19,526 --> 00:12:21,976
+Finally, set a map container and
+
+
+371
+00:12:21,976 --> 00:12:23,016
+center for your map.
+
+
+372
+00:12:25,896 --> 00:12:27,656
+Now, let's start our server and
+
+
+373
+00:12:27,656 --> 00:12:28,756
+see this all in action.
+
+
+374
+00:12:31,176 --> 00:12:32,206
+If everything is set up
+
+
+375
+00:12:32,206 --> 00:12:33,996
+correctly, your browser should
+
+
+376
+00:12:33,996 --> 00:12:34,756
+display a map.
+
+
+377
+00:12:36,686 --> 00:12:37,836
+If you're using short-lived
+
+
+378
+00:12:37,836 --> 00:12:40,276
+tokens in the web inspector, you
+
+
+379
+00:12:40,276 --> 00:12:42,576
+should see a server endpoint
+
+
+380
+00:12:42,576 --> 00:12:44,466
+being called, returning an
+
+
+381
+00:12:44,466 --> 00:12:45,626
+authorization token.
+
+
+382
+00:12:46,876 --> 00:12:48,516
+Now that MapKit JS has its
+
+
+383
+00:12:48,516 --> 00:12:49,996
+authorization, it'll do the
+
+
+384
+00:12:49,996 --> 00:12:50,416
+rest.
+
+
+385
+00:12:51,146 --> 00:12:53,816
+MapKit JS will request from your
+
+
+386
+00:12:53,916 --> 00:12:55,166
+route whenever it needs a new
+
+
+387
+00:12:55,166 --> 00:12:55,666
+token.
+
+
+388
+00:12:57,896 --> 00:12:59,926
+So now you know how MapKit JS
+
+
+389
+00:12:59,926 --> 00:13:01,066
+authorization works.
+
+
+390
+00:13:02,086 --> 00:13:03,756
+You know how to create a MapKit
+
+
+391
+00:13:03,756 --> 00:13:07,016
+JS key, create an authorization
+
+
+392
+00:13:07,016 --> 00:13:09,836
+token, as well as how to make a
+
+
+393
+00:13:09,836 --> 00:13:11,706
+map initialized with your new
+
+
+394
+00:13:11,706 --> 00:13:12,176
+token.
+
+
+395
+00:13:14,346 --> 00:13:17,056
+Remember, get your MapKit JS key
+
+
+396
+00:13:17,056 --> 00:13:18,476
+and store it in a safe place.
+
+
+397
+00:13:19,086 --> 00:13:21,106
+Only send authorization tokens
+
+
+398
+00:13:21,166 --> 00:13:21,736
+over the web.
+
+
+399
+00:13:22,846 --> 00:13:24,466
+If a key becomes compromised,
+
+
+400
+00:13:24,806 --> 00:13:26,556
+revoke it on the Apple Developer
+
+
+401
+00:13:26,556 --> 00:13:28,426
+website as soon as you've
+
+
+402
+00:13:28,426 --> 00:13:30,246
+created and updated your website
+
+
+403
+00:13:30,246 --> 00:13:31,076
+with a replacement.
+
+
+404
+00:13:32,866 --> 00:13:35,006
+For more information, visit
+
+
+405
+00:13:35,066 --> 00:13:41,316
+developer.apple.com/wwdc18/508.
+
+
+406
+00:13:41,316 --> 00:13:44,846
+Have a look at our session,
+
+
+407
+00:13:44,996 --> 00:13:46,546
+Introducing MapKit JS, in the
+
+
+408
+00:13:46,546 --> 00:13:48,806
+Executive Ballroom on Tuesday at
+
+
+409
+00:13:48,806 --> 00:13:49,776
+5:00 PM.
+
+
+410
+00:13:50,856 --> 00:13:51,296
+Thank you.
+

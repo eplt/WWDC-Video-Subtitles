@@ -1,0 +1,5949 @@
+1
+00:00:07,516 --> 00:00:16,500
+[ Music ]
+
+
+2
+00:00:24,516 --> 00:00:31,936
+[ Applause ]
+
+
+3
+00:00:32,436 --> 00:00:32,826
+>> Hello.
+
+
+4
+00:00:33,346 --> 00:00:34,526
+Welcome to Testing Tips &
+
+
+5
+00:00:34,526 --> 00:00:34,956
+Tricks.
+
+
+6
+00:00:36,096 --> 00:00:37,356
+My name is Brian Croom.
+
+
+7
+00:00:38,336 --> 00:00:40,066
+My colleague, Stuart, and I are
+
+
+8
+00:00:40,066 --> 00:00:41,376
+really excited to share some
+
+
+9
+00:00:41,376 --> 00:00:42,586
+great testing techniques with
+
+
+10
+00:00:42,586 --> 00:00:43,716
+you that we have been learning
+
+
+11
+00:00:43,716 --> 00:00:44,246
+recently.
+
+
+12
+00:00:44,836 --> 00:00:48,526
+As the conference was
+
+
+13
+00:00:48,526 --> 00:00:50,026
+approaching, we thought it would
+
+
+14
+00:00:50,026 --> 00:00:51,376
+be really cool to have an app
+
+
+15
+00:00:51,426 --> 00:00:53,266
+that we could use to find cool
+
+
+16
+00:00:53,266 --> 00:00:54,996
+things to see and do around the
+
+
+17
+00:00:54,996 --> 00:00:56,166
+area of the convention center.
+
+
+18
+00:00:56,756 --> 00:00:58,826
+We've been building this app,
+
+
+19
+00:00:59,306 --> 00:01:00,916
+giving it views for finding
+
+
+20
+00:01:00,916 --> 00:01:02,596
+various point of interest around
+
+
+21
+00:01:02,596 --> 00:01:04,586
+San Jose and listing how far
+
+
+22
+00:01:04,586 --> 00:01:05,385
+they are away from you.
+
+
+23
+00:01:05,385 --> 00:01:08,806
+Now, of course, we wanted to
+
+
+24
+00:01:08,806 --> 00:01:10,466
+make sure we had a really great
+
+
+25
+00:01:10,516 --> 00:01:12,636
+test suite for this app that we
+
+
+26
+00:01:12,636 --> 00:01:14,226
+could run to give us confidence
+
+
+27
+00:01:14,376 --> 00:01:15,416
+that our code was working
+
+
+28
+00:01:15,416 --> 00:01:17,476
+properly and would keep working
+
+
+29
+00:01:17,476 --> 00:01:18,616
+as we continue development.
+
+
+30
+00:01:19,196 --> 00:01:24,246
+Today, we want to share four
+
+
+31
+00:01:24,246 --> 00:01:25,636
+simple techniques with you that
+
+
+32
+00:01:25,636 --> 00:01:27,086
+we found really helpful while
+
+
+33
+00:01:27,086 --> 00:01:29,026
+writing tests for our app.
+
+
+34
+00:01:29,976 --> 00:01:32,076
+Some strategies for testing
+
+
+35
+00:01:32,076 --> 00:01:33,806
+networking code in your app,
+
+
+36
+00:01:34,616 --> 00:01:36,836
+some tips for tests dealing with
+
+
+37
+00:01:36,836 --> 00:01:38,516
+foundation notification objects,
+
+
+38
+00:01:38,936 --> 00:01:41,356
+ways to take advantage of
+
+
+39
+00:01:41,496 --> 00:01:43,176
+protocols when making mock
+
+
+40
+00:01:43,176 --> 00:01:46,026
+objects in your tests, and a few
+
+
+41
+00:01:46,026 --> 00:01:47,066
+techniques for keeping your
+
+
+42
+00:01:47,066 --> 00:01:48,556
+tests running really fast.
+
+
+43
+00:01:49,036 --> 00:01:53,346
+Let's start talking about
+
+
+44
+00:01:53,346 --> 00:01:53,926
+networking.
+
+
+45
+00:01:55,576 --> 00:01:57,066
+To allow for dynamic content
+
+
+46
+00:01:57,066 --> 00:01:58,856
+updates, we've been building our
+
+
+47
+00:01:58,856 --> 00:02:00,326
+app to load its data from a
+
+
+48
+00:02:00,326 --> 00:02:01,196
+remote web server.
+
+
+49
+00:02:02,506 --> 00:02:03,646
+Here are some things that we
+
+
+50
+00:02:03,646 --> 00:02:05,446
+found useful when writing tests
+
+
+51
+00:02:05,446 --> 00:02:06,236
+for networking code.
+
+
+52
+00:02:06,706 --> 00:02:10,856
+But first, quick, a recap from
+
+
+53
+00:02:10,856 --> 00:02:11,326
+last year.
+
+
+54
+00:02:12,376 --> 00:02:15,176
+At WWDC 2017's Engineering
+
+
+55
+00:02:15,176 --> 00:02:17,196
+Testability session, we
+
+
+56
+00:02:17,196 --> 00:02:19,546
+discussed the pyramid model as a
+
+
+57
+00:02:19,546 --> 00:02:20,906
+guide to how to structure a test
+
+
+58
+00:02:20,906 --> 00:02:23,676
+suite, balancing thoroughness,
+
+
+59
+00:02:23,676 --> 00:02:25,716
+understandability, and execution
+
+
+60
+00:02:25,716 --> 00:02:26,026
+speed.
+
+
+61
+00:02:28,376 --> 00:02:30,876
+In summary, an ideal test suite
+
+
+62
+00:02:31,016 --> 00:02:32,406
+tends to be composed of a large
+
+
+63
+00:02:32,436 --> 00:02:34,056
+percentage of focused unit
+
+
+64
+00:02:34,056 --> 00:02:36,006
+tests, exercising individual
+
+
+65
+00:02:36,006 --> 00:02:38,246
+classes and methods in your app.
+
+
+66
+00:02:39,416 --> 00:02:41,206
+These are characterized by being
+
+
+67
+00:02:41,266 --> 00:02:43,726
+simple to read, producing clear
+
+
+68
+00:02:43,726 --> 00:02:45,246
+failure messages when we detect
+
+
+69
+00:02:45,246 --> 00:02:47,826
+a problem, and by running very
+
+
+70
+00:02:47,826 --> 00:02:49,796
+quickly, often in the order of
+
+
+71
+00:02:49,796 --> 00:02:51,236
+hundreds or thousands of tests
+
+
+72
+00:02:51,286 --> 00:02:51,686
+per minute.
+
+
+73
+00:02:54,456 --> 00:02:55,976
+These are complemented by a
+
+
+74
+00:02:55,976 --> 00:02:58,056
+smaller number of medium-sized
+
+
+75
+00:02:58,056 --> 00:03:00,676
+integration tests that targeted
+
+
+76
+00:03:00,676 --> 00:03:02,916
+discreet subsystem or cluster of
+
+
+77
+00:03:02,916 --> 00:03:05,176
+classes in your app, checking
+
+
+78
+00:03:05,176 --> 00:03:05,906
+that they worked together
+
+
+79
+00:03:05,906 --> 00:03:07,826
+properly, each taking no more
+
+
+80
+00:03:07,826 --> 00:03:08,926
+than a few seconds to run.
+
+
+81
+00:03:11,486 --> 00:03:13,176
+And the suite is topped off by a
+
+
+82
+00:03:13,176 --> 00:03:14,606
+handful of end-to-end system
+
+
+83
+00:03:14,606 --> 00:03:16,436
+tests, most often taking the
+
+
+84
+00:03:16,436 --> 00:03:19,016
+form of UI tests that exercise
+
+
+85
+00:03:19,016 --> 00:03:20,906
+the app in a way very similar to
+
+
+86
+00:03:20,906 --> 00:03:22,336
+how the end-user will do so on
+
+
+87
+00:03:22,336 --> 00:03:25,196
+their devices, checking that all
+
+
+88
+00:03:25,196 --> 00:03:26,036
+the pieces are hooked up
+
+
+89
+00:03:26,036 --> 00:03:28,486
+properly and interact well with
+
+
+90
+00:03:28,486 --> 00:03:30,006
+the underlying operating system
+
+
+91
+00:03:30,136 --> 00:03:31,476
+and external resources.
+
+
+92
+00:03:32,026 --> 00:03:34,946
+A test suite following this
+
+
+93
+00:03:34,946 --> 00:03:36,526
+model can provide a
+
+
+94
+00:03:36,526 --> 00:03:38,076
+comprehensive picture of how an
+
+
+95
+00:03:38,076 --> 00:03:39,266
+app code's base is functioning.
+
+
+96
+00:03:43,476 --> 00:03:45,056
+For testing the networking stack
+
+
+97
+00:03:45,056 --> 00:03:46,966
+in this app, we really wanted to
+
+
+98
+00:03:46,966 --> 00:03:48,346
+take the pyramid model to heart
+
+
+99
+00:03:48,956 --> 00:03:50,436
+and use it as a guide for how to
+
+
+100
+00:03:50,436 --> 00:03:52,026
+structure our test suite.
+
+
+101
+00:03:53,056 --> 00:03:54,626
+Here, we see the high-level data
+
+
+102
+00:03:54,626 --> 00:03:56,126
+flow involved in making a
+
+
+103
+00:03:56,126 --> 00:03:58,036
+network request in the app and
+
+
+104
+00:03:58,076 --> 00:03:59,146
+feeding the data into the UI.
+
+
+105
+00:04:02,406 --> 00:04:03,706
+In an early prototype of the
+
+
+106
+00:04:03,846 --> 00:04:05,476
+app, we had a method in our view
+
+
+107
+00:04:05,476 --> 00:04:06,946
+controller that was doing all of
+
+
+108
+00:04:06,946 --> 00:04:09,226
+this in a single place, and it
+
+
+109
+00:04:09,226 --> 00:04:10,036
+looked like this.
+
+
+110
+00:04:12,356 --> 00:04:13,906
+The method takes a parameter
+
+
+111
+00:04:13,906 --> 00:04:15,786
+with the user's location and
+
+
+112
+00:04:17,096 --> 00:04:19,416
+uses that to construct a URL for
+
+
+113
+00:04:19,416 --> 00:04:21,386
+a service API endpoint with a
+
+
+114
+00:04:21,386 --> 00:04:23,026
+location as query parameters.
+
+
+115
+00:04:25,856 --> 00:04:27,476
+Then it uses Foundation's
+
+
+116
+00:04:27,476 --> 00:04:29,906
+URLSession APIs to make a data
+
+
+117
+00:04:29,906 --> 00:04:32,076
+task for a get request to that
+
+
+118
+00:04:32,076 --> 00:04:32,356
+URL.
+
+
+119
+00:04:34,616 --> 00:04:37,226
+Then the server responds, it
+
+
+120
+00:04:37,226 --> 00:04:40,106
+would unwrap the data, decode it
+
+
+121
+00:04:40,106 --> 00:04:41,476
+using foundation's JSONDecoder
+
+
+122
+00:04:41,476 --> 00:04:44,146
+API, into an array of point of
+
+
+123
+00:04:44,146 --> 00:04:45,796
+interest values, which is a
+
+
+124
+00:04:45,796 --> 00:04:47,286
+struct that I declared elsewhere
+
+
+125
+00:04:47,286 --> 00:04:49,036
+and conforms the decodable
+
+
+126
+00:04:49,036 --> 00:04:49,536
+protocol.
+
+
+127
+00:04:49,536 --> 00:04:52,936
+And it stores that into a
+
+
+128
+00:04:52,936 --> 00:04:54,386
+property to drive a table view
+
+
+129
+00:04:54,386 --> 00:04:55,616
+[inaudible] implementation,
+
+
+130
+00:04:56,086 --> 00:04:56,976
+putting it onto the screen.
+
+
+131
+00:05:00,366 --> 00:05:01,806
+Now, it's pretty remarkable that
+
+
+132
+00:05:01,806 --> 00:05:03,516
+I was able to do all of this in
+
+
+133
+00:05:03,516 --> 00:05:05,086
+just about 15 lines of code,
+
+
+134
+00:05:05,796 --> 00:05:07,106
+leveraging the power of Swift
+
+
+135
+00:05:07,106 --> 00:05:10,296
+and Foundation, but, by putting
+
+
+136
+00:05:10,296 --> 00:05:11,586
+this together in the one method,
+
+
+137
+00:05:12,256 --> 00:05:12,646
+I [inaudible] the
+
+
+138
+00:05:12,676 --> 00:05:14,726
+maintainability and especially
+
+
+139
+00:05:14,766 --> 00:05:20,786
+the testability of this code.
+
+
+140
+00:05:20,986 --> 00:05:22,116
+Looking at the base of our
+
+
+141
+00:05:22,176 --> 00:05:23,956
+testing pyramid, what we really
+
+
+142
+00:05:23,956 --> 00:05:25,456
+want to be able to do here is
+
+
+143
+00:05:25,456 --> 00:05:27,376
+write focus unit tests for each
+
+
+144
+00:05:27,376 --> 00:05:28,436
+of these pieces of the flow.
+
+
+145
+00:05:29,066 --> 00:05:32,576
+Let's first consider the request
+
+
+146
+00:05:32,576 --> 00:05:34,216
+preparation and response parsing
+
+
+147
+00:05:34,216 --> 00:05:34,746
+steps.
+
+
+148
+00:05:38,516 --> 00:05:40,306
+In order to make this code more
+
+
+149
+00:05:40,306 --> 00:05:42,646
+testable, we started by pulling
+
+
+150
+00:05:42,646 --> 00:05:43,886
+it out of the view controller
+
+
+151
+00:05:44,506 --> 00:05:46,976
+and made two methods on this
+
+
+152
+00:05:46,976 --> 00:05:47,596
+dedicated
+
+
+153
+00:05:47,596 --> 00:05:50,386
+PointsOfInterestRequest type,
+
+
+154
+00:05:50,596 --> 00:05:52,466
+giving us two nicely decoupled
+
+
+155
+00:05:52,466 --> 00:05:54,306
+methods that each take some
+
+
+156
+00:05:54,306 --> 00:05:57,216
+values as input and transform
+
+
+157
+00:05:57,216 --> 00:05:58,576
+them into some output values
+
+
+158
+00:05:58,686 --> 00:06:00,536
+without any side effects.
+
+
+159
+00:06:03,056 --> 00:06:04,166
+This makes it very
+
+
+160
+00:06:04,166 --> 00:06:06,176
+straightforward for us to write
+
+
+161
+00:06:06,176 --> 00:06:08,226
+a focused unit test for the
+
+
+162
+00:06:09,236 --> 00:06:09,346
+code.
+
+
+163
+00:06:09,556 --> 00:06:10,226
+Here we're testing the
+
+
+164
+00:06:10,226 --> 00:06:12,356
+makeRequest method just by
+
+
+165
+00:06:12,356 --> 00:06:13,306
+making a sample and put
+
+
+166
+00:06:13,336 --> 00:06:14,986
+location, passing it into the
+
+
+167
+00:06:14,986 --> 00:06:16,826
+method, and making some
+
+
+168
+00:06:16,826 --> 00:06:18,146
+assertions about its return
+
+
+169
+00:06:18,146 --> 00:06:18,330
+value.
+
+
+170
+00:06:22,056 --> 00:06:23,206
+Similarly, we can test the
+
+
+171
+00:06:23,206 --> 00:06:25,056
+response parsing by passing in
+
+
+172
+00:06:25,056 --> 00:06:26,806
+some mock JSON and making
+
+
+173
+00:06:26,806 --> 00:06:27,946
+assertions about the parsed
+
+
+174
+00:06:27,946 --> 00:06:28,906
+result.
+
+
+175
+00:06:31,236 --> 00:06:33,396
+One other thing to note about
+
+
+176
+00:06:33,396 --> 00:06:34,936
+this test is that I'm taking
+
+
+177
+00:06:34,936 --> 00:06:37,266
+advantage of XCTest support for
+
+
+178
+00:06:37,266 --> 00:06:38,766
+test methods marked as throws,
+
+
+179
+00:06:39,476 --> 00:06:41,256
+allowing me to use try in my
+
+
+180
+00:06:41,256 --> 00:06:43,066
+test code without needing an
+
+
+181
+00:06:43,066 --> 00:06:44,616
+explicit do catch block around
+
+
+182
+00:06:44,946 --> 00:06:45,000
+it.
+
+
+183
+00:06:49,346 --> 00:06:50,516
+Now, let's see the code for
+
+
+184
+00:06:50,516 --> 00:06:51,876
+interacting with URL session.
+
+
+185
+00:06:54,296 --> 00:06:55,886
+Here, again, we pull it out the
+
+
+186
+00:06:55,886 --> 00:06:58,716
+view controller, made a
+
+
+187
+00:06:58,716 --> 00:07:00,966
+APIRequest protocol with methods
+
+
+188
+00:07:01,016 --> 00:07:02,326
+matching the signature of the
+
+
+189
+00:07:02,326 --> 00:07:03,326
+methods from the request type
+
+
+190
+00:07:03,326 --> 00:07:04,036
+that we just saw.
+
+
+191
+00:07:04,186 --> 00:07:06,536
+And this is used by an
+
+
+192
+00:07:06,536 --> 00:07:08,156
+APIRequestLoader class.
+
+
+193
+00:07:09,576 --> 00:07:10,666
+That's initialized with a
+
+
+194
+00:07:10,666 --> 00:07:13,536
+request type and a urlSession
+
+
+195
+00:07:16,656 --> 00:07:16,906
+instance.
+
+
+196
+00:07:17,546 --> 00:07:19,546
+This class has a loadAPIRequest
+
+
+197
+00:07:19,546 --> 00:07:21,586
+method which uses that
+
+
+198
+00:07:21,586 --> 00:07:23,526
+apiRequest value to generate a
+
+
+199
+00:07:23,526 --> 00:07:24,316
+URL request.
+
+
+200
+00:07:25,446 --> 00:07:27,106
+Feed that into the urlSession,
+
+
+201
+00:07:27,456 --> 00:07:29,566
+and then use the apiRequest
+
+
+202
+00:07:29,566 --> 00:07:30,966
+again to parse in your response.
+
+
+203
+00:07:30,966 --> 00:07:36,316
+Now, we can continue write unit
+
+
+204
+00:07:36,316 --> 00:07:38,256
+test for this method, but right
+
+
+205
+00:07:38,256 --> 00:07:39,356
+now I actually want to move up
+
+
+206
+00:07:39,436 --> 00:07:41,026
+the pyramid and look at a
+
+
+207
+00:07:41,026 --> 00:07:42,876
+midlevel integration test that
+
+
+208
+00:07:42,876 --> 00:07:44,006
+covers several pieces of this
+
+
+209
+00:07:44,006 --> 00:07:44,496
+data flow.
+
+
+210
+00:07:46,756 --> 00:07:48,226
+Another thing that I really want
+
+
+211
+00:07:48,346 --> 00:07:50,446
+to also be able to test at this
+
+
+212
+00:07:50,446 --> 00:07:52,326
+layer of my suite is that my
+
+
+213
+00:07:52,326 --> 00:07:54,296
+interaction with the URLSession
+
+
+214
+00:07:54,296 --> 00:07:55,746
+APIs is correct.
+
+
+215
+00:07:56,756 --> 00:07:58,526
+It turns out that the foundation
+
+
+216
+00:07:58,526 --> 00:08:00,256
+URL loading system provides a
+
+
+217
+00:08:00,256 --> 00:08:03,976
+great hook for doing this.
+
+
+218
+00:08:04,206 --> 00:08:06,406
+URLSession provides a high level
+
+
+219
+00:08:06,406 --> 00:08:07,956
+API for apps to use to perform
+
+
+220
+00:08:07,956 --> 00:08:08,946
+network requests.
+
+
+221
+00:08:10,206 --> 00:08:11,416
+[Inaudible] objects like
+
+
+222
+00:08:11,416 --> 00:08:12,836
+URLSession data tests that
+
+
+223
+00:08:12,836 --> 00:08:14,356
+represent an inflight request.
+
+
+224
+00:08:14,696 --> 00:08:17,086
+Behind the scenes though,
+
+
+225
+00:08:17,556 --> 00:08:18,936
+there's another lower-level API
+
+
+226
+00:08:19,446 --> 00:08:22,256
+URLProtocol which performs the
+
+
+227
+00:08:22,256 --> 00:08:23,436
+underlying work of opening
+
+
+228
+00:08:23,436 --> 00:08:25,266
+network connection, writing the
+
+
+229
+00:08:25,266 --> 00:08:26,826
+request, and reading back a
+
+
+230
+00:08:26,826 --> 00:08:27,466
+response.
+
+
+231
+00:08:29,486 --> 00:08:31,196
+URLProtocol is designed to be
+
+
+232
+00:08:31,196 --> 00:08:32,916
+subclassed giving an
+
+
+233
+00:08:32,916 --> 00:08:34,905
+extensibility point for the URL
+
+
+234
+00:08:34,905 --> 00:08:35,596
+loading system.
+
+
+235
+00:08:38,956 --> 00:08:40,716
+Foundation provides built-in
+
+
+236
+00:08:40,716 --> 00:08:43,226
+protocols subclasses for common
+
+
+237
+00:08:43,226 --> 00:08:44,145
+protocols like HTTPS.
+
+
+238
+00:08:44,145 --> 00:08:47,036
+But we can override these in our
+
+
+239
+00:08:47,036 --> 00:08:48,416
+tests by providing a mock
+
+
+240
+00:08:48,486 --> 00:08:50,456
+protocol that lets us make
+
+
+241
+00:08:50,456 --> 00:08:52,076
+assertions about requests that
+
+
+242
+00:08:52,076 --> 00:08:54,756
+are coming out and provide mock
+
+
+243
+00:08:54,756 --> 00:08:55,426
+responses.
+
+
+244
+00:08:59,346 --> 00:09:00,886
+URLProtocol communicates
+
+
+245
+00:09:00,886 --> 00:09:02,886
+progress back to the system via
+
+
+246
+00:09:02,886 --> 00:09:07,976
+the URLProtocolClient protocol.
+
+
+247
+00:09:08,056 --> 00:09:09,466
+We can use this in this way.
+
+
+248
+00:09:10,886 --> 00:09:12,726
+We make a MockURLProtocol class
+
+
+249
+00:09:12,776 --> 00:09:15,586
+in our test bundle, overriding
+
+
+250
+00:09:15,746 --> 00:09:18,046
+canInit request to indicate to
+
+
+251
+00:09:18,046 --> 00:09:19,336
+the system that we're interested
+
+
+252
+00:09:19,336 --> 00:09:20,756
+in any request that it offers
+
+
+253
+00:09:21,606 --> 00:09:21,706
+us.
+
+
+254
+00:09:23,596 --> 00:09:25,276
+Implement canonicalRequest for
+
+
+255
+00:09:25,276 --> 00:09:27,316
+request, but the start loading
+
+
+256
+00:09:27,316 --> 00:09:28,496
+and stop loading method's where
+
+
+257
+00:09:28,496 --> 00:09:29,786
+most of the action happens.
+
+
+258
+00:09:34,516 --> 00:09:36,126
+To give our tests a way to hook
+
+
+259
+00:09:36,126 --> 00:09:38,216
+into this URLProtocol, we'll
+
+
+260
+00:09:38,216 --> 00:09:39,376
+provide a closure property
+
+
+261
+00:09:39,606 --> 00:09:41,506
+requestHandler for the test to
+
+
+262
+00:09:41,646 --> 00:09:42,000
+set.
+
+
+263
+00:09:44,636 --> 00:09:47,106
+When a URLSession task begins,
+
+
+264
+00:09:47,136 --> 00:09:48,716
+the system will instantiate our
+
+
+265
+00:09:48,746 --> 00:09:51,156
+URLProtocol subclass, giving it
+
+
+266
+00:09:51,156 --> 00:09:53,606
+the URLRequest value and a
+
+
+267
+00:09:53,606 --> 00:09:55,206
+URLProtocol client instance.
+
+
+268
+00:09:56,996 --> 00:09:58,536
+Then it'll call our startLoading
+
+
+269
+00:09:58,536 --> 00:10:00,906
+method, where we'll take our
+
+
+270
+00:10:00,906 --> 00:10:02,016
+requestHandler to the test
+
+
+271
+00:10:02,016 --> 00:10:04,546
+subsets and call it with a
+
+
+272
+00:10:04,546 --> 00:10:05,706
+URLRequest as a parameter.
+
+
+273
+00:10:07,296 --> 00:10:08,766
+We'll take what it returns and
+
+
+274
+00:10:08,766 --> 00:10:10,156
+pass it back to the system,
+
+
+275
+00:10:10,926 --> 00:10:12,746
+either as a URL response plus
+
+
+276
+00:10:12,806 --> 00:10:15,496
+data, or as an error.
+
+
+277
+00:10:15,666 --> 00:10:19,666
+If you want to do test request
+
+
+278
+00:10:19,666 --> 00:10:21,116
+cancellation, we could do
+
+
+279
+00:10:21,116 --> 00:10:22,476
+something similar in a
+
+
+280
+00:10:22,476 --> 00:10:23,626
+stopLoading method
+
+
+281
+00:10:23,626 --> 00:10:24,336
+implementation.
+
+
+282
+00:10:28,576 --> 00:10:30,406
+With the stub protocol in hand,
+
+
+283
+00:10:30,716 --> 00:10:33,346
+we can write our test.
+
+
+284
+00:10:33,476 --> 00:10:34,546
+We set up by making an
+
+
+285
+00:10:34,546 --> 00:10:36,126
+APIRequestLoader instance,
+
+
+286
+00:10:36,676 --> 00:10:38,026
+configure it with a request type
+
+
+287
+00:10:39,166 --> 00:10:40,786
+and a URLSession that's been
+
+
+288
+00:10:40,786 --> 00:10:41,836
+configured to use our
+
+
+289
+00:10:41,836 --> 00:10:42,546
+URLProtocol.
+
+
+290
+00:10:46,056 --> 00:10:48,346
+In the test body, we set a
+
+
+291
+00:10:48,346 --> 00:10:49,426
+requestHandler on the
+
+
+292
+00:10:49,426 --> 00:10:52,086
+MockURLProtocol, making
+
+
+293
+00:10:52,086 --> 00:10:53,696
+assertions about the request
+
+
+294
+00:10:53,696 --> 00:10:56,526
+that's going out, then providing
+
+
+295
+00:10:56,526 --> 00:10:57,326
+a stub response.
+
+
+296
+00:10:57,896 --> 00:11:01,676
+Then we can call loadAPIRequest,
+
+
+297
+00:11:03,046 --> 00:11:04,156
+waiting for the completion block
+
+
+298
+00:11:04,156 --> 00:11:06,986
+to be called, making assertions
+
+
+299
+00:11:06,986 --> 00:11:08,156
+about the parsed response.
+
+
+300
+00:11:10,776 --> 00:11:12,396
+Couple of tests at this layer
+
+
+301
+00:11:12,396 --> 00:11:14,246
+can give us a lot of confidence
+
+
+302
+00:11:14,516 --> 00:11:15,396
+that our code is working
+
+
+303
+00:11:15,396 --> 00:11:17,246
+together well and, also, that
+
+
+304
+00:11:17,246 --> 00:11:18,406
+we're integrating properly with
+
+
+305
+00:11:18,406 --> 00:11:18,966
+the system.
+
+
+306
+00:11:19,786 --> 00:11:21,176
+For example, this test that we
+
+
+307
+00:11:21,176 --> 00:11:23,416
+just saw would have failed if I
+
+
+308
+00:11:23,416 --> 00:11:24,876
+had forgotten to call a resume
+
+
+309
+00:11:24,906 --> 00:11:25,766
+on my data task.
+
+
+310
+00:11:26,606 --> 00:11:27,476
+I'm sure I'm not the only one
+
+
+311
+00:11:27,476 --> 00:11:29,000
+who's made that mistake.
+
+
+312
+00:11:33,096 --> 00:11:34,976
+Finally, it can also be really
+
+
+313
+00:11:34,976 --> 00:11:36,836
+valuable to include some system
+
+
+314
+00:11:36,836 --> 00:11:38,506
+level end-to-end tests.
+
+
+315
+00:11:39,776 --> 00:11:41,346
+Actually test a UI testing can
+
+
+316
+00:11:41,346 --> 00:11:43,126
+be a great tool for this.
+
+
+317
+00:11:44,236 --> 00:11:45,816
+To learn more about UI testing,
+
+
+318
+00:11:46,296 --> 00:11:47,886
+refer to the UI testing in Xcode
+
+
+319
+00:11:47,886 --> 00:11:50,506
+session from WWDC 2015.
+
+
+320
+00:11:51,146 --> 00:11:55,576
+Now, a significant challenge
+
+
+321
+00:11:56,016 --> 00:11:57,176
+that you encounter when you
+
+
+322
+00:11:57,176 --> 00:11:59,016
+start to write true end-to-end
+
+
+323
+00:11:59,016 --> 00:12:01,036
+tests is that when something
+
+
+324
+00:12:01,036 --> 00:12:01,986
+goes wrong when you get a test
+
+
+325
+00:12:01,986 --> 00:12:03,806
+failure, it can be really hard
+
+
+326
+00:12:03,806 --> 00:12:04,986
+to know where to start looking
+
+
+327
+00:12:04,986 --> 00:12:06,006
+for the source of the problem.
+
+
+328
+00:12:06,516 --> 00:12:08,876
+One thing that we were doing in
+
+
+329
+00:12:08,876 --> 00:12:09,876
+our test recently to help
+
+
+330
+00:12:09,876 --> 00:12:12,156
+mitigate this was to set up a
+
+
+331
+00:12:12,156 --> 00:12:13,606
+local instance of a mock server,
+
+
+332
+00:12:14,366 --> 00:12:15,806
+interrupting our UI tests to
+
+
+333
+00:12:15,806 --> 00:12:16,996
+make requests against that
+
+
+334
+00:12:17,366 --> 00:12:18,386
+instead of the real server.
+
+
+335
+00:12:19,736 --> 00:12:21,126
+This allowed our UI test to be
+
+
+336
+00:12:21,126 --> 00:12:22,696
+much more reliable, because we
+
+
+337
+00:12:22,696 --> 00:12:24,226
+had control over the data being
+
+
+338
+00:12:24,226 --> 00:12:26,066
+fed back into the app.
+
+
+339
+00:12:28,366 --> 00:12:30,106
+Now, while using a mock server
+
+
+340
+00:12:30,106 --> 00:12:31,106
+can be really useful in this
+
+
+341
+00:12:31,106 --> 00:12:33,156
+context, it is also good to have
+
+
+342
+00:12:33,156 --> 00:12:34,816
+some tests making requests
+
+
+343
+00:12:34,816 --> 00:12:35,706
+against the real server.
+
+
+344
+00:12:36,256 --> 00:12:40,056
+One cool technique for doing
+
+
+345
+00:12:40,056 --> 00:12:41,836
+this can be to have some tests
+
+
+346
+00:12:41,836 --> 00:12:43,656
+in the unit testing bundle that
+
+
+347
+00:12:43,656 --> 00:12:45,236
+call directly into your apps in
+
+
+348
+00:12:45,236 --> 00:12:47,686
+that work in Stack and use that
+
+
+349
+00:12:47,836 --> 00:12:48,966
+to direct requests against the
+
+
+350
+00:12:48,966 --> 00:12:49,566
+real server.
+
+
+351
+00:12:51,096 --> 00:12:52,596
+This provides a way of verifying
+
+
+352
+00:12:52,596 --> 00:12:54,316
+that the server is accepting
+
+
+353
+00:12:54,316 --> 00:12:55,716
+requests the way that your app
+
+
+354
+00:12:55,716 --> 00:12:57,986
+is making them and that you're
+
+
+355
+00:12:57,986 --> 00:12:58,956
+able to parse the server's
+
+
+356
+00:12:58,956 --> 00:13:01,566
+responses without having to deal
+
+
+357
+00:13:01,566 --> 00:13:02,736
+with the complications of
+
+
+358
+00:13:02,866 --> 00:13:04,326
+testing your UI at the same
+
+
+359
+00:13:04,916 --> 00:13:05,000
+time.
+
+
+360
+00:13:10,396 --> 00:13:12,596
+So, to wrap up, we've seen an
+
+
+361
+00:13:12,596 --> 00:13:14,476
+example of breaking code into
+
+
+362
+00:13:14,476 --> 00:13:16,306
+smaller, independent pieces to
+
+
+363
+00:13:16,306 --> 00:13:17,566
+facilitate unit testing.
+
+
+364
+00:13:18,156 --> 00:13:21,506
+We've seen how URLProtocol can
+
+
+365
+00:13:21,506 --> 00:13:23,426
+be used as a tool for mocking
+
+
+366
+00:13:23,426 --> 00:13:24,386
+network requests,
+
+
+367
+00:13:24,646 --> 00:13:27,426
+and we've discussed how the
+
+
+368
+00:13:27,426 --> 00:13:29,046
+power of the pyramid can be used
+
+
+369
+00:13:29,306 --> 00:13:30,336
+to help us structure a
+
+
+370
+00:13:30,336 --> 00:13:32,006
+well-balanced test suite that'll
+
+
+371
+00:13:32,006 --> 00:13:33,156
+give us good confidence in our
+
+
+372
+00:13:33,946 --> 00:13:34,046
+code.
+
+
+373
+00:13:35,186 --> 00:13:36,656
+Now, I want to call Stuart to
+
+
+374
+00:13:36,656 --> 00:13:38,176
+the stage to talk about some
+
+
+375
+00:13:38,236 --> 00:13:38,886
+more techniques.
+
+
+376
+00:13:40,516 --> 00:13:42,696
+[ Applause ]
+
+
+377
+00:13:43,196 --> 00:13:43,386
+>> Thanks.
+
+
+378
+00:13:46,616 --> 00:13:47,286
+Thanks, Brian.
+
+
+379
+00:13:48,186 --> 00:13:49,626
+So, the first area I'd like to
+
+
+380
+00:13:49,626 --> 00:13:51,016
+talk about is some best
+
+
+381
+00:13:51,056 --> 00:13:52,226
+practices for testing
+
+
+382
+00:13:52,226 --> 00:13:53,066
+notifications.
+
+
+383
+00:13:54,776 --> 00:13:57,036
+And to clarify, by notification
+
+
+384
+00:13:57,036 --> 00:13:58,276
+here, I'm talking about
+
+
+385
+00:13:58,426 --> 00:13:59,916
+foundation-level notifications
+
+
+386
+00:14:00,166 --> 00:14:01,686
+known as NSNotification and
+
+
+387
+00:14:01,686 --> 00:14:02,366
+Objective-C.
+
+
+388
+00:14:03,386 --> 00:14:04,926
+So, sometimes we need to test
+
+
+389
+00:14:04,926 --> 00:14:06,206
+that a subject observes a
+
+
+390
+00:14:06,206 --> 00:14:08,196
+notification, while other times
+
+
+391
+00:14:08,196 --> 00:14:09,356
+we need to test that a subject
+
+
+392
+00:14:09,406 --> 00:14:10,426
+posts a notification.
+
+
+393
+00:14:11,506 --> 00:14:13,326
+Notifications are a one-to-many
+
+
+394
+00:14:13,326 --> 00:14:14,936
+communication mechanism, and
+
+
+395
+00:14:14,936 --> 00:14:16,176
+that means that when a single
+
+
+396
+00:14:16,176 --> 00:14:18,216
+notification is posted, it may
+
+
+397
+00:14:18,216 --> 00:14:19,786
+be sent to multiple recipients
+
+
+398
+00:14:19,816 --> 00:14:21,516
+throughout your app or even in
+
+
+399
+00:14:21,516 --> 00:14:22,796
+the framework code running in
+
+
+400
+00:14:22,796 --> 00:14:23,766
+your app's process.
+
+
+401
+00:14:24,416 --> 00:14:25,726
+So, because of this, it's
+
+
+402
+00:14:25,726 --> 00:14:27,186
+important that we always test
+
+
+403
+00:14:27,366 --> 00:14:28,936
+notifications in an isolated
+
+
+404
+00:14:28,936 --> 00:14:32,996
+fashion to avoid unintended side
+
+
+405
+00:14:32,996 --> 00:14:34,566
+effects, since that can lead to
+
+
+406
+00:14:35,296 --> 00:14:36,786
+flaky, unreliable tests.
+
+
+407
+00:14:37,416 --> 00:14:38,766
+So, let's look at an example of
+
+
+408
+00:14:38,766 --> 00:14:39,966
+some code that has this problem.
+
+
+409
+00:14:41,356 --> 00:14:42,036
+Here, I have the
+
+
+410
+00:14:42,156 --> 00:14:42,856
+PointsOfInterest
+
+
+411
+00:14:42,856 --> 00:14:44,286
+TableViewController from the app
+
+
+412
+00:14:44,406 --> 00:14:45,286
+Brian and I are building.
+
+
+413
+00:14:46,186 --> 00:14:48,016
+It shows a list of nearby places
+
+
+414
+00:14:48,016 --> 00:14:50,026
+of interest in a table view, and
+
+
+415
+00:14:50,026 --> 00:14:51,246
+whenever the app's location
+
+
+416
+00:14:51,246 --> 00:14:52,986
+authorization changes, it may
+
+
+417
+00:14:52,986 --> 00:14:53,996
+need to reload its data.
+
+
+418
+00:14:54,486 --> 00:14:56,196
+So, it observes a notification
+
+
+419
+00:14:56,196 --> 00:14:57,896
+called authChanged from our
+
+
+420
+00:14:57,896 --> 00:14:59,536
+app's CurrentLocationProvider
+
+
+421
+00:14:59,536 --> 00:14:59,976
+class.
+
+
+422
+00:15:00,826 --> 00:15:01,506
+When it observes this
+
+
+423
+00:15:01,506 --> 00:15:03,336
+notification, it reloads its
+
+
+424
+00:15:03,336 --> 00:15:04,876
+data if necessary, and, then,
+
+
+425
+00:15:05,126 --> 00:15:06,416
+for the purpose of this example,
+
+
+426
+00:15:06,416 --> 00:15:07,346
+it sets a flag.
+
+
+427
+00:15:08,316 --> 00:15:10,376
+This way, our test code can
+
+
+428
+00:15:10,456 --> 00:15:11,846
+check that the flag to see if
+
+
+429
+00:15:11,846 --> 00:15:12,996
+the notification was actually
+
+
+430
+00:15:12,996 --> 00:15:13,406
+received.
+
+
+431
+00:15:13,876 --> 00:15:15,956
+We can see here that it's using
+
+
+432
+00:15:15,956 --> 00:15:17,526
+the default notification center
+
+
+433
+00:15:17,526 --> 00:15:18,456
+to add the observer.
+
+
+434
+00:15:19,916 --> 00:15:21,066
+Let's take a look at what a unit
+
+
+435
+00:15:21,066 --> 00:15:22,166
+test for this code might look
+
+
+436
+00:15:22,166 --> 00:15:22,436
+like.
+
+
+437
+00:15:23,476 --> 00:15:25,616
+Here in our test for this class,
+
+
+438
+00:15:25,836 --> 00:15:27,466
+we post the authChanged method
+
+
+439
+00:15:27,546 --> 00:15:29,066
+notification to simulate it, and
+
+
+440
+00:15:29,356 --> 00:15:30,516
+we post it to the default
+
+
+441
+00:15:30,516 --> 00:15:32,096
+NotificationCenter, the same one
+
+
+442
+00:15:32,096 --> 00:15:33,366
+that our view controller uses.
+
+
+443
+00:15:34,066 --> 00:15:36,166
+Now, this test works, but it may
+
+
+444
+00:15:36,166 --> 00:15:37,506
+have unknown side effects
+
+
+445
+00:15:37,506 --> 00:15:38,716
+elsewhere in our app's code.
+
+
+446
+00:15:39,506 --> 00:15:40,796
+It's common for some system
+
+
+447
+00:15:40,796 --> 00:15:42,406
+notifications like UI
+
+
+448
+00:15:42,406 --> 00:15:43,196
+applications
+
+
+449
+00:15:43,306 --> 00:15:44,496
+appDidFinishLaunching
+
+
+450
+00:15:44,496 --> 00:15:46,086
+notification to be observed by
+
+
+451
+00:15:46,086 --> 00:15:47,756
+many layers and to have unknown
+
+
+452
+00:15:47,756 --> 00:15:49,826
+side effects, or it could simply
+
+
+453
+00:15:49,826 --> 00:15:50,986
+slow down our tests.
+
+
+454
+00:15:51,636 --> 00:15:53,286
+So, we'd like to isolate this
+
+
+455
+00:15:53,286 --> 00:15:54,576
+code better to test this.
+
+
+456
+00:15:55,016 --> 00:15:57,996
+There's a technique we can use
+
+
+457
+00:15:57,996 --> 00:15:59,576
+to better isolate these tests.
+
+
+458
+00:16:00,326 --> 00:16:01,496
+To use it, we first have to
+
+
+459
+00:16:01,496 --> 00:16:02,186
+recognize that
+
+
+460
+00:16:02,186 --> 00:16:03,576
+NotificationCenter can have
+
+
+461
+00:16:03,576 --> 00:16:04,646
+multiple instances.
+
+
+462
+00:16:05,516 --> 00:16:08,106
+As you may note, it has a
+
+
+463
+00:16:08,256 --> 00:16:09,526
+default instance as a class
+
+
+464
+00:16:09,526 --> 00:16:10,766
+property, but it supports
+
+
+465
+00:16:10,766 --> 00:16:12,106
+creating additional instances
+
+
+466
+00:16:12,106 --> 00:16:13,536
+whenever necessary, and this is
+
+
+467
+00:16:13,536 --> 00:16:14,936
+going to be key to isolating our
+
+
+468
+00:16:14,936 --> 00:16:15,516
+tests.
+
+
+469
+00:16:16,436 --> 00:16:18,036
+So, to apply this technique, we
+
+
+470
+00:16:18,036 --> 00:16:19,386
+first have to create a new
+
+
+471
+00:16:19,386 --> 00:16:21,376
+NotificationCenter, pass it to
+
+
+472
+00:16:21,376 --> 00:16:23,366
+our subject and use it instead
+
+
+473
+00:16:23,366 --> 00:16:24,376
+of the default instance.
+
+
+474
+00:16:25,156 --> 00:16:26,636
+This is often referred to as
+
+
+475
+00:16:26,636 --> 00:16:27,546
+dependency injection.
+
+
+476
+00:16:28,486 --> 00:16:29,716
+So, let's take a look at using
+
+
+477
+00:16:29,716 --> 00:16:30,546
+this in our view controller.
+
+
+478
+00:16:31,936 --> 00:16:33,256
+Here, I have the original code
+
+
+479
+00:16:33,256 --> 00:16:34,476
+that uses the default
+
+
+480
+00:16:34,476 --> 00:16:36,096
+NotificationCenter, and I'll
+
+
+481
+00:16:36,096 --> 00:16:37,456
+modify it to use a separate
+
+
+482
+00:16:37,456 --> 00:16:38,006
+instance.
+
+
+483
+00:16:38,476 --> 00:16:40,136
+I've added a new
+
+
+484
+00:16:40,136 --> 00:16:42,046
+NotificationCenter property and
+
+
+485
+00:16:42,046 --> 00:16:43,316
+a parameter in the initializer
+
+
+486
+00:16:43,316 --> 00:16:43,896
+that sets it.
+
+
+487
+00:16:44,796 --> 00:16:45,756
+And, instead of adding an
+
+
+488
+00:16:45,756 --> 00:16:47,446
+observer to the default center,
+
+
+489
+00:16:47,446 --> 00:16:51,626
+it uses this new property.
+
+
+490
+00:16:51,876 --> 00:16:53,046
+I'll also add a default
+
+
+491
+00:16:53,046 --> 00:16:55,076
+parameter value of .default to
+
+
+492
+00:16:55,076 --> 00:16:57,056
+the initializer, and this avoids
+
+
+493
+00:16:57,056 --> 00:16:58,656
+breaking any existing code in my
+
+
+494
+00:16:58,656 --> 00:17:00,526
+app, since existing clients
+
+
+495
+00:17:00,596 --> 00:17:01,486
+won't need to pass the new
+
+
+496
+00:17:01,486 --> 00:17:03,366
+parameter, only our unit tests
+
+
+497
+00:17:03,366 --> 00:17:03,556
+will.
+
+
+498
+00:17:05,096 --> 00:17:07,076
+Now let's go back and update our
+
+
+499
+00:17:07,076 --> 00:17:07,616
+tests.
+
+
+500
+00:17:08,906 --> 00:17:10,046
+Here's the original test code,
+
+
+501
+00:17:10,935 --> 00:17:12,786
+and now I've modified it to use
+
+
+502
+00:17:12,786 --> 00:17:14,165
+a separate NotificationCenter.
+
+
+503
+00:17:17,455 --> 00:17:19,366
+So, this shows how we can test
+
+
+504
+00:17:19,366 --> 00:17:20,606
+that our subject observes a
+
+
+505
+00:17:20,606 --> 00:17:22,906
+notification, but how do we test
+
+
+506
+00:17:22,906 --> 00:17:23,776
+that our subject posts a
+
+
+507
+00:17:23,776 --> 00:17:24,415
+notification?
+
+
+508
+00:17:25,536 --> 00:17:27,026
+We'll use the same separate
+
+
+509
+00:17:27,185 --> 00:17:28,916
+NotificationCenter trick again,
+
+
+510
+00:17:29,186 --> 00:17:30,346
+but I'll also show how to make
+
+
+511
+00:17:30,346 --> 00:17:32,366
+use of built-in expectation APIs
+
+
+512
+00:17:32,366 --> 00:17:33,776
+to add a notification observer.
+
+
+513
+00:17:35,666 --> 00:17:36,746
+So, here's another section of
+
+
+514
+00:17:36,746 --> 00:17:38,096
+code from our app, the
+
+
+515
+00:17:38,096 --> 00:17:39,686
+CurrentLocationProvider class.
+
+
+516
+00:17:40,536 --> 00:17:41,706
+I'll talk more about this class
+
+
+517
+00:17:41,706 --> 00:17:44,106
+later, but notice that it has
+
+
+518
+00:17:44,106 --> 00:17:45,246
+this method for signaling to
+
+
+519
+00:17:45,246 --> 00:17:47,066
+other classes in my app that the
+
+
+520
+00:17:47,066 --> 00:17:48,776
+app's location authorization has
+
+
+521
+00:17:48,776 --> 00:17:49,896
+changed by posting a
+
+
+522
+00:17:49,896 --> 00:17:50,566
+notification.
+
+
+523
+00:17:51,976 --> 00:17:53,286
+As with our view controller,
+
+
+524
+00:17:53,376 --> 00:17:54,726
+it's currently hardcoding the
+
+
+525
+00:17:54,726 --> 00:17:56,066
+default NotificationCenter.
+
+
+526
+00:17:56,646 --> 00:17:59,836
+And here's a unit test I wrote
+
+
+527
+00:17:59,836 --> 00:18:00,716
+for this class.
+
+
+528
+00:18:01,076 --> 00:18:02,396
+It verifies that it posts a
+
+
+529
+00:18:02,396 --> 00:18:03,556
+notification whenever the
+
+
+530
+00:18:03,556 --> 00:18:05,116
+NotifyAuthChanged method is
+
+
+531
+00:18:05,116 --> 00:18:07,496
+called, and we can see in the
+
+
+532
+00:18:07,496 --> 00:18:08,926
+middle section here that this
+
+
+533
+00:18:08,926 --> 00:18:10,896
+test uses the addObserver method
+
+
+534
+00:18:10,896 --> 00:18:12,006
+to create a block-based
+
+
+535
+00:18:12,006 --> 00:18:13,546
+observer, and then it removes
+
+
+536
+00:18:13,546 --> 00:18:14,496
+that observer inside of the
+
+
+537
+00:18:14,496 --> 00:18:14,826
+block.
+
+
+538
+00:18:16,106 --> 00:18:17,256
+Now, one improvement that I can
+
+
+539
+00:18:17,256 --> 00:18:18,896
+make to this test is to use the
+
+
+540
+00:18:18,896 --> 00:18:19,396
+built-in
+
+
+541
+00:18:19,506 --> 00:18:22,416
+XCTNSNotificationExpectation API
+
+
+542
+00:18:22,476 --> 00:18:23,936
+to handle creating this
+
+
+543
+00:18:24,056 --> 00:18:25,856
+NotificationCenter observer for
+
+
+544
+00:18:25,856 --> 00:18:26,126
+us.
+
+
+545
+00:18:26,646 --> 00:18:28,666
+And this is a nice improvement,
+
+
+546
+00:18:28,666 --> 00:18:30,336
+and it allows us to delete
+
+
+547
+00:18:30,336 --> 00:18:31,356
+several lines of code.
+
+
+548
+00:18:32,756 --> 00:18:33,896
+But it still has the problem we
+
+
+549
+00:18:33,896 --> 00:18:35,506
+saw before of using the default
+
+
+550
+00:18:35,506 --> 00:18:37,216
+NotificationCenter implicitly,
+
+
+551
+00:18:37,476 --> 00:18:39,966
+so let's go fix that.
+
+
+552
+00:18:40,156 --> 00:18:42,666
+Here's our original code, and
+
+
+553
+00:18:42,666 --> 00:18:43,966
+I'll apply the same technique we
+
+
+554
+00:18:43,966 --> 00:18:45,646
+saw earlier of taking a separate
+
+
+555
+00:18:45,646 --> 00:18:46,856
+NotificationCenter in our
+
+
+556
+00:18:46,856 --> 00:18:49,076
+initializer, storing it, and
+
+
+557
+00:18:49,076 --> 00:18:50,456
+using it instead of the default.
+
+
+558
+00:18:50,546 --> 00:18:55,036
+Going back to our test code now,
+
+
+559
+00:18:56,086 --> 00:18:57,596
+I'll modify it to pass a new
+
+
+560
+00:18:57,596 --> 00:18:58,696
+NotificationCenter to our
+
+
+561
+00:18:58,696 --> 00:19:01,186
+subject, but take a look at the
+
+
+562
+00:19:01,186 --> 00:19:02,146
+expectation now.
+
+
+563
+00:19:03,366 --> 00:19:04,586
+When our tests are expecting to
+
+
+564
+00:19:04,586 --> 00:19:06,196
+receive a notification to a
+
+
+565
+00:19:06,196 --> 00:19:08,436
+specific center, we can pass the
+
+
+566
+00:19:08,436 --> 00:19:10,156
+NotificationCenter parameter to
+
+
+567
+00:19:10,156 --> 00:19:10,956
+the initializer of the
+
+
+568
+00:19:10,956 --> 00:19:11,656
+expectation.
+
+
+569
+00:19:13,426 --> 00:19:15,576
+I'd also like to point out that
+
+
+570
+00:19:15,576 --> 00:19:18,086
+the timeout of this expectation
+
+
+571
+00:19:18,086 --> 00:19:19,736
+is 0, and that's because we
+
+
+572
+00:19:19,736 --> 00:19:21,006
+actually expect it to already
+
+
+573
+00:19:21,006 --> 00:19:22,306
+have been fulfilled by the time
+
+
+574
+00:19:22,306 --> 00:19:22,806
+we wait on it.
+
+
+575
+00:19:23,896 --> 00:19:25,216
+That's because the notification
+
+
+576
+00:19:25,216 --> 00:19:26,446
+should have already been posted
+
+
+577
+00:19:26,526 --> 00:19:27,236
+by the time the
+
+
+578
+00:19:27,236 --> 00:19:28,616
+NotifyAuthChanged method
+
+
+579
+00:19:28,616 --> 00:19:29,216
+returns.
+
+
+580
+00:19:30,356 --> 00:19:31,946
+So, using this pair of
+
+
+581
+00:19:31,946 --> 00:19:32,846
+techniques for testing
+
+
+582
+00:19:32,846 --> 00:19:34,746
+notifications we can ensure that
+
+
+583
+00:19:34,746 --> 00:19:35,756
+our tests remained fully
+
+
+584
+00:19:35,756 --> 00:19:37,856
+isolated, and we've made the
+
+
+585
+00:19:37,856 --> 00:19:39,426
+change without needing to modify
+
+
+586
+00:19:39,426 --> 00:19:40,616
+an existing code in our app,
+
+
+587
+00:19:40,956 --> 00:19:42,346
+since we specified that default
+
+
+588
+00:19:42,416 --> 00:19:46,976
+parameter value.
+
+
+589
+00:19:47,926 --> 00:19:49,216
+So, next, I'd like to talk about
+
+
+590
+00:19:49,216 --> 00:19:50,456
+a frequent challenge when
+
+
+591
+00:19:50,456 --> 00:19:52,466
+writing unit tests, interacting
+
+
+592
+00:19:52,466 --> 00:19:53,666
+with external classes.
+
+
+593
+00:19:55,566 --> 00:19:57,036
+So, while developing your app,
+
+
+594
+00:19:57,386 --> 00:19:58,376
+you've probably run into
+
+
+595
+00:19:58,376 --> 00:20:00,546
+situations where your class is
+
+
+596
+00:20:00,546 --> 00:20:02,386
+talking to another class, either
+
+
+597
+00:20:02,386 --> 00:20:03,856
+elsewhere in your app or
+
+
+598
+00:20:03,856 --> 00:20:04,936
+provided by the SDK.
+
+
+599
+00:20:05,676 --> 00:20:07,316
+And you found it difficult to
+
+
+600
+00:20:07,316 --> 00:20:09,446
+write a test, because it's hard
+
+
+601
+00:20:09,446 --> 00:20:10,926
+or even impossible to create
+
+
+602
+00:20:10,926 --> 00:20:11,986
+that external class.
+
+
+603
+00:20:12,906 --> 00:20:14,546
+This happens a lot, especially
+
+
+604
+00:20:14,546 --> 00:20:16,076
+with APIs that aren't designed
+
+
+605
+00:20:16,076 --> 00:20:17,996
+to be created directly, and it's
+
+
+606
+00:20:17,996 --> 00:20:19,606
+even harder when those APIs have
+
+
+607
+00:20:19,956 --> 00:20:21,066
+delegate methods that you need
+
+
+608
+00:20:21,986 --> 00:20:22,846
+to test.
+
+
+609
+00:20:22,846 --> 00:20:24,056
+I'd like to show how we can use
+
+
+610
+00:20:24,136 --> 00:20:25,636
+protocols to solve this problem
+
+
+611
+00:20:26,026 --> 00:20:27,536
+by mocking interaction with
+
+
+612
+00:20:27,536 --> 00:20:29,566
+external classes but do so
+
+
+613
+00:20:29,636 --> 00:20:31,246
+without making our tests less
+
+
+614
+00:20:31,246 --> 00:20:31,686
+reliable.
+
+
+615
+00:20:33,856 --> 00:20:35,546
+In our app, we have a
+
+
+616
+00:20:35,686 --> 00:20:37,236
+CurrentLocationProvider class
+
+
+617
+00:20:37,236 --> 00:20:38,736
+that uses CoreLocation.
+
+
+618
+00:20:39,876 --> 00:20:41,546
+It creates a CLLocationManager
+
+
+619
+00:20:41,716 --> 00:20:42,776
+and configures it in its
+
+
+620
+00:20:42,776 --> 00:20:44,876
+initializer, setting its desired
+
+
+621
+00:20:44,876 --> 00:20:46,446
+accuracy property and setting
+
+
+622
+00:20:46,446 --> 00:20:47,356
+itself as the delegate.
+
+
+623
+00:20:47,816 --> 00:20:51,196
+Here's the meat of this class.
+
+
+624
+00:20:51,506 --> 00:20:52,206
+It's a method called
+
+
+625
+00:20:52,206 --> 00:20:53,456
+checkCurrentLocation.
+
+
+626
+00:20:54,196 --> 00:20:55,586
+It requests the current location
+
+
+627
+00:20:55,706 --> 00:20:56,926
+and takes a completion block
+
+
+628
+00:20:56,926 --> 00:20:58,006
+that returns whether that
+
+
+629
+00:20:58,006 --> 00:20:59,506
+location is a point of interest.
+
+
+630
+00:21:00,426 --> 00:21:01,836
+So, notice that we're calling
+
+
+631
+00:21:01,836 --> 00:21:03,456
+the request location method on
+
+
+632
+00:21:03,516 --> 00:21:04,716
+CLLocationManager, here.
+
+
+633
+00:21:04,716 --> 00:21:07,666
+When we call this, it'll attempt
+
+
+634
+00:21:07,666 --> 00:21:09,396
+to get the current location and
+
+
+635
+00:21:09,396 --> 00:21:10,556
+eventually call a delegate
+
+
+636
+00:21:10,556 --> 00:21:11,536
+method on our class.
+
+
+637
+00:21:12,156 --> 00:21:14,106
+So, let's go look at that
+
+
+638
+00:21:14,776 --> 00:21:15,186
+delegate method.
+
+
+639
+00:21:15,366 --> 00:21:16,946
+We use an extension to conform
+
+
+640
+00:21:16,946 --> 00:21:18,756
+to the CLLocationManagerDelegate
+
+
+641
+00:21:18,756 --> 00:21:20,256
+protocol here, and we call a
+
+
+642
+00:21:20,256 --> 00:21:21,416
+stored completion block.
+
+
+643
+00:21:22,486 --> 00:21:23,966
+Okay, so let's try writing a
+
+
+644
+00:21:23,966 --> 00:21:26,636
+unit test for this class.
+
+
+645
+00:21:26,806 --> 00:21:27,766
+Here's one that I tried to
+
+
+646
+00:21:27,766 --> 00:21:29,016
+write, and, if we read through
+
+
+647
+00:21:29,016 --> 00:21:30,886
+it, we can see that it starts by
+
+
+648
+00:21:30,886 --> 00:21:31,616
+creating a
+
+
+649
+00:21:31,616 --> 00:21:33,776
+CurrentLocationProvider and
+
+
+650
+00:21:33,776 --> 00:21:35,486
+checks that the desired accuracy
+
+
+651
+00:21:35,486 --> 00:21:37,006
+and whether the delegate is set.
+
+
+652
+00:21:37,506 --> 00:21:38,166
+So far, so good.
+
+
+653
+00:21:39,206 --> 00:21:40,466
+But then things get tricky.
+
+
+654
+00:21:41,356 --> 00:21:42,276
+We want to check the
+
+
+655
+00:21:42,276 --> 00:21:43,686
+checkCurrentLocation method,
+
+
+656
+00:21:44,136 --> 00:21:45,066
+since that's where our main
+
+
+657
+00:21:45,066 --> 00:21:47,036
+logic lives, but we have a
+
+
+658
+00:21:47,036 --> 00:21:47,466
+problem.
+
+
+659
+00:21:48,236 --> 00:21:49,656
+We don't have a way to know when
+
+
+660
+00:21:49,656 --> 00:21:51,136
+the request location method is
+
+
+661
+00:21:51,136 --> 00:21:52,976
+called, since that's a method on
+
+
+662
+00:21:53,076 --> 00:21:55,456
+CLLocationManager and not part
+
+
+663
+00:21:56,276 --> 00:21:57,396
+our code.
+
+
+664
+00:21:57,606 --> 00:21:58,486
+Another problem that we're
+
+
+665
+00:21:58,486 --> 00:21:59,856
+likely to encounter in this test
+
+
+666
+00:22:00,316 --> 00:22:02,006
+is that CoreLocation requires
+
+
+667
+00:22:02,006 --> 00:22:04,046
+user authorization, and that
+
+
+668
+00:22:04,046 --> 00:22:05,376
+shows a permission dialog on the
+
+
+669
+00:22:05,376 --> 00:22:06,846
+device if it hasn't been granted
+
+
+670
+00:22:06,846 --> 00:22:07,186
+before.
+
+
+671
+00:22:08,396 --> 00:22:10,016
+This causes our tests to rely on
+
+
+672
+00:22:10,016 --> 00:22:10,656
+device state.
+
+
+673
+00:22:10,656 --> 00:22:12,196
+It makes them harder to maintain
+
+
+674
+00:22:12,196 --> 00:22:13,636
+and, ultimately, more likely to
+
+
+675
+00:22:13,636 --> 00:22:13,976
+fail.
+
+
+676
+00:22:13,976 --> 00:22:16,826
+So, if you've had this problem
+
+
+677
+00:22:16,826 --> 00:22:19,136
+in the past, you may have
+
+
+678
+00:22:19,136 --> 00:22:20,496
+considered subclassing the
+
+
+679
+00:22:20,496 --> 00:22:22,476
+external class and overriding
+
+
+680
+00:22:22,476 --> 00:22:24,776
+any methods that you call on it.
+
+
+681
+00:22:24,856 --> 00:22:26,416
+For example, we could try
+
+
+682
+00:22:26,416 --> 00:22:28,496
+subclassing CLLocationManager
+
+
+683
+00:22:28,496 --> 00:22:29,996
+here and overriding the
+
+
+684
+00:22:29,996 --> 00:22:31,176
+RequestLocation method.
+
+
+685
+00:22:32,116 --> 00:22:34,016
+And that may work at first, but
+
+
+686
+00:22:34,016 --> 00:22:34,496
+it's risky.
+
+
+687
+00:22:35,626 --> 00:22:37,256
+Some classes from the SDK aren't
+
+
+688
+00:22:37,256 --> 00:22:38,766
+designed to be subclassed and
+
+
+689
+00:22:38,766 --> 00:22:39,566
+may behave differently.
+
+
+690
+00:22:40,706 --> 00:22:42,036
+Plus, we still have to call the
+
+
+691
+00:22:42,036 --> 00:22:43,496
+superclass' initializer, and
+
+
+692
+00:22:43,706 --> 00:22:44,746
+that's not code that we can
+
+
+693
+00:22:44,746 --> 00:22:45,166
+override.
+
+
+694
+00:22:46,296 --> 00:22:47,956
+But the main problem is that, if
+
+
+695
+00:22:47,956 --> 00:22:49,656
+I ever modify my code to call
+
+
+696
+00:22:49,656 --> 00:22:50,446
+another method on
+
+
+697
+00:22:50,546 --> 00:22:52,666
+CLLocationManager, I'll have to
+
+
+698
+00:22:52,666 --> 00:22:54,226
+remember to override that method
+
+
+699
+00:22:54,226 --> 00:22:55,956
+on my testing subclass as well.
+
+
+700
+00:22:57,086 --> 00:22:58,686
+If I rely on subclassing, the
+
+
+701
+00:22:58,686 --> 00:23:00,246
+compiler won't notify me that
+
+
+702
+00:23:00,246 --> 00:23:01,836
+I've started calling another
+
+
+703
+00:23:01,836 --> 00:23:03,466
+method, and it's easy to forget
+
+
+704
+00:23:03,466 --> 00:23:04,446
+and break my tests.
+
+
+705
+00:23:05,536 --> 00:23:06,666
+So, I don't recommend this
+
+
+706
+00:23:06,666 --> 00:23:09,116
+method, and instead to mock
+
+
+707
+00:23:09,116 --> 00:23:10,866
+external types using protocols.
+
+
+708
+00:23:11,556 --> 00:23:13,416
+So, let's walk through how to do
+
+
+709
+00:23:14,256 --> 00:23:14,366
+that.
+
+
+710
+00:23:14,566 --> 00:23:16,446
+Here's the original code, and
+
+
+711
+00:23:16,446 --> 00:23:18,196
+the first step is to define a
+
+
+712
+00:23:18,196 --> 00:23:18,766
+new protocol.
+
+
+713
+00:23:19,376 --> 00:23:21,396
+I've named my new protocol
+
+
+714
+00:23:21,396 --> 00:23:23,586
+LocationFetcher, and it includes
+
+
+715
+00:23:23,586 --> 00:23:25,076
+the exact set of methods and
+
+
+716
+00:23:25,076 --> 00:23:26,686
+properties that my code uses
+
+
+717
+00:23:26,686 --> 00:23:27,816
+from CLLocationManager.
+
+
+718
+00:23:29,036 --> 00:23:31,236
+The member names and types match
+
+
+719
+00:23:31,236 --> 00:23:32,976
+exactly, and that allows me to
+
+
+720
+00:23:32,976 --> 00:23:34,826
+create an empty extension on
+
+
+721
+00:23:34,976 --> 00:23:36,556
+CLLocationManager that conforms
+
+
+722
+00:23:36,556 --> 00:23:37,746
+to the protocol, since it
+
+
+723
+00:23:37,746 --> 00:23:38,456
+already meets all the
+
+
+724
+00:23:38,456 --> 00:23:39,096
+requirements.
+
+
+725
+00:23:41,056 --> 00:23:42,266
+I'll then rename the
+
+
+726
+00:23:42,266 --> 00:23:43,796
+LocationManager property to
+
+
+727
+00:23:43,796 --> 00:23:45,556
+LocationFetcher, and I'll change
+
+
+728
+00:23:45,556 --> 00:23:47,086
+its type to the LocationFetcher
+
+
+729
+00:23:47,086 --> 00:23:47,496
+protocol.
+
+
+730
+00:23:49,416 --> 00:23:51,056
+I'll also add a default
+
+
+731
+00:23:51,056 --> 00:23:51,956
+parameter value to the
+
+
+732
+00:23:51,956 --> 00:23:53,236
+initializer, just like I did
+
+
+733
+00:23:53,236 --> 00:23:54,946
+earlier, to avoid breaking any
+
+
+734
+00:23:54,946 --> 00:23:56,446
+existing app code.
+
+
+735
+00:23:58,176 --> 00:23:59,956
+I need to make one small change
+
+
+736
+00:23:59,956 --> 00:24:01,146
+to the checkCurrentLocation
+
+
+737
+00:24:01,146 --> 00:24:02,776
+method to use the renamed
+
+
+738
+00:24:02,826 --> 00:24:03,176
+property.
+
+
+739
+00:24:03,946 --> 00:24:06,596
+And, finally, let's look at that
+
+
+740
+00:24:06,636 --> 00:24:07,266
+delegate method.
+
+
+741
+00:24:08,246 --> 00:24:09,336
+This part is a little trickier
+
+
+742
+00:24:09,336 --> 00:24:11,046
+to handle, because the delegate
+
+
+743
+00:24:11,046 --> 00:24:12,816
+expects the manager parameter to
+
+
+744
+00:24:12,866 --> 00:24:15,376
+be a real CLLocationManager, and
+
+
+745
+00:24:15,376 --> 00:24:16,356
+not my new protocol.
+
+
+746
+00:24:16,986 --> 00:24:18,716
+So, things get a little more
+
+
+747
+00:24:18,716 --> 00:24:19,976
+complicated when delegates are
+
+
+748
+00:24:19,976 --> 00:24:21,866
+involved, but we can still apply
+
+
+749
+00:24:21,866 --> 00:24:22,606
+protocols here.
+
+
+750
+00:24:23,156 --> 00:24:25,716
+Let's take a look at how.
+
+
+751
+00:24:26,326 --> 00:24:27,976
+I'll go back to LocationFetcher
+
+
+752
+00:24:28,126 --> 00:24:29,436
+protocol that I defined earlier,
+
+
+753
+00:24:30,226 --> 00:24:31,456
+and I'll rename that delegate
+
+
+754
+00:24:31,586 --> 00:24:32,346
+property to
+
+
+755
+00:24:32,546 --> 00:24:33,886
+LocationFetcherDelegate.
+
+
+756
+00:24:34,666 --> 00:24:35,896
+And I'll change its type to a
+
+
+757
+00:24:35,896 --> 00:24:37,676
+new protocol whose interface is
+
+
+758
+00:24:37,676 --> 00:24:38,786
+nearly identical to
+
+
+759
+00:24:38,886 --> 00:24:41,226
+CLLocationManagerDelegate, but I
+
+
+760
+00:24:41,226 --> 00:24:42,826
+tweaked the method name, and I
+
+
+761
+00:24:42,826 --> 00:24:44,016
+changed the type of the first
+
+
+762
+00:24:44,016 --> 00:24:45,456
+parameter to LocationFetcher.
+
+
+763
+00:24:49,406 --> 00:24:50,486
+Now I need to implement the
+
+
+764
+00:24:50,486 --> 00:24:52,086
+LocationFetcherDelegate property
+
+
+765
+00:24:52,196 --> 00:24:54,436
+in my extension now, since it no
+
+
+766
+00:24:54,436 --> 00:24:55,446
+longer satisfies that
+
+
+767
+00:24:55,446 --> 00:24:55,876
+requirement.
+
+
+768
+00:24:56,796 --> 00:24:58,076
+And I'll implement the getter
+
+
+769
+00:24:58,076 --> 00:24:59,456
+and the setter to use force
+
+
+770
+00:24:59,456 --> 00:25:00,846
+casting to convert back and
+
+
+771
+00:25:00,846 --> 00:25:01,266
+forth to
+
+
+772
+00:25:01,266 --> 00:25:03,776
+CLLocationManagerDelegate, and
+
+
+773
+00:25:03,776 --> 00:25:04,826
+I'll explain why I'm using force
+
+
+774
+00:25:04,826 --> 00:25:08,146
+casting here in just a second.
+
+
+775
+00:25:08,266 --> 00:25:09,996
+Then in my class' initializer, I
+
+
+776
+00:25:09,996 --> 00:25:10,936
+need to replace the delegate
+
+
+777
+00:25:10,936 --> 00:25:11,596
+property with
+
+
+778
+00:25:11,596 --> 00:25:12,666
+locationFetcherDelegate.
+
+
+779
+00:25:13,156 --> 00:25:16,466
+And the last step is to change
+
+
+780
+00:25:16,466 --> 00:25:18,176
+the original extension to
+
+
+781
+00:25:18,176 --> 00:25:19,626
+conform to the new mock delegate
+
+
+782
+00:25:19,626 --> 00:25:21,556
+protocol, and that part's easy--
+
+
+783
+00:25:21,766 --> 00:25:23,156
+all I need to do is replace the
+
+
+784
+00:25:23,156 --> 00:25:24,976
+protocol and the method
+
+
+785
+00:25:24,976 --> 00:25:25,396
+signature.
+
+
+786
+00:25:26,576 --> 00:25:28,206
+But I actually still need to
+
+
+787
+00:25:28,206 --> 00:25:29,236
+conform to the old
+
+
+788
+00:25:29,376 --> 00:25:30,856
+CLLocationManagerDelegate
+
+
+789
+00:25:30,856 --> 00:25:33,086
+protocol too, and that's because
+
+
+790
+00:25:33,176 --> 00:25:34,656
+the real CLLocationManager
+
+
+791
+00:25:34,656 --> 00:25:35,996
+doesn't know about my mock
+
+
+792
+00:25:35,996 --> 00:25:36,716
+delegate protocol.
+
+
+793
+00:25:38,266 --> 00:25:39,796
+So, the trick here is to add
+
+
+794
+00:25:39,796 --> 00:25:41,106
+back the extension which
+
+
+795
+00:25:41,106 --> 00:25:42,376
+conforms to the real delegate
+
+
+796
+00:25:42,376 --> 00:25:43,926
+protocol but have it call the
+
+
+797
+00:25:43,926 --> 00:25:45,276
+equivalent locationFetcher
+
+
+798
+00:25:45,276 --> 00:25:46,326
+delegate method above.
+
+
+799
+00:25:47,716 --> 00:25:49,296
+And earlier, I mentioned that I
+
+
+800
+00:25:49,296 --> 00:25:50,516
+used force casting in the
+
+
+801
+00:25:50,516 --> 00:25:52,016
+delegate getter and setter, and
+
+
+802
+00:25:52,466 --> 00:25:53,756
+that's to ensure that my class
+
+
+803
+00:25:53,756 --> 00:25:54,846
+conforms to both of these
+
+
+804
+00:25:54,846 --> 00:25:56,166
+protocols and that I haven't
+
+
+805
+00:25:56,166 --> 00:26:01,336
+forgotten one or the other.
+
+
+806
+00:26:01,586 --> 00:26:03,376
+So, over in my unit tests, I'll
+
+
+807
+00:26:03,376 --> 00:26:05,046
+define a struct nested in my
+
+
+808
+00:26:05,046 --> 00:26:06,986
+test class for mocking, which
+
+
+809
+00:26:06,986 --> 00:26:08,366
+conforms to the locationFetcher
+
+
+810
+00:26:08,366 --> 00:26:09,696
+protocol and fill out its
+
+
+811
+00:26:09,696 --> 00:26:10,326
+requirements.
+
+
+812
+00:26:11,566 --> 00:26:12,846
+Notice, in its RequestLocation
+
+
+813
+00:26:12,846 --> 00:26:14,886
+method, it calls a block to get
+
+
+814
+00:26:14,886 --> 00:26:16,136
+a fake location that I can
+
+
+815
+00:26:16,136 --> 00:26:18,536
+customize in my tests, and then
+
+
+816
+00:26:18,536 --> 00:26:19,786
+it invokes the delegate method,
+
+
+817
+00:26:20,066 --> 00:26:21,416
+passing it that fake location.
+
+
+818
+00:26:22,026 --> 00:26:25,656
+Now that I have all the pieces I
+
+
+819
+00:26:25,656 --> 00:26:27,056
+need, I can write my test.
+
+
+820
+00:26:28,026 --> 00:26:29,516
+I create a MockLocationFetcher
+
+
+821
+00:26:29,516 --> 00:26:31,016
+struct and configure its
+
+
+822
+00:26:31,016 --> 00:26:32,676
+handleRequestLocation block to
+
+
+823
+00:26:32,676 --> 00:26:33,966
+provide a fake location.
+
+
+824
+00:26:35,306 --> 00:26:36,036
+Then I create my
+
+
+825
+00:26:36,036 --> 00:26:38,036
+CurrentLocationProvider, passing
+
+
+826
+00:26:38,036 --> 00:26:39,286
+it the MockLocationFetcher.
+
+
+827
+00:26:40,206 --> 00:26:41,156
+And, finally, I call
+
+
+828
+00:26:41,156 --> 00:26:42,676
+checkCurrentLocation with a
+
+
+829
+00:26:42,676 --> 00:26:43,366
+completion block.
+
+
+830
+00:26:44,286 --> 00:26:45,376
+Inside the completion block,
+
+
+831
+00:26:45,676 --> 00:26:46,806
+there's an assertion that checks
+
+
+832
+00:26:46,806 --> 00:26:48,076
+that the location actually is a
+
+
+833
+00:26:48,076 --> 00:26:51,156
+point of interest.
+
+
+834
+00:26:51,226 --> 00:26:51,976
+So, it works.
+
+
+835
+00:26:51,976 --> 00:26:53,666
+I can now mock my classes' usage
+
+
+836
+00:26:53,666 --> 00:26:55,426
+of CLLocationManager without
+
+
+837
+00:26:55,426 --> 00:26:56,536
+needing to create a real one.
+
+
+838
+00:26:57,246 --> 00:26:59,276
+So, here, I've shown how to use
+
+
+839
+00:26:59,396 --> 00:27:01,346
+protocols to mock interaction
+
+
+840
+00:27:01,346 --> 00:27:03,096
+with an external class and its
+
+
+841
+00:27:03,096 --> 00:27:03,476
+delegate.
+
+
+842
+00:27:03,476 --> 00:27:05,296
+Now, that was a lot of steps.
+
+
+843
+00:27:05,366 --> 00:27:07,756
+So, let's recap what we did.
+
+
+844
+00:27:08,856 --> 00:27:10,226
+First, we defined a new
+
+
+845
+00:27:10,226 --> 00:27:11,476
+protocol, representing the
+
+
+846
+00:27:11,476 --> 00:27:13,406
+interface of the external class.
+
+
+847
+00:27:14,356 --> 00:27:15,896
+This protocol needs to include
+
+
+848
+00:27:15,896 --> 00:27:17,156
+all the methods and properties
+
+
+849
+00:27:17,276 --> 00:27:18,636
+that we use on the external
+
+
+850
+00:27:18,636 --> 00:27:20,196
+class, and, often, their
+
+
+851
+00:27:20,196 --> 00:27:22,006
+declarations can match exactly.
+
+
+852
+00:27:22,666 --> 00:27:25,746
+Next, we created an extension on
+
+
+853
+00:27:25,746 --> 00:27:27,056
+the original external class,
+
+
+854
+00:27:27,216 --> 00:27:28,326
+which declares conformance to
+
+
+855
+00:27:28,326 --> 00:27:28,836
+the protocol.
+
+
+856
+00:27:30,176 --> 00:27:31,826
+Then we replaced all our usage
+
+
+857
+00:27:31,956 --> 00:27:33,336
+of the external class with our
+
+
+858
+00:27:33,336 --> 00:27:35,516
+new protocol, and we added an
+
+
+859
+00:27:35,516 --> 00:27:36,946
+initializer parameter so that we
+
+
+860
+00:27:36,946 --> 00:27:39,196
+could set this type in our
+
+
+861
+00:27:40,776 --> 00:27:40,946
+tests.
+
+
+862
+00:27:41,096 --> 00:27:42,706
+We also talked about how to mock
+
+
+863
+00:27:42,706 --> 00:27:44,206
+a delegate protocol, which is a
+
+
+864
+00:27:44,206 --> 00:27:45,656
+common pattern in the SDKs.
+
+
+865
+00:27:46,966 --> 00:27:47,856
+There were a few more steps
+
+
+866
+00:27:47,856 --> 00:27:49,076
+involved here, but here's what
+
+
+867
+00:27:49,076 --> 00:27:49,446
+we did.
+
+
+868
+00:27:50,966 --> 00:27:52,486
+First, we defined a mock
+
+
+869
+00:27:52,596 --> 00:27:54,146
+delegate protocol with similar
+
+
+870
+00:27:54,146 --> 00:27:55,366
+method signatures as the
+
+
+871
+00:27:55,366 --> 00:27:56,336
+protocol that we're mocking.
+
+
+872
+00:27:57,136 --> 00:27:58,986
+But we replaced the real type
+
+
+873
+00:27:59,236 --> 00:28:01,146
+with our mock protocol type.
+
+
+874
+00:28:01,756 --> 00:28:03,296
+Then, in our original mock
+
+
+875
+00:28:03,296 --> 00:28:04,616
+protocol, we renamed the
+
+
+876
+00:28:04,616 --> 00:28:06,256
+delegate property, and we
+
+
+877
+00:28:06,256 --> 00:28:07,046
+implemented that renamed
+
+
+878
+00:28:07,086 --> 00:28:08,136
+property on our extension.
+
+
+879
+00:28:09,566 --> 00:28:12,076
+So, although this approach may
+
+
+880
+00:28:12,076 --> 00:28:13,306
+require more code than an
+
+
+881
+00:28:13,306 --> 00:28:14,846
+alternative like subclassing,
+
+
+882
+00:28:15,546 --> 00:28:17,156
+it'll be more reliable and less
+
+
+883
+00:28:17,156 --> 00:28:18,496
+likely to break as I expand my
+
+
+884
+00:28:18,496 --> 00:28:21,006
+code over time, since this way
+
+
+885
+00:28:21,006 --> 00:28:22,326
+the compiler will enforce that
+
+
+886
+00:28:22,436 --> 00:28:24,526
+any new methods I call for my
+
+
+887
+00:28:24,526 --> 00:28:26,246
+code must be included in these
+
+
+888
+00:28:26,246 --> 00:28:27,000
+new protocols.
+
+
+889
+00:28:32,006 --> 00:28:33,836
+So, finally, I'd like to talk
+
+
+890
+00:28:33,836 --> 00:28:35,516
+about test execution speed.
+
+
+891
+00:28:35,956 --> 00:28:39,436
+When your tests take a long time
+
+
+892
+00:28:39,436 --> 00:28:41,206
+to run, you're less likely to
+
+
+893
+00:28:41,206 --> 00:28:42,916
+run them during development, or
+
+
+894
+00:28:42,916 --> 00:28:44,116
+you might be tempted to skip the
+
+
+895
+00:28:44,116 --> 00:28:45,036
+longest running ones.
+
+
+896
+00:28:45,486 --> 00:28:47,616
+Our test suite helps us catch
+
+
+897
+00:28:47,616 --> 00:28:49,166
+issues early, when fixing
+
+
+898
+00:28:49,166 --> 00:28:50,286
+regression is easiest.
+
+
+899
+00:28:50,736 --> 00:28:51,516
+So, we want to make sure our
+
+
+900
+00:28:51,516 --> 00:28:53,036
+tests always run as fast as
+
+
+901
+00:28:53,036 --> 00:28:53,526
+possible.
+
+
+902
+00:28:54,196 --> 00:28:55,826
+Now, you might have encountered
+
+
+903
+00:28:55,826 --> 00:28:57,176
+times in the past when you
+
+
+904
+00:28:57,176 --> 00:28:58,626
+needed to artificially wait or
+
+
+905
+00:28:58,626 --> 00:29:00,406
+sleep in your tests, because the
+
+
+906
+00:29:00,406 --> 00:29:01,686
+code your testing is
+
+
+907
+00:29:01,686 --> 00:29:03,166
+asynchronous or uses a timer.
+
+
+908
+00:29:04,416 --> 00:29:05,886
+Delayed actions can be tricky,
+
+
+909
+00:29:05,886 --> 00:29:06,996
+so we want to be sure to include
+
+
+910
+00:29:06,996 --> 00:29:08,576
+them in our tests, but they can
+
+
+911
+00:29:08,886 --> 00:29:10,246
+also slow things down a lot if
+
+
+912
+00:29:10,246 --> 00:29:10,786
+we're not careful.
+
+
+913
+00:29:11,856 --> 00:29:13,066
+So, I'd like to talk about some
+
+
+914
+00:29:13,066 --> 00:29:13,936
+ways that we can avoid
+
+
+915
+00:29:13,936 --> 00:29:15,526
+artificial delays in our tests,
+
+
+916
+00:29:15,806 --> 00:29:16,506
+since they should never be
+
+
+917
+00:29:16,506 --> 00:29:17,036
+necessary.
+
+
+918
+00:29:17,636 --> 00:29:19,896
+Here's an example.
+
+
+919
+00:29:19,956 --> 00:29:21,946
+In the points of interest app
+
+
+920
+00:29:21,946 --> 00:29:23,526
+Brian and I are building, in the
+
+
+921
+00:29:23,526 --> 00:29:25,116
+main UI, we have a strip at the
+
+
+922
+00:29:25,116 --> 00:29:26,506
+bottom that shows the featured
+
+
+923
+00:29:26,506 --> 00:29:26,936
+place.
+
+
+924
+00:29:27,546 --> 00:29:28,606
+It basically loops through the
+
+
+925
+00:29:28,606 --> 00:29:30,706
+top places nearby, rotating to
+
+
+926
+00:29:30,706 --> 00:29:32,136
+show a new location every 10
+
+
+927
+00:29:32,136 --> 00:29:32,666
+seconds.
+
+
+928
+00:29:33,446 --> 00:29:34,906
+Now, there are several ways I
+
+
+929
+00:29:34,906 --> 00:29:36,426
+might implement this, but, here,
+
+
+930
+00:29:36,426 --> 00:29:37,996
+I'm using the timer API for
+
+
+931
+00:29:37,996 --> 00:29:38,616
+foundation.
+
+
+932
+00:29:38,616 --> 00:29:42,106
+Let's look at a unit test that I
+
+
+933
+00:29:42,106 --> 00:29:43,076
+might write for this class.
+
+
+934
+00:29:44,106 --> 00:29:44,696
+It creates a
+
+
+935
+00:29:44,696 --> 00:29:46,996
+FeaturedPlaceManager and stores
+
+
+936
+00:29:46,996 --> 00:29:49,186
+its current place before calling
+
+
+937
+00:29:49,226 --> 00:29:50,636
+the scheduleNextPlace method.
+
+
+938
+00:29:51,526 --> 00:29:53,376
+Then it runs the run loop for 11
+
+
+939
+00:29:53,376 --> 00:29:53,926
+seconds.
+
+
+940
+00:29:53,976 --> 00:29:55,676
+I added an extra second as a
+
+
+941
+00:29:55,676 --> 00:29:56,226
+grace period.
+
+
+942
+00:29:57,416 --> 00:29:58,456
+And, finally, it checks that the
+
+
+943
+00:29:58,456 --> 00:29:59,916
+currentPlace changed at the end.
+
+
+944
+00:30:01,046 --> 00:30:02,486
+Now, this isn't great, and it
+
+
+945
+00:30:02,486 --> 00:30:03,876
+takes a really long time to run.
+
+
+946
+00:30:05,026 --> 00:30:06,396
+To mitigate this, we could
+
+
+947
+00:30:06,396 --> 00:30:08,386
+expose a property in our code to
+
+
+948
+00:30:08,386 --> 00:30:09,736
+allow us to customize that
+
+
+949
+00:30:09,736 --> 00:30:10,976
+timeout to something shorter,
+
+
+950
+00:30:10,976 --> 00:30:12,056
+like 1 second.
+
+
+951
+00:30:12,976 --> 00:30:14,476
+And here's what that kind of a
+
+
+952
+00:30:14,476 --> 00:30:16,000
+code change might look like.
+
+
+953
+00:30:20,136 --> 00:30:22,026
+Now, with this approach, we can
+
+
+954
+00:30:22,026 --> 00:30:23,456
+reduce the delay in our tests
+
+
+955
+00:30:23,456 --> 00:30:24,326
+down to one second.
+
+
+956
+00:30:25,406 --> 00:30:26,566
+Now, this solution is better
+
+
+957
+00:30:26,566 --> 00:30:27,566
+than the one we had before.
+
+
+958
+00:30:27,876 --> 00:30:29,166
+Our tests will definitely run
+
+
+959
+00:30:29,166 --> 00:30:31,196
+faster, but it still isn't
+
+
+960
+00:30:31,196 --> 00:30:31,686
+ideal.
+
+
+961
+00:30:32,396 --> 00:30:34,216
+Our code still has a delay, it's
+
+
+962
+00:30:34,216 --> 00:30:34,726
+just shorter.
+
+
+963
+00:30:35,716 --> 00:30:36,996
+And the real problem is that the
+
+
+964
+00:30:36,996 --> 00:30:38,276
+code we're testing is still
+
+
+965
+00:30:38,346 --> 00:30:40,236
+timing dependent, which means
+
+
+966
+00:30:40,236 --> 00:30:41,576
+that, as we make the expected
+
+
+967
+00:30:41,576 --> 00:30:43,316
+delay shorter and shorter, our
+
+
+968
+00:30:43,316 --> 00:30:44,926
+tests may become less reliable,
+
+
+969
+00:30:45,376 --> 00:30:46,356
+since they'll be more dependent
+
+
+970
+00:30:46,356 --> 00:30:47,816
+on the CPU to schedule things
+
+
+971
+00:30:47,816 --> 00:30:48,376
+predictably.
+
+
+972
+00:30:48,556 --> 00:30:50,006
+And that's not always going to
+
+
+973
+00:30:50,006 --> 00:30:50,776
+be true, especially for
+
+
+974
+00:30:50,776 --> 00:30:51,686
+asynchronous code.
+
+
+975
+00:30:52,896 --> 00:30:53,866
+So, let's take a look at a
+
+
+976
+00:30:53,866 --> 00:30:54,606
+better approach.
+
+
+977
+00:30:56,296 --> 00:30:58,466
+I recommend first identifying
+
+
+978
+00:30:58,556 --> 00:30:59,606
+the delay mechanism.
+
+
+979
+00:31:00,156 --> 00:31:01,716
+In my example, it was a timer,
+
+
+980
+00:31:01,716 --> 00:31:03,466
+but you could also be using the
+
+
+981
+00:31:03,466 --> 00:31:04,826
+asyncAfter API from
+
+
+982
+00:31:04,826 --> 00:31:05,526
+DispatchQueue.
+
+
+983
+00:31:06,906 --> 00:31:08,256
+We want to mock this mechanism
+
+
+984
+00:31:08,256 --> 00:31:09,676
+in our tests so that we can
+
+
+985
+00:31:09,676 --> 00:31:10,806
+invoke the delayed action
+
+
+986
+00:31:10,806 --> 00:31:12,116
+immediately and bypass the
+
+
+987
+00:31:12,116 --> 00:31:12,406
+delay.
+
+
+988
+00:31:15,756 --> 00:31:17,356
+Here's our original code again,
+
+
+989
+00:31:17,856 --> 00:31:18,966
+and let's start by looking at
+
+
+990
+00:31:18,966 --> 00:31:20,496
+what this scheduledTimer method
+
+
+991
+00:31:20,496 --> 00:31:21,286
+actually does.
+
+
+992
+00:31:22,556 --> 00:31:23,776
+The scheduledTimer method
+
+
+993
+00:31:23,776 --> 00:31:25,586
+actually does two things for us.
+
+
+994
+00:31:26,306 --> 00:31:28,216
+It creates a timer, and then it
+
+
+995
+00:31:28,216 --> 00:31:29,756
+adds that timer to the current
+
+
+996
+00:31:29,756 --> 00:31:30,916
+run loop.
+
+
+997
+00:31:31,196 --> 00:31:32,326
+Now, this API can be really
+
+
+998
+00:31:32,326 --> 00:31:34,116
+convenient for creating a timer,
+
+
+999
+00:31:34,716 --> 00:31:35,526
+but it would help us to make
+
+
+1000
+00:31:35,526 --> 00:31:36,816
+this code more testable if I
+
+
+1001
+00:31:36,816 --> 00:31:38,016
+actually break these two steps
+
+
+1002
+00:31:38,016 --> 00:31:38,386
+apart.
+
+
+1003
+00:31:40,316 --> 00:31:41,756
+Here, I've transformed the
+
+
+1004
+00:31:41,756 --> 00:31:43,056
+previous code from using
+
+
+1005
+00:31:43,056 --> 00:31:45,056
+scheduledTimer to instead create
+
+
+1006
+00:31:45,056 --> 00:31:46,906
+the timer first and then add it
+
+
+1007
+00:31:46,936 --> 00:31:48,516
+to the current runLoop second,
+
+
+1008
+00:31:48,516 --> 00:31:49,556
+which I have stored in a new
+
+
+1009
+00:31:49,556 --> 00:31:49,996
+property.
+
+
+1010
+00:31:50,626 --> 00:31:52,566
+Now, this code is equivalent to
+
+
+1011
+00:31:52,566 --> 00:31:54,826
+what we had before, but, once we
+
+
+1012
+00:31:54,826 --> 00:31:56,786
+break these two steps apart, we
+
+
+1013
+00:31:56,786 --> 00:31:58,326
+can see that runLoop is just
+
+
+1014
+00:31:58,326 --> 00:31:59,816
+another external class that this
+
+
+1015
+00:31:59,816 --> 00:32:00,556
+class interacts with.
+
+
+1016
+00:32:01,386 --> 00:32:02,666
+So, we can apply the mocking
+
+
+1017
+00:32:02,666 --> 00:32:03,826
+with protocols technique we
+
+
+1018
+00:32:03,826 --> 00:32:04,896
+discussed earlier here.
+
+
+1019
+00:32:06,176 --> 00:32:07,806
+To do that, we'll create a small
+
+
+1020
+00:32:08,026 --> 00:32:09,296
+protocol, containing this
+
+
+1021
+00:32:09,296 --> 00:32:10,156
+addTimer method.
+
+
+1022
+00:32:10,816 --> 00:32:13,266
+I've called this new protocol
+
+
+1023
+00:32:13,356 --> 00:32:15,376
+TimerScheduler, and it just has
+
+
+1024
+00:32:15,406 --> 00:32:17,466
+that one addTimer method, which
+
+
+1025
+00:32:17,466 --> 00:32:18,956
+matches the signature of the
+
+
+1026
+00:32:18,956 --> 00:32:21,796
+runLoop API.
+
+
+1027
+00:32:22,276 --> 00:32:23,836
+Now, back in my code, I need to
+
+
+1028
+00:32:23,836 --> 00:32:25,326
+replace the runLoop with the
+
+
+1029
+00:32:25,326 --> 00:32:26,746
+protocol that I just created.
+
+
+1030
+00:32:27,296 --> 00:32:31,416
+And in my tests, I don't want to
+
+
+1031
+00:32:31,416 --> 00:32:32,406
+use a real runLoop as my
+
+
+1032
+00:32:32,406 --> 00:32:33,246
+TimerScheduler.
+
+
+1033
+00:32:33,856 --> 00:32:35,306
+Instead, I want to create a mock
+
+
+1034
+00:32:35,396 --> 00:32:36,996
+scheduler that passes the timer
+
+
+1035
+00:32:37,086 --> 00:32:39,646
+to my tests.
+
+
+1036
+00:32:39,686 --> 00:32:40,846
+I'll do this by creating a new
+
+
+1037
+00:32:40,846 --> 00:32:42,666
+struct nested in my unit test
+
+
+1038
+00:32:42,666 --> 00:32:44,626
+class called MockTimerScheduler,
+
+
+1039
+00:32:44,926 --> 00:32:46,286
+conforming to the TimerScheduler
+
+
+1040
+00:32:46,286 --> 00:32:46,716
+protocol.
+
+
+1041
+00:32:47,976 --> 00:32:49,146
+It stores a block that will be
+
+
+1042
+00:32:49,316 --> 00:32:50,756
+called whenever it's told to add
+
+
+1043
+00:32:51,766 --> 00:32:53,766
+a timer.
+
+
+1044
+00:32:53,766 --> 00:32:54,696
+And with all the pieces in
+
+
+1045
+00:32:54,696 --> 00:32:56,406
+place, I can write my final unit
+
+
+1046
+00:32:56,406 --> 00:32:56,776
+test.
+
+
+1047
+00:32:57,796 --> 00:32:58,866
+First, I create a
+
+
+1048
+00:32:58,866 --> 00:33:01,086
+MockTimerScheduler and configure
+
+
+1049
+00:33:01,086 --> 00:33:02,286
+its handleAddTimer block.
+
+
+1050
+00:33:03,496 --> 00:33:04,796
+This block receives the timer.
+
+
+1051
+00:33:04,846 --> 00:33:05,576
+Once it's added to the
+
+
+1052
+00:33:05,576 --> 00:33:07,506
+scheduler, it records the
+
+
+1053
+00:33:07,506 --> 00:33:09,336
+timer's delay, and then it
+
+
+1054
+00:33:09,336 --> 00:33:11,696
+invokes the block by firing the
+
+
+1055
+00:33:11,696 --> 00:33:13,226
+timer to bypass the delay.
+
+
+1056
+00:33:14,756 --> 00:33:15,796
+Then, we create a
+
+
+1057
+00:33:15,796 --> 00:33:17,386
+FeaturedPlaceManager and give it
+
+
+1058
+00:33:17,386 --> 00:33:18,446
+our MockTimerScheduler.
+
+
+1059
+00:33:19,966 --> 00:33:20,796
+And, finally, we call
+
+
+1060
+00:33:20,796 --> 00:33:22,366
+scheduleNextPlace to start the
+
+
+1061
+00:33:22,366 --> 00:33:25,286
+test, and, voila, our tests no
+
+
+1062
+00:33:25,286 --> 00:33:26,276
+longer have any delay.
+
+
+1063
+00:33:27,066 --> 00:33:28,466
+They execute super fast, and
+
+
+1064
+00:33:28,626 --> 00:33:29,886
+they aren't timer dependent, so
+
+
+1065
+00:33:29,886 --> 00:33:31,006
+it'll be more reliable.
+
+
+1066
+00:33:32,236 --> 00:33:34,146
+And, as a bonus, I can now
+
+
+1067
+00:33:34,146 --> 00:33:35,866
+verify the amount of timer delay
+
+
+1068
+00:33:36,156 --> 00:33:37,206
+using this assertion at the
+
+
+1069
+00:33:37,206 --> 00:33:37,566
+bottom.
+
+
+1070
+00:33:38,116 --> 00:33:39,056
+And that's not something I was
+
+
+1071
+00:33:39,056 --> 00:33:40,906
+able to do in the previous test.
+
+
+1072
+00:33:42,636 --> 00:33:44,886
+So, like I said, the delay in
+
+
+1073
+00:33:44,886 --> 00:33:46,116
+our code is fully eliminated
+
+
+1074
+00:33:46,116 --> 00:33:46,976
+using this technique.
+
+
+1075
+00:33:48,086 --> 00:33:49,306
+We think this was a great way to
+
+
+1076
+00:33:49,306 --> 00:33:50,636
+test code that involves delayed
+
+
+1077
+00:33:50,636 --> 00:33:52,786
+actions, but, for the fastest
+
+
+1078
+00:33:52,786 --> 00:33:54,096
+overall execution speed in your
+
+
+1079
+00:33:54,096 --> 00:33:56,076
+tests, it's still preferable to
+
+
+1080
+00:33:56,076 --> 00:33:57,686
+structure the bulk of your tests
+
+
+1081
+00:33:57,686 --> 00:33:59,136
+to be direct and not need to
+
+
+1082
+00:33:59,136 --> 00:34:00,496
+mock delayed actions at all.
+
+
+1083
+00:34:01,556 --> 00:34:03,986
+For example, in our app, the
+
+
+1084
+00:34:04,026 --> 00:34:05,446
+action being delayed was
+
+
+1085
+00:34:05,446 --> 00:34:06,746
+changing to the next featured
+
+
+1086
+00:34:06,746 --> 00:34:07,166
+place.
+
+
+1087
+00:34:07,826 --> 00:34:09,916
+I probably only need one or two
+
+
+1088
+00:34:10,016 --> 00:34:11,746
+tests that show that the timer
+
+
+1089
+00:34:11,746 --> 00:34:12,676
+delay works properly.
+
+
+1090
+00:34:13,106 --> 00:34:14,366
+And, for the rest of the class,
+
+
+1091
+00:34:14,366 --> 00:34:16,206
+I can call the show next place
+
+
+1092
+00:34:16,206 --> 00:34:17,735
+method directly and not need to
+
+
+1093
+00:34:17,735 --> 00:34:22,416
+mock a timer scheduler at all.
+
+
+1094
+00:34:22,626 --> 00:34:23,795
+While we're on the topic of text
+
+
+1095
+00:34:23,795 --> 00:34:25,606
+execution speed, we had a couple
+
+
+1096
+00:34:25,606 --> 00:34:26,335
+of other tips to share.
+
+
+1097
+00:34:27,755 --> 00:34:29,116
+One area we've seen concerns the
+
+
+1098
+00:34:29,116 --> 00:34:31,076
+use of NSPredicateExpectations.
+
+
+1099
+00:34:31,896 --> 00:34:33,036
+We wanted to mention that these
+
+
+1100
+00:34:33,036 --> 00:34:34,585
+are not nearly as performant as
+
+
+1101
+00:34:34,585 --> 00:34:36,556
+other expectation classes, since
+
+
+1102
+00:34:36,556 --> 00:34:37,846
+they rely on polar rather than
+
+
+1103
+00:34:37,846 --> 00:34:39,696
+more direct callback mechanisms.
+
+
+1104
+00:34:40,576 --> 00:34:42,286
+They're mainly used in UI tests,
+
+
+1105
+00:34:42,565 --> 00:34:43,485
+where the conditions being
+
+
+1106
+00:34:43,485 --> 00:34:45,005
+evaluated are happening in
+
+
+1107
+00:34:45,005 --> 00:34:45,846
+another process.
+
+
+1108
+00:34:46,436 --> 00:34:47,916
+So, in your unit tests, we
+
+
+1109
+00:34:47,916 --> 00:34:48,985
+recommend more direct
+
+
+1110
+00:34:48,985 --> 00:34:50,896
+mechanisms, such as regular
+
+
+1111
+00:34:50,896 --> 00:34:52,166
+XCTestExpectations,
+
+
+1112
+00:34:52,616 --> 00:34:54,016
+NSNotification, or
+
+
+1113
+00:34:54,016 --> 00:34:55,295
+KVOExpectations.
+
+
+1114
+00:34:57,756 --> 00:34:59,956
+Another testing speed tip is to
+
+
+1115
+00:34:59,956 --> 00:35:01,346
+ensure that your app launches as
+
+
+1116
+00:35:01,346 --> 00:35:02,256
+quickly as possible.
+
+
+1117
+00:35:03,396 --> 00:35:04,796
+Now, most apps have to do some
+
+
+1118
+00:35:04,796 --> 00:35:06,066
+amount of setup work at launch
+
+
+1119
+00:35:06,066 --> 00:35:07,916
+time, and, although that work is
+
+
+1120
+00:35:07,916 --> 00:35:09,236
+necessary for regular app
+
+
+1121
+00:35:09,236 --> 00:35:11,576
+launches, when your app is being
+
+
+1122
+00:35:11,576 --> 00:35:13,256
+launched as a test runner, a lot
+
+
+1123
+00:35:13,256 --> 00:35:14,446
+of that work may be unnecessary.
+
+
+1124
+00:35:15,296 --> 00:35:16,366
+Things like loading view
+
+
+1125
+00:35:16,366 --> 00:35:18,216
+controllers, kicking off network
+
+
+1126
+00:35:18,216 --> 00:35:20,296
+requests, or configuring
+
+
+1127
+00:35:20,296 --> 00:35:21,976
+analytics packages-- these are
+
+
+1128
+00:35:21,976 --> 00:35:23,096
+all examples of things that are
+
+
+1129
+00:35:23,096 --> 00:35:24,586
+commonly unnecessary in unit
+
+
+1130
+00:35:24,586 --> 00:35:25,516
+testing scenarios.
+
+
+1131
+00:35:26,836 --> 00:35:28,656
+XCTest waits until your app
+
+
+1132
+00:35:28,696 --> 00:35:30,186
+delegates did finish launching
+
+
+1133
+00:35:30,186 --> 00:35:31,666
+method returns before beginning
+
+
+1134
+00:35:31,666 --> 00:35:32,486
+to run tests.
+
+
+1135
+00:35:33,126 --> 00:35:34,786
+So, if you profile and notice
+
+
+1136
+00:35:34,816 --> 00:35:36,256
+that app launch is taking a long
+
+
+1137
+00:35:36,256 --> 00:35:38,596
+time in your tests, then one tip
+
+
+1138
+00:35:38,626 --> 00:35:39,866
+is to detect when your app is
+
+
+1139
+00:35:39,866 --> 00:35:41,256
+launched as a test runner and
+
+
+1140
+00:35:41,256 --> 00:35:41,856
+avoid this work.
+
+
+1141
+00:35:42,516 --> 00:35:46,656
+One way to do this is to specify
+
+
+1142
+00:35:46,656 --> 00:35:48,156
+a custom environment variable or
+
+
+1143
+00:35:48,156 --> 00:35:48,776
+launch argument.
+
+
+1144
+00:35:49,896 --> 00:35:51,606
+Open the scheme editor, go to
+
+
+1145
+00:35:51,606 --> 00:35:52,876
+the test action on the left
+
+
+1146
+00:35:52,876 --> 00:35:54,946
+side, then to the arguments tab,
+
+
+1147
+00:35:55,346 --> 00:35:56,916
+and add either an environment
+
+
+1148
+00:35:56,916 --> 00:35:58,276
+variable or a launch argument.
+
+
+1149
+00:35:59,316 --> 00:36:00,806
+In this screenshot, I've added
+
+
+1150
+00:36:00,806 --> 00:36:02,226
+an environment variable named
+
+
+1151
+00:36:02,306 --> 00:36:04,056
+IS-UNIT-TESTING set to 1.
+
+
+1152
+00:36:06,096 --> 00:36:08,066
+Then, modify your app delegate's
+
+
+1153
+00:36:08,216 --> 00:36:09,976
+appDidFinishLaunching code to
+
+
+1154
+00:36:09,976 --> 00:36:11,266
+check for this condition, using
+
+
+1155
+00:36:11,266 --> 00:36:12,406
+code similar to this.
+
+
+1156
+00:36:13,606 --> 00:36:15,136
+Now, if you do this, be sure
+
+
+1157
+00:36:15,136 --> 00:36:16,866
+that the code you skip truly is
+
+
+1158
+00:36:16,866 --> 00:36:18,526
+nonessential for your unit test
+
+
+1159
+00:36:18,526 --> 00:36:19,000
+to function.
+
+
+1160
+00:36:23,106 --> 00:36:27,226
+So, to wrap up, Brian started by
+
+
+1161
+00:36:27,226 --> 00:36:28,376
+reminding us about the testing
+
+
+1162
+00:36:28,376 --> 00:36:29,976
+pyramid and how to have a
+
+
+1163
+00:36:29,976 --> 00:36:31,226
+balanced testing strategy in
+
+
+1164
+00:36:31,226 --> 00:36:32,846
+your app, showing several
+
+
+1165
+00:36:32,846 --> 00:36:34,656
+practical techniques for testing
+
+
+1166
+00:36:34,656 --> 00:36:35,666
+network operations.
+
+
+1167
+00:36:36,956 --> 00:36:38,596
+Then, I talked about isolating
+
+
+1168
+00:36:38,596 --> 00:36:40,886
+foundation notifications and
+
+
+1169
+00:36:40,886 --> 00:36:42,056
+using dependency injection.
+
+
+1170
+00:36:43,506 --> 00:36:44,906
+We offered a solution to one of
+
+
+1171
+00:36:44,906 --> 00:36:46,326
+the most common challenges when
+
+
+1172
+00:36:46,326 --> 00:36:48,196
+writing tests, interacting with
+
+
+1173
+00:36:48,196 --> 00:36:50,306
+external classes, even if they
+
+
+1174
+00:36:50,306 --> 00:36:51,056
+have a delegate.
+
+
+1175
+00:36:52,356 --> 00:36:53,506
+And we shared some tips for
+
+
+1176
+00:36:53,506 --> 00:36:55,036
+keeping your tests running fast
+
+
+1177
+00:36:55,036 --> 00:36:56,666
+and avoiding artificial delays.
+
+
+1178
+00:36:57,866 --> 00:36:58,836
+We really hope you'll find these
+
+
+1179
+00:36:58,836 --> 00:37:00,126
+tests useful and look for ways
+
+
+1180
+00:37:00,126 --> 00:37:01,136
+to apply them the next time
+
+
+1181
+00:37:01,136 --> 00:37:02,626
+you're writing tests.
+
+
+1182
+00:37:04,316 --> 00:37:05,936
+For more information, check out
+
+
+1183
+00:37:05,936 --> 00:37:07,206
+our session webpage at this
+
+
+1184
+00:37:07,206 --> 00:37:08,726
+link, and, in case you missed
+
+
+1185
+00:37:08,726 --> 00:37:10,246
+it, we hope you'll check out
+
+
+1186
+00:37:10,246 --> 00:37:11,276
+Wednesday's What's New in
+
+
+1187
+00:37:11,276 --> 00:37:12,446
+Testing session on video.
+
+
+1188
+00:37:13,516 --> 00:37:14,756
+Thanks so much, and I hope you
+
+
+1189
+00:37:14,756 --> 00:37:15,726
+had a great WWDC.
+
+
+1190
+00:37:16,516 --> 00:37:19,500
+[ Applause ]
+

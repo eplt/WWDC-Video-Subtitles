@@ -1,0 +1,4604 @@
+1
+00:00:07,016 --> 00:00:15,500
+[ Music ]
+
+
+2
+00:00:25,276 --> 00:00:25,956
+>> Good morning.
+
+
+3
+00:00:26,516 --> 00:00:32,356
+[ Applause ]
+
+
+4
+00:00:32,856 --> 00:00:34,626
+>> Welcome to Session 403,
+
+
+5
+00:00:34,626 --> 00:00:35,746
+What's New in Testing.
+
+
+6
+00:00:36,466 --> 00:00:38,326
+My name is Honza Dvorsky and I
+
+
+7
+00:00:38,326 --> 00:00:39,856
+will share the stage today with
+
+
+8
+00:00:39,856 --> 00:00:41,346
+my colleague, Ethan Vaughan.
+
+
+9
+00:00:43,336 --> 00:00:45,286
+Today, we'll start by talking
+
+
+10
+00:00:45,286 --> 00:00:46,326
+about the code's coverage
+
+
+11
+00:00:46,326 --> 00:00:47,756
+improvements we made in Xcode
+
+
+12
+00:00:47,756 --> 00:00:48,386
+9.3.
+
+
+13
+00:00:49,546 --> 00:00:50,686
+Then we'll look at the test
+
+
+14
+00:00:50,776 --> 00:00:52,396
+selection and ordering features
+
+
+15
+00:00:52,646 --> 00:00:53,926
+new in Xcode 10.
+
+
+16
+00:00:54,776 --> 00:00:56,526
+And finally, Ethan will come up
+
+
+17
+00:00:56,526 --> 00:00:58,406
+on stage to tell you about how
+
+
+18
+00:00:58,406 --> 00:01:00,076
+you can speed up your tests by
+
+
+19
+00:01:00,076 --> 00:01:01,236
+running them in parallel.
+
+
+20
+00:01:01,786 --> 00:01:04,116
+Let's kick off with code
+
+
+21
+00:01:04,116 --> 00:01:04,575
+coverage.
+
+
+22
+00:01:05,116 --> 00:01:08,196
+We completely reworked code
+
+
+23
+00:01:08,196 --> 00:01:10,776
+coverage in Xcode 9.3 and this
+
+
+24
+00:01:10,776 --> 00:01:12,826
+resulted in many performance and
+
+
+25
+00:01:12,826 --> 00:01:15,576
+accuracy improvements and it
+
+
+26
+00:01:15,576 --> 00:01:17,166
+allowed us to add a new feature
+
+
+27
+00:01:17,336 --> 00:01:18,506
+so that you have the granular
+
+
+28
+00:01:18,506 --> 00:01:20,486
+control over which targets
+
+
+29
+00:01:20,636 --> 00:01:22,036
+contribute to code coverage.
+
+
+30
+00:01:22,596 --> 00:01:25,486
+We created a new command line
+
+
+31
+00:01:25,486 --> 00:01:28,746
+tool called xccov and last but
+
+
+32
+00:01:28,746 --> 00:01:30,616
+not least, we gave code coverage
+
+
+33
+00:01:30,616 --> 00:01:32,346
+in the source editor a visual
+
+
+34
+00:01:32,346 --> 00:01:32,866
+refresh.
+
+
+35
+00:01:33,616 --> 00:01:35,246
+Let's look at all of these in
+
+
+36
+00:01:35,246 --> 00:01:35,616
+detail.
+
+
+37
+00:01:36,696 --> 00:01:38,716
+First, to give you a sense of
+
+
+38
+00:01:38,716 --> 00:01:40,446
+how much better code coverage is
+
+
+39
+00:01:40,446 --> 00:01:42,616
+now, we measured it on a large
+
+
+40
+00:01:42,616 --> 00:01:46,076
+internal project at Apple.
+
+
+41
+00:01:46,266 --> 00:01:47,756
+To understand the speed, we
+
+
+42
+00:01:47,756 --> 00:01:49,486
+measured how long it took Xcode
+
+
+43
+00:01:49,666 --> 00:01:51,486
+to load and show code coverage
+
+
+44
+00:01:51,486 --> 00:01:52,366
+in the source editor.
+
+
+45
+00:01:52,976 --> 00:01:56,486
+In Xcode 9, it took about six
+
+
+46
+00:01:56,486 --> 00:01:59,786
+and a half seconds to do that.
+
+
+47
+00:01:59,956 --> 00:02:01,656
+In Xcode 9.3, however, we got it
+
+
+48
+00:02:01,656 --> 00:02:02,706
+down to less than a half a
+
+
+49
+00:02:02,706 --> 00:02:04,716
+second, which is more than 95%
+
+
+50
+00:02:04,716 --> 00:02:05,276
+faster.
+
+
+51
+00:02:06,516 --> 00:02:11,626
+[ Applause ]
+
+
+52
+00:02:12,126 --> 00:02:13,816
+But we also wanted to make the
+
+
+53
+00:02:13,816 --> 00:02:16,206
+coverage file smaller, as Xcode
+
+
+54
+00:02:16,206 --> 00:02:17,546
+can potentially write out many
+
+
+55
+00:02:17,546 --> 00:02:19,026
+of them, if you run your test
+
+
+56
+00:02:19,026 --> 00:02:21,516
+often, as you should, so I'm
+
+
+57
+00:02:21,516 --> 00:02:22,796
+happy to say that here, the
+
+
+58
+00:02:22,796 --> 00:02:24,046
+improvements are just as
+
+
+59
+00:02:24,046 --> 00:02:25,246
+dramatic.
+
+
+60
+00:02:25,916 --> 00:02:27,826
+Xcode 9's coverage files were
+
+
+61
+00:02:27,826 --> 00:02:29,486
+over 200 megabytes in size.
+
+
+62
+00:02:30,076 --> 00:02:31,866
+And this is a lot but remember
+
+
+63
+00:02:31,866 --> 00:02:33,246
+that we're talking about a large
+
+
+64
+00:02:33,246 --> 00:02:35,096
+project with thousands of source
+
+
+65
+00:02:35,096 --> 00:02:35,596
+files.
+
+
+66
+00:02:36,086 --> 00:02:39,956
+But files written by Xcode 9.3
+
+
+67
+00:02:40,086 --> 00:02:41,586
+were less than a tenth of that.
+
+
+68
+00:02:42,516 --> 00:02:46,726
+[ Applause ]
+
+
+69
+00:02:47,226 --> 00:02:48,736
+I'm sure you appreciate this if
+
+
+70
+00:02:48,736 --> 00:02:49,926
+you maintain a continuous
+
+
+71
+00:02:49,926 --> 00:02:51,806
+integration machine or if you're
+
+
+72
+00:02:51,806 --> 00:02:53,466
+just running low on disk space.
+
+
+73
+00:02:54,516 --> 00:02:55,796
+But the best part is that not
+
+
+74
+00:02:55,796 --> 00:02:57,086
+only are the coverage files
+
+
+75
+00:02:57,086 --> 00:02:59,346
+smaller and faster to read and
+
+
+76
+00:02:59,346 --> 00:03:00,716
+write, they're also more
+
+
+77
+00:03:00,716 --> 00:03:02,046
+accurate than ever before.
+
+
+78
+00:03:02,106 --> 00:03:05,056
+One example of this is header
+
+
+79
+00:03:05,056 --> 00:03:05,606
+files.
+
+
+80
+00:03:06,066 --> 00:03:08,246
+Xcode 9 didn't correctly collect
+
+
+81
+00:03:08,246 --> 00:03:09,396
+and show coverage in header
+
+
+82
+00:03:09,396 --> 00:03:11,666
+files and this was a problem for
+
+
+83
+00:03:11,666 --> 00:03:14,106
+a code basis that used C++ as in
+
+
+84
+00:03:14,106 --> 00:03:15,546
+that language, you can have a
+
+
+85
+00:03:15,666 --> 00:03:17,276
+good portion of your executable
+
+
+86
+00:03:17,276 --> 00:03:18,506
+code in headers.
+
+
+87
+00:03:19,776 --> 00:03:20,826
+So, if you're one of the people
+
+
+88
+00:03:20,826 --> 00:03:22,106
+affected, you'll be happy to
+
+
+89
+00:03:22,106 --> 00:03:24,006
+hear that Xcode now correctly
+
+
+90
+00:03:24,046 --> 00:03:25,296
+gathers and presents code
+
+
+91
+00:03:25,326 --> 00:03:27,316
+coverage for both implementation
+
+
+92
+00:03:27,376 --> 00:03:28,336
+and header files.
+
+
+93
+00:03:29,586 --> 00:03:30,916
+Now let's talk about code
+
+
+94
+00:03:30,916 --> 00:03:32,006
+coverage features.
+
+
+95
+00:03:33,416 --> 00:03:34,686
+The first one is target
+
+
+96
+00:03:34,686 --> 00:03:35,346
+selection.
+
+
+97
+00:03:36,576 --> 00:03:38,466
+This is a new option to control
+
+
+98
+00:03:38,466 --> 00:03:39,876
+not only whether code coverage
+
+
+99
+00:03:39,876 --> 00:03:42,136
+is enabled or disabled but when
+
+
+100
+00:03:42,136 --> 00:03:44,506
+it's enabled, you actually
+
+
+101
+00:03:44,506 --> 00:03:46,416
+control which targets are
+
+
+102
+00:03:46,416 --> 00:03:46,886
+included.
+
+
+103
+00:03:48,056 --> 00:03:49,476
+This can be important if your
+
+
+104
+00:03:49,476 --> 00:03:50,816
+project builds third-party
+
+
+105
+00:03:50,816 --> 00:03:52,516
+dependencies that you're not
+
+
+106
+00:03:52,516 --> 00:03:54,156
+expected to cover by your tests
+
+
+107
+00:03:54,576 --> 00:03:55,986
+or if you work at a company
+
+
+108
+00:03:56,186 --> 00:03:57,906
+where another team supplies you
+
+
+109
+00:03:57,906 --> 00:03:59,176
+with a framework that they
+
+
+110
+00:03:59,176 --> 00:03:59,916
+already tested.
+
+
+111
+00:04:00,556 --> 00:04:03,616
+You can customize the included
+
+
+112
+00:04:03,616 --> 00:04:05,756
+targets in this scheme's test
+
+
+113
+00:04:05,756 --> 00:04:07,566
+action under options.
+
+
+114
+00:04:08,746 --> 00:04:10,386
+This means that it can continue
+
+
+115
+00:04:10,386 --> 00:04:12,446
+to include all targets in code
+
+
+116
+00:04:12,446 --> 00:04:14,346
+coverage or only hand pick some
+
+
+117
+00:04:14,346 --> 00:04:14,826
+of them.
+
+
+118
+00:04:17,266 --> 00:04:19,125
+Now in the name of more powerful
+
+
+119
+00:04:19,125 --> 00:04:20,726
+workflows, we created a new
+
+
+120
+00:04:20,726 --> 00:04:22,366
+command-line tool called xccov.
+
+
+121
+00:04:22,916 --> 00:04:25,936
+It can be integrated into
+
+
+122
+00:04:25,936 --> 00:04:27,876
+automation scripts easily, as it
+
+
+123
+00:04:27,876 --> 00:04:29,786
+produces both human readable and
+
+
+124
+00:04:29,786 --> 00:04:31,196
+machine parseable outputs.
+
+
+125
+00:04:32,326 --> 00:04:33,776
+And at the high level, it gives
+
+
+126
+00:04:33,776 --> 00:04:36,156
+you detailed view of your
+
+
+127
+00:04:36,156 --> 00:04:36,836
+coverage data.
+
+
+128
+00:04:37,656 --> 00:04:38,746
+So, I've mentioned the code
+
+
+129
+00:04:38,786 --> 00:04:40,166
+coverage data a couple of times,
+
+
+130
+00:04:40,596 --> 00:04:41,846
+let's look at how it looks under
+
+
+131
+00:04:41,976 --> 00:04:42,866
+the hood.
+
+
+132
+00:04:43,616 --> 00:04:45,526
+When tests are run with code
+
+
+133
+00:04:45,526 --> 00:04:47,476
+coverage enabled, Xcode
+
+
+134
+00:04:47,476 --> 00:04:48,786
+generates two files.
+
+
+135
+00:04:49,296 --> 00:04:52,166
+First is the coverage report, or
+
+
+136
+00:04:52,166 --> 00:04:53,976
+the xccovreport file extension,
+
+
+137
+00:04:54,236 --> 00:04:55,646
+and that contains the line --
+
+
+138
+00:04:56,646 --> 00:04:58,766
+line coverage percentages for
+
+
+139
+00:04:58,766 --> 00:05:00,976
+each target, source file, and
+
+
+140
+00:05:00,976 --> 00:05:01,566
+function.
+
+
+141
+00:05:01,906 --> 00:05:04,726
+The second one is the coverage
+
+
+142
+00:05:04,816 --> 00:05:06,716
+archive and that contains the
+
+
+143
+00:05:06,716 --> 00:05:08,976
+raw execution counts for each of
+
+
+144
+00:05:08,976 --> 00:05:10,326
+the files in the report.
+
+
+145
+00:05:13,056 --> 00:05:14,996
+And these coverage files live in
+
+
+146
+00:05:14,996 --> 00:05:16,356
+your project's derived data
+
+
+147
+00:05:16,526 --> 00:05:18,856
+directory and additionally, if
+
+
+148
+00:05:18,926 --> 00:05:20,816
+you pass the result bundle path
+
+
+149
+00:05:21,106 --> 00:05:23,626
+flag to Xcode build, these files
+
+
+150
+00:05:23,626 --> 00:05:25,686
+will be placed into the result
+
+
+151
+00:05:25,686 --> 00:05:28,176
+bundle as well.
+
+
+152
+00:05:28,276 --> 00:05:29,686
+Let's look at an example.
+
+
+153
+00:05:30,086 --> 00:05:31,666
+Here, we use xccov to view the
+
+
+154
+00:05:31,666 --> 00:05:35,286
+coverage data of our Hello World
+
+
+155
+00:05:35,846 --> 00:05:35,926
+app.
+
+
+156
+00:05:36,166 --> 00:05:37,776
+We can see the overall coverage
+
+
+157
+00:05:37,776 --> 00:05:40,326
+for each target but also
+
+
+158
+00:05:40,326 --> 00:05:42,186
+detailed coverage for each file
+
+
+159
+00:05:42,186 --> 00:05:44,376
+and even for each method.
+
+
+160
+00:05:45,586 --> 00:05:48,466
+And of course, by passing the
+
+
+161
+00:05:48,466 --> 00:05:51,026
+right flag identification, you
+
+
+162
+00:05:51,026 --> 00:05:52,146
+can get the same exact
+
+
+163
+00:05:52,146 --> 00:05:54,326
+information in JSON.
+
+
+164
+00:05:54,826 --> 00:05:57,356
+This can make it much easier to
+
+
+165
+00:05:57,356 --> 00:05:58,666
+integrate with other tools.
+
+
+166
+00:06:00,136 --> 00:06:01,396
+So, as you can see, xccov is
+
+
+167
+00:06:01,396 --> 00:06:02,846
+very flexible, so I would
+
+
+168
+00:06:02,846 --> 00:06:04,106
+encourage you to explore its
+
+
+169
+00:06:04,106 --> 00:06:04,826
+documentation.
+
+
+170
+00:06:04,826 --> 00:06:09,816
+Now we talked about use --
+
+
+171
+00:06:09,816 --> 00:06:11,576
+viewing code coverage on the
+
+
+172
+00:06:11,576 --> 00:06:13,026
+command line but the most
+
+
+173
+00:06:13,026 --> 00:06:14,616
+convenient way is still going to
+
+
+174
+00:06:14,616 --> 00:06:16,066
+be to see it right next to your
+
+
+175
+00:06:16,066 --> 00:06:16,666
+source code.
+
+
+176
+00:06:17,226 --> 00:06:19,796
+You control whether code
+
+
+177
+00:06:19,796 --> 00:06:22,026
+coverage is shown by selecting
+
+
+178
+00:06:22,206 --> 00:06:24,346
+editor, show, or hide code
+
+
+179
+00:06:24,376 --> 00:06:24,906
+coverage.
+
+
+180
+00:06:28,296 --> 00:06:29,986
+When you do enable it, you'll
+
+
+181
+00:06:29,986 --> 00:06:31,216
+see the refreshed look of code
+
+
+182
+00:06:31,216 --> 00:06:32,426
+coverage in the source editor.
+
+
+183
+00:06:33,306 --> 00:06:34,836
+The whole line highlights when
+
+
+184
+00:06:34,836 --> 00:06:36,156
+you hover over the execution
+
+
+185
+00:06:36,156 --> 00:06:37,666
+count on the right-hand side.
+
+
+186
+00:06:38,796 --> 00:06:40,426
+And this is just the best way to
+
+
+187
+00:06:40,426 --> 00:06:42,016
+keep an eye on which of your
+
+
+188
+00:06:42,016 --> 00:06:43,756
+code is already covered by tests
+
+
+189
+00:06:44,286 --> 00:06:47,466
+and which still needs more work.
+
+
+190
+00:06:47,676 --> 00:06:49,456
+Now let me show you all of these
+
+
+191
+00:06:49,456 --> 00:06:50,486
+improvements in action.
+
+
+192
+00:07:00,936 --> 00:07:03,116
+So, here I have a project called
+
+
+193
+00:07:03,116 --> 00:07:03,806
+Dev Cast.
+
+
+194
+00:07:04,376 --> 00:07:05,986
+It's a simple messaging app and
+
+
+195
+00:07:05,986 --> 00:07:07,596
+I created the iOS version for
+
+
+196
+00:07:07,596 --> 00:07:08,566
+this talk last year.
+
+
+197
+00:07:08,976 --> 00:07:10,066
+So, this year, I wanted to
+
+
+198
+00:07:10,066 --> 00:07:11,206
+create a Mac version.
+
+
+199
+00:07:12,196 --> 00:07:13,396
+But I wanted to share the
+
+
+200
+00:07:13,396 --> 00:07:14,956
+business logic between the iOS
+
+
+201
+00:07:14,956 --> 00:07:16,296
+and Mac versions, so I put it
+
+
+202
+00:07:16,296 --> 00:07:17,656
+all into a framework called
+
+
+203
+00:07:17,656 --> 00:07:20,886
+DevCastkit and today, my goal is
+
+
+204
+00:07:20,886 --> 00:07:22,726
+to explore and maybe improve the
+
+
+205
+00:07:22,726 --> 00:07:24,496
+code coverage of this framework.
+
+
+206
+00:07:25,716 --> 00:07:26,986
+So, right now, I'm not
+
+
+207
+00:07:27,056 --> 00:07:28,296
+collecting code coverage, so I
+
+
+208
+00:07:28,296 --> 00:07:29,376
+just need to turn it on.
+
+
+209
+00:07:30,456 --> 00:07:32,146
+I'll do that by selecting the
+
+
+210
+00:07:32,146 --> 00:07:34,756
+scheme, selecting edit scheme,
+
+
+211
+00:07:35,426 --> 00:07:38,286
+go into the test action, go into
+
+
+212
+00:07:38,286 --> 00:07:38,846
+options.
+
+
+213
+00:07:39,566 --> 00:07:42,216
+And down here, I will just
+
+
+214
+00:07:42,216 --> 00:07:43,366
+enable code coverage.
+
+
+215
+00:07:47,276 --> 00:07:49,106
+Now I will run my test by going
+
+
+216
+00:07:49,106 --> 00:07:50,496
+to product test.
+
+
+217
+00:07:51,316 --> 00:07:53,446
+Right now, my framework, my test
+
+
+218
+00:07:53,446 --> 00:07:55,066
+bundle and my Mac app are
+
+
+219
+00:07:55,066 --> 00:07:57,316
+getting built, and my tests are
+
+
+220
+00:07:57,316 --> 00:07:57,866
+being run.
+
+
+221
+00:07:58,446 --> 00:08:01,196
+Now the test finished so let's
+
+
+222
+00:08:01,196 --> 00:08:02,296
+look at the results.
+
+
+223
+00:08:02,296 --> 00:08:03,906
+We'll go to the report navigator
+
+
+224
+00:08:04,936 --> 00:08:06,486
+and to the latest coverage
+
+
+225
+00:08:06,486 --> 00:08:07,016
+reports.
+
+
+226
+00:08:08,476 --> 00:08:11,566
+Here, I can see that I have the
+
+
+227
+00:08:11,696 --> 00:08:14,306
+-- both targets, the Mac app and
+
+
+228
+00:08:14,306 --> 00:08:15,106
+also the framework.
+
+
+229
+00:08:15,966 --> 00:08:18,606
+Now the Mac app only serves as a
+
+
+230
+00:08:18,606 --> 00:08:20,826
+container for running tests, so
+
+
+231
+00:08:20,826 --> 00:08:22,066
+I'm not really concerned about
+
+
+232
+00:08:22,066 --> 00:08:23,316
+its low code coverage.
+
+
+233
+00:08:23,656 --> 00:08:25,146
+In fact, I would actually not
+
+
+234
+00:08:25,146 --> 00:08:26,836
+want to see it in this report at
+
+
+235
+00:08:26,836 --> 00:08:27,226
+all.
+
+
+236
+00:08:27,736 --> 00:08:30,316
+So, I can do that by editing the
+
+
+237
+00:08:30,316 --> 00:08:31,006
+scheme again.
+
+
+238
+00:08:31,546 --> 00:08:37,056
+And in the test action, here --
+
+
+239
+00:08:37,056 --> 00:08:38,285
+instead of gathering coverage
+
+
+240
+00:08:38,285 --> 00:08:40,686
+for all targets, I'll change to
+
+
+241
+00:08:40,686 --> 00:08:41,666
+just some targets.
+
+
+242
+00:08:42,946 --> 00:08:44,906
+This gives me a hard cover list
+
+
+243
+00:08:44,906 --> 00:08:47,476
+and I will add just the target
+
+
+244
+00:08:47,476 --> 00:08:48,836
+that I'm interested in, which is
+
+
+245
+00:08:48,836 --> 00:08:49,366
+the framework.
+
+
+246
+00:08:53,496 --> 00:08:56,186
+Now I will rerun my tests and
+
+
+247
+00:08:59,206 --> 00:09:01,176
+look at the updated coverage
+
+
+248
+00:09:01,176 --> 00:09:01,636
+reports.
+
+
+249
+00:09:03,126 --> 00:09:04,716
+So, now you can see that I only
+
+
+250
+00:09:04,716 --> 00:09:05,906
+have the framework in the
+
+
+251
+00:09:05,906 --> 00:09:06,566
+coverage report.
+
+
+252
+00:09:06,736 --> 00:09:07,696
+This is what I wanted.
+
+
+253
+00:09:08,226 --> 00:09:09,986
+So, now I can just focus on this
+
+
+254
+00:09:09,986 --> 00:09:10,626
+one target.
+
+
+255
+00:09:11,676 --> 00:09:12,636
+So, looking at the coverage
+
+
+256
+00:09:12,636 --> 00:09:15,086
+percentage, is at 84%, which is
+
+
+257
+00:09:15,086 --> 00:09:16,706
+not bad, but I know I can do
+
+
+258
+00:09:16,706 --> 00:09:17,116
+better.
+
+
+259
+00:09:17,796 --> 00:09:18,996
+So, to understand which of the
+
+
+260
+00:09:18,996 --> 00:09:21,116
+files need more attention, I
+
+
+261
+00:09:21,146 --> 00:09:24,056
+will disclose the target and see
+
+
+262
+00:09:24,056 --> 00:09:25,566
+that the first file is only
+
+
+263
+00:09:25,566 --> 00:09:27,466
+covered at about 66%.
+
+
+264
+00:09:28,506 --> 00:09:30,196
+So, I'll jump to the file by
+
+
+265
+00:09:30,196 --> 00:09:31,216
+clicking on the arrow here.
+
+
+266
+00:09:31,816 --> 00:09:36,456
+And here, I'll look at my local
+
+
+267
+00:09:36,456 --> 00:09:37,346
+server class.
+
+
+268
+00:09:38,306 --> 00:09:39,536
+On the right-hand side, I can
+
+
+269
+00:09:39,536 --> 00:09:41,046
+see the execution counts for
+
+
+270
+00:09:41,046 --> 00:09:43,096
+each region of the code so I can
+
+
+271
+00:09:43,096 --> 00:09:44,846
+see that all of the executable
+
+
+272
+00:09:44,896 --> 00:09:47,216
+parts of my class are covered by
+
+
+273
+00:09:47,216 --> 00:09:47,756
+tests.
+
+
+274
+00:09:47,976 --> 00:09:48,676
+This is good.
+
+
+275
+00:09:49,396 --> 00:09:50,936
+Unfortunately, my convenience
+
+
+276
+00:09:50,936 --> 00:09:52,666
+function, get recent messages,
+
+
+277
+00:09:52,916 --> 00:09:54,206
+hasn't been called for my tests
+
+
+278
+00:09:54,206 --> 00:09:55,566
+at all, so I don't know if it's
+
+
+279
+00:09:55,566 --> 00:09:56,316
+working properly.
+
+
+280
+00:09:57,716 --> 00:09:59,496
+To fix that, I'll go to the
+
+
+281
+00:09:59,496 --> 00:10:03,526
+corresponding test file and I
+
+
+282
+00:10:03,736 --> 00:10:04,916
+will add a new test.
+
+
+283
+00:10:07,456 --> 00:10:09,126
+This test just puts a couple of
+
+
+284
+00:10:09,126 --> 00:10:11,896
+messages into a local server and
+
+
+285
+00:10:11,896 --> 00:10:12,966
+then I call, get recent
+
+
+286
+00:10:12,966 --> 00:10:14,476
+messages, on it to verify that
+
+
+287
+00:10:14,476 --> 00:10:15,906
+it returns what I'm expecting.
+
+
+288
+00:10:17,346 --> 00:10:19,696
+So, with the new test added, I
+
+
+289
+00:10:19,696 --> 00:10:21,126
+will rerun my tests one more
+
+
+290
+00:10:21,126 --> 00:10:21,476
+time.
+
+
+291
+00:10:25,676 --> 00:10:27,356
+So, great, the test finished.
+
+
+292
+00:10:27,356 --> 00:10:28,826
+I'll go to the coverage report
+
+
+293
+00:10:29,346 --> 00:10:32,836
+again and now when I focus on my
+
+
+294
+00:10:32,836 --> 00:10:33,986
+framework, I can see that it's
+
+
+295
+00:10:33,986 --> 00:10:35,286
+covered at 100%.
+
+
+296
+00:10:35,456 --> 00:10:36,786
+This is exactly what I wanted.
+
+
+297
+00:10:38,316 --> 00:10:40,816
+So, we saw how I used the target
+
+
+298
+00:10:40,816 --> 00:10:42,336
+selection feature to only focus
+
+
+299
+00:10:42,396 --> 00:10:43,626
+on some of the targets.
+
+
+300
+00:10:44,446 --> 00:10:45,806
+Then I used the coverage report
+
+
+301
+00:10:45,806 --> 00:10:47,456
+to know exactly which file to
+
+
+302
+00:10:47,456 --> 00:10:48,126
+focus on.
+
+
+303
+00:10:48,776 --> 00:10:50,076
+And finally, I used the code
+
+
+304
+00:10:50,116 --> 00:10:51,236
+coverage integration in the
+
+
+305
+00:10:51,236 --> 00:10:53,176
+source editor to know exactly
+
+
+306
+00:10:53,176 --> 00:10:54,626
+which part of my code still
+
+
+307
+00:10:54,626 --> 00:10:55,336
+needs covering.
+
+
+308
+00:10:55,806 --> 00:10:57,936
+So, this is the improved code
+
+
+309
+00:10:57,936 --> 00:10:58,756
+coverage in Xcode.
+
+
+310
+00:11:06,096 --> 00:11:08,026
+So, moving on from code
+
+
+311
+00:11:08,026 --> 00:11:10,536
+coverage, let's talk about some
+
+
+312
+00:11:10,536 --> 00:11:11,986
+new features in Xcode 10.
+
+
+313
+00:11:13,056 --> 00:11:14,576
+First, we'll see how we can now
+
+
+314
+00:11:14,576 --> 00:11:18,236
+better select and order our
+
+
+315
+00:11:19,016 --> 00:11:19,346
+tests.
+
+
+316
+00:11:19,346 --> 00:11:20,886
+Now why is this important?
+
+
+317
+00:11:20,946 --> 00:11:23,636
+Well, not all the tests in your
+
+
+318
+00:11:23,836 --> 00:11:26,216
+suite serve the same purpose.
+
+
+319
+00:11:26,656 --> 00:11:28,796
+You might want to run all 1000
+
+
+320
+00:11:28,796 --> 00:11:30,556
+of your quick running unit tests
+
+
+321
+00:11:30,676 --> 00:11:32,436
+before every single commit but
+
+
+322
+00:11:32,436 --> 00:11:34,426
+only run your 10 long-running UI
+
+
+323
+00:11:34,426 --> 00:11:35,786
+tests at night.
+
+
+324
+00:11:36,796 --> 00:11:38,096
+And you can achieve this today
+
+
+325
+00:11:38,096 --> 00:11:40,076
+by disabling specific tests in
+
+
+326
+00:11:40,076 --> 00:11:40,586
+your scheme.
+
+
+327
+00:11:42,196 --> 00:11:44,686
+The scheme encodes the list of
+
+
+328
+00:11:44,686 --> 00:11:47,066
+disabled tests so that XE test
+
+
+329
+00:11:47,066 --> 00:11:48,966
+knows which tests to skip.
+
+
+330
+00:11:49,896 --> 00:11:51,376
+And this has an interesting side
+
+
+331
+00:11:51,376 --> 00:11:51,706
+effect.
+
+
+332
+00:11:52,306 --> 00:11:54,096
+Whenever you write a new test,
+
+
+333
+00:11:54,146 --> 00:11:55,736
+it's automatically added to all
+
+
+334
+00:11:55,736 --> 00:11:57,036
+the schemes that contain the
+
+
+335
+00:11:57,036 --> 00:11:58,436
+corresponding test targets.
+
+
+336
+00:11:59,226 --> 00:12:00,126
+But if that's not what you
+
+
+337
+00:12:00,126 --> 00:12:01,416
+wanted, you have to go through
+
+
+338
+00:12:01,416 --> 00:12:02,906
+all those schemes and disable
+
+
+339
+00:12:02,906 --> 00:12:04,426
+the test there manually.
+
+
+340
+00:12:05,646 --> 00:12:07,096
+So, in Xcode 10, we're
+
+
+341
+00:12:07,096 --> 00:12:08,176
+introducing a new mode for
+
+
+342
+00:12:08,176 --> 00:12:09,516
+schemes to instead, encode the
+
+
+343
+00:12:09,516 --> 00:12:10,566
+tests to run.
+
+
+344
+00:12:12,356 --> 00:12:13,746
+If you switch your scheme to
+
+
+345
+00:12:13,746 --> 00:12:15,756
+that mode, only the test that
+
+
+346
+00:12:15,756 --> 00:12:18,526
+you hand pick will run in that
+
+
+347
+00:12:20,896 --> 00:12:21,026
+scheme.
+
+
+348
+00:12:21,226 --> 00:12:22,486
+You control this mode in the
+
+
+349
+00:12:22,486 --> 00:12:24,026
+scheme editors test action,
+
+
+350
+00:12:24,986 --> 00:12:26,306
+where in the list of test
+
+
+351
+00:12:26,306 --> 00:12:27,806
+targets, there's a new options
+
+
+352
+00:12:27,866 --> 00:12:29,346
+pop-up, where you can declare
+
+
+353
+00:12:29,346 --> 00:12:30,316
+whether the scheme should
+
+
+354
+00:12:30,376 --> 00:12:31,796
+automatically include new tests
+
+
+355
+00:12:31,836 --> 00:12:32,266
+or not.
+
+
+356
+00:12:33,576 --> 00:12:34,956
+This way, some of your schemes
+
+
+357
+00:12:34,956 --> 00:12:36,526
+can continue to run any new
+
+
+358
+00:12:36,526 --> 00:12:38,206
+tests you write, while other
+
+
+359
+00:12:38,286 --> 00:12:40,136
+schemes will only run a list of
+
+
+360
+00:12:40,136 --> 00:12:43,386
+hand-picked tests.
+
+
+361
+00:12:43,536 --> 00:12:45,866
+So, we've discussed how we can
+
+
+362
+00:12:45,866 --> 00:12:47,016
+better control which of our
+
+
+363
+00:12:47,016 --> 00:12:48,696
+tests run and when, but the
+
+
+364
+00:12:48,696 --> 00:12:50,386
+order of our tests can be
+
+
+365
+00:12:50,386 --> 00:12:51,286
+significant too.
+
+
+366
+00:12:52,816 --> 00:12:55,376
+By default, tests in Xcode are
+
+
+367
+00:12:55,376 --> 00:12:56,536
+sorted by their name.
+
+
+368
+00:12:57,536 --> 00:12:58,776
+This means that unless you
+
+
+369
+00:12:58,776 --> 00:13:00,486
+rename your tests, they will
+
+
+370
+00:13:00,486 --> 00:13:01,786
+always run in the same order.
+
+
+371
+00:13:02,826 --> 00:13:04,126
+But determinism can be a
+
+
+372
+00:13:04,126 --> 00:13:04,946
+double-edged sword.
+
+
+373
+00:13:05,726 --> 00:13:06,816
+It can make it easy to miss
+
+
+374
+00:13:06,816 --> 00:13:08,836
+bugs, where one of your tests
+
+
+375
+00:13:08,986 --> 00:13:10,846
+implicitly depends on another
+
+
+376
+00:13:10,846 --> 00:13:12,526
+one running before it.
+
+
+377
+00:13:13,196 --> 00:13:14,716
+Let's look at an example of when
+
+
+378
+00:13:14,806 --> 00:13:15,606
+this can happen.
+
+
+379
+00:13:16,736 --> 00:13:18,516
+Imagine you have tests A, B, and
+
+
+380
+00:13:18,516 --> 00:13:18,756
+C.
+
+
+381
+00:13:19,416 --> 00:13:20,996
+They always run in this order
+
+
+382
+00:13:20,996 --> 00:13:22,136
+and they always pass.
+
+
+383
+00:13:22,616 --> 00:13:24,016
+But when you look at your tests
+
+
+384
+00:13:24,016 --> 00:13:26,096
+in detail, you realize that test
+
+
+385
+00:13:26,096 --> 00:13:27,916
+A creates a database.
+
+
+386
+00:13:29,166 --> 00:13:31,766
+Then test B goes and writes some
+
+
+387
+00:13:31,766 --> 00:13:32,566
+data into it.
+
+
+388
+00:13:33,656 --> 00:13:35,806
+And then finally, test C goes
+
+
+389
+00:13:36,086 --> 00:13:36,816
+and deletes it.
+
+
+390
+00:13:40,786 --> 00:13:42,346
+Now these tests only pass
+
+
+391
+00:13:42,446 --> 00:13:43,426
+because they run in this
+
+
+392
+00:13:43,426 --> 00:13:44,366
+specific order.
+
+
+393
+00:13:44,866 --> 00:13:46,526
+But if you tried to shuffle them
+
+
+394
+00:13:46,526 --> 00:13:48,356
+around, for example, by renaming
+
+
+395
+00:13:48,356 --> 00:13:50,656
+them, then you try to run them
+
+
+396
+00:13:50,656 --> 00:13:52,666
+again, you might have test B
+
+
+397
+00:13:52,776 --> 00:13:54,006
+writing into a database that
+
+
+398
+00:13:54,006 --> 00:13:55,616
+doesn't exist and your tests
+
+
+399
+00:13:55,616 --> 00:13:56,366
+would just fail.
+
+
+400
+00:13:57,766 --> 00:14:00,446
+So, to prevent issues like this,
+
+
+401
+00:14:00,706 --> 00:14:02,436
+your tests should always
+
+
+402
+00:14:02,436 --> 00:14:04,026
+correctly set up and tear down
+
+
+403
+00:14:04,026 --> 00:14:04,696
+their own state.
+
+
+404
+00:14:06,016 --> 00:14:07,546
+Not only will they be more
+
+
+405
+00:14:07,546 --> 00:14:09,376
+reliable, but it will also make
+
+
+406
+00:14:09,376 --> 00:14:10,876
+it possible for your tests to
+
+
+407
+00:14:10,876 --> 00:14:12,246
+run independently of all the
+
+
+408
+00:14:12,246 --> 00:14:14,396
+other ones and this can be
+
+
+409
+00:14:14,396 --> 00:14:15,386
+really beneficial during
+
+
+410
+00:14:15,386 --> 00:14:16,616
+development and debugging.
+
+
+411
+00:14:17,186 --> 00:14:19,846
+So, to help you ensure that
+
+
+412
+00:14:19,846 --> 00:14:21,146
+there are no unintentional
+
+
+413
+00:14:21,146 --> 00:14:22,736
+dependencies between your tests,
+
+
+414
+00:14:23,306 --> 00:14:25,056
+in Xcode 10, we're introducing
+
+
+415
+00:14:25,056 --> 00:14:27,406
+the new test randomization mode.
+
+
+416
+00:14:27,996 --> 00:14:30,136
+If you turn it on, your tests
+
+
+417
+00:14:30,136 --> 00:14:31,886
+will be randomly shuffled before
+
+
+418
+00:14:31,886 --> 00:14:32,846
+every time they're run.
+
+
+419
+00:14:33,396 --> 00:14:35,856
+And if your tests still pass
+
+
+420
+00:14:36,016 --> 00:14:37,636
+with this mode on, you can be
+
+
+421
+00:14:37,636 --> 00:14:38,756
+more confident that they are
+
+
+422
+00:14:38,756 --> 00:14:39,726
+really robust and
+
+
+423
+00:14:39,726 --> 00:14:40,426
+self-contained.
+
+
+424
+00:14:42,376 --> 00:14:44,166
+Randomization mode can be
+
+
+425
+00:14:44,166 --> 00:14:45,896
+enabled in the scheme editor,
+
+
+426
+00:14:45,896 --> 00:14:46,986
+just like the other features
+
+
+427
+00:14:46,986 --> 00:14:47,766
+we've seen today.
+
+
+428
+00:14:48,386 --> 00:14:51,326
+So, these are the new test
+
+
+429
+00:14:51,326 --> 00:14:53,126
+selection and ordering features
+
+
+430
+00:14:53,196 --> 00:14:55,676
+in Xcode 10.
+
+
+431
+00:14:55,886 --> 00:14:57,206
+Now I'm really excited about
+
+
+432
+00:14:57,206 --> 00:14:57,936
+what comes next.
+
+
+433
+00:14:59,426 --> 00:15:00,686
+To tell you all about the new
+
+
+434
+00:15:00,686 --> 00:15:01,926
+parallel testing features in
+
+
+435
+00:15:01,926 --> 00:15:03,516
+Xcode, I would like to welcome
+
+
+436
+00:15:03,516 --> 00:15:04,566
+Ethan Vaughan to the stage.
+
+
+437
+00:15:04,766 --> 00:15:04,976
+Ethan.
+
+
+438
+00:15:05,516 --> 00:15:11,866
+[ Applause ]
+
+
+439
+00:15:12,366 --> 00:15:13,076
+>> Thanks, Honza.
+
+
+440
+00:15:14,926 --> 00:15:16,506
+So, many of you have a
+
+
+441
+00:15:16,506 --> 00:15:18,346
+development cycle that looks
+
+
+442
+00:15:18,346 --> 00:15:19,066
+like this.
+
+
+443
+00:15:19,696 --> 00:15:21,686
+You write some code, you debug
+
+
+444
+00:15:21,686 --> 00:15:23,916
+it, and then you run your tests
+
+
+445
+00:15:24,196 --> 00:15:25,326
+before you commit and push your
+
+
+446
+00:15:25,326 --> 00:15:26,796
+changes to the repository.
+
+
+447
+00:15:27,926 --> 00:15:29,386
+By running your tests before you
+
+
+448
+00:15:29,386 --> 00:15:31,386
+push, you can catch regressions
+
+
+449
+00:15:31,496 --> 00:15:32,836
+before they ever make it into a
+
+
+450
+00:15:32,836 --> 00:15:32,976
+build.
+
+
+451
+00:15:35,256 --> 00:15:37,456
+However, one of the bottlenecks
+
+
+452
+00:15:37,456 --> 00:15:39,476
+in this process can be just how
+
+
+453
+00:15:39,536 --> 00:15:42,016
+long it takes to run your tests.
+
+
+454
+00:15:42,186 --> 00:15:43,616
+Some of you have test suites
+
+
+455
+00:15:43,946 --> 00:15:45,296
+that take on the order of 30
+
+
+456
+00:15:45,296 --> 00:15:47,016
+minutes to hours to run.
+
+
+457
+00:15:47,956 --> 00:15:49,046
+And if you have to wait that
+
+
+458
+00:15:49,046 --> 00:15:50,826
+long before you can confidently
+
+
+459
+00:15:50,826 --> 00:15:52,746
+land your work, that represents
+
+
+460
+00:15:52,746 --> 00:15:54,026
+a serious bottleneck in your
+
+
+461
+00:15:54,026 --> 00:15:54,536
+workflow.
+
+
+462
+00:15:55,916 --> 00:15:57,036
+We want to make sure that your
+
+
+463
+00:15:57,036 --> 00:15:59,736
+tests run as fast as possible in
+
+
+464
+00:15:59,736 --> 00:16:01,206
+order to shorten this critical
+
+
+465
+00:16:01,206 --> 00:16:02,636
+part of the development cycle.
+
+
+466
+00:16:03,406 --> 00:16:04,946
+So, last year, we introduced a
+
+
+467
+00:16:04,946 --> 00:16:08,156
+feature in Xcode 9 to help you
+
+
+468
+00:16:08,156 --> 00:16:10,096
+run tests faster, it's called
+
+
+469
+00:16:10,096 --> 00:16:11,536
+Parallel Destination Testing.
+
+
+470
+00:16:12,336 --> 00:16:13,906
+This is the ability to run all
+
+
+471
+00:16:13,906 --> 00:16:15,376
+of your tests on multiple
+
+
+472
+00:16:15,376 --> 00:16:17,166
+destinations at the same time.
+
+
+473
+00:16:18,186 --> 00:16:19,406
+And you do this from the command
+
+
+474
+00:16:19,406 --> 00:16:20,946
+line by passing multiple
+
+
+475
+00:16:20,946 --> 00:16:22,676
+destinations specifiers to
+
+
+476
+00:16:22,676 --> 00:16:23,376
+xcodebuild.
+
+
+477
+00:16:25,316 --> 00:16:27,066
+Previously, if you were to run
+
+
+478
+00:16:27,066 --> 00:16:28,726
+your tests, let's say on an
+
+
+479
+00:16:28,826 --> 00:16:31,926
+iPhone X and an iPad, xcodebuild
+
+
+480
+00:16:31,926 --> 00:16:33,466
+would run all of the tests on
+
+
+481
+00:16:33,466 --> 00:16:35,466
+the iPhone X and then all of the
+
+
+482
+00:16:35,466 --> 00:16:36,646
+tests on the iPad.
+
+
+483
+00:16:37,396 --> 00:16:38,986
+Neither device would be running
+
+
+484
+00:16:38,986 --> 00:16:42,466
+tests at the same time.
+
+
+485
+00:16:42,466 --> 00:16:44,016
+But in Xcode 9, we changed this
+
+
+486
+00:16:44,046 --> 00:16:45,896
+behavior so that by default,
+
+
+487
+00:16:46,176 --> 00:16:47,696
+tests run concurrently on the
+
+
+488
+00:16:47,696 --> 00:16:49,556
+devices and this can
+
+
+489
+00:16:49,556 --> 00:16:50,946
+dramatically shorten the overall
+
+
+490
+00:16:50,946 --> 00:16:54,406
+execution time, which is great.
+
+
+491
+00:16:54,586 --> 00:16:55,556
+However, there are some
+
+
+492
+00:16:55,556 --> 00:16:57,076
+limitations to this approach.
+
+
+493
+00:16:58,436 --> 00:17:00,816
+First, it's only beneficial if
+
+
+494
+00:17:00,816 --> 00:17:01,816
+you test on multiple
+
+
+495
+00:17:01,816 --> 00:17:02,556
+destinations.
+
+
+496
+00:17:03,406 --> 00:17:04,675
+If you just want to run unit
+
+
+497
+00:17:04,675 --> 00:17:06,205
+tests for your Mac app, for
+
+
+498
+00:17:06,205 --> 00:17:09,596
+example, this doesn't help.
+
+
+499
+00:17:09,906 --> 00:17:11,786
+Also, it's only available from
+
+
+500
+00:17:11,786 --> 00:17:13,846
+xcodebuild, so it's primarily
+
+
+501
+00:17:13,846 --> 00:17:15,156
+useful in the context of a
+
+
+502
+00:17:15,156 --> 00:17:16,175
+continuous integration
+
+
+503
+00:17:16,175 --> 00:17:17,965
+environment, like Xcode Server
+
+
+504
+00:17:18,195 --> 00:17:18,836
+or Jenkins.
+
+
+505
+00:17:20,526 --> 00:17:22,656
+I'm excited to tell you about a
+
+
+506
+00:17:22,656 --> 00:17:24,246
+new way to run tests faster than
+
+
+507
+00:17:24,246 --> 00:17:26,175
+ever called Parallel Distributed
+
+
+508
+00:17:26,175 --> 00:17:26,576
+Testing.
+
+
+509
+00:17:28,566 --> 00:17:29,736
+With Parallel Distributed
+
+
+510
+00:17:29,736 --> 00:17:31,426
+Testing, you can execute tests
+
+
+511
+00:17:31,426 --> 00:17:32,816
+in parallel on a single
+
+
+512
+00:17:32,816 --> 00:17:33,476
+destination.
+
+
+513
+00:17:34,386 --> 00:17:36,166
+Previously, testing on a single
+
+
+514
+00:17:36,166 --> 00:17:38,446
+destination looks like this, a
+
+
+515
+00:17:38,446 --> 00:17:40,256
+continuous straight line with
+
+
+516
+00:17:40,256 --> 00:17:42,256
+one test executing after the
+
+
+517
+00:17:42,886 --> 00:17:42,976
+other.
+
+
+518
+00:17:44,346 --> 00:17:45,656
+Parallel Distributed Testing
+
+
+519
+00:17:45,686 --> 00:17:46,676
+allows you to run tests
+
+
+520
+00:17:46,676 --> 00:17:48,616
+simultaneously so that testing
+
+
+521
+00:17:48,616 --> 00:17:49,306
+now looks like this.
+
+
+522
+00:17:51,066 --> 00:17:52,486
+In addition, it's supported both
+
+
+523
+00:17:52,486 --> 00:17:53,776
+from Xcode, as well as
+
+
+524
+00:17:53,776 --> 00:17:55,576
+xcodebuild, so no matter where
+
+
+525
+00:17:55,576 --> 00:17:57,146
+you run your tests, you'll get
+
+
+526
+00:17:57,146 --> 00:17:58,176
+the best performance.
+
+
+527
+00:17:58,746 --> 00:18:01,636
+Now in order to tell you about
+
+
+528
+00:18:01,636 --> 00:18:03,076
+how Xcode runs your tests in
+
+
+529
+00:18:03,076 --> 00:18:04,836
+parallel, we first have to talk
+
+
+530
+00:18:04,836 --> 00:18:06,606
+about how your tests execute at
+
+
+531
+00:18:06,606 --> 00:18:10,646
+all, what happens at runtime.
+
+
+532
+00:18:10,706 --> 00:18:12,866
+Let's start with unit tests.
+
+
+533
+00:18:13,036 --> 00:18:14,996
+Your unit tests get compiled
+
+
+534
+00:18:15,046 --> 00:18:16,366
+into a test bundle.
+
+
+535
+00:18:17,606 --> 00:18:20,066
+At runtime, Xcode launches an
+
+
+536
+00:18:20,066 --> 00:18:21,636
+instance of your app which
+
+
+537
+00:18:21,636 --> 00:18:23,126
+serves as a test runner.
+
+
+538
+00:18:24,416 --> 00:18:26,726
+The runner loads the test bundle
+
+
+539
+00:18:26,726 --> 00:18:29,786
+and executes all of its tests,
+
+
+540
+00:18:29,896 --> 00:18:30,936
+so that's how unit tests
+
+
+541
+00:18:30,936 --> 00:18:31,466
+execute.
+
+
+542
+00:18:32,386 --> 00:18:33,156
+What about UI tests?
+
+
+543
+00:18:33,976 --> 00:18:35,416
+For UI, tests the story is
+
+
+544
+00:18:35,456 --> 00:18:35,916
+similar.
+
+
+545
+00:18:36,516 --> 00:18:37,866
+Your tests still get compiled
+
+
+546
+00:18:37,866 --> 00:18:40,186
+into a bundle, but the bundle is
+
+
+547
+00:18:40,186 --> 00:18:41,786
+loaded by a custom app that
+
+
+548
+00:18:41,786 --> 00:18:42,736
+Xcode creates.
+
+
+549
+00:18:43,386 --> 00:18:45,126
+Your app no longer runs the
+
+
+550
+00:18:45,126 --> 00:18:45,456
+tests.
+
+
+551
+00:18:46,636 --> 00:18:48,846
+Instead, the tests automate your
+
+
+552
+00:18:48,846 --> 00:18:51,296
+app by launching it and
+
+
+553
+00:18:51,296 --> 00:18:52,736
+interacting with different parts
+
+
+554
+00:18:52,736 --> 00:18:53,106
+of its UI.
+
+
+555
+00:18:55,186 --> 00:18:56,196
+If you'd like to learn more
+
+
+556
+00:18:56,196 --> 00:18:57,926
+about this process, I'd
+
+
+557
+00:18:57,926 --> 00:18:58,786
+encourage you to check out our
+
+
+558
+00:18:58,786 --> 00:19:01,106
+session from 2016, where we go
+
+
+559
+00:19:01,106 --> 00:19:03,616
+into even more detail.
+
+
+560
+00:19:04,086 --> 00:19:05,656
+So, now that we understand how
+
+
+561
+00:19:05,656 --> 00:19:07,396
+our tests execute, we can
+
+
+562
+00:19:07,396 --> 00:19:09,046
+finally talk about how Xcode
+
+
+563
+00:19:09,046 --> 00:19:10,026
+runs them in parallel.
+
+
+564
+00:19:11,116 --> 00:19:13,336
+Just like before, Xcode will
+
+
+565
+00:19:13,336 --> 00:19:15,566
+launch a test runner to execute
+
+
+566
+00:19:15,566 --> 00:19:17,976
+our tests but instead of just
+
+
+567
+00:19:17,976 --> 00:19:20,236
+launching a single runner, Xcode
+
+
+568
+00:19:20,236 --> 00:19:22,006
+will launch multiple runners,
+
+
+569
+00:19:22,456 --> 00:19:24,396
+each of which executes a subset
+
+
+570
+00:19:24,436 --> 00:19:26,406
+of the tests.
+
+
+571
+00:19:26,406 --> 00:19:28,426
+In fact, Xcode will dynamically
+
+
+572
+00:19:28,426 --> 00:19:29,766
+distribute tests to the runners
+
+
+573
+00:19:30,346 --> 00:19:31,446
+in order to get the best
+
+
+574
+00:19:31,446 --> 00:19:32,706
+utilization of the course on
+
+
+575
+00:19:32,706 --> 00:19:33,296
+your machine.
+
+
+576
+00:19:33,886 --> 00:19:36,556
+Let's go into more detail.
+
+
+577
+00:19:38,076 --> 00:19:39,876
+When Xcode distributes tests to
+
+
+578
+00:19:39,876 --> 00:19:41,856
+the runners, it does so by
+
+
+579
+00:19:41,856 --> 00:19:42,146
+class.
+
+
+580
+00:19:43,466 --> 00:19:45,046
+Each runner receives a test
+
+
+581
+00:19:45,046 --> 00:19:46,986
+class to execute and it'll
+
+
+582
+00:19:46,986 --> 00:19:48,756
+execute that test class before
+
+
+583
+00:19:48,756 --> 00:19:50,196
+going on to execute another one.
+
+
+584
+00:19:51,286 --> 00:19:52,676
+And then testing finishes once
+
+
+585
+00:19:52,766 --> 00:19:54,566
+all the classes have executed.
+
+
+586
+00:19:55,146 --> 00:19:58,016
+Now you might be wondering why
+
+
+587
+00:19:58,016 --> 00:19:59,856
+Xcode distributes tests by class
+
+
+588
+00:20:00,536 --> 00:20:01,476
+instead of distributing
+
+
+589
+00:20:01,476 --> 00:20:03,016
+individual test methods to the
+
+
+590
+00:20:03,016 --> 00:20:03,446
+runners.
+
+
+591
+00:20:04,626 --> 00:20:05,716
+There are a couple reasons for
+
+
+592
+00:20:05,716 --> 00:20:06,216
+this.
+
+
+593
+00:20:07,206 --> 00:20:09,126
+First, there may be hidden
+
+
+594
+00:20:09,126 --> 00:20:10,596
+dependencies between the tests
+
+
+595
+00:20:10,716 --> 00:20:12,356
+in a class, like Honza talked
+
+
+596
+00:20:12,356 --> 00:20:12,956
+about earlier.
+
+
+597
+00:20:13,886 --> 00:20:15,446
+If Xcode were to take the tests
+
+
+598
+00:20:15,446 --> 00:20:17,476
+in a class and distribute them
+
+
+599
+00:20:17,476 --> 00:20:19,196
+to different runners, it could
+
+
+600
+00:20:19,196 --> 00:20:20,536
+lead to hard to diagnose test
+
+
+601
+00:20:20,536 --> 00:20:21,166
+failures.
+
+
+602
+00:20:21,606 --> 00:20:25,296
+Second, each test class has a
+
+
+603
+00:20:25,916 --> 00:20:27,606
+class level set up and tear down
+
+
+604
+00:20:27,736 --> 00:20:29,416
+method, which may perform
+
+
+605
+00:20:29,416 --> 00:20:30,516
+expensive computation.
+
+
+606
+00:20:31,516 --> 00:20:32,906
+By limiting the tests in a class
+
+
+607
+00:20:33,336 --> 00:20:35,616
+to a single runner, XE tests
+
+
+608
+00:20:35,646 --> 00:20:37,336
+only has to invoke these methods
+
+
+609
+00:20:37,336 --> 00:20:39,166
+once, which can save precious
+
+
+610
+00:20:39,166 --> 00:20:39,456
+time.
+
+
+611
+00:20:40,086 --> 00:20:43,806
+Now I'd like to talk about some
+
+
+612
+00:20:43,806 --> 00:20:45,756
+specifics to parallel testing on
+
+
+613
+00:20:45,756 --> 00:20:46,496
+the simulator.
+
+
+614
+00:20:48,076 --> 00:20:49,596
+When you run tests in parallel
+
+
+615
+00:20:49,596 --> 00:20:51,856
+on the simulator, Xcode starts
+
+
+616
+00:20:51,856 --> 00:20:53,066
+by taking the simulator that
+
+
+617
+00:20:53,066 --> 00:20:55,236
+you've selected and creating
+
+
+618
+00:20:55,236 --> 00:20:57,086
+multiple distinct copies or
+
+
+619
+00:20:57,086 --> 00:20:57,716
+clones of it.
+
+
+620
+00:20:58,956 --> 00:21:00,666
+These clones are identical to
+
+
+621
+00:21:00,666 --> 00:21:02,256
+the original simulator at the
+
+
+622
+00:21:02,256 --> 00:21:03,406
+time that they're created.
+
+
+623
+00:21:04,776 --> 00:21:06,286
+And Xcode will automatically
+
+
+624
+00:21:06,286 --> 00:21:07,906
+create and delete these clones,
+
+
+625
+00:21:07,906 --> 00:21:08,726
+as necessary.
+
+
+626
+00:21:10,036 --> 00:21:11,376
+After cloning the simulator
+
+
+627
+00:21:11,376 --> 00:21:13,306
+several times, Xcode then
+
+
+628
+00:21:13,306 --> 00:21:15,206
+launches a test runner on each
+
+
+629
+00:21:15,206 --> 00:21:16,956
+clone and that runner then
+
+
+630
+00:21:16,956 --> 00:21:18,986
+begins executing a test class,
+
+
+631
+00:21:19,446 --> 00:21:20,476
+like we talked about earlier.
+
+
+632
+00:21:20,476 --> 00:21:23,676
+Now the fact that your tests
+
+
+633
+00:21:24,356 --> 00:21:25,666
+execute on different clones of
+
+
+634
+00:21:25,666 --> 00:21:26,976
+the simulator has some
+
+
+635
+00:21:26,976 --> 00:21:28,266
+implications that you should be
+
+
+636
+00:21:28,266 --> 00:21:29,546
+aware of.
+
+
+637
+00:21:30,516 --> 00:21:33,466
+First, the original simulator is
+
+
+638
+00:21:33,466 --> 00:21:34,936
+not used during testing.
+
+
+639
+00:21:35,906 --> 00:21:37,416
+Instead, it serves as a sort of
+
+
+640
+00:21:37,416 --> 00:21:38,416
+template simulator.
+
+
+641
+00:21:39,176 --> 00:21:40,266
+You can configure it with the
+
+
+642
+00:21:40,266 --> 00:21:41,576
+settings and the content that
+
+
+643
+00:21:41,576 --> 00:21:43,576
+you want and then that content
+
+
+644
+00:21:43,576 --> 00:21:44,956
+gets copied over to the clones
+
+
+645
+00:21:44,956 --> 00:21:45,726
+when they're created.
+
+
+646
+00:21:46,266 --> 00:21:49,266
+Next, there will be multiple
+
+
+647
+00:21:49,266 --> 00:21:51,596
+copies of your app, one per
+
+
+648
+00:21:51,596 --> 00:21:54,216
+clone, and each copy has its own
+
+
+649
+00:21:54,216 --> 00:21:54,896
+data container.
+
+
+650
+00:21:56,056 --> 00:21:57,006
+This means that if you have a
+
+
+651
+00:21:57,006 --> 00:21:59,136
+test class that modifies files
+
+
+652
+00:21:59,136 --> 00:22:01,216
+on disk, you can't expect those
+
+
+653
+00:22:01,216 --> 00:22:02,886
+file modifications to be visible
+
+
+654
+00:22:02,886 --> 00:22:04,996
+to another test class because it
+
+
+655
+00:22:04,996 --> 00:22:05,846
+could have access to a
+
+
+656
+00:22:05,846 --> 00:22:06,886
+completely separate data
+
+
+657
+00:22:06,886 --> 00:22:07,296
+container.
+
+
+658
+00:22:07,946 --> 00:22:10,836
+In practice, the fact that class
+
+
+659
+00:22:10,836 --> 00:22:12,306
+is executed on different clones
+
+
+660
+00:22:12,756 --> 00:22:14,166
+will likely be invisible to your
+
+
+661
+00:22:14,166 --> 00:22:16,296
+tests, but it's something to be
+
+
+662
+00:22:16,296 --> 00:22:17,406
+aware of.
+
+
+663
+00:22:18,416 --> 00:22:20,516
+So, where can you run tests in
+
+
+664
+00:22:20,516 --> 00:22:20,966
+parallel?
+
+
+665
+00:22:21,786 --> 00:22:22,866
+You can run unit tests in
+
+
+666
+00:22:22,866 --> 00:22:25,356
+parallel on macOS, as well as
+
+
+667
+00:22:25,356 --> 00:22:27,546
+unit and UI tests in parallel on
+
+
+668
+00:22:27,546 --> 00:22:29,256
+the iOS and tvOS simulators.
+
+
+669
+00:22:29,786 --> 00:22:31,996
+And with that, I'd like to give
+
+
+670
+00:22:31,996 --> 00:22:33,216
+you a demo of Parallel
+
+
+671
+00:22:33,216 --> 00:22:34,876
+Distributed Testing in action.
+
+
+672
+00:22:48,226 --> 00:22:49,636
+All right, so this is the Solar
+
+
+673
+00:22:49,636 --> 00:22:51,446
+System app, which you may have
+
+
+674
+00:22:51,446 --> 00:22:52,226
+seen at some of the other
+
+
+675
+00:22:52,226 --> 00:22:53,416
+sessions here at Dub-Dub.
+
+
+676
+00:22:54,346 --> 00:22:55,526
+As one of the developers of this
+
+
+677
+00:22:55,526 --> 00:22:57,296
+app, I want to run all of my
+
+
+678
+00:22:57,296 --> 00:22:58,876
+tests before committing and
+
+
+679
+00:22:58,876 --> 00:22:59,786
+pushing my changes to the
+
+
+680
+00:22:59,786 --> 00:23:00,456
+repository.
+
+
+681
+00:23:01,586 --> 00:23:02,996
+However, as I add more and more
+
+
+682
+00:23:02,996 --> 00:23:04,686
+tests, this is starting to take
+
+
+683
+00:23:04,686 --> 00:23:05,946
+longer and longer, and it's
+
+
+684
+00:23:05,946 --> 00:23:06,956
+becoming a bottleneck in my
+
+
+685
+00:23:06,956 --> 00:23:07,516
+workflow.
+
+
+686
+00:23:08,486 --> 00:23:09,466
+So, let's see how parallel
+
+
+687
+00:23:09,466 --> 00:23:10,156
+testing can help.
+
+
+688
+00:23:11,266 --> 00:23:12,626
+I'll go ahead and switch over to
+
+
+689
+00:23:12,626 --> 00:23:15,166
+the Xcode project and I already
+
+
+690
+00:23:15,166 --> 00:23:16,866
+ran my tests and I want to see
+
+
+691
+00:23:16,866 --> 00:23:21,416
+how long they took to run.
+
+
+692
+00:23:21,596 --> 00:23:23,736
+All right, let's go back to the
+
+
+693
+00:23:23,736 --> 00:23:24,356
+test report.
+
+
+694
+00:23:25,116 --> 00:23:26,526
+So, here, you can see next to
+
+
+695
+00:23:26,526 --> 00:23:28,496
+each method, we show exactly how
+
+
+696
+00:23:28,496 --> 00:23:29,626
+long that method took to
+
+
+697
+00:23:29,626 --> 00:23:30,146
+execute.
+
+
+698
+00:23:31,296 --> 00:23:33,376
+Next, for each test class, we
+
+
+699
+00:23:33,376 --> 00:23:35,126
+show the percentage of passing
+
+
+700
+00:23:35,126 --> 00:23:37,236
+and failing tests, as well as
+
+
+701
+00:23:37,236 --> 00:23:38,786
+how long the test class took to
+
+
+702
+00:23:38,786 --> 00:23:39,266
+execute.
+
+
+703
+00:23:40,536 --> 00:23:41,836
+And finally, in the top right
+
+
+704
+00:23:41,836 --> 00:23:43,826
+corner, you can see exactly how
+
+
+705
+00:23:43,826 --> 00:23:45,196
+long all of your tests took to
+
+
+706
+00:23:45,196 --> 00:23:45,416
+run.
+
+
+707
+00:23:46,226 --> 00:23:47,266
+So, here, we can see that our
+
+
+708
+00:23:47,266 --> 00:23:48,446
+tests took 14 seconds.
+
+
+709
+00:23:49,676 --> 00:23:50,676
+Now I'd like to enable
+
+
+710
+00:23:50,676 --> 00:23:52,626
+parallelization, which I can do
+
+
+711
+00:23:52,626 --> 00:23:53,606
+by going to the scheme.
+
+
+712
+00:23:54,066 --> 00:23:55,826
+So, I'll select the scheme and
+
+
+713
+00:23:55,826 --> 00:23:56,846
+choose edit scheme.
+
+
+714
+00:23:57,876 --> 00:23:59,516
+Next, I'll click the test action
+
+
+715
+00:24:00,226 --> 00:24:01,916
+and I'll click the options
+
+
+716
+00:24:01,916 --> 00:24:03,366
+button next to my test target.
+
+
+717
+00:24:04,506 --> 00:24:06,226
+Finally, I'll select the execute
+
+
+718
+00:24:06,226 --> 00:24:08,796
+in parallel checkbox and that's
+
+
+719
+00:24:08,796 --> 00:24:10,046
+all I need to do to enable
+
+
+720
+00:24:10,046 --> 00:24:10,856
+parallel testing.
+
+
+721
+00:24:11,896 --> 00:24:13,176
+So, let's go ahead and run our
+
+
+722
+00:24:13,176 --> 00:24:15,016
+tests now by choosing product
+
+
+723
+00:24:19,276 --> 00:24:19,576
+tests.
+
+
+724
+00:24:19,646 --> 00:24:20,816
+So, I want you to look at the
+
+
+725
+00:24:20,816 --> 00:24:21,236
+doc.
+
+
+726
+00:24:21,946 --> 00:24:23,806
+Xcode launches multiple copies
+
+
+727
+00:24:23,806 --> 00:24:25,736
+of our Mac app to run our unit
+
+
+728
+00:24:25,736 --> 00:24:26,636
+tests in parallel.
+
+
+729
+00:24:27,756 --> 00:24:28,666
+So, great, it looks like that
+
+
+730
+00:24:28,666 --> 00:24:29,166
+finished.
+
+
+731
+00:24:29,166 --> 00:24:31,086
+So, now, let's go back to the
+
+
+732
+00:24:31,086 --> 00:24:33,346
+report and select the most
+
+
+733
+00:24:33,346 --> 00:24:34,016
+recent report.
+
+
+734
+00:24:35,676 --> 00:24:37,666
+So, whereas previously, our test
+
+
+735
+00:24:37,666 --> 00:24:39,746
+took 14 seconds to run, now they
+
+
+736
+00:24:39,746 --> 00:24:40,916
+only take 5 seconds.
+
+
+737
+00:24:41,316 --> 00:24:42,336
+So, just by enabling
+
+
+738
+00:24:42,336 --> 00:24:43,516
+parallelization, we've seen the
+
+
+739
+00:24:43,516 --> 00:24:45,276
+greater than 50% improvement in
+
+
+740
+00:24:45,276 --> 00:24:46,376
+test execution time.
+
+
+741
+00:24:47,516 --> 00:24:53,216
+[ Applause ]
+
+
+742
+00:24:53,716 --> 00:24:55,566
+So, the Solar System app isn't
+
+
+743
+00:24:55,566 --> 00:24:57,806
+just available for the Mac, it
+
+
+744
+00:24:57,806 --> 00:24:59,276
+also has an iOS companion.
+
+
+745
+00:24:59,276 --> 00:25:01,716
+And one of my responsibilities
+
+
+746
+00:25:01,716 --> 00:25:03,656
+was to write a UI test suite to
+
+
+747
+00:25:03,656 --> 00:25:05,236
+exercise the various screens of
+
+
+748
+00:25:05,236 --> 00:25:06,406
+my iOS app.
+
+
+749
+00:25:07,076 --> 00:25:08,196
+Now I already enabled
+
+
+750
+00:25:08,196 --> 00:25:10,206
+parallelization for the iOS
+
+
+751
+00:25:10,206 --> 00:25:11,986
+scheme, so I'll go ahead and
+
+
+752
+00:25:11,986 --> 00:25:12,906
+just switch to that now.
+
+
+753
+00:25:13,726 --> 00:25:18,006
+And then I'll run tests by
+
+
+754
+00:25:18,006 --> 00:25:20,006
+choosing product, test.
+
+
+755
+00:25:20,506 --> 00:25:24,346
+Now we'll go ahead and switch
+
+
+756
+00:25:24,346 --> 00:25:25,466
+over to the simulator.
+
+
+757
+00:25:26,466 --> 00:25:28,566
+So, here, you can see that Xcode
+
+
+758
+00:25:28,566 --> 00:25:30,226
+has created multiple clones of
+
+
+759
+00:25:30,226 --> 00:25:31,596
+the simulator that I selected,
+
+
+760
+00:25:32,416 --> 00:25:34,646
+and these clones are named after
+
+
+761
+00:25:34,646 --> 00:25:36,776
+the original simulator so that
+
+
+762
+00:25:36,776 --> 00:25:38,016
+they're easy to identify.
+
+
+763
+00:25:39,136 --> 00:25:41,666
+And on each simulator, Xcode has
+
+
+764
+00:25:41,666 --> 00:25:44,396
+launched a test runner and each
+
+
+765
+00:25:44,396 --> 00:25:45,946
+runner is executing a different
+
+
+766
+00:25:45,946 --> 00:25:46,926
+test class in my suite.
+
+
+767
+00:26:00,026 --> 00:26:01,026
+Now while my tests are
+
+
+768
+00:26:01,026 --> 00:26:02,936
+executing, I'm going to switch
+
+
+769
+00:26:02,976 --> 00:26:05,066
+back to Xcode and show you the
+
+
+770
+00:26:05,066 --> 00:26:05,786
+test log.
+
+
+771
+00:26:06,616 --> 00:26:07,866
+You can find the test log
+
+
+772
+00:26:08,456 --> 00:26:10,116
+associated with the test report.
+
+
+773
+00:26:11,436 --> 00:26:13,136
+The log is a great place to see
+
+
+774
+00:26:13,406 --> 00:26:14,756
+how your classes are being
+
+
+775
+00:26:14,756 --> 00:26:15,966
+distributed to the different
+
+
+776
+00:26:15,966 --> 00:26:16,356
+runners.
+
+
+777
+00:26:17,056 --> 00:26:19,886
+You can see an entry in the log
+
+
+778
+00:26:20,026 --> 00:26:22,726
+for each runner and beneath a
+
+
+779
+00:26:22,726 --> 00:26:24,226
+given runner, you can see the
+
+
+780
+00:26:24,226 --> 00:26:25,596
+exact test class that it is
+
+
+781
+00:26:25,596 --> 00:26:26,526
+currently executing.
+
+
+782
+00:26:27,806 --> 00:26:28,916
+So, when the tests are
+
+
+783
+00:26:28,916 --> 00:26:30,626
+completely finished, this is a
+
+
+784
+00:26:30,626 --> 00:26:32,036
+great place to see how your
+
+
+785
+00:26:32,036 --> 00:26:33,676
+classes were distributed, which
+
+
+786
+00:26:33,676 --> 00:26:34,626
+gives you a picture of the
+
+
+787
+00:26:34,626 --> 00:26:35,866
+overall parallelization.
+
+
+788
+00:26:36,476 --> 00:26:38,536
+And with that, let's switch back
+
+
+789
+00:26:38,536 --> 00:26:39,146
+to the slides.
+
+
+790
+00:26:40,516 --> 00:26:47,976
+[ Applause ]
+
+
+791
+00:26:48,476 --> 00:26:49,956
+So, let's briefly recap what we
+
+
+792
+00:26:49,956 --> 00:26:50,726
+learned in the demo.
+
+
+793
+00:26:51,986 --> 00:26:53,806
+First, we saw how to enable
+
+
+794
+00:26:53,806 --> 00:26:55,616
+parallelization in the scheme
+
+
+795
+00:26:55,616 --> 00:26:56,046
+editor.
+
+
+796
+00:26:57,466 --> 00:26:59,226
+Next, we saw how to view results
+
+
+797
+00:26:59,226 --> 00:27:01,106
+in the test report, as well as
+
+
+798
+00:27:01,106 --> 00:27:02,616
+how our classes are distributed
+
+
+799
+00:27:02,616 --> 00:27:03,586
+in the test log.
+
+
+800
+00:27:05,356 --> 00:27:07,486
+Then we saw Xcode launch
+
+
+801
+00:27:07,486 --> 00:27:09,126
+multiple instances of our Mac
+
+
+802
+00:27:09,126 --> 00:27:10,856
+app to run unit tests in
+
+
+803
+00:27:10,856 --> 00:27:11,486
+parallel.
+
+
+804
+00:27:12,866 --> 00:27:14,736
+And finally, we saw multiple
+
+
+805
+00:27:14,736 --> 00:27:16,666
+clones of the simulator running
+
+
+806
+00:27:16,666 --> 00:27:20,286
+our UI tests in parallel.
+
+
+807
+00:27:20,666 --> 00:27:21,846
+Like I mentioned earlier,
+
+
+808
+00:27:22,386 --> 00:27:24,136
+xcodebuild has great support for
+
+
+809
+00:27:24,136 --> 00:27:25,526
+parallel testing as well.
+
+
+810
+00:27:26,546 --> 00:27:27,766
+We've added some new command
+
+
+811
+00:27:27,766 --> 00:27:29,136
+line options that allow you to
+
+
+812
+00:27:29,136 --> 00:27:30,806
+control this behavior and I'd
+
+
+813
+00:27:30,806 --> 00:27:31,966
+like to point out two of those
+
+
+814
+00:27:31,966 --> 00:27:32,166
+now.
+
+
+815
+00:27:33,706 --> 00:27:35,206
+First, we have
+
+
+816
+00:27:35,276 --> 00:27:36,826
+parallel-testing-worker-count,
+
+
+817
+00:27:37,306 --> 00:27:38,416
+which allows you to control the
+
+
+818
+00:27:38,416 --> 00:27:40,056
+exact number of workers or
+
+
+819
+00:27:40,056 --> 00:27:42,106
+runners that Xcode should launch
+
+
+820
+00:27:42,136 --> 00:27:42,946
+during parallel testing.
+
+
+821
+00:27:44,816 --> 00:27:46,326
+Normally, Xcode tries to
+
+
+822
+00:27:46,326 --> 00:27:47,786
+determine an optimal number of
+
+
+823
+00:27:47,786 --> 00:27:49,336
+runners based off of the
+
+
+824
+00:27:49,336 --> 00:27:51,036
+resources of your machine, as
+
+
+825
+00:27:51,036 --> 00:27:51,866
+well as the workload.
+
+
+826
+00:27:52,956 --> 00:27:54,106
+This means that on a higher core
+
+
+827
+00:27:54,106 --> 00:27:55,356
+machine, you will likely
+
+
+828
+00:27:55,356 --> 00:27:56,576
+experience more runners.
+
+
+829
+00:27:58,126 --> 00:27:59,436
+But if you find that the default
+
+
+830
+00:27:59,436 --> 00:28:00,606
+number isn't working well for
+
+
+831
+00:28:00,606 --> 00:28:02,526
+you, you can override it using
+
+
+832
+00:28:02,526 --> 00:28:03,566
+this command line option.
+
+
+833
+00:28:04,146 --> 00:28:06,256
+Next, we have
+
+
+834
+00:28:06,416 --> 00:28:08,516
+parallel-testing-enabled, which
+
+
+835
+00:28:08,516 --> 00:28:09,486
+allows you to override the
+
+
+836
+00:28:09,486 --> 00:28:10,996
+setting in the scheme to
+
+
+837
+00:28:10,996 --> 00:28:12,736
+explicitly turn parallel testing
+
+
+838
+00:28:12,776 --> 00:28:16,636
+on or off.
+
+
+839
+00:28:16,906 --> 00:28:18,186
+Now for the most part, all you
+
+
+840
+00:28:18,186 --> 00:28:19,596
+need to do to get the benefits
+
+
+841
+00:28:19,596 --> 00:28:21,016
+of parallel testing is just to
+
+
+842
+00:28:21,016 --> 00:28:21,676
+turn it on.
+
+
+843
+00:28:22,606 --> 00:28:24,176
+But here are few tips and tricks
+
+
+844
+00:28:24,476 --> 00:28:25,886
+to help you get the most out of
+
+
+845
+00:28:25,886 --> 00:28:26,516
+this feature.
+
+
+846
+00:28:27,876 --> 00:28:29,806
+First, consider splitting a
+
+
+847
+00:28:29,806 --> 00:28:31,976
+long-running test class into two
+
+
+848
+00:28:31,976 --> 00:28:32,586
+classes.
+
+
+849
+00:28:33,176 --> 00:28:36,276
+Because the test classes execute
+
+
+850
+00:28:36,276 --> 00:28:38,216
+in parallel, testing will never
+
+
+851
+00:28:38,216 --> 00:28:39,666
+run faster than the longest
+
+
+852
+00:28:39,666 --> 00:28:40,506
+running class.
+
+
+853
+00:28:41,946 --> 00:28:43,456
+When you run tests in parallel,
+
+
+854
+00:28:43,616 --> 00:28:44,956
+you may notice a situation like
+
+
+855
+00:28:45,006 --> 00:28:47,036
+this, where one test class
+
+
+856
+00:28:47,036 --> 00:28:49,076
+dominates the overall execution
+
+
+857
+00:28:50,066 --> 00:28:50,156
+time.
+
+
+858
+00:28:50,466 --> 00:28:51,956
+If you take that class and
+
+
+859
+00:28:51,956 --> 00:28:54,526
+divide it up, Xcode can more
+
+
+860
+00:28:54,576 --> 00:28:55,946
+evenly distribute the work of
+
+
+861
+00:28:55,946 --> 00:28:57,516
+test execution between the
+
+
+862
+00:28:57,516 --> 00:28:59,116
+different runners, which can
+
+
+863
+00:28:59,116 --> 00:29:00,566
+shorten the overall execution
+
+
+864
+00:29:00,566 --> 00:29:00,876
+time.
+
+
+865
+00:29:02,306 --> 00:29:03,256
+Now don't feel like you need to
+
+
+866
+00:29:03,256 --> 00:29:04,936
+go and take all of your classes
+
+
+867
+00:29:04,936 --> 00:29:06,116
+and divide them up.
+
+
+868
+00:29:06,456 --> 00:29:08,026
+That shouldn't be necessary but
+
+
+869
+00:29:08,026 --> 00:29:09,346
+if you notice a bottleneck like
+
+
+870
+00:29:09,346 --> 00:29:13,716
+this, this is something to try.
+
+
+871
+00:29:13,946 --> 00:29:16,726
+Next, put performance tests into
+
+
+872
+00:29:16,726 --> 00:29:18,246
+their own bundle with
+
+
+873
+00:29:18,246 --> 00:29:19,726
+parallelization disabled.
+
+
+874
+00:29:20,716 --> 00:29:22,226
+This may seem counterintuitive,
+
+
+875
+00:29:22,416 --> 00:29:24,046
+but performance tests are very
+
+
+876
+00:29:24,046 --> 00:29:27,096
+sensitive to system activity so
+
+
+877
+00:29:27,096 --> 00:29:28,336
+if you run them in parallel with
+
+
+878
+00:29:28,336 --> 00:29:30,046
+each other, they'll likely fail
+
+
+879
+00:29:30,046 --> 00:29:31,026
+to meet their baselines.
+
+
+880
+00:29:31,716 --> 00:29:35,056
+And finally, understand which
+
+
+881
+00:29:35,096 --> 00:29:36,576
+tests are not safe for
+
+
+882
+00:29:36,576 --> 00:29:37,376
+parallelization.
+
+
+883
+00:29:38,556 --> 00:29:40,046
+Most tests will be fine when you
+
+
+884
+00:29:40,046 --> 00:29:41,906
+run them in parallel, but if
+
+
+885
+00:29:41,906 --> 00:29:43,286
+your tests access a shared
+
+
+886
+00:29:43,286 --> 00:29:45,166
+system resource, like a file or
+
+
+887
+00:29:45,166 --> 00:29:46,976
+a database, you may need to
+
+
+888
+00:29:46,976 --> 00:29:48,086
+introduce explicit
+
+
+889
+00:29:48,086 --> 00:29:49,726
+synchronization to allow them to
+
+
+890
+00:29:49,726 --> 00:29:50,526
+run concurrently.
+
+
+891
+00:29:51,866 --> 00:29:53,556
+Speaking of testing tips and
+
+
+892
+00:29:53,556 --> 00:29:54,876
+tricks, if you'd like to learn
+
+
+893
+00:29:54,876 --> 00:29:56,466
+more about how to test your
+
+
+894
+00:29:56,556 --> 00:29:58,366
+code, I'd encourage you to check
+
+
+895
+00:29:58,366 --> 00:30:00,126
+out our session on Friday hosted
+
+
+896
+00:30:00,126 --> 00:30:01,536
+by my colleague Stuart and Brian
+
+
+897
+00:30:01,536 --> 00:30:01,826
+[assumed spellings].
+
+
+898
+00:30:01,826 --> 00:30:05,226
+You won't want to miss it.
+
+
+899
+00:30:05,496 --> 00:30:07,486
+To wrap up, we started today's
+
+
+900
+00:30:07,486 --> 00:30:09,846
+talk with code coverage and the
+
+
+901
+00:30:09,846 --> 00:30:11,306
+new improvements to performance
+
+
+902
+00:30:11,306 --> 00:30:11,996
+and accuracy.
+
+
+903
+00:30:13,346 --> 00:30:15,146
+Next, we talked about new test
+
+
+904
+00:30:15,316 --> 00:30:17,056
+selection and ordering features,
+
+
+905
+00:30:17,566 --> 00:30:18,706
+which allow you to control
+
+
+906
+00:30:18,706 --> 00:30:21,096
+exactly which tests run, as well
+
+
+907
+00:30:21,136 --> 00:30:22,116
+as the order in which they're
+
+
+908
+00:30:22,116 --> 00:30:22,506
+run.
+
+
+909
+00:30:23,786 --> 00:30:25,216
+And finally, we talked about
+
+
+910
+00:30:25,216 --> 00:30:26,566
+Parallel Distributed Testing,
+
+
+911
+00:30:27,066 --> 00:30:28,176
+which allows you to distribute
+
+
+912
+00:30:28,176 --> 00:30:29,756
+test classes between different
+
+
+913
+00:30:29,756 --> 00:30:31,406
+runners to execute them in
+
+
+914
+00:30:31,406 --> 00:30:31,896
+parallel.
+
+
+915
+00:30:33,506 --> 00:30:34,616
+For more information, I'd
+
+
+916
+00:30:34,616 --> 00:30:35,736
+encourage you to download our
+
+
+917
+00:30:35,736 --> 00:30:37,596
+slides from developer.apple.com
+
+
+918
+00:30:38,016 --> 00:30:39,256
+and come see us in the labs
+
+
+919
+00:30:39,256 --> 00:30:40,026
+later this afternoon.
+
+
+920
+00:30:41,156 --> 00:30:42,746
+Have a great WWDC, everyone.
+
+
+921
+00:30:43,016 --> 00:30:45,000
+[ Applause ]
+

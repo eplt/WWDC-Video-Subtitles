@@ -1,0 +1,9284 @@
+1
+00:00:07,016 --> 00:00:15,500
+[ Music ]
+
+
+2
+00:00:30,516 --> 00:00:35,816
+[ Applause ]
+
+
+3
+00:00:36,316 --> 00:00:37,416
+>> Good afternoon, everyone!
+
+
+4
+00:00:38,186 --> 00:00:39,896
+Welcome to Behind the Scenes of
+
+
+5
+00:00:39,896 --> 00:00:41,176
+the Xcode Build Process.
+
+
+6
+00:00:41,896 --> 00:00:43,356
+My name is Jake Petroules, and
+
+
+7
+00:00:43,356 --> 00:00:44,606
+I'm an engineer on the Xcode
+
+
+8
+00:00:44,606 --> 00:00:45,486
+Build System Team.
+
+
+9
+00:00:45,916 --> 00:00:46,746
+And today we're going to be
+
+
+10
+00:00:46,746 --> 00:00:48,666
+exploring the Xcode build
+
+
+11
+00:00:48,666 --> 00:00:49,196
+process.
+
+
+12
+00:00:49,196 --> 00:00:52,326
+I'll start by telling you all
+
+
+13
+00:00:52,326 --> 00:00:53,666
+about Xcode 10's new build
+
+
+14
+00:00:53,666 --> 00:00:54,746
+system which is written from
+
+
+15
+00:00:54,746 --> 00:00:55,666
+scratch in Swift.
+
+
+16
+00:00:55,886 --> 00:00:56,806
+And provides improved
+
+
+17
+00:00:56,806 --> 00:00:58,246
+performance and reliability.
+
+
+18
+00:00:58,986 --> 00:01:00,426
+We'll answer questions like what
+
+
+19
+00:01:00,426 --> 00:01:01,686
+exactly happens when you press
+
+
+20
+00:01:01,686 --> 00:01:02,236
+Command B?
+
+
+21
+00:01:02,576 --> 00:01:03,566
+How is the build process
+
+
+22
+00:01:03,566 --> 00:01:04,075
+structured?
+
+
+23
+00:01:04,275 --> 00:01:05,336
+And how does Xcode use the
+
+
+24
+00:01:05,336 --> 00:01:06,666
+information in your project file
+
+
+25
+00:01:06,946 --> 00:01:08,706
+to determine how to model and
+
+
+26
+00:01:08,706 --> 00:01:10,006
+orchestrate the build process?
+
+
+27
+00:01:11,176 --> 00:01:12,936
+Next we'll venture into the
+
+
+28
+00:01:12,936 --> 00:01:13,696
+compiler realm.
+
+
+29
+00:01:14,236 --> 00:01:16,116
+And find out about Clang and
+
+
+30
+00:01:16,116 --> 00:01:17,396
+Swift builds your source code
+
+
+31
+00:01:17,486 --> 00:01:18,416
+into object files.
+
+
+32
+00:01:19,246 --> 00:01:20,366
+We'll show how headers and
+
+
+33
+00:01:20,366 --> 00:01:21,216
+modules work.
+
+
+34
+00:01:21,586 --> 00:01:22,686
+See how the compilers find
+
+
+35
+00:01:22,686 --> 00:01:24,496
+declarations in your code, and
+
+
+36
+00:01:24,496 --> 00:01:25,826
+how the Swift compilation model
+
+
+37
+00:01:25,826 --> 00:01:27,116
+fundamentally differs from that
+
+
+38
+00:01:27,116 --> 00:01:29,506
+of C, C++ and Objective-C.
+
+
+39
+00:01:30,126 --> 00:01:32,076
+Finally, we'll land at the
+
+
+40
+00:01:32,076 --> 00:01:33,836
+linker which performs one of the
+
+
+41
+00:01:33,836 --> 00:01:35,126
+final steps in the build
+
+
+42
+00:01:35,126 --> 00:01:35,706
+process.
+
+
+43
+00:01:36,416 --> 00:01:37,836
+We'll explain what symbols are
+
+
+44
+00:01:37,836 --> 00:01:38,596
+and how they relate to your
+
+
+45
+00:01:38,596 --> 00:01:39,276
+source code.
+
+
+46
+00:01:39,556 --> 00:01:40,496
+And how the linker takes the
+
+
+47
+00:01:40,496 --> 00:01:41,756
+object files produced by the
+
+
+48
+00:01:41,756 --> 00:01:43,076
+compilers and glues them
+
+
+49
+00:01:43,076 --> 00:01:44,236
+together to produce the final
+
+
+50
+00:01:44,236 --> 00:01:45,786
+executable for your application
+
+
+51
+00:01:45,786 --> 00:01:46,306
+or framework.
+
+
+52
+00:01:47,046 --> 00:01:49,426
+By the way, we're going to use a
+
+
+53
+00:01:49,426 --> 00:01:50,996
+small sample app called PetWall
+
+
+54
+00:01:50,996 --> 00:01:52,256
+as a running example throughout
+
+
+55
+00:01:52,256 --> 00:01:52,766
+this talk.
+
+
+56
+00:01:53,066 --> 00:01:54,486
+It's just a small iOS app that
+
+
+57
+00:01:54,486 --> 00:01:58,986
+displays photos of our pets.
+
+
+58
+00:01:59,166 --> 00:02:00,986
+So let's first understand what
+
+
+59
+00:02:00,986 --> 00:02:02,726
+the build process is and how it
+
+
+60
+00:02:02,726 --> 00:02:03,916
+works when building a typical
+
+
+61
+00:02:03,916 --> 00:02:05,466
+app like PetWall in Xcode.
+
+
+62
+00:02:05,836 --> 00:02:07,136
+You can see here we've got an
+
+
+63
+00:02:07,136 --> 00:02:08,936
+app target, a framework, a bunch
+
+
+64
+00:02:08,936 --> 00:02:10,175
+of different source code files
+
+
+65
+00:02:10,175 --> 00:02:11,526
+in Swift and Objective-C.
+
+
+66
+00:02:11,896 --> 00:02:13,176
+And maybe this looks a bit like
+
+
+67
+00:02:13,176 --> 00:02:13,786
+your own project.
+
+
+68
+00:02:15,356 --> 00:02:18,036
+So when you build an app,
+
+
+69
+00:02:19,166 --> 00:02:20,116
+there's a number of steps
+
+
+70
+00:02:20,116 --> 00:02:21,586
+involved to go from the source
+
+
+71
+00:02:21,586 --> 00:02:22,956
+code and resources in your
+
+
+72
+00:02:22,956 --> 00:02:24,686
+project to the package that
+
+
+73
+00:02:24,686 --> 00:02:26,086
+you're shipping to customers or
+
+
+74
+00:02:26,136 --> 00:02:27,476
+uploading to the App Store for
+
+
+75
+00:02:27,476 --> 00:02:28,086
+distribution.
+
+
+76
+00:02:28,086 --> 00:02:30,486
+You have to compile and link
+
+
+77
+00:02:30,486 --> 00:02:31,576
+source code.
+
+
+78
+00:02:31,906 --> 00:02:33,916
+Copy and process resources like
+
+
+79
+00:02:33,916 --> 00:02:35,756
+headers, asset catalogues and
+
+
+80
+00:02:35,756 --> 00:02:36,676
+storyboards.
+
+
+81
+00:02:37,276 --> 00:02:39,066
+And finally code sign and maybe
+
+
+82
+00:02:39,066 --> 00:02:40,166
+even do some custom work in a
+
+
+83
+00:02:40,166 --> 00:02:41,776
+shell script or a make file like
+
+
+84
+00:02:41,896 --> 00:02:43,516
+building API documentation for
+
+
+85
+00:02:43,516 --> 00:02:45,706
+your framework or running code
+
+
+86
+00:02:45,706 --> 00:02:47,036
+linting and validation tools.
+
+
+87
+00:02:48,466 --> 00:02:49,996
+Now most of these tasks in the
+
+
+88
+00:02:49,996 --> 00:02:51,396
+build process are performed by
+
+
+89
+00:02:51,396 --> 00:02:52,456
+running command line tools.
+
+
+90
+00:02:52,456 --> 00:02:54,956
+Like Clang, LD, AC tool, IB
+
+
+91
+00:02:54,956 --> 00:02:56,676
+tool, Code sign, and so on.
+
+
+92
+00:02:57,446 --> 00:02:59,036
+These tools have to be executed
+
+
+93
+00:02:59,196 --> 00:03:00,216
+with a very specific set of
+
+
+94
+00:03:00,216 --> 00:03:02,316
+arguments and in a particular
+
+
+95
+00:03:02,396 --> 00:03:03,746
+order based on the configuration
+
+
+96
+00:03:03,826 --> 00:03:04,866
+of your Xcode project.
+
+
+97
+00:03:05,386 --> 00:03:07,936
+So what the build system does
+
+
+98
+00:03:07,936 --> 00:03:09,226
+for you is to automate the
+
+
+99
+00:03:09,226 --> 00:03:10,506
+orchestration and execution of
+
+
+100
+00:03:10,506 --> 00:03:11,946
+these tasks each time you
+
+
+101
+00:03:11,946 --> 00:03:12,736
+perform a build.
+
+
+102
+00:03:13,526 --> 00:03:14,876
+And since there can be tens of
+
+
+103
+00:03:14,876 --> 00:03:16,926
+thousands of tasks or even more
+
+
+104
+00:03:16,926 --> 00:03:18,436
+involved in a build process with
+
+
+105
+00:03:18,436 --> 00:03:19,386
+a complex graph of
+
+
+106
+00:03:19,386 --> 00:03:20,346
+interdependencies.
+
+
+107
+00:03:20,616 --> 00:03:21,616
+It's definitely not something
+
+
+108
+00:03:21,616 --> 00:03:22,626
+you want to be manually typing
+
+
+109
+00:03:22,626 --> 00:03:23,776
+into the terminal 110 times a
+
+
+110
+00:03:23,776 --> 00:03:24,056
+day.
+
+
+111
+00:03:24,056 --> 00:03:27,176
+Let the build system do that for
+
+
+112
+00:03:27,176 --> 00:03:27,316
+you.
+
+
+113
+00:03:29,476 --> 00:03:31,276
+Now I mentioned that the tasks
+
+
+114
+00:03:31,276 --> 00:03:32,446
+in the build process are
+
+
+115
+00:03:32,446 --> 00:03:33,976
+executed in a particular order.
+
+
+116
+00:03:34,456 --> 00:03:35,506
+Let's talk about how that
+
+
+117
+00:03:35,506 --> 00:03:37,226
+ordering is determined and why
+
+
+118
+00:03:37,226 --> 00:03:37,836
+it's important.
+
+
+119
+00:03:38,866 --> 00:03:40,036
+The order in which build tasks
+
+
+120
+00:03:40,036 --> 00:03:42,116
+are executed is determined from
+
+
+121
+00:03:42,116 --> 00:03:43,456
+the dependency information that
+
+
+122
+00:03:43,456 --> 00:03:45,476
+is the tasks, the inputs that a
+
+
+123
+00:03:45,476 --> 00:03:47,426
+task consumes, and the outputs
+
+
+124
+00:03:47,426 --> 00:03:48,096
+that it produces.
+
+
+125
+00:03:49,386 --> 00:03:51,166
+For example, a compilation task
+
+
+126
+00:03:51,236 --> 00:03:52,976
+consumes a source code file like
+
+
+127
+00:03:52,976 --> 00:03:55,636
+PetController.m as input and
+
+
+128
+00:03:55,636 --> 00:03:57,146
+produces an object file like
+
+
+129
+00:03:57,146 --> 00:03:59,146
+PetController.o as output.
+
+
+130
+00:04:00,176 --> 00:04:01,916
+Similarly, a linker task
+
+
+131
+00:04:01,946 --> 00:04:03,536
+consumes a number of object
+
+
+132
+00:04:03,536 --> 00:04:04,986
+files produced by the compiler
+
+
+133
+00:04:04,986 --> 00:04:06,096
+in previous tasks.
+
+
+134
+00:04:06,456 --> 00:04:07,966
+And produces and executable or
+
+
+135
+00:04:07,966 --> 00:04:08,806
+library output.
+
+
+136
+00:04:09,026 --> 00:04:10,426
+Like the PetWall executable that
+
+
+137
+00:04:10,426 --> 00:04:11,616
+will go into our .app bundle.
+
+
+138
+00:04:12,286 --> 00:04:13,306
+And hopefully you're starting to
+
+
+139
+00:04:13,306 --> 00:04:14,756
+see a bit of a pattern emerge
+
+
+140
+00:04:14,756 --> 00:04:14,976
+here.
+
+
+141
+00:04:16,055 --> 00:04:17,046
+You can see how the dependency
+
+
+142
+00:04:17,046 --> 00:04:18,736
+information flows through this
+
+
+143
+00:04:18,736 --> 00:04:20,706
+graph structure which ultimately
+
+
+144
+00:04:20,706 --> 00:04:22,276
+informs the order of execution.
+
+
+145
+00:04:23,016 --> 00:04:24,246
+Now if you look at the
+
+
+146
+00:04:24,246 --> 00:04:26,036
+compilation tasks in the graph
+
+
+147
+00:04:26,036 --> 00:04:27,676
+as sort of like lanes of
+
+
+148
+00:04:27,866 --> 00:04:28,316
+traffic.
+
+
+149
+00:04:28,656 --> 00:04:29,836
+You can see hoe the compilation
+
+
+150
+00:04:29,836 --> 00:04:31,656
+tasks are totally independent in
+
+
+151
+00:04:31,656 --> 00:04:32,866
+their own lanes and can
+
+
+152
+00:04:32,866 --> 00:04:34,206
+therefore run in parallel.
+
+
+153
+00:04:34,256 --> 00:04:36,526
+And because the linker task
+
+
+154
+00:04:36,576 --> 00:04:37,716
+takes everything else's input,
+
+
+155
+00:04:38,106 --> 00:04:39,946
+we know that has to come last.
+
+
+156
+00:04:41,016 --> 00:04:42,826
+So the build system uses
+
+
+157
+00:04:42,826 --> 00:04:44,206
+dependency information to
+
+
+158
+00:04:44,206 --> 00:04:45,266
+determine the order in which
+
+
+159
+00:04:45,266 --> 00:04:47,126
+tasks should be run and which
+
+
+160
+00:04:47,126 --> 00:04:49,136
+tasks can be run in parallel and
+
+
+161
+00:04:49,256 --> 00:04:50,896
+we call this dependency order.
+
+
+162
+00:04:51,756 --> 00:04:52,606
+Now that we've covered what the
+
+
+163
+00:04:52,606 --> 00:04:54,526
+build process is, let's go into
+
+
+164
+00:04:54,526 --> 00:04:56,276
+a little more detail on how it
+
+
+165
+00:04:56,276 --> 00:04:56,616
+works.
+
+
+166
+00:04:57,476 --> 00:04:58,966
+What happens when you press
+
+
+167
+00:04:58,966 --> 00:04:59,316
+build?
+
+
+168
+00:05:00,496 --> 00:05:01,826
+So the first step is for the
+
+
+169
+00:05:01,826 --> 00:05:02,826
+build system to take the build
+
+
+170
+00:05:02,826 --> 00:05:04,546
+description, your Xcode project
+
+
+171
+00:05:04,546 --> 00:05:04,906
+file.
+
+
+172
+00:05:05,316 --> 00:05:07,256
+Parse it, take into account all
+
+
+173
+00:05:07,256 --> 00:05:09,096
+the files in your project, your
+
+
+174
+00:05:09,156 --> 00:05:10,326
+targets and the dependency
+
+
+175
+00:05:10,326 --> 00:05:11,216
+relationships.
+
+
+176
+00:05:11,216 --> 00:05:13,276
+Your build settings, and turn it
+
+
+177
+00:05:13,276 --> 00:05:14,326
+into a tree-like structure
+
+
+178
+00:05:14,326 --> 00:05:15,646
+called a directed graph.
+
+
+179
+00:05:16,306 --> 00:05:17,516
+And this represents all the
+
+
+180
+00:05:17,516 --> 00:05:19,136
+dependencies between the input
+
+
+181
+00:05:19,136 --> 00:05:20,536
+and output files in your project
+
+
+182
+00:05:20,976 --> 00:05:22,216
+and the tasks that will be
+
+
+183
+00:05:22,216 --> 00:05:23,886
+executed to process them.
+
+
+184
+00:05:24,316 --> 00:05:27,856
+Next the low-level execution
+
+
+185
+00:05:27,856 --> 00:05:29,356
+engine processes this graph,
+
+
+186
+00:05:29,706 --> 00:05:30,946
+looks at the dependency
+
+
+187
+00:05:30,946 --> 00:05:32,756
+specifications and figures out
+
+
+188
+00:05:32,806 --> 00:05:34,136
+which tasks to execute.
+
+
+189
+00:05:34,676 --> 00:05:35,756
+The sequence or order in which
+
+
+190
+00:05:35,756 --> 00:05:37,676
+they must be run and which tasks
+
+
+191
+00:05:37,756 --> 00:05:39,416
+can be run in parallel.
+
+
+192
+00:05:39,416 --> 00:05:41,406
+Then proceeds to execute them.
+
+
+193
+00:05:42,266 --> 00:05:43,746
+And by the way, our low-level
+
+
+194
+00:05:43,746 --> 00:05:44,956
+build execution engine for the
+
+
+195
+00:05:44,956 --> 00:05:45,936
+new build system is called
+
+
+196
+00:05:45,936 --> 00:05:46,436
+llbuild.
+
+
+197
+00:05:46,436 --> 00:05:47,566
+And it's open source and
+
+
+198
+00:05:47,566 --> 00:05:48,396
+developed on GitHub.
+
+
+199
+00:05:48,766 --> 00:05:49,606
+If you're interested in build
+
+
+200
+00:05:49,606 --> 00:05:50,996
+systems development, feel free
+
+
+201
+00:05:50,996 --> 00:05:52,086
+to check it out and see how it
+
+
+202
+00:05:52,086 --> 00:05:52,446
+works.
+
+
+203
+00:05:52,906 --> 00:05:53,806
+We'll have a link to this and
+
+
+204
+00:05:53,806 --> 00:05:54,966
+other open source components
+
+
+205
+00:05:54,966 --> 00:05:56,316
+related to the build process at
+
+
+206
+00:05:56,316 --> 00:05:56,986
+the end of the talk.
+
+
+207
+00:05:57,856 --> 00:05:59,856
+Okay, let's talk about
+
+
+208
+00:05:59,856 --> 00:06:00,936
+discovered dependencies.
+
+
+209
+00:06:01,526 --> 00:06:02,886
+Now since you can never have too
+
+
+210
+00:06:02,886 --> 00:06:04,686
+much dependency information, the
+
+
+211
+00:06:04,686 --> 00:06:06,026
+build system might actually
+
+
+212
+00:06:06,126 --> 00:06:07,546
+discover more information during
+
+
+213
+00:06:07,546 --> 00:06:08,936
+the task execution process.
+
+
+214
+00:06:09,726 --> 00:06:11,466
+For example, when Clang compiles
+
+
+215
+00:06:11,466 --> 00:06:13,496
+an Objective-C file, it produces
+
+
+216
+00:06:13,496 --> 00:06:15,066
+and object file as you'd expect.
+
+
+217
+00:06:15,616 --> 00:06:17,056
+But it can also produce another
+
+
+218
+00:06:17,056 --> 00:06:19,936
+file that contains a listing of
+
+
+219
+00:06:19,936 --> 00:06:21,186
+which header files were included
+
+
+220
+00:06:21,186 --> 00:06:22,086
+by that source file.
+
+
+221
+00:06:22,776 --> 00:06:24,446
+Then the next time you build,
+
+
+222
+00:06:24,736 --> 00:06:25,696
+the build system uses the
+
+
+223
+00:06:25,696 --> 00:06:27,226
+information from this file to
+
+
+224
+00:06:27,226 --> 00:06:28,426
+make sure that it recompiles the
+
+
+225
+00:06:28,426 --> 00:06:30,396
+source file if you change any of
+
+
+226
+00:06:30,396 --> 00:06:31,706
+the header files that it
+
+
+227
+00:06:31,706 --> 00:06:32,146
+includes.
+
+
+228
+00:06:32,146 --> 00:06:33,676
+And you can see the dependency
+
+
+229
+00:06:33,676 --> 00:06:35,746
+path through PetController.h,
+
+
+230
+00:06:35,746 --> 00:06:37,916
+PetController.d, .n, all the way
+
+
+231
+00:06:37,916 --> 00:06:38,786
+to the .o file.
+
+
+232
+00:06:40,376 --> 00:06:42,236
+Now we've been talking a lot
+
+
+233
+00:06:42,236 --> 00:06:44,326
+about how the build system's
+
+
+234
+00:06:44,326 --> 00:06:47,036
+main job is to execute tasks.
+
+
+235
+00:06:47,966 --> 00:06:49,086
+And of course the bigger your
+
+
+236
+00:06:49,086 --> 00:06:50,646
+project, the longer the build
+
+
+237
+00:06:50,646 --> 00:06:51,586
+process will take.
+
+
+238
+00:06:51,586 --> 00:06:53,286
+So you don't want to run all of
+
+
+239
+00:06:53,286 --> 00:06:54,886
+these tasks every single time
+
+
+240
+00:06:54,926 --> 00:06:55,366
+you build.
+
+
+241
+00:06:56,116 --> 00:06:57,666
+Instead, the build system might
+
+
+242
+00:06:57,666 --> 00:06:59,796
+only execute a subset of the
+
+
+243
+00:06:59,796 --> 00:07:02,606
+tasks on the graph.
+
+
+244
+00:07:02,786 --> 00:07:03,916
+Depending on the changes you've
+
+
+245
+00:07:03,916 --> 00:07:05,496
+made to your project since the
+
+
+246
+00:07:05,496 --> 00:07:06,276
+previous build.
+
+
+247
+00:07:07,166 --> 00:07:08,806
+We refer to this as an
+
+
+248
+00:07:08,806 --> 00:07:10,306
+incremental build and having
+
+
+249
+00:07:10,336 --> 00:07:11,826
+accurate dependency information
+
+
+250
+00:07:12,036 --> 00:07:13,306
+is very important in order for
+
+
+251
+00:07:13,306 --> 00:07:14,636
+incremental builds to work
+
+
+252
+00:07:14,636 --> 00:07:15,976
+correctly and efficiently.
+
+
+253
+00:07:15,976 --> 00:07:19,306
+Now we talked about how changes
+
+
+254
+00:07:19,306 --> 00:07:20,476
+affect the build system, and how
+
+
+255
+00:07:20,476 --> 00:07:21,356
+they relate to incremental
+
+
+256
+00:07:21,356 --> 00:07:21,736
+builds.
+
+
+257
+00:07:22,146 --> 00:07:23,396
+So how does the build system
+
+
+258
+00:07:23,396 --> 00:07:24,576
+actually detect changes?
+
+
+259
+00:07:24,946 --> 00:07:27,466
+Each task in the build process
+
+
+260
+00:07:27,466 --> 00:07:29,366
+has an associate signature which
+
+
+261
+00:07:29,366 --> 00:07:30,506
+is the sort of hash that's
+
+
+262
+00:07:30,506 --> 00:07:31,406
+computed from various
+
+
+263
+00:07:31,406 --> 00:07:32,756
+information related to that
+
+
+264
+00:07:33,556 --> 00:07:33,686
+task.
+
+
+265
+00:07:34,516 --> 00:07:36,086
+This information includes the
+
+
+266
+00:07:36,086 --> 00:07:37,796
+stat infor of the task's inputs
+
+
+267
+00:07:37,796 --> 00:07:39,416
+like file paths and modification
+
+
+268
+00:07:39,416 --> 00:07:40,136
+time stamps.
+
+
+269
+00:07:40,576 --> 00:07:42,066
+The command line indication used
+
+
+270
+00:07:42,066 --> 00:07:43,556
+to actually perform the command.
+
+
+271
+00:07:43,656 --> 00:07:45,516
+And other task-specific metadata
+
+
+272
+00:07:45,516 --> 00:07:46,466
+such as the version of the
+
+
+273
+00:07:46,466 --> 00:07:47,776
+compiler that's being used.
+
+
+274
+00:07:49,296 --> 00:07:50,716
+The build system keeps track of
+
+
+275
+00:07:50,716 --> 00:07:52,486
+the signatures of tasks in both
+
+
+276
+00:07:52,486 --> 00:07:53,556
+the current and the previous
+
+
+277
+00:07:53,556 --> 00:07:53,876
+build.
+
+
+278
+00:07:54,126 --> 00:07:55,266
+So that it knows whether to
+
+
+279
+00:07:55,266 --> 00:07:56,976
+rerun a task each time a build
+
+
+280
+00:07:56,976 --> 00:07:57,696
+is performed.
+
+
+281
+00:07:59,106 --> 00:08:00,236
+If the signature of any given
+
+
+282
+00:08:00,236 --> 00:08:01,196
+task is different than the
+
+
+283
+00:08:01,196 --> 00:08:02,136
+signature that it had in the
+
+
+284
+00:08:02,256 --> 00:08:03,916
+previous build, then the build
+
+
+285
+00:08:03,916 --> 00:08:05,096
+system reruns that task.
+
+
+286
+00:08:06,096 --> 00:08:07,716
+If they're the same, then it's
+
+
+287
+00:08:07,716 --> 00:08:08,046
+skipped.
+
+
+288
+00:08:08,166 --> 00:08:10,316
+That's the basic idea behind how
+
+
+289
+00:08:10,316 --> 00:08:11,336
+incremental builds work.
+
+
+290
+00:08:12,596 --> 00:08:14,766
+So now that we have an idea of
+
+
+291
+00:08:14,766 --> 00:08:16,346
+what the build process is and
+
+
+292
+00:08:16,396 --> 00:08:18,066
+how it works, how can you help
+
+
+293
+00:08:18,066 --> 00:08:19,366
+the build system do its job?
+
+
+294
+00:08:19,906 --> 00:08:22,146
+Let's go back to basics for a
+
+
+295
+00:08:22,146 --> 00:08:22,466
+moment.
+
+
+296
+00:08:23,046 --> 00:08:24,596
+A build process is a series of
+
+
+297
+00:08:24,596 --> 00:08:26,746
+tasks executed in a particular
+
+
+298
+00:08:26,806 --> 00:08:27,096
+order.
+
+
+299
+00:08:27,096 --> 00:08:28,826
+But remember that the build is
+
+
+300
+00:08:28,826 --> 00:08:30,606
+represented as a directed graph.
+
+
+301
+00:08:31,936 --> 00:08:33,155
+So we don't want to think about
+
+
+302
+00:08:33,206 --> 00:08:34,366
+the order in which these tasks
+
+
+303
+00:08:34,366 --> 00:08:35,666
+should be executed because
+
+
+304
+00:08:35,666 --> 00:08:36,916
+that's the build system's job.
+
+
+305
+00:08:37,796 --> 00:08:39,756
+Instead, as developers, we need
+
+
+306
+00:08:39,756 --> 00:08:41,316
+to think about dependencies
+
+
+307
+00:08:41,316 --> 00:08:43,025
+between tasks and let the build
+
+
+308
+00:08:43,025 --> 00:08:44,236
+system figure out how to best
+
+
+309
+00:08:44,236 --> 00:08:45,316
+execute them according to the
+
+
+310
+00:08:45,316 --> 00:08:46,226
+graph's structure.
+
+
+311
+00:08:46,936 --> 00:08:48,266
+This lets the build system order
+
+
+312
+00:08:48,266 --> 00:08:50,146
+tasks correctly and parallelize
+
+
+313
+00:08:50,146 --> 00:08:51,616
+where possible in order to take
+
+
+314
+00:08:51,616 --> 00:08:53,076
+full advantage of multicore
+
+
+315
+00:08:53,076 --> 00:08:53,496
+hardware.
+
+
+316
+00:08:54,966 --> 00:08:56,506
+So where do dependencies come
+
+
+317
+00:08:56,506 --> 00:08:56,796
+from?
+
+
+318
+00:08:56,916 --> 00:08:58,726
+For certain tasks, dependency
+
+
+319
+00:08:58,726 --> 00:09:00,326
+information comes from knowledge
+
+
+320
+00:09:00,366 --> 00:09:01,396
+built into the build system.
+
+
+321
+00:09:01,876 --> 00:09:02,836
+The build system ships with
+
+
+322
+00:09:02,876 --> 00:09:04,346
+rules for the compiler, the
+
+
+323
+00:09:04,346 --> 00:09:06,336
+linker, the asset catalogue and
+
+
+324
+00:09:06,336 --> 00:09:08,046
+story board processors and so
+
+
+325
+00:09:08,046 --> 00:09:08,186
+on.
+
+
+326
+00:09:08,496 --> 00:09:09,966
+And these rules define what kind
+
+
+327
+00:09:09,966 --> 00:09:11,376
+of files are accepted as inputs
+
+
+328
+00:09:11,746 --> 00:09:13,016
+as well as what outputs are
+
+
+329
+00:09:13,016 --> 00:09:13,576
+produced.
+
+
+330
+00:09:15,176 --> 00:09:17,186
+There's also target dependencies
+
+
+331
+00:09:17,256 --> 00:09:18,226
+which roughly determine the
+
+
+332
+00:09:18,226 --> 00:09:19,186
+order in which targets are
+
+
+333
+00:09:19,186 --> 00:09:19,466
+built.
+
+
+334
+00:09:20,246 --> 00:09:21,696
+And in some cases, the build
+
+
+335
+00:09:21,696 --> 00:09:23,066
+system can compile sources of
+
+
+336
+00:09:23,066 --> 00:09:24,276
+different targets and parallel.
+
+
+337
+00:09:24,836 --> 00:09:26,046
+Previously in Xcode, when a
+
+
+338
+00:09:26,046 --> 00:09:27,626
+target was built, it required
+
+
+339
+00:09:27,626 --> 00:09:28,816
+the compilation of the entire
+
+
+340
+00:09:28,816 --> 00:09:30,246
+dependent target to be completed
+
+
+341
+00:09:30,446 --> 00:09:31,406
+before it could start.
+
+
+342
+00:09:32,136 --> 00:09:33,726
+In Xcode X's new build system,
+
+
+343
+00:09:33,986 --> 00:09:34,966
+targets can start building
+
+
+344
+00:09:34,966 --> 00:09:35,346
+sooner.
+
+
+345
+00:09:35,876 --> 00:09:36,906
+This means that your compile
+
+
+346
+00:09:36,906 --> 00:09:38,336
+sources phase can start earlier
+
+
+347
+00:09:38,336 --> 00:09:39,036
+providing your some
+
+
+348
+00:09:39,036 --> 00:09:40,536
+parallelization for free.
+
+
+349
+00:09:41,166 --> 00:09:42,196
+However, note that if you're
+
+
+350
+00:09:42,196 --> 00:09:43,416
+making use of any run script
+
+
+351
+00:09:43,416 --> 00:09:45,026
+phases, those script phases will
+
+
+352
+00:09:45,026 --> 00:09:46,216
+need to complete before this
+
+
+353
+00:09:46,216 --> 00:09:48,446
+parallelization can take effect.
+
+
+354
+00:09:49,056 --> 00:09:50,496
+Somewhat related to target
+
+
+355
+00:09:50,496 --> 00:09:51,956
+dependencies are implicit
+
+
+356
+00:09:51,956 --> 00:09:52,556
+dependencies.
+
+
+357
+00:09:53,296 --> 00:09:54,416
+For example, if you list a
+
+
+358
+00:09:54,416 --> 00:09:55,826
+target in your link library with
+
+
+359
+00:09:55,826 --> 00:09:57,586
+binaries build phase and
+
+
+360
+00:09:57,586 --> 00:09:58,736
+implicit dependencies are
+
+
+361
+00:09:58,736 --> 00:09:59,856
+enabled in the scheme editor,
+
+
+362
+00:10:00,116 --> 00:10:01,046
+that's on by default, by the
+
+
+363
+00:10:01,046 --> 00:10:02,416
+way, the build system will
+
+
+364
+00:10:02,416 --> 00:10:03,716
+establish an implicit dependency
+
+
+365
+00:10:03,716 --> 00:10:05,326
+on that target even if it's not
+
+
+366
+00:10:05,326 --> 00:10:06,626
+listed in target dependencies.
+
+
+367
+00:10:08,116 --> 00:10:09,766
+Next up are build phase
+
+
+368
+00:10:09,766 --> 00:10:10,376
+dependencies.
+
+
+369
+00:10:10,976 --> 00:10:12,136
+In the target editor, you'll
+
+
+370
+00:10:12,136 --> 00:10:13,046
+notice that there's a number of
+
+
+371
+00:10:13,046 --> 00:10:13,646
+build phases.
+
+
+372
+00:10:14,026 --> 00:10:16,406
+Copy headers, compile sources,
+
+
+373
+00:10:16,526 --> 00:10:18,446
+copy bundle resources and so on.
+
+
+374
+00:10:19,166 --> 00:10:20,466
+The tasks associated with each
+
+
+375
+00:10:20,466 --> 00:10:22,056
+of these phrases are usually
+
+
+376
+00:10:22,056 --> 00:10:23,156
+running groups according to the
+
+
+377
+00:10:23,156 --> 00:10:24,186
+order in which the phases are
+
+
+378
+00:10:24,186 --> 00:10:24,726
+listed.
+
+
+379
+00:10:25,086 --> 00:10:25,996
+But the build system might
+
+
+380
+00:10:26,076 --> 00:10:27,226
+ignore that order if it knows
+
+
+381
+00:10:27,256 --> 00:10:27,526
+better.
+
+
+382
+00:10:27,626 --> 00:10:28,916
+Like if you have a link library,
+
+
+383
+00:10:29,236 --> 00:10:30,716
+linked binary with library space
+
+
+384
+00:10:30,966 --> 00:10:32,456
+ordered before compile sources.
+
+
+385
+00:10:32,876 --> 00:10:34,016
+And note that there's cases
+
+
+386
+00:10:34,016 --> 00:10:34,866
+where having the wrong build
+
+
+387
+00:10:34,866 --> 00:10:36,186
+phase order can cause build
+
+
+388
+00:10:36,186 --> 00:10:37,656
+issues or failures, so make sure
+
+
+389
+00:10:37,656 --> 00:10:38,796
+to understand your dependencies
+
+
+390
+00:10:38,796 --> 00:10:39,956
+and verify that your build
+
+
+391
+00:10:39,956 --> 00:10:40,826
+phases are in the right
+
+
+392
+00:10:40,826 --> 00:10:41,386
+sequence.
+
+
+393
+00:10:42,696 --> 00:10:44,166
+There's also scheme order
+
+
+394
+00:10:44,166 --> 00:10:44,786
+dependencies.
+
+
+395
+00:10:45,406 --> 00:10:46,436
+If you have the parallelize
+
+
+396
+00:10:46,486 --> 00:10:47,666
+build check box enabled in your
+
+
+397
+00:10:47,666 --> 00:10:49,236
+scheme settings, you get better
+
+
+398
+00:10:49,236 --> 00:10:50,806
+build performance and the order
+
+
+399
+00:10:50,806 --> 00:10:51,916
+of your targets in your scheme
+
+
+400
+00:10:52,016 --> 00:10:52,546
+doesn't matter.
+
+
+401
+00:10:53,026 --> 00:10:54,726
+However, if you turn parallelize
+
+
+402
+00:10:54,776 --> 00:10:56,546
+build off, Xcode will attempt to
+
+
+403
+00:10:56,546 --> 00:10:58,186
+build their, your targets in the
+
+
+404
+00:10:58,186 --> 00:10:59,246
+order you listed them in the
+
+
+405
+00:10:59,246 --> 00:11:00,876
+build action of the scheme one
+
+
+406
+00:11:00,876 --> 00:11:01,406
+by one.
+
+
+407
+00:11:02,026 --> 00:11:03,196
+Target dependencies still have
+
+
+408
+00:11:03,196 --> 00:11:04,686
+higher priority in determining
+
+
+409
+00:11:04,686 --> 00:11:05,706
+which targets build first.
+
+
+410
+00:11:05,936 --> 00:11:07,086
+But otherwise, Xcode will
+
+
+411
+00:11:07,086 --> 00:11:07,986
+respect that ordering.
+
+
+412
+00:11:08,636 --> 00:11:10,436
+Now it might be tempting to use
+
+
+413
+00:11:10,436 --> 00:11:11,256
+this as it gives you a
+
+
+414
+00:11:11,256 --> 00:11:12,666
+predictable build order even if
+
+
+415
+00:11:12,666 --> 00:11:13,366
+you haven't set your
+
+
+416
+00:11:13,366 --> 00:11:14,336
+dependencies correctly.
+
+
+417
+00:11:14,786 --> 00:11:15,856
+But you're sacrificing a lot of
+
+
+418
+00:11:15,856 --> 00:11:17,406
+parallelization when you do this
+
+
+419
+00:11:17,796 --> 00:11:18,766
+and slowing down your build.
+
+
+420
+00:11:19,176 --> 00:11:20,186
+So we recommend that you leave
+
+
+421
+00:11:20,186 --> 00:11:21,556
+the parallelize builds checkbox
+
+
+422
+00:11:21,556 --> 00:11:22,886
+enabled, set up your target
+
+
+423
+00:11:22,886 --> 00:11:24,126
+dependencies correctly and don't
+
+
+424
+00:11:24,126 --> 00:11:24,946
+rely on ordering.
+
+
+425
+00:11:27,296 --> 00:11:29,256
+Lastly, dependency information
+
+
+426
+00:11:29,336 --> 00:11:30,956
+comes from you, the developers.
+
+
+427
+00:11:31,586 --> 00:11:33,926
+If you're creating custom shell
+
+
+428
+00:11:33,926 --> 00:11:35,256
+script build phases or build
+
+
+429
+00:11:35,256 --> 00:11:36,636
+rules, make sure to tell the
+
+
+430
+00:11:36,636 --> 00:11:38,016
+build system what its inputs and
+
+
+431
+00:11:38,016 --> 00:11:38,546
+outputs are.
+
+
+432
+00:11:39,086 --> 00:11:40,386
+This lets the build system avoid
+
+
+433
+00:11:40,386 --> 00:11:41,626
+rerunning the script tasks
+
+
+434
+00:11:41,626 --> 00:11:42,396
+unnecessarily.
+
+
+435
+00:11:42,596 --> 00:11:43,786
+And can help make sure that they
+
+
+436
+00:11:43,786 --> 00:11:45,316
+are executed in the right order.
+
+
+437
+00:11:45,796 --> 00:11:46,906
+You can define the inputs and
+
+
+438
+00:11:46,906 --> 00:11:48,286
+outputs in the run script phase
+
+
+439
+00:11:48,286 --> 00:11:48,716
+editor.
+
+
+440
+00:11:48,716 --> 00:11:50,236
+And the paths of these files
+
+
+441
+00:11:50,236 --> 00:11:51,256
+will be made available to your
+
+
+442
+00:11:51,256 --> 00:11:52,816
+script as environment variables.
+
+
+443
+00:11:54,456 --> 00:11:56,336
+Don't rely on auto-link for
+
+
+444
+00:11:56,336 --> 00:11:57,506
+target dependencies in your
+
+
+445
+00:11:57,506 --> 00:11:57,976
+project.
+
+
+446
+00:11:58,736 --> 00:11:59,676
+The client compiler has a
+
+
+447
+00:11:59,676 --> 00:12:01,006
+feature called auto-link which
+
+
+448
+00:12:01,006 --> 00:12:02,126
+can be enabled using the link
+
+
+449
+00:12:02,126 --> 00:12:03,526
+frameworks automatically build
+
+
+450
+00:12:03,526 --> 00:12:03,866
+setting.
+
+
+451
+00:12:04,586 --> 00:12:05,826
+This setting allows the compiler
+
+
+452
+00:12:05,826 --> 00:12:06,846
+to automatically link to the
+
+
+453
+00:12:06,846 --> 00:12:08,206
+frameworks corresponding to any
+
+
+454
+00:12:08,206 --> 00:12:09,746
+modules you import without
+
+
+455
+00:12:09,746 --> 00:12:11,016
+having to explicitly link them
+
+
+456
+00:12:11,366 --> 00:12:12,496
+in your link library's build
+
+
+457
+00:12:12,496 --> 00:12:12,816
+phase.
+
+
+458
+00:12:13,396 --> 00:12:14,616
+However, it's important to note
+
+
+459
+00:12:14,616 --> 00:12:15,666
+that auto-link does not
+
+
+460
+00:12:15,726 --> 00:12:17,236
+establish dependency on that
+
+
+461
+00:12:17,236 --> 00:12:18,346
+framework at the build system
+
+
+462
+00:12:18,346 --> 00:12:18,616
+level.
+
+
+463
+00:12:18,946 --> 00:12:20,186
+So it won't guarantee that the
+
+
+464
+00:12:20,186 --> 00:12:21,746
+target you depend on is actually
+
+
+465
+00:12:21,746 --> 00:12:23,306
+built before you try to link
+
+
+466
+00:12:23,306 --> 00:12:24,386
+against it.
+
+
+467
+00:12:25,016 --> 00:12:26,716
+So you should rely on this
+
+
+468
+00:12:26,716 --> 00:12:28,286
+feature only for frameworks from
+
+
+469
+00:12:28,286 --> 00:12:29,436
+the platform STK.
+
+
+470
+00:12:29,436 --> 00:12:31,326
+Like Foundation and UIKit since
+
+
+471
+00:12:31,326 --> 00:12:32,706
+we know those will already exist
+
+
+472
+00:12:32,816 --> 00:12:34,136
+before the build even starts.
+
+
+473
+00:12:34,636 --> 00:12:35,546
+For targets in your own
+
+
+474
+00:12:35,546 --> 00:12:36,976
+projects, make sure to add
+
+
+475
+00:12:36,976 --> 00:12:38,416
+explicit library dependencies.
+
+
+476
+00:12:40,196 --> 00:12:41,566
+You might also need to create
+
+
+477
+00:12:41,566 --> 00:12:42,926
+project references by dragging
+
+
+478
+00:12:42,926 --> 00:12:44,066
+and dropping another Xcode
+
+
+479
+00:12:44,066 --> 00:12:45,506
+project into your project's file
+
+
+480
+00:12:45,506 --> 00:12:47,546
+navigator in order to reveal the
+
+
+481
+00:12:47,546 --> 00:12:48,926
+targets of other projects you
+
+
+482
+00:12:48,926 --> 00:12:49,406
+depend on.
+
+
+483
+00:12:49,996 --> 00:12:53,376
+In conclusion, with accurate
+
+
+484
+00:12:53,376 --> 00:12:54,676
+dependency information, the
+
+
+485
+00:12:54,676 --> 00:12:55,646
+build system can better
+
+
+486
+00:12:55,646 --> 00:12:56,936
+parallelize your builds, and
+
+
+487
+00:12:57,046 --> 00:12:58,136
+help ensure that you get
+
+
+488
+00:12:58,136 --> 00:13:00,106
+consistent results every time so
+
+
+489
+00:13:00,106 --> 00:13:01,176
+that you can spend less time
+
+
+490
+00:13:01,176 --> 00:13:02,326
+building and more time
+
+
+491
+00:13:02,526 --> 00:13:03,156
+developing.
+
+
+492
+00:13:04,286 --> 00:13:05,386
+For more information on how to
+
+
+493
+00:13:05,386 --> 00:13:06,436
+speed up your builds and make
+
+
+494
+00:13:06,436 --> 00:13:07,516
+the most of all those cores in
+
+
+495
+00:13:07,516 --> 00:13:09,186
+your shiny new iMac Pro, we'd
+
+
+496
+00:13:09,186 --> 00:13:10,196
+recommend that you check out
+
+
+497
+00:13:10,196 --> 00:13:11,536
+Building Faster in Xcode
+
+
+498
+00:13:11,536 --> 00:13:11,966
+Session.
+
+
+499
+00:13:12,346 --> 00:13:13,836
+And with that, I'm going to hand
+
+
+500
+00:13:13,836 --> 00:13:14,966
+it over to Jurgen, who's going
+
+
+501
+00:13:14,966 --> 00:13:16,246
+to take you into the realm of
+
+
+502
+00:13:16,246 --> 00:13:16,806
+the compiler.
+
+
+503
+00:13:17,516 --> 00:13:22,836
+[ Applause ]
+
+
+504
+00:13:23,336 --> 00:13:23,776
+>> Thank you, Jake.
+
+
+505
+00:13:24,726 --> 00:13:27,206
+And now we're going to talk
+
+
+506
+00:13:27,206 --> 00:13:28,666
+about what happens behind the
+
+
+507
+00:13:28,666 --> 00:13:31,216
+scenes when Xcode build system
+
+
+508
+00:13:31,296 --> 00:13:32,466
+invokes the Clang compiler.
+
+
+509
+00:13:33,976 --> 00:13:34,896
+Hello, everyone.
+
+
+510
+00:13:35,286 --> 00:13:36,956
+My name is Jurgen, and I'm a
+
+
+511
+00:13:36,956 --> 00:13:38,446
+Compiler Engineer on a Clang
+
+
+512
+00:13:38,446 --> 00:13:39,016
+Frontend Team.
+
+
+513
+00:13:40,096 --> 00:13:41,356
+Today I'm going to talk about
+
+
+514
+00:13:41,356 --> 00:13:43,256
+two features you might not know
+
+
+515
+00:13:43,256 --> 00:13:43,496
+about.
+
+
+516
+00:13:44,366 --> 00:13:45,966
+The first feature is called
+
+
+517
+00:13:46,136 --> 00:13:48,366
+header maps and how we use them
+
+
+518
+00:13:48,406 --> 00:13:50,446
+to communicate information from
+
+
+519
+00:13:50,446 --> 00:13:52,116
+the Xcode build system to the
+
+
+520
+00:13:52,116 --> 00:13:52,756
+Clang compiler.
+
+
+521
+00:13:54,146 --> 00:13:55,496
+The second feature is called
+
+
+522
+00:13:55,836 --> 00:13:57,856
+Clang modules and how we use
+
+
+523
+00:13:57,856 --> 00:14:00,956
+them to speed up your builds.
+
+
+524
+00:14:01,126 --> 00:14:03,526
+Some of you might only use Swift
+
+
+525
+00:14:03,556 --> 00:14:03,906
+by now.
+
+
+526
+00:14:04,756 --> 00:14:06,656
+But I want to tell you, Swift
+
+
+527
+00:14:06,656 --> 00:14:08,236
+uses Clang behind the scenes.
+
+
+528
+00:14:08,936 --> 00:14:09,896
+So there might be something
+
+
+529
+00:14:09,896 --> 00:14:12,086
+interesting for you here, too.
+
+
+530
+00:14:14,646 --> 00:14:15,446
+So what is Clang?
+
+
+531
+00:14:17,086 --> 00:14:18,906
+Clang is Apple's official C
+
+
+532
+00:14:18,906 --> 00:14:22,756
+compiler and all the other C
+
+
+533
+00:14:22,926 --> 00:14:25,696
+language family such as C, C++,
+
+
+534
+00:14:25,956 --> 00:14:28,356
+and of course Objective-C which
+
+
+535
+00:14:28,356 --> 00:14:29,906
+is used for the majority of all
+
+
+536
+00:14:29,906 --> 00:14:30,536
+frameworks.
+
+
+537
+00:14:31,056 --> 00:14:33,296
+As Jake mentioned in the
+
+
+538
+00:14:33,296 --> 00:14:36,806
+beginning, the compilers invoked
+
+
+539
+00:14:36,806 --> 00:14:38,126
+[inaudible] for every input file
+
+
+540
+00:14:38,126 --> 00:14:39,536
+and it creates exactly one
+
+
+541
+00:14:39,536 --> 00:14:41,166
+output file which is then later
+
+
+542
+00:14:41,166 --> 00:14:42,136
+consumed by the linker.
+
+
+543
+00:14:43,496 --> 00:14:45,796
+If you want to access APIs from
+
+
+544
+00:14:46,546 --> 00:14:49,436
+the iOS, or you want to access
+
+
+545
+00:14:49,946 --> 00:14:52,576
+implementations from your own
+
+
+546
+00:14:52,666 --> 00:14:54,386
+code, you usually have to
+
+
+547
+00:14:54,386 --> 00:14:55,446
+include something what is called
+
+
+548
+00:14:55,446 --> 00:14:56,036
+a header file.
+
+
+549
+00:14:56,686 --> 00:14:59,476
+A header file is a promise.
+
+
+550
+00:15:00,506 --> 00:15:03,306
+You promise somewhere else this
+
+
+551
+00:15:03,306 --> 00:15:04,536
+implementation exists.
+
+
+552
+00:15:04,876 --> 00:15:05,946
+And they usually match.
+
+
+553
+00:15:06,616 --> 00:15:08,586
+Of course if you update only the
+
+
+554
+00:15:08,656 --> 00:15:09,506
+header file-- only the
+
+
+555
+00:15:09,506 --> 00:15:11,436
+implementation file and forget
+
+
+556
+00:15:11,436 --> 00:15:13,036
+the header file, you broke your
+
+
+557
+00:15:13,846 --> 00:15:14,076
+promise.
+
+
+558
+00:15:14,446 --> 00:15:16,716
+Very often this doesn't break
+
+
+559
+00:15:16,716 --> 00:15:18,296
+the compile time because the
+
+
+560
+00:15:18,296 --> 00:15:19,626
+compiler trusts your promise.
+
+
+561
+00:15:20,496 --> 00:15:22,726
+Usually this breaks during link
+
+
+562
+00:15:22,756 --> 00:15:23,016
+time.
+
+
+563
+00:15:23,576 --> 00:15:25,986
+The compiler usually does
+
+
+564
+00:15:26,286 --> 00:15:27,566
+include more than one header
+
+
+565
+00:15:27,566 --> 00:15:30,586
+file, and this is done for all
+
+
+566
+00:15:30,586 --> 00:15:31,566
+compiler invocation.
+
+
+567
+00:15:32,376 --> 00:15:34,916
+So let's have a look at our
+
+
+568
+00:15:34,916 --> 00:15:37,076
+example application and see how
+
+
+569
+00:15:37,076 --> 00:15:38,166
+we deal with header files.
+
+
+570
+00:15:39,806 --> 00:15:42,506
+This is PetWall, it's a
+
+
+571
+00:15:42,616 --> 00:15:44,076
+mixed-language application.
+
+
+572
+00:15:44,956 --> 00:15:46,736
+The application itself is
+
+
+573
+00:15:46,736 --> 00:15:47,446
+written in Swift.
+
+
+574
+00:15:48,656 --> 00:15:51,256
+And it uses a framework that's
+
+
+575
+00:15:51,256 --> 00:15:52,706
+written in Objective-C.
+
+
+576
+00:15:52,706 --> 00:15:54,286
+And it has a support library
+
+
+577
+00:15:54,376 --> 00:15:56,376
+aesthetic archive that use--
+
+
+578
+00:15:56,376 --> 00:16:00,056
+that's written in C++.
+
+
+579
+00:16:00,246 --> 00:16:02,806
+Over time, our application grew.
+
+
+580
+00:16:03,016 --> 00:16:06,266
+And we start to reorganize it so
+
+
+581
+00:16:06,266 --> 00:16:07,616
+we can find things easier.
+
+
+582
+00:16:08,166 --> 00:16:10,486
+For example, we moved all the
+
+
+583
+00:16:10,616 --> 00:16:12,036
+cat-related files into a
+
+
+584
+00:16:12,036 --> 00:16:12,606
+subfolder.
+
+
+585
+00:16:13,216 --> 00:16:18,376
+We didn't have to change any of
+
+
+586
+00:16:18,376 --> 00:16:19,876
+our implementation files.
+
+
+587
+00:16:20,676 --> 00:16:22,246
+And it still works.
+
+
+588
+00:16:23,046 --> 00:16:26,866
+So it makes you wonder how does
+
+
+589
+00:16:26,866 --> 00:16:29,206
+Clang find your header files?
+
+
+590
+00:16:29,206 --> 00:16:33,856
+Let's look at a simple example.
+
+
+591
+00:16:34,696 --> 00:16:35,356
+This is one of our
+
+
+592
+00:16:35,356 --> 00:16:38,146
+implementation files we use in
+
+
+593
+00:16:38,146 --> 00:16:40,236
+our code and we include our
+
+
+594
+00:16:40,236 --> 00:16:43,406
+header file called cat.h. How
+
+
+595
+00:16:43,406 --> 00:16:45,836
+can we figure out what Clang
+
+
+596
+00:16:45,836 --> 00:16:46,066
+does?
+
+
+597
+00:16:46,946 --> 00:16:48,466
+Once thing you could do is you
+
+
+598
+00:16:48,466 --> 00:16:51,076
+can go into the build logs, look
+
+
+599
+00:16:51,436 --> 00:16:53,896
+what the Xcode build system did
+
+
+600
+00:16:54,486 --> 00:16:55,996
+to compile this particular file.
+
+
+601
+00:16:55,996 --> 00:16:57,276
+And copy and paste that
+
+
+602
+00:16:57,276 --> 00:16:57,956
+invocation.
+
+
+603
+00:16:59,196 --> 00:17:01,196
+You drop it into a terminal and
+
+
+604
+00:17:01,546 --> 00:17:02,816
+add the -v option.
+
+
+605
+00:17:03,796 --> 00:17:05,205
+Dash-v is symbol for verbose.
+
+
+606
+00:17:05,935 --> 00:17:07,266
+And then Clang will tell you
+
+
+607
+00:17:07,476 --> 00:17:08,576
+lots of information.
+
+
+608
+00:17:09,476 --> 00:17:11,036
+But let's just concentrate on
+
+
+609
+00:17:11,036 --> 00:17:12,986
+the one that matter which is the
+
+
+610
+00:17:14,016 --> 00:17:15,226
+search paths.
+
+
+611
+00:17:15,276 --> 00:17:17,846
+I say search paths and many of
+
+
+612
+00:17:17,945 --> 00:17:19,836
+you might expect to see now here
+
+
+613
+00:17:20,106 --> 00:17:22,526
+search paths that point back to
+
+
+614
+00:17:22,526 --> 00:17:24,346
+your source code.
+
+
+615
+00:17:24,965 --> 00:17:26,646
+But it's not how this works.
+
+
+616
+00:17:27,415 --> 00:17:29,546
+Instead you will see something
+
+
+617
+00:17:29,546 --> 00:17:30,476
+called headermaps.
+
+
+618
+00:17:32,116 --> 00:17:34,426
+Headermaps are used [inaudible]
+
+
+619
+00:17:34,806 --> 00:17:36,856
+by the Xcode build system to
+
+
+620
+00:17:36,856 --> 00:17:38,656
+communicate where those header
+
+
+621
+00:17:38,656 --> 00:17:39,566
+files are.
+
+
+622
+00:17:40,546 --> 00:17:41,646
+So let's have a look at those.
+
+
+623
+00:17:41,646 --> 00:17:42,846
+Let's have a look the most
+
+
+624
+00:17:42,846 --> 00:17:44,626
+important two file-- headermap
+
+
+625
+00:17:44,626 --> 00:17:46,086
+files we care about.
+
+
+626
+00:17:47,656 --> 00:17:50,946
+The first two entries simply
+
+
+627
+00:17:51,686 --> 00:17:55,066
+append the framework name to
+
+
+628
+00:17:55,066 --> 00:17:55,586
+your header.
+
+
+629
+00:17:56,286 --> 00:17:57,126
+Those two headers in the
+
+
+630
+00:17:57,126 --> 00:17:58,916
+beginning are public headers.
+
+
+631
+00:18:02,416 --> 00:18:04,556
+I say you shouldn't rely on this
+
+
+632
+00:18:04,556 --> 00:18:04,876
+feature.
+
+
+633
+00:18:05,466 --> 00:18:08,406
+The reason is we keep this there
+
+
+634
+00:18:08,406 --> 00:18:10,226
+to keep existing projects
+
+
+635
+00:18:10,226 --> 00:18:13,076
+working but there might be
+
+
+636
+00:18:13,076 --> 00:18:14,356
+issues down the road with Clang
+
+
+637
+00:18:14,356 --> 00:18:17,476
+modules so we suggest that you
+
+
+638
+00:18:17,726 --> 00:18:20,396
+always specify the framework
+
+
+639
+00:18:20,396 --> 00:18:22,416
+name when you include a public
+
+
+640
+00:18:22,556 --> 00:18:24,336
+or private header file from your
+
+
+641
+00:18:24,376 --> 00:18:25,306
+own framework.
+
+
+642
+00:18:27,136 --> 00:18:29,576
+Third entry is a project header.
+
+
+643
+00:18:30,196 --> 00:18:31,376
+In this case, this is not
+
+
+644
+00:18:31,416 --> 00:18:31,856
+required.
+
+
+645
+00:18:32,806 --> 00:18:35,006
+And the whole purpose of the
+
+
+646
+00:18:35,006 --> 00:18:37,276
+headermap is to point back to
+
+
+647
+00:18:37,496 --> 00:18:38,296
+your source code.
+
+
+648
+00:18:38,296 --> 00:18:41,376
+As you can see, we do the same
+
+
+649
+00:18:41,466 --> 00:18:42,936
+thing for the public and private
+
+
+650
+00:18:42,986 --> 00:18:43,246
+headers.
+
+
+651
+00:18:44,296 --> 00:18:45,986
+We always point back to your
+
+
+652
+00:18:45,986 --> 00:18:47,076
+source code.
+
+
+653
+00:18:47,076 --> 00:18:49,656
+We do this so that Clang can
+
+
+654
+00:18:49,716 --> 00:18:52,126
+produce useful error and warning
+
+
+655
+00:18:52,126 --> 00:18:54,526
+messages for the files in your
+
+
+656
+00:18:54,526 --> 00:18:56,376
+source directory and not a
+
+
+657
+00:18:56,376 --> 00:18:57,746
+potential copy that might be
+
+
+658
+00:18:57,746 --> 00:19:00,606
+somewhere else in the build
+
+
+659
+00:19:02,956 --> 00:19:03,176
+directory.
+
+
+660
+00:19:03,266 --> 00:19:05,176
+Since many people were not aware
+
+
+661
+00:19:05,176 --> 00:19:06,806
+that we use headermaps, you run
+
+
+662
+00:19:06,906 --> 00:19:08,106
+into certain issues.
+
+
+663
+00:19:08,426 --> 00:19:11,246
+A very common one is that we
+
+
+664
+00:19:11,246 --> 00:19:13,536
+forgot to add the header to the
+
+
+665
+00:19:13,536 --> 00:19:13,996
+project.
+
+
+666
+00:19:14,786 --> 00:19:16,756
+It is in the source directory,
+
+
+667
+00:19:16,916 --> 00:19:18,616
+but it is not in the project
+
+
+668
+00:19:18,616 --> 00:19:19,056
+itself.
+
+
+669
+00:19:19,366 --> 00:19:21,546
+So always add your headers to
+
+
+670
+00:19:21,546 --> 00:19:22,036
+the project.
+
+
+671
+00:19:23,046 --> 00:19:26,756
+Another issue is that if you
+
+
+672
+00:19:26,756 --> 00:19:28,366
+have headers with the same name,
+
+
+673
+00:19:28,646 --> 00:19:29,816
+they might shadow each other.
+
+
+674
+00:19:31,216 --> 00:19:32,966
+So always try to use unique
+
+
+675
+00:19:32,966 --> 00:19:33,846
+names for your headers.
+
+
+676
+00:19:34,806 --> 00:19:36,876
+This also applies to system
+
+
+677
+00:19:36,876 --> 00:19:37,336
+headers.
+
+
+678
+00:19:37,816 --> 00:19:39,306
+If you have a local header in
+
+
+679
+00:19:39,306 --> 00:19:40,816
+your project that has the name
+
+
+680
+00:19:40,816 --> 00:19:42,546
+as a system header, it will
+
+
+681
+00:19:42,546 --> 00:19:44,756
+shadow the system header so you
+
+
+682
+00:19:44,756 --> 00:19:46,116
+should try to avoid this.
+
+
+683
+00:19:47,096 --> 00:19:48,296
+Talking about system headers.
+
+
+684
+00:19:48,706 --> 00:19:52,866
+How do we find those?
+
+
+685
+00:19:53,066 --> 00:19:54,546
+Another example from our
+
+
+686
+00:19:54,546 --> 00:19:54,836
+PetWall.
+
+
+687
+00:19:55,926 --> 00:19:57,576
+Here in this case we include
+
+
+688
+00:19:57,616 --> 00:19:59,536
+Foundation.h header file which
+
+
+689
+00:19:59,536 --> 00:20:00,256
+is in our SDK.
+
+
+690
+00:20:00,296 --> 00:20:03,086
+We can do the same thing we did
+
+
+691
+00:20:03,086 --> 00:20:05,526
+before when you were looking for
+
+
+692
+00:20:05,526 --> 00:20:06,296
+our own header files.
+
+
+693
+00:20:06,416 --> 00:20:07,246
+But now we're looking for the
+
+
+694
+00:20:07,246 --> 00:20:07,786
+system header.
+
+
+695
+00:20:08,866 --> 00:20:11,386
+It's just that headermaps are
+
+
+696
+00:20:11,386 --> 00:20:13,486
+only for your own headers.
+
+
+697
+00:20:13,956 --> 00:20:15,076
+So we can ignore them.
+
+
+698
+00:20:16,086 --> 00:20:17,976
+Let's focus on the include path
+
+
+699
+00:20:18,056 --> 00:20:18,256
+[inaudible] matter.
+
+
+700
+00:20:18,756 --> 00:20:21,716
+So at default, we always look in
+
+
+701
+00:20:21,816 --> 00:20:23,466
+two directories in the SDK.
+
+
+702
+00:20:23,966 --> 00:20:25,746
+the first one is user include,
+
+
+703
+00:20:26,516 --> 00:20:28,616
+the second one is system library
+
+
+704
+00:20:28,616 --> 00:20:29,176
+frameworks.
+
+
+705
+00:20:29,866 --> 00:20:31,346
+Let's have a look at the first
+
+
+706
+00:20:31,346 --> 00:20:31,486
+one.
+
+
+707
+00:20:31,966 --> 00:20:34,276
+It's a regular include
+
+
+708
+00:20:34,376 --> 00:20:35,056
+directory.
+
+
+709
+00:20:35,416 --> 00:20:36,746
+So the only thing we have to do
+
+
+710
+00:20:36,746 --> 00:20:38,426
+is we have to append the search
+
+
+711
+00:20:38,426 --> 00:20:38,726
+term.
+
+
+712
+00:20:38,816 --> 00:20:39,476
+In this case,
+
+
+713
+00:20:39,476 --> 00:20:43,026
+Foundation/Foundation.h. And we
+
+
+714
+00:20:43,026 --> 00:20:44,166
+won't find the header because
+
+
+715
+00:20:44,166 --> 00:20:44,516
+it's not there.
+
+
+716
+00:20:45,556 --> 00:20:46,076
+But it's okay.
+
+
+717
+00:20:46,216 --> 00:20:47,436
+Let's try the next entry.
+
+
+718
+00:20:48,616 --> 00:20:50,126
+Let's look into system library
+
+
+719
+00:20:50,126 --> 00:20:50,746
+frameworks.
+
+
+720
+00:20:52,196 --> 00:20:53,276
+This one is a frameworks
+
+
+721
+00:20:53,326 --> 00:20:55,506
+directory that means Clang has
+
+
+722
+00:20:55,536 --> 00:20:56,746
+to behave a little bit
+
+
+723
+00:20:56,796 --> 00:20:57,216
+different.
+
+
+724
+00:20:57,456 --> 00:21:00,026
+First of all, it has to identify
+
+
+725
+00:21:00,506 --> 00:21:02,466
+what is the framework and check
+
+
+726
+00:21:02,466 --> 00:21:03,676
+if the framework exists.
+
+
+727
+00:21:04,146 --> 00:21:07,826
+After that, it has to look in
+
+
+728
+00:21:07,826 --> 00:21:09,336
+the headers directory for the
+
+
+729
+00:21:09,336 --> 00:21:09,806
+header file.
+
+
+730
+00:21:10,666 --> 00:21:12,376
+This case, it finds it so it's
+
+
+731
+00:21:12,376 --> 00:21:12,646
+fine.
+
+
+732
+00:21:13,736 --> 00:21:16,046
+But what happens if we don't
+
+
+733
+00:21:16,046 --> 00:21:16,656
+find the header?
+
+
+734
+00:21:17,066 --> 00:21:18,886
+For example, we have a bogus
+
+
+735
+00:21:18,886 --> 00:21:20,126
+header that doesn't exist.
+
+
+736
+00:21:21,726 --> 00:21:23,366
+It obviously fails to find it in
+
+
+737
+00:21:23,366 --> 00:21:24,256
+the headers directory.
+
+
+738
+00:21:24,846 --> 00:21:27,306
+But the next, it will also look
+
+
+739
+00:21:27,306 --> 00:21:28,296
+in the private headers
+
+
+740
+00:21:28,336 --> 00:21:28,836
+directory.
+
+
+741
+00:21:30,316 --> 00:21:32,676
+Apple doesn't ship any private
+
+
+742
+00:21:32,676 --> 00:21:34,736
+headers in its SDK.
+
+
+743
+00:21:35,046 --> 00:21:36,776
+but your project, your
+
+
+744
+00:21:36,776 --> 00:21:38,586
+frameworks might have public and
+
+
+745
+00:21:38,586 --> 00:21:39,206
+private headers.
+
+
+746
+00:21:39,826 --> 00:21:41,046
+So we always will look there
+
+
+747
+00:21:41,166 --> 00:21:41,396
+too.
+
+
+748
+00:21:42,476 --> 00:21:44,696
+Since it's a bogus header, it's
+
+
+749
+00:21:45,506 --> 00:21:46,666
+not there either.
+
+
+750
+00:21:46,756 --> 00:21:48,786
+Interesting now, we actually
+
+
+751
+00:21:48,786 --> 00:21:49,846
+will abort the search now.
+
+
+752
+00:21:50,446 --> 00:21:51,886
+We will not keep searching in
+
+
+753
+00:21:51,946 --> 00:21:52,996
+other search directories.
+
+
+754
+00:21:53,496 --> 00:21:56,026
+The reason is we already found
+
+
+755
+00:21:56,536 --> 00:21:57,716
+the head-- we already found the
+
+
+756
+00:21:57,716 --> 00:21:58,176
+framework.
+
+
+757
+00:21:59,076 --> 00:22:00,506
+Once you find the framework, we
+
+
+758
+00:22:00,506 --> 00:22:01,906
+expect to find the header in
+
+
+759
+00:22:01,906 --> 00:22:02,856
+this framework directory.
+
+
+760
+00:22:03,496 --> 00:22:04,326
+If you don't find it, we
+
+
+761
+00:22:04,326 --> 00:22:05,466
+complete abort the search.
+
+
+762
+00:22:06,036 --> 00:22:09,656
+If you're curious how your
+
+
+763
+00:22:09,656 --> 00:22:11,016
+implementation file looks like,
+
+
+764
+00:22:11,016 --> 00:22:13,196
+after all those headers got
+
+
+765
+00:22:13,196 --> 00:22:14,566
+imported and preprocessed.
+
+
+766
+00:22:15,236 --> 00:22:18,576
+You can ask Xcode to create a
+
+
+767
+00:22:18,576 --> 00:22:21,206
+preprocessed file for you, for
+
+
+768
+00:22:21,206 --> 00:22:22,136
+your implementation file.
+
+
+769
+00:22:22,686 --> 00:22:26,476
+This will create a very large
+
+
+770
+00:22:27,566 --> 00:22:28,496
+output file.
+
+
+771
+00:22:28,636 --> 00:22:32,736
+So how big is that file?
+
+
+772
+00:22:32,916 --> 00:22:34,766
+Let's use a very simple example.
+
+
+773
+00:22:35,606 --> 00:22:39,306
+Foundation.h is a very
+
+
+774
+00:22:39,306 --> 00:22:40,806
+fundamental header, fundamental
+
+
+775
+00:22:40,806 --> 00:22:42,106
+header to our system.
+
+
+776
+00:22:42,696 --> 00:22:44,686
+It is-- you are very likely to
+
+
+777
+00:22:44,686 --> 00:22:46,036
+import this header either
+
+
+778
+00:22:46,036 --> 00:22:48,126
+directly or indirectly for some
+
+
+779
+00:22:48,156 --> 00:22:48,896
+other header file.
+
+
+780
+00:22:49,556 --> 00:22:51,396
+That means every compiler
+
+
+781
+00:22:51,396 --> 00:22:52,746
+invocation you're most likely
+
+
+782
+00:22:52,866 --> 00:22:54,156
+going to have to find this
+
+
+783
+00:22:54,156 --> 00:22:54,376
+header.
+
+
+784
+00:22:55,796 --> 00:22:58,386
+At the end of the day, Clang has
+
+
+785
+00:22:58,436 --> 00:23:01,466
+to find and process over 800
+
+
+786
+00:23:01,466 --> 00:23:03,296
+header files for the single
+
+
+787
+00:23:03,296 --> 00:23:04,106
+include statement.
+
+
+788
+00:23:05,576 --> 00:23:07,406
+That's over 9 megabyte of source
+
+
+789
+00:23:07,406 --> 00:23:10,056
+code that has to be parsed and
+
+
+790
+00:23:10,056 --> 00:23:10,596
+verified.
+
+
+791
+00:23:11,666 --> 00:23:13,706
+And that happens for every
+
+
+792
+00:23:13,706 --> 00:23:14,926
+compiler invocation.
+
+
+793
+00:23:15,556 --> 00:23:17,176
+That's a lot of work, and it's
+
+
+794
+00:23:17,376 --> 00:23:17,886
+redundant.
+
+
+795
+00:23:19,076 --> 00:23:21,976
+So can we do better?
+
+
+796
+00:23:24,066 --> 00:23:25,076
+One of the features you might be
+
+
+797
+00:23:25,076 --> 00:23:26,936
+aware of is called precompiled
+
+
+798
+00:23:26,936 --> 00:23:27,576
+header files.
+
+
+799
+00:23:28,196 --> 00:23:29,816
+That's one way to improve this.
+
+
+800
+00:23:30,596 --> 00:23:31,886
+But we have something better.
+
+
+801
+00:23:31,996 --> 00:23:34,106
+A few years back, we introduced
+
+
+802
+00:23:34,236 --> 00:23:34,866
+Clang modules.
+
+
+803
+00:23:36,366 --> 00:23:38,806
+Clang modules allow us to only
+
+
+804
+00:23:39,006 --> 00:23:40,626
+find and parse the headers once
+
+
+805
+00:23:41,216 --> 00:23:43,306
+per framework and then store
+
+
+806
+00:23:43,306 --> 00:23:45,276
+that information on disk so it's
+
+
+807
+00:23:45,706 --> 00:23:47,256
+cached and can be reused.
+
+
+808
+00:23:48,366 --> 00:23:50,316
+This should have improved your
+
+
+809
+00:23:50,316 --> 00:23:50,776
+build times.
+
+
+810
+00:23:53,946 --> 00:23:55,666
+In order to do that, Clang
+
+
+811
+00:23:55,666 --> 00:23:57,136
+modules must have certain
+
+
+812
+00:23:57,136 --> 00:23:57,716
+properties.
+
+
+813
+00:23:58,386 --> 00:24:00,216
+One of them, one of the most
+
+
+814
+00:24:00,286 --> 00:24:02,966
+important one is context-free.
+
+
+815
+00:24:03,516 --> 00:24:04,846
+What do I mean by context-free?
+
+
+816
+00:24:05,446 --> 00:24:08,306
+You can see here two code
+
+
+817
+00:24:08,306 --> 00:24:08,896
+snippets.
+
+
+818
+00:24:09,276 --> 00:24:11,626
+In both cases we import the
+
+
+819
+00:24:11,706 --> 00:24:12,766
+PetKit module.
+
+
+820
+00:24:13,966 --> 00:24:16,686
+But we have two different macro
+
+
+821
+00:24:16,686 --> 00:24:17,826
+definitions beforehand.
+
+
+822
+00:24:19,456 --> 00:24:20,976
+If you would use a traditional
+
+
+823
+00:24:20,976 --> 00:24:22,536
+model of importing those
+
+
+824
+00:24:22,536 --> 00:24:23,716
+headers, that means they're
+
+
+825
+00:24:24,106 --> 00:24:24,696
+[inaudible] included.
+
+
+826
+00:24:25,376 --> 00:24:27,496
+The preprocessor would honor
+
+
+827
+00:24:27,496 --> 00:24:29,396
+this definition and apply it to
+
+
+828
+00:24:29,396 --> 00:24:30,516
+the header file.
+
+
+829
+00:24:31,266 --> 00:24:32,546
+But if you would do that, that
+
+
+830
+00:24:32,546 --> 00:24:33,826
+means the modules would be
+
+
+831
+00:24:33,826 --> 00:24:35,786
+different for each header case,
+
+
+832
+00:24:35,786 --> 00:24:37,486
+and we couldn't reuse it.
+
+
+833
+00:24:37,726 --> 00:24:40,136
+So if you want to use modules,
+
+
+834
+00:24:40,336 --> 00:24:41,306
+you cannot do that.
+
+
+835
+00:24:41,926 --> 00:24:44,016
+Instead, the module will ignore
+
+
+836
+00:24:44,016 --> 00:24:45,746
+all those context-related
+
+
+837
+00:24:45,886 --> 00:24:48,036
+information that allows us to
+
+
+838
+00:24:48,036 --> 00:24:49,716
+be, that allows it to be reused
+
+
+839
+00:24:50,186 --> 00:24:52,246
+across all implementation files.
+
+
+840
+00:24:53,816 --> 00:24:57,106
+Another requirement is modules
+
+
+841
+00:24:57,106 --> 00:24:58,226
+have to be self-contained.
+
+
+842
+00:24:59,006 --> 00:25:01,126
+That means they have to specify
+
+
+843
+00:25:01,666 --> 00:25:02,836
+all the dependencies.
+
+
+844
+00:25:03,736 --> 00:25:05,496
+Which also has a nice advantage
+
+
+845
+00:25:05,876 --> 00:25:08,186
+for you because it means once
+
+
+846
+00:25:08,186 --> 00:25:10,846
+you import a module, it will
+
+
+847
+00:25:10,846 --> 00:25:11,636
+just work.
+
+
+848
+00:25:11,636 --> 00:25:12,926
+You don't have to worry about
+
+
+849
+00:25:12,926 --> 00:25:14,016
+adding any additional header
+
+
+850
+00:25:14,016 --> 00:25:16,346
+files to make that import work.
+
+
+851
+00:25:18,956 --> 00:25:22,056
+So how do we know or how does
+
+
+852
+00:25:22,056 --> 00:25:23,996
+Clang know it should build a
+
+
+853
+00:25:23,996 --> 00:25:24,426
+module?
+
+
+854
+00:25:26,046 --> 00:25:27,976
+Let's look at a simple example
+
+
+855
+00:25:27,976 --> 00:25:31,556
+here NSString.h. First Clang has
+
+
+856
+00:25:31,556 --> 00:25:33,126
+to find this particular header
+
+
+857
+00:25:33,566 --> 00:25:34,456
+in the framework.
+
+
+858
+00:25:35,056 --> 00:25:37,936
+And we already know how to do
+
+
+859
+00:25:37,936 --> 00:25:38,116
+that.
+
+
+860
+00:25:38,756 --> 00:25:39,576
+And it's the
+
+
+861
+00:25:39,796 --> 00:25:41,116
+Foundation.framework directory.
+
+
+862
+00:25:42,166 --> 00:25:43,666
+Next the Clang compiler will
+
+
+863
+00:25:43,706 --> 00:25:46,116
+look for a modules directory and
+
+
+864
+00:25:46,116 --> 00:25:47,996
+a Module Map relative to the
+
+
+865
+00:25:47,996 --> 00:25:49,706
+header's directory and it's
+
+
+866
+00:25:49,766 --> 00:25:49,936
+there.
+
+
+867
+00:25:51,606 --> 00:25:52,926
+So what is a Module Map?
+
+
+868
+00:25:53,486 --> 00:25:55,566
+A Module Map describes how a
+
+
+869
+00:25:55,566 --> 00:25:57,406
+certain set of header files
+
+
+870
+00:25:57,796 --> 00:25:59,556
+translate onto your module.
+
+
+871
+00:26:01,026 --> 00:26:02,646
+So let's have a look.
+
+
+872
+00:26:03,596 --> 00:26:05,606
+The Module Map is actually very
+
+
+873
+00:26:05,606 --> 00:26:06,066
+simple.
+
+
+874
+00:26:06,196 --> 00:26:07,876
+This is the whole Module Map for
+
+
+875
+00:26:07,876 --> 00:26:08,426
+foundation.
+
+
+876
+00:26:08,626 --> 00:26:08,966
+That's it.
+
+
+877
+00:26:09,996 --> 00:26:12,256
+It obviously describes what is
+
+
+878
+00:26:12,296 --> 00:26:13,446
+the name of the module which is,
+
+
+879
+00:26:13,446 --> 00:26:13,936
+Foundation.
+
+
+880
+00:26:14,436 --> 00:26:17,636
+And then it also specifies what
+
+
+881
+00:26:17,746 --> 00:26:19,616
+headers are part of this module.
+
+
+882
+00:26:20,716 --> 00:26:22,746
+You'll notice there's only one
+
+
+883
+00:26:22,746 --> 00:26:24,036
+header file here, only
+
+
+884
+00:26:24,036 --> 00:26:26,236
+Foundation.h. But this is a
+
+
+885
+00:26:26,236 --> 00:26:27,166
+special header file.
+
+
+886
+00:26:27,616 --> 00:26:28,646
+This is the umbrella header
+
+
+887
+00:26:29,086 --> 00:26:30,496
+which is also marked by the
+
+
+888
+00:26:30,496 --> 00:26:31,476
+special keyword umbrella.
+
+
+889
+00:26:32,496 --> 00:26:34,806
+That means Clang has also to
+
+
+890
+00:26:34,806 --> 00:26:36,286
+look into this particular header
+
+
+891
+00:26:36,286 --> 00:26:39,816
+file to figure out if NSString.h
+
+
+892
+00:26:39,816 --> 00:26:40,806
+is part of the module.
+
+
+893
+00:26:42,356 --> 00:26:44,716
+And yeah, it's there, okay.
+
+
+894
+00:26:45,236 --> 00:26:46,766
+So now we have found out
+
+
+895
+00:26:47,096 --> 00:26:48,926
+NSString.h is part of the
+
+
+896
+00:26:48,926 --> 00:26:49,876
+foundation module.
+
+
+897
+00:26:50,666 --> 00:26:52,726
+Now Clang, now Clang can upgrade
+
+
+898
+00:26:52,966 --> 00:26:55,036
+this textual import to a module
+
+
+899
+00:26:55,036 --> 00:26:57,386
+import and we know we have to
+
+
+900
+00:26:57,476 --> 00:26:58,816
+build the foundation module to
+
+
+901
+00:26:59,616 --> 00:27:00,946
+do that.
+
+
+902
+00:27:01,116 --> 00:27:02,086
+So how do we build the
+
+
+903
+00:27:02,086 --> 00:27:02,966
+foundation module?
+
+
+904
+00:27:03,916 --> 00:27:05,916
+First of all, we create a
+
+
+905
+00:27:05,986 --> 00:27:07,126
+separate Clang location for
+
+
+906
+00:27:07,126 --> 00:27:07,306
+that.
+
+
+907
+00:27:08,186 --> 00:27:10,466
+And that Clang location contains
+
+
+908
+00:27:10,646 --> 00:27:12,076
+all the header files from the
+
+
+909
+00:27:12,076 --> 00:27:12,826
+foundation module.
+
+
+910
+00:27:13,476 --> 00:27:17,216
+We don't transfer any of the
+
+
+911
+00:27:17,216 --> 00:27:19,626
+existing context from the
+
+
+912
+00:27:19,626 --> 00:27:21,136
+original compiler invocation.
+
+
+913
+00:27:21,586 --> 00:27:23,256
+Hence, it's context-free.
+
+
+914
+00:27:24,126 --> 00:27:25,896
+The thing we actually transfer
+
+
+915
+00:27:25,896 --> 00:27:27,346
+are the command line arguments
+
+
+916
+00:27:27,346 --> 00:27:28,176
+you passed to Clang.
+
+
+917
+00:27:28,446 --> 00:27:31,966
+Those are passed on.
+
+
+918
+00:27:32,226 --> 00:27:33,586
+While we build the foundation
+
+
+919
+00:27:33,586 --> 00:27:36,496
+module, we mod-- the module
+
+
+920
+00:27:36,496 --> 00:27:37,816
+itself or the framework, the
+
+
+921
+00:27:37,816 --> 00:27:40,176
+framework itself will include
+
+
+922
+00:27:40,316 --> 00:27:41,776
+additional frameworks.
+
+
+923
+00:27:42,086 --> 00:27:43,866
+That means we have to build
+
+
+924
+00:27:43,866 --> 00:27:44,836
+those modules too.
+
+
+925
+00:27:45,616 --> 00:27:48,226
+And we have to keep going
+
+
+926
+00:27:48,226 --> 00:27:50,156
+because those might also include
+
+
+927
+00:27:50,156 --> 00:27:51,256
+additional frameworks.
+
+
+928
+00:27:52,346 --> 00:27:53,536
+But we already can see there is
+
+
+929
+00:27:53,536 --> 00:27:54,266
+a benefit here.
+
+
+930
+00:27:55,296 --> 00:27:56,676
+Some of those imports might be
+
+
+931
+00:27:56,676 --> 00:27:57,266
+the same.
+
+
+932
+00:27:57,706 --> 00:27:59,586
+So we can always start reusing
+
+
+933
+00:27:59,586 --> 00:28:00,256
+that module.
+
+
+934
+00:28:00,896 --> 00:28:03,896
+All those modules are
+
+
+935
+00:28:04,036 --> 00:28:05,566
+[inaudible] to disk into
+
+
+936
+00:28:05,566 --> 00:28:06,916
+something called a module cache.
+
+
+937
+00:28:07,466 --> 00:28:12,166
+As I mentioned, the command line
+
+
+938
+00:28:12,166 --> 00:28:14,076
+arguments are passed on when you
+
+
+939
+00:28:14,196 --> 00:28:15,006
+create that module.
+
+
+940
+00:28:15,806 --> 00:28:18,536
+That means, that means those
+
+
+941
+00:28:18,536 --> 00:28:21,236
+arguments can affect the content
+
+
+942
+00:28:21,236 --> 00:28:21,936
+of your module.
+
+
+943
+00:28:22,806 --> 00:28:25,336
+As a result, we have to hash all
+
+
+944
+00:28:25,336 --> 00:28:27,816
+those arguments and store the
+
+
+945
+00:28:27,816 --> 00:28:29,036
+modules we created for this
+
+
+946
+00:28:29,036 --> 00:28:30,536
+particular compiler invocation
+
+
+947
+00:28:30,886 --> 00:28:33,406
+in a directory matching that
+
+
+948
+00:28:34,296 --> 00:28:34,456
+hash.
+
+
+949
+00:28:34,616 --> 00:28:36,366
+If you change the compiler
+
+
+950
+00:28:36,366 --> 00:28:37,796
+arguments for different
+
+
+951
+00:28:37,796 --> 00:28:39,906
+limitation file, for example
+
+
+952
+00:28:40,116 --> 00:28:43,196
+you'd say enable cat, that is a
+
+
+953
+00:28:43,196 --> 00:28:45,586
+different hash and that requires
+
+
+954
+00:28:45,966 --> 00:28:48,026
+Clang to rebuild all the
+
+
+955
+00:28:48,026 --> 00:28:50,156
+module's inputs into that
+
+
+956
+00:28:50,156 --> 00:28:52,146
+directory matching that hash.
+
+
+957
+00:28:53,366 --> 00:28:55,246
+So in order to get the maximum
+
+
+958
+00:28:55,246 --> 00:28:57,216
+reuse out of the module cache,
+
+
+959
+00:28:57,716 --> 00:29:00,026
+you should try to keep the
+
+
+960
+00:29:00,026 --> 00:29:02,086
+arguments the same, if possible.
+
+
+961
+00:29:02,646 --> 00:29:07,746
+So this is how we find and build
+
+
+962
+00:29:07,746 --> 00:29:09,456
+modules for system frameworks
+
+
+963
+00:29:10,426 --> 00:29:12,436
+but what about your frameworks?
+
+
+964
+00:29:12,876 --> 00:29:14,316
+How do we build modules for
+
+
+965
+00:29:14,316 --> 00:29:14,706
+those?
+
+
+966
+00:29:15,246 --> 00:29:18,106
+Let's go back to our original
+
+
+967
+00:29:18,106 --> 00:29:20,156
+cat example, and this time we
+
+
+968
+00:29:20,156 --> 00:29:20,986
+turn on modules.
+
+
+969
+00:29:21,676 --> 00:29:24,826
+If we would use a headermap
+
+
+970
+00:29:24,826 --> 00:29:27,256
+again, the headermap will point
+
+
+971
+00:29:27,256 --> 00:29:29,906
+us back to the source directory.
+
+
+972
+00:29:30,506 --> 00:29:32,876
+But if you look at that source
+
+
+973
+00:29:32,876 --> 00:29:34,016
+directory, we have a problem
+
+
+974
+00:29:34,016 --> 00:29:34,336
+now.
+
+
+975
+00:29:34,906 --> 00:29:36,956
+Theirs is no modules directory.
+
+
+976
+00:29:38,246 --> 00:29:39,496
+It doesn't look like a framework
+
+
+977
+00:29:39,496 --> 00:29:42,946
+at all and Clang doesn't know
+
+
+978
+00:29:42,946 --> 00:29:44,606
+how to do this in this case.
+
+
+979
+00:29:45,526 --> 00:29:47,476
+So we introduced a new concept
+
+
+980
+00:29:47,606 --> 00:29:49,846
+to solve this, and it's called
+
+
+981
+00:29:50,126 --> 00:29:51,676
+Clang's Virtual File System.
+
+
+982
+00:29:52,606 --> 00:29:54,556
+It basically creates a virtual
+
+
+983
+00:29:54,556 --> 00:29:57,016
+abstraction of a framework that
+
+
+984
+00:29:57,016 --> 00:29:58,656
+allows Clang to build the
+
+
+985
+00:29:58,656 --> 00:29:59,216
+module.
+
+
+986
+00:30:00,006 --> 00:30:02,356
+But the abstraction basically
+
+
+987
+00:30:02,356 --> 00:30:04,076
+only points to the files back in
+
+
+988
+00:30:04,076 --> 00:30:04,696
+your directory.
+
+
+989
+00:30:05,406 --> 00:30:07,726
+So again, Clang will be able to
+
+
+990
+00:30:07,726 --> 00:30:08,996
+produce [inaudible] and errors
+
+
+991
+00:30:09,106 --> 00:30:10,036
+for your source code.
+
+
+992
+00:30:10,646 --> 00:30:13,406
+And that's how we build modules
+
+
+993
+00:30:13,986 --> 00:30:15,726
+for, when you have frameworks.
+
+
+994
+00:30:16,256 --> 00:30:19,186
+As you remember, in the
+
+
+995
+00:30:19,186 --> 00:30:20,926
+beginning I mentioned there
+
+
+996
+00:30:20,926 --> 00:30:23,046
+might be issues if you don't
+
+
+997
+00:30:23,046 --> 00:30:24,906
+specify the framework name.
+
+
+998
+00:30:25,496 --> 00:30:27,286
+So let me give you an example
+
+
+999
+00:30:27,326 --> 00:30:28,426
+where this can go wrong.
+
+
+1000
+00:30:28,976 --> 00:30:31,186
+This is a very simple-- very
+
+
+1001
+00:30:31,186 --> 00:30:31,966
+simple code example.
+
+
+1002
+00:30:31,966 --> 00:30:33,646
+We only have two imports.
+
+
+1003
+00:30:34,036 --> 00:30:36,316
+The first import imports the
+
+
+1004
+00:30:36,316 --> 00:30:37,456
+pet, PetKit module.
+
+
+1005
+00:30:38,896 --> 00:30:41,786
+The second import, you and I
+
+
+1006
+00:30:41,786 --> 00:30:43,586
+know this is also part of the
+
+
+1007
+00:30:43,586 --> 00:30:46,116
+PetKit module, but Clang might
+
+
+1008
+00:30:46,116 --> 00:30:47,336
+now be able to figure that out
+
+
+1009
+00:30:48,116 --> 00:30:49,486
+because you didn't specify the
+
+
+1010
+00:30:49,486 --> 00:30:50,156
+framework name.
+
+
+1011
+00:30:50,716 --> 00:30:53,846
+In this case, it might be
+
+
+1012
+00:30:53,916 --> 00:30:56,076
+possible you get duplicate
+
+
+1013
+00:30:56,076 --> 00:30:56,886
+definition errors.
+
+
+1014
+00:30:56,886 --> 00:30:58,876
+That's basically, that basically
+
+
+1015
+00:30:58,876 --> 00:31:00,176
+happens when you import the same
+
+
+1016
+00:31:00,176 --> 00:31:01,036
+header twice.
+
+
+1017
+00:31:03,216 --> 00:31:05,246
+Clang works very hard behind the
+
+
+1018
+00:31:05,246 --> 00:31:07,556
+scenes to fix the most common
+
+
+1019
+00:31:07,596 --> 00:31:09,176
+issues that happen like this.
+
+
+1020
+00:31:10,616 --> 00:31:12,116
+But it cannot fix all of them.
+
+
+1021
+00:31:13,286 --> 00:31:14,156
+And this is just a simple
+
+
+1022
+00:31:14,156 --> 00:31:14,686
+example.
+
+
+1023
+00:31:15,506 --> 00:31:18,396
+Let's just make a little tweak.
+
+
+1024
+00:31:18,606 --> 00:31:19,956
+Let's change the context.
+
+
+1025
+00:31:21,436 --> 00:31:24,296
+Now the module import won't be
+
+
+1026
+00:31:24,296 --> 00:31:26,046
+affected by this at all because
+
+
+1027
+00:31:26,046 --> 00:31:27,336
+as I said, we ignore the
+
+
+1028
+00:31:27,336 --> 00:31:27,946
+context.
+
+
+1029
+00:31:28,476 --> 00:31:32,086
+The cat import is still a
+
+
+1030
+00:31:32,086 --> 00:31:33,606
+textual inclusion of the header
+
+
+1031
+00:31:33,946 --> 00:31:35,596
+which will observe this change.
+
+
+1032
+00:31:36,386 --> 00:31:38,586
+So now you might not even have
+
+
+1033
+00:31:38,666 --> 00:31:39,736
+duplicate definitions.
+
+
+1034
+00:31:40,006 --> 00:31:40,616
+You might even have
+
+
+1035
+00:31:40,866 --> 00:31:42,206
+contradictory definitions.
+
+
+1036
+00:31:42,526 --> 00:31:43,966
+Which can mean we cannot fix,
+
+
+1037
+00:31:44,766 --> 00:31:46,096
+Clang cannot fix this for you.
+
+
+1038
+00:31:47,036 --> 00:31:48,796
+So as I recommended in the
+
+
+1039
+00:31:48,796 --> 00:31:51,126
+beginning, always specify the
+
+
+1040
+00:31:51,126 --> 00:31:53,526
+framework name when you import
+
+
+1041
+00:31:53,746 --> 00:31:55,316
+your public or private headers.
+
+
+1042
+00:31:56,676 --> 00:31:57,636
+And now I'm handing it over to
+
+
+1043
+00:31:57,636 --> 00:31:59,726
+Devin who's going to talk about
+
+
+1044
+00:31:59,726 --> 00:32:01,656
+Swift and how Swift uses Clang
+
+
+1045
+00:32:01,656 --> 00:32:01,976
+modules.
+
+
+1046
+00:32:02,516 --> 00:32:08,606
+[ Applause ]
+
+
+1047
+00:32:09,106 --> 00:32:09,846
+>> Thanks, Jurgen.
+
+
+1048
+00:32:10,406 --> 00:32:12,696
+We're now going to dive into the
+
+
+1049
+00:32:12,696 --> 00:32:14,746
+details of how Swift and the
+
+
+1050
+00:32:14,746 --> 00:32:17,216
+build system work together to
+
+
+1051
+00:32:17,216 --> 00:32:18,906
+find declarations across your
+
+
+1052
+00:32:18,966 --> 00:32:19,966
+project.
+
+
+1053
+00:32:21,216 --> 00:32:22,946
+To recap some of what Jurgen
+
+
+1054
+00:32:22,946 --> 00:32:24,936
+told you, Clang compiles each
+
+
+1055
+00:32:24,936 --> 00:32:26,946
+Objective-C file separately.
+
+
+1056
+00:32:27,856 --> 00:32:29,406
+This means if you want to refer
+
+
+1057
+00:32:29,406 --> 00:32:31,156
+to a class to find in another
+
+
+1058
+00:32:31,156 --> 00:32:33,476
+file, you have to import a
+
+
+1059
+00:32:33,476 --> 00:32:37,406
+header that declares that class.
+
+
+1060
+00:32:37,516 --> 00:32:39,396
+But Swift was designed to not
+
+
+1061
+00:32:39,396 --> 00:32:41,006
+require you to write headers.
+
+
+1062
+00:32:41,626 --> 00:32:42,606
+This makes it easier for
+
+
+1063
+00:32:42,606 --> 00:32:43,916
+beginners to get started with
+
+
+1064
+00:32:43,916 --> 00:32:44,526
+the language.
+
+
+1065
+00:32:44,946 --> 00:32:46,606
+And avoids you having to repeat
+
+
+1066
+00:32:46,686 --> 00:32:48,506
+a declaration in a separate
+
+
+1067
+00:32:48,506 --> 00:32:48,856
+file.
+
+
+1068
+00:32:50,116 --> 00:32:51,636
+However this does mean that the
+
+
+1069
+00:32:51,636 --> 00:32:53,156
+compiler has to perform some
+
+
+1070
+00:32:53,156 --> 00:32:54,196
+additional bookkeeping.
+
+
+1071
+00:32:55,036 --> 00:32:56,196
+I'm going to tell you how that
+
+
+1072
+00:32:56,236 --> 00:32:57,186
+bookkeeping works.
+
+
+1073
+00:32:57,646 --> 00:33:01,066
+Let's return to our example,
+
+
+1074
+00:33:01,136 --> 00:33:01,796
+PetWall app.
+
+
+1075
+00:33:02,956 --> 00:33:04,266
+The app has a view in
+
+
+1076
+00:33:04,266 --> 00:33:05,356
+ViewCcontroller, written in
+
+
+1077
+00:33:05,406 --> 00:33:05,846
+Swift.
+
+
+1078
+00:33:06,936 --> 00:33:08,476
+An Objective-C app delegate.
+
+
+1079
+00:33:09,076 --> 00:33:10,506
+And Swift unit tests.
+
+
+1080
+00:33:11,686 --> 00:33:13,256
+In order to compile even just
+
+
+1081
+00:33:13,256 --> 00:33:15,036
+this top PetViewController part
+
+
+1082
+00:33:15,076 --> 00:33:17,316
+of the file, the compiler has to
+
+
+1083
+00:33:17,316 --> 00:33:18,446
+perform four different
+
+
+1084
+00:33:18,446 --> 00:33:19,276
+operations.
+
+
+1085
+00:33:20,426 --> 00:33:21,836
+First, it has to find
+
+
+1086
+00:33:21,936 --> 00:33:22,576
+declarations.
+
+
+1087
+00:33:23,396 --> 00:33:25,806
+Both within the Swift target and
+
+
+1088
+00:33:25,836 --> 00:33:27,556
+also coming from Objective-C.
+
+
+1089
+00:33:29,016 --> 00:33:30,706
+Further, it has to generate
+
+
+1090
+00:33:30,706 --> 00:33:31,986
+interfaces describing the
+
+
+1091
+00:33:31,986 --> 00:33:33,106
+contents of the file.
+
+
+1092
+00:33:33,516 --> 00:33:35,096
+So that its declarations can be
+
+
+1093
+00:33:35,096 --> 00:33:37,326
+found and used in Objective-C
+
+
+1094
+00:33:37,796 --> 00:33:39,606
+and in other Swift targets.
+
+
+1095
+00:33:40,836 --> 00:33:41,906
+In the rest of this section of
+
+
+1096
+00:33:41,906 --> 00:33:43,156
+the talk, I'm going to walk
+
+
+1097
+00:33:43,156 --> 00:33:44,746
+through this example to
+
+
+1098
+00:33:44,746 --> 00:33:46,186
+illustrate each of these four
+
+
+1099
+00:33:46,186 --> 00:33:46,836
+tasks.
+
+
+1100
+00:33:47,766 --> 00:33:48,786
+Let's start with finding
+
+
+1101
+00:33:48,786 --> 00:33:50,386
+declarations within a Swift
+
+
+1102
+00:33:50,386 --> 00:33:50,776
+target.
+
+
+1103
+00:33:55,296 --> 00:33:56,326
+When compiling
+
+
+1104
+00:33:56,376 --> 00:33:58,936
+PetViewController.swift, the
+
+
+1105
+00:33:58,936 --> 00:34:00,616
+compiler will look up the type
+
+
+1106
+00:34:00,786 --> 00:34:03,046
+of PetView's initializer so that
+
+
+1107
+00:34:03,046 --> 00:34:03,926
+it can check the call.
+
+
+1108
+00:34:05,496 --> 00:34:07,526
+But before it can do that, it
+
+
+1109
+00:34:07,526 --> 00:34:10,426
+needs to parse PetView.swift and
+
+
+1110
+00:34:10,426 --> 00:34:11,106
+validate it.
+
+
+1111
+00:34:11,676 --> 00:34:12,356
+To make sure that the
+
+
+1112
+00:34:12,356 --> 00:34:13,835
+declaration of the initializer
+
+
+1113
+00:34:13,946 --> 00:34:14,826
+is well formed.
+
+
+1114
+00:34:15,835 --> 00:34:17,386
+Now, the compiler's smart enough
+
+
+1115
+00:34:17,386 --> 00:34:19,366
+to know that it doesn't need to
+
+
+1116
+00:34:19,366 --> 00:34:20,326
+check the body of the
+
+
+1117
+00:34:20,326 --> 00:34:21,295
+initializer here.
+
+
+1118
+00:34:22,156 --> 00:34:23,335
+But it does still need to do
+
+
+1119
+00:34:23,335 --> 00:34:24,985
+some work just to process the
+
+
+1120
+00:34:24,985 --> 00:34:26,556
+interface parts of the file.
+
+
+1121
+00:34:30,045 --> 00:34:31,926
+What this means is that unlike
+
+
+1122
+00:34:32,065 --> 00:34:34,416
+Clang, when compiling one Swift
+
+
+1123
+00:34:34,416 --> 00:34:36,815
+file, the compiler will parse
+
+
+1124
+00:34:36,906 --> 00:34:38,606
+all the other Swift files in the
+
+
+1125
+00:34:38,606 --> 00:34:39,065
+target.
+
+
+1126
+00:34:39,446 --> 00:34:40,666
+To examine the parts of them
+
+
+1127
+00:34:40,876 --> 00:34:41,886
+that are relevant to the
+
+
+1128
+00:34:41,886 --> 00:34:42,696
+interfaces.
+
+
+1129
+00:34:48,335 --> 00:34:50,255
+IN Xcode 9, this resulted in
+
+
+1130
+00:34:50,255 --> 00:34:52,096
+some repeated work in repeated
+
+
+1131
+00:34:52,096 --> 00:34:53,536
+build-- in incremental debug
+
+
+1132
+00:34:53,576 --> 00:34:54,045
+builds.
+
+
+1133
+00:34:54,096 --> 00:34:55,936
+Because the compiler compiled
+
+
+1134
+00:34:56,025 --> 00:34:57,416
+each file separately.
+
+
+1135
+00:34:58,396 --> 00:34:59,656
+This enabled the files to be
+
+
+1136
+00:34:59,656 --> 00:35:01,446
+compiled in parallel, but it
+
+
+1137
+00:35:01,446 --> 00:35:02,716
+forced the compiler to
+
+
+1138
+00:35:02,716 --> 00:35:04,286
+repeatedly parse each file.
+
+
+1139
+00:35:05,386 --> 00:35:07,006
+Once as an implementation to
+
+
+1140
+00:35:07,006 --> 00:35:09,536
+produce a .o, and multiple times
+
+
+1141
+00:35:09,736 --> 00:35:11,626
+as an interface to find
+
+
+1142
+00:35:11,626 --> 00:35:12,486
+declarations.
+
+
+1143
+00:35:13,976 --> 00:35:16,636
+Xcode 10 reduces this overhead.
+
+
+1144
+00:35:17,546 --> 00:35:19,296
+It does so by combining the
+
+
+1145
+00:35:19,296 --> 00:35:21,556
+files into groups that share as
+
+
+1146
+00:35:21,556 --> 00:35:23,056
+much work as possible.
+
+
+1147
+00:35:23,646 --> 00:35:26,206
+While still allowing maximum
+
+
+1148
+00:35:26,206 --> 00:35:26,996
+parallelism.
+
+
+1149
+00:35:27,956 --> 00:35:29,796
+This reuses parsing within a
+
+
+1150
+00:35:29,796 --> 00:35:32,656
+group and only repeats work
+
+
+1151
+00:35:32,656 --> 00:35:33,666
+across groups.
+
+
+1152
+00:35:34,596 --> 00:35:36,186
+Since the number of groups is
+
+
+1153
+00:35:36,186 --> 00:35:38,656
+typically relatively low, this
+
+
+1154
+00:35:38,656 --> 00:35:41,066
+can significantly speed up your
+
+
+1155
+00:35:41,066 --> 00:35:41,976
+incremental debug builds.
+
+
+1156
+00:35:45,876 --> 00:35:48,096
+Now, Swift code doesn't only
+
+
+1157
+00:35:48,096 --> 00:35:49,636
+call other Swift code.
+
+
+1158
+00:35:50,156 --> 00:35:53,406
+It can also call Objective-C.
+
+
+1159
+00:35:53,656 --> 00:35:55,216
+Returning to our PetWall example
+
+
+1160
+00:35:55,216 --> 00:35:57,586
+app, we can see that, that this
+
+
+1161
+00:35:57,586 --> 00:35:59,316
+is crucial since the system
+
+
+1162
+00:35:59,316 --> 00:36:01,496
+frameworks such as UIKit are
+
+
+1163
+00:36:01,496 --> 00:36:02,766
+written in Objective-C.
+
+
+1164
+00:36:06,696 --> 00:36:08,396
+Swift takes a different approach
+
+
+1165
+00:36:08,676 --> 00:36:10,126
+than many other languages.
+
+
+1166
+00:36:10,326 --> 00:36:11,886
+And it doesn't require you to
+
+
+1167
+00:36:12,186 --> 00:36:13,316
+provide a foreign function
+
+
+1168
+00:36:13,316 --> 00:36:14,036
+interface.
+
+
+1169
+00:36:15,576 --> 00:36:17,086
+This is where you would have to,
+
+
+1170
+00:36:17,086 --> 00:36:18,416
+for example, write a Swift
+
+
+1171
+00:36:18,416 --> 00:36:20,536
+declaration for each Objective-C
+
+
+1172
+00:36:20,536 --> 00:36:21,846
+API you want to use.
+
+
+1173
+00:36:23,056 --> 00:36:25,066
+Instead, the compiler embeds a
+
+
+1174
+00:36:25,066 --> 00:36:27,556
+large part of Clang inside of it
+
+
+1175
+00:36:28,316 --> 00:36:29,566
+and uses it as a library.
+
+
+1176
+00:36:30,556 --> 00:36:32,326
+This makes it possible to import
+
+
+1177
+00:36:32,326 --> 00:36:34,136
+Objective-C frameworks directly.
+
+
+1178
+00:36:36,896 --> 00:36:38,196
+So where do Objective-C
+
+
+1179
+00:36:38,196 --> 00:36:39,306
+declarations come from?
+
+
+1180
+00:36:40,376 --> 00:36:41,566
+The compile-- the importer will
+
+
+1181
+00:36:41,566 --> 00:36:43,066
+look in headers depending on the
+
+
+1182
+00:36:43,146 --> 00:36:44,076
+type of the target.
+
+
+1183
+00:36:45,596 --> 00:36:47,926
+In any target, when you import
+
+
+1184
+00:36:47,926 --> 00:36:50,166
+an Objective-C framework, the
+
+
+1185
+00:36:50,166 --> 00:36:51,796
+importer finds declarations in
+
+
+1186
+00:36:51,796 --> 00:36:53,726
+the headers exposing Clang's
+
+
+1187
+00:36:53,726 --> 00:36:55,256
+module map for that framework.
+
+
+1188
+00:36:56,716 --> 00:36:58,396
+Within a framework that mixes
+
+
+1189
+00:36:58,396 --> 00:37:00,656
+Swift and Objective-C code, the
+
+
+1190
+00:37:00,656 --> 00:37:02,436
+importer finds declarations in
+
+
+1191
+00:37:02,436 --> 00:37:03,226
+the umbrella header.
+
+
+1192
+00:37:04,646 --> 00:37:05,936
+This is the header that defines
+
+
+1193
+00:37:05,976 --> 00:37:07,176
+the public interface.
+
+
+1194
+00:37:08,316 --> 00:37:10,156
+In this way, Swift code inside
+
+
+1195
+00:37:10,186 --> 00:37:11,876
+the framework can call public
+
+
+1196
+00:37:11,876 --> 00:37:13,926
+Objective-C code in the same
+
+
+1197
+00:37:14,036 --> 00:37:14,466
+framework.
+
+
+1198
+00:37:16,636 --> 00:37:18,496
+Finally, within your app and
+
+
+1199
+00:37:18,496 --> 00:37:20,466
+unit tests, you can add imports
+
+
+1200
+00:37:20,466 --> 00:37:21,876
+to the target's bridging header.
+
+
+1201
+00:37:22,256 --> 00:37:23,766
+To allow declarations from them
+
+
+1202
+00:37:24,156 --> 00:37:25,486
+to be called from Swift.
+
+
+1203
+00:37:25,906 --> 00:37:30,786
+Now when the importer brings in
+
+
+1204
+00:37:30,786 --> 00:37:32,856
+declarations, it often changes
+
+
+1205
+00:37:32,856 --> 00:37:34,076
+them to make them more
+
+
+1206
+00:37:34,076 --> 00:37:34,636
+idiomatic.
+
+
+1207
+00:37:35,666 --> 00:37:36,906
+For example, it will import
+
+
+1208
+00:37:36,906 --> 00:37:38,546
+Objective-C methods that use the
+
+
+1209
+00:37:38,546 --> 00:37:41,146
+NSError idiom as throwing
+
+
+1210
+00:37:41,146 --> 00:37:43,286
+methods using Swift's built-in
+
+
+1211
+00:37:43,286 --> 00:37:44,596
+error handling language feature.
+
+
+1212
+00:37:45,256 --> 00:37:49,286
+In particular, it will drop
+
+
+1213
+00:37:49,436 --> 00:37:51,276
+parameter type names following
+
+
+1214
+00:37:51,276 --> 00:37:52,606
+verbs and prepositions.
+
+
+1215
+00:37:53,976 --> 00:37:56,006
+For example, the drawPet atPoint
+
+
+1216
+00:37:56,046 --> 00:37:57,846
+method has the word pet.
+
+
+1217
+00:37:58,636 --> 00:38:00,146
+For a parameter of type pet
+
+
+1218
+00:38:00,826 --> 00:38:02,046
+following the verb draw.
+
+
+1219
+00:38:03,096 --> 00:38:06,456
+And similarly the word point for
+
+
+1220
+00:38:06,456 --> 00:38:08,206
+a parameter of type CGPoint
+
+
+1221
+00:38:08,776 --> 00:38:10,606
+following the preposition at.
+
+
+1222
+00:38:11,736 --> 00:38:13,946
+These words are omitted in Swift
+
+
+1223
+00:38:14,236 --> 00:38:15,886
+when the method is imported as
+
+
+1224
+00:38:15,886 --> 00:38:18,326
+simply draw at.
+
+
+1225
+00:38:19,156 --> 00:38:20,266
+So how does this work?
+
+
+1226
+00:38:21,126 --> 00:38:22,806
+Well, you might be surprised to
+
+
+1227
+00:38:22,806 --> 00:38:24,996
+know that the compiler contains
+
+
+1228
+00:38:24,996 --> 00:38:26,946
+a list of common English verbs
+
+
+1229
+00:38:26,946 --> 00:38:27,836
+and prepositions.
+
+
+1230
+00:38:29,416 --> 00:38:31,346
+Because it is just a hard-coded
+
+
+1231
+00:38:31,346 --> 00:38:32,656
+list and human language is
+
+
+1232
+00:38:32,656 --> 00:38:34,416
+messy, sometimes it's missing
+
+
+1233
+00:38:34,416 --> 00:38:34,936
+words.
+
+
+1234
+00:38:35,796 --> 00:38:37,376
+Furthermore, in order to match
+
+
+1235
+00:38:37,376 --> 00:38:39,126
+Swift's naming conventions, the
+
+
+1236
+00:38:39,126 --> 00:38:40,826
+importer will also rename
+
+
+1237
+00:38:40,826 --> 00:38:43,116
+methods to remove words based on
+
+
+1238
+00:38:43,116 --> 00:38:43,996
+the part of speech.
+
+
+1239
+00:38:45,206 --> 00:38:47,316
+For example the verb feed is not
+
+
+1240
+00:38:47,366 --> 00:38:49,376
+in the list, and so feedPet is
+
+
+1241
+00:38:49,376 --> 00:38:51,646
+not imported as feed as we might
+
+
+1242
+00:38:51,646 --> 00:38:52,096
+expect.
+
+
+1243
+00:38:53,546 --> 00:38:55,246
+When this happens, you can use
+
+
+1244
+00:38:55,246 --> 00:38:57,686
+the NS Swift Name annotation to
+
+
+1245
+00:38:57,686 --> 00:38:59,416
+have the compiler import the
+
+
+1246
+00:38:59,416 --> 00:39:01,966
+method exactly as you want.
+
+
+1247
+00:39:06,146 --> 00:39:07,326
+Now if you want to check to see
+
+
+1248
+00:39:07,326 --> 00:39:08,636
+how your Objective-C header will
+
+
+1249
+00:39:08,636 --> 00:39:10,586
+be imported into Swift, you can
+
+
+1250
+00:39:10,586 --> 00:39:12,276
+always go to Xcode's related
+
+
+1251
+00:39:12,276 --> 00:39:13,066
+items popup.
+
+
+1252
+00:39:13,546 --> 00:39:14,646
+This is in the upper left-hand
+
+
+1253
+00:39:14,646 --> 00:39:15,906
+corner of the source editor.
+
+
+1254
+00:39:16,606 --> 00:39:17,756
+If you select generated
+
+
+1255
+00:39:17,756 --> 00:39:19,916
+interfaces, it will show you how
+
+
+1256
+00:39:19,916 --> 00:39:21,506
+the interface will look in
+
+
+1257
+00:39:21,506 --> 00:39:23,346
+different versions of Swift.
+
+
+1258
+00:39:25,216 --> 00:39:26,696
+So that's how Swift imports
+
+
+1259
+00:39:26,696 --> 00:39:27,446
+Objective-C.
+
+
+1260
+00:39:28,366 --> 00:39:29,056
+But what about the other
+
+
+1261
+00:39:29,056 --> 00:39:29,526
+direction?
+
+
+1262
+00:39:30,246 --> 00:39:32,146
+How does Objective-C import
+
+
+1263
+00:39:32,146 --> 00:39:33,486
+Swift?
+
+
+1264
+00:39:35,076 --> 00:39:36,626
+The answer is that Swift
+
+
+1265
+00:39:36,736 --> 00:39:38,426
+generates a header that you can
+
+
+1266
+00:39:38,426 --> 00:39:39,096
+pound import.
+
+
+1267
+00:39:39,986 --> 00:39:41,626
+This allows you to write classes
+
+
+1268
+00:39:41,626 --> 00:39:43,636
+in Swift and call them from
+
+
+1269
+00:39:43,636 --> 00:39:44,366
+Objective-C.
+
+
+1270
+00:39:45,696 --> 00:39:46,726
+Let's see how this works.
+
+
+1271
+00:39:47,206 --> 00:39:49,746
+The compiler will generate
+
+
+1272
+00:39:49,746 --> 00:39:51,536
+Objective-C declarations for
+
+
+1273
+00:39:51,536 --> 00:39:53,766
+Swift classes extending NSObject
+
+
+1274
+00:39:54,156 --> 00:39:56,566
+and methods marked at obc.
+
+
+1275
+00:39:57,156 --> 00:39:59,066
+For apps in unit tests, the
+
+
+1276
+00:39:59,066 --> 00:40:00,856
+header will include both public
+
+
+1277
+00:40:00,856 --> 00:40:02,476
+and internal declarations.
+
+
+1278
+00:40:03,056 --> 00:40:04,516
+This allows you to use internal
+
+
+1279
+00:40:04,516 --> 00:40:06,416
+Swift from the Objective-C parts
+
+
+1280
+00:40:06,456 --> 00:40:07,626
+of your app.
+
+
+1281
+00:40:08,416 --> 00:40:10,296
+For frameworks, however, the
+
+
+1282
+00:40:10,296 --> 00:40:11,846
+generated header provides only
+
+
+1283
+00:40:11,846 --> 00:40:13,126
+public declarations.
+
+
+1284
+00:40:13,456 --> 00:40:14,736
+Since it's included in your
+
+
+1285
+00:40:14,736 --> 00:40:16,386
+build products and it's part of
+
+
+1286
+00:40:16,386 --> 00:40:17,316
+the framework's public
+
+
+1287
+00:40:17,316 --> 00:40:17,986
+interface.
+
+
+1288
+00:40:18,516 --> 00:40:22,286
+On the right, you can see that
+
+
+1289
+00:40:22,286 --> 00:40:23,426
+the compiler ties the
+
+
+1290
+00:40:23,426 --> 00:40:25,646
+Objective-C class to the mangled
+
+
+1291
+00:40:25,646 --> 00:40:27,956
+name of the Swift class which
+
+
+1292
+00:40:27,956 --> 00:40:29,336
+includes the name of the module,
+
+
+1293
+00:40:29,806 --> 00:40:30,276
+PetWall.
+
+
+1294
+00:40:30,896 --> 00:40:33,066
+Now I'm going to tell you about
+
+
+1295
+00:40:33,066 --> 00:40:35,346
+modules in a bit, and Louis will
+
+
+1296
+00:40:35,346 --> 00:40:36,426
+tell you about mangling.
+
+
+1297
+00:40:36,966 --> 00:40:38,316
+But for now, the thing to know
+
+
+1298
+00:40:38,646 --> 00:40:40,296
+is that this prevents a conflict
+
+
+1299
+00:40:40,296 --> 00:40:41,786
+in the runtime when the two
+
+
+1300
+00:40:41,786 --> 00:40:43,736
+modules define a class with the
+
+
+1301
+00:40:43,736 --> 00:40:44,416
+same name.
+
+
+1302
+00:40:44,926 --> 00:40:47,646
+You can tell Swift to use a
+
+
+1303
+00:40:47,646 --> 00:40:49,176
+different name for the class in
+
+
+1304
+00:40:49,176 --> 00:40:51,066
+Objective-C by passing an
+
+
+1305
+00:40:51,066 --> 00:40:53,476
+identifier to the obc attribute.
+
+
+1306
+00:40:54,266 --> 00:40:55,746
+But if you do this, you're
+
+
+1307
+00:40:55,746 --> 00:40:57,436
+responsible for making sure the
+
+
+1308
+00:40:57,436 --> 00:40:58,586
+names don't conflict.
+
+
+1309
+00:40:59,966 --> 00:41:02,776
+Here I've used the PWL prefix so
+
+
+1310
+00:41:02,876 --> 00:41:04,286
+to reduce the likelihood of a
+
+
+1311
+00:41:04,286 --> 00:41:04,836
+conflict.
+
+
+1312
+00:41:05,696 --> 00:41:07,246
+With this change, I can refer to
+
+
+1313
+00:41:07,246 --> 00:41:10,436
+the class as PWLPetCollar in
+
+
+1314
+00:41:10,436 --> 00:41:11,196
+Objective-C.
+
+
+1315
+00:41:13,836 --> 00:41:15,396
+The compiler takes a similar
+
+
+1316
+00:41:15,396 --> 00:41:16,696
+approach to generating
+
+
+1317
+00:41:16,696 --> 00:41:18,456
+interfaces to other Swift
+
+
+1318
+00:41:18,456 --> 00:41:19,066
+targets.
+
+
+1319
+00:41:19,626 --> 00:41:23,496
+To do this, Swift builds on
+
+
+1320
+00:41:23,496 --> 00:41:25,076
+Clang's concept of a module,
+
+
+1321
+00:41:25,436 --> 00:41:26,596
+which Jurgen told you about.
+
+
+1322
+00:41:27,326 --> 00:41:28,656
+And more deeply integrates it
+
+
+1323
+00:41:28,656 --> 00:41:29,556
+into the language.
+
+
+1324
+00:41:30,756 --> 00:41:32,396
+In Swift, a module is a
+
+
+1325
+00:41:32,396 --> 00:41:33,656
+distributable unit of
+
+
+1326
+00:41:33,656 --> 00:41:34,516
+declarations.
+
+
+1327
+00:41:34,916 --> 00:41:36,216
+And to be able to use those
+
+
+1328
+00:41:36,216 --> 00:41:38,386
+declarations you have to import
+
+
+1329
+00:41:38,556 --> 00:41:39,146
+the module.
+
+
+1330
+00:41:40,406 --> 00:41:42,056
+You can import Objective-C
+
+
+1331
+00:41:42,056 --> 00:41:42,666
+modules.
+
+
+1332
+00:41:43,006 --> 00:41:44,346
+XEtest, for example.
+
+
+1333
+00:41:45,366 --> 00:41:47,626
+And in Xcode each Swift target
+
+
+1334
+00:41:47,756 --> 00:41:49,486
+produces a separate module.
+
+
+1335
+00:41:50,126 --> 00:41:51,226
+Including your app target.
+
+
+1336
+00:41:52,546 --> 00:41:53,876
+This is why you have to import
+
+
+1337
+00:41:53,876 --> 00:41:55,726
+your app's main module in order
+
+
+1338
+00:41:55,726 --> 00:42:00,536
+to test it from your unit tests.
+
+
+1339
+00:42:00,696 --> 00:42:02,246
+When importing a module, the
+
+
+1340
+00:42:02,246 --> 00:42:04,596
+compiler deserializes a special
+
+
+1341
+00:42:04,596 --> 00:42:06,876
+Swift module file to check the
+
+
+1342
+00:42:06,876 --> 00:42:07,966
+types when you use them.
+
+
+1343
+00:42:09,196 --> 00:42:10,896
+For example, in this unit test,
+
+
+1344
+00:42:10,896 --> 00:42:12,066
+the compiler will load the
+
+
+1345
+00:42:12,066 --> 00:42:14,426
+PetViewController parts of the
+
+
+1346
+00:42:14,426 --> 00:42:16,496
+PetWall Swift module to make
+
+
+1347
+00:42:16,496 --> 00:42:17,456
+sure that you're creating the
+
+
+1348
+00:42:17,456 --> 00:42:18,506
+controller correctly.
+
+
+1349
+00:42:19,836 --> 00:42:20,956
+This is similar to how the
+
+
+1350
+00:42:20,956 --> 00:42:22,716
+compiler finds declarations
+
+
+1351
+00:42:22,916 --> 00:42:24,516
+within a target as I showed you
+
+
+1352
+00:42:24,516 --> 00:42:24,936
+earlier.
+
+
+1353
+00:42:26,026 --> 00:42:27,816
+Except that here, the compiler
+
+
+1354
+00:42:27,816 --> 00:42:29,356
+loads a file summarizing the
+
+
+1355
+00:42:29,356 --> 00:42:31,826
+module rather than parsing Swift
+
+
+1356
+00:42:31,826 --> 00:42:32,976
+files directly.
+
+
+1357
+00:42:36,096 --> 00:42:38,006
+The compiler produces this Swift
+
+
+1358
+00:42:38,006 --> 00:42:40,006
+module file a lot like a
+
+
+1359
+00:42:40,006 --> 00:42:41,576
+generated Objective-C header.
+
+
+1360
+00:42:42,386 --> 00:42:43,786
+But instead of text, it's a
+
+
+1361
+00:42:43,786 --> 00:42:45,096
+binary representation.
+
+
+1362
+00:42:46,116 --> 00:42:47,266
+It includes the bodies of
+
+
+1363
+00:42:47,266 --> 00:42:48,976
+inlineable functions much like
+
+
+1364
+00:42:48,976 --> 00:42:50,206
+static inline functions in
+
+
+1365
+00:42:50,206 --> 00:42:51,726
+Objective-C or header
+
+
+1366
+00:42:51,726 --> 00:42:53,756
+implementations in C++.
+
+
+1367
+00:42:54,906 --> 00:42:56,756
+However, one thing to be aware
+
+
+1368
+00:42:56,756 --> 00:42:58,876
+of is that it does include the
+
+
+1369
+00:42:58,876 --> 00:43:00,546
+names and types of private
+
+
+1370
+00:43:00,546 --> 00:43:01,426
+declarations.
+
+
+1371
+00:43:02,186 --> 00:43:03,496
+This allows you to refer to them
+
+
+1372
+00:43:03,496 --> 00:43:05,006
+in the debugger which is really
+
+
+1373
+00:43:05,006 --> 00:43:05,706
+handy.
+
+
+1374
+00:43:06,306 --> 00:43:07,426
+But it does mean that for
+
+
+1375
+00:43:07,426 --> 00:43:09,376
+example, you shouldn't name a
+
+
+1376
+00:43:09,376 --> 00:43:10,756
+private variable after your
+
+
+1377
+00:43:10,756 --> 00:43:12,156
+deepest, darkest secret.
+
+
+1378
+00:43:15,596 --> 00:43:17,456
+For incremental builds, the
+
+
+1379
+00:43:17,456 --> 00:43:19,256
+compiler produces partial Swift
+
+
+1380
+00:43:19,256 --> 00:43:21,436
+module files and then merges
+
+
+1381
+00:43:21,436 --> 00:43:23,666
+them into a single file that
+
+
+1382
+00:43:23,666 --> 00:43:25,086
+represents the contents of the
+
+
+1383
+00:43:25,086 --> 00:43:25,836
+entire module.
+
+
+1384
+00:43:27,046 --> 00:43:28,686
+This merging process also makes
+
+
+1385
+00:43:28,686 --> 00:43:31,316
+it possible to produce a single
+
+
+1386
+00:43:31,396 --> 00:43:32,646
+Objective-C header.
+
+
+1387
+00:43:34,296 --> 00:43:36,366
+In many ways, this is similar to
+
+
+1388
+00:43:36,366 --> 00:43:37,636
+what the linker does when it
+
+
+1389
+00:43:37,636 --> 00:43:39,066
+smooshes together your object
+
+
+1390
+00:43:39,066 --> 00:43:41,526
+files into a single executable.
+
+
+1391
+00:43:42,306 --> 00:43:43,506
+And to tell you more about that,
+
+
+1392
+00:43:43,646 --> 00:43:45,726
+I'll hand it off to Louis and
+
+
+1393
+00:43:45,726 --> 00:43:46,186
+the linker.
+
+
+1394
+00:43:46,906 --> 00:43:47,766
+Louis?
+
+
+1395
+00:43:48,176 --> 00:43:48,976
+>> Thank you, Devin.
+
+
+1396
+00:43:49,516 --> 00:43:54,136
+[ Applause ]
+
+
+1397
+00:43:54,636 --> 00:43:56,206
+Hi, I'm Louis Gerbarg.
+
+
+1398
+00:43:56,206 --> 00:43:57,516
+I work on the linker.
+
+
+1399
+00:43:57,956 --> 00:43:59,046
+Which is one of the final steps
+
+
+1400
+00:43:59,046 --> 00:44:00,336
+in the Xcode build process.
+
+
+1401
+00:44:00,706 --> 00:44:02,906
+So let's get to it.
+
+
+1402
+00:44:03,166 --> 00:44:04,636
+So first off I want to go over
+
+
+1403
+00:44:04,636 --> 00:44:05,666
+what we're going to talk about.
+
+
+1404
+00:44:06,746 --> 00:44:07,996
+We're going to talk about what a
+
+
+1405
+00:44:07,996 --> 00:44:08,786
+linker is.
+
+
+1406
+00:44:09,646 --> 00:44:10,526
+We're going to talk about the
+
+
+1407
+00:44:10,526 --> 00:44:11,626
+input that it takes which are
+
+
+1408
+00:44:11,626 --> 00:44:13,236
+dylibs and object files and what
+
+
+1409
+00:44:13,236 --> 00:44:13,776
+they are.
+
+
+1410
+00:44:13,776 --> 00:44:15,476
+And we're also going to talk
+
+
+1411
+00:44:15,476 --> 00:44:17,276
+about symbols which are what
+
+
+1412
+00:44:17,276 --> 00:44:17,936
+those contain.
+
+
+1413
+00:44:18,996 --> 00:44:20,646
+So at the end of this, I'm going
+
+
+1414
+00:44:20,646 --> 00:44:21,486
+to tie this together with an
+
+
+1415
+00:44:21,486 --> 00:44:22,746
+act-- with an example because
+
+
+1416
+00:44:22,746 --> 00:44:24,716
+this is pretty dense stuff.
+
+
+1417
+00:44:25,206 --> 00:44:26,356
+So if it seems a little
+
+
+1418
+00:44:26,356 --> 00:44:27,116
+confusing.
+
+
+1419
+00:44:27,566 --> 00:44:28,906
+Hold on, and hopefully we'll
+
+
+1420
+00:44:28,906 --> 00:44:31,386
+make it clearer.
+
+
+1421
+00:44:31,506 --> 00:44:33,616
+So what is the linker?
+
+
+1422
+00:44:33,616 --> 00:44:34,636
+It's like I said, it's one of
+
+
+1423
+00:44:34,636 --> 00:44:36,756
+the final processes in the
+
+
+1424
+00:44:36,756 --> 00:44:37,076
+build.
+
+
+1425
+00:44:37,076 --> 00:44:39,746
+And what we do is we combine all
+
+
+1426
+00:44:39,746 --> 00:44:42,486
+of these .o files that have been
+
+
+1427
+00:44:42,486 --> 00:44:44,376
+built by the two compilers into
+
+
+1428
+00:44:44,376 --> 00:44:45,666
+an executable.
+
+
+1429
+00:44:47,146 --> 00:44:49,076
+All it does is move and patch
+
+
+1430
+00:44:49,156 --> 00:44:49,406
+code.
+
+
+1431
+00:44:49,406 --> 00:44:50,816
+It cannot create code, and this
+
+
+1432
+00:44:50,816 --> 00:44:52,486
+is important and I will show
+
+
+1433
+00:44:52,486 --> 00:44:54,486
+that in the example.
+
+
+1434
+00:44:55,416 --> 00:44:56,996
+But we take these two kinds of
+
+
+1435
+00:44:56,996 --> 00:44:57,876
+input files.
+
+
+1436
+00:44:58,326 --> 00:45:00,306
+The first one being dylibs or
+
+
+1437
+00:45:00,306 --> 00:45:01,146
+being libraries.
+
+
+1438
+00:45:01,556 --> 00:45:03,316
+There are multiple-- the first
+
+
+1439
+00:45:03,316 --> 00:45:04,616
+one being object files.
+
+
+1440
+00:45:04,876 --> 00:45:06,476
+Which are what come out of your
+
+
+1441
+00:45:06,476 --> 00:45:06,996
+build process.
+
+
+1442
+00:45:06,996 --> 00:45:07,756
+And the second one being
+
+
+1443
+00:45:07,756 --> 00:45:09,486
+libraries which consist of
+
+
+1444
+00:45:09,486 --> 00:45:11,026
+several types including dylibs,
+
+
+1445
+00:45:11,326 --> 00:45:13,746
+tbd's, and .a files or static
+
+
+1446
+00:45:13,746 --> 00:45:14,366
+archives.
+
+
+1447
+00:45:16,136 --> 00:45:17,936
+So what are symbols?
+
+
+1448
+00:45:18,556 --> 00:45:20,426
+A symbol is just a name to refer
+
+
+1449
+00:45:20,426 --> 00:45:23,746
+to a fragment of code or data.
+
+
+1450
+00:45:24,706 --> 00:45:26,626
+These fragments may refer to
+
+
+1451
+00:45:26,626 --> 00:45:28,816
+other symbols which you would
+
+
+1452
+00:45:28,816 --> 00:45:30,036
+see if you write a function that
+
+
+1453
+00:45:30,106 --> 00:45:30,986
+calls another function.
+
+
+1454
+00:45:33,376 --> 00:45:35,176
+Symbols can have attributes on
+
+
+1455
+00:45:35,176 --> 00:45:36,566
+them that affect how the linker
+
+
+1456
+00:45:36,566 --> 00:45:37,076
+behaves.
+
+
+1457
+00:45:37,076 --> 00:45:38,026
+And there are a lot of these.
+
+
+1458
+00:45:38,486 --> 00:45:39,546
+I'm just going to give you one
+
+
+1459
+00:45:39,546 --> 00:45:41,826
+example which is a weak symbol.
+
+
+1460
+00:45:42,336 --> 00:45:43,516
+So a weak symbol is an
+
+
+1461
+00:45:43,516 --> 00:45:44,896
+annotation on a symbol that says
+
+
+1462
+00:45:44,896 --> 00:45:48,026
+it might not be there when we
+
+
+1463
+00:45:48,026 --> 00:45:49,726
+run the syst-- when we build
+
+
+1464
+00:45:49,726 --> 00:45:51,396
+the, when we run the executable
+
+
+1465
+00:45:51,896 --> 00:45:52,706
+on the system.
+
+
+1466
+00:45:53,376 --> 00:45:54,106
+This is what all the
+
+
+1467
+00:45:54,106 --> 00:45:55,896
+availability markup that says
+
+
+1468
+00:45:56,336 --> 00:45:59,106
+this API is available on iOS 12.
+
+
+1469
+00:45:59,106 --> 00:46:00,606
+And this API's available on the
+
+
+1470
+00:46:00,606 --> 00:46:01,196
+iOS 11.
+
+
+1471
+00:46:01,686 --> 00:46:03,156
+This, that's what it all boils
+
+
+1472
+00:46:03,156 --> 00:46:04,536
+down to by the time it gets to
+
+
+1473
+00:46:04,536 --> 00:46:05,106
+the linker.
+
+
+1474
+00:46:05,376 --> 00:46:06,626
+So the linker can determine what
+
+
+1475
+00:46:06,626 --> 00:46:07,656
+symbols are definitely going to
+
+
+1476
+00:46:07,656 --> 00:46:08,856
+be there versus what symbols it
+
+
+1477
+00:46:08,856 --> 00:46:11,606
+may have to, it may have to deal
+
+
+1478
+00:46:11,606 --> 00:46:12,856
+with at runtime.
+
+
+1479
+00:46:14,756 --> 00:46:16,776
+Languages can also encode data
+
+
+1480
+00:46:16,776 --> 00:46:18,426
+into the symbol by mangling it,
+
+
+1481
+00:46:18,426 --> 00:46:19,786
+as Devin mentioned earlier.
+
+
+1482
+00:46:19,786 --> 00:46:25,066
+And you'll see that in both C++
+
+
+1483
+00:46:25,506 --> 00:46:27,186
+and Swift.
+
+
+1484
+00:46:27,326 --> 00:46:29,346
+So we have symbols which are
+
+
+1485
+00:46:29,346 --> 00:46:32,506
+these names referring to code
+
+
+1486
+00:46:32,506 --> 00:46:33,136
+and data.
+
+
+1487
+00:46:33,476 --> 00:46:35,866
+So the compilers generate object
+
+
+1488
+00:46:35,866 --> 00:46:36,076
+files.
+
+
+1489
+00:46:36,076 --> 00:46:37,256
+And those object files are just
+
+
+1490
+00:46:37,286 --> 00:46:40,996
+collections of those code and
+
+
+1491
+00:46:40,996 --> 00:46:41,296
+data.
+
+
+1492
+00:46:41,296 --> 00:46:43,956
+They are not executable.
+
+
+1493
+00:46:43,956 --> 00:46:45,496
+While they are compiled code,
+
+
+1494
+00:46:46,026 --> 00:46:47,436
+they aren't finished.
+
+
+1495
+00:46:47,816 --> 00:46:49,446
+There are bits missing which is
+
+
+1496
+00:46:49,446 --> 00:46:50,486
+what the linker's going to glue
+
+
+1497
+00:46:50,486 --> 00:46:53,946
+together and fix up.
+
+
+1498
+00:46:54,226 --> 00:46:55,986
+Each fragment in one of those
+
+
+1499
+00:46:55,986 --> 00:46:56,976
+files is represented by a
+
+
+1500
+00:46:56,976 --> 00:46:57,336
+symbol.
+
+
+1501
+00:46:57,336 --> 00:47:00,956
+So for the printf function,
+
+
+1502
+00:47:01,396 --> 00:47:02,646
+there's code represented by a
+
+
+1503
+00:47:02,646 --> 00:47:03,096
+symbol.
+
+
+1504
+00:47:03,496 --> 00:47:04,756
+For any of the functions in
+
+
+1505
+00:47:04,756 --> 00:47:06,176
+PetKit which we're going to see
+
+
+1506
+00:47:06,176 --> 00:47:09,716
+in a second, the same thing.
+
+
+1507
+00:47:09,936 --> 00:47:11,206
+And fragments may reference
+
+
+1508
+00:47:11,206 --> 00:47:12,406
+undefined symbols.
+
+
+1509
+00:47:12,406 --> 00:47:16,476
+So if your .o file refers to a
+
+
+1510
+00:47:16,476 --> 00:47:18,166
+function in another .o file,
+
+
+1511
+00:47:18,166 --> 00:47:20,586
+that .o file's undefined.
+
+
+1512
+00:47:20,626 --> 00:47:22,276
+And the linker will go and find
+
+
+1513
+00:47:22,276 --> 00:47:23,936
+those undefined symbols and link
+
+
+1514
+00:47:24,426 --> 00:47:26,146
+them up.
+
+
+1515
+00:47:26,406 --> 00:47:28,746
+So I said that object files are
+
+
+1516
+00:47:28,746 --> 00:47:30,236
+the output of your compiler
+
+
+1517
+00:47:30,236 --> 00:47:30,686
+actions.
+
+
+1518
+00:47:30,686 --> 00:47:31,726
+So what are libraries?
+
+
+1519
+00:47:32,576 --> 00:47:34,496
+Libraries are files that define
+
+
+1520
+00:47:34,496 --> 00:47:36,026
+symbols that are not part of the
+
+
+1521
+00:47:36,026 --> 00:47:37,426
+target you are building.
+
+
+1522
+00:47:38,516 --> 00:47:40,896
+So we have dynamic libraries,
+
+
+1523
+00:47:41,726 --> 00:47:44,316
+and those are Mach-O files that
+
+
+1524
+00:47:44,316 --> 00:47:46,376
+expose code and data fragments
+
+
+1525
+00:47:46,696 --> 00:47:48,526
+for executables to use.
+
+
+1526
+00:47:49,546 --> 00:47:52,336
+Those are distributed as part of
+
+
+1527
+00:47:52,336 --> 00:47:52,676
+the system.
+
+
+1528
+00:47:52,676 --> 00:47:53,636
+That's what our frameworks are.
+
+
+1529
+00:47:53,636 --> 00:47:54,916
+And a number of you also use
+
+
+1530
+00:47:54,916 --> 00:47:55,956
+your own frameworks.
+
+
+1531
+00:47:55,956 --> 00:48:00,256
+There are also TBD files, or
+
+
+1532
+00:48:00,346 --> 00:48:02,156
+text-based dylib stubs.
+
+
+1533
+00:48:02,156 --> 00:48:03,286
+So what are those?
+
+
+1534
+00:48:04,036 --> 00:48:08,286
+Well, when we made the SDKs for
+
+
+1535
+00:48:08,286 --> 00:48:10,256
+iOS and macOS, we had all these
+
+
+1536
+00:48:10,296 --> 00:48:11,336
+dylibs with all these great
+
+
+1537
+00:48:11,336 --> 00:48:13,146
+functions like MapKit and WebKit
+
+
+1538
+00:48:13,146 --> 00:48:14,296
+that you may want to use.
+
+
+1539
+00:48:14,816 --> 00:48:15,966
+But we don't want to ship the
+
+
+1540
+00:48:15,966 --> 00:48:17,326
+entire copy of those with the
+
+
+1541
+00:48:17,326 --> 00:48:18,856
+SDK because it would be large.
+
+
+1542
+00:48:18,856 --> 00:48:21,096
+Ant the compiler and linker
+
+
+1543
+00:48:21,096 --> 00:48:21,606
+don't need.
+
+
+1544
+00:48:21,606 --> 00:48:22,826
+It's only needed to run the
+
+
+1545
+00:48:22,826 --> 00:48:23,236
+program.
+
+
+1546
+00:48:23,236 --> 00:48:24,106
+So instead we create what's
+
+
+1547
+00:48:24,106 --> 00:48:25,356
+called a stub dylib where we
+
+
+1548
+00:48:25,356 --> 00:48:27,156
+delete the bodies of all of the
+
+
+1549
+00:48:27,156 --> 00:48:27,966
+symbols and we just have the
+
+
+1550
+00:48:27,966 --> 00:48:28,716
+names.
+
+
+1551
+00:48:29,456 --> 00:48:31,176
+And then once we did that, we've
+
+
+1552
+00:48:31,176 --> 00:48:32,526
+made a textual representation of
+
+
+1553
+00:48:32,526 --> 00:48:33,576
+them that are easier for us to
+
+
+1554
+00:48:33,576 --> 00:48:33,866
+use.
+
+
+1555
+00:48:33,866 --> 00:48:35,536
+Currently, they are only used
+
+
+1556
+00:48:35,766 --> 00:48:38,056
+for distributing the SDKs to
+
+
+1557
+00:48:38,056 --> 00:48:38,876
+reduce size.
+
+
+1558
+00:48:40,246 --> 00:48:41,566
+So you may see them in your
+
+
+1559
+00:48:41,566 --> 00:48:42,596
+project, but you don't have to
+
+
+1560
+00:48:42,596 --> 00:48:43,246
+worry about them.
+
+
+1561
+00:48:43,246 --> 00:48:45,016
+And they only contain symbols.
+
+
+1562
+00:48:46,226 --> 00:48:47,166
+Finally, we have static
+
+
+1563
+00:48:47,166 --> 00:48:48,106
+archives.
+
+
+1564
+00:48:48,526 --> 00:48:53,086
+So static archives are just
+
+
+1565
+00:48:53,086 --> 00:48:54,626
+collections of .o files that
+
+
+1566
+00:48:54,626 --> 00:48:56,746
+have been built with the AR tool
+
+
+1567
+00:48:56,746 --> 00:48:59,226
+or in some cases the lib the lib
+
+
+1568
+00:48:59,226 --> 00:49:00,156
+tool which is a wrapper for
+
+
+1569
+00:49:00,156 --> 00:49:00,396
+that.
+
+
+1570
+00:49:00,396 --> 00:49:02,206
+And according to the AR
+
+
+1571
+00:49:02,206 --> 00:49:04,556
+[inaudible] page, the AR utility
+
+
+1572
+00:49:04,556 --> 00:49:06,366
+creates and maintains groups of
+
+
+1573
+00:49:06,366 --> 00:49:08,246
+files combined into an archive.
+
+
+1574
+00:49:09,396 --> 00:49:10,956
+Now that may sound a lot like a
+
+
+1575
+00:49:10,956 --> 00:49:13,096
+TAR file or a ZIP file, and
+
+
+1576
+00:49:13,096 --> 00:49:14,156
+that's exactly what it is.
+
+
+1577
+00:49:14,156 --> 00:49:16,256
+In fact, the .a format was the
+
+
+1578
+00:49:16,256 --> 00:49:17,666
+original archive format used by
+
+
+1579
+00:49:17,776 --> 00:49:19,496
+UNIX before more powerful tools
+
+
+1580
+00:49:19,496 --> 00:49:20,156
+came around.
+
+
+1581
+00:49:20,926 --> 00:49:23,726
+But the compilers of the time
+
+
+1582
+00:49:23,726 --> 00:49:24,476
+and the linkers of the time
+
+
+1583
+00:49:24,476 --> 00:49:25,536
+natively understood them, and
+
+
+1584
+00:49:25,536 --> 00:49:26,536
+they've just kept using them.
+
+
+1585
+00:49:27,006 --> 00:49:28,456
+So it really is just an archive
+
+
+1586
+00:49:28,456 --> 00:49:28,806
+file.
+
+
+1587
+00:49:32,046 --> 00:49:33,386
+One thing worth noting is they
+
+
+1588
+00:49:33,386 --> 00:49:35,506
+also prenate dynamic linking so
+
+
+1589
+00:49:35,506 --> 00:49:36,826
+back in those days, all of the
+
+
+1590
+00:49:36,826 --> 00:49:38,196
+code would be consid-- would be
+
+
+1591
+00:49:38,196 --> 00:49:39,236
+distributed as archives.
+
+
+1592
+00:49:39,846 --> 00:49:41,776
+Because of that, you might not
+
+
+1593
+00:49:41,776 --> 00:49:43,896
+want to include all of the C
+
+
+1594
+00:49:43,896 --> 00:49:45,046
+library if you're using one
+
+
+1595
+00:49:45,046 --> 00:49:45,676
+function.
+
+
+1596
+00:49:46,096 --> 00:49:48,976
+So the behavior is if there's a
+
+
+1597
+00:49:49,096 --> 00:49:50,936
+symbol in a .o file, we would
+
+
+1598
+00:49:50,936 --> 00:49:52,326
+pull that whole .o file out of
+
+
+1599
+00:49:52,326 --> 00:49:52,846
+the archive.
+
+
+1600
+00:49:52,846 --> 00:49:54,616
+But the other .o files would not
+
+
+1601
+00:49:54,616 --> 00:49:55,246
+be brought in.
+
+
+1602
+00:49:55,696 --> 00:49:57,696
+If you're referencing symbols
+
+
+1603
+00:49:57,696 --> 00:49:58,756
+between them, everything you
+
+
+1604
+00:49:58,756 --> 00:49:59,946
+need will be brought in.
+
+
+1605
+00:49:59,946 --> 00:50:00,996
+If you're using some sort of
+
+
+1606
+00:50:00,996 --> 00:50:02,376
+non-symbol behavior like a
+
+
+1607
+00:50:02,376 --> 00:50:04,486
+static initializer, or you're
+
+
+1608
+00:50:04,486 --> 00:50:05,616
+re-exporting them as part of
+
+
+1609
+00:50:05,616 --> 00:50:06,916
+your own dylib, you may need to
+
+
+1610
+00:50:06,916 --> 00:50:08,286
+explicitly use something like
+
+
+1611
+00:50:09,096 --> 00:50:11,276
+force load or all load to the
+
+
+1612
+00:50:11,416 --> 00:50:12,446
+linker to tell it bring in
+
+
+1613
+00:50:12,446 --> 00:50:13,266
+everything.
+
+
+1614
+00:50:13,266 --> 00:50:14,256
+Or these files, even though
+
+
+1615
+00:50:14,256 --> 00:50:15,106
+there's no linkage.
+
+
+1616
+00:50:15,666 --> 00:50:19,786
+So let's go through an example
+
+
+1617
+00:50:19,786 --> 00:50:20,776
+to try to tie this altogether.
+
+
+1618
+00:50:23,236 --> 00:50:25,686
+So up on stage we have an
+
+
+1619
+00:50:25,686 --> 00:50:28,136
+example of a playSound function
+
+
+1620
+00:50:28,136 --> 00:50:29,186
+because what fun would be
+
+
+1621
+00:50:29,186 --> 00:50:29,996
+looking at pets without
+
+
+1622
+00:50:29,996 --> 00:50:32,076
+listening to them?
+
+
+1623
+00:50:32,296 --> 00:50:35,896
+And you know it calls playSound.
+
+
+1624
+00:50:35,896 --> 00:50:36,906
+You know, there's a function on
+
+
+1625
+00:50:36,906 --> 00:50:37,956
+cat that calls playSound.
+
+
+1626
+00:50:37,956 --> 00:50:38,926
+That seems pretty simple.
+
+
+1627
+00:50:38,926 --> 00:50:40,576
+So let's look at the assembly
+
+
+1628
+00:50:40,576 --> 00:50:41,176
+that generates.
+
+
+1629
+00:50:41,176 --> 00:50:45,476
+So here's cat.o that comes out
+
+
+1630
+00:50:45,476 --> 00:50:46,966
+of it.
+
+
+1631
+00:50:46,966 --> 00:50:49,766
+Now if we look, we can see we
+
+
+1632
+00:50:49,766 --> 00:50:53,116
+have the string purr.aac which
+
+
+1633
+00:50:53,116 --> 00:50:54,846
+would be our AAC sound file.
+
+
+1634
+00:50:54,916 --> 00:50:57,406
+And that gets copied into cat.o.
+
+
+1635
+00:50:57,406 --> 00:50:58,856
+You'll note that the name purr
+
+
+1636
+00:50:58,856 --> 00:51:00,196
+file does not appear in there
+
+
+1637
+00:51:00,196 --> 00:51:00,756
+anywhere.
+
+
+1638
+00:51:01,176 --> 00:51:02,816
+The reason is, that's a static.
+
+
+1639
+00:51:02,816 --> 00:51:03,836
+And those of you who are
+
+
+1640
+00:51:03,836 --> 00:51:04,836
+familiar with C, that means it's
+
+
+1641
+00:51:04,836 --> 00:51:06,166
+a nonexported name.
+
+
+1642
+00:51:06,166 --> 00:51:07,386
+Nobody else can refer to it.
+
+
+1643
+00:51:07,386 --> 00:51:08,806
+Since nobody else can refer to
+
+
+1644
+00:51:08,806 --> 00:51:10,016
+it, we don't need it.
+
+
+1645
+00:51:10,016 --> 00:51:10,856
+It's not included.
+
+
+1646
+00:51:14,326 --> 00:51:17,286
+And then we see Cat purr becomes
+
+
+1647
+00:51:17,286 --> 00:51:19,536
+an actual symbol: dash, open
+
+
+1648
+00:51:19,536 --> 00:51:20,976
+bracket, Cat purr, close
+
+
+1649
+00:51:20,976 --> 00:51:22,746
+bracket.
+
+
+1650
+00:51:23,596 --> 00:51:24,686
+Pretty much what you'd expect.
+
+
+1651
+00:51:24,686 --> 00:51:27,946
+And then we see we actually have
+
+
+1652
+00:51:27,946 --> 00:51:29,446
+to get this variable we're going
+
+
+1653
+00:51:29,446 --> 00:51:30,746
+to pass into playSound.
+
+
+1654
+00:51:30,746 --> 00:51:32,196
+And you'll note there are two
+
+
+1655
+00:51:32,196 --> 00:51:33,556
+instructions referring to that.
+
+
+1656
+00:51:33,556 --> 00:51:36,476
+And that's because we don't know
+
+
+1657
+00:51:36,476 --> 00:51:38,206
+where this string is going to
+
+
+1658
+00:51:38,206 --> 00:51:39,406
+end up in the final executable.
+
+
+1659
+00:51:39,406 --> 00:51:40,866
+We don't have a concrete address
+
+
+1660
+00:51:40,866 --> 00:51:41,386
+for it.
+
+
+1661
+00:51:41,616 --> 00:51:43,646
+But we know that on RM64 which
+
+
+1662
+00:51:43,646 --> 00:51:45,046
+is what this assembly is, it
+
+
+1663
+00:51:45,586 --> 00:51:46,386
+could take at most two
+
+
+1664
+00:51:46,386 --> 00:51:46,936
+instructions.
+
+
+1665
+00:51:46,936 --> 00:51:48,116
+So the compiler leaves us with
+
+
+1666
+00:51:48,116 --> 00:51:48,866
+two instructions.
+
+
+1667
+00:51:49,126 --> 00:51:50,426
+And it leaves the symbolic
+
+
+1668
+00:51:50,426 --> 00:51:52,636
+offset, the symbolic values page
+
+
+1669
+00:51:52,636 --> 00:51:53,986
+and page off that the linker
+
+
+1670
+00:51:53,986 --> 00:51:55,176
+will come in and fix up later.
+
+
+1671
+00:51:56,206 --> 00:51:59,406
+Finally, now that we've loaded
+
+
+1672
+00:51:59,406 --> 00:52:03,096
+that string into x0, we can call
+
+
+1673
+00:52:03,096 --> 00:52:04,886
+playSound except for we're not
+
+
+1674
+00:52:04,886 --> 00:52:05,836
+calling playSound.
+
+
+1675
+00:52:05,836 --> 00:52:07,466
+We're calling underbar underbar
+
+
+1676
+00:52:07,466 --> 00:52:11,606
+z9playSound PKc.
+
+
+1677
+00:52:11,606 --> 00:52:12,446
+Now what is that?
+
+
+1678
+00:52:12,746 --> 00:52:14,456
+That's a mangled symbol because
+
+
+1679
+00:52:14,456 --> 00:52:16,276
+if you note, it says cat.mm.
+
+
+1680
+00:52:16,276 --> 00:52:17,866
+This is Objective-C++.
+
+
+1681
+00:52:18,466 --> 00:52:20,956
+And playSound is actually a C++
+
+
+1682
+00:52:20,956 --> 00:52:21,336
+function.
+
+
+1683
+00:52:22,146 --> 00:52:23,806
+So if you're not familiar with
+
+
+1684
+00:52:23,806 --> 00:52:27,116
+those, you can go to terminal
+
+
+1685
+00:52:27,116 --> 00:52:28,606
+and you can actually use tools.
+
+
+1686
+00:52:28,606 --> 00:52:31,626
+So if you run Swift-demangle and
+
+
+1687
+00:52:31,626 --> 00:52:32,616
+pass in a symbol, it will
+
+
+1688
+00:52:32,616 --> 00:52:33,386
+attempt to demangle it.
+
+
+1689
+00:52:33,386 --> 00:52:34,606
+It didn't work.
+
+
+1690
+00:52:34,606 --> 00:52:35,686
+It's not a Swift symbol.
+
+
+1691
+00:52:35,686 --> 00:52:38,456
+But C++ filts, which is the C++
+
+
+1692
+00:52:38,456 --> 00:52:40,126
+demangler shows us that this is
+
+
+1693
+00:52:40,126 --> 00:52:42,626
+in fact a symbol for playSound.
+
+
+1694
+00:52:42,626 --> 00:52:44,126
+But not only is it playSound, we
+
+
+1695
+00:52:44,126 --> 00:52:45,136
+know it takes one argument.
+
+
+1696
+00:52:45,136 --> 00:52:46,736
+And that one argument is a const
+
+
+1697
+00:52:46,736 --> 00:52:49,456
+char star because C++ encoded
+
+
+1698
+00:52:49,456 --> 00:52:51,556
+that extra data into the mangled
+
+
+1699
+00:52:51,556 --> 00:52:51,906
+symbol.
+
+
+1700
+00:52:52,536 --> 00:52:55,716
+Okay, so now we have a .o. In
+
+
+1701
+00:52:55,716 --> 00:52:56,836
+fact, we're building a project,
+
+
+1702
+00:52:56,836 --> 00:52:58,956
+we'll have a lot of them.
+
+
+1703
+00:52:58,996 --> 00:53:00,186
+So what are we going to do with
+
+
+1704
+00:53:00,186 --> 00:53:00,516
+that?
+
+
+1705
+00:53:00,516 --> 00:53:03,496
+Well, first off, the build
+
+
+1706
+00:53:03,496 --> 00:53:05,166
+system is going to pass all of
+
+
+1707
+00:53:05,166 --> 00:53:06,366
+the .o's in as inputs to the
+
+
+1708
+00:53:06,366 --> 00:53:06,796
+linker.
+
+
+1709
+00:53:06,796 --> 00:53:07,766
+And the linker's going to start
+
+
+1710
+00:53:07,766 --> 00:53:08,986
+by creating a file to put them
+
+
+1711
+00:53:08,986 --> 00:53:09,196
+in.
+
+
+1712
+00:53:09,196 --> 00:53:10,656
+In this case we're building
+
+
+1713
+00:53:10,656 --> 00:53:11,886
+PetKit which is an embedded
+
+
+1714
+00:53:11,886 --> 00:53:13,066
+framework inside of PetWall.
+
+
+1715
+00:53:13,066 --> 00:53:15,906
+And so we'll just start by
+
+
+1716
+00:53:15,906 --> 00:53:16,626
+copying.
+
+
+1717
+00:53:16,626 --> 00:53:17,846
+We'll create what's called a
+
+
+1718
+00:53:17,896 --> 00:53:18,506
+text segment.
+
+
+1719
+00:53:19,366 --> 00:53:20,696
+Which is where we keep all of
+
+
+1720
+00:53:20,696 --> 00:53:21,836
+the code for an application.
+
+
+1721
+00:53:21,896 --> 00:53:24,226
+And we'll take the cat.o and
+
+
+1722
+00:53:24,226 --> 00:53:25,026
+we'll copy it in.
+
+
+1723
+00:53:25,026 --> 00:53:25,846
+But we're going to split it into
+
+
+1724
+00:53:25,846 --> 00:53:26,596
+two sections.
+
+
+1725
+00:53:26,966 --> 00:53:28,366
+One for that string, and one for
+
+
+1726
+00:53:28,366 --> 00:53:29,316
+the executable code.
+
+
+1727
+00:53:29,316 --> 00:53:32,176
+But we now know the absolute
+
+
+1728
+00:53:32,496 --> 00:53:33,816
+addresses of these things so the
+
+
+1729
+00:53:33,816 --> 00:53:37,406
+linker can go and rewrite cat.o
+
+
+1730
+00:53:37,616 --> 00:53:40,196
+to load from a specific offset.
+
+
+1731
+00:53:40,796 --> 00:53:42,186
+You'll notice that the second
+
+
+1732
+00:53:42,186 --> 00:53:43,796
+instruction just went away.
+
+
+1733
+00:53:43,796 --> 00:53:45,456
+We replaced it with what, with a
+
+
+1734
+00:53:45,456 --> 00:53:46,496
+null instruction that does
+
+
+1735
+00:53:46,496 --> 00:53:46,906
+nothing.
+
+
+1736
+00:53:47,866 --> 00:53:49,916
+But we cannot remove the
+
+
+1737
+00:53:49,916 --> 00:53:51,756
+instruction because we can't
+
+
+1738
+00:53:51,756 --> 00:53:52,816
+create or remove code.
+
+
+1739
+00:53:52,816 --> 00:53:55,116
+It would mess up all of the
+
+
+1740
+00:53:55,116 --> 00:53:56,226
+sizing that we've already done.
+
+
+1741
+00:53:56,586 --> 00:53:58,706
+So instead it just is removed.
+
+
+1742
+00:53:59,336 --> 00:54:01,556
+It, it's just replaced with a no
+
+
+1743
+00:54:01,556 --> 00:54:02,046
+operation.
+
+
+1744
+00:54:02,666 --> 00:54:03,636
+Finally we branch.
+
+
+1745
+00:54:04,916 --> 00:54:10,276
+Okay, but we branch and what are
+
+
+1746
+00:54:10,276 --> 00:54:11,366
+we going to do?
+
+
+1747
+00:54:11,366 --> 00:54:12,456
+Because we have this undefined
+
+
+1748
+00:54:12,456 --> 00:54:12,816
+symbol?
+
+
+1749
+00:54:12,876 --> 00:54:14,146
+Well, we're going to go and keep
+
+
+1750
+00:54:14,146 --> 00:54:15,696
+looking through, and all of our
+
+
+1751
+00:54:15,696 --> 00:54:16,616
+.o's have been included at this
+
+
+1752
+00:54:16,666 --> 00:54:17,326
+point.
+
+
+1753
+00:54:18,416 --> 00:54:19,186
+So we'll start looking at the
+
+
+1754
+00:54:19,186 --> 00:54:20,496
+static archives [inaudible] and
+
+
+1755
+00:54:20,596 --> 00:54:22,376
+PetSupport.a is there.
+
+
+1756
+00:54:22,376 --> 00:54:24,436
+And inside of PetSupport.a, we
+
+
+1757
+00:54:24,436 --> 00:54:27,286
+have a couple of files including
+
+
+1758
+00:54:27,286 --> 00:54:30,666
+PetSounds.o. And if we look, we
+
+
+1759
+00:54:30,666 --> 00:54:31,966
+see that matching file-- that
+
+
+1760
+00:54:31,966 --> 00:54:33,376
+matching symbol for playSound.
+
+
+1761
+00:54:34,806 --> 00:54:38,216
+So we pull it in.
+
+
+1762
+00:54:38,446 --> 00:54:39,796
+We'll note that we do not pull
+
+
+1763
+00:54:39,796 --> 00:54:42,496
+in PetCare.o. Because that .o
+
+
+1764
+00:54:42,496 --> 00:54:44,026
+file did not have any symbols
+
+
+1765
+00:54:44,026 --> 00:54:45,236
+that were referred to by any of
+
+
+1766
+00:54:45,236 --> 00:54:46,326
+the other portions of the
+
+
+1767
+00:54:46,326 --> 00:54:46,966
+application.
+
+
+1768
+00:54:47,536 --> 00:54:49,786
+Okay, so we pulled that in, but
+
+
+1769
+00:54:49,786 --> 00:54:52,536
+now that needs, open which we
+
+
+1770
+00:54:52,536 --> 00:54:53,316
+didn't define.
+
+
+1771
+00:54:53,316 --> 00:54:56,256
+You'll see in the, in the, the
+
+
+1772
+00:54:56,256 --> 00:54:57,096
+conversion we copied in.
+
+
+1773
+00:54:57,096 --> 00:54:57,916
+We actually replaced it with
+
+
+1774
+00:54:57,916 --> 00:54:59,626
+something called open$stub.
+
+
+1775
+00:54:59,846 --> 00:55:01,306
+Now why did we do that?
+
+
+1776
+00:55:01,826 --> 00:55:03,326
+Well we kept looking, and we
+
+
+1777
+00:55:03,326 --> 00:55:04,416
+found a copy of open.
+
+
+1778
+00:55:04,416 --> 00:55:07,896
+And that copy of open is in the
+
+
+1779
+00:55:07,896 --> 00:55:09,876
+lib system TBD file.
+
+
+1780
+00:55:11,256 --> 00:55:13,306
+And so we said I know this is
+
+
+1781
+00:55:13,306 --> 00:55:14,416
+part of the system library.
+
+
+1782
+00:55:14,416 --> 00:55:15,456
+I'm not going to copy this into
+
+
+1783
+00:55:15,456 --> 00:55:16,146
+my application.
+
+
+1784
+00:55:16,146 --> 00:55:18,336
+But I need to put enough
+
+
+1785
+00:55:18,336 --> 00:55:19,516
+information in the information
+
+
+1786
+00:55:19,516 --> 00:55:20,836
+to make it so that it can call
+
+
+1787
+00:55:20,836 --> 00:55:21,166
+this.
+
+
+1788
+00:55:21,506 --> 00:55:23,556
+So we create a fake function
+
+
+1789
+00:55:23,556 --> 00:55:25,626
+that's just a template where we
+
+
+1790
+00:55:25,626 --> 00:55:26,656
+replaced a function with
+
+
+1791
+00:55:26,656 --> 00:55:27,606
+whatever we're pulling out of
+
+
+1792
+00:55:27,606 --> 00:55:28,726
+lib system which is open in this
+
+
+1793
+00:55:28,726 --> 00:55:29,046
+case.
+
+
+1794
+00:55:29,216 --> 00:55:30,426
+And if you look in that
+
+
+1795
+00:55:30,426 --> 00:55:32,876
+function, it actually loads from
+
+
+1796
+00:55:32,876 --> 00:55:35,036
+a pointer, open$ pointer.
+
+
+1797
+00:55:36,186 --> 00:55:37,416
+And jumps to it.
+
+
+1798
+00:55:37,416 --> 00:55:38,686
+So we just need a function
+
+
+1799
+00:55:38,716 --> 00:55:39,996
+pointer, just like any normal C
+
+
+1800
+00:55:39,996 --> 00:55:40,636
+function pointer.
+
+
+1801
+00:55:41,256 --> 00:55:44,796
+And we'll create that down in
+
+
+1802
+00:55:44,796 --> 00:55:46,186
+the data segment which is where
+
+
+1803
+00:55:46,186 --> 00:55:47,636
+global variables would be if you
+
+
+1804
+00:55:47,636 --> 00:55:48,396
+had any globals.
+
+
+1805
+00:55:49,406 --> 00:55:50,966
+But it's just set to zero.
+
+
+1806
+00:55:51,426 --> 00:55:53,226
+So if we dereference null and
+
+
+1807
+00:55:53,226 --> 00:55:54,436
+jump to it we're going to crash.
+
+
+1808
+00:55:56,036 --> 00:55:57,536
+So we then add what's called a
+
+
+1809
+00:55:57,536 --> 00:55:58,606
+link edit segment.
+
+
+1810
+00:55:58,606 --> 00:56:01,096
+And the link edit is metadata
+
+
+1811
+00:56:01,096 --> 00:56:03,946
+that the linker tool uses to
+
+
+1812
+00:56:03,946 --> 00:56:05,966
+leave information for the
+
+
+1813
+00:56:05,966 --> 00:56:06,996
+operating system and what's
+
+
+1814
+00:56:06,996 --> 00:56:08,816
+called the dynamic linker to fix
+
+
+1815
+00:56:08,816 --> 00:56:09,836
+this up at runtime.
+
+
+1816
+00:56:09,836 --> 00:56:12,196
+And for more information on that
+
+
+1817
+00:56:12,196 --> 00:56:13,266
+you should look at the
+
+
+1818
+00:56:13,266 --> 00:56:14,546
+Optimizing App Startup Time
+
+
+1819
+00:56:14,546 --> 00:56:19,126
+session from 2016.
+
+
+1820
+00:56:19,196 --> 00:56:22,346
+So I just want to go back over
+
+
+1821
+00:56:22,346 --> 00:56:23,456
+what we went through today.
+
+
+1822
+00:56:23,456 --> 00:56:25,056
+So Jake talked about the build
+
+
+1823
+00:56:25,056 --> 00:56:26,376
+system and how you can use
+
+
+1824
+00:56:26,376 --> 00:56:29,076
+dependencies to optimize your
+
+
+1825
+00:56:29,076 --> 00:56:32,856
+built process for multi-core.
+
+
+1826
+00:56:33,086 --> 00:56:35,666
+Jurgen walked through Clang and
+
+
+1827
+00:56:35,666 --> 00:56:36,936
+how it finds headers for you.
+
+
+1828
+00:56:36,936 --> 00:56:37,986
+And what you can do to optimize
+
+
+1829
+00:56:37,986 --> 00:56:39,196
+your build-through modules.
+
+
+1830
+00:56:40,636 --> 00:56:42,926
+Devin walked through how Swift
+
+
+1831
+00:56:42,926 --> 00:56:45,846
+expand modules and all of the
+
+
+1832
+00:56:45,846 --> 00:56:47,146
+things that we've implemented
+
+
+1833
+00:56:47,146 --> 00:56:47,426
+this year like [inaudible]
+
+
+1834
+00:56:47,426 --> 00:56:48,756
+processing to speed up your
+
+
+1835
+00:56:48,756 --> 00:56:49,176
+builds.
+
+
+1836
+00:56:49,176 --> 00:56:51,006
+And then finally the linker
+
+
+1837
+00:56:51,006 --> 00:56:52,206
+takes the outputs of both
+
+
+1838
+00:56:52,206 --> 00:56:53,866
+compilers and builds them into
+
+
+1839
+00:56:53,866 --> 00:56:54,916
+your application.
+
+
+1840
+00:56:54,916 --> 00:56:56,586
+At which point Xcode will go
+
+
+1841
+00:56:56,586 --> 00:56:57,646
+and, and code [inaudible] and
+
+
+1842
+00:56:57,646 --> 00:56:59,416
+package it up with other parts
+
+
+1843
+00:57:00,376 --> 00:57:02,116
+of your application for
+
+
+1844
+00:57:02,116 --> 00:57:02,726
+distribution.
+
+
+1845
+00:57:04,026 --> 00:57:08,026
+So most of this is open source,
+
+
+1846
+00:57:08,026 --> 00:57:08,756
+available if you're really
+
+
+1847
+00:57:08,756 --> 00:57:09,306
+curious.
+
+
+1848
+00:57:09,306 --> 00:57:10,926
+You can look at Swift or Clang
+
+
+1849
+00:57:10,926 --> 00:57:13,646
+or the llbuild execution engine
+
+
+1850
+00:57:14,916 --> 00:57:15,826
+at these URLs.
+
+
+1851
+00:57:16,626 --> 00:57:18,046
+And I just want to thank you all
+
+
+1852
+00:57:18,046 --> 00:57:18,926
+for coming.
+
+
+1853
+00:57:19,266 --> 00:57:21,416
+And I hope you've had a great
+
+
+1854
+00:57:21,416 --> 00:57:21,576
+WWDC.
+
+
+1855
+00:57:21,576 --> 00:57:23,346
+And we'll be in the labs.
+
+
+1856
+00:57:23,346 --> 00:57:23,836
+Thank you.
+
+
+1857
+00:57:24,016 --> 00:57:26,000
+[ Applause ]
+

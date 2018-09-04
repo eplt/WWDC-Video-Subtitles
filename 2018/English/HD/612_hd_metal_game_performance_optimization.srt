@@ -1,0 +1,5359 @@
+1
+00:00:06,516 --> 00:00:15,500
+[ Music ]
+
+
+2
+00:00:22,516 --> 00:00:25,500
+[ Applause ]
+
+
+3
+00:00:29,426 --> 00:00:30,626
+>> Good morning, and welcome to
+
+
+4
+00:00:30,626 --> 00:00:31,156
+this talk.
+
+
+5
+00:00:32,006 --> 00:00:33,576
+My name is Guillem Vinals
+
+
+6
+00:00:33,576 --> 00:00:34,116
+Gangollels.
+
+
+7
+00:00:34,526 --> 00:00:35,896
+And I work at the GPU Software
+
+
+8
+00:00:35,896 --> 00:00:37,596
+Performance Team here at Apple.
+
+
+9
+00:00:38,916 --> 00:00:40,896
+Good developers like you make
+
+
+10
+00:00:40,896 --> 00:00:42,326
+iOS an excellent gaming
+
+
+11
+00:00:42,326 --> 00:00:42,866
+platform.
+
+
+12
+00:00:43,316 --> 00:00:45,126
+And we at Apple obviously want
+
+
+13
+00:00:45,126 --> 00:00:45,546
+to help.
+
+
+14
+00:00:46,446 --> 00:00:47,986
+So this year we reviewed some of
+
+
+15
+00:00:47,986 --> 00:00:50,246
+the top iOS games and found some
+
+
+16
+00:00:50,246 --> 00:00:51,486
+common performance issues.
+
+
+17
+00:00:52,446 --> 00:00:54,456
+We analyzed a lot of data, and
+
+
+18
+00:00:54,456 --> 00:00:55,256
+as a result of that
+
+
+19
+00:00:55,256 --> 00:00:57,376
+investigation, we decided to put
+
+
+20
+00:00:57,376 --> 00:00:58,216
+this talk together.
+
+
+21
+00:00:58,826 --> 00:01:01,136
+So this is going to be the main
+
+
+22
+00:01:01,136 --> 00:01:01,846
+topic today.
+
+
+23
+00:01:02,326 --> 00:01:03,696
+Develop Awesome Games.
+
+
+24
+00:01:05,066 --> 00:01:06,686
+But I will only be providing
+
+
+25
+00:01:06,686 --> 00:01:07,846
+technical directions here.
+
+
+26
+00:01:07,996 --> 00:01:09,026
+So we'll [inaudible].
+
+
+27
+00:01:10,116 --> 00:01:13,516
+Before we begin, please let me
+
+
+28
+00:01:13,516 --> 00:01:14,916
+thank our friends at Croteam.
+
+
+29
+00:01:15,376 --> 00:01:16,766
+They are the developers behind
+
+
+30
+00:01:16,766 --> 00:01:18,476
+The Talos Principle, which is a
+
+
+31
+00:01:18,476 --> 00:01:19,576
+really awesome game.
+
+
+32
+00:01:19,926 --> 00:01:21,016
+You will see it featured in
+
+
+33
+00:01:21,016 --> 00:01:22,256
+these slides and in two of the
+
+
+34
+00:01:22,256 --> 00:01:22,696
+demos.
+
+
+35
+00:01:23,476 --> 00:01:26,176
+Notice that it has stunning
+
+
+36
+00:01:26,176 --> 00:01:28,336
+visuals but it does really not
+
+
+37
+00:01:28,386 --> 00:01:29,696
+compromise in performance.
+
+
+38
+00:01:30,096 --> 00:01:30,996
+And that's what this is all
+
+
+39
+00:01:30,996 --> 00:01:31,266
+about.
+
+
+40
+00:01:32,166 --> 00:01:33,566
+So let's do a quick run through
+
+
+41
+00:01:33,566 --> 00:01:35,186
+of the agenda.
+
+
+42
+00:01:35,246 --> 00:01:37,736
+I'll start with an introduction
+
+
+43
+00:01:37,736 --> 00:01:38,306
+to the tools.
+
+
+44
+00:01:38,946 --> 00:01:39,986
+This is a very good place to
+
+
+45
+00:01:39,986 --> 00:01:40,376
+start.
+
+
+46
+00:01:40,916 --> 00:01:42,526
+And then we'll talk about the
+
+
+47
+00:01:42,526 --> 00:01:43,816
+actual performance issues.
+
+
+48
+00:01:44,416 --> 00:01:46,086
+Around frame pacing, thread
+
+
+49
+00:01:46,146 --> 00:01:48,366
+priorities, thermal states, and
+
+
+50
+00:01:48,596 --> 00:01:49,966
+unnecessary GPU work.
+
+
+51
+00:01:51,166 --> 00:01:52,376
+Even though all these issues
+
+
+52
+00:01:52,376 --> 00:01:54,716
+seem unrelated, they will
+
+
+53
+00:01:54,716 --> 00:01:55,916
+compound and aggravate each
+
+
+54
+00:01:55,916 --> 00:01:56,236
+other.
+
+
+55
+00:01:56,546 --> 00:01:57,956
+So it's important to tackle them
+
+
+56
+00:01:57,956 --> 00:01:58,146
+all.
+
+
+57
+00:01:58,686 --> 00:02:00,976
+Let's start with the tools.
+
+
+58
+00:02:01,686 --> 00:02:05,846
+This is the most important
+
+
+59
+00:02:05,846 --> 00:02:06,416
+message.
+
+
+60
+00:02:06,816 --> 00:02:08,886
+You should profile early and do
+
+
+61
+00:02:08,886 --> 00:02:09,496
+it often.
+
+
+62
+00:02:10,586 --> 00:02:12,456
+Do not ship your game unless
+
+
+63
+00:02:12,456 --> 00:02:13,276
+you've profiled it.
+
+
+64
+00:02:14,056 --> 00:02:15,756
+And for that you will need to
+
+
+65
+00:02:15,756 --> 00:02:16,486
+know your tools.
+
+
+66
+00:02:17,576 --> 00:02:19,626
+Today, I will focus on two of
+
+
+67
+00:02:19,656 --> 00:02:19,966
+them.
+
+
+68
+00:02:21,036 --> 00:02:22,746
+First, we have instruments,
+
+
+69
+00:02:23,166 --> 00:02:24,406
+which is our main profiling
+
+
+70
+00:02:24,406 --> 00:02:24,656
+tool.
+
+
+71
+00:02:25,356 --> 00:02:26,336
+You will want to use it to
+
+
+72
+00:02:26,336 --> 00:02:28,966
+understand performance, latency,
+
+
+73
+00:02:29,286 --> 00:02:30,266
+and overall timing.
+
+
+74
+00:02:31,216 --> 00:02:33,246
+Second, we have the Metal Frame
+
+
+75
+00:02:33,246 --> 00:02:34,936
+Debugger, which is also very
+
+
+76
+00:02:34,936 --> 00:02:37,066
+powerful tool, which you will
+
+
+77
+00:02:37,066 --> 00:02:38,466
+want to use to debug your GPU
+
+
+78
+00:02:38,466 --> 00:02:38,976
+workload.
+
+
+79
+00:02:39,546 --> 00:02:41,776
+So where do we start?
+
+
+80
+00:02:42,836 --> 00:02:44,306
+This is a question we often get.
+
+
+81
+00:02:45,196 --> 00:02:47,026
+Well, this year we are making it
+
+
+82
+00:02:47,026 --> 00:02:47,756
+easier for you.
+
+
+83
+00:02:48,236 --> 00:02:49,246
+We are introducing a new
+
+
+84
+00:02:49,246 --> 00:02:51,146
+instruments template, which will
+
+
+85
+00:02:51,146 --> 00:02:52,706
+be a great starting point.
+
+
+86
+00:02:53,126 --> 00:02:54,446
+The Game Performance Template.
+
+
+87
+00:02:55,396 --> 00:02:56,776
+It is the combination of already
+
+
+88
+00:02:56,776 --> 00:02:58,796
+existing instruments such as
+
+
+89
+00:02:58,936 --> 00:03:02,346
+System Trace, Time Profiler, and
+
+
+90
+00:03:02,346 --> 00:03:03,236
+Metal System Trace.
+
+
+91
+00:03:04,076 --> 00:03:05,946
+We configured it for you so it
+
+
+92
+00:03:05,946 --> 00:03:07,836
+records all the CPU and GPU data
+
+
+93
+00:03:07,836 --> 00:03:09,216
+that is relevant for your game.
+
+
+94
+00:03:09,696 --> 00:03:12,166
+So you can make it smooth.
+
+
+95
+00:03:12,386 --> 00:03:13,366
+So how do we launch it?
+
+
+96
+00:03:13,366 --> 00:03:14,196
+How do we get there?
+
+
+97
+00:03:14,836 --> 00:03:17,166
+Well, just open Instruments and
+
+
+98
+00:03:17,166 --> 00:03:18,136
+you will see it right there in
+
+
+99
+00:03:18,136 --> 00:03:18,646
+the center.
+
+
+100
+00:03:19,976 --> 00:03:21,396
+After you choose it, you will be
+
+
+101
+00:03:21,396 --> 00:03:22,626
+able to configure it same as
+
+
+102
+00:03:22,626 --> 00:03:23,506
+every other template.
+
+
+103
+00:03:24,906 --> 00:03:26,246
+Once you start recording, you
+
+
+104
+00:03:26,246 --> 00:03:27,406
+will do so in windowed mode,
+
+
+105
+00:03:27,906 --> 00:03:28,766
+which will allow you to play
+
+
+106
+00:03:28,766 --> 00:03:30,286
+your game for as long as you
+
+
+107
+00:03:30,286 --> 00:03:32,066
+like, and only the last few
+
+
+108
+00:03:32,066 --> 00:03:33,166
+seconds of data will be
+
+
+109
+00:03:33,166 --> 00:03:33,606
+recorded.
+
+
+110
+00:03:34,226 --> 00:03:35,836
+And this is how this last few
+
+
+111
+00:03:35,836 --> 00:03:37,766
+seconds of data will look like.
+
+
+112
+00:03:38,496 --> 00:03:40,556
+There's a lot of information so
+
+
+113
+00:03:40,556 --> 00:03:42,076
+let's have a quick high-level
+
+
+114
+00:03:42,076 --> 00:03:42,496
+overview.
+
+
+115
+00:03:42,996 --> 00:03:46,886
+First, we have System Trace and
+
+
+116
+00:03:46,886 --> 00:03:48,726
+Time Profiler, which will give
+
+
+117
+00:03:48,726 --> 00:03:49,866
+you an overview of the system
+
+
+118
+00:03:49,896 --> 00:03:51,526
+load as well as your application
+
+
+119
+00:03:51,596 --> 00:03:52,376
+CPU usage.
+
+
+120
+00:03:53,396 --> 00:03:55,116
+For example, user interactive
+
+
+121
+00:03:55,116 --> 00:03:57,136
+mode will record all the active
+
+
+122
+00:03:57,136 --> 00:03:58,726
+threads at a given time.
+
+
+123
+00:03:59,416 --> 00:04:01,546
+In this case, the orange color
+
+
+124
+00:04:01,546 --> 00:04:03,496
+you can see means that there are
+
+
+125
+00:04:03,496 --> 00:04:05,336
+more runnable threads available
+
+
+126
+00:04:05,536 --> 00:04:06,486
+than CPU cores.
+
+
+127
+00:04:06,886 --> 00:04:08,206
+So there is some contingency.
+
+
+128
+00:04:09,076 --> 00:04:10,746
+These will offer a great view of
+
+
+129
+00:04:10,786 --> 00:04:11,376
+the system.
+
+
+130
+00:04:12,816 --> 00:04:14,226
+There's a couple of great talks
+
+
+131
+00:04:14,226 --> 00:04:15,696
+that talk about this instrument
+
+
+132
+00:04:15,696 --> 00:04:16,326
+in more depth.
+
+
+133
+00:04:17,086 --> 00:04:20,216
+Please follow-up on them.
+
+
+134
+00:04:20,446 --> 00:04:22,626
+Next on our list is Metal System
+
+
+135
+00:04:22,626 --> 00:04:24,406
+Trace, our GPU profiling tool.
+
+
+136
+00:04:25,046 --> 00:04:26,576
+It offers a great view of the
+
+
+137
+00:04:26,576 --> 00:04:27,326
+graphic stack.
+
+
+138
+00:04:28,236 --> 00:04:29,306
+All the way from the Metal
+
+
+139
+00:04:29,306 --> 00:04:31,346
+Framework down to the display.
+
+
+140
+00:04:32,686 --> 00:04:34,586
+In particular, we will want to
+
+
+141
+00:04:34,586 --> 00:04:36,256
+pay close attention to the GPU
+
+
+142
+00:04:37,426 --> 00:04:38,106
+[inaudible], which is split in
+
+
+143
+00:04:38,106 --> 00:04:40,826
+vertex, fragment, and compute if
+
+
+144
+00:04:40,826 --> 00:04:41,646
+your game uses it.
+
+
+145
+00:04:42,846 --> 00:04:44,286
+Notice as well that the display
+
+
+146
+00:04:44,286 --> 00:04:45,626
+track will be the starting point
+
+
+147
+00:04:45,626 --> 00:04:46,896
+of many of our investigations.
+
+
+148
+00:04:47,656 --> 00:04:49,196
+We will identify a long frame or
+
+
+149
+00:04:49,196 --> 00:04:50,686
+a starter and we will work it
+
+
+150
+00:04:50,686 --> 00:04:51,666
+all the way up from there.
+
+
+151
+00:04:52,186 --> 00:04:53,436
+So it's a very natural place to
+
+
+152
+00:04:53,436 --> 00:04:53,776
+start.
+
+
+153
+00:04:54,266 --> 00:04:57,916
+There is a lot of information
+
+
+154
+00:04:57,916 --> 00:04:59,106
+about the tool because it really
+
+
+155
+00:04:59,106 --> 00:05:00,416
+is a very powerful tool.
+
+
+156
+00:05:00,516 --> 00:05:01,896
+And I encourage you all to catch
+
+
+157
+00:05:01,896 --> 00:05:02,346
+up on it.
+
+
+158
+00:05:03,426 --> 00:05:04,846
+These are a couple sessions that
+
+
+159
+00:05:04,846 --> 00:05:05,606
+will provide you a great
+
+
+160
+00:05:05,656 --> 00:05:08,076
+starting point.
+
+
+161
+00:05:08,266 --> 00:05:08,596
+Okay.
+
+
+162
+00:05:09,066 --> 00:05:10,996
+So next on our list we'll have a
+
+
+163
+00:05:10,996 --> 00:05:12,266
+thread states view which we
+
+
+164
+00:05:12,266 --> 00:05:13,206
+introduced this year.
+
+
+165
+00:05:14,346 --> 00:05:15,456
+This view will show you the
+
+
+166
+00:05:15,456 --> 00:05:16,616
+state of every thread in your
+
+
+167
+00:05:16,616 --> 00:05:17,036
+game.
+
+
+168
+00:05:17,566 --> 00:05:18,876
+In this case, each color
+
+
+169
+00:05:18,876 --> 00:05:20,276
+represents a possible thread
+
+
+170
+00:05:20,346 --> 00:05:22,796
+state, such as preempted which
+
+
+171
+00:05:22,796 --> 00:05:24,066
+is represented in orange.
+
+
+172
+00:05:24,556 --> 00:05:26,026
+Or blocked which is represented
+
+
+173
+00:05:26,026 --> 00:05:26,436
+in red.
+
+
+174
+00:05:27,626 --> 00:05:28,766
+We designed this view
+
+
+175
+00:05:28,766 --> 00:05:30,296
+specifically with you, game
+
+
+176
+00:05:30,296 --> 00:05:31,336
+developers, in mind.
+
+
+177
+00:05:31,826 --> 00:05:32,796
+Because we know the threading
+
+
+178
+00:05:32,796 --> 00:05:35,306
+systems in modern games are very
+
+
+179
+00:05:35,306 --> 00:05:35,946
+complex.
+
+
+180
+00:05:36,396 --> 00:05:38,136
+And we hope this really will
+
+
+181
+00:05:38,676 --> 00:05:40,146
+help you.
+
+
+182
+00:05:40,366 --> 00:05:42,576
+Also we have a track for each
+
+
+183
+00:05:42,766 --> 00:05:43,456
+CPU core.
+
+
+184
+00:05:44,356 --> 00:05:45,656
+It will show the thread running
+
+
+185
+00:05:45,656 --> 00:05:47,766
+on that core as well, as well as
+
+
+186
+00:05:47,766 --> 00:05:49,246
+the priority of that thread,
+
+
+187
+00:05:49,246 --> 00:05:50,226
+which is color coded.
+
+
+188
+00:05:51,636 --> 00:05:53,156
+By using this, you will be able
+
+
+189
+00:05:53,156 --> 00:05:54,696
+to see at a glance how easy the
+
+
+190
+00:05:54,766 --> 00:05:56,146
+system really is.
+
+
+191
+00:05:56,696 --> 00:06:00,916
+That was a short but a quite
+
+
+192
+00:06:00,916 --> 00:06:02,366
+wide introduction to the tools.
+
+
+193
+00:06:02,366 --> 00:06:03,606
+So it's about time we move to
+
+
+194
+00:06:03,606 --> 00:06:05,436
+the actual performance issues.
+
+
+195
+00:06:06,136 --> 00:06:07,896
+The first one will be around
+
+
+196
+00:06:07,896 --> 00:06:08,706
+frame pacing.
+
+
+197
+00:06:09,246 --> 00:06:12,016
+And let's visualize it first.
+
+
+198
+00:06:12,816 --> 00:06:14,626
+For this we used the modified
+
+
+199
+00:06:14,626 --> 00:06:15,746
+version of the Fox [inaudible]
+
+
+200
+00:06:15,746 --> 00:06:16,456
+demo.
+
+
+201
+00:06:16,766 --> 00:06:18,376
+That will help us illustrate the
+
+
+202
+00:06:18,376 --> 00:06:19,196
+issue better.
+
+
+203
+00:06:20,416 --> 00:06:23,536
+Can you guess which game renders
+
+
+204
+00:06:23,536 --> 00:06:24,006
+faster?
+
+
+205
+00:06:27,036 --> 00:06:30,166
+Well, some of you may not have
+
+
+206
+00:06:30,236 --> 00:06:30,686
+guessed it.
+
+
+207
+00:06:31,526 --> 00:06:33,606
+The game on the left is trying
+
+
+208
+00:06:33,606 --> 00:06:34,876
+to render at 60 frames per
+
+
+209
+00:06:34,876 --> 00:06:35,506
+second.
+
+
+210
+00:06:36,026 --> 00:06:38,426
+But it can only achieve 40, so
+
+
+211
+00:06:38,426 --> 00:06:40,066
+it's inconsistent, and it seems
+
+
+212
+00:06:40,106 --> 00:06:40,506
+jittery.
+
+
+213
+00:06:41,016 --> 00:06:42,056
+The game on the right on the
+
+
+214
+00:06:42,056 --> 00:06:44,136
+other hand is targeting 30
+
+
+215
+00:06:44,136 --> 00:06:45,856
+frames per second, which can
+
+
+216
+00:06:45,856 --> 00:06:47,176
+consistently be achieved.
+
+
+217
+00:06:47,936 --> 00:06:49,066
+That's why it looks smoother.
+
+
+218
+00:06:49,626 --> 00:06:52,186
+But that's a bit
+
+
+219
+00:06:52,956 --> 00:06:53,856
+counterintuitive.
+
+
+220
+00:06:54,156 --> 00:06:56,416
+How, how come the game that
+
+
+221
+00:06:56,416 --> 00:06:58,836
+renders faster doesn't look
+
+
+222
+00:06:58,836 --> 00:06:59,306
+smoother?
+
+
+223
+00:07:00,456 --> 00:07:01,966
+Well, this issue's known as
+
+
+224
+00:07:01,966 --> 00:07:04,206
+micro stuttering or inconsistent
+
+
+225
+00:07:04,206 --> 00:07:04,756
+frame pace.
+
+
+226
+00:07:06,166 --> 00:07:08,896
+It occurs when the frame time is
+
+
+227
+00:07:08,896 --> 00:07:10,206
+higher than the display refresh
+
+
+228
+00:07:10,206 --> 00:07:10,646
+interval.
+
+
+229
+00:07:11,356 --> 00:07:14,096
+For example, our game may take
+
+
+230
+00:07:14,276 --> 00:07:16,726
+25 milliseconds to render or 40
+
+
+231
+00:07:16,726 --> 00:07:17,606
+frames per second.
+
+
+232
+00:07:18,056 --> 00:07:19,796
+And the display may refresh at
+
+
+233
+00:07:19,866 --> 00:07:22,646
+16.6 millisecond or 60 frames
+
+
+234
+00:07:22,646 --> 00:07:23,226
+per second.
+
+
+235
+00:07:23,616 --> 00:07:24,726
+Same as the video we've just
+
+
+236
+00:07:24,776 --> 00:07:25,026
+seen.
+
+
+237
+00:07:25,536 --> 00:07:26,976
+These will create some visual
+
+
+238
+00:07:26,976 --> 00:07:27,896
+inconsistencies.
+
+
+239
+00:07:29,316 --> 00:07:31,166
+So how did we get there?
+
+
+240
+00:07:31,796 --> 00:07:34,146
+What have we done to be in this
+
+
+241
+00:07:34,396 --> 00:07:35,126
+situation?
+
+
+242
+00:07:35,866 --> 00:07:38,716
+Well, we didn't do much really,
+
+
+243
+00:07:38,716 --> 00:07:39,746
+and that's kind of the whole
+
+
+244
+00:07:39,746 --> 00:07:40,506
+point of this.
+
+
+245
+00:07:41,796 --> 00:07:43,786
+After rendering the frame, we
+
+
+246
+00:07:43,786 --> 00:07:45,046
+requested the next drawable from
+
+
+247
+00:07:45,046 --> 00:07:46,006
+the display link.
+
+
+248
+00:07:46,236 --> 00:07:47,126
+And as soon as we got the
+
+
+249
+00:07:47,126 --> 00:07:49,006
+drawable, we finished the final
+
+
+250
+00:07:49,006 --> 00:07:50,506
+pass and presented it right
+
+
+251
+00:07:50,506 --> 00:07:50,876
+away.
+
+
+252
+00:07:51,496 --> 00:07:54,216
+We explicitly told the system to
+
+
+253
+00:07:54,216 --> 00:07:55,876
+present that drawable as soon as
+
+
+254
+00:07:55,926 --> 00:07:57,656
+possible, at the next refresh
+
+
+255
+00:07:57,656 --> 00:07:58,096
+interval.
+
+
+256
+00:07:58,516 --> 00:08:00,376
+After all, we are targeting 60
+
+
+257
+00:08:00,376 --> 00:08:02,226
+frames per second, right?
+
+
+258
+00:08:03,056 --> 00:08:04,636
+There's also another class of
+
+
+259
+00:08:04,636 --> 00:08:05,926
+problems that will cause micro
+
+
+260
+00:08:05,926 --> 00:08:06,616
+stuttering.
+
+
+261
+00:08:06,816 --> 00:08:09,976
+And some games are already
+
+
+262
+00:08:10,016 --> 00:08:11,496
+targeting lower frame rate.
+
+
+263
+00:08:12,466 --> 00:08:14,056
+But we have also identified many
+
+
+264
+00:08:14,056 --> 00:08:16,326
+of those games that are using
+
+
+265
+00:08:16,326 --> 00:08:18,086
+usleep on their main or random
+
+
+266
+00:08:18,086 --> 00:08:18,416
+thread.
+
+
+267
+00:08:19,416 --> 00:08:20,846
+This is a very bad practice in
+
+
+268
+00:08:20,896 --> 00:08:22,716
+iOS, so please don't do that and
+
+
+269
+00:08:22,716 --> 00:08:25,056
+just hang, hang here for the
+
+
+270
+00:08:25,056 --> 00:08:25,766
+next few minutes.
+
+
+271
+00:08:25,766 --> 00:08:26,806
+And I'll tell you the actual
+
+
+272
+00:08:26,906 --> 00:08:29,956
+correct way of doing this in
+
+
+273
+00:08:30,516 --> 00:08:30,626
+iOS.
+
+
+274
+00:08:30,686 --> 00:08:33,676
+Now, let's have a deeper look
+
+
+275
+00:08:33,676 --> 00:08:36,395
+into what happens in the system
+
+
+276
+00:08:36,395 --> 00:08:37,566
+for micro stuttering to be
+
+
+277
+00:08:37,566 --> 00:08:38,086
+visible.
+
+
+278
+00:08:39,155 --> 00:08:40,316
+In this case, we see here a
+
+
+279
+00:08:40,316 --> 00:08:41,905
+timeline of all the components
+
+
+280
+00:08:41,905 --> 00:08:42,936
+involved in rendering.
+
+
+281
+00:08:44,035 --> 00:08:46,386
+And we'll start rendering our
+
+
+282
+00:08:46,386 --> 00:08:47,196
+game normally.
+
+
+283
+00:08:47,836 --> 00:08:49,226
+Notice this is a three-point
+
+
+284
+00:08:49,226 --> 00:08:50,376
+buffer case, which is quite
+
+
+285
+00:08:50,376 --> 00:08:51,286
+common in iOS.
+
+
+286
+00:08:51,616 --> 00:08:53,526
+In this case, every drawable is
+
+
+287
+00:08:53,526 --> 00:08:55,376
+represented by a letter and a
+
+
+288
+00:08:55,376 --> 00:08:55,776
+color.
+
+
+289
+00:08:56,786 --> 00:08:58,186
+And also notice the premise
+
+
+290
+00:08:58,186 --> 00:08:58,406
+here.
+
+
+291
+00:08:59,056 --> 00:09:01,556
+Rendering to drawable V takes
+
+
+292
+00:09:01,556 --> 00:09:03,506
+longer than one display refresh
+
+
+293
+00:09:03,506 --> 00:09:05,026
+interval, which is the time
+
+
+294
+00:09:05,026 --> 00:09:05,926
+between vsyncs.
+
+
+295
+00:09:06,396 --> 00:09:09,236
+In this case, could be 25
+
+
+296
+00:09:09,236 --> 00:09:11,096
+millisecond to render to V and
+
+
+297
+00:09:11,096 --> 00:09:13,036
+16.6 millisecond in between
+
+
+298
+00:09:13,036 --> 00:09:14,216
+display refresh intervals.
+
+
+299
+00:09:15,936 --> 00:09:18,546
+So since that is the premise,
+
+
+300
+00:09:18,596 --> 00:09:20,976
+this means that we will need to
+
+
+301
+00:09:20,976 --> 00:09:22,376
+[inaudible] on the display for
+
+
+302
+00:09:22,376 --> 00:09:24,426
+the next interval to give time
+
+
+303
+00:09:24,526 --> 00:09:25,606
+so we can finish.
+
+
+304
+00:09:26,826 --> 00:09:27,766
+And we will do so.
+
+
+305
+00:09:27,996 --> 00:09:29,496
+And that during that interval,
+
+
+306
+00:09:29,876 --> 00:09:31,856
+we will actually B, B will
+
+
+307
+00:09:31,856 --> 00:09:32,816
+actually finish.
+
+
+308
+00:09:33,676 --> 00:09:35,046
+And we will be ready to present
+
+
+309
+00:09:35,046 --> 00:09:37,896
+it but notice that we have just
+
+
+310
+00:09:37,956 --> 00:09:38,996
+hid the issue here.
+
+
+311
+00:09:39,726 --> 00:09:41,456
+During this interval, we have
+
+
+312
+00:09:41,456 --> 00:09:43,046
+also finished rendering to C.
+
+
+313
+00:09:43,746 --> 00:09:44,856
+And we are ready to present it
+
+
+314
+00:09:44,856 --> 00:09:45,406
+right away.
+
+
+315
+00:09:46,686 --> 00:09:47,736
+So we will [inaudible] an
+
+
+316
+00:09:47,856 --> 00:09:50,066
+inconsistent frame pacing from
+
+
+317
+00:09:50,066 --> 00:09:50,996
+that moment onward.
+
+
+318
+00:09:51,696 --> 00:09:52,996
+We are stuck in this pattern.
+
+
+319
+00:09:53,556 --> 00:09:54,856
+Every other frame will be
+
+
+320
+00:09:54,856 --> 00:09:55,596
+inconsistent.
+
+
+321
+00:09:56,386 --> 00:09:57,876
+And the user will see micro
+
+
+322
+00:09:57,876 --> 00:09:58,446
+stuttering.
+
+
+323
+00:10:00,356 --> 00:10:03,846
+Now this may appear in different
+
+
+324
+00:10:03,846 --> 00:10:05,156
+shapes and forms in the real
+
+
+325
+00:10:05,156 --> 00:10:05,476
+world.
+
+
+326
+00:10:06,066 --> 00:10:07,796
+So what we'll do now is a quick
+
+
+327
+00:10:07,796 --> 00:10:09,236
+demo and I'll show you an
+
+
+328
+00:10:09,236 --> 00:10:11,356
+instruments trace of the Talos
+
+
+329
+00:10:11,356 --> 00:10:11,956
+Principle.
+
+
+330
+00:10:12,566 --> 00:10:13,806
+And we will use to see if we can
+
+
+331
+00:10:13,806 --> 00:10:15,246
+identify micro stuttering in the
+
+
+332
+00:10:15,246 --> 00:10:17,000
+real world case.
+
+
+333
+00:10:25,356 --> 00:10:25,756
+Okay.
+
+
+334
+00:10:25,976 --> 00:10:27,836
+So what we see here is the same
+
+
+335
+00:10:27,836 --> 00:10:29,436
+lot of information I've shown
+
+
+336
+00:10:29,436 --> 00:10:30,026
+you before.
+
+
+337
+00:10:30,496 --> 00:10:31,666
+This has been captured with the
+
+
+338
+00:10:31,666 --> 00:10:32,976
+Game Performance Template by
+
+
+339
+00:10:32,976 --> 00:10:33,426
+default.
+
+
+340
+00:10:34,326 --> 00:10:35,666
+Notice all the same instruments
+
+
+341
+00:10:35,666 --> 00:10:38,186
+I talked about here displayed on
+
+
+342
+00:10:39,276 --> 00:10:39,636
+the left.
+
+
+343
+00:10:39,636 --> 00:10:41,506
+And all the game threads here in
+
+
+344
+00:10:41,506 --> 00:10:41,896
+the middle.
+
+
+345
+00:10:42,766 --> 00:10:43,936
+In particular though, we are
+
+
+346
+00:10:43,936 --> 00:10:46,556
+looking now at micro stuttering.
+
+
+347
+00:10:47,376 --> 00:10:48,766
+So this quite intuitively will
+
+
+348
+00:10:48,766 --> 00:10:50,206
+bring us to look at the display
+
+
+349
+00:10:50,206 --> 00:10:51,966
+track because micro stuttering
+
+
+350
+00:10:51,966 --> 00:10:53,176
+by definition is frames
+
+
+351
+00:10:53,216 --> 00:10:54,466
+presented inconsistently.
+
+
+352
+00:10:55,226 --> 00:10:56,166
+In this case, we have the
+
+
+353
+00:10:56,166 --> 00:10:57,106
+display track here.
+
+
+354
+00:10:58,576 --> 00:10:59,716
+Notice as well that there are
+
+
+355
+00:10:59,716 --> 00:11:02,796
+some hints in the display track.
+
+
+356
+00:11:02,866 --> 00:11:04,486
+We [inaudible] and these are the
+
+
+357
+00:11:04,576 --> 00:11:05,216
+hints here.
+
+
+358
+00:11:06,016 --> 00:11:07,276
+They will show you when a
+
+
+359
+00:11:07,276 --> 00:11:09,036
+surface has been displayed for
+
+
+360
+00:11:09,476 --> 00:11:11,556
+longer than we would expect on a
+
+
+361
+00:11:11,556 --> 00:11:12,326
+normal rendering.
+
+
+362
+00:11:13,166 --> 00:11:14,386
+So maybe this is a great place
+
+
+363
+00:11:14,416 --> 00:11:15,326
+to start looking at it.
+
+
+364
+00:11:15,326 --> 00:11:16,876
+There's some clusters of them.
+
+
+365
+00:11:17,226 --> 00:11:18,316
+So let's zoom into one.
+
+
+366
+00:11:19,196 --> 00:11:20,756
+To zoom, we will hold the option
+
+
+367
+00:11:20,756 --> 00:11:22,916
+key and just drag the pointer to
+
+
+368
+00:11:22,916 --> 00:11:24,196
+the region of interest.
+
+
+369
+00:11:24,676 --> 00:11:27,056
+And in this case, if we keep
+
+
+370
+00:11:27,056 --> 00:11:28,426
+looking at the display track,
+
+
+371
+00:11:29,306 --> 00:11:30,696
+it's kind of evident already
+
+
+372
+00:11:30,696 --> 00:11:32,066
+that we are micro stuttering.
+
+
+373
+00:11:32,066 --> 00:11:33,786
+We can see that every display
+
+
+374
+00:11:34,526 --> 00:11:35,746
+has a different timing.
+
+
+375
+00:11:36,446 --> 00:11:37,786
+So in this case for example, we
+
+
+376
+00:11:37,786 --> 00:11:43,136
+have 50, 33, 16, back to 50, and
+
+
+377
+00:11:43,136 --> 00:11:43,916
+back to 33.
+
+
+378
+00:11:44,526 --> 00:11:46,826
+So when we see this pattern in
+
+
+379
+00:11:46,826 --> 00:11:48,266
+an instruments capture, it means
+
+
+380
+00:11:48,266 --> 00:11:50,036
+that we are micro stuttering and
+
+
+381
+00:11:50,096 --> 00:11:50,976
+we should correct it.
+
+
+382
+00:11:51,876 --> 00:11:52,696
+So let's just do that.
+
+
+383
+00:11:53,196 --> 00:11:53,986
+Back to the slides.
+
+
+384
+00:11:58,206 --> 00:11:58,546
+Okay.
+
+
+385
+00:11:59,516 --> 00:12:00,956
+We've just seen the problem, how
+
+
+386
+00:12:00,956 --> 00:12:02,216
+it occurs in the real world.
+
+
+387
+00:12:02,336 --> 00:12:03,926
+The pattern is basically the
+
+
+388
+00:12:03,926 --> 00:12:04,296
+same.
+
+
+389
+00:12:04,796 --> 00:12:07,026
+So how do we go about fixing it?
+
+
+390
+00:12:07,636 --> 00:12:09,596
+The best practice here is to
+
+
+391
+00:12:09,596 --> 00:12:10,976
+target the frame rate your game
+
+
+392
+00:12:10,976 --> 00:12:11,516
+can achieve.
+
+
+393
+00:12:12,226 --> 00:12:13,966
+So at the minimum frame duration
+
+
+394
+00:12:14,466 --> 00:12:15,866
+there is longer than the time it
+
+
+395
+00:12:15,866 --> 00:12:16,696
+takes to render.
+
+
+396
+00:12:18,006 --> 00:12:19,586
+For that, there's a bunch of
+
+
+397
+00:12:19,586 --> 00:12:20,696
+APIs that can help you.
+
+
+398
+00:12:21,326 --> 00:12:23,016
+For example, MT Drawable
+
+
+399
+00:12:23,016 --> 00:12:25,096
+addPresentedHandler will give
+
+
+400
+00:12:25,096 --> 00:12:26,746
+you a call back once that
+
+
+401
+00:12:26,746 --> 00:12:27,786
+drawable is presented.
+
+
+402
+00:12:27,786 --> 00:12:29,206
+So you can identify micro
+
+
+403
+00:12:29,206 --> 00:12:30,956
+stuttering as it is happening.
+
+
+404
+00:12:31,936 --> 00:12:33,916
+The other two APIs will help you
+
+
+405
+00:12:33,916 --> 00:12:35,436
+to actually fix the problem.
+
+
+406
+00:12:35,876 --> 00:12:36,816
+They will allow you to
+
+
+407
+00:12:36,816 --> 00:12:38,406
+explicitly control the frame
+
+
+408
+00:12:38,406 --> 00:12:39,816
+rating-- the frame pacing.
+
+
+409
+00:12:40,496 --> 00:12:41,776
+In this case we have present
+
+
+410
+00:12:41,776 --> 00:12:43,836
+afterMinimumDuration and present
+
+
+411
+00:12:43,946 --> 00:12:44,246
+atTime.
+
+
+412
+00:12:45,236 --> 00:12:46,396
+What we want to do here?
+
+
+413
+00:12:46,966 --> 00:12:48,496
+We set the minimum duration for
+
+
+414
+00:12:48,496 --> 00:12:50,436
+our frame longer than it takes
+
+
+415
+00:12:50,436 --> 00:12:50,826
+to render.
+
+
+416
+00:12:51,946 --> 00:12:53,256
+And we'll do just that.
+
+
+417
+00:12:53,256 --> 00:12:55,796
+Let's see how that looks.
+
+
+418
+00:12:56,036 --> 00:12:57,276
+Notice that when we start
+
+
+419
+00:12:57,276 --> 00:12:59,306
+rendering, we are already
+
+
+420
+00:12:59,306 --> 00:13:00,746
+consistent from the get-go.
+
+
+421
+00:13:01,216 --> 00:13:03,836
+Our frame spends on display more
+
+
+422
+00:13:03,836 --> 00:13:04,976
+time it takes to render.
+
+
+423
+00:13:05,816 --> 00:13:07,326
+Every frame will be consistent.
+
+
+424
+00:13:08,746 --> 00:13:10,746
+The user will see also being
+
+
+425
+00:13:10,746 --> 00:13:11,336
+consistent.
+
+
+426
+00:13:12,196 --> 00:13:12,866
+And that's great.
+
+
+427
+00:13:13,146 --> 00:13:15,046
+Also notice that there's a side
+
+
+428
+00:13:15,046 --> 00:13:15,476
+effect.
+
+
+429
+00:13:15,916 --> 00:13:17,096
+The frame rate will be lowered.
+
+
+430
+00:13:17,096 --> 00:13:18,356
+We went from 40 frames per
+
+
+431
+00:13:18,356 --> 00:13:20,426
+second to 30 frames per second.
+
+
+432
+00:13:21,056 --> 00:13:22,596
+So that also gave us some extra
+
+
+433
+00:13:22,596 --> 00:13:23,596
+frame time to play with.
+
+
+434
+00:13:25,236 --> 00:13:26,296
+So how did we do this?
+
+
+435
+00:13:27,416 --> 00:13:31,056
+How did we fix the-- the frame
+
+
+436
+00:13:31,056 --> 00:13:31,616
+pacing?
+
+
+437
+00:13:31,816 --> 00:13:34,606
+Well, really it's just a couple
+
+
+438
+00:13:34,606 --> 00:13:35,406
+of lines of code.
+
+
+439
+00:13:36,156 --> 00:13:37,406
+We have the same pattern as
+
+
+440
+00:13:37,406 --> 00:13:37,856
+before.
+
+
+441
+00:13:38,236 --> 00:13:39,176
+We rendered the scene.
+
+
+442
+00:13:39,686 --> 00:13:40,746
+We get the next drawable.
+
+
+443
+00:13:41,266 --> 00:13:42,336
+We do the final pass.
+
+
+444
+00:13:43,086 --> 00:13:45,066
+The only difference here is that
+
+
+445
+00:13:45,066 --> 00:13:47,226
+we specify a minimum duration
+
+
+446
+00:13:47,226 --> 00:13:47,986
+for our frame.
+
+
+447
+00:13:48,516 --> 00:13:50,416
+And present it with that minimum
+
+
+448
+00:13:50,416 --> 00:13:50,916
+duration.
+
+
+449
+00:13:51,646 --> 00:13:52,666
+That's all it takes.
+
+
+450
+00:13:53,486 --> 00:13:54,786
+That will allow us to set the
+
+
+451
+00:13:54,786 --> 00:13:56,576
+minimum duration for our frames.
+
+
+452
+00:13:56,576 --> 00:13:58,056
+And they will all be consistent.
+
+
+453
+00:13:59,426 --> 00:14:00,916
+And after doing so, you may be
+
+
+454
+00:14:00,916 --> 00:14:03,636
+thinking well, what about
+
+
+455
+00:14:03,666 --> 00:14:04,986
+maximum duration?
+
+
+456
+00:14:05,726 --> 00:14:07,596
+What about the concept of
+
+
+457
+00:14:07,686 --> 00:14:08,726
+priority of our work?
+
+
+458
+00:14:08,726 --> 00:14:10,216
+Or how long a thing could take?
+
+
+459
+00:14:11,216 --> 00:14:13,076
+Well, that's actually the next
+
+
+460
+00:14:13,076 --> 00:14:14,246
+issue on our list-- thread
+
+
+461
+00:14:14,316 --> 00:14:14,906
+priorities.
+
+
+462
+00:14:15,426 --> 00:14:17,806
+Let's visualize it first, same
+
+
+463
+00:14:17,806 --> 00:14:18,886
+as we did before.
+
+
+464
+00:14:19,646 --> 00:14:20,986
+Again, with the modified version
+
+
+465
+00:14:20,986 --> 00:14:22,016
+of the Fox II demo.
+
+
+466
+00:14:22,616 --> 00:14:24,676
+You may be thinking and you
+
+
+467
+00:14:24,676 --> 00:14:25,526
+would be right that there are
+
+
+468
+00:14:25,526 --> 00:14:26,756
+many things that could cause
+
+
+469
+00:14:26,756 --> 00:14:27,826
+stuttering such as this.
+
+
+470
+00:14:27,826 --> 00:14:29,276
+Maybe you are doing some
+
+
+471
+00:14:29,276 --> 00:14:30,306
+resource loading or [inaudible]
+
+
+472
+00:14:30,306 --> 00:14:31,396
+compilation.
+
+
+473
+00:14:32,176 --> 00:14:33,886
+Today we will focus on the more
+
+
+474
+00:14:33,886 --> 00:14:36,266
+fundamental but also incredibly
+
+
+475
+00:14:36,266 --> 00:14:37,416
+common type of stutter.
+
+
+476
+00:14:37,986 --> 00:14:40,436
+That caused by thread stalling.
+
+
+477
+00:14:41,036 --> 00:14:44,766
+If the work priority is not well
+
+
+478
+00:14:44,766 --> 00:14:47,346
+communicated to the system, your
+
+
+479
+00:14:47,346 --> 00:14:49,056
+game may have unexpected stalls.
+
+
+480
+00:14:50,216 --> 00:14:52,776
+iOS does plenty of stuff besides
+
+
+481
+00:14:52,776 --> 00:14:53,576
+rendering your game.
+
+
+482
+00:14:54,996 --> 00:14:56,616
+Thread priorities are used to
+
+
+483
+00:14:56,616 --> 00:14:58,476
+warranty the quality of service
+
+
+484
+00:14:58,476 --> 00:14:59,586
+in the whole system.
+
+
+485
+00:15:00,606 --> 00:15:02,056
+So if a thread does a lot of
+
+
+486
+00:15:02,096 --> 00:15:04,176
+work, its priority will be
+
+
+487
+00:15:04,176 --> 00:15:06,206
+lowered over time so other
+
+
+488
+00:15:06,206 --> 00:15:07,456
+threads can run instead.
+
+
+489
+00:15:08,326 --> 00:15:09,516
+That's the concept known as
+
+
+490
+00:15:09,566 --> 00:15:10,536
+priority decay.
+
+
+491
+00:15:11,986 --> 00:15:13,676
+Also you see on the slide behind
+
+
+492
+00:15:13,676 --> 00:15:15,776
+me priority inversion.
+
+
+493
+00:15:16,196 --> 00:15:17,196
+This is another class of
+
+
+494
+00:15:17,296 --> 00:15:18,956
+problems that manifests in a
+
+
+495
+00:15:18,956 --> 00:15:19,906
+very similar way.
+
+
+496
+00:15:20,636 --> 00:15:22,376
+In this case, priority inversion
+
+
+497
+00:15:22,856 --> 00:15:24,306
+occurs when the render thread
+
+
+498
+00:15:24,886 --> 00:15:26,396
+depends on the lower priority
+
+
+499
+00:15:26,396 --> 00:15:28,736
+worker thread from your same
+
+
+500
+00:15:28,736 --> 00:15:30,306
+engine in order to complete the
+
+
+501
+00:15:30,306 --> 00:15:30,576
+work.
+
+
+502
+00:15:31,586 --> 00:15:32,736
+Let's see how that looks like in
+
+
+503
+00:15:32,736 --> 00:15:34,006
+the same timeline as we've seen
+
+
+504
+00:15:34,006 --> 00:15:34,396
+before.
+
+
+505
+00:15:34,956 --> 00:15:37,646
+In this case, we start rendering
+
+
+506
+00:15:37,646 --> 00:15:39,516
+at 30 frames per second so we
+
+
+507
+00:15:39,516 --> 00:15:40,006
+are cool.
+
+
+508
+00:15:41,156 --> 00:15:42,896
+But then there is some
+
+
+509
+00:15:42,896 --> 00:15:43,706
+background work.
+
+
+510
+00:15:44,786 --> 00:15:45,936
+iOS does lots of stuff.
+
+
+511
+00:15:45,936 --> 00:15:47,086
+Maybe now it's checking the
+
+
+512
+00:15:47,086 --> 00:15:47,406
+email.
+
+
+513
+00:15:48,826 --> 00:15:50,846
+And the problem here is that the
+
+
+514
+00:15:50,846 --> 00:15:51,686
+[inaudible] thread is not well
+
+
+515
+00:15:51,686 --> 00:15:52,316
+configured.
+
+
+516
+00:15:53,556 --> 00:15:54,876
+You may get preempted by that
+
+
+517
+00:15:54,926 --> 00:15:55,486
+background work.
+
+
+518
+00:15:56,066 --> 00:15:58,386
+You may not finish scheduling
+
+
+519
+00:15:58,386 --> 00:15:59,746
+all the work onto the GPU.
+
+
+520
+00:16:01,136 --> 00:16:02,996
+And there is no such thing as
+
+
+521
+00:16:02,996 --> 00:16:04,626
+maximum duration for a frame.
+
+
+522
+00:16:05,246 --> 00:16:06,316
+So that could potentially go
+
+
+523
+00:16:06,316 --> 00:16:07,256
+along for hundreds of
+
+
+524
+00:16:07,256 --> 00:16:08,006
+milliseconds.
+
+
+525
+00:16:08,826 --> 00:16:11,296
+The user will see a stutter.
+
+
+526
+00:16:12,476 --> 00:16:14,746
+This is also the theory behind
+
+
+527
+00:16:14,746 --> 00:16:14,876
+it.
+
+
+528
+00:16:14,876 --> 00:16:16,796
+And in practice it shows in
+
+
+529
+00:16:16,796 --> 00:16:18,476
+different ways that follow the
+
+
+530
+00:16:18,476 --> 00:16:19,266
+same pattern.
+
+
+531
+00:16:19,916 --> 00:16:20,966
+So let's do another demo.
+
+
+532
+00:16:21,146 --> 00:16:21,926
+I'll show you another
+
+
+533
+00:16:21,926 --> 00:16:23,956
+instruments capture of the Talos
+
+
+534
+00:16:23,956 --> 00:16:24,526
+Principle.
+
+
+535
+00:16:24,526 --> 00:16:26,056
+That will show you how to
+
+
+536
+00:16:26,056 --> 00:16:28,000
+identify this problem.
+
+
+537
+00:16:37,756 --> 00:16:39,626
+So in this case, what you see
+
+
+538
+00:16:39,626 --> 00:16:42,146
+here is again a capture taken
+
+
+539
+00:16:42,146 --> 00:16:43,136
+with the Game Performance
+
+
+540
+00:16:43,176 --> 00:16:43,726
+Template.
+
+
+541
+00:16:44,356 --> 00:16:45,696
+But this time we have already
+
+
+542
+00:16:45,696 --> 00:16:47,306
+zoomed into the frame we are
+
+
+543
+00:16:47,306 --> 00:16:49,176
+interested in, which is this
+
+
+544
+00:16:49,176 --> 00:16:50,206
+very long frame.
+
+
+545
+00:16:51,416 --> 00:16:53,566
+It has a duration of 233
+
+
+546
+00:16:53,566 --> 00:16:54,226
+milliseconds.
+
+
+547
+00:16:54,226 --> 00:16:55,356
+So that's likely a very good
+
+
+548
+00:16:55,356 --> 00:16:56,186
+stutter that we should
+
+
+549
+00:16:56,186 --> 00:16:56,816
+investigate.
+
+
+550
+00:16:57,376 --> 00:17:00,176
+By-- by looking at it at a
+
+
+551
+00:17:00,176 --> 00:17:01,926
+glance, we can already tell that
+
+
+552
+00:17:02,166 --> 00:17:03,626
+the GPU does not seem to be
+
+
+553
+00:17:03,626 --> 00:17:04,346
+doing much.
+
+
+554
+00:17:05,076 --> 00:17:07,316
+It's idle during this time, so
+
+
+555
+00:17:07,316 --> 00:17:08,776
+this means that we are not
+
+
+556
+00:17:08,856 --> 00:17:09,306
+fitting it.
+
+
+557
+00:17:10,215 --> 00:17:13,665
+Now we can look at the CPU, of
+
+
+558
+00:17:13,766 --> 00:17:15,606
+course, and they seem to be
+
+
+559
+00:17:15,606 --> 00:17:17,096
+fairly busy down here.
+
+
+560
+00:17:17,806 --> 00:17:18,016
+Right?
+
+
+561
+00:17:18,016 --> 00:17:19,996
+They are really-- all of it
+
+
+562
+00:17:20,056 --> 00:17:20,846
+seems quite solid.
+
+
+563
+00:17:22,195 --> 00:17:24,665
+But notice what you see here is
+
+
+564
+00:17:24,665 --> 00:17:26,746
+the time profiler view of our
+
+
+565
+00:17:27,036 --> 00:17:28,086
+application.
+
+
+566
+00:17:28,415 --> 00:17:29,906
+And it does not seem to be
+
+
+567
+00:17:29,906 --> 00:17:30,326
+running.
+
+
+568
+00:17:31,356 --> 00:17:34,066
+Why is our game not running and
+
+
+569
+00:17:34,196 --> 00:17:35,686
+how come that causes a stutter?
+
+
+570
+00:17:35,686 --> 00:17:36,046
+Why?
+
+
+571
+00:17:37,056 --> 00:17:39,856
+Well, we can switch to the new
+
+
+572
+00:17:40,006 --> 00:17:41,386
+view I talked to you about, the
+
+
+573
+00:17:41,386 --> 00:17:42,556
+new thread states view.
+
+
+574
+00:17:43,476 --> 00:17:45,806
+To do so you will go into the
+
+
+575
+00:17:45,806 --> 00:17:48,056
+icon of your application and
+
+
+576
+00:17:48,056 --> 00:17:50,876
+click on that button here and
+
+
+577
+00:17:50,876 --> 00:17:51,866
+that would pull out the track
+
+
+578
+00:17:51,936 --> 00:17:52,426
+display.
+
+
+579
+00:17:53,726 --> 00:17:54,976
+And in this case, you can switch
+
+
+580
+00:17:54,976 --> 00:17:55,776
+to thread states.
+
+
+581
+00:17:56,276 --> 00:17:59,296
+And that will hope-- hopefully
+
+
+582
+00:17:59,296 --> 00:18:00,566
+already help you to see there is
+
+
+583
+00:18:00,566 --> 00:18:01,486
+something wrong here.
+
+
+584
+00:18:02,446 --> 00:18:04,556
+It is highlighted in orange, and
+
+
+585
+00:18:04,946 --> 00:18:06,326
+it's already telling us that the
+
+
+586
+00:18:06,326 --> 00:18:07,956
+thread has been preempted for
+
+
+587
+00:18:07,956 --> 00:18:09,796
+192 milliseconds.
+
+
+588
+00:18:10,596 --> 00:18:11,676
+So that's the actual problem
+
+
+589
+00:18:11,676 --> 00:18:11,906
+here.
+
+
+590
+00:18:11,906 --> 00:18:13,576
+A render thread is not running.
+
+
+591
+00:18:13,946 --> 00:18:15,016
+Something preempted it.
+
+
+592
+00:18:16,346 --> 00:18:18,436
+If you want to know more, you
+
+
+593
+00:18:18,436 --> 00:18:19,816
+can expand information at the
+
+
+594
+00:18:19,816 --> 00:18:21,166
+bottom, which will contain also
+
+
+595
+00:18:21,166 --> 00:18:22,196
+the thread narrative.
+
+
+596
+00:18:23,616 --> 00:18:26,586
+And by clicking at the preempted
+
+
+597
+00:18:26,656 --> 00:18:29,926
+thread, you will see here an
+
+
+598
+00:18:29,926 --> 00:18:31,416
+explanation of what's going on.
+
+
+599
+00:18:31,706 --> 00:18:33,806
+In this case, your render thread
+
+
+600
+00:18:33,806 --> 00:18:35,606
+was preempted at priority 26,
+
+
+601
+00:18:36,046 --> 00:18:37,076
+which is very low.
+
+
+602
+00:18:37,076 --> 00:18:38,516
+It's below background priority
+
+
+603
+00:18:39,536 --> 00:18:40,516
+because the App Store was
+
+
+604
+00:18:40,516 --> 00:18:41,036
+updating.
+
+
+605
+00:18:42,186 --> 00:18:43,346
+So that's something we do not
+
+
+606
+00:18:43,346 --> 00:18:43,676
+want.
+
+
+607
+00:18:44,096 --> 00:18:46,196
+We want to tell the system that
+
+
+608
+00:18:46,266 --> 00:18:48,406
+to our user, our game is more
+
+
+609
+00:18:48,406 --> 00:18:49,416
+important than an App Store
+
+
+610
+00:18:49,416 --> 00:18:50,756
+update at that particular
+
+
+611
+00:18:50,756 --> 00:18:51,216
+moment.
+
+
+612
+00:18:51,856 --> 00:18:52,956
+So let's go back to the slides
+
+
+613
+00:18:52,956 --> 00:18:54,000
+and see how can we do that?
+
+
+614
+00:19:02,286 --> 00:19:04,116
+So the best practice here is to
+
+
+615
+00:19:04,116 --> 00:19:05,356
+configure your render set.
+
+
+616
+00:19:06,186 --> 00:19:07,506
+We recommend the render set
+
+
+617
+00:19:07,586 --> 00:19:09,976
+priority to be fixed to 45.
+
+
+618
+00:19:11,216 --> 00:19:12,916
+Notice that the [inaudible] OS
+
+
+619
+00:19:12,916 --> 00:19:14,936
+and macOS priorities have
+
+
+620
+00:19:14,936 --> 00:19:15,906
+ascending values.
+
+
+621
+00:19:16,936 --> 00:19:19,226
+So priority 31 has higher
+
+
+622
+00:19:19,226 --> 00:19:21,386
+priority than priority four.
+
+
+623
+00:19:22,436 --> 00:19:24,506
+Also, we need to opt out of the
+
+
+624
+00:19:24,506 --> 00:19:25,966
+scheduler's quality of service
+
+
+625
+00:19:26,436 --> 00:19:27,876
+in order to prevent priority
+
+
+626
+00:19:27,876 --> 00:19:29,456
+decay which could lower our
+
+
+627
+00:19:29,456 --> 00:19:30,316
+priority as well.
+
+
+628
+00:19:31,846 --> 00:19:33,076
+Let's see how a well-configured
+
+
+629
+00:19:33,076 --> 00:19:34,116
+render thread looks like.
+
+
+630
+00:19:34,636 --> 00:19:37,606
+In this case, we configure just
+
+
+631
+00:19:38,396 --> 00:19:39,046
+how I told you.
+
+
+632
+00:19:39,956 --> 00:19:41,026
+We start rendering normally.
+
+
+633
+00:19:42,736 --> 00:19:44,166
+We also have some background
+
+
+634
+00:19:44,166 --> 00:19:44,846
+work going on.
+
+
+635
+00:19:44,936 --> 00:19:46,006
+Otherwise it wouldn't be fair.
+
+
+636
+00:19:46,886 --> 00:19:48,156
+And this background work could
+
+
+637
+00:19:48,156 --> 00:19:49,766
+be updating the App Store just
+
+
+638
+00:19:49,766 --> 00:19:50,766
+as we've seen in the demo.
+
+
+639
+00:19:51,786 --> 00:19:53,596
+But notice that vsync after
+
+
+640
+00:19:53,596 --> 00:19:56,056
+vsync, our render occurs
+
+
+641
+00:19:56,056 --> 00:19:56,556
+normally.
+
+
+642
+00:19:57,196 --> 00:19:59,176
+We are preempting the background
+
+
+643
+00:19:59,176 --> 00:20:00,866
+work of the CPUs so we can run
+
+
+644
+00:20:00,866 --> 00:20:01,316
+instead.
+
+
+645
+00:20:02,616 --> 00:20:04,316
+The user does not see the
+
+
+646
+00:20:04,316 --> 00:20:04,826
+stutter.
+
+
+647
+00:20:05,436 --> 00:20:07,656
+Your game can run at 30 solid
+
+
+648
+00:20:07,656 --> 00:20:09,766
+frames per second, even though
+
+
+649
+00:20:09,766 --> 00:20:11,216
+the system is under heavy load.
+
+
+650
+00:20:11,976 --> 00:20:13,646
+That is technically awesome, and
+
+
+651
+00:20:13,646 --> 00:20:14,586
+that's what this is all about.
+
+
+652
+00:20:15,176 --> 00:20:16,386
+So let's see how we make this
+
+
+653
+00:20:16,386 --> 00:20:19,006
+happen with a little bit of
+
+
+654
+00:20:19,756 --> 00:20:19,866
+code.
+
+
+655
+00:20:20,076 --> 00:20:21,946
+And it literally is a little bit
+
+
+656
+00:20:21,946 --> 00:20:22,326
+of code.
+
+
+657
+00:20:22,556 --> 00:20:23,766
+It is only like a couple lines.
+
+
+658
+00:20:24,826 --> 00:20:27,386
+In this case, it's just about
+
+
+659
+00:20:27,416 --> 00:20:28,396
+configuring the pthread
+
+
+660
+00:20:28,396 --> 00:20:30,616
+attributes before we can create
+
+
+661
+00:20:30,616 --> 00:20:31,116
+the pthread.
+
+
+662
+00:20:32,266 --> 00:20:33,826
+We need to opt out of quality of
+
+
+663
+00:20:33,826 --> 00:20:36,716
+service, set the priority to 45.
+
+
+664
+00:20:38,086 --> 00:20:38,576
+And that's it.
+
+
+665
+00:20:38,676 --> 00:20:39,966
+We can create the pthread with
+
+
+666
+00:20:39,966 --> 00:20:41,586
+those attributes, and it will
+
+
+667
+00:20:41,586 --> 00:20:42,366
+work just fine.
+
+
+668
+00:20:43,206 --> 00:20:44,836
+It is simple and technically
+
+
+669
+00:20:44,836 --> 00:20:45,236
+awesome.
+
+
+670
+00:20:45,786 --> 00:20:49,906
+What's not so simple though is
+
+
+671
+00:20:49,906 --> 00:20:51,256
+the next issue on our list.
+
+
+672
+00:20:52,636 --> 00:20:54,106
+That about dealing with multiple
+
+
+673
+00:20:54,106 --> 00:20:55,456
+thermal states.
+
+
+674
+00:20:56,036 --> 00:20:57,766
+The message is very clear.
+
+
+675
+00:20:59,166 --> 00:21:00,896
+Design for sustained performance
+
+
+676
+00:21:01,416 --> 00:21:04,106
+and deal with the occasional
+
+
+677
+00:21:04,106 --> 00:21:04,856
+thermal issues.
+
+
+678
+00:21:05,776 --> 00:21:07,056
+So let's see how we go about
+
+
+679
+00:21:07,806 --> 00:21:07,926
+that.
+
+
+680
+00:21:08,616 --> 00:21:10,926
+iOS devices give you access to
+
+
+681
+00:21:10,926 --> 00:21:12,206
+an unprecedented amount of
+
+
+682
+00:21:12,296 --> 00:21:12,656
+power.
+
+
+683
+00:21:12,906 --> 00:21:14,336
+But [inaudible] in a very small
+
+
+684
+00:21:14,336 --> 00:21:15,076
+form factor.
+
+
+685
+00:21:15,726 --> 00:21:17,826
+So more apps use more resources
+
+
+686
+00:21:17,826 --> 00:21:20,386
+on the device, the system may
+
+
+687
+00:21:20,386 --> 00:21:22,156
+begin enacting measures in order
+
+
+688
+00:21:22,156 --> 00:21:24,186
+to stay cool and responsive.
+
+
+689
+00:21:25,246 --> 00:21:27,876
+Also the user may have enabled a
+
+
+690
+00:21:27,876 --> 00:21:30,136
+low power mode condition, which
+
+
+691
+00:21:30,136 --> 00:21:32,196
+will have a very similar effect.
+
+
+692
+00:21:32,696 --> 00:21:36,506
+Okay, so the best practice
+
+
+693
+00:21:36,506 --> 00:21:38,946
+really is just to adjust your
+
+
+694
+00:21:38,946 --> 00:21:41,016
+workload to the system state.
+
+
+695
+00:21:42,306 --> 00:21:43,716
+You should monitor the system
+
+
+696
+00:21:43,856 --> 00:21:44,726
+and tune the workload
+
+
+697
+00:21:44,726 --> 00:21:45,296
+accordingly.
+
+
+698
+00:21:45,996 --> 00:21:47,996
+iOS has many APIs to help you
+
+
+699
+00:21:47,996 --> 00:21:48,366
+with that.
+
+
+700
+00:21:48,996 --> 00:21:51,526
+For example, use NSProcessInfo
+
+
+701
+00:21:51,606 --> 00:21:53,776
+thermalState to either query or
+
+
+702
+00:21:53,776 --> 00:21:55,786
+register for notification when
+
+
+703
+00:21:55,786 --> 00:21:56,686
+the device thermal state
+
+
+704
+00:21:56,686 --> 00:21:57,116
+changes.
+
+
+705
+00:21:57,946 --> 00:21:59,026
+You should also check for the
+
+
+706
+00:21:59,026 --> 00:22:01,366
+low power mode condition in a
+
+
+707
+00:22:01,406 --> 00:22:02,216
+similar fashion.
+
+
+708
+00:22:03,026 --> 00:22:05,396
+Also consider querying the GPU
+
+
+709
+00:22:05,396 --> 00:22:07,086
+start/GPU end time from the MTL
+
+
+710
+00:22:07,086 --> 00:22:08,966
+Command Buffer in order to
+
+
+711
+00:22:08,966 --> 00:22:11,206
+understand how system loads may
+
+
+712
+00:22:11,206 --> 00:22:12,466
+impact the GPU time.
+
+
+713
+00:22:13,026 --> 00:22:15,876
+Let's see how we do that with a
+
+
+714
+00:22:15,876 --> 00:22:17,136
+simple code example.
+
+
+715
+00:22:18,456 --> 00:22:19,546
+This comes straight from our
+
+
+716
+00:22:19,546 --> 00:22:20,396
+best practices.
+
+
+717
+00:22:21,286 --> 00:22:23,606
+A tip score is a very simple
+
+
+718
+00:22:23,606 --> 00:22:25,646
+switch statement when every case
+
+
+719
+00:22:25,686 --> 00:22:27,216
+corresponds to a thermal state.
+
+
+720
+00:22:27,806 --> 00:22:32,886
+We have nominal, fair, serious,
+
+
+721
+00:22:33,836 --> 00:22:34,476
+and critical.
+
+
+722
+00:22:34,996 --> 00:22:39,416
+And that is all very good.
+
+
+723
+00:22:39,416 --> 00:22:41,106
+So now we know that we are in a
+
+
+724
+00:22:41,106 --> 00:22:43,546
+thermal state and thse command's
+
+
+725
+00:22:43,546 --> 00:22:45,126
+telling us to do something about
+
+
+726
+00:22:45,126 --> 00:22:45,216
+it.
+
+
+727
+00:22:46,046 --> 00:22:48,536
+So how can, how can we actually
+
+
+728
+00:22:48,536 --> 00:22:49,906
+help the system stay cool?
+
+
+729
+00:22:51,096 --> 00:22:53,936
+Well, I can give you some
+
+
+730
+00:22:53,936 --> 00:22:55,626
+suggestions, but it's up to you
+
+
+731
+00:22:55,626 --> 00:22:57,096
+game developers to decide what
+
+
+732
+00:22:57,156 --> 00:22:59,616
+compromises to make in order to
+
+
+733
+00:22:59,616 --> 00:23:00,526
+help the system.
+
+
+734
+00:23:01,326 --> 00:23:02,626
+You know what's best for your
+
+
+735
+00:23:02,626 --> 00:23:04,876
+game to keep being awesome under
+
+
+736
+00:23:04,876 --> 00:23:05,216
+stress.
+
+
+737
+00:23:06,606 --> 00:23:07,906
+Some recommendations I'll give
+
+
+738
+00:23:07,906 --> 00:23:09,856
+you though are to target the
+
+
+739
+00:23:09,856 --> 00:23:11,616
+frame rate that can be sustained
+
+
+740
+00:23:11,616 --> 00:23:12,966
+for the entire game session.
+
+
+741
+00:23:13,746 --> 00:23:16,026
+For example, stay at 30 frames
+
+
+742
+00:23:16,026 --> 00:23:17,966
+per second if you cannot sustain
+
+
+743
+00:23:17,966 --> 00:23:20,026
+60 for ten minutes or more.
+
+
+744
+00:23:21,526 --> 00:23:24,376
+Doing the GPU work is also super
+
+
+745
+00:23:24,376 --> 00:23:24,886
+helpful.
+
+
+746
+00:23:26,046 --> 00:23:27,476
+For example, consider lowering
+
+
+747
+00:23:27,476 --> 00:23:28,966
+the resolution of intermediate
+
+
+748
+00:23:28,966 --> 00:23:31,976
+render targets, or simply find
+
+
+749
+00:23:31,976 --> 00:23:34,286
+the shadow maps, loading simpler
+
+
+750
+00:23:34,286 --> 00:23:36,576
+assets and even removing some of
+
+
+751
+00:23:36,576 --> 00:23:38,006
+the post-processes altogether.
+
+
+752
+00:23:38,666 --> 00:23:40,256
+Wherever, whatever fits your
+
+
+753
+00:23:40,256 --> 00:23:40,926
+game the best.
+
+
+754
+00:23:41,816 --> 00:23:44,836
+You should decide that one.
+
+
+755
+00:23:45,026 --> 00:23:46,796
+And this will bring us to the
+
+
+756
+00:23:46,796 --> 00:23:48,036
+next issue on our list.
+
+
+757
+00:23:49,206 --> 00:23:50,186
+That about dealing with
+
+
+758
+00:23:50,186 --> 00:23:51,486
+unnecessary GPU work.
+
+
+759
+00:23:52,026 --> 00:23:53,486
+For that, please welcome my
+
+
+760
+00:23:53,486 --> 00:23:54,746
+colleague Ohad on stage.
+
+
+761
+00:23:54,926 --> 00:23:55,916
+He's going to tell you all about
+
+
+762
+00:23:55,916 --> 00:23:55,983
+it.
+
+
+763
+00:23:56,516 --> 00:23:59,756
+[ Applause ]
+
+
+764
+00:24:00,256 --> 00:24:00,976
+>> Thank you, Guillem.
+
+
+765
+00:24:01,516 --> 00:24:04,136
+[ Applause ]
+
+
+766
+00:24:04,636 --> 00:24:05,516
+Hey, everyone.
+
+
+767
+00:24:06,236 --> 00:24:07,616
+My name is Ohad, and I'm a
+
+
+768
+00:24:07,616 --> 00:24:08,946
+member of the Game Technologies
+
+
+769
+00:24:09,036 --> 00:24:09,756
+Team here at Apple.
+
+
+770
+00:24:10,826 --> 00:24:12,836
+In the previous slides, Guillem
+
+
+771
+00:24:12,836 --> 00:24:14,736
+showed you how important it is
+
+
+772
+00:24:14,896 --> 00:24:16,026
+to adapt to the system.
+
+
+773
+00:24:17,276 --> 00:24:19,286
+Responding to states like low
+
+
+774
+00:24:19,286 --> 00:24:20,856
+power mode or the varying
+
+
+775
+00:24:20,856 --> 00:24:23,076
+thermal states will require you
+
+
+776
+00:24:23,076 --> 00:24:24,866
+to tune your GPU workload in
+
+
+777
+00:24:24,866 --> 00:24:26,236
+order to maintain consistent
+
+
+778
+00:24:26,236 --> 00:24:27,546
+frame rates throughout an entire
+
+
+779
+00:24:27,546 --> 00:24:28,146
+game session.
+
+
+780
+00:24:28,916 --> 00:24:31,206
+However, for many developers,
+
+
+781
+00:24:31,406 --> 00:24:33,346
+the GPU is a bit of a black box
+
+
+782
+00:24:33,666 --> 00:24:35,126
+hidden behind the curtains of a
+
+
+783
+00:24:35,126 --> 00:24:35,696
+game engine.
+
+
+784
+00:24:36,436 --> 00:24:38,036
+Today, we'll pull back those
+
+
+785
+00:24:38,036 --> 00:24:38,456
+curtains.
+
+
+786
+00:24:40,506 --> 00:24:42,816
+Wasted GPU time is a very common
+
+
+787
+00:24:42,816 --> 00:24:44,686
+problem and it's one that often
+
+
+788
+00:24:44,686 --> 00:24:45,756
+goes unnoticed.
+
+
+789
+00:24:46,186 --> 00:24:47,436
+But I want you to remember this.
+
+
+790
+00:24:47,776 --> 00:24:49,646
+Technically awesome games don't
+
+
+791
+00:24:49,646 --> 00:24:51,116
+only hit their GPU budget.
+
+
+792
+00:24:52,086 --> 00:24:53,886
+They're also good citizens to
+
+
+793
+00:24:53,886 --> 00:24:55,636
+the system, helping it to stay
+
+
+794
+00:24:55,636 --> 00:24:57,276
+cool and save power.
+
+
+795
+00:24:57,996 --> 00:24:59,246
+All the popular game engines
+
+
+796
+00:24:59,476 --> 00:25:00,676
+provide a great list of best
+
+
+797
+00:25:00,676 --> 00:25:01,796
+practices to follow.
+
+
+798
+00:25:02,186 --> 00:25:03,196
+We won't cover those.
+
+
+799
+00:25:03,456 --> 00:25:05,096
+Instead we'll focus on how to
+
+
+800
+00:25:05,096 --> 00:25:06,506
+tell if something is expensive
+
+
+801
+00:25:06,586 --> 00:25:07,066
+to render.
+
+
+802
+00:25:08,126 --> 00:25:10,066
+And as we've done with the CPU
+
+
+803
+00:25:10,066 --> 00:25:12,226
+several times today, the best
+
+
+804
+00:25:12,226 --> 00:25:14,106
+practice here is profile your
+
+
+805
+00:25:14,106 --> 00:25:15,326
+GPU as well.
+
+
+806
+00:25:15,976 --> 00:25:18,666
+The power of our GPUs can hide
+
+
+807
+00:25:18,666 --> 00:25:20,216
+many efficiencies in either
+
+
+808
+00:25:20,276 --> 00:25:22,026
+content or algorithms.
+
+
+809
+00:25:22,706 --> 00:25:23,696
+You will want to time your
+
+
+810
+00:25:23,696 --> 00:25:26,536
+workload, but also understand
+
+
+811
+00:25:26,686 --> 00:25:27,806
+each rendering technique that
+
+
+812
+00:25:27,806 --> 00:25:28,366
+you enable.
+
+
+813
+00:25:29,116 --> 00:25:30,696
+And only keep those that add
+
+
+814
+00:25:30,746 --> 00:25:32,596
+noticeably to the visual quality
+
+
+815
+00:25:32,596 --> 00:25:33,206
+of your games.
+
+
+816
+00:25:34,376 --> 00:25:35,386
+But how do you find these
+
+
+817
+00:25:35,386 --> 00:25:36,336
+inefficiencies?
+
+
+818
+00:25:37,096 --> 00:25:38,396
+How do you determine which parts
+
+
+819
+00:25:38,396 --> 00:25:39,886
+of your pipeline are flat-out
+
+
+820
+00:25:39,886 --> 00:25:40,426
+excessive?
+
+
+821
+00:25:40,816 --> 00:25:42,846
+This of course brings us back to
+
+
+822
+00:25:42,846 --> 00:25:43,236
+tools.
+
+
+823
+00:25:44,596 --> 00:25:46,286
+As always, your first stop
+
+
+824
+00:25:46,286 --> 00:25:47,346
+should be Instruments.
+
+
+825
+00:25:48,106 --> 00:25:49,146
+Here we're looking at Metal
+
+
+826
+00:25:49,146 --> 00:25:50,026
+System Trace.
+
+
+827
+00:25:50,646 --> 00:25:51,826
+It'll provide you accurate
+
+
+828
+00:25:51,826 --> 00:25:54,136
+timings for vertex, fragment,
+
+
+829
+00:25:54,446 --> 00:25:55,876
+and compute work being done.
+
+
+830
+00:25:56,606 --> 00:25:58,926
+But by measuring your GPU time,
+
+
+831
+00:25:59,186 --> 00:26:00,316
+you're only halfway there.
+
+
+832
+00:26:00,976 --> 00:26:02,326
+Next you want to really
+
+
+833
+00:26:02,326 --> 00:26:04,166
+understand what each of your
+
+
+834
+00:26:04,166 --> 00:26:05,526
+passes is doing.
+
+
+835
+00:26:07,006 --> 00:26:08,916
+And for this, we're added a new
+
+
+836
+00:26:08,916 --> 00:26:10,466
+tool to the Metal Frame Debugger
+
+
+837
+00:26:10,466 --> 00:26:10,896
+this year.
+
+
+838
+00:26:11,496 --> 00:26:13,486
+It's the Dependency graph.
+
+
+839
+00:26:14,856 --> 00:26:17,586
+The Dependency graph is a story
+
+
+840
+00:26:17,586 --> 00:26:18,716
+of a single frame.
+
+
+841
+00:26:20,196 --> 00:26:21,866
+It's made up of nodes and edges
+
+
+842
+00:26:22,016 --> 00:26:23,426
+and each one of these tell a
+
+
+843
+00:26:23,426 --> 00:26:24,546
+different part of the story.
+
+
+844
+00:26:25,846 --> 00:26:28,146
+Edges represent dependencies
+
+
+845
+00:26:28,446 --> 00:26:29,486
+between passes.
+
+
+846
+00:26:29,956 --> 00:26:31,186
+As you follow them from top to
+
+
+847
+00:26:31,186 --> 00:26:32,786
+bottom, you'll see where each
+
+
+848
+00:26:32,786 --> 00:26:34,046
+pass fits into your rendering
+
+
+849
+00:26:34,046 --> 00:26:34,516
+pipeline.
+
+
+850
+00:26:34,776 --> 00:26:36,616
+And how they work together to
+
+
+851
+00:26:36,616 --> 00:26:37,446
+create your frame.
+
+
+852
+00:26:39,056 --> 00:26:40,666
+Nodes on the other hand are the
+
+
+853
+00:26:40,666 --> 00:26:43,326
+story of a single pass.
+
+
+854
+00:26:43,876 --> 00:26:45,366
+They're made up of three main
+
+
+855
+00:26:45,366 --> 00:26:46,066
+components.
+
+
+856
+00:26:46,526 --> 00:26:48,966
+First, the title element will
+
+
+857
+00:26:48,966 --> 00:26:49,966
+give you the name of the pass.
+
+
+858
+00:26:50,766 --> 00:26:51,846
+Now I really want to emphasize
+
+
+859
+00:26:51,846 --> 00:26:52,236
+this.
+
+
+860
+00:26:52,706 --> 00:26:53,636
+Label everything.
+
+
+861
+00:26:54,136 --> 00:26:55,266
+It'll help you not only in the
+
+
+862
+00:26:55,266 --> 00:26:56,626
+Dependency viewer, but
+
+
+863
+00:26:56,626 --> 00:26:57,886
+throughout our entire suite of
+
+
+864
+00:26:57,886 --> 00:26:58,356
+tools.
+
+
+865
+00:26:59,296 --> 00:27:01,176
+Secondly, it'll allow you to
+
+
+866
+00:27:01,236 --> 00:27:03,256
+quickly tell what type of pass
+
+
+867
+00:27:03,256 --> 00:27:04,676
+you're looking at.
+
+
+868
+00:27:04,966 --> 00:27:06,896
+Render, blit, or compute.
+
+
+869
+00:27:07,546 --> 00:27:08,956
+Here from the icon we can see
+
+
+870
+00:27:08,956 --> 00:27:10,896
+that it's a render pass.
+
+
+871
+00:27:11,526 --> 00:27:12,916
+Next, you have a list of
+
+
+872
+00:27:12,916 --> 00:27:14,596
+statistics describing the work
+
+
+873
+00:27:14,596 --> 00:27:16,766
+being done in this pass.
+
+
+874
+00:27:16,936 --> 00:27:18,696
+And finally to the bottom, a
+
+
+875
+00:27:18,696 --> 00:27:20,736
+list of all the resources that
+
+
+876
+00:27:20,736 --> 00:27:22,326
+are being written to during this
+
+
+877
+00:27:22,326 --> 00:27:23,976
+pass, and each of these also
+
+
+878
+00:27:23,976 --> 00:27:25,936
+comed with a label, a thumbnail
+
+
+879
+00:27:25,936 --> 00:27:26,916
+allowing you to preview your
+
+
+880
+00:27:26,916 --> 00:27:28,996
+work, and a list of information
+
+
+881
+00:27:28,996 --> 00:27:30,476
+describing each one of those
+
+
+882
+00:27:30,756 --> 00:27:31,866
+resources specifically.
+
+
+883
+00:27:33,216 --> 00:27:35,036
+And all that together allows you
+
+
+884
+00:27:35,206 --> 00:27:36,516
+to really understand each of
+
+
+885
+00:27:36,516 --> 00:27:37,066
+your passes.
+
+
+886
+00:27:37,956 --> 00:27:39,616
+Okay, so now we know how to read
+
+
+887
+00:27:39,616 --> 00:27:40,126
+the graph.
+
+
+888
+00:27:40,386 --> 00:27:42,226
+Let's jump into a demo and see
+
+
+889
+00:27:42,226 --> 00:27:44,000
+how it all fits together.
+
+
+890
+00:27:52,726 --> 00:27:52,836
+Okay.
+
+
+891
+00:27:53,046 --> 00:27:55,226
+So I have the Fox II demo
+
+
+892
+00:27:55,486 --> 00:27:56,606
+running on my machine here.
+
+
+893
+00:27:57,196 --> 00:27:58,906
+It was built in Scene Kit, which
+
+
+894
+00:27:58,906 --> 00:28:00,336
+allowed me to add all sorts of
+
+
+895
+00:28:00,336 --> 00:28:02,456
+great effects.
+
+
+896
+00:28:02,506 --> 00:28:04,296
+As you can see, I have cascading
+
+
+897
+00:28:04,296 --> 00:28:07,886
+shadow maps, bloom, depth of
+
+
+898
+00:28:07,886 --> 00:28:09,436
+field, and all of it comes
+
+
+899
+00:28:09,476 --> 00:28:10,956
+together to create a beautifully
+
+
+900
+00:28:10,956 --> 00:28:11,676
+rendered scene.
+
+
+901
+00:28:12,636 --> 00:28:13,906
+Let's use the dependency viewer
+
+
+902
+00:28:13,906 --> 00:28:15,316
+to see how it all works.
+
+
+903
+00:28:15,706 --> 00:28:17,646
+First, we'll go to Xcode and
+
+
+904
+00:28:17,796 --> 00:28:19,216
+we'll capture a frame using the
+
+
+905
+00:28:19,256 --> 00:28:20,666
+capture GPU frame button in the
+
+
+906
+00:28:20,666 --> 00:28:20,996
+bottom.
+
+
+907
+00:28:21,306 --> 00:28:22,656
+And we'll select the main pass
+
+
+908
+00:28:22,656 --> 00:28:23,886
+on the left.
+
+
+909
+00:28:24,616 --> 00:28:26,846
+[Applause] And we'll also switch
+
+
+910
+00:28:26,846 --> 00:28:28,096
+to automatic mode which will
+
+
+911
+00:28:28,096 --> 00:28:29,186
+give us, will give us our
+
+
+912
+00:28:29,186 --> 00:28:29,966
+assistant on the right.
+
+
+913
+00:28:30,416 --> 00:28:32,166
+Now notice that the same pass
+
+
+914
+00:28:32,166 --> 00:28:33,666
+that I selected in the debug
+
+
+915
+00:28:33,666 --> 00:28:35,326
+navigator is also the one that's
+
+
+916
+00:28:35,326 --> 00:28:36,856
+showing-- is selected, and
+
+
+917
+00:28:36,856 --> 00:28:38,236
+focused in the main view.
+
+
+918
+00:28:38,626 --> 00:28:39,816
+And this is a two-way street.
+
+
+919
+00:28:40,996 --> 00:28:43,116
+So as we interact with the
+
+
+920
+00:28:43,116 --> 00:28:44,916
+graph, select, selecting
+
+
+921
+00:28:44,916 --> 00:28:48,096
+different passes or textures or
+
+
+922
+00:28:48,096 --> 00:28:50,696
+even buffers, both the navigator
+
+
+923
+00:28:50,696 --> 00:28:52,126
+on the left and the assistant on
+
+
+924
+00:28:52,126 --> 00:28:53,796
+the right will update to show
+
+
+925
+00:28:53,796 --> 00:28:54,526
+your selection.
+
+
+926
+00:28:55,406 --> 00:28:56,726
+So this is a really fantastic
+
+
+927
+00:28:56,726 --> 00:28:58,186
+way to navigate your frame.
+
+
+928
+00:29:01,206 --> 00:29:03,246
+Now as I zoom out, the first
+
+
+929
+00:29:03,246 --> 00:29:03,986
+thing you'll notice that the
+
+
+930
+00:29:03,986 --> 00:29:05,856
+statistics hide and the focus
+
+
+931
+00:29:05,886 --> 00:29:07,076
+goes away from the individual
+
+
+932
+00:29:07,076 --> 00:29:09,176
+passes onto the frame as a
+
+
+933
+00:29:09,176 --> 00:29:09,506
+whole.
+
+
+934
+00:29:10,226 --> 00:29:12,376
+And I can zoom out even more to
+
+
+935
+00:29:12,376 --> 00:29:14,506
+see a great bird's-eye view of
+
+
+936
+00:29:14,506 --> 00:29:15,546
+my entire frame.
+
+
+937
+00:29:16,026 --> 00:29:18,566
+Now the really cool thing to
+
+
+938
+00:29:18,566 --> 00:29:20,196
+notice here is that since
+
+
+939
+00:29:20,196 --> 00:29:21,446
+dependencies drive the
+
+
+940
+00:29:21,446 --> 00:29:24,716
+connectivity of the graph, each
+
+
+941
+00:29:24,716 --> 00:29:26,466
+logical piece of work is grouped
+
+
+942
+00:29:26,466 --> 00:29:27,606
+together in space.
+
+
+943
+00:29:28,466 --> 00:29:29,586
+So let's zoom in and see what I
+
+
+944
+00:29:29,586 --> 00:29:29,766
+mean.
+
+
+945
+00:29:30,496 --> 00:29:31,826
+Here I have a branch of work
+
+
+946
+00:29:32,256 --> 00:29:33,676
+that's creating my shadow maps.
+
+
+947
+00:29:34,336 --> 00:29:37,436
+On the left, I can see three
+
+
+948
+00:29:37,436 --> 00:29:39,866
+passes that are rendering the
+
+
+949
+00:29:39,866 --> 00:29:40,516
+shadows.
+
+
+950
+00:29:40,976 --> 00:29:42,526
+So this is really fantastic
+
+
+951
+00:29:42,866 --> 00:29:44,496
+because I'm not just getting the
+
+
+952
+00:29:44,496 --> 00:29:46,026
+story of my entire frame.
+
+
+953
+00:29:46,356 --> 00:29:48,056
+But there's another story in
+
+
+954
+00:29:48,056 --> 00:29:49,286
+between these two layers.
+
+
+955
+00:29:49,786 --> 00:29:51,036
+One of how each rendering
+
+
+956
+00:29:51,036 --> 00:29:53,476
+technique is built up.
+
+
+957
+00:29:53,476 --> 00:29:54,866
+And this is something that isn't
+
+
+958
+00:29:54,866 --> 00:29:56,496
+always entirely obvious when
+
+
+959
+00:29:56,496 --> 00:29:57,506
+you're using a game engine to
+
+
+960
+00:29:57,506 --> 00:29:58,136
+turn these on.
+
+
+961
+00:29:58,536 --> 00:29:59,506
+For instance, when my shadow
+
+
+962
+00:29:59,506 --> 00:30:01,956
+maps, I may not have known that
+
+
+963
+00:30:01,956 --> 00:30:03,306
+cas-- that each cascade would
+
+
+964
+00:30:03,306 --> 00:30:05,686
+require its own pass.
+
+
+965
+00:30:05,686 --> 00:30:06,706
+If I considered each one of
+
+
+966
+00:30:06,706 --> 00:30:08,316
+these individually, they
+
+
+967
+00:30:08,316 --> 00:30:09,476
+wouldn't really stand out.
+
+
+968
+00:30:09,816 --> 00:30:10,896
+But now I see that I have to
+
+
+969
+00:30:10,896 --> 00:30:12,206
+consider them as a group.
+
+
+970
+00:30:12,736 --> 00:30:15,016
+And that gives me the insights
+
+
+971
+00:30:15,016 --> 00:30:16,716
+that I need to make informed
+
+
+972
+00:30:16,716 --> 00:30:18,926
+decisions on any compromises
+
+
+973
+00:30:19,096 --> 00:30:20,786
+that I make while tuning my GPU
+
+
+974
+00:30:20,786 --> 00:30:21,196
+workload.
+
+
+975
+00:30:21,696 --> 00:30:24,086
+So that's the Dependency viewer.
+
+
+976
+00:30:24,876 --> 00:30:26,166
+I'll switch back to the slides.
+
+
+977
+00:30:26,166 --> 00:30:27,366
+And please help me welcome
+
+
+978
+00:30:27,366 --> 00:30:28,666
+Guillem back onto the stage for
+
+
+979
+00:30:28,666 --> 00:30:29,316
+his final thoughts.
+
+
+980
+00:30:29,686 --> 00:30:29,976
+Thank you.
+
+
+981
+00:30:30,516 --> 00:30:35,906
+[ Applause ]
+
+
+982
+00:30:36,406 --> 00:30:36,746
+>> Thank you.
+
+
+983
+00:30:36,746 --> 00:30:39,016
+That was an awesome demo
+
+
+984
+00:30:39,016 --> 00:30:39,083
+[inaudible].
+
+
+985
+00:30:44,146 --> 00:30:44,416
+Cool.
+
+
+986
+00:30:44,816 --> 00:30:46,936
+So Ohad had just shown us how a
+
+
+987
+00:30:46,986 --> 00:30:47,926
+frame looks like through
+
+
+988
+00:30:47,926 --> 00:30:48,796
+Dependency viewer.
+
+
+989
+00:30:50,226 --> 00:30:52,646
+And that is great for you to
+
+
+990
+00:30:52,646 --> 00:30:54,106
+inspect your GPU workload.
+
+
+991
+00:30:54,816 --> 00:30:57,056
+For example, oftentimes we may
+
+
+992
+00:30:57,056 --> 00:30:58,916
+go from a very small and simple
+
+
+993
+00:30:58,976 --> 00:31:01,936
+pipeline such as this one to a
+
+
+994
+00:31:01,936 --> 00:31:04,166
+very complex one with
+
+
+995
+00:31:04,946 --> 00:31:07,106
+post-process, multiple shadow
+
+
+996
+00:31:07,106 --> 00:31:07,966
+maps in HDR.
+
+
+997
+00:31:07,966 --> 00:31:11,786
+And all of these can be done by
+
+
+998
+00:31:11,786 --> 00:31:13,056
+adding, you know, a couple
+
+
+999
+00:31:13,166 --> 00:31:14,716
+properties to the common object
+
+
+1000
+00:31:14,716 --> 00:31:16,066
+of your favorite game engine.
+
+
+1001
+00:31:17,326 --> 00:31:19,006
+You see that the code complexity
+
+
+1002
+00:31:19,006 --> 00:31:20,596
+of those changes is minimal.
+
+
+1003
+00:31:21,306 --> 00:31:22,716
+But the-- but the rendering
+
+
+1004
+00:31:22,716 --> 00:31:24,746
+complexity may have increased
+
+
+1005
+00:31:24,926 --> 00:31:28,686
+tenfold, which will really bring
+
+
+1006
+00:31:28,686 --> 00:31:30,456
+us back to the beginning right
+
+
+1007
+00:31:30,456 --> 00:31:31,346
+where we started.
+
+
+1008
+00:31:32,616 --> 00:31:33,466
+Profile.
+
+
+1009
+00:31:34,506 --> 00:31:36,466
+It is very important that you
+
+
+1010
+00:31:36,466 --> 00:31:38,096
+understand what your game does.
+
+
+1011
+00:31:39,476 --> 00:31:41,686
+You spend tens of thousands of
+
+
+1012
+00:31:41,686 --> 00:31:43,626
+hours developing a game, you
+
+
+1013
+00:31:43,626 --> 00:31:45,116
+should consider spending some of
+
+
+1014
+00:31:45,116 --> 00:31:46,586
+that time profiling as well.
+
+
+1015
+00:31:47,716 --> 00:31:49,306
+Everything we have seen today
+
+
+1016
+00:31:50,166 --> 00:31:51,686
+can be found within minutes.
+
+
+1017
+00:31:52,746 --> 00:31:53,366
+The best part?
+
+
+1018
+00:31:53,996 --> 00:31:54,856
+You don't need to know what
+
+
+1019
+00:31:54,856 --> 00:31:55,606
+you're looking for.
+
+
+1020
+00:31:56,156 --> 00:31:58,156
+Just record the stutter, get the
+
+
+1021
+00:31:58,156 --> 00:32:00,216
+long frame, and work it all up--
+
+
+1022
+00:32:00,216 --> 00:32:01,206
+all the way up from there.
+
+
+1023
+00:32:01,706 --> 00:32:02,616
+It's that simple.
+
+
+1024
+00:32:03,156 --> 00:32:04,236
+The tool will give you all the
+
+
+1025
+00:32:04,236 --> 00:32:06,266
+information you need to identify
+
+
+1026
+00:32:06,266 --> 00:32:06,826
+the problems.
+
+
+1027
+00:32:07,716 --> 00:32:10,276
+But you will need to use the
+
+
+1028
+00:32:10,676 --> 00:32:11,006
+tool.
+
+
+1029
+00:32:11,516 --> 00:32:14,026
+And that is really the takeaway.
+
+
+1030
+00:32:14,626 --> 00:32:15,786
+So we have seen a bunch of
+
+
+1031
+00:32:15,866 --> 00:32:18,016
+common pitfalls followed by some
+
+
+1032
+00:32:18,016 --> 00:32:18,856
+best practices.
+
+
+1033
+00:32:19,906 --> 00:32:22,146
+All of these issues can be found
+
+
+1034
+00:32:22,146 --> 00:32:22,966
+through profiling.
+
+
+1035
+00:32:23,286 --> 00:32:24,266
+That's how we found them.
+
+
+1036
+00:32:24,456 --> 00:32:25,696
+We analyzed a ton of games,
+
+
+1037
+00:32:26,156 --> 00:32:27,426
+found the common issues, and
+
+
+1038
+00:32:27,426 --> 00:32:28,876
+decided to put a talk together.
+
+
+1039
+00:32:30,026 --> 00:32:31,926
+Now, if you have access to the
+
+
+1040
+00:32:31,926 --> 00:32:34,126
+engine source code, make sure
+
+
+1041
+00:32:34,126 --> 00:32:35,496
+that both thread pacing and
+
+
+1042
+00:32:35,496 --> 00:32:36,736
+thread priorities are well
+
+
+1043
+00:32:36,736 --> 00:32:37,336
+configured.
+
+
+1044
+00:32:37,336 --> 00:32:39,326
+It's just a couple lines of code
+
+
+1045
+00:32:39,356 --> 00:32:39,646
+really.
+
+
+1046
+00:32:40,796 --> 00:32:42,866
+But regardless, your game should
+
+
+1047
+00:32:42,946 --> 00:32:45,236
+always adapt to thermals and do
+
+
+1048
+00:32:45,236 --> 00:32:47,516
+not submit unnecessary GPU work.
+
+
+1049
+00:32:48,476 --> 00:32:49,996
+By making sure to follow all
+
+
+1050
+00:32:49,996 --> 00:32:52,436
+these best practices, you too
+
+
+1051
+00:32:52,436 --> 00:32:53,796
+will be developing technically
+
+
+1052
+00:32:53,796 --> 00:32:54,426
+awesome games.
+
+
+1053
+00:32:54,856 --> 00:32:55,886
+And that's what this is all
+
+
+1054
+00:32:55,886 --> 00:32:56,186
+about.
+
+
+1055
+00:32:57,396 --> 00:32:59,506
+For more information, there is
+
+
+1056
+00:32:59,506 --> 00:33:01,526
+a-- a coming lab at 12 PM.
+
+
+1057
+00:33:01,526 --> 00:33:02,446
+We will be there.
+
+
+1058
+00:33:02,446 --> 00:33:04,176
+I'll be there and now we'll be
+
+
+1059
+00:33:04,176 --> 00:33:05,426
+more than happy to ask any
+
+
+1060
+00:33:05,426 --> 00:33:06,596
+questions you may have after
+
+
+1061
+00:33:06,596 --> 00:33:07,276
+this session.
+
+
+1062
+00:33:08,056 --> 00:33:09,836
+Or maybe you just want to sit
+
+
+1063
+00:33:09,836 --> 00:33:11,576
+down and let us profile your
+
+
+1064
+00:33:11,576 --> 00:33:11,886
+game.
+
+
+1065
+00:33:12,786 --> 00:33:14,516
+Also there, there were two great
+
+
+1066
+00:33:14,516 --> 00:33:16,856
+talks [inaudible] about Metal
+
+
+1067
+00:33:16,856 --> 00:33:18,196
+for game developers and our
+
+
+1068
+00:33:18,196 --> 00:33:19,016
+profiling tools.
+
+
+1069
+00:33:19,596 --> 00:33:22,376
+Thank you very much, and enjoy
+
+
+1070
+00:33:22,376 --> 00:33:23,326
+the rest of the day.
+
+
+1071
+00:33:23,406 --> 00:33:23,976
+And have a great one.
+
+
+1072
+00:33:24,516 --> 00:33:31,500
+[ Applause ]
+

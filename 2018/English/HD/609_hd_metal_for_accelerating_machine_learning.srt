@@ -1,0 +1,6049 @@
+1
+00:00:07,016 --> 00:00:15,500
+[ Music ]
+
+
+2
+00:00:21,516 --> 00:00:28,316
+[ Applause ]
+
+
+3
+00:00:28,816 --> 00:00:30,896
+>> Good afternoon, everyone.
+
+
+4
+00:00:31,826 --> 00:00:33,356
+Welcome to our talk on Metal for
+
+
+5
+00:00:33,356 --> 00:00:34,666
+Accelerating Machine Learning.
+
+
+6
+00:00:35,596 --> 00:00:37,366
+My name is Anna Tikhonova, and
+
+
+7
+00:00:37,366 --> 00:00:38,606
+I'm an Engineer on the GPU
+
+
+8
+00:00:38,606 --> 00:00:40,006
+Software Team.
+
+
+9
+00:00:42,056 --> 00:00:44,126
+The Metal Performance Shaders
+
+
+10
+00:00:44,126 --> 00:00:45,596
+Framework is built on top of
+
+
+11
+00:00:45,596 --> 00:00:45,926
+Metal.
+
+
+12
+00:00:46,576 --> 00:00:48,216
+And it provides GPU accelerated
+
+
+13
+00:00:48,256 --> 00:00:49,886
+primitives that are optimized
+
+
+14
+00:00:50,036 --> 00:00:51,646
+for both iOS and macOS.
+
+
+15
+00:00:52,916 --> 00:00:54,516
+We provide primitives for image
+
+
+16
+00:00:54,516 --> 00:00:56,846
+processing, linear algebra, and
+
+
+17
+00:00:56,846 --> 00:00:57,566
+machine learning.
+
+
+18
+00:00:58,636 --> 00:01:00,106
+We talked extensively about
+
+
+19
+00:01:00,106 --> 00:01:01,956
+inference in our past WWDC
+
+
+20
+00:01:01,956 --> 00:01:03,416
+sessions, so I just want to
+
+
+21
+00:01:03,416 --> 00:01:05,316
+highlight them here.
+
+
+22
+00:01:06,456 --> 00:01:08,466
+And this year, we've also added
+
+
+23
+00:01:08,466 --> 00:01:10,326
+support for training on both iOS
+
+
+24
+00:01:10,326 --> 00:01:10,896
+and macOS.
+
+
+25
+00:01:12,516 --> 00:01:15,436
+[ Applause ]
+
+
+26
+00:01:15,936 --> 00:01:16,376
+Thank you.
+
+
+27
+00:01:18,876 --> 00:01:20,136
+We've also added support for
+
+
+28
+00:01:20,136 --> 00:01:21,586
+accelerated ray tracing on our
+
+
+29
+00:01:21,586 --> 00:01:23,946
+platform, and we had an entire
+
+
+30
+00:01:23,946 --> 00:01:25,936
+session on this topic earlier
+
+
+31
+00:01:25,936 --> 00:01:26,406
+this week.
+
+
+32
+00:01:26,676 --> 00:01:28,026
+So, it was titled Metal for Ray
+
+
+33
+00:01:28,026 --> 00:01:29,136
+Tracing Acceleration.
+
+
+34
+00:01:29,886 --> 00:01:31,666
+And the video for the session
+
+
+35
+00:01:31,666 --> 00:01:32,686
+will be available online
+
+
+36
+00:01:32,686 --> 00:01:33,086
+shortly.
+
+
+37
+00:01:34,406 --> 00:01:35,846
+In this session, I will talk
+
+
+38
+00:01:35,846 --> 00:01:36,996
+primarily about machine
+
+
+39
+00:01:36,996 --> 00:01:38,886
+learning, specifically training.
+
+
+40
+00:01:39,506 --> 00:01:43,206
+So, I mentioned training and
+
+
+41
+00:01:43,206 --> 00:01:43,586
+inference.
+
+
+42
+00:01:44,706 --> 00:01:46,316
+Deep learning algorithms consist
+
+
+43
+00:01:46,316 --> 00:01:47,256
+of these two phases.
+
+
+44
+00:01:47,646 --> 00:01:49,086
+The first phase is the training
+
+
+45
+00:01:49,086 --> 00:01:49,476
+phase.
+
+
+46
+00:01:50,526 --> 00:01:52,096
+So, let's use an example where
+
+
+47
+00:01:52,096 --> 00:01:53,866
+we want to train a model, to
+
+
+48
+00:01:53,866 --> 00:01:55,756
+categorize images into classes
+
+
+49
+00:01:56,236 --> 00:01:58,056
+like cats, dogs, giraffes,
+
+
+50
+00:01:58,056 --> 00:01:58,536
+etcetera.
+
+
+51
+00:02:00,036 --> 00:02:02,016
+So, in order to train a model to
+
+
+52
+00:02:02,016 --> 00:02:03,896
+recognize cats, we need to feed
+
+
+53
+00:02:03,896 --> 00:02:05,586
+it a large number of labeled
+
+
+54
+00:02:05,586 --> 00:02:06,476
+images of cats.
+
+
+55
+00:02:07,116 --> 00:02:09,156
+And same for the rabbits and all
+
+
+56
+00:02:09,156 --> 00:02:10,446
+of the other animals you want
+
+
+57
+00:02:10,446 --> 00:02:11,416
+your model to be able to
+
+
+58
+00:02:11,416 --> 00:02:11,936
+recognize.
+
+
+59
+00:02:12,436 --> 00:02:15,606
+Training is a computationally
+
+
+60
+00:02:15,606 --> 00:02:17,396
+expensive and time-consuming,
+
+
+61
+00:02:17,466 --> 00:02:18,406
+iterative process.
+
+
+62
+00:02:19,456 --> 00:02:20,806
+The result of training are
+
+
+63
+00:02:20,806 --> 00:02:21,766
+trained parameters.
+
+
+64
+00:02:23,956 --> 00:02:25,786
+The trained parameters are
+
+
+65
+00:02:25,786 --> 00:02:27,236
+required for the next phase, the
+
+
+66
+00:02:27,236 --> 00:02:27,966
+inference phase.
+
+
+67
+00:02:28,746 --> 00:02:30,396
+This is when your model is
+
+
+68
+00:02:30,396 --> 00:02:31,836
+presented with a new image, that
+
+
+69
+00:02:31,836 --> 00:02:33,286
+is never seen before, and it
+
+
+70
+00:02:33,286 --> 00:02:34,846
+needs to classify it based on
+
+
+71
+00:02:34,846 --> 00:02:35,746
+the trained parameters.
+
+
+72
+00:02:36,266 --> 00:02:36,836
+This is a cat.
+
+
+73
+00:02:38,336 --> 00:02:40,266
+We now provide GPU acceleration
+
+
+74
+00:02:40,516 --> 00:02:41,976
+for both the training and
+
+
+75
+00:02:41,976 --> 00:02:42,826
+inference phases.
+
+
+76
+00:02:43,466 --> 00:02:46,896
+But before I talk about
+
+
+77
+00:02:46,896 --> 00:02:48,336
+training, let me tell you about
+
+
+78
+00:02:48,336 --> 00:02:49,886
+some enhancements to CNN
+
+
+79
+00:02:49,886 --> 00:02:51,106
+Inference we've added this year.
+
+
+80
+00:02:51,976 --> 00:02:53,566
+We now have support for FP16
+
+
+81
+00:02:53,626 --> 00:02:56,116
+accumulation for the convolution
+
+
+82
+00:02:56,116 --> 00:02:57,536
+and convolution transpose
+
+
+83
+00:02:57,536 --> 00:02:57,966
+primitives.
+
+
+84
+00:02:58,996 --> 00:03:00,556
+This new feature is available on
+
+
+85
+00:03:00,556 --> 00:03:02,936
+devices with an Apple A11 Bionic
+
+
+86
+00:03:02,936 --> 00:03:03,216
+GPU.
+
+
+87
+00:03:04,446 --> 00:03:06,516
+We find that using FP16
+
+
+88
+00:03:06,546 --> 00:03:07,856
+accumulation for inference
+
+
+89
+00:03:07,856 --> 00:03:09,266
+workloads is more than
+
+
+90
+00:03:09,266 --> 00:03:10,956
+sufficient in terms of precision
+
+
+91
+00:03:11,996 --> 00:03:13,636
+for many commonly used neural
+
+
+92
+00:03:13,636 --> 00:03:14,036
+networks.
+
+
+93
+00:03:15,656 --> 00:03:17,866
+FP16 accumulation offers better
+
+
+94
+00:03:17,866 --> 00:03:19,926
+precision and significant power
+
+
+95
+00:03:19,926 --> 00:03:20,556
+benefits.
+
+
+96
+00:03:20,736 --> 00:03:22,196
+So, please take advantage of it
+
+
+97
+00:03:22,706 --> 00:03:23,926
+in your inference workloads.
+
+
+98
+00:03:25,216 --> 00:03:26,996
+And this is an example of how
+
+
+99
+00:03:26,996 --> 00:03:29,046
+you can enable FP16 accumulation
+
+
+100
+00:03:29,306 --> 00:03:30,536
+for a convolution primitive.
+
+
+101
+00:03:30,996 --> 00:03:31,806
+You just need to set the
+
+
+102
+00:03:31,806 --> 00:03:33,446
+accumulatorPrecisionOption
+
+
+103
+00:03:33,446 --> 00:03:33,906
+property.
+
+
+104
+00:03:36,126 --> 00:03:38,536
+And now, let's talk in depth
+
+
+105
+00:03:38,536 --> 00:03:40,296
+about the main topic of this
+
+
+106
+00:03:40,296 --> 00:03:41,986
+session, training neural
+
+
+107
+00:03:41,986 --> 00:03:42,536
+networks.
+
+
+108
+00:03:43,136 --> 00:03:44,356
+And let's start with training
+
+
+109
+00:03:44,356 --> 00:03:46,476
+convolutional neural networks.
+
+
+110
+00:03:48,316 --> 00:03:50,296
+So, here we have a simple,
+
+
+111
+00:03:50,296 --> 00:03:51,856
+handwritten, digit recognition
+
+
+112
+00:03:51,856 --> 00:03:54,606
+network that takes an image of a
+
+
+113
+00:03:54,606 --> 00:03:57,336
+handwritten image as input, and
+
+
+114
+00:03:57,646 --> 00:03:59,256
+assigns it to one of 10 classes,
+
+
+115
+00:03:59,506 --> 00:04:00,386
+from 0 to 9.
+
+
+116
+00:04:00,386 --> 00:04:02,826
+In this example, we are
+
+
+117
+00:04:02,826 --> 00:04:04,546
+correctly classifying this image
+
+
+118
+00:04:04,826 --> 00:04:06,406
+as an image of a digit 7.
+
+
+119
+00:04:07,086 --> 00:04:11,496
+For inference, we initialize our
+
+
+120
+00:04:11,496 --> 00:04:12,886
+network with trained parameters.
+
+
+121
+00:04:14,086 --> 00:04:15,436
+So, in this example, the trained
+
+
+122
+00:04:15,436 --> 00:04:16,716
+parameters add the weights for
+
+
+123
+00:04:16,716 --> 00:04:18,196
+the convolution, and fully
+
+
+124
+00:04:18,196 --> 00:04:19,106
+connected primitives.
+
+
+125
+00:04:20,426 --> 00:04:21,886
+The goal of a training algorithm
+
+
+126
+00:04:21,926 --> 00:04:23,046
+is to compute these trained
+
+
+127
+00:04:23,046 --> 00:04:24,586
+parameters, so the network can
+
+
+128
+00:04:24,586 --> 00:04:26,706
+use them to map inputs to
+
+
+129
+00:04:26,706 --> 00:04:27,896
+correct outputs during
+
+
+130
+00:04:27,926 --> 00:04:28,416
+inference.
+
+
+131
+00:04:29,076 --> 00:04:31,436
+When we start the training
+
+
+132
+00:04:31,436 --> 00:04:32,796
+process, we don't have any
+
+
+133
+00:04:32,796 --> 00:04:33,106
+weights.
+
+
+134
+00:04:33,496 --> 00:04:34,536
+We need to compute them.
+
+
+135
+00:04:34,786 --> 00:04:37,116
+So, the first step is to
+
+
+136
+00:04:37,246 --> 00:04:38,446
+initialize the weights with
+
+
+137
+00:04:38,446 --> 00:04:39,386
+small, random numbers.
+
+
+138
+00:04:40,026 --> 00:04:41,106
+And now we are ready to train
+
+
+139
+00:04:41,106 --> 00:04:41,676
+this network.
+
+
+140
+00:04:41,946 --> 00:04:43,386
+So, let's take a look at all the
+
+
+141
+00:04:43,436 --> 00:04:44,696
+steps involved in a training
+
+
+142
+00:04:44,696 --> 00:04:45,236
+process.
+
+
+143
+00:04:47,836 --> 00:04:49,146
+Training is an iterative
+
+
+144
+00:04:49,216 --> 00:04:51,006
+process, and each iteration of
+
+
+145
+00:04:51,006 --> 00:04:52,506
+training can be divided into
+
+
+146
+00:04:52,506 --> 00:04:53,056
+four steps.
+
+
+147
+00:04:53,296 --> 00:04:55,256
+The first step is the forward
+
+
+148
+00:04:55,256 --> 00:04:55,376
+pass.
+
+
+149
+00:04:56,026 --> 00:04:57,556
+This is when we take an input
+
+
+150
+00:04:57,696 --> 00:04:59,366
+and pass it to our network to
+
+
+151
+00:04:59,366 --> 00:05:00,296
+produce an output.
+
+
+152
+00:05:01,106 --> 00:05:02,396
+It's very similar to inference.
+
+
+153
+00:05:04,226 --> 00:05:05,416
+And next, we need to compute
+
+
+154
+00:05:05,416 --> 00:05:05,766
+loss.
+
+
+155
+00:05:06,346 --> 00:05:08,156
+So, loss intuitively measures
+
+
+156
+00:05:08,196 --> 00:05:09,326
+the difference between the
+
+
+157
+00:05:09,326 --> 00:05:10,906
+network's output and the ground
+
+
+158
+00:05:10,906 --> 00:05:11,196
+truth.
+
+
+159
+00:05:13,336 --> 00:05:14,726
+The objective of a training
+
+
+160
+00:05:14,726 --> 00:05:16,216
+algorithm is to minimize loss.
+
+
+161
+00:05:17,076 --> 00:05:20,596
+Our next step is the gradient
+
+
+162
+00:05:21,246 --> 00:05:21,426
+pass.
+
+
+163
+00:05:21,536 --> 00:05:22,926
+This is when we propagate this
+
+
+164
+00:05:22,926 --> 00:05:24,136
+difference when the network's
+
+
+165
+00:05:24,136 --> 00:05:26,166
+output and the ground truth,
+
+
+166
+00:05:26,166 --> 00:05:28,506
+back to the network to update
+
+
+167
+00:05:28,506 --> 00:05:28,756
+weights.
+
+
+168
+00:05:29,966 --> 00:05:32,486
+The idea is that as training
+
+
+169
+00:05:32,486 --> 00:05:34,036
+continues, our network is
+
+
+170
+00:05:34,036 --> 00:05:35,656
+becoming better trained, so it's
+
+
+171
+00:05:35,656 --> 00:05:37,886
+better able to map inputs to
+
+
+172
+00:05:37,886 --> 00:05:40,486
+correct outputs, which in turn
+
+
+173
+00:05:40,486 --> 00:05:41,426
+helps to minimize loss.
+
+
+174
+00:05:42,346 --> 00:05:45,136
+So, this is an overview and now
+
+
+175
+00:05:45,136 --> 00:05:46,466
+let's take a look at each one of
+
+
+176
+00:05:46,466 --> 00:05:47,686
+these steps in more detail.
+
+
+177
+00:05:47,986 --> 00:05:50,986
+The forward pass involves
+
+
+178
+00:05:51,586 --> 00:05:53,226
+propagation forward to the
+
+
+179
+00:05:53,226 --> 00:05:55,046
+network, to compute an output.
+
+
+180
+00:05:56,116 --> 00:05:57,416
+As you can see, during this
+
+
+181
+00:05:57,416 --> 00:05:59,246
+first situation of training, our
+
+
+182
+00:05:59,246 --> 00:06:00,616
+network is not doing so well.
+
+
+183
+00:06:01,256 --> 00:06:03,136
+It's outputting a result that's
+
+
+184
+00:06:03,136 --> 00:06:03,806
+clearly wrong.
+
+
+185
+00:06:03,806 --> 00:06:05,056
+So, why is it doing so badly?
+
+
+186
+00:06:05,656 --> 00:06:06,896
+Well, this is expected.
+
+
+187
+00:06:06,896 --> 00:06:08,756
+We just initialized our weights
+
+
+188
+00:06:08,756 --> 00:06:09,746
+with some random numbers.
+
+
+189
+00:06:09,836 --> 00:06:11,046
+We haven't trained the network
+
+
+190
+00:06:11,046 --> 00:06:12,626
+to do any better yet.
+
+
+191
+00:06:13,656 --> 00:06:15,636
+So, now, we need some weight to
+
+
+192
+00:06:15,636 --> 00:06:18,296
+quantify how well or how badly
+
+
+193
+00:06:18,376 --> 00:06:19,636
+our network is currently doing.
+
+
+194
+00:06:20,086 --> 00:06:21,886
+So, we can use this information
+
+
+195
+00:06:22,476 --> 00:06:24,206
+to improve our weights, so that
+
+
+196
+00:06:24,206 --> 00:06:25,686
+hopefully after more iterations
+
+
+197
+00:06:25,686 --> 00:06:27,096
+of training, the network can
+
+
+198
+00:06:27,096 --> 00:06:28,106
+produce a better result.
+
+
+199
+00:06:28,776 --> 00:06:31,696
+But in order to know how well
+
+
+200
+00:06:31,696 --> 00:06:33,006
+we're doing, we need to know
+
+
+201
+00:06:33,006 --> 00:06:34,146
+what the right answers are.
+
+
+202
+00:06:34,666 --> 00:06:36,326
+So, the ground truth, which I
+
+
+203
+00:06:36,326 --> 00:06:38,406
+will call labels from now on, is
+
+
+204
+00:06:38,406 --> 00:06:40,276
+an input to the network along
+
+
+205
+00:06:40,276 --> 00:06:41,256
+with the input image.
+
+
+206
+00:06:42,356 --> 00:06:43,646
+So, in this case, it's a vector
+
+
+207
+00:06:43,646 --> 00:06:45,276
+of 10 values, where we have 1
+
+
+208
+00:06:45,276 --> 00:06:47,006
+for the correct class, Class 7,
+
+
+209
+00:06:47,376 --> 00:06:48,756
+and zeros for all the other
+
+
+210
+00:06:49,566 --> 00:06:49,786
+classes.
+
+
+211
+00:06:51,376 --> 00:06:53,526
+The output of the network is our
+
+
+212
+00:06:53,526 --> 00:06:54,496
+10 probabilities.
+
+
+213
+00:06:54,926 --> 00:06:55,526
+One per class.
+
+
+214
+00:06:56,156 --> 00:06:58,136
+So, as you can see in this first
+
+
+215
+00:06:58,136 --> 00:06:59,236
+situation of training, the
+
+
+216
+00:06:59,236 --> 00:07:01,116
+network is producing a very low
+
+
+217
+00:07:01,116 --> 00:07:03,026
+result for the correct Class 7,
+
+
+218
+00:07:03,656 --> 00:07:05,336
+and it's assigning the highest
+
+
+219
+00:07:05,336 --> 00:07:07,686
+probability to a Class 9, which
+
+
+220
+00:07:07,686 --> 00:07:08,976
+is why the network is returning
+
+
+221
+00:07:08,976 --> 00:07:09,756
+9 as the answer.
+
+
+222
+00:07:11,486 --> 00:07:12,566
+So, now we take all of this
+
+
+223
+00:07:12,566 --> 00:07:14,576
+information and we pass it to
+
+
+224
+00:07:14,776 --> 00:07:15,646
+our loss primitive.
+
+
+225
+00:07:16,316 --> 00:07:20,386
+And as I mentioned previously,
+
+
+226
+00:07:21,476 --> 00:07:23,266
+loss measures the difference
+
+
+227
+00:07:23,476 --> 00:07:25,506
+between the network's output and
+
+
+228
+00:07:25,666 --> 00:07:26,466
+the ground truth.
+
+
+229
+00:07:27,266 --> 00:07:28,836
+And the objective of a training
+
+
+230
+00:07:28,836 --> 00:07:30,216
+algorithm is to minimize loss.
+
+
+231
+00:07:32,306 --> 00:07:33,756
+And now, we also need the second
+
+
+232
+00:07:33,756 --> 00:07:36,106
+half of the graph.
+
+
+233
+00:07:36,616 --> 00:07:37,646
+The second half of the graph
+
+
+234
+00:07:37,876 --> 00:07:40,736
+contains gradient primitives for
+
+
+235
+00:07:40,736 --> 00:07:41,876
+each responding forward
+
+
+236
+00:07:41,876 --> 00:07:42,226
+primitive.
+
+
+237
+00:07:43,286 --> 00:07:45,456
+The gradient primitives compute
+
+
+238
+00:07:45,456 --> 00:07:47,166
+gradients that are needed to
+
+
+239
+00:07:47,166 --> 00:07:48,306
+update weights.
+
+
+240
+00:07:49,136 --> 00:07:52,366
+So, the loss primitive computes
+
+
+241
+00:07:52,786 --> 00:07:54,856
+the first gradient, which is a
+
+
+242
+00:07:54,856 --> 00:07:56,146
+derivative of a chosen loss
+
+
+243
+00:07:56,146 --> 00:07:57,376
+function with respect to its
+
+
+244
+00:07:57,376 --> 00:07:57,756
+inputs.
+
+
+245
+00:07:58,286 --> 00:07:59,646
+And then we take this gradient
+
+
+246
+00:08:00,006 --> 00:08:02,926
+and back propagate it, backward
+
+
+247
+00:08:02,926 --> 00:08:04,596
+through the network, backward
+
+
+248
+00:08:04,596 --> 00:08:07,586
+through the first gradient
+
+
+249
+00:08:07,586 --> 00:08:08,966
+primitive in the backward
+
+
+250
+00:08:08,966 --> 00:08:09,496
+direction.
+
+
+251
+00:08:09,556 --> 00:08:11,196
+In this case, it's the SoftMax
+
+
+252
+00:08:12,026 --> 00:08:12,836
+gradient primitive.
+
+
+253
+00:08:14,036 --> 00:08:15,266
+And we use the Chain Rule to do
+
+
+254
+00:08:15,266 --> 00:08:15,486
+that.
+
+
+255
+00:08:15,576 --> 00:08:16,796
+So, the Chain Rule allows us to
+
+
+256
+00:08:16,796 --> 00:08:18,116
+back propagate gradients,
+
+
+257
+00:08:18,116 --> 00:08:19,106
+backwards through the network.
+
+
+258
+00:08:20,486 --> 00:08:21,556
+And we're computing these
+
+
+259
+00:08:21,556 --> 00:08:23,396
+gradients so that we can update
+
+
+260
+00:08:23,396 --> 00:08:23,796
+weights.
+
+
+261
+00:08:24,166 --> 00:08:25,736
+So, we're computing very small
+
+
+262
+00:08:25,736 --> 00:08:27,376
+deltas to apply to the weights,
+
+
+263
+00:08:28,016 --> 00:08:29,216
+in each iteration of training.
+
+
+264
+00:08:29,766 --> 00:08:32,645
+And then we can use these
+
+
+265
+00:08:32,645 --> 00:08:34,056
+updated weights in the next
+
+
+266
+00:08:34,056 --> 00:08:36,395
+iteration of training, to
+
+
+267
+00:08:36,395 --> 00:08:37,785
+ideally produce a lower loss
+
+
+268
+00:08:37,785 --> 00:08:38,816
+value, which is what we're
+
+
+269
+00:08:38,816 --> 00:08:39,626
+trying to minimize.
+
+
+270
+00:08:43,606 --> 00:08:45,156
+In practice, any situation of
+
+
+271
+00:08:45,156 --> 00:08:47,086
+training, we're not going to
+
+
+272
+00:08:47,086 --> 00:08:48,506
+operate on a single image.
+
+
+273
+00:08:49,116 --> 00:08:50,666
+We're going to operate on a
+
+
+274
+00:08:50,666 --> 00:08:52,226
+group or a batch of images.
+
+
+275
+00:08:52,226 --> 00:08:54,396
+For example, a batch of size 32
+
+
+276
+00:08:54,396 --> 00:08:55,056
+or 64.
+
+
+277
+00:08:55,566 --> 00:08:57,176
+And we need a corresponding
+
+
+278
+00:08:57,176 --> 00:08:59,916
+batch of labels, for loss
+
+
+279
+00:08:59,916 --> 00:09:00,576
+computation.
+
+
+280
+00:09:00,736 --> 00:09:02,096
+So, in this case, we have a
+
+
+281
+00:09:02,096 --> 00:09:04,046
+batch of labels, was 1 for the
+
+
+282
+00:09:04,046 --> 00:09:05,426
+correct class and zeroes
+
+
+283
+00:09:05,426 --> 00:09:05,976
+everywhere else.
+
+
+284
+00:09:09,506 --> 00:09:10,596
+And in each situation of
+
+
+285
+00:09:10,596 --> 00:09:12,176
+training, we're going to use a
+
+
+286
+00:09:12,176 --> 00:09:14,366
+different batch of images and a
+
+
+287
+00:09:14,416 --> 00:09:15,716
+responding batch of labels.
+
+
+288
+00:09:16,166 --> 00:09:17,166
+So, let's now run through
+
+
+289
+00:09:17,166 --> 00:09:18,596
+several iterations of training.
+
+
+290
+00:09:21,066 --> 00:09:23,686
+For the first batch of images,
+
+
+291
+00:09:23,686 --> 00:09:25,006
+we're doing a forward pass,
+
+
+292
+00:09:25,086 --> 00:09:27,276
+computing loss, and doing a
+
+
+293
+00:09:27,276 --> 00:09:28,846
+gradient pass.
+
+
+294
+00:09:28,976 --> 00:09:29,926
+And updating weights.
+
+
+295
+00:09:30,356 --> 00:09:31,906
+So, what happens with the second
+
+
+296
+00:09:31,906 --> 00:09:32,276
+batch?
+
+
+297
+00:09:32,536 --> 00:09:33,876
+Exactly the same process.
+
+
+298
+00:09:34,306 --> 00:09:35,446
+The forward pass, then we
+
+
+299
+00:09:35,446 --> 00:09:37,276
+compute loss, to the gradient
+
+
+300
+00:09:37,276 --> 00:09:38,656
+pass, and update weights.
+
+
+301
+00:09:40,156 --> 00:09:41,566
+And as we go through iterations
+
+
+302
+00:09:41,566 --> 00:09:44,126
+of training, we want the loss
+
+
+303
+00:09:44,616 --> 00:09:47,006
+for our network to decrease and
+
+
+304
+00:09:47,066 --> 00:09:48,796
+the accuracy of the network to
+
+
+305
+00:09:48,796 --> 00:09:49,186
+increase.
+
+
+306
+00:09:49,576 --> 00:09:51,526
+And we continue training until
+
+
+307
+00:09:51,526 --> 00:09:52,736
+the loss falls below a
+
+
+308
+00:09:52,736 --> 00:09:54,756
+particular threshold and the
+
+
+309
+00:09:54,756 --> 00:09:56,916
+accuracy of our network reaches
+
+
+310
+00:09:56,916 --> 00:09:57,626
+a desired level.
+
+
+311
+00:09:58,426 --> 00:09:59,666
+And then we know that the
+
+
+312
+00:09:59,666 --> 00:10:01,206
+network is fully trained and now
+
+
+313
+00:10:01,206 --> 00:10:02,496
+we can use the computed trained
+
+
+314
+00:10:02,526 --> 00:10:03,976
+parameters for inference.
+
+
+315
+00:10:04,826 --> 00:10:06,196
+And now, let's take a look at
+
+
+316
+00:10:06,666 --> 00:10:08,286
+the steps necessary to train a
+
+
+317
+00:10:08,286 --> 00:10:10,046
+neural network using the Metal
+
+
+318
+00:10:10,046 --> 00:10:11,336
+Performance Shaders Framework.
+
+
+319
+00:10:11,516 --> 00:10:13,116
+Neural networks are often
+
+
+320
+00:10:13,116 --> 00:10:14,826
+described using graph
+
+
+321
+00:10:14,826 --> 00:10:15,516
+abstraction.
+
+
+322
+00:10:15,816 --> 00:10:17,726
+So, in MPS, we enable you to
+
+
+323
+00:10:17,726 --> 00:10:18,936
+describe your networks as a
+
+
+324
+00:10:18,936 --> 00:10:19,316
+graph.
+
+
+325
+00:10:20,996 --> 00:10:22,326
+So, the first step is to create
+
+
+326
+00:10:22,326 --> 00:10:22,916
+a training graph.
+
+
+327
+00:10:24,526 --> 00:10:25,526
+Then we need to prepare our
+
+
+328
+00:10:25,526 --> 00:10:26,216
+inputs.
+
+
+329
+00:10:26,456 --> 00:10:27,876
+We need to specify weights.
+
+
+330
+00:10:28,066 --> 00:10:29,306
+And then we execute the graph.
+
+
+331
+00:10:29,476 --> 00:10:31,186
+So, we run the forward paths,
+
+
+332
+00:10:31,346 --> 00:10:33,166
+compute loss, do the gradient
+
+
+333
+00:10:33,226 --> 00:10:34,496
+pass, and update weights.
+
+
+334
+00:10:35,266 --> 00:10:37,086
+And training is an iterative
+
+
+335
+00:10:37,176 --> 00:10:37,646
+process.
+
+
+336
+00:10:38,706 --> 00:10:40,486
+It can take many iterations to
+
+
+337
+00:10:40,486 --> 00:10:41,246
+train a network.
+
+
+338
+00:10:41,246 --> 00:10:42,936
+So, we'll also need to know when
+
+
+339
+00:10:42,936 --> 00:10:43,806
+we can stop training.
+
+
+340
+00:10:43,806 --> 00:10:45,306
+So, let's now discuss each one
+
+
+341
+00:10:45,306 --> 00:10:47,046
+of these topics in more detail.
+
+
+342
+00:10:47,576 --> 00:10:51,246
+Let's start with creating a
+
+
+343
+00:10:51,936 --> 00:10:52,486
+training graph.
+
+
+344
+00:10:52,806 --> 00:10:54,626
+So, as I said, in MPS, we enable
+
+
+345
+00:10:54,626 --> 00:10:56,236
+you to describe your networks as
+
+
+346
+00:10:56,236 --> 00:10:57,636
+a graph using a neural network
+
+
+347
+00:10:57,636 --> 00:10:58,336
+graph API.
+
+
+348
+00:10:58,886 --> 00:11:00,296
+So, here we again have a
+
+
+349
+00:11:00,296 --> 00:11:02,106
+visualization of our
+
+
+350
+00:11:02,106 --> 00:11:03,576
+handwritten, digit recognition
+
+
+351
+00:11:03,576 --> 00:11:03,966
+network.
+
+
+352
+00:11:04,656 --> 00:11:06,276
+But in this visualization, you
+
+
+353
+00:11:06,276 --> 00:11:08,026
+can also see the image notes.
+
+
+354
+00:11:08,026 --> 00:11:09,846
+They're the small white notes.
+
+
+355
+00:11:10,576 --> 00:11:12,666
+The image notes are for your
+
+
+356
+00:11:12,666 --> 00:11:12,936
+data.
+
+
+357
+00:11:13,426 --> 00:11:15,026
+For your input, your outputs,
+
+
+358
+00:11:15,026 --> 00:11:16,356
+and all of the intermediate
+
+
+359
+00:11:17,136 --> 00:11:17,346
+results.
+
+
+360
+00:11:18,256 --> 00:11:20,576
+They describe how data moves
+
+
+361
+00:11:20,576 --> 00:11:21,866
+between different operations.
+
+
+362
+00:11:22,766 --> 00:11:24,026
+And then, operations on the
+
+
+363
+00:11:24,026 --> 00:11:25,786
+data, like convolution and
+
+
+364
+00:11:25,816 --> 00:11:28,976
+pooling, are described with your
+
+
+365
+00:11:29,276 --> 00:11:29,826
+filter nodes.
+
+
+366
+00:11:30,626 --> 00:11:32,416
+We support all of the nodes
+
+
+367
+00:11:32,416 --> 00:11:34,236
+necessary to create commonly
+
+
+368
+00:11:34,236 --> 00:11:35,716
+used neural networks.
+
+
+369
+00:11:36,306 --> 00:11:38,316
+And now, let's take a look at
+
+
+370
+00:11:38,316 --> 00:11:39,716
+how easy it is to use the neural
+
+
+371
+00:11:39,716 --> 00:11:40,696
+network graph API.
+
+
+372
+00:11:41,346 --> 00:11:43,916
+So, here's an example of how you
+
+
+373
+00:11:43,916 --> 00:11:47,006
+can create an MPSImageNode using
+
+
+374
+00:11:47,006 --> 00:11:48,136
+the neural network graph API.
+
+
+375
+00:11:48,786 --> 00:11:49,906
+And this is how you would create
+
+
+376
+00:11:49,906 --> 00:11:51,656
+a convolution node using the
+
+
+377
+00:11:51,656 --> 00:11:52,296
+graph API.
+
+
+378
+00:11:53,416 --> 00:11:55,676
+And now, for every forward node,
+
+
+379
+00:11:56,046 --> 00:11:58,016
+we support a corresponding
+
+
+380
+00:11:58,066 --> 00:11:59,416
+gradient node for training.
+
+
+381
+00:11:59,796 --> 00:12:01,356
+It takes a single line of code
+
+
+382
+00:12:01,686 --> 00:12:03,176
+to create a gradient node from
+
+
+383
+00:12:03,176 --> 00:12:03,856
+the forward node.
+
+
+384
+00:12:04,226 --> 00:12:05,976
+So, here is an example of how
+
+
+385
+00:12:05,976 --> 00:12:07,296
+you can create a gradient
+
+
+386
+00:12:07,296 --> 00:12:08,746
+convolution node from the
+
+
+387
+00:12:08,746 --> 00:12:10,266
+convolution node.
+
+
+388
+00:12:12,656 --> 00:12:14,376
+And now, let's build an entire
+
+
+389
+00:12:14,376 --> 00:12:14,796
+graph.
+
+
+390
+00:12:16,206 --> 00:12:18,016
+So, here we have a very small
+
+
+391
+00:12:18,016 --> 00:12:18,476
+network.
+
+
+392
+00:12:18,476 --> 00:12:19,946
+We have a convolution node
+
+
+393
+00:12:19,946 --> 00:12:21,226
+followed by a pooling node,
+
+
+394
+00:12:21,356 --> 00:12:22,776
+followed by another convolution
+
+
+395
+00:12:22,776 --> 00:12:22,976
+node.
+
+
+396
+00:12:23,916 --> 00:12:25,116
+So, how do we connect these
+
+
+397
+00:12:25,116 --> 00:12:27,356
+nodes into a graph?
+
+
+398
+00:12:27,966 --> 00:12:28,886
+So, that's easy.
+
+
+399
+00:12:29,636 --> 00:12:32,396
+We take the result node of --
+
+
+400
+00:12:32,396 --> 00:12:34,796
+the result image of one node and
+
+
+401
+00:12:34,836 --> 00:12:36,926
+pass it as a source image to the
+
+
+402
+00:12:36,926 --> 00:12:37,776
+subsequent node.
+
+
+403
+00:12:38,976 --> 00:12:40,306
+And here we have an entire
+
+
+404
+00:12:40,306 --> 00:12:41,576
+connected graph.
+
+
+405
+00:12:42,716 --> 00:12:44,416
+And now, let's build a training
+
+
+406
+00:12:44,416 --> 00:12:44,806
+graph.
+
+
+407
+00:12:45,286 --> 00:12:47,776
+So first, we need to add a loss
+
+
+408
+00:12:47,776 --> 00:12:49,956
+node to the graph.
+
+
+409
+00:12:50,056 --> 00:12:51,516
+And now, let's add some gradient
+
+
+410
+00:12:51,516 --> 00:12:51,776
+nodes.
+
+
+411
+00:12:52,136 --> 00:12:53,386
+So, as I said, it takes a single
+
+
+412
+00:12:53,386 --> 00:12:54,866
+line of code to create a
+
+
+413
+00:12:54,866 --> 00:12:56,766
+gradient node from its
+
+
+414
+00:12:56,766 --> 00:12:58,466
+corresponding forward node.
+
+
+415
+00:12:58,466 --> 00:12:59,526
+And then we connect them as
+
+
+416
+00:12:59,526 --> 00:13:01,376
+previously, and now you have a
+
+
+417
+00:13:01,376 --> 00:13:03,206
+complete training graph.
+
+
+418
+00:13:05,156 --> 00:13:06,766
+So, as you can see from this
+
+
+419
+00:13:06,766 --> 00:13:09,576
+example, the graph API is very
+
+
+420
+00:13:09,576 --> 00:13:10,396
+simple to use.
+
+
+421
+00:13:11,666 --> 00:13:12,586
+The graph does a lot for you
+
+
+422
+00:13:12,586 --> 00:13:13,236
+automatically.
+
+
+423
+00:13:13,346 --> 00:13:14,906
+It manages all the intermediate
+
+
+424
+00:13:14,906 --> 00:13:17,786
+results, and even the output
+
+
+425
+00:13:17,786 --> 00:13:18,156
+image.
+
+
+426
+00:13:19,246 --> 00:13:21,476
+It minimizes the memory
+
+
+427
+00:13:21,476 --> 00:13:23,326
+footprint of your networks, by
+
+
+428
+00:13:23,656 --> 00:13:25,516
+aliasing memory for all your
+
+
+429
+00:13:25,516 --> 00:13:27,456
+intermediate images, using Metal
+
+
+430
+00:13:28,386 --> 00:13:28,926
+heaps.
+
+
+431
+00:13:28,926 --> 00:13:30,386
+It can also fuse graph nodes.
+
+
+432
+00:13:30,386 --> 00:13:32,386
+For example, it can fuse batch
+
+
+433
+00:13:32,386 --> 00:13:34,186
+normalization and neural nodes.
+
+
+434
+00:13:34,626 --> 00:13:36,306
+And it can optimize away nodes.
+
+
+435
+00:13:36,736 --> 00:13:38,056
+For example, it optimizes the
+
+
+436
+00:13:38,056 --> 00:13:39,186
+way you can cut nation nodes.
+
+
+437
+00:13:40,416 --> 00:13:41,996
+The graph also automatically
+
+
+438
+00:13:41,996 --> 00:13:44,046
+handles padding and manages
+
+
+439
+00:13:44,046 --> 00:13:45,336
+state objects for you, which we
+
+
+440
+00:13:45,336 --> 00:13:46,276
+will discuss later in this
+
+
+441
+00:13:46,276 --> 00:13:46,656
+session.
+
+
+442
+00:13:47,456 --> 00:13:49,186
+So, please take advantage of the
+
+
+443
+00:13:49,186 --> 00:13:49,876
+graph API.
+
+
+444
+00:13:54,196 --> 00:13:55,906
+So, now that we know how to
+
+
+445
+00:13:55,906 --> 00:13:57,736
+create a training graph, let's
+
+
+446
+00:13:57,736 --> 00:14:00,266
+now take a look at the inputs we
+
+
+447
+00:14:00,266 --> 00:14:01,386
+need to pass to the graph.
+
+
+448
+00:14:02,556 --> 00:14:03,966
+And for this, let's take a look
+
+
+449
+00:14:03,966 --> 00:14:05,546
+at the encode call we will use
+
+
+450
+00:14:05,816 --> 00:14:07,266
+to encode the graph to the GPU.
+
+
+451
+00:14:08,296 --> 00:14:09,886
+So, as I already mentioned,
+
+
+452
+00:14:09,886 --> 00:14:11,636
+we're not going to send in one
+
+
+453
+00:14:11,676 --> 00:14:13,026
+image at a time for training.
+
+
+454
+00:14:13,156 --> 00:14:14,926
+We're going to operate on groups
+
+
+455
+00:14:14,926 --> 00:14:16,236
+or batches of images.
+
+
+456
+00:14:16,576 --> 00:14:17,856
+So, one of the inputs to the
+
+
+457
+00:14:17,856 --> 00:14:19,536
+graph, is a batch of images.
+
+
+458
+00:14:20,926 --> 00:14:22,746
+And as you recall, for every
+
+
+459
+00:14:22,746 --> 00:14:24,566
+batch of images, we also need a
+
+
+460
+00:14:24,566 --> 00:14:26,346
+corresponding batch of labels
+
+
+461
+00:14:26,346 --> 00:14:27,446
+for loss computation.
+
+
+462
+00:14:28,696 --> 00:14:31,836
+The labels for loss computation
+
+
+463
+00:14:31,916 --> 00:14:33,366
+are passed to the graph as
+
+
+464
+00:14:33,446 --> 00:14:33,786
+states.
+
+
+465
+00:14:34,226 --> 00:14:36,536
+So, the code call also takes a
+
+
+466
+00:14:36,536 --> 00:14:37,786
+batch of states as input.
+
+
+467
+00:14:38,756 --> 00:14:40,496
+And now, let's talk about these
+
+
+468
+00:14:40,496 --> 00:14:41,406
+batches and states.
+
+
+469
+00:14:41,936 --> 00:14:42,456
+What are they?
+
+
+470
+00:14:42,596 --> 00:14:43,516
+Let's start with batches.
+
+
+471
+00:14:44,226 --> 00:14:46,496
+So, batches are just arrays of
+
+
+472
+00:14:46,756 --> 00:14:47,996
+images or states.
+
+
+473
+00:14:48,286 --> 00:14:49,416
+We've added them this year
+
+
+474
+00:14:49,416 --> 00:14:50,676
+specifically to support
+
+
+475
+00:14:50,676 --> 00:14:51,086
+training.
+
+
+476
+00:14:51,596 --> 00:14:53,416
+There are two new MPS types for
+
+
+477
+00:14:53,416 --> 00:14:56,376
+you to use: MPSImageBatch and
+
+
+478
+00:14:56,376 --> 00:14:57,696
+MPSStateBatch.
+
+
+479
+00:14:58,266 --> 00:15:00,106
+So, here's an example of how you
+
+
+480
+00:15:00,106 --> 00:15:01,966
+can create a single image, using
+
+
+481
+00:15:01,966 --> 00:15:02,696
+our API.
+
+
+482
+00:15:04,136 --> 00:15:05,536
+So, here we're creating one from
+
+
+483
+00:15:05,536 --> 00:15:06,736
+an existing Metal texture.
+
+
+484
+00:15:07,306 --> 00:15:09,646
+And this is an example of how
+
+
+485
+00:15:09,646 --> 00:15:11,206
+you can create a batch of
+
+
+486
+00:15:11,206 --> 00:15:13,676
+images, using our API and append
+
+
+487
+00:15:13,676 --> 00:15:15,116
+a new image to the batch, so you
+
+
+488
+00:15:15,116 --> 00:15:18,566
+can pass it to the graph.
+
+
+489
+00:15:18,566 --> 00:15:20,316
+And now, what are state objects?
+
+
+490
+00:15:20,426 --> 00:15:23,976
+An MPS state is an opaque data
+
+
+491
+00:15:23,976 --> 00:15:24,446
+container.
+
+
+492
+00:15:24,446 --> 00:15:27,356
+In training, it's frequently
+
+
+493
+00:15:27,356 --> 00:15:29,366
+used to capture a state of a
+
+
+494
+00:15:29,366 --> 00:15:32,366
+forward node, when it's called.
+
+
+495
+00:15:32,916 --> 00:15:35,206
+And so, it can later be used by
+
+
+496
+00:15:35,206 --> 00:15:35,996
+the gradient node.
+
+
+497
+00:15:37,106 --> 00:15:39,036
+So, the graph manages all of the
+
+
+498
+00:15:39,036 --> 00:15:39,776
+state objects.
+
+
+499
+00:15:39,776 --> 00:15:41,056
+So, as a developer, you
+
+
+500
+00:15:41,056 --> 00:15:42,286
+generally don't need to worry
+
+
+501
+00:15:42,286 --> 00:15:42,996
+about states.
+
+
+502
+00:15:43,306 --> 00:15:44,366
+But it's nice to know how they
+
+
+503
+00:15:44,366 --> 00:15:44,716
+work.
+
+
+504
+00:15:44,876 --> 00:15:46,196
+So, let's use a specific
+
+
+505
+00:15:46,196 --> 00:15:46,686
+example.
+
+
+506
+00:15:48,776 --> 00:15:50,116
+So, let's go back to our
+
+
+507
+00:15:50,116 --> 00:15:51,476
+handwritten digit recognition
+
+
+508
+00:15:51,476 --> 00:15:51,876
+network.
+
+
+509
+00:15:52,886 --> 00:15:55,096
+And take a look specifically at
+
+
+510
+00:15:55,096 --> 00:15:56,416
+the drop-out and drop-out
+
+
+511
+00:15:56,416 --> 00:15:57,956
+gradient nodes.
+
+
+512
+00:16:00,196 --> 00:16:02,926
+The forward drop-out node drops,
+
+
+513
+00:16:02,996 --> 00:16:04,636
+or it zeroes out, values in its
+
+
+514
+00:16:04,636 --> 00:16:05,676
+input, with a certain
+
+
+515
+00:16:05,676 --> 00:16:06,366
+probability.
+
+
+516
+00:16:06,996 --> 00:16:08,736
+And then, the dropout state
+
+
+517
+00:16:08,736 --> 00:16:10,826
+object captures information
+
+
+518
+00:16:10,826 --> 00:16:11,926
+about the forward drop-out
+
+
+519
+00:16:11,926 --> 00:16:14,486
+operation, so it can later be
+
+
+520
+00:16:14,486 --> 00:16:16,186
+used by the drop-out gradient
+
+
+521
+00:16:16,186 --> 00:16:18,576
+node because it used to zero out
+
+
+522
+00:16:19,886 --> 00:16:22,376
+values in its input gradient at
+
+
+523
+00:16:22,376 --> 00:16:24,156
+the exact same locations as was
+
+
+524
+00:16:24,156 --> 00:16:25,316
+zeroed out by the forward
+
+
+525
+00:16:25,316 --> 00:16:25,756
+operation.
+
+
+526
+00:16:26,176 --> 00:16:30,056
+So, as I said, you don't
+
+
+527
+00:16:30,056 --> 00:16:31,126
+generally need to worry about
+
+
+528
+00:16:31,126 --> 00:16:32,216
+states, because the graph
+
+
+529
+00:16:32,216 --> 00:16:32,946
+manages them.
+
+
+530
+00:16:33,416 --> 00:16:35,396
+But because the labels for loss
+
+
+531
+00:16:35,396 --> 00:16:37,346
+computation are passed as states
+
+
+532
+00:16:37,346 --> 00:16:39,786
+to the graph, and because they
+
+
+533
+00:16:39,786 --> 00:16:40,756
+require user input.
+
+
+534
+00:16:40,756 --> 00:16:42,396
+So, that's your ground truth or
+
+
+535
+00:16:42,396 --> 00:16:43,516
+correct results.
+
+
+536
+00:16:44,016 --> 00:16:45,536
+You need to create a batch of
+
+
+537
+00:16:45,536 --> 00:16:47,436
+labels for loss computation and
+
+
+538
+00:16:47,436 --> 00:16:49,036
+pass this batch as input to the
+
+
+539
+00:16:49,776 --> 00:16:50,026
+graph.
+
+
+540
+00:16:50,186 --> 00:16:51,436
+So, this is an example of how
+
+
+541
+00:16:51,436 --> 00:16:53,106
+you would create a single label
+
+
+542
+00:16:53,506 --> 00:16:54,926
+for loss computation.
+
+
+543
+00:16:55,276 --> 00:16:56,676
+You first need to create a loss
+
+
+544
+00:16:56,746 --> 00:16:58,856
+data descriptor which describes
+
+
+545
+00:16:58,856 --> 00:17:00,326
+how the label's data is laid out
+
+
+546
+00:17:00,326 --> 00:17:00,836
+in memory.
+
+
+547
+00:17:01,246 --> 00:17:03,886
+And then you need to create an
+
+
+548
+00:17:03,886 --> 00:17:05,665
+MPSCNNLossLabel object, with
+
+
+549
+00:17:05,665 --> 00:17:06,415
+this descriptor.
+
+
+550
+00:17:06,976 --> 00:17:09,445
+And then you create a batch of
+
+
+551
+00:17:09,445 --> 00:17:11,586
+these for training, and when the
+
+
+552
+00:17:11,586 --> 00:17:13,066
+GPU's done running the graph,
+
+
+553
+00:17:13,506 --> 00:17:15,236
+your batch of labels will
+
+
+554
+00:17:15,236 --> 00:17:16,675
+contain the per image loss
+
+
+555
+00:17:16,675 --> 00:17:18,626
+values for the batch.
+
+
+556
+00:17:18,955 --> 00:17:20,006
+And you can inspect these
+
+
+557
+00:17:20,006 --> 00:17:21,496
+values, or you can compute a
+
+
+558
+00:17:21,496 --> 00:17:22,955
+single value across the batch
+
+
+559
+00:17:22,955 --> 00:17:23,976
+and inspect that value.
+
+
+560
+00:17:27,356 --> 00:17:28,946
+So, now that we have a training
+
+
+561
+00:17:28,946 --> 00:17:30,626
+graph and we talked about how to
+
+
+562
+00:17:30,796 --> 00:17:32,706
+provide inputs to our graph,
+
+
+563
+00:17:32,706 --> 00:17:34,186
+let's talk about how to provide
+
+
+564
+00:17:34,186 --> 00:17:35,726
+weights to the graph nodes that
+
+
+565
+00:17:35,726 --> 00:17:36,316
+require weights.
+
+
+566
+00:17:38,336 --> 00:17:40,606
+The only way to provide weights
+
+
+567
+00:17:40,606 --> 00:17:42,546
+to convolution fully connected,
+
+
+568
+00:17:42,786 --> 00:17:45,456
+batch normalization and instance
+
+
+569
+00:17:45,456 --> 00:17:47,356
+normalization nodes, is through
+
+
+570
+00:17:47,356 --> 00:17:48,966
+data source provider protocols.
+
+
+571
+00:17:50,146 --> 00:17:52,216
+This is an example of how to
+
+
+572
+00:17:52,216 --> 00:17:54,116
+create a convolution node, with
+
+
+573
+00:17:54,116 --> 00:17:55,166
+a data source provider.
+
+
+574
+00:17:56,206 --> 00:17:58,636
+You need to implement a class
+
+
+575
+00:17:58,636 --> 00:18:00,106
+that conforms to the protocol.
+
+
+576
+00:18:00,416 --> 00:18:01,706
+We call it MyWeights in this
+
+
+577
+00:18:01,706 --> 00:18:02,116
+example.
+
+
+578
+00:18:02,596 --> 00:18:06,886
+Data source providers are very
+
+
+579
+00:18:06,886 --> 00:18:08,066
+useful in many ways.
+
+
+580
+00:18:08,646 --> 00:18:10,996
+For example, if you have many
+
+
+581
+00:18:10,996 --> 00:18:12,136
+convolution nodes in your
+
+
+582
+00:18:12,136 --> 00:18:14,486
+network, the overall size of the
+
+
+583
+00:18:14,486 --> 00:18:15,526
+weights for the network can be
+
+
+584
+00:18:15,526 --> 00:18:16,406
+quite considerable.
+
+
+585
+00:18:17,006 --> 00:18:18,606
+And we do not want the weights
+
+
+586
+00:18:18,606 --> 00:18:19,956
+for all of your convolution
+
+
+587
+00:18:19,956 --> 00:18:21,486
+nodes to be in memory all at the
+
+
+588
+00:18:21,486 --> 00:18:22,086
+same time.
+
+
+589
+00:18:22,806 --> 00:18:24,206
+We want to keep the memory
+
+
+590
+00:18:24,206 --> 00:18:25,806
+footprints of your networks as
+
+
+591
+00:18:25,806 --> 00:18:26,566
+low as possible.
+
+
+592
+00:18:27,466 --> 00:18:28,876
+And data source providers come
+
+
+593
+00:18:28,876 --> 00:18:30,746
+into play here because they
+
+
+594
+00:18:30,746 --> 00:18:33,306
+provide just in time loading and
+
+
+595
+00:18:33,466 --> 00:18:34,556
+purging of weights data.
+
+
+596
+00:18:35,726 --> 00:18:37,076
+So, we load the weights for one
+
+
+597
+00:18:37,076 --> 00:18:39,186
+convolution kernel, when we
+
+
+598
+00:18:39,186 --> 00:18:39,846
+process it.
+
+
+599
+00:18:40,076 --> 00:18:41,626
+And then we purge them before
+
+
+600
+00:18:41,626 --> 00:18:43,436
+moving on the next convolution.
+
+
+601
+00:18:43,906 --> 00:18:47,726
+So, here's an implementation of
+
+
+602
+00:18:47,726 --> 00:18:48,366
+MyWeights.
+
+
+603
+00:18:49,516 --> 00:18:51,056
+You need to provide an
+
+
+604
+00:18:51,246 --> 00:18:52,996
+initialization method that is
+
+
+605
+00:18:52,996 --> 00:18:54,646
+responsible for pulling in
+
+
+606
+00:18:54,646 --> 00:18:55,856
+memory and making it ready.
+
+
+607
+00:18:56,226 --> 00:18:57,936
+And then the graph will call the
+
+
+608
+00:18:57,936 --> 00:18:58,686
+load function.
+
+
+609
+00:18:59,136 --> 00:19:00,946
+And then when the purge method
+
+
+610
+00:19:00,946 --> 00:19:02,406
+is called, you can release the
+
+
+611
+00:19:02,406 --> 00:19:02,656
+weights.
+
+
+612
+00:19:03,706 --> 00:19:05,366
+Data source providers are also
+
+
+613
+00:19:05,366 --> 00:19:06,866
+essential for training, and we
+
+
+614
+00:19:06,866 --> 00:19:08,206
+will discuss this later in this
+
+
+615
+00:19:08,206 --> 00:19:08,526
+session.
+
+
+616
+00:19:11,746 --> 00:19:13,216
+So, now that we have a training
+
+
+617
+00:19:13,216 --> 00:19:14,666
+graph and we've prepared our
+
+
+618
+00:19:14,666 --> 00:19:16,146
+inputs and specified weights,
+
+
+619
+00:19:16,546 --> 00:19:17,976
+we're ready to execute the graph
+
+
+620
+00:19:17,976 --> 00:19:18,566
+on the GPU.
+
+
+621
+00:19:20,486 --> 00:19:21,616
+To change the [inaudible] graph
+
+
+622
+00:19:21,616 --> 00:19:23,396
+on the GPU, we first need to do
+
+
+623
+00:19:23,656 --> 00:19:24,826
+the usual Metal setup.
+
+
+624
+00:19:25,466 --> 00:19:26,846
+We need to initialize our
+
+
+625
+00:19:26,846 --> 00:19:27,686
+training graph.
+
+
+626
+00:19:27,956 --> 00:19:29,516
+So, we have prepared our inputs.
+
+
+627
+00:19:29,766 --> 00:19:31,326
+And now, let's train a network
+
+
+628
+00:19:31,326 --> 00:19:34,836
+on the GPU.
+
+
+629
+00:19:35,206 --> 00:19:36,326
+Training is an iterative
+
+
+630
+00:19:36,326 --> 00:19:36,696
+process.
+
+
+631
+00:19:38,156 --> 00:19:39,466
+So, we want to set up a training
+
+
+632
+00:19:39,466 --> 00:19:39,666
+loop.
+
+
+633
+00:19:40,316 --> 00:19:42,266
+And we usually want to execute
+
+
+634
+00:19:42,266 --> 00:19:43,536
+our graph over a number of
+
+
+635
+00:19:43,536 --> 00:19:44,186
+EPOCHS.
+
+
+636
+00:19:44,856 --> 00:19:46,336
+The number of EPOCHS is the
+
+
+637
+00:19:46,566 --> 00:19:48,606
+total number -- is the number of
+
+
+638
+00:19:48,606 --> 00:19:49,986
+times we want to iterate over
+
+
+639
+00:19:49,986 --> 00:19:51,906
+our entire data set.
+
+
+640
+00:19:51,906 --> 00:19:53,486
+And we want there to be multiple
+
+
+641
+00:19:53,656 --> 00:19:54,886
+iterations in each EPOCH.
+
+
+642
+00:19:55,006 --> 00:19:56,646
+So, the number of iterations is
+
+
+643
+00:19:56,646 --> 00:19:57,966
+the total number of images in
+
+
+644
+00:19:57,966 --> 00:19:59,546
+your data set divided by batch
+
+
+645
+00:19:59,546 --> 00:20:01,216
+size, like 32 or 64.
+
+
+646
+00:20:02,256 --> 00:20:03,426
+And now, let's take a look at
+
+
+647
+00:20:03,426 --> 00:20:04,766
+each training iteration.
+
+
+648
+00:20:06,296 --> 00:20:10,126
+In each training iteration, we
+
+
+649
+00:20:10,126 --> 00:20:11,506
+encode a batch of images for
+
+
+650
+00:20:11,506 --> 00:20:11,906
+training.
+
+
+651
+00:20:13,146 --> 00:20:14,976
+But we don't want the CPU to
+
+
+652
+00:20:14,976 --> 00:20:17,116
+wait for the GPU to finish
+
+
+653
+00:20:17,116 --> 00:20:19,616
+running one run of the graph,
+
+
+654
+00:20:20,036 --> 00:20:22,226
+with one batch of images before
+
+
+655
+00:20:22,226 --> 00:20:24,296
+the CPU can start encoding
+
+
+656
+00:20:24,296 --> 00:20:25,526
+commands to the command buffer
+
+
+657
+00:20:25,526 --> 00:20:26,786
+for the next run of the graph.
+
+
+658
+00:20:27,536 --> 00:20:30,056
+We want the CPU and the GPU to
+
+
+659
+00:20:30,056 --> 00:20:30,976
+work concurrently.
+
+
+660
+00:20:31,466 --> 00:20:32,566
+And for this, we're going to use
+
+
+661
+00:20:32,666 --> 00:20:33,486
+double buffering.
+
+
+662
+00:20:34,106 --> 00:20:36,336
+So, in this setup, we're going
+
+
+663
+00:20:36,336 --> 00:20:38,936
+to create a counting semaphore
+
+
+664
+00:20:39,056 --> 00:20:40,426
+with an initial value of 2.
+
+
+665
+00:20:40,566 --> 00:20:42,266
+It's because we want only two
+
+
+666
+00:20:42,266 --> 00:20:43,586
+encodes to be in flight at the
+
+
+667
+00:20:43,586 --> 00:20:44,146
+same time.
+
+
+668
+00:20:45,726 --> 00:20:46,916
+And then when we enter the
+
+
+669
+00:20:46,916 --> 00:20:48,496
+training iteration function,
+
+
+670
+00:20:48,796 --> 00:20:50,066
+we're going to call weight on
+
+
+671
+00:20:50,066 --> 00:20:50,696
+the semaphore.
+
+
+672
+00:20:50,846 --> 00:20:51,866
+That's decrementing it.
+
+
+673
+00:20:52,656 --> 00:20:54,596
+So, if the value of the count
+
+
+674
+00:20:54,596 --> 00:20:55,816
+has already been decremented to
+
+
+675
+00:20:55,816 --> 00:20:57,016
+zero, we wait.
+
+
+676
+00:20:57,016 --> 00:20:58,126
+Otherwise, we continue.
+
+
+677
+00:20:59,176 --> 00:21:00,966
+And then we encode our graph,
+
+
+678
+00:21:01,346 --> 00:21:02,946
+and the encode call returns
+
+
+679
+00:21:02,976 --> 00:21:03,566
+immediately.
+
+
+680
+00:21:04,196 --> 00:21:06,006
+And a user specified callback is
+
+
+681
+00:21:06,006 --> 00:21:07,886
+called, when the GPU is done
+
+
+682
+00:21:07,886 --> 00:21:08,426
+running the graph.
+
+
+683
+00:21:09,086 --> 00:21:10,136
+So, now we know.
+
+
+684
+00:21:10,236 --> 00:21:11,446
+The GPU is done running the
+
+
+685
+00:21:11,446 --> 00:21:13,896
+graph, and the CPU can continue
+
+
+686
+00:21:14,316 --> 00:21:16,566
+encoding more work to the GPU,
+
+
+687
+00:21:17,746 --> 00:21:19,226
+work that was previously waiting
+
+
+688
+00:21:19,226 --> 00:21:19,916
+on the semaphore.
+
+
+689
+00:21:20,936 --> 00:21:22,386
+So, why are we using double
+
+
+690
+00:21:22,386 --> 00:21:22,906
+buffering?
+
+
+691
+00:21:22,906 --> 00:21:24,856
+Why not encode more runs of the
+
+
+692
+00:21:24,856 --> 00:21:27,536
+graph, to the GPU concurrently?
+
+
+693
+00:21:28,766 --> 00:21:30,336
+Well, it takes a lot less time
+
+
+694
+00:21:30,396 --> 00:21:31,446
+to encode commands to the
+
+
+695
+00:21:31,446 --> 00:21:33,066
+command buffer, than to run the
+
+
+696
+00:21:33,066 --> 00:21:33,476
+graph.
+
+
+697
+00:21:33,786 --> 00:21:35,146
+So, we don't want to encode too
+
+
+698
+00:21:35,146 --> 00:21:36,446
+many runs of the graph
+
+
+699
+00:21:36,446 --> 00:21:37,926
+concurrently to minimize memory
+
+
+700
+00:21:37,926 --> 00:21:38,386
+footprint.
+
+
+701
+00:21:38,656 --> 00:21:42,576
+Okay, we've talked about
+
+
+702
+00:21:42,576 --> 00:21:43,676
+executing the graph.
+
+
+703
+00:21:43,936 --> 00:21:45,396
+When we execute the graph, we do
+
+
+704
+00:21:45,396 --> 00:21:47,146
+the forward pass, we compute
+
+
+705
+00:21:47,146 --> 00:21:49,206
+loss, we do the gradient pass,
+
+
+706
+00:21:49,356 --> 00:21:50,756
+and the graph will also update
+
+
+707
+00:21:50,756 --> 00:21:51,196
+weights.
+
+
+708
+00:21:51,676 --> 00:21:53,136
+So now, let's talk about weight
+
+
+709
+00:21:53,176 --> 00:21:53,516
+updates.
+
+
+710
+00:21:54,196 --> 00:21:57,286
+As I mentioned, data source
+
+
+711
+00:21:57,286 --> 00:22:00,176
+providers are essential for
+
+
+712
+00:22:00,176 --> 00:22:00,616
+training.
+
+
+713
+00:22:01,456 --> 00:22:02,946
+All of your weight updates need
+
+
+714
+00:22:02,946 --> 00:22:04,246
+to happen through an optional
+
+
+715
+00:22:04,246 --> 00:22:05,926
+update method on a data source
+
+
+716
+00:22:05,926 --> 00:22:06,346
+provider.
+
+
+717
+00:22:07,806 --> 00:22:08,996
+The graph will call the update
+
+
+718
+00:22:08,996 --> 00:22:10,526
+method automatically.
+
+
+719
+00:22:11,116 --> 00:22:12,256
+So, what does the weight update
+
+
+720
+00:22:12,256 --> 00:22:13,486
+step actually involve?
+
+
+721
+00:22:13,706 --> 00:22:14,906
+Let's take a look.
+
+
+722
+00:22:16,316 --> 00:22:18,296
+So, recall that we're computing
+
+
+723
+00:22:18,296 --> 00:22:19,706
+gradients during the gradient
+
+
+724
+00:22:19,926 --> 00:22:21,526
+pass that we can apply small
+
+
+725
+00:22:21,566 --> 00:22:22,986
+deltas to the weights, in each
+
+
+726
+00:22:22,986 --> 00:22:23,976
+situation of training.
+
+
+727
+00:22:25,546 --> 00:22:26,926
+How these deltas are applied to
+
+
+728
+00:22:26,926 --> 00:22:29,296
+the weights, is described by an
+
+
+729
+00:22:29,296 --> 00:22:29,996
+optimizer.
+
+
+730
+00:22:30,536 --> 00:22:32,436
+It's just a function that takes
+
+
+731
+00:22:32,516 --> 00:22:34,186
+the old weights, the computed
+
+
+732
+00:22:34,186 --> 00:22:36,836
+gradients as input, and produces
+
+
+733
+00:22:37,696 --> 00:22:39,246
+updated weights as outputs.
+
+
+734
+00:22:40,336 --> 00:22:43,096
+You will use an optimizer in the
+
+
+735
+00:22:43,096 --> 00:22:44,286
+update method of your data
+
+
+736
+00:22:44,286 --> 00:22:44,996
+source provider.
+
+
+737
+00:22:45,976 --> 00:22:47,226
+And we support a number of
+
+
+738
+00:22:47,226 --> 00:22:48,476
+different variants of the weight
+
+
+739
+00:22:48,476 --> 00:22:50,356
+update step on the GPU,
+
+
+740
+00:22:50,556 --> 00:22:52,116
+including Adam, Stochastic
+
+
+741
+00:22:52,116 --> 00:22:53,786
+Gradient Descent, and RMSProp.
+
+
+742
+00:22:54,896 --> 00:22:57,376
+And you can even define your own
+
+
+743
+00:22:57,436 --> 00:22:58,946
+custom update weight step if you
+
+
+744
+00:22:58,946 --> 00:22:59,326
+prefer.
+
+
+745
+00:23:00,046 --> 00:23:01,276
+So now, let's take a look at how
+
+
+746
+00:23:01,276 --> 00:23:04,336
+to use an optimizer in MPS.
+
+
+747
+00:23:05,436 --> 00:23:07,526
+So, recall that your data source
+
+
+748
+00:23:07,526 --> 00:23:09,276
+provider has an init method.
+
+
+749
+00:23:09,676 --> 00:23:11,066
+This is where you want to create
+
+
+750
+00:23:11,066 --> 00:23:12,726
+your optimizer because you only
+
+
+751
+00:23:12,726 --> 00:23:13,746
+want to create it once.
+
+
+752
+00:23:14,356 --> 00:23:16,626
+And now, let's take a look at
+
+
+753
+00:23:16,626 --> 00:23:18,176
+the implementation of our update
+
+
+754
+00:23:18,176 --> 00:23:18,496
+method.
+
+
+755
+00:23:19,016 --> 00:23:21,536
+The update method receives the
+
+
+756
+00:23:21,536 --> 00:23:23,446
+source state and gradient state
+
+
+757
+00:23:23,446 --> 00:23:23,956
+as inputs.
+
+
+758
+00:23:24,676 --> 00:23:27,726
+So, the source state contains
+
+
+759
+00:23:27,726 --> 00:23:29,176
+the old weights, the gradient
+
+
+760
+00:23:29,176 --> 00:23:30,546
+state contains the computed
+
+
+761
+00:23:30,546 --> 00:23:32,706
+gradients, and now we can encode
+
+
+762
+00:23:32,706 --> 00:23:34,736
+our optimizer with this data,
+
+
+763
+00:23:34,736 --> 00:23:36,666
+and the last step is to return
+
+
+764
+00:23:36,666 --> 00:23:38,276
+the source state, which now has
+
+
+765
+00:23:38,326 --> 00:23:39,226
+the update weights.
+
+
+766
+00:23:39,636 --> 00:23:40,466
+So, pretty simple.
+
+
+767
+00:23:40,936 --> 00:23:44,936
+And now we have just one more
+
+
+768
+00:23:44,936 --> 00:23:45,856
+step to discuss.
+
+
+769
+00:23:46,116 --> 00:23:47,546
+So, as I said, training is an
+
+
+770
+00:23:47,546 --> 00:23:48,526
+iterative process.
+
+
+771
+00:23:48,526 --> 00:23:50,416
+It can take many iterations to
+
+
+772
+00:23:50,416 --> 00:23:51,186
+train a network.
+
+
+773
+00:23:52,396 --> 00:23:53,906
+And you will need to know when
+
+
+774
+00:23:53,906 --> 00:23:54,676
+to stop training.
+
+
+775
+00:23:55,316 --> 00:23:57,036
+So, let's now discuss how can
+
+
+776
+00:23:57,036 --> 00:23:58,716
+you make this decision in the
+
+
+777
+00:23:58,716 --> 00:24:00,586
+context of your training loop?
+
+
+778
+00:24:02,716 --> 00:24:04,546
+So, here we again have our
+
+
+779
+00:24:04,546 --> 00:24:05,526
+training loop, where we're
+
+
+780
+00:24:05,526 --> 00:24:06,836
+training a neural network for a
+
+
+781
+00:24:06,836 --> 00:24:07,696
+number of EPOCHS.
+
+
+782
+00:24:09,276 --> 00:24:10,826
+To check whether you can stop
+
+
+783
+00:24:10,826 --> 00:24:11,926
+training, you need to have a
+
+
+784
+00:24:11,926 --> 00:24:13,076
+test set of images.
+
+
+785
+00:24:13,426 --> 00:24:14,726
+So, a test set of images
+
+
+786
+00:24:15,046 --> 00:24:17,056
+contains images that are not
+
+
+787
+00:24:17,056 --> 00:24:17,866
+used for training.
+
+
+788
+00:24:18,126 --> 00:24:19,976
+They're only used to evaluate
+
+
+789
+00:24:19,976 --> 00:24:21,546
+the accuracy of your network.
+
+
+790
+00:24:22,486 --> 00:24:24,336
+So, after each EPOCH, you can
+
+
+791
+00:24:24,446 --> 00:24:26,426
+optionally wait for the graph to
+
+
+792
+00:24:27,096 --> 00:24:28,686
+-- for the GPU to stop running
+
+
+793
+00:24:28,686 --> 00:24:31,056
+the graph, and then you can use
+
+
+794
+00:24:31,306 --> 00:24:33,066
+the current trained parameters
+
+
+795
+00:24:33,846 --> 00:24:35,236
+to initialize an inference
+
+
+796
+00:24:35,236 --> 00:24:35,646
+network.
+
+
+797
+00:24:36,916 --> 00:24:38,216
+And then you can run this
+
+
+798
+00:24:38,216 --> 00:24:39,636
+inference network on your test
+
+
+799
+00:24:39,676 --> 00:24:41,476
+set, and you can optionally stop
+
+
+800
+00:24:41,476 --> 00:24:43,356
+training when the accuracy of
+
+
+801
+00:24:43,356 --> 00:24:44,906
+your network on this test set,
+
+
+802
+00:24:45,216 --> 00:24:46,426
+reaches a particular level.
+
+
+803
+00:24:49,116 --> 00:24:51,486
+So, now that we've discussed all
+
+
+804
+00:24:51,486 --> 00:24:53,816
+of the steps that are necessary
+
+
+805
+00:24:53,816 --> 00:24:54,996
+to train a neural network in
+
+
+806
+00:24:55,036 --> 00:24:57,026
+MPS, it's time for a demo.
+
+
+807
+00:24:58,416 --> 00:25:00,326
+So, as was already mentioned in
+
+
+808
+00:25:00,326 --> 00:25:01,786
+the platform State of the Union,
+
+
+809
+00:25:02,776 --> 00:25:03,826
+the Metal Performance Shaders
+
+
+810
+00:25:03,826 --> 00:25:07,726
+Framework powers Core ML, Create
+
+
+811
+00:25:07,726 --> 00:25:09,026
+ML, and Turi Create.
+
+
+812
+00:25:09,926 --> 00:25:12,636
+To Turi Create is an easy to
+
+
+813
+00:25:12,636 --> 00:25:15,746
+use, flexible, high-performance
+
+
+814
+00:25:15,746 --> 00:25:17,236
+tool set for creating Core ML
+
+
+815
+00:25:17,236 --> 00:25:20,426
+models for tasks such as image
+
+
+816
+00:25:20,426 --> 00:25:22,206
+classification, object
+
+
+817
+00:25:22,206 --> 00:25:24,586
+detection, recommendations, and
+
+
+818
+00:25:24,586 --> 00:25:24,726
+more.
+
+
+819
+00:25:25,276 --> 00:25:26,636
+For more information on Turi
+
+
+820
+00:25:26,636 --> 00:25:28,756
+Create, we want to refer you to
+
+
+821
+00:25:28,756 --> 00:25:29,996
+the A Guide to Turi Create
+
+
+822
+00:25:29,996 --> 00:25:30,666
+Session Video.
+
+
+823
+00:25:32,336 --> 00:25:34,196
+We've prepared a demo where we
+
+
+824
+00:25:34,196 --> 00:25:36,516
+will be using an -- we'll be
+
+
+825
+00:25:36,516 --> 00:25:38,056
+training an object detection
+
+
+826
+00:25:38,056 --> 00:25:40,626
+network in Turi Create powered
+
+
+827
+00:25:40,626 --> 00:25:41,566
+by MPS.
+
+
+828
+00:25:41,566 --> 00:25:44,536
+As was mentioned in the platform
+
+
+829
+00:25:44,536 --> 00:25:47,266
+State of the Union, this is nine
+
+
+830
+00:25:47,266 --> 00:25:48,846
+times faster than without MPS.
+
+
+831
+00:25:50,116 --> 00:25:51,636
+An object detection network
+
+
+832
+00:25:52,326 --> 00:25:53,986
+draws bounding boxes around
+
+
+833
+00:25:54,076 --> 00:25:55,166
+recognized objects.
+
+
+834
+00:26:00,696 --> 00:26:05,266
+So, in this demo, I will be
+
+
+835
+00:26:05,266 --> 00:26:06,856
+using a MacBook Pro, with a
+
+
+836
+00:26:06,856 --> 00:26:08,196
+connected external GPU.
+
+
+837
+00:26:08,986 --> 00:26:12,066
+I will be running Turi Create on
+
+
+838
+00:26:12,066 --> 00:26:14,816
+the MacBook Pro and I will use
+
+
+839
+00:26:14,816 --> 00:26:16,526
+an external GPU to train the
+
+
+840
+00:26:16,526 --> 00:26:17,596
+network with MPS.
+
+
+841
+00:26:18,606 --> 00:26:20,276
+This is a great example of how
+
+
+842
+00:26:20,276 --> 00:26:22,196
+you can use an external GPU to
+
+
+843
+00:26:22,196 --> 00:26:23,806
+enhance the computational power
+
+
+844
+00:26:23,806 --> 00:26:24,526
+of a MacBook Pro.
+
+
+845
+00:26:24,526 --> 00:26:26,916
+The external GPU we're using is
+
+
+846
+00:26:26,916 --> 00:26:28,116
+an AMD Vega GPU.
+
+
+847
+00:26:29,006 --> 00:26:30,876
+So, in this demo setup, I've
+
+
+848
+00:26:30,876 --> 00:26:32,486
+already imported Turi Create,
+
+
+849
+00:26:32,956 --> 00:26:34,956
+and preloaded the object
+
+
+850
+00:26:34,956 --> 00:26:36,606
+detection network, and a
+
+
+851
+00:26:36,606 --> 00:26:37,436
+training data set.
+
+
+852
+00:26:37,996 --> 00:26:41,556
+So, now let's train this network
+
+
+853
+00:26:41,556 --> 00:26:42,606
+for 10 iterations.
+
+
+854
+00:26:43,246 --> 00:26:46,206
+And now, the entire object
+
+
+855
+00:26:46,206 --> 00:26:47,456
+detection network, all the
+
+
+856
+00:26:47,456 --> 00:26:49,386
+primitives, the optimizer, the
+
+
+857
+00:26:49,386 --> 00:26:52,906
+weight update step, everything
+
+
+858
+00:26:52,906 --> 00:26:54,706
+is running on the external GPU.
+
+
+859
+00:26:58,206 --> 00:26:59,256
+Okay, so we're already done with
+
+
+860
+00:26:59,296 --> 00:27:01,476
+10 iterations of training, it
+
+
+861
+00:27:01,476 --> 00:27:02,366
+would take more than 10
+
+
+862
+00:27:02,366 --> 00:27:03,496
+iterations to train this
+
+
+863
+00:27:03,496 --> 00:27:04,606
+network, and we're not going to
+
+
+864
+00:27:04,606 --> 00:27:05,576
+do this on stage.
+
+
+865
+00:27:06,116 --> 00:27:07,366
+But what I'm going to do right
+
+
+866
+00:27:07,366 --> 00:27:09,546
+now, is to load a network that
+
+
+867
+00:27:09,546 --> 00:27:11,796
+we pretrained in advance, run it
+
+
+868
+00:27:11,796 --> 00:27:13,246
+on a test set of images and
+
+
+869
+00:27:13,246 --> 00:27:14,696
+visualize some of the results.
+
+
+870
+00:27:14,696 --> 00:27:15,586
+So, let's take a look.
+
+
+871
+00:27:16,216 --> 00:27:20,306
+Okay, so here we have a banana,
+
+
+872
+00:27:20,346 --> 00:27:21,776
+that's correctly classified as a
+
+
+873
+00:27:21,776 --> 00:27:22,286
+banana.
+
+
+874
+00:27:22,656 --> 00:27:24,706
+And we have a bounding box, and
+
+
+875
+00:27:25,036 --> 00:27:26,866
+now we have a perfect breakfast
+
+
+876
+00:27:26,866 --> 00:27:27,976
+of a cup of coffee and a
+
+
+877
+00:27:27,976 --> 00:27:30,796
+croissant, and very,
+
+
+878
+00:27:30,796 --> 00:27:31,496
+mean-looking egg.
+
+
+879
+00:27:32,136 --> 00:27:35,776
+Okay, so that's it for the Turi
+
+
+880
+00:27:35,776 --> 00:27:36,396
+Create demo.
+
+
+881
+00:27:38,516 --> 00:27:43,046
+[ Applause ]
+
+
+882
+00:27:43,546 --> 00:27:47,016
+Thank you very much.
+
+
+883
+00:27:47,556 --> 00:27:49,036
+And now, let's switch gears and
+
+
+884
+00:27:49,036 --> 00:27:50,526
+talk about training recurrent
+
+
+885
+00:27:50,526 --> 00:27:51,266
+neural networks.
+
+
+886
+00:27:51,996 --> 00:27:53,876
+But first, let's do a recap of
+
+
+887
+00:27:53,876 --> 00:27:54,986
+what are the recurrent neural
+
+
+888
+00:27:54,986 --> 00:27:55,396
+networks?
+
+
+889
+00:27:57,296 --> 00:27:58,716
+One of the disadvantages of
+
+
+890
+00:27:58,716 --> 00:28:00,516
+convolutional neural networks is
+
+
+891
+00:28:00,516 --> 00:28:02,906
+their inability to remember
+
+
+892
+00:28:02,906 --> 00:28:03,816
+anything that happened
+
+
+893
+00:28:03,816 --> 00:28:04,366
+previously.
+
+
+894
+00:28:05,336 --> 00:28:07,076
+They can take one input, such as
+
+
+895
+00:28:07,076 --> 00:28:09,776
+an image, and generate a single
+
+
+896
+00:28:09,776 --> 00:28:11,306
+output, such as a set of
+
+
+897
+00:28:11,366 --> 00:28:12,466
+probabilities of what is
+
+
+898
+00:28:12,466 --> 00:28:13,136
+depicted in the image.
+
+
+899
+00:28:13,136 --> 00:28:19,296
+RNNs on the other hand, have
+
+
+900
+00:28:19,296 --> 00:28:19,756
+memory.
+
+
+901
+00:28:19,936 --> 00:28:21,636
+And they're good at operating on
+
+
+902
+00:28:21,636 --> 00:28:23,676
+sequences of inputs and outputs.
+
+
+903
+00:28:24,676 --> 00:28:26,146
+For example, they can take one
+
+
+904
+00:28:26,146 --> 00:28:27,546
+set of probabilities, so what is
+
+
+905
+00:28:27,546 --> 00:28:29,556
+depicted in an image, which is
+
+
+906
+00:28:29,556 --> 00:28:32,026
+an output of a CNN, and generate
+
+
+907
+00:28:32,026 --> 00:28:33,886
+a sequence of outputs, which is
+
+
+908
+00:28:33,886 --> 00:28:35,436
+a sequence of words that make up
+
+
+909
+00:28:35,436 --> 00:28:36,656
+a caption for this image.
+
+
+910
+00:28:37,196 --> 00:28:40,136
+They can also take a sequence of
+
+
+911
+00:28:40,136 --> 00:28:42,336
+inputs, such as a sequence of
+
+
+912
+00:28:42,516 --> 00:28:44,306
+words that make up a sentence
+
+
+913
+00:28:44,536 --> 00:28:45,666
+and generate a sequence of
+
+
+914
+00:28:45,666 --> 00:28:48,996
+outputs which is a same sentence
+
+
+915
+00:28:49,296 --> 00:28:50,586
+but translated to a different
+
+
+916
+00:28:50,586 --> 00:28:51,096
+language.
+
+
+917
+00:28:51,166 --> 00:28:52,166
+For example, to ration or
+
+
+918
+00:28:52,166 --> 00:28:52,596
+finish.
+
+
+919
+00:28:53,186 --> 00:28:56,146
+With support, a number of
+
+
+920
+00:28:56,146 --> 00:28:57,416
+different variance of RNNs.
+
+
+921
+00:28:58,426 --> 00:29:00,306
+The most commonly used one is
+
+
+922
+00:29:00,396 --> 00:29:02,456
+the Long Short-Term Memory RNN,
+
+
+923
+00:29:02,486 --> 00:29:03,606
+or LSTM for short.
+
+
+924
+00:29:04,636 --> 00:29:06,706
+In our last year's WWDC Session,
+
+
+925
+00:29:06,946 --> 00:29:08,596
+we talked extensively about the
+
+
+926
+00:29:08,596 --> 00:29:10,896
+gates inside LSTM and walked
+
+
+927
+00:29:11,006 --> 00:29:12,686
+through a LSTM inference
+
+
+928
+00:29:12,686 --> 00:29:13,116
+example.
+
+
+929
+00:29:13,816 --> 00:29:15,536
+So, please refer to that session
+
+
+930
+00:29:15,596 --> 00:29:17,526
+for more information on LSTM
+
+
+931
+00:29:17,526 --> 00:29:17,996
+inference.
+
+
+932
+00:29:19,296 --> 00:29:21,526
+This year, we've added support
+
+
+933
+00:29:21,526 --> 00:29:23,176
+for training, for all of these
+
+
+934
+00:29:23,176 --> 00:29:24,176
+variants of RNNs.
+
+
+935
+00:29:25,256 --> 00:29:27,106
+And in this session, I'm going
+
+
+936
+00:29:27,106 --> 00:29:28,826
+to talk about training LSTMs.
+
+
+937
+00:29:28,826 --> 00:29:33,606
+So, let's use a specific
+
+
+938
+00:29:33,606 --> 00:29:34,086
+example.
+
+
+939
+00:29:34,306 --> 00:29:36,026
+So, here we have an activity
+
+
+940
+00:29:36,026 --> 00:29:38,586
+classifier network which takes
+
+
+941
+00:29:38,656 --> 00:29:40,476
+motion sensory data as input.
+
+
+942
+00:29:40,476 --> 00:29:42,206
+For example, reading some
+
+
+943
+00:29:42,206 --> 00:29:44,146
+sensors like an accelerometer or
+
+
+944
+00:29:44,146 --> 00:29:44,826
+a gyroscope.
+
+
+945
+00:29:45,306 --> 00:29:46,936
+And then the network uses this
+
+
+946
+00:29:46,936 --> 00:29:49,096
+data to identify a physical
+
+
+947
+00:29:49,096 --> 00:29:50,706
+activity performed by the user.
+
+
+948
+00:29:51,226 --> 00:29:52,716
+So, for example, we want to know
+
+
+949
+00:29:52,716 --> 00:29:55,296
+if a user is cycling, skiing, or
+
+
+950
+00:29:55,296 --> 00:29:55,886
+walking.
+
+
+951
+00:29:56,476 --> 00:30:00,676
+As you can see, this network is
+
+
+952
+00:30:00,676 --> 00:30:03,416
+set up in an interesting way.
+
+
+953
+00:30:03,636 --> 00:30:07,496
+So, it contains a series of CNN
+
+
+954
+00:30:07,496 --> 00:30:09,556
+primitives, followed by LSTM
+
+
+955
+00:30:09,556 --> 00:30:11,656
+primitive, followed by more CNN
+
+
+956
+00:30:11,656 --> 00:30:12,096
+primitives.
+
+
+957
+00:30:12,666 --> 00:30:13,986
+So, why is it set up this way?
+
+
+958
+00:30:13,986 --> 00:30:15,326
+Let's take a look.
+
+
+959
+00:30:16,296 --> 00:30:18,716
+So, even though our input is
+
+
+960
+00:30:18,716 --> 00:30:21,786
+sensor data, it's represented by
+
+
+961
+00:30:21,786 --> 00:30:23,696
+a batch of 1D images with six
+
+
+962
+00:30:23,696 --> 00:30:24,336
+feature channels.
+
+
+963
+00:30:24,336 --> 00:30:26,466
+So, one feature channel for
+
+
+964
+00:30:26,576 --> 00:30:28,466
+access in the accelerometer and
+
+
+965
+00:30:28,466 --> 00:30:29,386
+gyroscope readings.
+
+
+966
+00:30:30,716 --> 00:30:33,296
+And each 1D image has 2,000
+
+
+967
+00:30:33,296 --> 00:30:33,676
+pixels.
+
+
+968
+00:30:33,936 --> 00:30:35,516
+And you can think of them as
+
+
+969
+00:30:36,206 --> 00:30:38,176
+samples in time because the
+
+
+970
+00:30:38,386 --> 00:30:39,706
+activity we're trying to
+
+
+971
+00:30:39,706 --> 00:30:41,546
+identify, occurs over time.
+
+
+972
+00:30:43,346 --> 00:30:46,656
+And then we pass these images
+
+
+973
+00:30:46,656 --> 00:30:47,976
+through a 1D convolution
+
+
+974
+00:30:47,976 --> 00:30:51,026
+primitive which compresses these
+
+
+975
+00:30:51,086 --> 00:30:53,186
+2,000 samples, to just 20
+
+
+976
+00:30:53,186 --> 00:30:53,626
+samples.
+
+
+977
+00:30:54,346 --> 00:30:57,236
+But it expends a number of
+
+
+978
+00:30:57,236 --> 00:30:59,316
+feature channels, because -- so,
+
+
+979
+00:30:59,366 --> 00:31:01,256
+we're not losing any features in
+
+
+980
+00:31:01,836 --> 00:31:02,706
+the data.
+
+
+981
+00:31:03,276 --> 00:31:04,446
+And then, this new
+
+
+982
+00:31:04,446 --> 00:31:06,426
+representation of the data, is
+
+
+983
+00:31:06,426 --> 00:31:08,116
+passed to LSTM primitive as a
+
+
+984
+00:31:08,116 --> 00:31:09,306
+sequence of lengths 20.
+
+
+985
+00:31:10,146 --> 00:31:11,826
+And we ran LSTM for 20
+
+
+986
+00:31:11,826 --> 00:31:12,376
+iterations.
+
+
+987
+00:31:12,936 --> 00:31:14,506
+So, our LSTM is operating on a
+
+
+988
+00:31:14,506 --> 00:31:16,106
+sequence of lengths 20 instead
+
+
+989
+00:31:16,106 --> 00:31:18,246
+of 2,000, so it's operating on a
+
+
+990
+00:31:18,246 --> 00:31:19,126
+higher-level feature
+
+
+991
+00:31:19,126 --> 00:31:20,416
+representation of the data.
+
+
+992
+00:31:21,036 --> 00:31:24,056
+And then we have additional CNN
+
+
+993
+00:31:24,056 --> 00:31:26,796
+primitives that we find
+
+
+994
+00:31:26,906 --> 00:31:28,326
+high-level features in the data.
+
+
+995
+00:31:29,366 --> 00:31:30,626
+And the last primitive in this
+
+
+996
+00:31:30,626 --> 00:31:32,846
+network is the SoftMax primitive
+
+
+997
+00:31:33,236 --> 00:31:34,906
+which generates probabilities
+
+
+998
+00:31:34,906 --> 00:31:35,896
+for the different activity
+
+
+999
+00:31:35,896 --> 00:31:37,306
+classes, which is the output of
+
+
+1000
+00:31:37,306 --> 00:31:37,756
+the network.
+
+
+1001
+00:31:38,666 --> 00:31:39,746
+And now, let's take a look at
+
+
+1002
+00:31:39,746 --> 00:31:40,896
+how to train this network.
+
+
+1003
+00:31:42,346 --> 00:31:44,166
+So, we again need a loss
+
+
+1004
+00:31:44,166 --> 00:31:45,626
+primitive, which takes the
+
+
+1005
+00:31:45,626 --> 00:31:46,886
+output of the network and the
+
+
+1006
+00:31:46,886 --> 00:31:47,906
+labels as input.
+
+
+1007
+00:31:48,386 --> 00:31:49,936
+And then we need the second half
+
+
+1008
+00:31:49,936 --> 00:31:50,296
+of the graph.
+
+
+1009
+00:31:50,926 --> 00:31:52,146
+So, in the second half of the
+
+
+1010
+00:31:52,146 --> 00:31:53,956
+graph, we again have gradient
+
+
+1011
+00:31:53,956 --> 00:31:55,496
+primitives for the corresponding
+
+
+1012
+00:31:55,496 --> 00:31:57,086
+forward primitives, including
+
+
+1013
+00:31:57,146 --> 00:31:58,176
+the LSTM primitive.
+
+
+1014
+00:31:59,036 --> 00:32:02,216
+And now, for training, we do the
+
+
+1015
+00:32:02,216 --> 00:32:03,696
+forward pass through the
+
+
+1016
+00:32:03,696 --> 00:32:06,296
+network, then we compute loss,
+
+
+1017
+00:32:07,646 --> 00:32:09,756
+and we do the gradient pass to
+
+
+1018
+00:32:09,756 --> 00:32:11,096
+compute gradients that will be
+
+
+1019
+00:32:11,096 --> 00:32:12,126
+used to update weights.
+
+
+1020
+00:32:12,686 --> 00:32:14,386
+So, this is a very similar setup
+
+
+1021
+00:32:15,316 --> 00:32:16,866
+that we have for a CNN training.
+
+
+1022
+00:32:17,156 --> 00:32:18,406
+And the last step is of course
+
+
+1023
+00:32:18,406 --> 00:32:20,466
+to update the weights and as you
+
+
+1024
+00:32:20,466 --> 00:32:22,236
+know, the LSTM also has weights,
+
+
+1025
+00:32:22,236 --> 00:32:24,366
+so they need to be updated as
+
+
+1026
+00:32:25,476 --> 00:32:25,606
+well.
+
+
+1027
+00:32:26,076 --> 00:32:27,286
+And now, let's take a look at
+
+
+1028
+00:32:27,286 --> 00:32:29,856
+how to train this network in
+
+
+1029
+00:32:29,926 --> 00:32:30,116
+MPS.
+
+
+1030
+00:32:30,116 --> 00:32:31,826
+But first, let's take a look at
+
+
+1031
+00:32:31,826 --> 00:32:33,756
+how we can create LSTM layer for
+
+
+1032
+00:32:33,756 --> 00:32:35,436
+training using our framework.
+
+
+1033
+00:32:36,306 --> 00:32:38,036
+So, first, you need to create
+
+
+1034
+00:32:38,036 --> 00:32:39,396
+LSTM layer descriptor.
+
+
+1035
+00:32:40,646 --> 00:32:42,536
+And we initialize the descriptor
+
+
+1036
+00:32:42,536 --> 00:32:44,106
+with initial training parameters
+
+
+1037
+00:32:44,776 --> 00:32:45,996
+using data source providers.
+
+
+1038
+00:32:46,526 --> 00:32:47,556
+So, these initial training
+
+
+1039
+00:32:47,586 --> 00:32:49,066
+parameters are, use smaller
+
+
+1040
+00:32:49,066 --> 00:32:50,746
+random number or some checkpoint
+
+
+1041
+00:32:50,746 --> 00:32:51,196
+values.
+
+
+1042
+00:32:52,466 --> 00:32:53,576
+The descriptor setup for
+
+
+1043
+00:32:53,576 --> 00:32:55,826
+training, is exactly the same as
+
+
+1044
+00:32:55,826 --> 00:32:56,776
+it is for inference.
+
+
+1045
+00:32:58,646 --> 00:33:00,656
+And we discussed the layer
+
+
+1046
+00:33:00,656 --> 00:33:02,986
+descriptor setup in our last
+
+
+1047
+00:33:02,986 --> 00:33:04,676
+year WWDC session in a lot more
+
+
+1048
+00:33:04,676 --> 00:33:05,146
+detail.
+
+
+1049
+00:33:05,146 --> 00:33:06,766
+So, I want to refer you to the
+
+
+1050
+00:33:06,766 --> 00:33:08,616
+session for more information on
+
+
+1051
+00:33:08,616 --> 00:33:10,376
+LSTM layer descriptor setup.
+
+
+1052
+00:33:11,196 --> 00:33:12,586
+Once you have the descriptor,
+
+
+1053
+00:33:13,936 --> 00:33:15,936
+the next step is to create LSTM
+
+
+1054
+00:33:15,936 --> 00:33:17,046
+training layer with this
+
+
+1055
+00:33:17,076 --> 00:33:17,596
+descriptor.
+
+
+1056
+00:33:19,836 --> 00:33:22,156
+MPS will populate training
+
+
+1057
+00:33:22,156 --> 00:33:24,146
+weights using the data sources
+
+
+1058
+00:33:24,146 --> 00:33:25,576
+specified in the descriptor.
+
+
+1059
+00:33:25,906 --> 00:33:27,506
+And we also need to have some
+
+
+1060
+00:33:27,506 --> 00:33:29,116
+matrices to hold the computed
+
+
+1061
+00:33:29,116 --> 00:33:29,626
+gradients.
+
+
+1062
+00:33:30,816 --> 00:33:31,496
+You will use the
+
+
+1063
+00:33:31,496 --> 00:33:34,376
+createWeightGradientMatrices API
+
+
+1064
+00:33:34,376 --> 00:33:36,346
+on the training layer to create
+
+
+1065
+00:33:36,346 --> 00:33:37,036
+these matrices.
+
+
+1066
+00:33:37,446 --> 00:33:39,456
+And then, the training weights
+
+
+1067
+00:33:39,886 --> 00:33:41,426
+will be used in a forward and
+
+
+1068
+00:33:41,426 --> 00:33:43,526
+gradient passes and will be
+
+
+1069
+00:33:43,526 --> 00:33:45,026
+passed to an optimizer along
+
+
+1070
+00:33:45,026 --> 00:33:46,246
+with the computed gradients,
+
+
+1071
+00:33:46,336 --> 00:33:47,106
+job, to date, weights.
+
+
+1072
+00:33:47,636 --> 00:33:50,726
+And now we need to prepare some
+
+
+1073
+00:33:50,726 --> 00:33:52,736
+inputs and outputs for training
+
+
+1074
+00:33:52,736 --> 00:33:53,516
+our LSTM.
+
+
+1075
+00:33:53,996 --> 00:33:55,836
+So, here's an example of how you
+
+
+1076
+00:33:55,836 --> 00:33:58,266
+can create the matrices to hold
+
+
+1077
+00:33:58,266 --> 00:33:59,776
+the input and output sequences
+
+
+1078
+00:33:59,776 --> 00:34:01,286
+for both the forward and
+
+
+1079
+00:34:01,286 --> 00:34:02,146
+gradient passes.
+
+
+1080
+00:34:02,446 --> 00:34:03,926
+You will need 20 matrices for
+
+
+1081
+00:34:03,926 --> 00:34:05,906
+each one of those.
+
+
+1082
+00:34:05,906 --> 00:34:06,896
+And here is how you would
+
+
+1083
+00:34:06,896 --> 00:34:08,496
+initialize these matrices with
+
+
+1084
+00:34:08,536 --> 00:34:08,746
+data.
+
+
+1085
+00:34:09,366 --> 00:34:13,346
+And now, we are ready to train
+
+
+1086
+00:34:13,346 --> 00:34:14,906
+our activity classifier network
+
+
+1087
+00:34:15,346 --> 00:34:15,795
+in MPS.
+
+
+1088
+00:34:16,166 --> 00:34:17,516
+So, in this code example, I will
+
+
+1089
+00:34:17,516 --> 00:34:19,335
+be highlighting only the LSTM
+
+
+1090
+00:34:19,335 --> 00:34:23,246
+filter in the interest of time.
+
+
+1091
+00:34:23,406 --> 00:34:24,976
+So, in the forward pass, we ran
+
+
+1092
+00:34:24,976 --> 00:34:26,585
+a sequence of 20 matrices
+
+
+1093
+00:34:26,585 --> 00:34:28,196
+forward through the LSTM
+
+
+1094
+00:34:28,196 --> 00:34:28,806
+training layer.
+
+
+1095
+00:34:29,726 --> 00:34:30,735
+And then in the backward pass,
+
+
+1096
+00:34:30,735 --> 00:34:33,166
+we ran a sequence of 20 matrices
+
+
+1097
+00:34:33,275 --> 00:34:34,936
+though the LSTM layer to compute
+
+
+1098
+00:34:34,936 --> 00:34:35,545
+gradients.
+
+
+1099
+00:34:36,676 --> 00:34:38,706
+And now, you have the training
+
+
+1100
+00:34:38,706 --> 00:34:39,755
+weights, and you have the
+
+
+1101
+00:34:39,755 --> 00:34:41,406
+computed gradients, and you can
+
+
+1102
+00:34:41,406 --> 00:34:43,186
+pass them to an optimizer to
+
+
+1103
+00:34:43,186 --> 00:34:43,926
+update weights.
+
+
+1104
+00:34:44,646 --> 00:34:46,896
+So, there's just one more thing
+
+
+1105
+00:34:46,896 --> 00:34:47,786
+I'd like to mention.
+
+
+1106
+00:34:49,466 --> 00:34:50,735
+[Inaudible] neural networks
+
+
+1107
+00:34:50,735 --> 00:34:53,676
+operate on images and LSTMs
+
+
+1108
+00:34:53,676 --> 00:34:54,886
+operate on matrices.
+
+
+1109
+00:34:55,946 --> 00:34:57,316
+And we'll provide convenience
+
+
+1110
+00:34:57,316 --> 00:34:59,616
+kernels in the framework to make
+
+
+1111
+00:34:59,616 --> 00:35:00,966
+it easy to convert between
+
+
+1112
+00:35:00,966 --> 00:35:02,006
+images and matrices.
+
+
+1113
+00:35:02,836 --> 00:35:06,166
+So, in order to copy an image to
+
+
+1114
+00:35:06,166 --> 00:35:07,406
+a matrix, you need to use the
+
+
+1115
+00:35:07,406 --> 00:35:09,546
+MPI's Image Copy to Matrix
+
+
+1116
+00:35:09,746 --> 00:35:10,056
+Kernel.
+
+
+1117
+00:35:10,256 --> 00:35:11,456
+So, this is how you can create
+
+
+1118
+00:35:11,456 --> 00:35:13,206
+one, and this is how you can
+
+
+1119
+00:35:13,206 --> 00:35:15,746
+encode one on a batch of images.
+
+
+1120
+00:35:17,186 --> 00:35:19,506
+Here, each row in a destination
+
+
+1121
+00:35:19,506 --> 00:35:21,586
+matrix, will contain one source
+
+
+1122
+00:35:21,586 --> 00:35:21,926
+image.
+
+
+1123
+00:35:23,026 --> 00:35:25,036
+And to copy from a matrix to an
+
+
+1124
+00:35:25,036 --> 00:35:27,066
+image, you need to use the MPS
+
+
+1125
+00:35:27,486 --> 00:35:29,216
+Matrix Copy to Image Kernel.
+
+
+1126
+00:35:29,306 --> 00:35:30,676
+This is how you can create one
+
+
+1127
+00:35:30,996 --> 00:35:32,476
+and this is how you encode one
+
+
+1128
+00:35:32,476 --> 00:35:33,166
+to the GPU.
+
+
+1129
+00:35:34,456 --> 00:35:37,586
+So, we just showed you how to
+
+
+1130
+00:35:37,586 --> 00:35:40,376
+train CNNs and RNNs using MPS.
+
+
+1131
+00:35:41,886 --> 00:35:43,656
+We also showed you a demo of
+
+
+1132
+00:35:43,716 --> 00:35:45,226
+Turi Create which is now powered
+
+
+1133
+00:35:45,226 --> 00:35:45,646
+by MPS.
+
+
+1134
+00:35:45,646 --> 00:35:47,526
+And now it's time for one more
+
+
+1135
+00:35:47,526 --> 00:35:47,806
+demo.
+
+
+1136
+00:35:49,576 --> 00:35:51,276
+We have been working with Google
+
+
+1137
+00:35:51,276 --> 00:35:52,376
+to add support to the Metal
+
+
+1138
+00:35:52,376 --> 00:35:54,236
+Performance Shaders Framework to
+
+
+1139
+00:35:54,236 --> 00:35:58,086
+TensorFlow to accelerate machine
+
+
+1140
+00:35:58,086 --> 00:35:59,716
+learning on macOS, and we would
+
+
+1141
+00:35:59,716 --> 00:36:00,966
+love to show you a demo of that
+
+
+1142
+00:36:00,966 --> 00:36:01,476
+in action.
+
+
+1143
+00:36:01,646 --> 00:36:03,276
+Specifically, we want to show
+
+
+1144
+00:36:03,276 --> 00:36:04,706
+you a demo of training the
+
+
+1145
+00:36:04,706 --> 00:36:06,006
+InceptionV3 Object
+
+
+1146
+00:36:06,006 --> 00:36:08,566
+Classification Network, using
+
+
+1147
+00:36:08,566 --> 00:36:11,736
+TensorFlow, powered by MPS.
+
+
+1148
+00:36:11,806 --> 00:36:15,396
+So, for this demo, I will again
+
+
+1149
+00:36:15,396 --> 00:36:17,216
+be using a MacBook Pro with an
+
+
+1150
+00:36:17,216 --> 00:36:18,456
+attached external GPU.
+
+
+1151
+00:36:19,006 --> 00:36:20,856
+So, I will be running TensorFlow
+
+
+1152
+00:36:21,216 --> 00:36:24,336
+on this MacBook Pro, and I will
+
+
+1153
+00:36:24,336 --> 00:36:25,876
+use an external GPU to train a
+
+
+1154
+00:36:25,876 --> 00:36:27,446
+network using MPS.
+
+
+1155
+00:36:27,836 --> 00:36:29,806
+So, in this demo setup, I've
+
+
+1156
+00:36:29,806 --> 00:36:32,116
+already imported TensorFlow and
+
+
+1157
+00:36:32,496 --> 00:36:34,276
+preloaded the InceptionV3
+
+
+1158
+00:36:34,276 --> 00:36:35,986
+Network and a training data set.
+
+
+1159
+00:36:36,236 --> 00:36:37,226
+So, now, let's train this
+
+
+1160
+00:36:37,286 --> 00:36:39,376
+network for 30 iterations.
+
+
+1161
+00:36:39,376 --> 00:36:42,516
+So, you can see how fast this is
+
+
+1162
+00:36:42,516 --> 00:36:42,896
+going.
+
+
+1163
+00:36:43,476 --> 00:36:45,076
+Again, the entire network, all
+
+
+1164
+00:36:45,076 --> 00:36:46,066
+of the primitives, the
+
+
+1165
+00:36:46,066 --> 00:36:47,506
+optimizer, and the weight update
+
+
+1166
+00:36:47,506 --> 00:36:49,316
+step, everything is running on
+
+
+1167
+00:36:49,316 --> 00:36:50,266
+the external GPU.
+
+
+1168
+00:36:50,726 --> 00:36:51,816
+And we're already done.
+
+
+1169
+00:36:52,516 --> 00:36:54,266
+And as you can see, the training
+
+
+1170
+00:36:54,266 --> 00:36:56,576
+rate is approximately 100 images
+
+
+1171
+00:36:56,606 --> 00:36:57,086
+per second.
+
+
+1172
+00:36:57,546 --> 00:36:58,906
+So, as was stated in the
+
+
+1173
+00:36:59,336 --> 00:37:00,736
+platform State of the Union,
+
+
+1174
+00:37:01,296 --> 00:37:03,056
+training the InceptionV3
+
+
+1175
+00:37:03,056 --> 00:37:05,386
+Network, in TensorFlow powered
+
+
+1176
+00:37:05,386 --> 00:37:09,316
+by MPS, is up to 20 times faster
+
+
+1177
+00:37:09,316 --> 00:37:10,166
+than without MPS.
+
+
+1178
+00:37:10,336 --> 00:37:12,056
+So, this is it for the
+
+
+1179
+00:37:12,056 --> 00:37:12,996
+TensorFlow demo.
+
+
+1180
+00:37:13,536 --> 00:37:20,486
+Thank you very much.
+
+
+1181
+00:37:21,836 --> 00:37:23,256
+And now, let's summarize this
+
+
+1182
+00:37:23,256 --> 00:37:23,636
+session.
+
+
+1183
+00:37:24,926 --> 00:37:26,596
+This year, we've added a FP16
+
+
+1184
+00:37:26,686 --> 00:37:29,176
+accumulation for the convolution
+
+
+1185
+00:37:29,176 --> 00:37:30,486
+and convolution transpose
+
+
+1186
+00:37:30,486 --> 00:37:33,056
+primitives to improve the
+
+
+1187
+00:37:33,056 --> 00:37:34,596
+performance of CNN inference.
+
+
+1188
+00:37:35,246 --> 00:37:36,966
+We've also added GPU accelerate
+
+
+1189
+00:37:37,106 --> 00:37:38,786
+primitives for training neural
+
+
+1190
+00:37:38,786 --> 00:37:39,296
+networks.
+
+
+1191
+00:37:39,536 --> 00:37:41,016
+These primitives are optimized
+
+
+1192
+00:37:41,086 --> 00:37:43,036
+for both iOS and macOS.
+
+
+1193
+00:37:44,806 --> 00:37:45,866
+We've also added the neural
+
+
+1194
+00:37:45,866 --> 00:37:47,526
+network graph API for training.
+
+
+1195
+00:37:48,476 --> 00:37:50,186
+It makes it very easy to train
+
+
+1196
+00:37:50,186 --> 00:37:52,016
+neural networks on the GPU and
+
+
+1197
+00:37:52,016 --> 00:37:54,346
+enables us to provide the best
+
+
+1198
+00:37:54,346 --> 00:37:55,996
+performance across different
+
+
+1199
+00:37:56,706 --> 00:37:56,866
+GPUs.
+
+
+1200
+00:37:58,066 --> 00:38:00,046
+For more information on this
+
+
+1201
+00:38:00,046 --> 00:38:01,406
+session and links to related
+
+
+1202
+00:38:01,406 --> 00:38:02,876
+resources, please go to our
+
+
+1203
+00:38:02,876 --> 00:38:03,866
+developer website.
+
+
+1204
+00:38:05,616 --> 00:38:07,016
+We have the Metal for Machine
+
+
+1205
+00:38:07,016 --> 00:38:08,726
+Learning Lab tomorrow at 9 a.m.
+
+
+1206
+00:38:09,156 --> 00:38:10,356
+So, we would love to talk to
+
+
+1207
+00:38:10,356 --> 00:38:10,576
+you.
+
+
+1208
+00:38:10,576 --> 00:38:12,026
+So, please come talk to us.
+
+
+1209
+00:38:12,316 --> 00:38:16,226
+And thank you for coming and
+
+
+1210
+00:38:16,226 --> 00:38:17,766
+have a great WWDC.
+

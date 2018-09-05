@@ -1,0 +1,3495 @@
+1
+00:00:07,516 --> 00:00:18,500
+[ Music ]
+
+
+2
+00:00:22,341 --> 00:00:24,341
+[ Applause ]
+
+
+3
+00:00:24,666 --> 00:00:25,266
+>> Good afternoon!
+
+
+4
+00:00:25,786 --> 00:00:28,786
+[laughs] Welcome everyone.
+
+
+5
+00:00:28,786 --> 00:00:32,036
+Thanks for coming out to hear
+about what's new in security.
+
+
+6
+00:00:32,485 --> 00:00:33,756
+My name's Lucia Ballard
+
+
+7
+00:00:33,756 --> 00:00:36,486
+and I manage the Secure
+Transports Team here at Apple.
+
+
+8
+00:00:37,056 --> 00:00:39,586
+And together with my colleague
+Simon we'll be talking you
+
+
+9
+00:00:39,586 --> 00:00:42,536
+through a bunch of new stuff
+that we've been working
+
+
+10
+00:00:42,536 --> 00:00:45,716
+on to help you improve the
+security for your customers.
+
+
+11
+00:00:46,306 --> 00:00:48,536
+So, I hope a lot of you caught
+Evone's [assumed spelling] talk
+
+
+12
+00:00:48,536 --> 00:00:49,336
+before this.
+
+
+13
+00:00:49,696 --> 00:00:53,146
+It's a great overview of why
+we do what we do and sort
+
+
+14
+00:00:53,146 --> 00:00:56,096
+of the fundamental underpinnings
+of security on our system.
+
+
+15
+00:00:56,626 --> 00:00:58,596
+Here we're going to dive a
+little more into the details.
+
+
+16
+00:00:58,596 --> 00:01:00,976
+So, here's what's on deck.
+
+
+17
+00:01:05,046 --> 00:01:06,546
+First up we'll be talking
+
+
+18
+00:01:06,546 --> 00:01:09,776
+about some network
+security changes on iOS.
+
+
+19
+00:01:10,706 --> 00:01:12,896
+Then we'll discuss
+a couple of updates
+
+
+20
+00:01:12,896 --> 00:01:14,276
+to our cryptography APIs.
+
+
+21
+00:01:14,886 --> 00:01:17,196
+And then Simon's going to talk
+
+
+22
+00:01:17,196 --> 00:01:21,476
+about platform security
+on macOS.
+
+
+23
+00:01:21,956 --> 00:01:25,436
+So, diving into network
+security; if you use your phone
+
+
+24
+00:01:25,436 --> 00:01:27,096
+as much as I do, you know
+
+
+25
+00:01:27,096 --> 00:01:29,686
+that it's accumulated an
+incredible wealth of detail
+
+
+26
+00:01:29,686 --> 00:01:30,846
+about your personal life,
+
+
+27
+00:01:31,066 --> 00:01:33,256
+and a lot of that comes
+across the network.
+
+
+28
+00:01:33,256 --> 00:01:34,986
+Whether it's articles
+you're reading,
+
+
+29
+00:01:34,986 --> 00:01:36,926
+or messages you're
+sending to your friends,
+
+
+30
+00:01:37,986 --> 00:01:39,376
+all these little bits of detail,
+
+
+31
+00:01:39,376 --> 00:01:41,726
+even if they seem
+insignificant alone,
+
+
+32
+00:01:41,946 --> 00:01:45,316
+can add up to a really
+incredible picture of a person.
+
+
+33
+00:01:45,726 --> 00:01:48,136
+So, that's why we
+think at Apple all
+
+
+34
+00:01:48,136 --> 00:01:51,196
+of this detail should
+be protected by default.
+
+
+35
+00:01:52,636 --> 00:01:55,426
+We think HTTPS is the new HTTP.
+
+
+36
+00:01:55,796 --> 00:01:58,326
+So, for every resource you're
+loading across the network,
+
+
+37
+00:01:58,736 --> 00:02:00,326
+you should provide
+confidentiality
+
+
+38
+00:02:00,326 --> 00:02:02,176
+and data integrity
+to your users.
+
+
+39
+00:02:02,696 --> 00:02:09,036
+The other key point here is that
+not all HTTPS is created equal.
+
+
+40
+00:02:10,286 --> 00:02:14,956
+HTTPS is built on SSL, or now
+in the modern age known as TLS,
+
+
+41
+00:02:16,016 --> 00:02:19,886
+and not all versions of this
+protocol actually provide enough
+
+
+42
+00:02:19,946 --> 00:02:24,536
+security that your users be
+resistant against attacks.
+
+
+43
+00:02:24,716 --> 00:02:26,146
+So, building on these
+principles,
+
+
+44
+00:02:26,816 --> 00:02:29,616
+last year we introduced
+App Transport Security.
+
+
+45
+00:02:30,516 --> 00:02:35,106
+App Transport Security
+means that for all loads
+
+
+46
+00:02:35,106 --> 00:02:37,826
+that you're doing,
+using the NSURLSession,
+
+
+47
+00:02:37,996 --> 00:02:41,116
+or even the older
+NSURLConnection APIs,
+
+
+48
+00:02:41,606 --> 00:02:46,536
+you have to be using top of
+line, solid TLS connections.
+
+
+49
+00:02:47,646 --> 00:02:51,436
+First off that means TLS
+version 1.2; this version's been
+
+
+50
+00:02:51,436 --> 00:02:55,706
+out for a while, but it's the
+only one that's fully resistant
+
+
+51
+00:02:55,706 --> 00:02:59,416
+to all the vulnerabilities that
+we know about, like BEAST attack
+
+
+52
+00:02:59,666 --> 00:03:02,756
+or the POODLE attack, or other
+exploits with these scary names.
+
+
+53
+00:03:04,556 --> 00:03:07,126
+It also means you have to
+use strong cryptography
+
+
+54
+00:03:07,606 --> 00:03:11,046
+so that's ciphers like
+AES-128 or better,
+
+
+55
+00:03:11,526 --> 00:03:13,966
+and certificates
+signed with SHA-2.
+
+
+56
+00:03:14,256 --> 00:03:19,116
+Certificates signed with SHA-1,
+it's getting easier to attack.
+
+
+57
+00:03:19,346 --> 00:03:21,306
+Finally, it also
+means forward secrecy.
+
+
+58
+00:03:21,826 --> 00:03:23,916
+So, this is a way
+to exchange keys
+
+
+59
+00:03:23,916 --> 00:03:25,336
+between server and the client.
+
+
+60
+00:03:25,586 --> 00:03:28,566
+It gives an amazing
+property, which means even
+
+
+61
+00:03:28,566 --> 00:03:30,726
+if in the future
+that certificate --
+
+
+62
+00:03:31,186 --> 00:03:33,046
+the server's certificate
+is compromised,
+
+
+63
+00:03:33,556 --> 00:03:36,786
+you can't reveal the
+content of any communications
+
+
+64
+00:03:36,786 --> 00:03:39,176
+that have happened in the past.
+
+
+65
+00:03:39,396 --> 00:03:42,546
+So, you add all these together
+and you have, what we think,
+
+
+66
+00:03:42,806 --> 00:03:44,026
+is a secure connection
+
+
+67
+00:03:44,026 --> 00:03:47,276
+that protects the
+data of your clients.
+
+
+68
+00:03:47,326 --> 00:03:50,696
+Now, we know that it takes
+some time to get up to speed
+
+
+69
+00:03:50,696 --> 00:03:54,086
+with App Transport Security, so
+we also introduced Exceptions.
+
+
+70
+00:03:54,536 --> 00:03:57,536
+You can turn it off globally,
+or you could set Exceptions
+
+
+71
+00:03:57,536 --> 00:03:58,956
+up for particular domains
+
+
+72
+00:03:59,176 --> 00:04:02,826
+that you knew couldn't
+move to TLS that fast.
+
+
+73
+00:04:03,036 --> 00:04:04,436
+Now I'm wondering
+how many people
+
+
+74
+00:04:04,436 --> 00:04:06,346
+in this audience are
+thinking, "Oh yeah,
+
+
+75
+00:04:06,616 --> 00:04:09,206
+I set that Exception last
+year and haven't thought
+
+
+76
+00:04:09,206 --> 00:04:10,066
+about it for a while."
+
+
+77
+00:04:10,776 --> 00:04:13,126
+Well, now is the
+time to revisit it
+
+
+78
+00:04:14,266 --> 00:04:16,305
+because this year we're starting
+
+
+79
+00:04:16,305 --> 00:04:19,266
+to enforce App Transport
+Security at the App Store.
+
+
+80
+00:04:20,916 --> 00:04:25,446
+This is going to kick in at
+the end of 2016 and it means
+
+
+81
+00:04:25,486 --> 00:04:27,676
+that for most Exceptions
+you'll need
+
+
+82
+00:04:27,676 --> 00:04:29,516
+to provide a reasonable
+justification.
+
+
+83
+00:04:29,906 --> 00:04:31,676
+So, for all of these Exceptions
+
+
+84
+00:04:31,726 --> 00:04:34,386
+that actually turn off
+App Transport Security,
+
+
+85
+00:04:34,526 --> 00:04:38,096
+or its key properties
+like using TLS 1.2,
+
+
+86
+00:04:38,416 --> 00:04:40,856
+you'll need to explain
+why you need
+
+
+87
+00:04:40,856 --> 00:04:42,626
+to use this Exception
+in the first place.
+
+
+88
+00:04:43,646 --> 00:04:46,946
+For other Exceptions like
+Forward Secrecy, we recognize
+
+
+89
+00:04:47,166 --> 00:04:49,426
+that support for those
+is not fully universal,
+
+
+90
+00:04:49,706 --> 00:04:52,766
+so for now those Exceptions
+will be granted automatically
+
+
+91
+00:04:52,766 --> 00:04:54,366
+without any justification.
+
+
+92
+00:04:56,186 --> 00:04:59,936
+So for example, if you have a
+partner server you're working
+
+
+93
+00:04:59,936 --> 00:05:02,156
+with and you don't have control
+
+
+94
+00:05:02,156 --> 00:05:05,496
+over what cipher suites they're
+offering, we will be able
+
+
+95
+00:05:05,496 --> 00:05:06,976
+to enable you to keep
+talking with that server.
+
+
+96
+00:05:13,046 --> 00:05:15,136
+We're also adding
+some new Exceptions
+
+
+97
+00:05:15,546 --> 00:05:16,936
+to make it easier to adopt.
+
+
+98
+00:05:17,346 --> 00:05:20,766
+So for example, if you're
+using Streaming Media
+
+
+99
+00:05:20,766 --> 00:05:24,766
+and that media's already
+encrypted in bulk, we'll be able
+
+
+100
+00:05:24,766 --> 00:05:27,946
+to offer an Exception through
+AV Foundation for you to load
+
+
+101
+00:05:27,946 --> 00:05:29,686
+that media without
+connecting over TLS.
+
+
+102
+00:05:30,376 --> 00:05:33,086
+I want to be clear, we still
+think the right answer here is
+
+
+103
+00:05:33,196 --> 00:05:34,986
+that you use TLS for everything,
+
+
+104
+00:05:35,486 --> 00:05:38,816
+but in some cases we will be
+able to provide this Exception
+
+
+105
+00:05:39,006 --> 00:05:40,726
+to help you transition
+more smoothly.
+
+
+106
+00:05:42,736 --> 00:05:45,226
+We're also offering a
+Web Content Exception.
+
+
+107
+00:05:45,796 --> 00:05:49,016
+So, here sometimes your app
+needs to load arbitrary content
+
+
+108
+00:05:49,016 --> 00:05:49,826
+from around the web
+
+
+109
+00:05:49,826 --> 00:05:53,136
+and of course you can't
+guarantee that's using HTTPS.
+
+
+110
+00:05:54,056 --> 00:05:58,626
+So, if you're WKWebView, then
+you can just set this key
+
+
+111
+00:05:58,706 --> 00:06:01,836
+in your app's Info.plist.
+
+
+112
+00:06:01,836 --> 00:06:07,246
+NSAllowsAarbitraryLoads
+inWebContentKey and then all
+
+
+113
+00:06:07,246 --> 00:06:08,626
+of those loads will be exempted
+
+
+114
+00:06:08,626 --> 00:06:10,886
+from the App Transport
+Security requirements,
+
+
+115
+00:06:11,116 --> 00:06:13,606
+but everything else your
+app is doing, like talking
+
+
+116
+00:06:13,606 --> 00:06:14,976
+to your own server, will
+still get the protection.
+
+
+117
+00:06:20,076 --> 00:06:21,676
+So, that's App Transport
+Security,
+
+
+118
+00:06:22,926 --> 00:06:25,846
+but we're also making changes
+to TLS across the system
+
+
+119
+00:06:26,746 --> 00:06:31,766
+because cipher suites keep
+evolving and keep getting more
+
+
+120
+00:06:31,766 --> 00:06:34,116
+and more effective attacks
+posted against them.
+
+
+121
+00:06:34,796 --> 00:06:37,506
+So, no matter what
+your ATS settings are,
+
+
+122
+00:06:38,066 --> 00:06:40,136
+we've now disabled
+RC4 by default
+
+
+123
+00:06:40,136 --> 00:06:44,846
+for anyone using
+our networking APIs.
+
+
+124
+00:06:45,046 --> 00:06:48,216
+We've also disabled SSLv3
+in Secure Transport.
+
+
+125
+00:06:48,406 --> 00:06:49,356
+So, even if you're dialing
+
+
+126
+00:06:49,356 --> 00:06:51,906
+down into our lower level
+APIs you won't be able
+
+
+127
+00:06:51,906 --> 00:06:53,276
+to access SSLv3.
+
+
+128
+00:06:54,276 --> 00:06:56,186
+Research has simply
+moved too far for both
+
+
+129
+00:06:56,186 --> 00:06:57,996
+of these technologies
+and no longer think
+
+
+130
+00:06:57,996 --> 00:07:00,586
+that they provide effective
+security for our users.
+
+
+131
+00:07:00,996 --> 00:07:04,596
+So, these are disabled.
+
+
+132
+00:07:05,386 --> 00:07:07,356
+Other algorithms are
+starting to show their age;
+
+
+133
+00:07:07,796 --> 00:07:12,356
+specifically SHA-1 is showing
+more and more vulnerability
+
+
+134
+00:07:12,356 --> 00:07:14,446
+to attacks, as is 3DES.
+
+
+135
+00:07:15,356 --> 00:07:17,706
+So, if you know that you
+have a dependency on either
+
+
+136
+00:07:17,706 --> 00:07:21,486
+of these algorithms now
+is the time to drop it.
+
+
+137
+00:07:22,236 --> 00:07:25,316
+And I recognize many people in
+this room are app developers
+
+
+138
+00:07:25,316 --> 00:07:28,336
+and aren't in charge of their
+own back ends, so you'll need
+
+
+139
+00:07:28,336 --> 00:07:31,026
+to reach out to the
+folks at your company
+
+
+140
+00:07:31,026 --> 00:07:33,136
+or whoever's hosting your
+back end to make sure
+
+
+141
+00:07:33,616 --> 00:07:35,876
+that they've dropped
+any dependency
+
+
+142
+00:07:35,876 --> 00:07:38,326
+on these older algorithms
+that are getting deprecated.
+
+
+143
+00:07:39,246 --> 00:07:42,166
+It would be a great time to
+check in about the status
+
+
+144
+00:07:42,166 --> 00:07:44,666
+of loading things using
+HTTPS and make sure
+
+
+145
+00:07:44,666 --> 00:07:47,216
+that you are cleared for
+App Transport Security,
+
+
+146
+00:07:47,736 --> 00:07:48,976
+then you'll be able to
+fly through app review.
+
+
+147
+00:07:53,306 --> 00:07:54,916
+So, that's App Transport
+Security.
+
+
+148
+00:07:55,916 --> 00:07:58,426
+It's making sure everything
+loads using strong TLS,
+
+
+149
+00:07:58,976 --> 00:08:01,246
+but strong TLS is not enough.
+
+
+150
+00:08:02,616 --> 00:08:05,456
+You also need to have
+confidence that the certificate
+
+
+151
+00:08:05,456 --> 00:08:07,016
+that you're using to validate
+
+
+152
+00:08:07,016 --> 00:08:10,686
+that TLS connection
+represents the right server.
+
+
+153
+00:08:11,076 --> 00:08:13,976
+So, I want to talk about a
+couple of different technologies
+
+
+154
+00:08:14,016 --> 00:08:17,556
+that we're using today to help
+you have confidence that you're
+
+
+155
+00:08:17,556 --> 00:08:20,546
+in fact reaching out to the
+server that you think you are
+
+
+156
+00:08:20,866 --> 00:08:23,186
+when you're establishing
+these secure communications.
+
+
+157
+00:08:23,846 --> 00:08:27,766
+So, first let's back up
+and talk a little bit
+
+
+158
+00:08:27,766 --> 00:08:28,976
+about how certificates
+work today.
+
+
+159
+00:08:33,046 --> 00:08:34,676
+So, if you're connecting
+to a server,
+
+
+160
+00:08:34,676 --> 00:08:37,285
+that server has had
+a certificate issued
+
+
+161
+00:08:37,285 --> 00:08:38,606
+from a certificate authority.
+
+
+162
+00:08:38,856 --> 00:08:40,686
+That authority validates
+the host name
+
+
+163
+00:08:40,686 --> 00:08:42,515
+and says, "Yep, sounds good.
+
+
+164
+00:08:42,515 --> 00:08:44,096
+You are in fact example.com.
+
+
+165
+00:08:44,096 --> 00:08:45,556
+Here's your cryptographic
+proof of that."
+
+
+166
+00:08:46,056 --> 00:08:48,976
+And when you connect the server
+sends that certificate over.
+
+
+167
+00:08:53,056 --> 00:08:56,116
+But this is not always
+a perfect mechanism.
+
+
+168
+00:08:57,386 --> 00:09:00,336
+If there's an attacker who
+manages to get a certificate
+
+
+169
+00:09:00,446 --> 00:09:03,386
+for your host name, then
+the attacker can provide
+
+
+170
+00:09:03,386 --> 00:09:06,166
+that certificate, and you as
+the client don't have a way
+
+
+171
+00:09:06,166 --> 00:09:08,746
+to distinguish the attacker's
+server from your own server.
+
+
+172
+00:09:09,516 --> 00:09:10,336
+This could happen
+
+
+173
+00:09:10,336 --> 00:09:13,026
+if the certificate
+authority makes a mistake or,
+
+
+174
+00:09:13,026 --> 00:09:14,076
+worse case scenario,
+
+
+175
+00:09:14,076 --> 00:09:16,246
+if the certificate
+authority gets compromised,
+
+
+176
+00:09:16,426 --> 00:09:18,736
+someone else uses their private
+keys to sign with things.
+
+
+177
+00:09:21,446 --> 00:09:24,536
+So, today I'm proud to announce
+that we're joining the effort
+
+
+178
+00:09:24,536 --> 00:09:26,196
+for certificate transparency.
+
+
+179
+00:09:27,276 --> 00:09:31,076
+Certificate transparency is a
+technology that uses public,
+
+
+180
+00:09:31,076 --> 00:09:33,556
+verifiable logs of
+issued certificates.
+
+
+181
+00:09:34,496 --> 00:09:37,496
+These logs collect certificates
+from a huge variety of sources,
+
+
+182
+00:09:37,496 --> 00:09:39,856
+so there are many participating
+certificate authorities,
+
+
+183
+00:09:40,046 --> 00:09:41,936
+but in fact anyone
+can submit a log.
+
+
+184
+00:09:43,416 --> 00:09:46,876
+Then the logs issue
+a cryptographic proof
+
+
+185
+00:09:47,066 --> 00:09:48,576
+that the certificate
+has been logged
+
+
+186
+00:09:48,766 --> 00:09:50,406
+and a client can
+check for that proof.
+
+
+187
+00:09:50,406 --> 00:09:52,756
+There are a bunch of
+different ways to do it.
+
+
+188
+00:09:52,756 --> 00:09:54,826
+Proof can be embedded in
+the certificate itself,
+
+
+189
+00:09:54,826 --> 00:09:57,666
+or it can get handed over
+in the TLS handshake,
+
+
+190
+00:09:58,466 --> 00:10:00,676
+or it can be delivered
+by OCSP stapling,
+
+
+191
+00:10:00,676 --> 00:10:04,536
+which I'll talk more
+about in a minute.
+
+
+192
+00:10:04,716 --> 00:10:06,876
+So, here's a quick
+overview on how it works.
+
+
+193
+00:10:07,456 --> 00:10:14,416
+First, the certificate authority
+not only issues a certificate
+
+
+194
+00:10:14,416 --> 00:10:17,086
+to the server, but it also
+sends it over to the log,
+
+
+195
+00:10:17,566 --> 00:10:19,246
+it gets added into
+the public log.
+
+
+196
+00:10:20,456 --> 00:10:22,906
+The log then sends
+a signed proof
+
+
+197
+00:10:22,956 --> 00:10:24,406
+that the certificate
+has been included,
+
+
+198
+00:10:25,066 --> 00:10:28,776
+and the server hands both that
+and the original certificate
+
+
+199
+00:10:29,146 --> 00:10:30,266
+over to you, the client.
+
+
+200
+00:10:30,866 --> 00:10:33,046
+That means you can
+validate the pair together.
+
+
+201
+00:10:35,796 --> 00:10:38,676
+So, certificate transparency
+makes it more difficult
+
+
+202
+00:10:38,786 --> 00:10:40,396
+to launch attacks.
+
+
+203
+00:10:41,356 --> 00:10:43,366
+Basically it puts the
+attacker in a bind.
+
+
+204
+00:10:43,366 --> 00:10:45,646
+If the attacker can
+get a certificate
+
+
+205
+00:10:45,776 --> 00:10:49,776
+from an authority that's not
+participating, they have no way
+
+
+206
+00:10:49,946 --> 00:10:51,796
+to get that cryptographic proof
+
+
+207
+00:10:52,166 --> 00:10:54,436
+that the certificate has
+been included in the log.
+
+
+208
+00:10:55,096 --> 00:10:56,986
+So, they hand over
+the certificate alone
+
+
+209
+00:10:56,986 --> 00:10:59,836
+and the client can reject it.
+
+
+210
+00:10:59,986 --> 00:11:03,946
+Alternatively, if they are using
+a certificate authority that's
+
+
+211
+00:11:03,946 --> 00:11:07,926
+participating, then that
+tainted certificate gets logged
+
+
+212
+00:11:07,926 --> 00:11:10,796
+and is publically visible, and
+that gives you an opportunity
+
+
+213
+00:11:10,796 --> 00:11:13,536
+to revoke the certificate at
+the certificate authority level.
+
+
+214
+00:11:13,976 --> 00:11:19,136
+So, we think this is a critical
+technology to enable you
+
+
+215
+00:11:19,136 --> 00:11:21,806
+to have confidence that the
+certificate that you're talking
+
+
+216
+00:11:21,806 --> 00:11:27,476
+to is in fact the certificate
+you want to be talking to.
+
+
+217
+00:11:27,726 --> 00:11:29,216
+So, here's how you
+can try it out.
+
+
+218
+00:11:30,586 --> 00:11:33,526
+You can actually use the same
+info.plist that you used to set
+
+
+219
+00:11:33,526 --> 00:11:35,696
+up your app for security
+configuration.
+
+
+220
+00:11:36,006 --> 00:11:39,966
+It's a new keyword, so for each
+example it has a certificate
+
+
+221
+00:11:39,966 --> 00:11:42,306
+that's participating, you
+just set this keyword,
+
+
+222
+00:11:42,306 --> 00:11:45,616
+and then your client will reject
+any certificate it can't prove
+
+
+223
+00:11:45,666 --> 00:11:46,906
+that it's been publically
+logged.
+
+
+224
+00:11:47,336 --> 00:11:53,246
+Our current policy roughly
+requires that you need a proof
+
+
+225
+00:11:53,246 --> 00:11:54,606
+from at least two logs.
+
+
+226
+00:11:55,816 --> 00:11:59,576
+These logs -- we're adding
+new logs as we qualify them,
+
+
+227
+00:11:59,736 --> 00:12:01,406
+but basically if your
+certificate works
+
+
+228
+00:12:01,406 --> 00:12:03,236
+in Chromium it'll
+work for us as well.
+
+
+229
+00:12:03,866 --> 00:12:05,626
+And there's a lot
+more information
+
+
+230
+00:12:05,726 --> 00:12:09,546
+about the general technology
+at certificatetransparency.org.
+
+
+231
+00:12:09,826 --> 00:12:10,976
+So, I encourage you
+to go check that out.
+
+
+232
+00:12:15,286 --> 00:12:18,966
+Now certificate transparency is
+a great piece of this ecosystem,
+
+
+233
+00:12:19,156 --> 00:12:21,206
+but it doesn't totally
+replace revocation.
+
+
+234
+00:12:21,366 --> 00:12:23,816
+There's still that last
+step where once you found
+
+
+235
+00:12:23,816 --> 00:12:26,606
+out the certificate is flawed
+for some reason you have
+
+
+236
+00:12:26,606 --> 00:12:27,996
+to actually stop trusting it.
+
+
+237
+00:12:29,416 --> 00:12:31,466
+So, I want to take a
+couple of minutes to talk
+
+
+238
+00:12:31,466 --> 00:12:33,406
+about our recommended
+practice here.
+
+
+239
+00:12:33,716 --> 00:12:35,166
+It's called the OCSP stapling.
+
+
+240
+00:12:35,996 --> 00:12:38,696
+Now this is a standard that's
+been out for a couple of years,
+
+
+241
+00:12:39,106 --> 00:12:40,386
+but we think that it --
+
+
+242
+00:12:40,386 --> 00:12:42,756
+now's the time for folks
+to actually move to it
+
+
+243
+00:12:42,756 --> 00:12:44,756
+and start adopting
+it because support
+
+
+244
+00:12:44,756 --> 00:12:46,456
+for it is now quite widespread.
+
+
+245
+00:12:46,976 --> 00:12:49,816
+OCSP stapling is an enhancement
+
+
+246
+00:12:49,816 --> 00:12:51,926
+to the online certificate
+status protocol
+
+
+247
+00:12:52,066 --> 00:12:53,986
+and solves a bunch
+of problems with it.
+
+
+248
+00:12:55,546 --> 00:12:58,656
+So, as a refresher,
+this is how OCSP works.
+
+
+249
+00:12:58,656 --> 00:13:00,336
+We have the same set up, right?
+
+
+250
+00:13:00,336 --> 00:13:03,196
+Where your certificate authority
+is issuing the certificate
+
+
+251
+00:13:03,196 --> 00:13:06,776
+to a server, every
+time a client connects
+
+
+252
+00:13:06,776 --> 00:13:09,726
+to that server it sees the
+certificate and it wants
+
+
+253
+00:13:09,726 --> 00:13:11,026
+to know whether it's
+still valid.
+
+
+254
+00:13:12,106 --> 00:13:15,076
+So, it asks the certificate
+authority right there
+
+
+255
+00:13:15,076 --> 00:13:16,606
+in the middle of
+the TLS handshake,
+
+
+256
+00:13:17,336 --> 00:13:19,256
+and the certificate
+authority says, "Yep,
+
+
+257
+00:13:19,446 --> 00:13:22,216
+the certs still valid," or
+"No, sorry it's invalid.
+
+
+258
+00:13:22,316 --> 00:13:23,536
+Don't trust it."
+
+
+259
+00:13:24,536 --> 00:13:25,786
+This has some issues.
+
+
+260
+00:13:26,726 --> 00:13:28,576
+One of them is that it's slow.
+
+
+261
+00:13:28,616 --> 00:13:30,796
+You're right in the middle of
+this handshake; you're trying
+
+
+262
+00:13:30,796 --> 00:13:32,636
+to get your resources,
+you don't want to wait
+
+
+263
+00:13:32,636 --> 00:13:34,876
+to make your network
+connection to some other entity,
+
+
+264
+00:13:35,676 --> 00:13:37,336
+especially if that
+server's gone down,
+
+
+265
+00:13:37,336 --> 00:13:38,596
+you might be hanging
+for a while.
+
+
+266
+00:13:39,816 --> 00:13:43,086
+The other major issue is
+that it leaks a little bit
+
+
+267
+00:13:43,086 --> 00:13:45,416
+about whatever activity
+you're doing online.
+
+
+268
+00:13:45,676 --> 00:13:47,536
+Your certificate
+authority gets to see
+
+
+269
+00:13:47,536 --> 00:13:48,616
+which host names
+you're connecting
+
+
+270
+00:13:48,616 --> 00:13:51,176
+to because you're
+sending a response
+
+
+271
+00:13:51,176 --> 00:13:52,636
+up each time you connect.
+
+
+272
+00:13:55,636 --> 00:13:58,506
+OCSP stapling resolves
+a lot of these concerns.
+
+
+273
+00:13:58,906 --> 00:14:00,566
+So, here's basically
+how it works.
+
+
+274
+00:14:01,506 --> 00:14:03,006
+Instead of the client asking,
+
+
+275
+00:14:03,716 --> 00:14:05,926
+the server asks the
+certificate authority,
+
+
+276
+00:14:06,456 --> 00:14:10,346
+and the certificate authority
+hands a signed response back
+
+
+277
+00:14:10,346 --> 00:14:10,956
+to the server.
+
+
+278
+00:14:11,126 --> 00:14:12,986
+Now it's signed by the
+certificate authority
+
+
+279
+00:14:13,326 --> 00:14:15,206
+so you know you can trust it.
+
+
+280
+00:14:15,816 --> 00:14:19,466
+Then the server gives both
+the certificate and a promise
+
+
+281
+00:14:19,496 --> 00:14:22,266
+that it's valid over to
+the client, all in line,
+
+
+282
+00:14:22,266 --> 00:14:22,976
+all in the same handshake.
+
+
+283
+00:14:27,256 --> 00:14:30,356
+So, this means that your
+revocation information is
+
+
+284
+00:14:30,356 --> 00:14:32,216
+delivered reliably and quickly.
+
+
+285
+00:14:32,216 --> 00:14:33,456
+There's no extra waiting.
+
+
+286
+00:14:33,656 --> 00:14:34,856
+There's no concern there.
+
+
+287
+00:14:35,986 --> 00:14:37,856
+And it protects your
+user's privacy
+
+
+288
+00:14:37,856 --> 00:14:39,956
+because the only connection
+they're making is back
+
+
+289
+00:14:39,956 --> 00:14:40,796
+to your server.
+
+
+290
+00:14:42,716 --> 00:14:44,646
+You may have noticed
+that diagram looked a lot
+
+
+291
+00:14:44,646 --> 00:14:46,856
+like the certificate
+transparency diagram and that's
+
+
+292
+00:14:46,856 --> 00:14:48,716
+because you can use
+the same mechanism
+
+
+293
+00:14:48,716 --> 00:14:50,736
+to deliver certificate
+transparency proofs.
+
+
+294
+00:14:50,816 --> 00:14:54,606
+As long as your certificate
+authority is participating you
+
+
+295
+00:14:54,606 --> 00:14:57,596
+can hand all of that information
+together in the same handshake.
+
+
+296
+00:14:59,506 --> 00:15:03,896
+And, like I said, OCSP
+stapling is widely supported
+
+
+297
+00:15:03,896 --> 00:15:06,966
+across many operating systems
+and is backwards compatible,
+
+
+298
+00:15:06,966 --> 00:15:10,246
+so you can go turn it on
+today, in Apache, in GenX,
+
+
+299
+00:15:10,286 --> 00:15:12,866
+whatever your backend
+is hosted on.
+
+
+300
+00:15:13,176 --> 00:15:15,976
+And it's now fully supported
+across every Apple platform.
+
+
+301
+00:15:20,196 --> 00:15:22,836
+So, if you could take a step
+back and summarize where we are
+
+
+302
+00:15:22,836 --> 00:15:26,736
+with network security, now's
+the time to move forward
+
+
+303
+00:15:27,026 --> 00:15:29,346
+to App Transport
+Security Standards.
+
+
+304
+00:15:29,346 --> 00:15:34,066
+So, that's strong algorithms
+and strong ciphers; TLS 1.2,
+
+
+305
+00:15:34,286 --> 00:15:36,706
+forward secrecy, and
+SHA-2 Certificates.
+
+
+306
+00:15:38,536 --> 00:15:41,806
+Also, it'd be a great time
+to start experimenting
+
+
+307
+00:15:41,806 --> 00:15:43,296
+with certificate transparency.
+
+
+308
+00:15:43,646 --> 00:15:45,926
+Find certificate authorities
+that are participating
+
+
+309
+00:15:45,926 --> 00:15:49,466
+and get integrated
+into this ecosystem.
+
+
+310
+00:15:49,976 --> 00:15:54,096
+And please, go enable
+OCSP stapling
+
+
+311
+00:15:54,096 --> 00:15:56,636
+so we connect the
+full loop and know
+
+
+312
+00:15:56,636 --> 00:15:57,906
+that you can have confidence
+
+
+313
+00:15:58,126 --> 00:16:00,416
+in making secured connections
+back to your servers.
+
+
+314
+00:16:01,016 --> 00:16:03,116
+So, that's network security.
+
+
+315
+00:16:03,116 --> 00:16:08,276
+Now I'd like to take a
+couple of minutes to talk
+
+
+316
+00:16:08,276 --> 00:16:09,806
+about some cryptographic
+improvements.
+
+
+317
+00:16:10,436 --> 00:16:13,626
+So, first up is SecKey.
+
+
+318
+00:16:14,056 --> 00:16:17,066
+SecKey is our algorithm,
+or excuse me,
+
+
+319
+00:16:17,066 --> 00:16:20,876
+is our API for asymmetric
+cryptographic operations.
+
+
+320
+00:16:21,346 --> 00:16:23,096
+And in this release
+we've unified it
+
+
+321
+00:16:23,146 --> 00:16:25,116
+across macOS and iOS APIs.
+
+
+322
+00:16:26,416 --> 00:16:29,356
+SecKey now has support for all
+the common operations you would
+
+
+323
+00:16:29,356 --> 00:16:33,566
+want to do with asymmetric
+key pairs; the RSA, the ACC.
+
+
+324
+00:16:33,566 --> 00:16:36,876
+So, that's signing and
+verifying with asymmetric keys.
+
+
+325
+00:16:38,386 --> 00:16:40,876
+This means that SecKey
+is a total replacement
+
+
+326
+00:16:41,096 --> 00:16:44,276
+for the deprecated
+CDSA calls on macOS.
+
+
+327
+00:16:44,816 --> 00:16:48,596
+And it also replaces any use of
+SecTransform you might be doing
+
+
+328
+00:16:48,906 --> 00:16:52,006
+to do cryptography
+with asymmetric keys.
+
+
+329
+00:16:52,576 --> 00:16:54,946
+So, we strongly recommend
+moving forward with SecKey.
+
+
+330
+00:16:56,836 --> 00:17:00,866
+We've also tied this into a
+new kit called CryptoTokenKit.
+
+
+331
+00:17:01,796 --> 00:17:05,425
+CryptoTokenKit is system support
+for cryptographic devices
+
+
+332
+00:17:05,425 --> 00:17:08,796
+so that smart cards you might
+be using to prove your identity
+
+
+333
+00:17:08,796 --> 00:17:11,806
+and various enterprises
+or USB tokens,
+
+
+334
+00:17:12,486 --> 00:17:15,986
+we now have out of the
+box integration with these
+
+
+335
+00:17:16,526 --> 00:17:18,646
+and they can integrate
+into system surfaces.
+
+
+336
+00:17:18,646 --> 00:17:23,195
+So, that means the Token content
+is available in the keychain,
+
+
+337
+00:17:23,195 --> 00:17:27,236
+as you would expect, and the
+Token operations are available
+
+
+338
+00:17:27,425 --> 00:17:28,706
+using the SecKey API.
+
+
+339
+00:17:29,996 --> 00:17:31,676
+Now this is a complex topic
+
+
+340
+00:17:31,676 --> 00:17:33,326
+and there's a lot of
+detail to go into.
+
+
+341
+00:17:33,866 --> 00:17:36,606
+So, please come see us in the
+security labs and we can talk
+
+
+342
+00:17:36,666 --> 00:17:37,776
+through your use case.
+
+
+343
+00:17:38,476 --> 00:17:43,036
+So, thanks for your attention
+and with that I'll hand it off
+
+
+344
+00:17:43,036 --> 00:17:44,946
+to Simon to talk about what's
+new in Platform Security.
+
+
+345
+00:17:45,516 --> 00:17:50,256
+[ Applause ]
+
+
+346
+00:17:50,756 --> 00:17:51,596
+>> Thank you very much Lucia.
+
+
+347
+00:17:53,246 --> 00:17:54,556
+Hello. I'm Simon Cooper.
+
+
+348
+00:17:54,706 --> 00:17:56,556
+I'm the manager of the
+Trusted Engineering Team.
+
+
+349
+00:17:57,206 --> 00:17:59,846
+So, I'm going to talk about
+what's new in security,
+
+
+350
+00:18:00,516 --> 00:18:02,526
+but first of all I
+want to talk about --
+
+
+351
+00:18:02,526 --> 00:18:06,626
+a little bit about how software
+is delivered on the Mac,
+
+
+352
+00:18:07,216 --> 00:18:10,956
+a little bit about Developer
+ID, and I'm going to talk
+
+
+353
+00:18:10,956 --> 00:18:13,526
+about Gatekeeper and
+some packaging issues
+
+
+354
+00:18:13,526 --> 00:18:14,416
+surrounding Gatekeeper.
+
+
+355
+00:18:15,296 --> 00:18:16,566
+So, let's start off about --
+
+
+356
+00:18:16,566 --> 00:18:18,966
+talking about how
+software is delivered
+
+
+357
+00:18:18,966 --> 00:18:22,816
+for a couple of our platforms.
+
+
+358
+00:18:22,816 --> 00:18:25,586
+So, for iOS you can get
+apps from the App Store.
+
+
+359
+00:18:27,246 --> 00:18:30,576
+You can build and
+run apps using Xcode
+
+
+360
+00:18:30,726 --> 00:18:33,026
+and install them on
+your own devices.
+
+
+361
+00:18:34,246 --> 00:18:37,036
+And there's some enterprise
+programs that allow you
+
+
+362
+00:18:37,036 --> 00:18:40,176
+to deliver and manage
+content to devices.
+
+
+363
+00:18:41,526 --> 00:18:44,226
+You'll notice that all of these
+installation mechanisms are
+
+
+364
+00:18:44,226 --> 00:18:46,106
+silently handled by
+the iOS platform.
+
+
+365
+00:18:47,466 --> 00:18:49,426
+So, now I'd like to talk
+a little bit about macOS.
+
+
+366
+00:18:49,856 --> 00:18:55,106
+So, you can also get apps
+from the Mac App Store
+
+
+367
+00:18:55,106 --> 00:18:57,766
+and that's a very good
+way to get your apps.
+
+
+368
+00:18:58,366 --> 00:19:03,366
+You can also get apps that are
+assigned with Developer ID.
+
+
+369
+00:19:05,996 --> 00:19:09,606
+You can also use Xcode
+to build your own apps
+
+
+370
+00:19:09,656 --> 00:19:12,156
+and use the traditional
+command-line UNIX tools
+
+
+371
+00:19:12,156 --> 00:19:13,976
+to build things in
+the normal UNIX way.
+
+
+372
+00:19:18,046 --> 00:19:20,976
+So, let's go back and talk a
+little bit about Developer ID.
+
+
+373
+00:19:25,256 --> 00:19:25,976
+So, what is Developer ID?
+
+
+374
+00:19:30,126 --> 00:19:31,576
+Developer ID allows you
+
+
+375
+00:19:31,576 --> 00:19:33,476
+to deliver apps outside
+of the App Store.
+
+
+376
+00:19:35,616 --> 00:19:38,726
+These apps are usually
+downloaded using a web browser.
+
+
+377
+00:19:41,656 --> 00:19:43,956
+The Developer ID
+Program will issue you
+
+
+378
+00:19:44,246 --> 00:19:46,676
+with a Developer ID signing ID.
+
+
+379
+00:19:48,486 --> 00:19:50,086
+And when you sign apps using
+
+
+380
+00:19:50,086 --> 00:19:52,726
+that identity they are treated
+specially by Gatekeeper.
+
+
+381
+00:19:54,596 --> 00:19:58,566
+There are actually some improved
+flows in Xcode 8 that allow you
+
+
+382
+00:19:58,566 --> 00:20:00,446
+to properly export
+your Developer ID
+
+
+383
+00:20:00,446 --> 00:20:00,976
+signed applications.
+
+
+384
+00:20:08,196 --> 00:20:09,986
+So, there's something
+we're actually going to do
+
+
+385
+00:20:09,986 --> 00:20:12,216
+and that's a change to
+the Developer ID Program,
+
+
+386
+00:20:12,616 --> 00:20:13,806
+and this was announced
+yesterday.
+
+
+387
+00:20:13,946 --> 00:20:15,796
+We're actually allowing
+Developer ID
+
+
+388
+00:20:15,796 --> 00:20:17,146
+to be used with iCloud.
+
+
+389
+00:20:19,536 --> 00:20:22,476
+So, Developer ID can
+now use iCloud features.
+
+
+390
+00:20:22,836 --> 00:20:26,106
+That includes iCloud
+Drive, iCloud Keychain,
+
+
+391
+00:20:26,656 --> 00:20:27,886
+Push Notifications, and VPN.
+
+
+392
+00:20:32,306 --> 00:20:33,066
+So, what does this mean?
+
+
+393
+00:20:34,256 --> 00:20:38,266
+This means that you can deliver
+iCloud enabled apps outside
+
+
+394
+00:20:38,266 --> 00:20:42,756
+of the App Store and you can now
+use Developer ID to share data
+
+
+395
+00:20:43,076 --> 00:20:45,416
+with your iCloud
+enabled iOS apps.
+
+
+396
+00:20:46,686 --> 00:20:50,176
+You will be able to deploy
+these new Developer ID apps back
+
+
+397
+00:20:50,346 --> 00:20:51,906
+to macOS 10.9.
+
+
+398
+00:20:52,606 --> 00:20:54,226
+So, I'm sure you want to know
+
+
+399
+00:20:54,226 --> 00:20:56,956
+when you'll be able
+to do all of this.
+
+
+400
+00:20:57,176 --> 00:21:00,066
+So, you can start iCloud
+Development testing today.
+
+
+401
+00:21:00,626 --> 00:21:01,976
+That's using the Xcode 8 tools.
+
+
+402
+00:21:06,106 --> 00:21:08,956
+And I'm sure you're aware
+that when you're doing testing
+
+
+403
+00:21:09,296 --> 00:21:12,156
+of iCloud there is a development
+and production environment.
+
+
+404
+00:21:13,126 --> 00:21:16,976
+When you're going to deploy
+your iCloud App you'll want
+
+
+405
+00:21:16,976 --> 00:21:18,776
+to be deploying against
+the production environment
+
+
+406
+00:21:19,136 --> 00:21:21,256
+and you'll have to wait for
+an upcoming seed in order
+
+
+407
+00:21:21,256 --> 00:21:24,146
+to start testing that.
+
+
+408
+00:21:24,736 --> 00:21:27,566
+When you are going to do
+that, please use the new flows
+
+
+409
+00:21:27,566 --> 00:21:31,306
+in Xcode 8 because they make
+sure that you are deploying
+
+
+410
+00:21:31,306 --> 00:21:32,736
+against the production servers.
+
+
+411
+00:21:33,866 --> 00:21:36,746
+The Xcode team also
+asks me to remind you
+
+
+412
+00:21:37,206 --> 00:21:40,296
+that please don't distribute
+apps unless you're using the
+
+
+413
+00:21:40,296 --> 00:21:40,976
+GM tools.
+
+
+414
+00:21:45,396 --> 00:21:49,546
+So, the other side of
+Developer ID is Gatekeeper.
+
+
+415
+00:21:50,486 --> 00:21:52,966
+Gatekeeper allows us to
+control what apps are allowed
+
+
+416
+00:21:52,966 --> 00:21:54,216
+to run on your machine.
+
+
+417
+00:21:55,626 --> 00:21:59,206
+And there is a Preference Panel.
+
+
+418
+00:21:59,566 --> 00:22:01,586
+And on that Preference
+Panel, in El Capitan,
+
+
+419
+00:22:02,026 --> 00:22:05,106
+there are these options; you can
+run apps from the Mac App Store,
+
+
+420
+00:22:06,156 --> 00:22:09,586
+you can run from the Mac App
+Store, unidentified developers,
+
+
+421
+00:22:09,956 --> 00:22:11,396
+or you can run apps
+from anywhere.
+
+
+422
+00:22:12,706 --> 00:22:16,526
+When you first run an app
+Gatekeeper will prompt you
+
+
+423
+00:22:16,726 --> 00:22:17,716
+before its first run.
+
+
+424
+00:22:19,256 --> 00:22:22,096
+We're actually making
+some changes to Gatekeeper
+
+
+425
+00:22:22,446 --> 00:22:26,816
+and we're making changes to
+the Gatekeeper UI in Sierra.
+
+
+426
+00:22:28,296 --> 00:22:30,126
+We are changing the
+default options,
+
+
+427
+00:22:30,126 --> 00:22:32,256
+and those default
+options are going to be --
+
+
+428
+00:22:32,516 --> 00:22:33,976
+you can run from
+the Mac App Store,
+
+
+429
+00:22:34,736 --> 00:22:37,206
+you can run from the Mac App
+Store unidentified developers.
+
+
+430
+00:22:38,356 --> 00:22:41,706
+Now if Gatekeeper rejects
+your app for some reason,
+
+
+431
+00:22:42,186 --> 00:22:45,206
+there's usually a button that
+appears in this Preference Pane
+
+
+432
+00:22:45,356 --> 00:22:48,786
+that allows you to open
+and -- to open anyway.
+
+
+433
+00:22:50,216 --> 00:22:51,516
+Unfortunately I have to say,
+
+
+434
+00:22:51,516 --> 00:22:54,046
+in the seed build this function
+is not actually working,
+
+
+435
+00:22:54,146 --> 00:22:56,186
+but it will be fixed
+in a later seed build.
+
+
+436
+00:22:57,266 --> 00:23:01,076
+I also want to say that we
+haven't actually changed the way
+
+
+437
+00:23:01,076 --> 00:23:02,846
+that this underlying
+mechanism works and the way
+
+
+438
+00:23:02,846 --> 00:23:03,786
+that the policy works.
+
+
+439
+00:23:04,386 --> 00:23:06,666
+So, this means that if you
+have managed configurations
+
+
+440
+00:23:06,666 --> 00:23:09,696
+or you use command line tools
+and use the policy tools,
+
+
+441
+00:23:09,966 --> 00:23:11,976
+you can re-enable
+the Allow Anywhere.
+
+
+442
+00:23:19,046 --> 00:23:20,946
+So, I want to talk a little bit
+now about some other changes
+
+
+443
+00:23:20,946 --> 00:23:23,296
+to Gatekeeper, but
+I first need to talk
+
+
+444
+00:23:23,296 --> 00:23:27,436
+about a repackaging problem
+and the Gatekeeper enhancement
+
+
+445
+00:23:27,436 --> 00:23:29,096
+that we've developed
+to address this.
+
+
+446
+00:23:29,836 --> 00:23:32,646
+Now the repackaging
+problem is a problem
+
+
+447
+00:23:32,946 --> 00:23:34,746
+because of the way
+certain apps are written.
+
+
+448
+00:23:34,746 --> 00:23:37,436
+There are a certain type of apps
+
+
+449
+00:23:37,886 --> 00:23:42,316
+that when they are written they
+reach outside of themselves
+
+
+450
+00:23:42,486 --> 00:23:44,116
+and use external resources.
+
+
+451
+00:23:46,536 --> 00:23:54,216
+These apps may be delivered
+in various ways and they may
+
+
+452
+00:23:54,216 --> 00:23:55,786
+in fact be correctly signed.
+
+
+453
+00:23:56,806 --> 00:23:58,896
+But the external
+resources that they reach
+
+
+454
+00:23:58,896 --> 00:24:01,236
+out to may not be signed
+
+
+455
+00:24:02,026 --> 00:24:04,246
+and they can be code
+or code equivalent.
+
+
+456
+00:24:04,566 --> 00:24:06,826
+They could be libraries,
+they could be plug-ins,
+
+
+457
+00:24:07,276 --> 00:24:08,826
+they could even be HTML content.
+
+
+458
+00:24:09,266 --> 00:24:11,976
+And you may not be aware
+that local HTML content,
+
+
+459
+00:24:11,976 --> 00:24:14,976
+that if it contains JavaScript
+can access all of your system.
+
+
+460
+00:24:19,226 --> 00:24:22,916
+These resources could also be
+Lua Scripts or Python Scripts
+
+
+461
+00:24:23,336 --> 00:24:24,396
+or even Apple Scripts.
+
+
+462
+00:24:26,666 --> 00:24:28,156
+So, what's the problem?
+
+
+463
+00:24:29,616 --> 00:24:32,066
+Well, if you put these two
+things together inside a
+
+
+464
+00:24:32,066 --> 00:24:35,666
+container and deliver the app
+in this way, maybe through a zip
+
+
+465
+00:24:36,106 --> 00:24:40,616
+or a disk image or using an
+ISO image, and you put this app
+
+
+466
+00:24:41,306 --> 00:24:47,306
+into the container, and then you
+put the resources alongside it,
+
+
+467
+00:24:48,256 --> 00:24:50,726
+when the app runs and it talks
+
+
+468
+00:24:50,726 --> 00:24:55,246
+to the external resources
+it's loading these potentially
+
+
+469
+00:24:55,696 --> 00:24:56,456
+dangerous things.
+
+
+470
+00:24:57,296 --> 00:25:00,296
+And you'll notice that the
+app, with its green border,
+
+
+471
+00:25:00,296 --> 00:25:03,716
+meaning that it's signed, is
+reaching outside of itself,
+
+
+472
+00:25:03,716 --> 00:25:04,876
+outside of the signature,
+
+
+473
+00:25:05,276 --> 00:25:08,156
+and trying to touch these
+potential resources.
+
+
+474
+00:25:08,246 --> 00:25:12,696
+So, if I take that app
+and I repackage it,
+
+
+475
+00:25:13,106 --> 00:25:17,396
+but instead of packaging it with
+the external resources that you,
+
+
+476
+00:25:17,456 --> 00:25:18,936
+the developer, would
+like to be there,
+
+
+477
+00:25:19,056 --> 00:25:22,036
+and I put malicious
+content there,
+
+
+478
+00:25:22,816 --> 00:25:25,226
+then when the user runs
+the app they're not going
+
+
+479
+00:25:25,226 --> 00:25:27,116
+to be getting your
+experience, they're going
+
+
+480
+00:25:27,116 --> 00:25:30,626
+to be getting the experience
+of the malicious code.
+
+
+481
+00:25:31,506 --> 00:25:34,266
+Now if that malicious code
+is a [inaudible] library
+
+
+482
+00:25:34,406 --> 00:25:37,036
+that you may have put into a
+plug ins directory, for example,
+
+
+483
+00:25:37,626 --> 00:25:39,966
+then your app is almost
+certainly not going
+
+
+484
+00:25:39,966 --> 00:25:41,866
+to be doing what you
+expect it to be doing.
+
+
+485
+00:25:48,296 --> 00:25:50,646
+So, we're calling this
+a repackaging problem,
+
+
+486
+00:25:51,186 --> 00:25:52,906
+and there are some things
+
+
+487
+00:25:52,906 --> 00:25:55,176
+that are actually
+not affected directly
+
+
+488
+00:25:55,176 --> 00:25:58,446
+by the packaging problem,
+and those things are apps
+
+
+489
+00:25:58,446 --> 00:25:59,966
+that are delivered
+from the Mac App Store.
+
+
+490
+00:26:00,716 --> 00:26:04,136
+And that is the best
+way to get apps.
+
+
+491
+00:26:04,366 --> 00:26:10,616
+Other things that are
+not directly affected is
+
+
+492
+00:26:10,616 --> 00:26:13,776
+if you install your apps using a
+signed Apple Installer Package.
+
+
+493
+00:26:14,936 --> 00:26:15,966
+That doesn't mean to say
+
+
+494
+00:26:16,316 --> 00:26:18,906
+that the app once it's been
+installed can't be repackaged
+
+
+495
+00:26:19,236 --> 00:26:20,716
+and delivered in
+another mechanism,
+
+
+496
+00:26:20,976 --> 00:26:24,476
+but the actual Apple Installer
+Package doesn't have the problem
+
+
+497
+00:26:24,476 --> 00:26:25,916
+of reaching outside
+the resources.
+
+
+498
+00:26:31,046 --> 00:26:32,286
+So, there are things
+that are affected,
+
+
+499
+00:26:32,676 --> 00:26:35,076
+and that is if you are
+delivering your app using a zip,
+
+
+500
+00:26:35,536 --> 00:26:39,556
+or a disk image, or if you've
+got a combination of things
+
+
+501
+00:26:39,786 --> 00:26:42,976
+in an ISO image, and any
+other kind of archive format.
+
+
+502
+00:26:46,216 --> 00:26:49,506
+It's also possible that if
+your disk image is structured
+
+
+503
+00:26:49,506 --> 00:26:51,806
+in such a way that
+you are trying
+
+
+504
+00:26:51,806 --> 00:26:56,606
+to assemble an app using a
+combination of pulling resources
+
+
+505
+00:26:56,606 --> 00:27:00,966
+from here and there, you can
+also be affected by this.
+
+
+506
+00:27:07,386 --> 00:27:08,976
+So, I -- we need your
+help with this problem.
+
+
+507
+00:27:13,046 --> 00:27:14,196
+And we also need to
+protect our customers
+
+
+508
+00:27:14,196 --> 00:27:14,936
+because of this problem.
+
+
+509
+00:27:18,536 --> 00:27:19,386
+So, what do we need to do?
+
+
+510
+00:27:20,256 --> 00:27:23,156
+So, if you're delivering
+something that has a signed app
+
+
+511
+00:27:23,156 --> 00:27:25,306
+with some external resources,
+and you may be doing this
+
+
+512
+00:27:25,336 --> 00:27:29,286
+through using a zip, or a
+disk image, or an ISO image.
+
+
+513
+00:27:29,486 --> 00:27:33,556
+And we need to ask you to
+switch to using a disk image.
+
+
+514
+00:27:34,076 --> 00:27:37,846
+And the reason we're
+asking you to do this is
+
+
+515
+00:27:37,886 --> 00:27:39,976
+because we can now
+sign disk images.
+
+
+516
+00:27:43,136 --> 00:27:48,436
+You can sign a disk image
+using macOS 10.11.5,
+
+
+517
+00:27:48,856 --> 00:27:51,776
+and that is the current
+release of El Capitan,
+
+
+518
+00:27:52,436 --> 00:27:54,916
+or any of the later
+release of OS X.
+
+
+519
+00:27:58,066 --> 00:28:01,636
+You can use the cosigning
+tool to sign the app --
+
+
+520
+00:28:01,636 --> 00:28:03,176
+to sign the disk
+image, I'm sorry,
+
+
+521
+00:28:03,926 --> 00:28:07,726
+and that will basically
+bind the external resources
+
+
+522
+00:28:07,826 --> 00:28:10,236
+and the app together.
+
+
+523
+00:28:10,316 --> 00:28:12,756
+These signatures are actually
+embedded in the disk image
+
+
+524
+00:28:12,956 --> 00:28:14,126
+and are carried along with it,
+
+
+525
+00:28:14,126 --> 00:28:17,896
+and this signed disk
+image is compatible
+
+
+526
+00:28:17,896 --> 00:28:18,976
+with older OS releases.
+
+
+527
+00:28:23,046 --> 00:28:24,926
+So, I'd now like to give
+some packaging advice.
+
+
+528
+00:28:25,886 --> 00:28:28,366
+So, one way to avoid
+this packaging problem --
+
+
+529
+00:28:28,366 --> 00:28:30,576
+repackaging problem is
+to avoid it completely
+
+
+530
+00:28:31,066 --> 00:28:33,396
+and put your resources
+inside the app bundle
+
+
+531
+00:28:33,716 --> 00:28:34,966
+and then sign the whole thing.
+
+
+532
+00:28:41,046 --> 00:28:43,556
+If you're distributing just a
+single app bundle you should
+
+
+533
+00:28:43,556 --> 00:28:45,976
+consider delivering it
+via the Mac App Store.
+
+
+534
+00:28:47,296 --> 00:28:49,446
+You should certainly
+sign the app.
+
+
+535
+00:28:50,486 --> 00:28:52,386
+Perhaps package it
+in a zip archive,
+
+
+536
+00:28:52,796 --> 00:28:57,306
+but please verify the
+signature before you release it.
+
+
+537
+00:28:57,426 --> 00:28:59,056
+Alternatively if you
+have a complex set
+
+
+538
+00:28:59,056 --> 00:29:02,086
+up you can use a signed
+Apple Installer Package.
+
+
+539
+00:29:02,876 --> 00:29:07,366
+For a container with apps and
+resources, with a disk image,
+
+
+540
+00:29:07,806 --> 00:29:10,266
+please use, and switch to
+using a signed disk image.
+
+
+541
+00:29:11,266 --> 00:29:13,816
+Sign any content that you
+have inside the container
+
+
+542
+00:29:14,176 --> 00:29:17,016
+so that app that's inside
+there should also be signed,
+
+
+543
+00:29:18,356 --> 00:29:19,746
+and you should sign
+the disk image.
+
+
+544
+00:29:20,466 --> 00:29:22,726
+And please verify all
+the signatures before you
+
+
+545
+00:29:22,726 --> 00:29:22,976
+release it.
+
+
+546
+00:29:27,096 --> 00:29:28,956
+So, some final words
+on packaging,
+
+
+547
+00:29:30,716 --> 00:29:32,726
+so if you're adding
+personalization
+
+
+548
+00:29:32,826 --> 00:29:34,726
+or licensing information
+to your app
+
+
+549
+00:29:34,726 --> 00:29:38,236
+when it's being downloaded
+please use an extended attribute
+
+
+550
+00:29:38,236 --> 00:29:39,656
+on the bundle route of the app.
+
+
+551
+00:29:39,656 --> 00:29:42,756
+And there's a tech note that
+describes how to do this
+
+
+552
+00:29:43,076 --> 00:29:45,316
+and that's Tech Note 2206.
+
+
+553
+00:29:45,586 --> 00:29:46,716
+And you could also do this
+
+
+554
+00:29:46,716 --> 00:29:48,596
+by signing the personalized
+disk image.
+
+
+555
+00:29:51,116 --> 00:29:53,776
+Here are some things that
+you should definitely not do.
+
+
+556
+00:29:55,076 --> 00:29:57,156
+You should not modify
+your app after signing,
+
+
+557
+00:29:57,406 --> 00:29:58,776
+because this will break
+the code signature,
+
+
+558
+00:29:58,776 --> 00:30:00,856
+and when Gatekeeper comes
+
+
+559
+00:30:00,856 --> 00:30:02,936
+to verify your app
+it will get grumpy.
+
+
+560
+00:30:03,836 --> 00:30:05,946
+You should never deliver your
+app with a broken signature
+
+
+561
+00:30:06,626 --> 00:30:09,986
+and please stop shipping
+ISO images.
+
+
+562
+00:30:10,886 --> 00:30:14,276
+So, now I'd like to talk
+about a Gatekeeper enhancement
+
+
+563
+00:30:14,506 --> 00:30:17,386
+that we have developed that
+helps combat this problem.
+
+
+564
+00:30:18,006 --> 00:30:20,586
+And this is all about
+protecting customers.
+
+
+565
+00:30:22,236 --> 00:30:25,856
+This mechanism, we're calling
+Gatekeeper Path Randomization,
+
+
+566
+00:30:27,636 --> 00:30:30,666
+it supplements existing
+Gatekeeper --
+
+
+567
+00:30:30,706 --> 00:30:32,816
+all the existing
+Gatekeeper protections,
+
+
+568
+00:30:33,396 --> 00:30:36,976
+and there's no change
+for Mac App Store apps.
+
+
+569
+00:30:41,496 --> 00:30:43,946
+And there's no change when
+you're upgrading to Sierra
+
+
+570
+00:30:44,416 --> 00:30:47,606
+for any apps that were
+previously run on your system.
+
+
+571
+00:30:49,996 --> 00:30:53,006
+This mechanism will
+come into play
+
+
+572
+00:30:53,336 --> 00:30:59,286
+for any newly downloaded apps
+and it applies to apps that are
+
+
+573
+00:30:59,286 --> 00:31:00,826
+on unsigned disk images.
+
+
+574
+00:31:00,826 --> 00:31:05,976
+So, let me describe exactly how
+this mechanism is going to work.
+
+
+575
+00:31:10,046 --> 00:31:13,146
+So, this is a complex
+object, now this could be
+
+
+576
+00:31:13,146 --> 00:31:15,446
+in your Downloads folder and
+it could be an unpacked zip,
+
+
+577
+00:31:16,206 --> 00:31:18,206
+or this could actually
+be a mounted disk image
+
+
+578
+00:31:18,646 --> 00:31:20,976
+that contains your app
+and those extra resources.
+
+
+579
+00:31:27,046 --> 00:31:31,316
+So, when you double
+click on your app,
+
+
+580
+00:31:32,116 --> 00:31:38,926
+when your app runs it will be
+relocated, with some tricks,
+
+
+581
+00:31:39,576 --> 00:31:43,666
+into a randomized place on the
+file system and it won't be able
+
+
+582
+00:31:43,716 --> 00:31:44,976
+to access the resources.
+
+
+583
+00:31:50,046 --> 00:31:51,826
+So, this stops the
+repackaging attack.
+
+
+584
+00:31:52,396 --> 00:31:56,116
+So there are some situations
+
+
+585
+00:31:56,286 --> 00:31:58,556
+where this relocation
+does not happen.
+
+
+586
+00:31:59,206 --> 00:32:02,596
+If the user explicitly
+moves the app
+
+
+587
+00:32:02,906 --> 00:32:05,556
+and it's just the app
+itself, if they move the app
+
+
+588
+00:32:05,556 --> 00:32:09,536
+with something else, then
+this mechanism does not get
+
+
+589
+00:32:09,566 --> 00:32:10,016
+turned off.
+
+
+590
+00:32:10,856 --> 00:32:12,966
+If the user moves the
+single app by itself,
+
+
+591
+00:32:13,096 --> 00:32:14,576
+maybe to Slash Applications,
+
+
+592
+00:32:15,446 --> 00:32:17,186
+then this mechanism
+will be turned off.
+
+
+593
+00:32:19,296 --> 00:32:23,226
+This does not happen if
+you sign your disk image.
+
+
+594
+00:32:24,006 --> 00:32:25,196
+So, any apps that are run
+
+
+595
+00:32:25,196 --> 00:32:27,676
+from a signed disk image will
+not have this mechanism apply
+
+
+596
+00:32:27,766 --> 00:32:30,866
+to them.
+
+
+597
+00:32:31,386 --> 00:32:33,256
+This mechanism also
+doesn't come into play
+
+
+598
+00:32:33,606 --> 00:32:36,966
+if you install software using a
+signed Apple Installer Package.
+
+
+599
+00:32:37,536 --> 00:32:42,976
+It also doesn't apply to any
+apps from the Mac App Store.
+
+
+600
+00:32:49,486 --> 00:32:51,976
+So, in summary if there
+were two things to take away
+
+
+601
+00:32:51,976 --> 00:32:55,436
+from this talk; sign the things
+that you deliver and check
+
+
+602
+00:32:55,526 --> 00:32:59,896
+that things that are valid.
+
+
+603
+00:32:59,896 --> 00:33:01,946
+So, more information about
+this talk can be found here.
+
+
+604
+00:33:02,516 --> 00:33:05,500
+[ Applause ]
+

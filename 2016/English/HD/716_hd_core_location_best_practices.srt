@@ -1,0 +1,3712 @@
+1
+00:00:07,516 --> 00:00:19,516
+[ Music ]
+
+
+2
+00:00:20,516 --> 00:00:26,446
+[ Applause ]
+
+
+3
+00:00:26,946 --> 00:00:27,686
+>> Good afternoon.
+
+
+4
+00:00:27,896 --> 00:00:29,556
+I'm Brad, and today
+we are going to talk
+
+
+5
+00:00:29,556 --> 00:00:31,516
+about Core Location
+best practices.
+
+
+6
+00:00:32,086 --> 00:00:34,886
+Now just so we're
+all on the same page,
+
+
+7
+00:00:34,886 --> 00:00:36,186
+we're going to start
+off by talking
+
+
+8
+00:00:36,186 --> 00:00:38,356
+about the major features
+of Core Location.
+
+
+9
+00:00:39,236 --> 00:00:42,196
+For veterans of our API,
+this will be largely review.
+
+
+10
+00:00:42,756 --> 00:00:44,706
+But for newcomers, it will be--
+
+
+11
+00:00:45,626 --> 00:00:47,086
+well, you'll want to
+consult the documentation
+
+
+12
+00:00:47,086 --> 00:00:47,846
+after this session.
+
+
+13
+00:00:49,676 --> 00:00:52,586
+After that, we'll switch over
+to talking about best practices
+
+
+14
+00:00:52,586 --> 00:00:53,686
+for using Core Location.
+
+
+15
+00:00:54,416 --> 00:00:56,886
+Now iOS is the only
+platform where all
+
+
+16
+00:00:56,886 --> 00:01:00,146
+of our APIs are available, so
+it will be our focus today.
+
+
+17
+00:01:00,986 --> 00:01:04,706
+However, if you are interested
+in macOS, tvOS or watchOS,
+
+
+18
+00:01:04,965 --> 00:01:06,936
+you might want to stick
+around, because a lot
+
+
+19
+00:01:06,936 --> 00:01:09,096
+of the content will be
+applicable to those platforms,
+
+
+20
+00:01:09,096 --> 00:01:11,036
+and we'll talk about them
+explicitly at the end.
+
+
+21
+00:01:13,526 --> 00:01:14,916
+With that, let's
+get started talking
+
+
+22
+00:01:14,916 --> 00:01:16,746
+about Core Locations,
+major features.
+
+
+23
+00:01:17,906 --> 00:01:20,176
+The first one is the
+authorization API.
+
+
+24
+00:01:21,356 --> 00:01:24,586
+Now, you should know that the
+authorization API is required
+
+
+25
+00:01:24,586 --> 00:01:26,816
+in order to access
+the user's location.
+
+
+26
+00:01:28,166 --> 00:01:30,136
+You've probably experienced
+this as a user,
+
+
+27
+00:01:30,266 --> 00:01:31,966
+if you've ever seen a
+prompt like this one.
+
+
+28
+00:01:32,576 --> 00:01:34,836
+Here, Core Location is
+asking the user if they'd
+
+
+29
+00:01:34,836 --> 00:01:38,096
+like to authorize the camera
+app to access their location.
+
+
+30
+00:01:39,616 --> 00:01:42,786
+We offer two different
+versions of authorization
+
+
+31
+00:01:42,826 --> 00:01:44,026
+that your app can request.
+
+
+32
+00:01:44,806 --> 00:01:47,206
+The first one is
+when-in-use authorization,
+
+
+33
+00:01:48,096 --> 00:01:49,346
+and just like it sounds like,
+
+
+34
+00:01:49,556 --> 00:01:51,736
+when your app receives
+when-in-use authorization,
+
+
+35
+00:01:51,906 --> 00:01:55,216
+it is allowed to access the
+user's location whenever it is
+
+
+36
+00:01:55,216 --> 00:01:55,826
+in use.
+
+
+37
+00:01:56,416 --> 00:01:58,756
+We'll define what it means to
+be in use in just a moment.
+
+
+38
+00:01:59,046 --> 00:02:01,956
+If you'd like to request
+when in use authorization,
+
+
+39
+00:02:02,386 --> 00:02:05,096
+you simply call the
+requestWhenInUseAuthorization
+
+
+40
+00:02:05,096 --> 00:02:05,436
+method.
+
+
+41
+00:02:07,446 --> 00:02:09,466
+We also have
+AlwaysAuthorization.
+
+
+42
+00:02:10,395 --> 00:02:12,216
+When your app has
+AlwaysAuthorization,
+
+
+43
+00:02:12,426 --> 00:02:15,106
+it is permitted to access the
+user's location whenever your
+
+
+44
+00:02:15,106 --> 00:02:15,916
+app is running.
+
+
+45
+00:02:16,856 --> 00:02:20,546
+To request it, you simply use
+the requestAlwaysAuthorization
+
+
+46
+00:02:20,546 --> 00:02:20,866
+method.
+
+
+47
+00:02:22,576 --> 00:02:24,976
+Whichever authorization
+level you choose to request,
+
+
+48
+00:02:25,156 --> 00:02:27,366
+you must provide a
+usage description
+
+
+49
+00:02:27,406 --> 00:02:29,266
+in your app's information
+property list.
+
+
+50
+00:02:30,536 --> 00:02:33,296
+Core Location will pull this
+string out of your info plist,
+
+
+51
+00:02:33,376 --> 00:02:34,966
+and display it to
+the user as part
+
+
+52
+00:02:34,966 --> 00:02:38,746
+of the authorization prompt.
+
+
+53
+00:02:40,156 --> 00:02:45,756
+So when is your app
+considered in use?
+
+
+54
+00:02:46,266 --> 00:02:47,946
+Well, if your app is
+in the foreground,
+
+
+55
+00:02:48,136 --> 00:02:49,556
+then we'll consider it in use.
+
+
+56
+00:02:49,766 --> 00:02:53,166
+This is Potluck, our sample app.
+
+
+57
+00:02:54,136 --> 00:02:57,176
+If your app is in the
+background, but has a blue bar,
+
+
+58
+00:02:57,336 --> 00:02:59,176
+then it will also be
+considered in use.
+
+
+59
+00:03:00,326 --> 00:03:02,516
+If you're wondering about the
+blue bar, we'll talk about that
+
+
+60
+00:03:02,516 --> 00:03:03,596
+in just a few moments.
+
+
+61
+00:03:04,856 --> 00:03:09,376
+Finally, if your app is handling
+WatchConnectivity messages,
+
+
+62
+00:03:09,586 --> 00:03:11,326
+from a foreground watchOS app,
+
+
+63
+00:03:11,656 --> 00:03:14,266
+then it will also be
+considered in use.
+
+
+64
+00:03:16,236 --> 00:03:20,746
+Once your app has received
+authorization from the user,
+
+
+65
+00:03:21,076 --> 00:03:23,686
+it can use our location
+sensitive APIs.
+
+
+66
+00:03:24,236 --> 00:03:26,426
+The first one we are going
+to talk about is the bread
+
+
+67
+00:03:26,426 --> 00:03:29,316
+and butter of Core Location,
+the standard location service.
+
+
+68
+00:03:30,446 --> 00:03:31,926
+It comes in two different
+versions.
+
+
+69
+00:03:33,356 --> 00:03:35,416
+The first version is
+the single location API.
+
+
+70
+00:03:37,026 --> 00:03:40,076
+When you call Request Location,
+Core Location will do its best
+
+
+71
+00:03:40,076 --> 00:03:42,196
+to produce an estimate
+of the user's position,
+
+
+72
+00:03:42,386 --> 00:03:44,096
+and then deliver that
+to your delegate.
+
+
+73
+00:03:45,736 --> 00:03:48,666
+We also offer the
+continuous location API.
+
+
+74
+00:03:49,946 --> 00:03:51,816
+When you call Start
+Updating Location,
+
+
+75
+00:03:52,136 --> 00:03:55,076
+Core Location will produce a
+stream of location updates,
+
+
+76
+00:03:55,076 --> 00:03:56,746
+and deliver them all
+to your delegate.
+
+
+77
+00:03:58,676 --> 00:04:01,506
+Remember to stop your location
+updates when you're done,
+
+
+78
+00:04:01,576 --> 00:04:03,496
+since otherwise Core
+Location will continue
+
+
+79
+00:04:03,496 --> 00:04:04,526
+to compute locations.
+
+
+80
+00:04:06,816 --> 00:04:08,706
+We have a few knobs
+and dials you can turn
+
+
+81
+00:04:08,706 --> 00:04:10,876
+to adjust how the standard
+location service works.
+
+
+82
+00:04:12,256 --> 00:04:13,716
+For example, Deferred Updates.
+
+
+83
+00:04:14,406 --> 00:04:16,476
+When you enable deferred
+location updates,
+
+
+84
+00:04:16,846 --> 00:04:19,206
+you're telling Core Location
+that it's acceptable for us
+
+
+85
+00:04:19,206 --> 00:04:22,316
+to deliver location updates
+to your app in large batches.
+
+
+86
+00:04:23,196 --> 00:04:25,306
+Sometimes we do this
+for power reasons.
+
+
+87
+00:04:27,416 --> 00:04:31,216
+We also offer automatic pausing.
+
+
+88
+00:04:31,716 --> 00:04:32,926
+This is enabled by default.
+
+
+89
+00:04:34,196 --> 00:04:35,906
+What it does, is it
+attempts to detect
+
+
+90
+00:04:35,966 --> 00:04:39,566
+when your location session
+has outlived its usefulness
+
+
+91
+00:04:39,616 --> 00:04:40,306
+to some extent.
+
+
+92
+00:04:40,756 --> 00:04:41,896
+Let's consider an example.
+
+
+93
+00:04:42,386 --> 00:04:45,126
+Suppose the user is
+using a run tracking app,
+
+
+94
+00:04:45,746 --> 00:04:48,866
+and they go for a run, but when
+they get home, they're tired,
+
+
+95
+00:04:49,096 --> 00:04:50,896
+and they just want to take a
+shower, and they forget all
+
+
+96
+00:04:50,896 --> 00:04:52,726
+about stopping their
+location session.
+
+
+97
+00:04:54,266 --> 00:04:56,286
+Now, unless the app
+was specifically trying
+
+
+98
+00:04:56,286 --> 00:04:58,106
+to detect this sort
+of situation,
+
+
+99
+00:04:58,646 --> 00:05:00,906
+it's likely that the
+user's phone would continue
+
+
+100
+00:05:00,906 --> 00:05:03,756
+to compute locations until
+it runs out of power.
+
+
+101
+00:05:05,056 --> 00:05:07,336
+With automatic pausing,
+Core Location will attempt
+
+
+102
+00:05:07,336 --> 00:05:08,846
+to detect situations like this,
+
+
+103
+00:05:09,176 --> 00:05:12,286
+and automatically stop
+the location updates.
+
+
+104
+00:05:13,916 --> 00:05:16,646
+Core Location also
+has special support
+
+
+105
+00:05:16,906 --> 00:05:21,446
+for using the standard location
+service while in the background.
+
+
+106
+00:05:21,446 --> 00:05:23,796
+Once you engage one of
+these special sessions,
+
+
+107
+00:05:24,166 --> 00:05:26,446
+Core Location will keep your
+app running and continue
+
+
+108
+00:05:26,446 --> 00:05:28,096
+to deliver location
+updates to it.
+
+
+109
+00:05:29,596 --> 00:05:31,616
+If your app has when-in-use
+authorization,
+
+
+110
+00:05:31,956 --> 00:05:34,306
+we'll automatically display
+a blue bar at the top
+
+
+111
+00:05:34,306 --> 00:05:37,856
+of the screen, thus marking your
+app as in use, and allowing it
+
+
+112
+00:05:37,856 --> 00:05:39,636
+to continue to receive
+location updates.
+
+
+113
+00:05:41,656 --> 00:05:44,216
+An always authorized app will
+still get this background
+
+
+114
+00:05:44,216 --> 00:05:46,406
+running behavior, but
+it won't get a blue bar.
+
+
+115
+00:05:46,826 --> 00:05:49,186
+It's important to remember
+to stop your location session
+
+
+116
+00:05:49,186 --> 00:05:51,096
+when you're done,
+otherwise it will continue
+
+
+117
+00:05:51,096 --> 00:05:52,386
+potentially indefinitely.
+
+
+118
+00:05:54,976 --> 00:05:57,526
+In order to start one of
+these background sessions,
+
+
+119
+00:05:57,576 --> 00:05:59,766
+there are three things
+your app must do.
+
+
+120
+00:06:00,736 --> 00:06:03,636
+The first one is you must
+enable background location
+
+
+121
+00:06:04,006 --> 00:06:05,526
+in your information
+property list.
+
+
+122
+00:06:06,116 --> 00:06:08,386
+Now, the easiest way to
+do that is to navigate
+
+
+123
+00:06:08,386 --> 00:06:10,276
+to the capabilities
+tab in Xcode,
+
+
+124
+00:06:11,236 --> 00:06:13,246
+scroll down to the
+background mode section,
+
+
+125
+00:06:13,806 --> 00:06:15,716
+and check the location
+updates box.
+
+
+126
+00:06:17,136 --> 00:06:20,936
+Second, you must set your
+allowed background location
+
+
+127
+00:06:20,936 --> 00:06:22,586
+updates property to true.
+
+
+128
+00:06:23,226 --> 00:06:25,796
+This indicates that that
+particular location manager
+
+
+129
+00:06:26,046 --> 00:06:28,796
+would like to be able to start
+a background location session.
+
+
+130
+00:06:30,796 --> 00:06:35,146
+Finally, you must start
+your location updates while
+
+
+131
+00:06:35,146 --> 00:06:36,066
+in the foreground.
+
+
+132
+00:06:36,616 --> 00:06:38,456
+If you don't start your
+updates in the foreground,
+
+
+133
+00:06:38,636 --> 00:06:40,126
+you won't get this
+special behavior.
+
+
+134
+00:06:42,206 --> 00:06:45,216
+So what happens if you do start
+your updates in the background?
+
+
+135
+00:06:46,056 --> 00:06:48,686
+Well, first off, your
+app will probably need
+
+
+136
+00:06:48,686 --> 00:06:52,226
+AlwaysAuthorization since
+your app won't be considered
+
+
+137
+00:06:52,226 --> 00:06:53,296
+in use at that time.
+
+
+138
+00:06:54,536 --> 00:06:57,216
+Furthermore, Core Location
+won't take any action
+
+
+139
+00:06:57,216 --> 00:06:59,936
+to ensure your app
+continues to run.
+
+
+140
+00:07:01,746 --> 00:07:03,986
+So if you have background
+runtime for some reason,
+
+
+141
+00:07:03,986 --> 00:07:05,846
+and you decide to start
+a location session,
+
+
+142
+00:07:06,166 --> 00:07:07,216
+you might get some updates,
+
+
+143
+00:07:07,426 --> 00:07:10,556
+but you might also get suspended
+before you receive all the
+
+
+144
+00:07:10,556 --> 00:07:12,246
+information you had
+hoped to receive.
+
+
+145
+00:07:12,826 --> 00:07:16,916
+After the standard
+location service,
+
+
+146
+00:07:16,996 --> 00:07:19,826
+we have our background
+monitoring APIs.
+
+
+147
+00:07:20,656 --> 00:07:23,126
+The first one we are going to
+talk about is region monitoring.
+
+
+148
+00:07:24,116 --> 00:07:27,406
+Region monitoring allows your
+app to specify a location
+
+
+149
+00:07:27,406 --> 00:07:30,096
+that is interesting to it,
+and Core Location will attempt
+
+
+150
+00:07:30,096 --> 00:07:32,396
+to determine whenever
+the user has arrived at
+
+
+151
+00:07:32,396 --> 00:07:33,856
+or departed from that location.
+
+
+152
+00:07:35,016 --> 00:07:37,346
+This will continue even
+if your app is suspended
+
+
+153
+00:07:37,346 --> 00:07:40,236
+or in the background, and Core
+Location will launch your app
+
+
+154
+00:07:40,236 --> 00:07:41,726
+into the background if necessary
+
+
+155
+00:07:41,726 --> 00:07:43,416
+to deliver information
+about the event.
+
+
+156
+00:07:45,856 --> 00:07:48,536
+We have two different versions
+of the region monitoring API.
+
+
+157
+00:07:49,656 --> 00:07:52,446
+First, we have circular
+region monitoring.
+
+
+158
+00:07:53,356 --> 00:07:55,246
+When you start circular
+region monitoring,
+
+
+159
+00:07:55,306 --> 00:07:57,626
+you describe a circular
+geographic region
+
+
+160
+00:07:57,856 --> 00:08:00,546
+that is interesting to your app,
+and Core Location will attempt
+
+
+161
+00:08:00,546 --> 00:08:03,226
+to detect entries or exits
+from that circular region.
+
+
+162
+00:08:04,846 --> 00:08:07,016
+We also have Beacon
+region monitoring.
+
+
+163
+00:08:07,856 --> 00:08:10,556
+Beacon region monitoring
+attempts to detect proximity
+
+
+164
+00:08:10,556 --> 00:08:13,506
+to iBeacon devices that match
+a specification provided
+
+
+165
+00:08:13,506 --> 00:08:14,926
+by your app.
+
+
+166
+00:08:17,536 --> 00:08:18,826
+In either case,
+
+
+167
+00:08:18,916 --> 00:08:22,106
+region monitoring consumes
+a limited system resource,
+
+
+168
+00:08:22,436 --> 00:08:24,486
+and so Core Location
+only allows your app
+
+
+169
+00:08:24,526 --> 00:08:27,316
+to install a limited
+number of regions.
+
+
+170
+00:08:28,146 --> 00:08:30,286
+However, keep in mind,
+if you're writing an app
+
+
+171
+00:08:30,346 --> 00:08:31,866
+that uses Beacon
+region monitoring,
+
+
+172
+00:08:32,246 --> 00:08:34,106
+a single beacon region
+can monitor
+
+
+173
+00:08:34,106 --> 00:08:35,785
+from many iBeacon devices.
+
+
+174
+00:08:38,846 --> 00:08:40,796
+When you're ready to
+start region monitoring,
+
+
+175
+00:08:41,056 --> 00:08:42,876
+you simply construct
+a CL region,
+
+
+176
+00:08:42,936 --> 00:08:45,566
+either a CL beacon region
+or a CL circular region,
+
+
+177
+00:08:45,936 --> 00:08:48,446
+and then pass it to the
+startMonitoring(for:) method
+
+
+178
+00:08:48,606 --> 00:08:49,796
+on CL location manager.
+
+
+179
+00:08:51,296 --> 00:08:56,256
+When you're done, pass the same
+region to stopMonitoring(for:).
+
+
+180
+00:08:58,736 --> 00:09:01,486
+If you want to use
+region monitoring
+
+
+181
+00:09:01,486 --> 00:09:04,856
+to trigger a notification, you
+might be interested to know
+
+
+182
+00:09:04,856 --> 00:09:07,826
+that the user notification
+framework has special support
+
+
+183
+00:09:07,826 --> 00:09:10,906
+for this through their
+UNLocationNotificationTrigger
+
+
+184
+00:09:11,106 --> 00:09:11,506
+class.
+
+
+185
+00:09:13,316 --> 00:09:17,356
+The user notification
+framework is new in iOS 10,
+
+
+186
+00:09:18,156 --> 00:09:20,456
+but this functionality
+was previously available
+
+
+187
+00:09:20,746 --> 00:09:22,396
+through UI local notification.
+
+
+188
+00:09:22,796 --> 00:09:24,246
+If you'd like to learn more
+
+
+189
+00:09:24,246 --> 00:09:27,046
+about the new user notification
+framework, you might want
+
+
+190
+00:09:27,046 --> 00:09:29,906
+to view the Introduction to
+Notifications session online.
+
+
+191
+00:09:31,296 --> 00:09:34,506
+Similarly, the HomeKit
+framework has special support
+
+
+192
+00:09:34,856 --> 00:09:37,316
+for triggering a
+HomeKit scene in response
+
+
+193
+00:09:37,316 --> 00:09:38,906
+to a region monitoring event.
+
+
+194
+00:09:40,226 --> 00:09:42,446
+The HM LocationEvent
+allows you to do this.
+
+
+195
+00:09:42,726 --> 00:09:45,556
+If you'd like to learn more
+about using HM location event,
+
+
+196
+00:09:45,606 --> 00:09:48,426
+I would encourage you to view
+HomeKit session from last year.
+
+
+197
+00:09:48,736 --> 00:09:49,786
+You can find it online.
+
+
+198
+00:09:51,176 --> 00:09:54,756
+In either case, you only need
+when-in-use authorization
+
+
+199
+00:09:54,756 --> 00:09:56,586
+to use the user notification
+framework,
+
+
+200
+00:09:56,586 --> 00:09:59,636
+or the HomeKit framework special
+support for region monitoring.
+
+
+201
+00:10:00,326 --> 00:10:01,786
+General purpose region
+monitoring
+
+
+202
+00:10:01,786 --> 00:10:04,306
+through Core Location
+requires AlwaysAuthorization.
+
+
+203
+00:10:07,736 --> 00:10:09,656
+Similar to Beacon
+region monitoring,
+
+
+204
+00:10:09,726 --> 00:10:10,976
+we have Beacon ranging.
+
+
+205
+00:10:12,346 --> 00:10:15,336
+Now, every iBeacon device
+broadcasts three components
+
+
+206
+00:10:15,336 --> 00:10:20,096
+of information: A UUID, a
+major ID, and a minor ID.
+
+
+207
+00:10:20,746 --> 00:10:24,006
+When a beacon region
+event fires,
+
+
+208
+00:10:24,136 --> 00:10:27,336
+you usually don't receive all
+three components of information.
+
+
+209
+00:10:28,186 --> 00:10:31,046
+Using Beacon ranging, you can
+fill in the missing details.
+
+
+210
+00:10:32,126 --> 00:10:35,916
+Ranging is also useful for
+determining an estimated range
+
+
+211
+00:10:35,916 --> 00:10:38,726
+from the user's device
+to the iBeacon device.
+
+
+212
+00:10:40,076 --> 00:10:43,536
+Now, range estimates are most
+accurate when your app is
+
+
+213
+00:10:43,536 --> 00:10:46,056
+in the foreground, but
+you can use Beacon ranging
+
+
+214
+00:10:46,056 --> 00:10:46,816
+in the background.
+
+
+215
+00:10:47,886 --> 00:10:50,036
+If you do, however, keep in mind
+
+
+216
+00:10:50,036 --> 00:10:52,936
+that Core Location won't prevent
+your app from being suspended,
+
+
+217
+00:10:53,216 --> 00:10:55,756
+and so you might be suspended
+before you receive all the
+
+
+218
+00:10:55,756 --> 00:11:00,936
+information you had
+hoped to receive.
+
+
+219
+00:11:01,026 --> 00:11:02,566
+As an aside, if you're
+interested
+
+
+220
+00:11:02,566 --> 00:11:05,316
+in using iBeacon devices, I
+would highly encourage you
+
+
+221
+00:11:05,316 --> 00:11:07,836
+to visit
+developer.apple.com/ibeacon.
+
+
+222
+00:11:08,796 --> 00:11:11,646
+Once you agree to the iBeacon
+license, you'll be able
+
+
+223
+00:11:11,646 --> 00:11:13,936
+to download the official
+iBeacon specification
+
+
+224
+00:11:14,146 --> 00:11:16,906
+for what every well-behaved
+iBeacon device must do.
+
+
+225
+00:11:19,836 --> 00:11:22,286
+The next background monitoring
+API we are going to talk
+
+
+226
+00:11:22,286 --> 00:11:25,486
+about is the significant
+location change monitoring API.
+
+
+227
+00:11:27,076 --> 00:11:29,656
+As the name would imply, this
+monitor's for large changes
+
+
+228
+00:11:29,656 --> 00:11:32,616
+in the user's location on the
+order of about a kilometer.
+
+
+229
+00:11:35,206 --> 00:11:37,616
+Since we introduced this,
+quite a bit has changed
+
+
+230
+00:11:37,616 --> 00:11:39,196
+in Core Location,
+and at this point,
+
+
+231
+00:11:39,196 --> 00:11:41,586
+we believe that it's
+fairly unique.
+
+
+232
+00:11:42,326 --> 00:11:45,436
+A lot of apps that use
+significant location change
+
+
+233
+00:11:45,436 --> 00:11:48,276
+monitoring would be better
+served by visit monitoring.
+
+
+234
+00:11:48,836 --> 00:11:52,336
+On the topic of visit
+monitoring,
+
+
+235
+00:11:53,046 --> 00:11:55,806
+visit monitoring deploys
+sophisticated algorithms
+
+
+236
+00:11:55,806 --> 00:11:59,176
+to monitor for places that the
+user might consider a noteworthy
+
+
+237
+00:11:59,176 --> 00:12:00,076
+part of their day.
+
+
+238
+00:12:00,996 --> 00:12:03,086
+That's why we think many
+apps would be better served
+
+
+239
+00:12:03,086 --> 00:12:03,996
+by visit monitoring.
+
+
+240
+00:12:04,226 --> 00:12:05,886
+After all, you're
+usually interested
+
+
+241
+00:12:05,886 --> 00:12:08,266
+in where the user
+stops and spends time,
+
+
+242
+00:12:08,726 --> 00:12:10,556
+rather than where
+they happen to be
+
+
+243
+00:12:10,556 --> 00:12:13,086
+when Core Location has
+detected a large change.
+
+
+244
+00:12:16,136 --> 00:12:17,846
+We've gone to great
+lengths to ensure
+
+
+245
+00:12:17,846 --> 00:12:20,416
+that visit monitoring has
+a fairly low power cost,
+
+
+246
+00:12:20,416 --> 00:12:22,096
+and so you should feel
+comfortable using it
+
+
+247
+00:12:22,096 --> 00:12:23,366
+in an all-day scenario.
+
+
+248
+00:12:24,226 --> 00:12:28,646
+Like the rest of our
+background monitoring APIs,
+
+
+249
+00:12:28,906 --> 00:12:31,586
+visit monitoring will continue
+even when your app is suspended,
+
+
+250
+00:12:31,586 --> 00:12:33,276
+and will launch your
+app in the background
+
+
+251
+00:12:33,276 --> 00:12:35,136
+to deliver event information.
+
+
+252
+00:12:37,056 --> 00:12:39,076
+If you'd like to start
+visit monitoring,
+
+
+253
+00:12:39,346 --> 00:12:41,816
+you simply call the
+startMonitoringVisits method.
+
+
+254
+00:12:42,616 --> 00:12:45,746
+When you're done, call
+stopMonitoringVisits.
+
+
+255
+00:12:47,556 --> 00:12:49,626
+The final API we
+are going to talk
+
+
+256
+00:12:49,626 --> 00:12:51,536
+about today is the
+geocoding API.
+
+
+257
+00:12:52,666 --> 00:12:54,876
+Core Location supports
+both forward geocoding,
+
+
+258
+00:12:54,966 --> 00:12:57,246
+that is converting an
+address into a coordinate,
+
+
+259
+00:12:57,976 --> 00:13:00,896
+and reverse geocoding, which
+is converting coordinates
+
+
+260
+00:13:00,896 --> 00:13:01,996
+into an address.
+
+
+261
+00:13:02,486 --> 00:13:06,026
+Unlike the rest of the APIs
+we have talked about today,
+
+
+262
+00:13:06,406 --> 00:13:10,486
+geocoding does not require
+user authorization, however,
+
+
+263
+00:13:10,886 --> 00:13:13,906
+if your app is authorized to
+access the user's location,
+
+
+264
+00:13:14,516 --> 00:13:16,776
+will automatically
+use that information
+
+
+265
+00:13:16,776 --> 00:13:18,736
+when performing forward
+geocoding.
+
+
+266
+00:13:18,856 --> 00:13:21,066
+That is, converting an
+address into coordinates.
+
+
+267
+00:13:23,396 --> 00:13:26,006
+The geocoding API
+is rate limited,
+
+
+268
+00:13:26,196 --> 00:13:28,656
+and so you should try not to
+send too many requests to it.
+
+
+269
+00:13:29,336 --> 00:13:33,666
+A great way to avoid hitting the
+rate limit is the cache results
+
+
+270
+00:13:33,666 --> 00:13:35,066
+provided by the geocoder.
+
+
+271
+00:13:35,476 --> 00:13:36,526
+That way, you don't have to try
+
+
+272
+00:13:36,526 --> 00:13:40,806
+to geocode the same
+information multiple times.
+
+
+273
+00:13:40,946 --> 00:13:43,556
+We also recommend
+that you only geocode
+
+
+274
+00:13:43,866 --> 00:13:45,566
+in response to a user action.
+
+
+275
+00:13:45,916 --> 00:13:48,556
+For example, if the user
+drops a pin on a map,
+
+
+276
+00:13:48,776 --> 00:13:51,306
+that's an excellent time
+to geocode that location.
+
+
+277
+00:13:54,346 --> 00:13:56,936
+Okay, now that you're
+familiar with all of our APIs,
+
+
+278
+00:13:56,936 --> 00:14:00,146
+let's take a look at
+authorization again.
+
+
+279
+00:14:01,146 --> 00:14:03,636
+If your app has when-in-use
+authorization
+
+
+280
+00:14:03,806 --> 00:14:05,096
+or always authorization,
+
+
+281
+00:14:05,346 --> 00:14:07,256
+it can use the standard
+location service,
+
+
+282
+00:14:08,366 --> 00:14:10,836
+those special background
+location sessions, remember,
+
+
+283
+00:14:10,886 --> 00:14:12,376
+that is starting
+in the foreground
+
+
+284
+00:14:12,436 --> 00:14:15,896
+and then entering the
+background, and Beacon ranging.
+
+
+285
+00:14:16,406 --> 00:14:19,576
+If your app has always
+authorization,
+
+
+286
+00:14:19,686 --> 00:14:22,556
+it can additionally use our
+background monitoring APIs.
+
+
+287
+00:14:23,486 --> 00:14:25,706
+That is region monitoring,
+visit monitoring,
+
+
+288
+00:14:25,706 --> 00:14:27,596
+and significant location
+change monitoring.
+
+
+289
+00:14:28,556 --> 00:14:30,956
+Don't forget that the user
+notification framework
+
+
+290
+00:14:30,956 --> 00:14:32,676
+and the HomeKit framework
+allow you
+
+
+291
+00:14:32,676 --> 00:14:34,606
+to do special purpose
+region monitoring
+
+
+292
+00:14:34,656 --> 00:14:36,126
+with when-in-use authorization.
+
+
+293
+00:14:39,446 --> 00:14:41,446
+As far as availability
+is concerned,
+
+
+294
+00:14:42,156 --> 00:14:45,316
+all of our APIs are
+available on iOS.
+
+
+295
+00:14:45,676 --> 00:14:48,586
+On macOS, you can use the
+standard location service,
+
+
+296
+00:14:49,536 --> 00:14:50,876
+circular region monitoring,
+
+
+297
+00:14:51,476 --> 00:14:54,396
+significant location change
+monitoring and geocoding.
+
+
+298
+00:14:55,676 --> 00:14:59,106
+On watchOS, we support the
+standard location service,
+
+
+299
+00:14:59,646 --> 00:15:02,396
+and geocoding, and
+finally, on tvOS,
+
+
+300
+00:15:02,396 --> 00:15:11,136
+you can use the single location
+API, and the geocoding API.
+
+
+301
+00:15:11,386 --> 00:15:14,336
+Alright, let's get started
+talking about the best practices
+
+
+302
+00:15:14,336 --> 00:15:15,616
+for using Core Location.
+
+
+303
+00:15:18,736 --> 00:15:22,066
+The user's privacy is
+the most important part
+
+
+304
+00:15:22,326 --> 00:15:23,676
+about using Core Location.
+
+
+305
+00:15:24,656 --> 00:15:26,986
+Location information
+is highly sensitive.
+
+
+306
+00:15:27,576 --> 00:15:30,256
+It describes where we
+live, where we work,
+
+
+307
+00:15:30,256 --> 00:15:31,586
+and who we spend our time with.
+
+
+308
+00:15:32,686 --> 00:15:35,496
+As such, you must
+respect the user's privacy
+
+
+309
+00:15:35,496 --> 00:15:36,576
+when using Core Location.
+
+
+310
+00:15:36,996 --> 00:15:38,306
+And that is worth repeating.
+
+
+311
+00:15:38,586 --> 00:15:40,756
+You must respect
+the user's privacy
+
+
+312
+00:15:40,786 --> 00:15:41,906
+when using Core Location.
+
+
+313
+00:15:42,966 --> 00:15:46,526
+Core Location helps facilitate
+this using our authorization
+
+
+314
+00:15:46,526 --> 00:15:48,886
+system, but getting
+the user's permission
+
+
+315
+00:15:48,886 --> 00:15:51,166
+to access your location,
+sorry, their location,
+
+
+316
+00:15:52,026 --> 00:15:54,506
+is only the first step in
+respecting their privacy.
+
+
+317
+00:15:56,806 --> 00:15:59,796
+You should make sure that your
+app doesn't request any more
+
+
+318
+00:16:00,376 --> 00:16:03,666
+information than what it
+absolutely needs in order
+
+
+319
+00:16:03,666 --> 00:16:05,286
+to satisfy a user request.
+
+
+320
+00:16:07,156 --> 00:16:09,126
+Similarly, you should
+make it clear
+
+
+321
+00:16:09,126 --> 00:16:11,526
+to the user what
+you're asking for
+
+
+322
+00:16:11,796 --> 00:16:14,046
+and how you intend to use it.
+
+
+323
+00:16:17,056 --> 00:16:19,626
+There are two concrete things
+that your app should do
+
+
+324
+00:16:19,626 --> 00:16:21,176
+if it is going to
+use Core Location.
+
+
+325
+00:16:22,536 --> 00:16:26,126
+First if you're going to talk
+to a server you should attempt
+
+
+326
+00:16:26,126 --> 00:16:28,386
+to anonymize those queries
+as much as possible.
+
+
+327
+00:16:29,086 --> 00:16:30,136
+Let's consider an example.
+
+
+328
+00:16:30,836 --> 00:16:33,386
+Say you're writing a
+check-in application.
+
+
+329
+00:16:34,056 --> 00:16:36,556
+Well, if the user has
+tapped the Check-in button,
+
+
+330
+00:16:36,896 --> 00:16:39,546
+then it makes sense that you
+should send both user identity
+
+
+331
+00:16:39,546 --> 00:16:42,806
+information and location
+to your server all at once,
+
+
+332
+00:16:42,986 --> 00:16:45,266
+since the user clearly wants
+your server to know both.
+
+
+333
+00:16:46,266 --> 00:16:49,996
+However, if you're writing,
+say, a weather application,
+
+
+334
+00:16:50,206 --> 00:16:52,756
+then the user probably
+doesn't gain much benefit
+
+
+335
+00:16:52,756 --> 00:16:53,986
+from your server being able
+
+
+336
+00:16:53,986 --> 00:16:57,156
+to associate both
+identity and location.
+
+
+337
+00:16:57,546 --> 00:16:59,106
+And so the user would
+be better served
+
+
+338
+00:16:59,106 --> 00:17:01,516
+by an anonymous query
+in that instance.
+
+
+339
+00:17:04,175 --> 00:17:07,685
+Additionally, if you plan on
+persisting location information
+
+
+340
+00:17:07,685 --> 00:17:11,786
+to disc, you should use
+the file protection APIs.
+
+
+341
+00:17:12,046 --> 00:17:13,906
+Now this one is relatively
+simple,
+
+
+342
+00:17:13,906 --> 00:17:17,705
+since file protection is
+enabled by default since iOS 8.
+
+
+343
+00:17:18,096 --> 00:17:21,136
+However, it is still possible
+to create unprotected files,
+
+
+344
+00:17:21,846 --> 00:17:23,566
+and so you should make
+sure that if you're going
+
+
+345
+00:17:23,566 --> 00:17:26,086
+to be persisting location
+information, you should not do
+
+
+346
+00:17:26,086 --> 00:17:28,165
+so in an unprotected file.
+
+
+347
+00:17:33,076 --> 00:17:36,426
+After privacy, power is the
+second most important thing
+
+
+348
+00:17:36,426 --> 00:17:38,066
+to consider when
+using Core Location.
+
+
+349
+00:17:38,666 --> 00:17:43,566
+The power cost of using Core
+Location is highly variable.
+
+
+350
+00:17:43,986 --> 00:17:47,586
+At one extreme, we have Beacon
+region monitoring, which is,
+
+
+351
+00:17:47,586 --> 00:17:49,386
+for all intents and
+purposes, free.
+
+
+352
+00:17:50,006 --> 00:17:51,266
+And at the other extreme,
+
+
+353
+00:17:51,386 --> 00:17:53,296
+we have continuous
+location sessions,
+
+
+354
+00:17:53,686 --> 00:17:56,376
+which can drain the user's
+battery in just a few hours.
+
+
+355
+00:17:59,776 --> 00:18:01,806
+No matter how cool your app is,
+
+
+356
+00:18:02,076 --> 00:18:05,276
+if it drains the user's battery
+faster than they would expect,
+
+
+357
+00:18:05,506 --> 00:18:07,726
+they're not going
+to enjoy using it.
+
+
+358
+00:18:09,356 --> 00:18:12,866
+Thus, you must design your
+app with power in mind.
+
+
+359
+00:18:13,456 --> 00:18:17,316
+Sometimes that means sacrificing
+accuracy or latency in order
+
+
+360
+00:18:17,316 --> 00:18:20,476
+to achieve the power metrics
+that your users would expect.
+
+
+361
+00:18:22,476 --> 00:18:25,846
+To achieve that, you
+must use the right API.
+
+
+362
+00:18:26,706 --> 00:18:30,556
+But Core Location
+has a lot of APIs.
+
+
+363
+00:18:30,556 --> 00:18:32,546
+How do you know which
+one is the right one?
+
+
+364
+00:18:33,596 --> 00:18:35,286
+I put together a
+simple decision tree
+
+
+365
+00:18:35,286 --> 00:18:37,786
+that should help guide
+you toward the right API.
+
+
+366
+00:18:38,446 --> 00:18:40,376
+It's not meant to
+capture every possibility,
+
+
+367
+00:18:40,496 --> 00:18:42,016
+but it should be enough
+to get you started.
+
+
+368
+00:18:43,476 --> 00:18:46,496
+The first question to consider
+is whether you want the user's
+
+
+369
+00:18:46,496 --> 00:18:49,016
+location now, or
+sometime in the future.
+
+
+370
+00:18:50,016 --> 00:18:53,796
+If you're interested in the
+future, then you want to use one
+
+
+371
+00:18:53,796 --> 00:18:55,496
+of our background
+monitoring APIs.
+
+
+372
+00:18:55,796 --> 00:18:57,916
+Either region monitoring,
+if you're interested
+
+
+373
+00:18:57,916 --> 00:19:01,636
+in a specific location, or visit
+monitoring if you're interested
+
+
+374
+00:19:01,636 --> 00:19:05,186
+in any location that
+the user stops at.
+
+
+375
+00:19:08,456 --> 00:19:10,786
+If you want to know about
+the present, then you want
+
+
+376
+00:19:10,786 --> 00:19:12,496
+to use our standard
+location service.
+
+
+377
+00:19:13,076 --> 00:19:15,546
+Now, there's a lot of
+different ways you can use it.
+
+
+378
+00:19:15,546 --> 00:19:17,496
+So let's drill into
+some specifics.
+
+
+379
+00:19:18,326 --> 00:19:20,616
+If you're writing a
+fitness application,
+
+
+380
+00:19:21,056 --> 00:19:23,576
+then we recommend you use
+deferred location updates
+
+
+381
+00:19:23,626 --> 00:19:25,216
+in a continuous location
+session.
+
+
+382
+00:19:26,956 --> 00:19:29,086
+If you're writing a
+navigation application,
+
+
+383
+00:19:29,596 --> 00:19:32,866
+then you probably want to use
+a continuous location session.
+
+
+384
+00:19:33,376 --> 00:19:38,606
+If your app is continuously
+updating UI,
+
+
+385
+00:19:38,836 --> 00:19:40,306
+then you also probably want
+
+
+386
+00:19:40,306 --> 00:19:42,546
+to use a continuous
+location session.
+
+
+387
+00:19:42,996 --> 00:19:47,776
+The final question to consider
+is whether your app is recording
+
+
+388
+00:19:47,776 --> 00:19:49,406
+a track of the user's location.
+
+
+389
+00:19:50,186 --> 00:19:53,046
+If it is, then we would
+recommend you use deferred
+
+
+390
+00:19:53,046 --> 00:19:53,986
+location updates.
+
+
+391
+00:19:54,926 --> 00:19:56,406
+In most other situations,
+
+
+392
+00:19:56,406 --> 00:19:58,626
+we would recommend using
+the single location API.
+
+
+393
+00:20:00,266 --> 00:20:01,876
+You may have noticed
+the battery icon
+
+
+394
+00:20:01,876 --> 00:20:02,856
+at the bottom of this slide.
+
+
+395
+00:20:02,856 --> 00:20:05,936
+These aren't meant to be taken
+literally, they're just a guide
+
+
+396
+00:20:06,346 --> 00:20:09,276
+to give you a rough idea of how
+much power each service uses.
+
+
+397
+00:20:13,756 --> 00:20:15,546
+Okay, for authorization,
+
+
+398
+00:20:16,176 --> 00:20:19,006
+we highly recommend you use
+when-in-use authorization
+
+
+399
+00:20:19,006 --> 00:20:19,856
+whenever possible.
+
+
+400
+00:20:21,466 --> 00:20:24,016
+Users like knowing that
+you can't track them
+
+
+401
+00:20:24,016 --> 00:20:25,096
+without their knowledge.
+
+
+402
+00:20:27,196 --> 00:20:30,036
+Furthermore, you should
+communicate with your users
+
+
+403
+00:20:30,076 --> 00:20:32,526
+and make sure they
+understand why you're asking
+
+
+404
+00:20:32,526 --> 00:20:34,196
+for the authorization
+level you are,
+
+
+405
+00:20:34,266 --> 00:20:37,446
+and how you intend
+to make use of it.
+
+
+406
+00:20:38,866 --> 00:20:40,906
+Remember, Core Location
+displays a prompt
+
+
+407
+00:20:40,906 --> 00:20:43,346
+that includes a usage
+description key provided
+
+
+408
+00:20:43,346 --> 00:20:43,986
+by your app.
+
+
+409
+00:20:44,556 --> 00:20:47,336
+This is an excellent opportunity
+to communicate with the user,
+
+
+410
+00:20:47,556 --> 00:20:53,826
+but hopefully it's not the
+last opportunity you'll take.
+
+
+411
+00:20:54,036 --> 00:20:56,886
+Your app should be prepared
+to direct users to settings.
+
+
+412
+00:20:57,446 --> 00:20:59,596
+Core Location only
+displays a limited number
+
+
+413
+00:20:59,596 --> 00:21:02,966
+of authorization prompts for
+your app, and so at some point,
+
+
+414
+00:21:03,296 --> 00:21:06,086
+if you want your authorization
+level changed, users will have
+
+
+415
+00:21:06,086 --> 00:21:07,836
+to go to settings
+and do it themself.
+
+
+416
+00:21:09,036 --> 00:21:11,176
+If you direct your
+UI application
+
+
+417
+00:21:11,286 --> 00:21:15,396
+to open the UI application, open
+settings, URL string constant,
+
+
+418
+00:21:16,696 --> 00:21:19,696
+then iOS will display
+your apps settings pane.
+
+
+419
+00:21:20,776 --> 00:21:23,366
+For Potluck, our sample app,
+it looks something like this.
+
+
+420
+00:21:24,146 --> 00:21:26,916
+As you can see, the user
+is just a few taps away
+
+
+421
+00:21:26,916 --> 00:21:29,016
+from changing Potluck's
+authorization.
+
+
+422
+00:21:34,116 --> 00:21:37,396
+We've seen a lot of developers
+get confused by Core Location
+
+
+423
+00:21:37,396 --> 00:21:38,886
+and it's threading requirements.
+
+
+424
+00:21:39,966 --> 00:21:43,886
+The first thing to remember is
+that Core Location requires you
+
+
+425
+00:21:43,886 --> 00:21:48,406
+to create your CLLocationManager
+on a thread that has a runloop.
+
+
+426
+00:21:49,676 --> 00:21:52,826
+When the location manager is
+initialized, it will determine
+
+
+427
+00:21:52,826 --> 00:21:55,396
+which run loop is associated
+with the current thread.
+
+
+428
+00:21:56,236 --> 00:21:58,876
+It will then deliver
+all delegate callbacks
+
+
+429
+00:21:59,016 --> 00:21:59,816
+on that runloop.
+
+
+430
+00:22:02,136 --> 00:22:03,846
+Now, for many applications,
+
+
+431
+00:22:04,586 --> 00:22:07,106
+the main thread is the
+only thread with a runloop.
+
+
+432
+00:22:08,496 --> 00:22:11,686
+As such, it is safe to
+create your location manager
+
+
+433
+00:22:11,686 --> 00:22:14,736
+on the main thread, but
+if you do, be careful.
+
+
+434
+00:22:15,516 --> 00:22:17,376
+You have to keep your
+main thread active
+
+
+435
+00:22:17,376 --> 00:22:19,106
+in order to handle UI events.
+
+
+436
+00:22:20,096 --> 00:22:23,306
+If you spend a lot of time
+processing location information,
+
+
+437
+00:22:23,656 --> 00:22:25,336
+then your app will
+become unresponsive.
+
+
+438
+00:22:29,216 --> 00:22:32,536
+We recommend that you always
+interact with location manager,
+
+
+439
+00:22:32,566 --> 00:22:34,966
+that is, call its
+methods from the thread
+
+
+440
+00:22:34,966 --> 00:22:36,006
+that it was created on.
+
+
+441
+00:22:37,126 --> 00:22:39,166
+We believe this simplifies
+interactions
+
+
+442
+00:22:39,166 --> 00:22:40,306
+with location manager.
+
+
+443
+00:22:40,826 --> 00:22:44,876
+Let's look at some code.
+
+
+444
+00:22:45,646 --> 00:22:47,486
+Here I am requesting
+authorization.
+
+
+445
+00:22:48,086 --> 00:22:52,076
+Let's suppose I've already added
+the necessary usage description
+
+
+446
+00:22:52,076 --> 00:22:54,116
+keys to my information
+property list.
+
+
+447
+00:22:55,086 --> 00:22:56,836
+Here, I'm creating
+a location manager,
+
+
+448
+00:22:56,836 --> 00:22:59,076
+and I'm calling request
+when-in-use authorization.
+
+
+449
+00:22:59,756 --> 00:23:01,656
+Unfortunately, this won't work.
+
+
+450
+00:23:02,626 --> 00:23:03,006
+See,
+
+
+451
+00:23:03,006 --> 00:23:05,816
+the requesWhenInUseAuthorization
+method is asynchronous,
+
+
+452
+00:23:06,276 --> 00:23:09,876
+and CLLocationManager when it is
+deallocated will automatically
+
+
+453
+00:23:09,916 --> 00:23:12,496
+tear down any outstanding
+authorization prompts,
+
+
+454
+00:23:13,406 --> 00:23:16,366
+and so the user probably won't
+see the authorization prompt
+
+
+455
+00:23:16,366 --> 00:23:18,706
+at all, since the manager
+will be deallocated
+
+
+456
+00:23:18,706 --> 00:23:22,906
+at the end of the function.
+
+
+457
+00:23:23,056 --> 00:23:24,336
+Let's try something
+a little different.
+
+
+458
+00:23:25,306 --> 00:23:27,816
+If we put it into a
+static class property,
+
+
+459
+00:23:28,096 --> 00:23:29,776
+then it will certainly
+live long enough.
+
+
+460
+00:23:30,626 --> 00:23:33,566
+However, this introduces
+a new bug.
+
+
+461
+00:23:34,556 --> 00:23:37,936
+See, Swift will initialize the
+manager property the first time
+
+
+462
+00:23:37,936 --> 00:23:38,666
+it's accessed.
+
+
+463
+00:23:39,586 --> 00:23:43,266
+And unless we're very careful
+and ensure we always access it
+
+
+464
+00:23:43,266 --> 00:23:44,406
+from a thread with a runloop,
+
+
+465
+00:23:45,016 --> 00:23:47,516
+this could create
+a location manager
+
+
+466
+00:23:47,516 --> 00:23:48,996
+on a thread without a runloop.
+
+
+467
+00:23:49,806 --> 00:23:52,806
+We believe this pattern is error
+prone and discourage its use.
+
+
+468
+00:23:55,336 --> 00:23:56,306
+One more try.
+
+
+469
+00:23:57,176 --> 00:23:59,216
+Here, we are creating
+our location manager
+
+
+470
+00:23:59,466 --> 00:24:03,066
+as an instance property
+on a ViewController.
+
+
+471
+00:24:04,826 --> 00:24:08,286
+Now, view controllers are always
+constructed on the main thread,
+
+
+472
+00:24:08,796 --> 00:24:09,676
+and in this instance,
+
+
+473
+00:24:09,676 --> 00:24:11,666
+the location manager
+will be created along
+
+
+474
+00:24:11,666 --> 00:24:12,706
+with the ViewController.
+
+
+475
+00:24:13,626 --> 00:24:16,496
+So we are guaranteed that
+the location manger will be
+
+
+476
+00:24:16,496 --> 00:24:18,256
+constructed on the main thread.
+
+
+477
+00:24:19,936 --> 00:24:23,196
+This is the recommended pattern
+for creating location managers.
+
+
+478
+00:24:23,736 --> 00:24:25,156
+You might also consider
+attaching it
+
+
+479
+00:24:25,186 --> 00:24:26,576
+to your app delegate instead.
+
+
+480
+00:24:26,576 --> 00:24:35,566
+Now since the standard location
+service can be the most power
+
+
+481
+00:24:35,566 --> 00:24:37,766
+hungry of all of
+Core Location's APIs,
+
+
+482
+00:24:37,996 --> 00:24:39,616
+it's important to
+use it correctly.
+
+
+483
+00:24:40,956 --> 00:24:44,626
+First we recommend using
+the request location API
+
+
+484
+00:24:45,126 --> 00:24:46,066
+whenever possible.
+
+
+485
+00:24:48,056 --> 00:24:49,886
+Second, you should ensure
+
+
+486
+00:24:49,886 --> 00:24:52,166
+that your desired
+accuracy property is set
+
+
+487
+00:24:52,166 --> 00:24:54,636
+to the largest value
+your app can tolerate.
+
+
+488
+00:24:56,096 --> 00:24:59,786
+Generally, more accurate
+locations require more power
+
+
+489
+00:24:59,786 --> 00:25:00,366
+to create.
+
+
+490
+00:25:01,096 --> 00:25:05,826
+As an example, if you request,
+say, 100 meter accuracy,
+
+
+491
+00:25:06,146 --> 00:25:09,566
+Core Location usually doesn't
+need to turn on the GPS in order
+
+
+492
+00:25:09,566 --> 00:25:11,666
+to satisfy your location
+request.
+
+
+493
+00:25:12,796 --> 00:25:16,136
+Keep in mind that Core
+Location will give you
+
+
+494
+00:25:16,286 --> 00:25:18,686
+or could give you a location
+update that is more accurate
+
+
+495
+00:25:18,686 --> 00:25:19,636
+than what you requested.
+
+
+496
+00:25:20,156 --> 00:25:25,116
+So to say you request a 3
+kilometer accuracy location.
+
+
+497
+00:25:25,646 --> 00:25:27,976
+This will effectively
+ask Core Location
+
+
+498
+00:25:27,976 --> 00:25:30,626
+to give you whatever location
+is most readily available.
+
+
+499
+00:25:34,096 --> 00:25:37,826
+We encourage you to keep
+automatic pausing enabled.
+
+
+500
+00:25:38,556 --> 00:25:40,506
+We've tuned the automatic
+pausing algorithm
+
+
+501
+00:25:40,506 --> 00:25:41,786
+to be fairly conservative.
+
+
+502
+00:25:42,426 --> 00:25:46,136
+We would be surprised if it
+stopped your location session
+
+
+503
+00:25:46,136 --> 00:25:49,516
+at a time when the user was
+still gaining benefit from it.
+
+
+504
+00:25:49,516 --> 00:25:52,266
+As long as you've configured it
+correctly, you should be able
+
+
+505
+00:25:52,266 --> 00:25:53,776
+to leave it running
+all the time.
+
+
+506
+00:25:54,816 --> 00:25:56,786
+To configure automatic pausing,
+
+
+507
+00:25:57,026 --> 00:25:59,686
+simply set the activity
+type property
+
+
+508
+00:25:59,996 --> 00:26:02,406
+on your location manager
+to the appropriate value.
+
+
+509
+00:26:03,056 --> 00:26:04,166
+If you'd like to learn more,
+
+
+510
+00:26:04,166 --> 00:26:05,796
+you should consult
+our documentation.
+
+
+511
+00:26:08,506 --> 00:26:10,966
+Similarly, we recommend leaving
+
+
+512
+00:26:11,136 --> 00:26:14,006
+or enabling deferred
+location updates.
+
+
+513
+00:26:14,616 --> 00:26:17,336
+Deferred location updates allows
+Core Location to put the device
+
+
+514
+00:26:17,336 --> 00:26:18,786
+into a low power state
+
+
+515
+00:26:18,866 --> 00:26:21,596
+and collect location
+information passively
+
+
+516
+00:26:21,636 --> 00:26:23,496
+and then process it
+in large batches.
+
+
+517
+00:26:27,546 --> 00:26:30,816
+This can result in a fairly
+large power savings compared
+
+
+518
+00:26:30,816 --> 00:26:33,046
+to a normal continuous
+location session.
+
+
+519
+00:26:38,236 --> 00:26:40,006
+If this is all a
+little confusing,
+
+
+520
+00:26:40,006 --> 00:26:41,816
+and you're not entirely
+sure how each
+
+
+521
+00:26:41,816 --> 00:26:43,996
+of these settings plays
+out, you might want
+
+
+522
+00:26:43,996 --> 00:26:46,866
+to consider using the energy
+log instrument in Xcode.
+
+
+523
+00:26:47,496 --> 00:26:48,656
+This will give you a rough idea
+
+
+524
+00:26:48,656 --> 00:26:50,916
+of how much power your
+continuous location sessions
+
+
+525
+00:26:50,916 --> 00:26:51,516
+are drawing.
+
+
+526
+00:26:54,496 --> 00:26:57,306
+Finally, we recommend
+that you set the
+
+
+527
+00:26:57,306 --> 00:27:01,016
+allowsBackgroundLocationUpdates
+property to true only
+
+
+528
+00:27:01,016 --> 00:27:02,486
+when you're sure that you want
+
+
+529
+00:27:02,486 --> 00:27:04,206
+to begin a background
+location session.
+
+
+530
+00:27:05,116 --> 00:27:07,856
+We've seen some apps set
+it to true unconditionally
+
+
+531
+00:27:07,856 --> 00:27:09,856
+and then just stop
+their location sessions
+
+
+532
+00:27:09,856 --> 00:27:10,856
+when they enter the background,
+
+
+533
+00:27:11,276 --> 00:27:12,736
+but this has a negative
+side effect.
+
+
+534
+00:27:13,886 --> 00:27:18,036
+Here, I've modified Potluck, our
+sample app, to do exactly that.
+
+
+535
+00:27:19,066 --> 00:27:21,836
+You'll see that when I start
+the session and then home out,
+
+
+536
+00:27:22,576 --> 00:27:24,146
+there is a blue bar at
+the top of the screen
+
+
+537
+00:27:24,146 --> 00:27:25,256
+for just a few seconds.
+
+
+538
+00:27:25,846 --> 00:27:27,436
+So here I am starting
+the session.
+
+
+539
+00:27:27,956 --> 00:27:30,286
+Then I hit the home button,
+and there is a blue bar
+
+
+540
+00:27:30,286 --> 00:27:31,106
+at the top of the screen.
+
+
+541
+00:27:31,946 --> 00:27:33,686
+This can be easily avoided
+
+
+542
+00:27:33,686 --> 00:27:36,346
+by simply managing your
+allowsBackgroundLocationUpdates
+
+
+543
+00:27:36,346 --> 00:27:37,586
+property properly.
+
+
+544
+00:27:44,076 --> 00:27:47,846
+Now, our monitoring APIs
+affect your entire process.
+
+
+545
+00:27:48,486 --> 00:27:51,316
+As such, we recommend that
+you always interact with them
+
+
+546
+00:27:51,646 --> 00:27:55,296
+from a single location manager,
+shared by your entire process.
+
+
+547
+00:27:56,406 --> 00:28:01,326
+You might want to attach
+it to your app delegate.
+
+
+548
+00:28:01,326 --> 00:28:04,146
+Furthermore, our
+monitoring APIs will continue
+
+
+549
+00:28:04,286 --> 00:28:05,796
+until you tell it to stop.
+
+
+550
+00:28:07,616 --> 00:28:10,286
+This is true, even if
+you update your app
+
+
+551
+00:28:10,456 --> 00:28:12,826
+and remove all references
+to Core Location
+
+
+552
+00:28:12,826 --> 00:28:14,376
+and stop linking the framework.
+
+
+553
+00:28:15,916 --> 00:28:19,476
+So we highly recommend that
+whenever your app is launched,
+
+
+554
+00:28:19,706 --> 00:28:23,416
+you take a moment and assess
+whether you think Core Location
+
+
+555
+00:28:23,446 --> 00:28:26,936
+should be doing background
+monitoring for your app.
+
+
+556
+00:28:27,286 --> 00:28:28,566
+Unless you're sure that at
+
+
+557
+00:28:28,596 --> 00:28:30,756
+that time background
+monitoring should be running,
+
+
+558
+00:28:31,256 --> 00:28:33,856
+you should tell Core
+Location to stop monitoring.
+
+
+559
+00:28:35,956 --> 00:28:39,556
+This small snippet of code is
+all it takes to stop all three
+
+
+560
+00:28:39,556 --> 00:28:40,976
+of our background
+monitoring APIs.
+
+
+561
+00:28:48,516 --> 00:28:50,876
+>> If you're writing an
+app for an indoor venue,
+
+
+562
+00:28:52,126 --> 00:28:55,466
+you should remember that Core
+Location will automatically
+
+
+563
+00:28:55,466 --> 00:28:58,856
+enable indoor location
+technologies whenever your app--
+
+
+564
+00:28:59,086 --> 00:29:02,236
+sorry, whenever the user--
+is inside your venue.
+
+
+565
+00:29:03,706 --> 00:29:06,126
+This only happens if your
+venue has been surveyed.
+
+
+566
+00:29:06,666 --> 00:29:08,646
+If you'd like your
+venue to get surveyed,
+
+
+567
+00:29:08,906 --> 00:29:11,866
+go to mapsconnect.apple.com
+to learn more.
+
+
+568
+00:29:15,176 --> 00:29:18,626
+Beacon region monitoring is
+a highly versatile technology
+
+
+569
+00:29:18,626 --> 00:29:21,606
+that can be used in all
+sorts of problem domains,
+
+
+570
+00:29:22,006 --> 00:29:25,696
+but we think it pairs especially
+well with indoor scenarios.
+
+
+571
+00:29:26,216 --> 00:29:28,486
+It complements indoor
+location very well.
+
+
+572
+00:29:29,726 --> 00:29:33,086
+Beacon region monitoring allows
+your app to detect proximity
+
+
+573
+00:29:33,306 --> 00:29:35,956
+to landmarks that you've
+established inside the venue.
+
+
+574
+00:29:37,496 --> 00:29:40,946
+Indoor location allows you to
+display the user's location
+
+
+575
+00:29:40,946 --> 00:29:44,376
+on a map, and help them navigate
+from one location to another.
+
+
+576
+00:29:49,496 --> 00:29:52,506
+On watchOS, you should remember
+
+
+577
+00:29:52,766 --> 00:29:56,276
+that Core Location will
+automatically leverage the
+
+
+578
+00:29:56,276 --> 00:29:57,596
+iPhone if it's nearby.
+
+
+579
+00:29:58,476 --> 00:30:00,306
+Let us handle talking
+to the iPhone
+
+
+580
+00:30:00,306 --> 00:30:02,476
+and using it to compute
+locations.
+
+
+581
+00:30:04,376 --> 00:30:06,396
+Furthermore, we've seen a lot
+
+
+582
+00:30:06,396 --> 00:30:09,426
+of apps request always
+authorization on watchOS,
+
+
+583
+00:30:09,536 --> 00:30:11,896
+even though what they are
+doing could be accomplished
+
+
+584
+00:30:11,896 --> 00:30:13,346
+with when-in-use authorization.
+
+
+585
+00:30:14,756 --> 00:30:19,776
+If you're thinking of using
+always authorization on watchOS,
+
+
+586
+00:30:20,296 --> 00:30:22,016
+we would encourage you
+to take a second look
+
+
+587
+00:30:22,016 --> 00:30:23,386
+at when-in-use authorization.
+
+
+588
+00:30:26,676 --> 00:30:30,706
+For watchOS 3, we are making
+startUpdatingLocation available
+
+
+589
+00:30:30,706 --> 00:30:31,526
+on watchOS.
+
+
+590
+00:30:32,676 --> 00:30:35,466
+However, most apps would still
+probably be better served
+
+
+591
+00:30:35,466 --> 00:30:36,736
+by requestLocation.
+
+
+592
+00:30:37,666 --> 00:30:39,096
+There is an exception, though.
+
+
+593
+00:30:40,296 --> 00:30:42,646
+In watchOS 3, we've
+made background
+
+
+594
+00:30:42,646 --> 00:30:44,966
+on watch possible
+for fitness purposes.
+
+
+595
+00:30:45,696 --> 00:30:47,916
+So if you're looking at
+creating a workout application,
+
+
+596
+00:30:48,306 --> 00:30:48,776
+we believe
+
+
+597
+00:30:48,776 --> 00:30:56,766
+that startUpdatingLocation is
+the perfect API or you to use.
+
+
+598
+00:30:56,946 --> 00:31:02,066
+For macOS, we only support
+always authorization.
+
+
+599
+00:31:04,456 --> 00:31:08,336
+Furthermore, Core Location will
+automatically display a prompt
+
+
+600
+00:31:08,336 --> 00:31:10,476
+when you attempt to access
+location information.
+
+
+601
+00:31:11,176 --> 00:31:13,466
+You don't need to call
+requestAlwaysAuthorization
+
+
+602
+00:31:13,466 --> 00:31:14,406
+on macOS.
+
+
+603
+00:31:17,596 --> 00:31:20,346
+Since Macs don't tend to
+move around very much,
+
+
+604
+00:31:21,596 --> 00:31:25,036
+we believe that requestLocation
+is usually the API you want
+
+
+605
+00:31:25,036 --> 00:31:27,116
+to use on macOS.
+
+
+606
+00:31:30,376 --> 00:31:34,196
+For tvOS, you have got
+three powerful APIs,
+
+
+607
+00:31:34,686 --> 00:31:37,956
+Single Location,
+Geocoding and MapKit.
+
+
+608
+00:31:38,906 --> 00:31:41,296
+Using these APIs, you've
+got everything you need
+
+
+609
+00:31:41,296 --> 00:31:44,396
+to create a great location
+aware experience on Apple TV.
+
+
+610
+00:31:45,566 --> 00:31:48,856
+But be extra careful with
+any information vended
+
+
+611
+00:31:48,856 --> 00:31:50,566
+to your application
+through Core Location;
+
+
+612
+00:31:51,896 --> 00:31:54,866
+tvOS devices usually
+live in a user's home,
+
+
+613
+00:31:55,596 --> 00:31:59,196
+and the user's home is among the
+most sensitive information you
+
+
+614
+00:31:59,196 --> 00:32:00,376
+can get from Core Location.
+
+
+615
+00:32:01,566 --> 00:32:02,836
+You should treat
+that information
+
+
+616
+00:32:02,836 --> 00:32:04,156
+with the respect it deserves.
+
+
+617
+00:32:08,496 --> 00:32:11,596
+That brings us to the
+end of our session today.
+
+
+618
+00:32:11,856 --> 00:32:15,366
+There are four things I want
+you to remember as you leave.
+
+
+619
+00:32:16,116 --> 00:32:19,576
+First, you must respect
+the user's privacy.
+
+
+620
+00:32:21,336 --> 00:32:23,716
+Part of this is communicating
+with the user
+
+
+621
+00:32:23,716 --> 00:32:26,416
+and making sure they understand
+what you're asking for
+
+
+622
+00:32:26,626 --> 00:32:30,226
+and how you intend to use it.
+
+
+623
+00:32:30,446 --> 00:32:33,996
+Second, conserving power
+is an essential part
+
+
+624
+00:32:34,406 --> 00:32:35,786
+of using Core Location.
+
+
+625
+00:32:36,786 --> 00:32:40,846
+Sometimes you have to sacrifice
+accuracy and latency in order
+
+
+626
+00:32:40,846 --> 00:32:44,196
+to create the experience
+your users would expect,
+
+
+627
+00:32:44,776 --> 00:32:47,946
+while still having the power
+metrics your users would expect.
+
+
+628
+00:32:49,606 --> 00:32:53,596
+To do that, you have to make
+sure you use the correct Core
+
+
+629
+00:32:53,596 --> 00:32:56,076
+Location API for
+your problem domain.
+
+
+630
+00:32:57,536 --> 00:33:00,796
+Similarly, make sure you use
+when-in-use authorization
+
+
+631
+00:33:01,016 --> 00:33:02,086
+whenever you can.
+
+
+632
+00:33:02,636 --> 00:33:06,526
+If you're having a hard
+time getting started
+
+
+633
+00:33:06,526 --> 00:33:09,566
+with Core Location, I
+recommend you take a look
+
+
+634
+00:33:09,566 --> 00:33:10,836
+at Potluck, our sample app.
+
+
+635
+00:33:11,536 --> 00:33:13,436
+We updated it this
+year for Swift 3,
+
+
+636
+00:33:13,896 --> 00:33:15,056
+so it's looking better
+than ever.
+
+
+637
+00:33:16,856 --> 00:33:19,656
+If you'd like to learn more
+you can view our supplementary
+
+
+638
+00:33:19,656 --> 00:33:26,446
+material online or check out
+one of these related sessions.
+
+
+639
+00:33:29,296 --> 00:33:30,966
+With that, thank
+you for your time.
+
+
+640
+00:33:31,036 --> 00:33:31,936
+Enjoy the rest of WWDC.
+
+
+641
+00:33:32,516 --> 00:33:35,500
+[ Applause ]
+

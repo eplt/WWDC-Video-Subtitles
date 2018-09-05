@@ -1,0 +1,3620 @@
+1
+00:00:23,516 --> 00:00:27,126
+[Applause]
+
+
+2
+00:00:27,626 --> 00:00:28,126
+>> MIKE SWINGLER: Good morning.
+
+
+3
+00:00:29,336 --> 00:00:32,026
+Welcome to Advanced Debugging
+and the Address Sanitizer.
+
+
+4
+00:00:32,576 --> 00:00:34,496
+I'm Mike and [break in video]
+So how are we all doing?
+
+
+5
+00:00:35,036 --> 00:00:36,506
+Good? Ready?
+
+
+6
+00:00:36,856 --> 00:00:38,346
+Excited? All right.
+
+
+7
+00:00:38,346 --> 00:00:38,946
+Let's get going.
+
+
+8
+00:00:39,516 --> 00:00:41,816
+[Applause]
+
+
+9
+00:00:42,316 --> 00:00:44,286
+So I will start off and
+cover some neat new features
+
+
+10
+00:00:44,286 --> 00:00:47,436
+that we added to Xcode and
+also show you some old tips
+
+
+11
+00:00:47,436 --> 00:00:49,276
+and some new tricks that
+you might not know about.
+
+
+12
+00:00:49,746 --> 00:00:51,496
+We will begin with
+the view debugger
+
+
+13
+00:00:51,806 --> 00:00:53,876
+and see how you can get
+even more insight --
+
+
+14
+00:00:53,876 --> 00:00:56,546
+even more insight
+into your app's UI
+
+
+15
+00:00:56,636 --> 00:01:00,116
+and its user interface elements,
+and how they behave at runtime.
+
+
+16
+00:01:00,646 --> 00:01:02,896
+We are going to debug an
+AutoLayout Constraints problem,
+
+
+17
+00:01:03,096 --> 00:01:05,206
+which, at least for me, I
+could always use a little help
+
+
+18
+00:01:05,465 --> 00:01:07,866
+understanding exactly what
+AutoLayout is doing at runtime.
+
+
+19
+00:01:09,006 --> 00:01:11,436
+Next, we will dive into
+debugging your code
+
+
+20
+00:01:11,436 --> 00:01:12,486
+with Advanced Breakpoints.
+
+
+21
+00:01:12,916 --> 00:01:16,286
+I will show you how you can set
+custom actions and conditions
+
+
+22
+00:01:16,576 --> 00:01:18,166
+to quickly diagnose exceptions,
+
+
+23
+00:01:18,466 --> 00:01:21,056
+and conditionally print
+values all without cluttering
+
+
+24
+00:01:21,056 --> 00:01:22,876
+up your code with
+NSLogs or prints.
+
+
+25
+00:01:23,936 --> 00:01:26,356
+And after that, my colleague
+Anna is going to come up
+
+
+26
+00:01:26,356 --> 00:01:27,716
+and show us the newest,
+
+
+27
+00:01:27,716 --> 00:01:29,476
+most exciting debugging
+feature we've added
+
+
+28
+00:01:29,476 --> 00:01:32,546
+to Xcodes' debugging toolbox,
+the Address Sanitizer.
+
+
+29
+00:01:33,456 --> 00:01:35,896
+She will do a deep dive into
+how it works, and what kinds
+
+
+30
+00:01:35,896 --> 00:01:38,266
+of bugs it captures, and
+how you can start using it
+
+
+31
+00:01:38,266 --> 00:01:40,456
+to start scrubbing
+your code today.
+
+
+32
+00:01:41,146 --> 00:01:44,026
+So for these first two topics,
+I thought I would just start off
+
+
+33
+00:01:44,296 --> 00:01:51,076
+and jump right over to the
+demo machine, and show you.
+
+
+34
+00:01:55,856 --> 00:01:58,776
+So here we have an
+application called Jogr.
+
+
+35
+00:01:59,586 --> 00:02:03,466
+It's a fitness application that
+allows you to time your runs,
+
+
+36
+00:02:03,526 --> 00:02:07,116
+track the routes that you take,
+and tag photos along the way.
+
+
+37
+00:02:07,236 --> 00:02:10,386
+We have used Jogr as a demo
+app for a few years now
+
+
+38
+00:02:10,606 --> 00:02:13,766
+and this year we've added
+some new features using Swift,
+
+
+39
+00:02:14,086 --> 00:02:17,426
+and converted some of the
+classes from Objective-C.
+
+
+40
+00:02:17,666 --> 00:02:19,206
+It's very much a
+hybrid application.
+
+
+41
+00:02:19,956 --> 00:02:22,716
+It also now uses size
+classes in its storyboard,
+
+
+42
+00:02:22,716 --> 00:02:24,256
+and has fully adopted
+AutoLayout.
+
+
+43
+00:02:25,366 --> 00:02:27,856
+So, since we changed and added
+all this new code this year,
+
+
+44
+00:02:28,226 --> 00:02:30,116
+it's a pretty good bet that
+we've added a few bugs.
+
+
+45
+00:02:30,376 --> 00:02:31,426
+So let's find them.
+
+
+46
+00:02:32,166 --> 00:02:35,796
+I'm going to start off just
+by clicking on the timer here,
+
+
+47
+00:02:36,536 --> 00:02:40,166
+and well, the first problem
+that's pretty obvious is
+
+
+48
+00:02:40,166 --> 00:02:43,646
+that our ring around our
+timer is getting clipped.
+
+
+49
+00:02:43,646 --> 00:02:46,036
+This was not how it was
+
+
+50
+00:02:46,036 --> 00:02:48,086
+in the original artwork
+that I had provided.
+
+
+51
+00:02:49,026 --> 00:02:50,976
+So this might have
+something to do with the fact
+
+
+52
+00:02:50,976 --> 00:02:53,756
+that I'm running Jogr on
+an iPhone 5 screen size.
+
+
+53
+00:02:53,756 --> 00:02:56,406
+As I was developing
+this on the iPhone 6,
+
+
+54
+00:02:56,526 --> 00:02:57,986
+I probably did not fully test,
+
+
+55
+00:02:57,986 --> 00:02:59,946
+to see that the layout
+was fully adaptable
+
+
+56
+00:02:59,946 --> 00:03:01,306
+down to smaller screen sizes.
+
+
+57
+00:03:01,656 --> 00:03:05,336
+To help get a little insight
+into what's going on here,
+
+
+58
+00:03:05,676 --> 00:03:10,596
+I will click on the Debug
+View Hierarchy button
+
+
+59
+00:03:10,926 --> 00:03:12,126
+down here in the Debug bar.
+
+
+60
+00:03:13,006 --> 00:03:16,336
+Right now, a snapshot is
+getting taken of all of my views
+
+
+61
+00:03:16,406 --> 00:03:19,896
+and loaded into Xcode along with
+a bunch of runtime information
+
+
+62
+00:03:19,956 --> 00:03:21,426
+about how those views interact.
+
+
+63
+00:03:23,206 --> 00:03:26,396
+As I click and drag
+around the canvas,
+
+
+64
+00:03:26,786 --> 00:03:29,926
+you can see how I can
+twist the scene to show all
+
+
+65
+00:03:29,926 --> 00:03:31,606
+of the different views,
+and how they are layered
+
+
+66
+00:03:31,606 --> 00:03:32,456
+on top of each other.
+
+
+67
+00:03:32,716 --> 00:03:35,376
+I can even click on a
+specific view to select it,
+
+
+68
+00:03:36,086 --> 00:03:39,286
+and we can see all sorts of
+details about it over here
+
+
+69
+00:03:39,286 --> 00:03:40,306
+in the object inspector.
+
+
+70
+00:03:41,696 --> 00:03:43,566
+Now, there's a lot of
+stuff going on here,
+
+
+71
+00:03:43,886 --> 00:03:47,426
+and with this navigation bar and
+the background and all of that,
+
+
+72
+00:03:47,426 --> 00:03:49,476
+and I really just want
+to focus on the one thing
+
+
+73
+00:03:49,476 --> 00:03:50,866
+that you care about,
+which is the content
+
+
+74
+00:03:50,866 --> 00:03:52,246
+that I put in the center.
+
+
+75
+00:03:53,416 --> 00:03:56,976
+So you can do that just by
+double-clicking on the view.
+
+
+76
+00:03:57,346 --> 00:04:00,636
+Just in case you missed that,
+I will show you how to unfocus,
+
+
+77
+00:04:00,706 --> 00:04:02,416
+which is just double-clicking
+on the canvas
+
+
+78
+00:04:03,126 --> 00:04:06,526
+and here we can go again, and
+we can just focus on this one.
+
+
+79
+00:04:06,526 --> 00:04:11,466
+You will also notice that over
+here, in the Debug Navigator,
+
+
+80
+00:04:11,616 --> 00:04:17,906
+all of the hierarchy above the
+UI stack view has been elided
+
+
+81
+00:04:17,906 --> 00:04:23,516
+away, since we are currently
+focused on the UI stack view.
+
+
+82
+00:04:24,756 --> 00:04:30,226
+If I click on the image that
+is getting clipped here,
+
+
+83
+00:04:30,816 --> 00:04:34,056
+I can inspect its
+balance and constraints
+
+
+84
+00:04:34,146 --> 00:04:38,836
+with the size inspector here.
+
+
+85
+00:04:39,766 --> 00:04:43,246
+The size inspector doesn't
+just show me the x, y,
+
+
+86
+00:04:43,246 --> 00:04:47,206
+and Rect coordinates of this,
+it also shows me the constraints
+
+
+87
+00:04:47,236 --> 00:04:49,426
+that are affecting
+this view at runtime.
+
+
+88
+00:04:49,946 --> 00:04:53,566
+The constraints that are not
+actually in play right now,
+
+
+89
+00:04:53,566 --> 00:04:56,916
+that are affecting the size, or
+the bounds, or the x and the y,
+
+
+90
+00:04:57,346 --> 00:04:58,986
+are shown down here in gray.
+
+
+91
+00:04:59,846 --> 00:05:01,836
+So this is actually
+a little odd.
+
+
+92
+00:05:01,836 --> 00:05:05,706
+I see that the self height
+constraint of 249 points,
+
+
+93
+00:05:05,806 --> 00:05:07,646
+which is the actual
+content size of this image,
+
+
+94
+00:05:08,036 --> 00:05:09,766
+is not actually in
+play at runtime.
+
+
+95
+00:05:10,206 --> 00:05:11,406
+If I look up to the constraint
+
+
+96
+00:05:11,406 --> 00:05:15,646
+that says the superview should
+be the same size as the image,
+
+
+97
+00:05:15,916 --> 00:05:17,176
+we see that it is in play.
+
+
+98
+00:05:17,606 --> 00:05:20,516
+It's like something else
+is constraining the size
+
+
+99
+00:05:20,666 --> 00:05:21,446
+of superview.
+
+
+100
+00:05:22,116 --> 00:05:25,816
+So let's walk up the view
+hierarchy and see what's going
+
+
+101
+00:05:25,816 --> 00:05:26,666
+on with that superview.
+
+
+102
+00:05:28,226 --> 00:05:34,516
+So here, we see that
+there is a three-fourths
+
+
+103
+00:05:34,516 --> 00:05:38,256
+or a .75 relationship
+to this other view,
+
+
+104
+00:05:38,526 --> 00:05:40,286
+and I know that that
+other view is the one
+
+
+105
+00:05:40,286 --> 00:05:42,636
+that contains my start
+button down below.
+
+
+106
+00:05:43,446 --> 00:05:45,066
+We can see all the
+same constraints
+
+
+107
+00:05:45,136 --> 00:05:46,966
+over in the debug
+navigator as well,
+
+
+108
+00:05:47,256 --> 00:05:49,666
+and we can open them
+up like this.
+
+
+109
+00:05:49,666 --> 00:05:54,386
+We see that we have the same
+three-fourths constraint
+
+
+110
+00:05:54,626 --> 00:05:56,446
+on the view that
+contains the button,
+
+
+111
+00:05:56,896 --> 00:05:58,746
+and everything here
+looks normal.
+
+
+112
+00:05:58,746 --> 00:06:01,386
+The top and the bottom
+relationships are sensical,
+
+
+113
+00:06:01,386 --> 00:06:03,146
+top is higher than
+bottom, bottom is connected
+
+
+114
+00:06:03,146 --> 00:06:06,296
+to the superviews
+bottom, and nothing else.
+
+
+115
+00:06:06,506 --> 00:06:09,806
+So why don't we walk up the
+view hierarchy one more level.
+
+
+116
+00:06:10,406 --> 00:06:16,566
+And we can see here that there
+is something a little bit odd.
+
+
+117
+00:06:17,276 --> 00:06:20,876
+We have a center
+y-constraint that is trying
+
+
+118
+00:06:20,876 --> 00:06:24,346
+to keep the entire stack
+view centered vertically
+
+
+119
+00:06:24,346 --> 00:06:28,786
+in its container, but we also
+have this self-top connected
+
+
+120
+00:06:28,786 --> 00:06:31,686
+to the superview
+top by 50 points.
+
+
+121
+00:06:32,186 --> 00:06:35,366
+And that's kind of odd.
+
+
+122
+00:06:35,366 --> 00:06:38,356
+So I don't think that 50-point
+constraint should actually
+
+
+123
+00:06:38,356 --> 00:06:38,726
+be there.
+
+
+124
+00:06:39,066 --> 00:06:40,446
+I think it probably was added
+
+
+125
+00:06:40,446 --> 00:06:42,956
+when I was initially switching
+this view over to size classes,
+
+
+126
+00:06:42,956 --> 00:06:45,646
+and I told IB to just add
+all the missing constraints,
+
+
+127
+00:06:46,066 --> 00:06:47,956
+and then later I set up
+the vertical centering,
+
+
+128
+00:06:47,956 --> 00:06:49,986
+and I probably forgot
+to remove it.
+
+
+129
+00:06:49,986 --> 00:06:53,576
+Let's change this over
+here on our storyboard
+
+
+130
+00:06:55,176 --> 00:06:56,196
+and see if that's the issue.
+
+
+131
+00:06:57,516 --> 00:07:01,446
+So I can select the stack
+view and there it is.
+
+
+132
+00:07:01,496 --> 00:07:03,046
+That's our 50-point constraint.
+
+
+133
+00:07:03,046 --> 00:07:04,166
+I will just delete that.
+
+
+134
+00:07:05,006 --> 00:07:05,996
+And rerun.
+
+
+135
+00:07:06,626 --> 00:07:10,196
+And great!
+
+
+136
+00:07:10,306 --> 00:07:13,296
+Now our circle goes
+all the way around.
+
+
+137
+00:07:13,446 --> 00:07:16,366
+Nothing is clipped, and this
+view is fully adaptable.
+
+
+138
+00:07:17,556 --> 00:07:20,476
+So let's try running the timer.
+
+
+139
+00:07:22,006 --> 00:07:24,796
+Okay. Looks like I got a crash.
+
+
+140
+00:07:25,226 --> 00:07:28,456
+I'm going to switch the
+Debug Navigator here
+
+
+141
+00:07:28,456 --> 00:07:31,866
+to view the crashing thread,
+
+
+142
+00:07:32,456 --> 00:07:34,996
+and that's not really
+all that helpful.
+
+
+143
+00:07:34,996 --> 00:07:37,066
+It has crashed in main.
+
+
+144
+00:07:37,646 --> 00:07:43,616
+If I pull up here on the
+console, I can see that, well,
+
+
+145
+00:07:43,616 --> 00:07:46,716
+this was some sort of exception
+that was thrown, but this is not
+
+
+146
+00:07:46,716 --> 00:07:49,076
+as helpful to me right
+now, because I want
+
+
+147
+00:07:49,076 --> 00:07:52,246
+to actually stop the program
+and be able to debug it
+
+
+148
+00:07:52,246 --> 00:07:53,926
+at the moment that the
+exception is thrown.
+
+
+149
+00:07:55,086 --> 00:07:59,076
+In order to do that, I can go
+to the Breakpoint Navigator
+
+
+150
+00:07:59,676 --> 00:08:04,356
+and click down here on the plus
+to add an exception breakpoint,
+
+
+151
+00:08:04,356 --> 00:08:07,096
+and I'm going to configure
+this breakpoint to stop
+
+
+152
+00:08:07,096 --> 00:08:09,296
+on just Objective-C exceptions.
+
+
+153
+00:08:09,926 --> 00:08:11,576
+Like that.
+
+
+154
+00:08:12,926 --> 00:08:17,046
+And we can just re-run
+the application.
+
+
+155
+00:08:17,746 --> 00:08:23,176
+And hopefully we'll just
+catch the problem right
+
+
+156
+00:08:23,176 --> 00:08:25,006
+at the moment that it occurred.
+
+
+157
+00:08:25,936 --> 00:08:29,606
+So this is great, but if I look
+
+
+158
+00:08:29,606 --> 00:08:32,366
+at my console now, I
+don't see anything.
+
+
+159
+00:08:32,525 --> 00:08:36,926
+There's no message to describe
+exactly what the exception is.
+
+
+160
+00:08:37,116 --> 00:08:39,816
+So I'm going to use a trick
+that I learned from my friends
+
+
+161
+00:08:39,816 --> 00:08:42,416
+on the LLVM team,
+I'm going to navigate
+
+
+162
+00:08:42,556 --> 00:08:44,726
+to the Ob-C Exception
+Throw function,
+
+
+163
+00:08:44,866 --> 00:08:45,936
+inside the Ob-C runtime.
+
+
+164
+00:08:45,936 --> 00:08:49,496
+I will print the first
+argument of that function,
+
+
+165
+00:08:50,026 --> 00:08:52,266
+which is actually the
+exception object itself.
+
+
+166
+00:08:52,326 --> 00:08:56,266
+I do that by saying
+print object, arg1,
+
+
+167
+00:08:57,276 --> 00:09:01,286
+and this is the actual
+exception message itself.
+
+
+168
+00:09:02,106 --> 00:09:04,086
+So this is so helpful
+that I'm going
+
+
+169
+00:09:04,086 --> 00:09:06,856
+to actually modify our
+exception breakpoint
+
+
+170
+00:09:07,186 --> 00:09:09,616
+to just do this all the time,
+for any exception that we hit.
+
+
+171
+00:09:09,616 --> 00:09:13,746
+I can add an action
+here and I'm going
+
+
+172
+00:09:13,746 --> 00:09:15,386
+to just type the
+exact same thing
+
+
+173
+00:09:15,386 --> 00:09:16,506
+that I typed into the console.
+
+
+174
+00:09:17,186 --> 00:09:19,446
+Print object arg1.
+
+
+175
+00:09:21,146 --> 00:09:28,146
+Now if I rerun the
+application, run the timer,
+
+
+176
+00:09:29,486 --> 00:09:32,196
+now I'm still stopped
+at the exact moment
+
+
+177
+00:09:32,426 --> 00:09:35,646
+that the exception was thrown.
+
+
+178
+00:09:36,056 --> 00:09:40,226
+I actually have the exception
+message itself in the console,
+
+
+179
+00:09:41,186 --> 00:09:44,666
+and so here now when
+I look at the line
+
+
+180
+00:09:44,666 --> 00:09:46,746
+that this exception
+is being thrown from,
+
+
+181
+00:09:47,036 --> 00:09:52,116
+I can see that I'm constructing
+a range, and the range is
+
+
+182
+00:09:52,116 --> 00:09:54,786
+out of bounds, and I bet it's
+probably because we are starting
+
+
+183
+00:09:54,966 --> 00:09:57,856
+at index one instead
+of index zero,
+
+
+184
+00:09:57,856 --> 00:09:59,826
+and going for the full
+length of the string
+
+
+185
+00:09:59,826 --> 00:10:01,566
+when we are setting
+the font attribute.
+
+
+186
+00:10:02,566 --> 00:10:09,986
+So let's rerun this
+again and see, alright,
+
+
+187
+00:10:10,046 --> 00:10:13,526
+so it looks like our timer
+works correctly here.
+
+
+188
+00:10:14,896 --> 00:10:18,226
+So, now we've successfully
+found two bugs.
+
+
+189
+00:10:18,526 --> 00:10:20,056
+Let's go for a third.
+
+
+190
+00:10:21,076 --> 00:10:24,706
+So I'm now going to try
+taking a look at a route
+
+
+191
+00:10:24,786 --> 00:10:28,356
+that I ran this morning,
+before I came here.
+
+
+192
+00:10:29,306 --> 00:10:36,536
+And, that looks about right,
+but if we go back again, well,
+
+
+193
+00:10:36,656 --> 00:10:39,236
+that really doesn't look right
+at all, I didn't start off
+
+
+194
+00:10:39,236 --> 00:10:41,336
+at Mosconi, and run
+down the Embarcadero,
+
+
+195
+00:10:41,336 --> 00:10:44,316
+and jump in the water,
+that's kind of silly.
+
+
+196
+00:10:44,826 --> 00:10:50,666
+Let's try that again, And,
+alright, now I just hit a crash,
+
+
+197
+00:10:50,666 --> 00:10:53,846
+so, I don't know, this seems
+like a, definitely a problem
+
+
+198
+00:10:53,846 --> 00:10:56,836
+with our data model here.
+
+
+199
+00:10:56,836 --> 00:10:58,966
+So I want to figure
+out what we are doing
+
+
+200
+00:10:58,966 --> 00:11:02,516
+when we are making
+the overlay of points
+
+
+201
+00:11:02,856 --> 00:11:04,056
+that we put on to the map.
+
+
+202
+00:11:06,556 --> 00:11:10,666
+So here, I'm going
+to go to the class
+
+
+203
+00:11:10,936 --> 00:11:14,586
+that we know makes the
+route path overlay.
+
+
+204
+00:11:15,186 --> 00:11:18,006
+And this is where we actually
+take a bunch of data points,
+
+
+205
+00:11:18,506 --> 00:11:21,396
+and pull them out of a
+dictionary, and create
+
+
+206
+00:11:21,396 --> 00:11:28,286
+and construct a poly line that
+represents the route that I ran.
+
+
+207
+00:11:28,386 --> 00:11:33,226
+So here I'm going to set a
+breakpoint and see what sort
+
+
+208
+00:11:33,226 --> 00:11:34,776
+of data values we get.
+
+
+209
+00:11:35,886 --> 00:11:39,436
+I'm going to open up the
+Debug Console and look
+
+
+210
+00:11:39,436 --> 00:11:44,316
+at the variables view, and
+down here, we can see the point
+
+
+211
+00:11:44,676 --> 00:11:45,656
+that I'm interested in.
+
+
+212
+00:11:45,656 --> 00:11:47,806
+It has these values.
+
+
+213
+00:11:47,806 --> 00:11:51,476
+I will just kind of
+step forward and, well,
+
+
+214
+00:11:51,476 --> 00:11:54,696
+this is interesting,
+but kind of tedious.
+
+
+215
+00:11:54,736 --> 00:11:56,246
+All the values kind
+of look similar.
+
+
+216
+00:11:56,836 --> 00:11:59,286
+What I will do here
+to make this faster,
+
+
+217
+00:11:59,286 --> 00:12:01,096
+and just to see all
+the values together,
+
+
+218
+00:12:01,096 --> 00:12:02,396
+is I will edit this breakpoint.
+
+
+219
+00:12:02,936 --> 00:12:06,396
+I will print the point Struct
+
+
+220
+00:12:07,866 --> 00:12:12,356
+that I'm actually inspecting
+here in the variables view.
+
+
+221
+00:12:12,576 --> 00:12:14,766
+And then I will say,
+automatically continue
+
+
+222
+00:12:15,186 --> 00:12:16,496
+after evaluating action.
+
+
+223
+00:12:16,556 --> 00:12:18,736
+Actually, this is
+not a condition.
+
+
+224
+00:12:18,736 --> 00:12:19,966
+This is an action.
+
+
+225
+00:12:19,966 --> 00:12:20,416
+There we go.
+
+
+226
+00:12:22,006 --> 00:12:24,896
+And let's just continue
+running this.
+
+
+227
+00:12:25,746 --> 00:12:30,886
+And we can see that all of our
+points look relatively the same,
+
+
+228
+00:12:31,396 --> 00:12:34,146
+but there's still that
+one that's teleporting off
+
+
+229
+00:12:34,146 --> 00:12:35,326
+into the middle of nowhere.
+
+
+230
+00:12:36,226 --> 00:12:39,556
+But all the values still
+look, you know, reasonable.
+
+
+231
+00:12:40,096 --> 00:12:42,346
+I'm not exactly sure
+what the problem is here.
+
+
+232
+00:12:42,346 --> 00:12:49,466
+We might have to get some
+more help from someone else.
+
+
+233
+00:12:49,796 --> 00:12:59,996
+So, let's switch
+back to the sides.
+
+
+234
+00:13:00,506 --> 00:13:04,016
+So just to recap what we saw,
+first we started off by digging
+
+
+235
+00:13:04,016 --> 00:13:06,746
+into a constraint problem
+on the timer view of Jogr.
+
+
+236
+00:13:07,246 --> 00:13:10,416
+I showed you how you can now
+double-click on a view to focus
+
+
+237
+00:13:10,416 --> 00:13:11,516
+on a specific component.
+
+
+238
+00:13:12,096 --> 00:13:14,376
+We inspected some of the
+constraints and found
+
+
+239
+00:13:14,376 --> 00:13:18,126
+that just one of them needed
+to be removed when we ran
+
+
+240
+00:13:18,126 --> 00:13:19,246
+into another screen size.
+
+
+241
+00:13:20,206 --> 00:13:23,076
+Next, we hit an exception
+running the timer,
+
+
+242
+00:13:23,386 --> 00:13:25,286
+and used the exception
+breakpoint to stop
+
+
+243
+00:13:25,286 --> 00:13:26,756
+at the exact moment
+of the crash,
+
+
+244
+00:13:27,106 --> 00:13:28,716
+and also print the
+exception message.
+
+
+245
+00:13:29,326 --> 00:13:32,686
+And finally, we were able to add
+a print and continue breakpoint
+
+
+246
+00:13:32,966 --> 00:13:35,546
+that added logging, all
+without cluttering up our code
+
+
+247
+00:13:35,546 --> 00:13:37,146
+with NSLogs or print statements.
+
+
+248
+00:13:37,906 --> 00:13:40,376
+Now to help solve the next
+mystery of why we are getting
+
+
+249
+00:13:40,376 --> 00:13:43,276
+such odd results from the
+run that I did this morning,
+
+
+250
+00:13:43,566 --> 00:13:44,856
+I would like to introduce Anna.
+
+
+251
+00:13:46,516 --> 00:13:52,796
+[Applause]
+
+
+252
+00:13:53,296 --> 00:13:53,936
+>> ANNA ZAKS: Thank you, Mike.
+
+
+253
+00:13:54,326 --> 00:13:57,266
+Hello. Let's go back
+to that route
+
+
+254
+00:13:57,266 --> 00:14:00,266
+that Mike showed
+last in his demo.
+
+
+255
+00:14:00,266 --> 00:14:03,006
+As we were testing this demo
+app, you saw all of these routes
+
+
+256
+00:14:03,006 --> 00:14:05,216
+and more, including
+the correct one.
+
+
+257
+00:14:06,266 --> 00:14:08,516
+We were really hoping
+Mike would not run
+
+
+258
+00:14:08,516 --> 00:14:11,796
+into the correct one again
+and again while on stage,
+
+
+259
+00:14:11,796 --> 00:14:14,756
+because it would be not so
+good for our presentation.
+
+
+260
+00:14:15,376 --> 00:14:18,116
+This unpredictable
+behavior is often caused
+
+
+261
+00:14:18,116 --> 00:14:21,096
+by memory corruptions, for
+example, memory allocated
+
+
+262
+00:14:21,096 --> 00:14:23,956
+for one object might be
+overwritten by another object.
+
+
+263
+00:14:24,766 --> 00:14:27,746
+Or maybe you are using memory
+that does not belong to you due
+
+
+264
+00:14:27,746 --> 00:14:29,226
+to some miscalculation.
+
+
+265
+00:14:29,796 --> 00:14:32,896
+I'm sure a lot of you have
+seen something similar
+
+
+266
+00:14:32,896 --> 00:14:34,326
+to this before, as well.
+
+
+267
+00:14:34,836 --> 00:14:37,256
+A random crash happening
+somewhere in our code.
+
+
+268
+00:14:37,626 --> 00:14:41,176
+Maybe you see this every single
+time you test a certain aspect
+
+
+269
+00:14:41,176 --> 00:14:45,096
+of your app or maybe you only
+see this on Friday evenings
+
+
+270
+00:14:45,246 --> 00:14:47,096
+when you are really
+ready to go home!
+
+
+271
+00:14:48,016 --> 00:14:49,396
+[Laughter]
+
+
+272
+00:14:49,396 --> 00:14:50,796
+The worst case scenario is
+
+
+273
+00:14:50,796 --> 00:14:53,996
+when your users see these
+instabilities or random crashes,
+
+
+274
+00:14:53,996 --> 00:14:55,766
+and you can't even
+produce them locally.
+
+
+275
+00:14:56,226 --> 00:15:00,436
+Memory corruptions are
+known to be notoriously hard
+
+
+276
+00:15:00,476 --> 00:15:03,356
+to consistently reproduce
+and finding the root cause
+
+
+277
+00:15:03,396 --> 00:15:05,896
+of the misbehavior is
+often a difficult task.
+
+
+278
+00:15:06,986 --> 00:15:07,876
+So what can be done?
+
+
+279
+00:15:08,636 --> 00:15:11,516
+Best way to minimize your
+exposure to memory errors,
+
+
+280
+00:15:11,836 --> 00:15:14,616
+is to avoid memory
+manipulations altogether.
+
+
+281
+00:15:15,256 --> 00:15:18,076
+For example, using language
+occurrences such as Swift
+
+
+282
+00:15:18,156 --> 00:15:21,566
+and automated reference counting
+will take you a long way.
+
+
+283
+00:15:22,726 --> 00:15:24,866
+Even though the memory
+corruptions are still
+
+
+284
+00:15:24,866 --> 00:15:27,686
+technically possible there,
+writing code that causes them,
+
+
+285
+00:15:27,686 --> 00:15:28,896
+will be much less likely.
+
+
+286
+00:15:30,276 --> 00:15:32,626
+On the other hand,
+if you have code
+
+
+287
+00:15:32,626 --> 00:15:35,246
+that manipulates memory
+directly, by calling malloc,
+
+
+288
+00:15:35,246 --> 00:15:36,656
+or by doing [unintelligible]
+arithmetic,
+
+
+289
+00:15:37,146 --> 00:15:39,916
+or you simply have code
+that interoperates with C
+
+
+290
+00:15:39,916 --> 00:15:43,536
+and C++ APIs, you
+are in the risk group
+
+
+291
+00:15:43,536 --> 00:15:45,646
+that needs the most help.
+
+
+292
+00:15:47,806 --> 00:15:51,766
+Address Sanitizer is an LLVM
+tool for C-based languages,
+
+
+293
+00:15:51,766 --> 00:15:55,026
+that serves the same
+purpose as Guard Malloc,
+
+
+294
+00:15:55,086 --> 00:16:00,576
+as it finds memory errors at
+runtime, however, it has a lot
+
+
+295
+00:16:00,576 --> 00:16:02,376
+of benefits over
+the other tools.
+
+
+296
+00:16:03,066 --> 00:16:05,126
+It has much less
+runtime overhead
+
+
+297
+00:16:05,606 --> 00:16:07,566
+and it also produces
+comprehensive,
+
+
+298
+00:16:07,566 --> 00:16:10,526
+detailed diagnostics that
+are integrated directly
+
+
+299
+00:16:10,526 --> 00:16:11,366
+into the Xcode UI.
+
+
+300
+00:16:11,366 --> 00:16:15,716
+What's also very important is
+that it is the only such tool
+
+
+301
+00:16:15,716 --> 00:16:19,046
+that works on iOS devices.
+
+
+302
+00:16:19,046 --> 00:16:20,536
+Here's a list of common errors
+
+
+303
+00:16:20,536 --> 00:16:22,176
+that Address Sanitizer
+can catch for you.
+
+
+304
+00:16:23,036 --> 00:16:28,986
+For example, it's very good
+at catching buffer overflows,
+
+
+305
+00:16:29,766 --> 00:16:33,536
+which is a very common error
+to make, that is notorious
+
+
+306
+00:16:33,536 --> 00:16:35,546
+for its relation to
+security exploits.
+
+
+307
+00:16:35,946 --> 00:16:38,926
+As you can see it finds some
+of the tools that are --
+
+
+308
+00:16:38,926 --> 00:16:40,986
+some of the errors that
+are found by Valgrind
+
+
+309
+00:16:40,986 --> 00:16:44,136
+and Guard Malloc, however
+it also finds new categories
+
+
+310
+00:16:44,136 --> 00:16:47,176
+of bugs, that the other
+tools do not focus on.
+
+
+311
+00:16:48,396 --> 00:16:49,876
+Let's go back to the demo
+
+
+312
+00:16:49,876 --> 00:16:52,596
+and see how you can turn
+this on in your project.
+
+
+313
+00:17:02,896 --> 00:17:06,386
+So I will start right at the
+place where Mike left off
+
+
+314
+00:17:06,576 --> 00:17:09,586
+and let's see if the Address
+Sanitizer will help us diagnose
+
+
+315
+00:17:09,586 --> 00:17:10,685
+this routes issue.
+
+
+316
+00:17:11,435 --> 00:17:13,346
+In order to turn
+Address Sanitizer [on],
+
+
+317
+00:17:13,925 --> 00:17:15,455
+you go to Edit Scheme.
+
+
+318
+00:17:16,066 --> 00:17:20,046
+Go to the Diagnostics tab.
+
+
+319
+00:17:21,126 --> 00:17:22,836
+And check Enable
+Address Sanitizer.
+
+
+320
+00:17:23,626 --> 00:17:25,976
+Unlike the other
+memory management tools,
+
+
+321
+00:17:25,976 --> 00:17:28,026
+Address Sanitizer
+requires re-compilation.
+
+
+322
+00:17:28,366 --> 00:17:32,286
+So after this check box is
+checked, Xcode will know
+
+
+323
+00:17:32,286 --> 00:17:35,356
+to rebuild your application with
+Address Sanitizer turned on,
+
+
+324
+00:17:35,696 --> 00:17:37,526
+and it will launch
+it in a special mode
+
+
+325
+00:17:37,526 --> 00:17:39,276
+that will allow Address
+Sanitizer to poke
+
+
+326
+00:17:39,276 --> 00:17:41,516
+at your process even
+more at runtime.
+
+
+327
+00:17:42,076 --> 00:17:46,306
+Let's go ahead, rebuild
+and re-run this app.
+
+
+328
+00:17:47,996 --> 00:17:52,086
+And see what happens when we go
+to the route, to see the route.
+
+
+329
+00:17:52,086 --> 00:17:54,326
+Now, what you see here is
+Address Sanitizer has spotted an
+
+
+330
+00:17:54,326 --> 00:17:57,516
+issue, and its diagnostics
+are integrated directly
+
+
+331
+00:17:57,516 --> 00:17:58,946
+into the Xcode Debugger UI.
+
+
+332
+00:17:59,976 --> 00:18:03,106
+What happens is very similar
+to what will occur on a crash,
+
+
+333
+00:18:03,676 --> 00:18:05,846
+however, unlike the
+case with a Sec fold,
+
+
+334
+00:18:05,846 --> 00:18:07,816
+you get much better diagnostics.
+
+
+335
+00:18:08,556 --> 00:18:11,836
+Here, it tells us that the
+heap buffer overflow has been
+
+
+336
+00:18:11,836 --> 00:18:15,046
+detected, and you also
+see the stack trace,
+
+
+337
+00:18:15,276 --> 00:18:17,896
+at which this memory
+fault has occurred.
+
+
+338
+00:18:18,456 --> 00:18:22,756
+As you can see, we are calling
+it Poly Line With Points
+
+
+339
+00:18:22,756 --> 00:18:24,136
+and common method of Map Kit.
+
+
+340
+00:18:24,136 --> 00:18:28,316
+We are testing at the buffer,
+and the number of points,
+
+
+341
+00:18:28,316 --> 00:18:30,676
+which is calculated by taking
+the length of the buffer
+
+
+342
+00:18:30,676 --> 00:18:33,596
+and dividing it by the
+size of each point.
+
+
+343
+00:18:34,426 --> 00:18:35,876
+That looks okay.
+
+
+344
+00:18:35,876 --> 00:18:38,816
+As your application
+is being executed
+
+
+345
+00:18:38,816 --> 00:18:42,126
+under Address Sanitizer, it
+collects important information
+
+
+346
+00:18:42,126 --> 00:18:44,376
+about the heap objects
+in your process.
+
+
+347
+00:18:44,816 --> 00:18:47,106
+For example, allocation,
+heap allocation,
+
+
+348
+00:18:47,106 --> 00:18:48,216
+and deallocation events.
+
+
+349
+00:18:48,956 --> 00:18:53,266
+And when it finds this memory
+fault, it uses heuristics
+
+
+350
+00:18:53,266 --> 00:18:56,786
+to relate the faulty address
+to a valid object in your heap.
+
+
+351
+00:18:57,416 --> 00:18:59,116
+And that information
+is presented here
+
+
+352
+00:18:59,116 --> 00:19:00,216
+under the memory item.
+
+
+353
+00:19:00,836 --> 00:19:04,766
+So here it tells us that the
+faulty address is one byte
+
+
+354
+00:19:05,296 --> 00:19:09,876
+after 2,240-byte heap
+region, and it also tells us
+
+
+355
+00:19:09,916 --> 00:19:12,406
+where that heap region
+has been allocated.
+
+
+356
+00:19:13,556 --> 00:19:15,506
+Even though this is
+not a live thread,
+
+
+357
+00:19:15,916 --> 00:19:18,926
+but a historical snapshot
+of the process execution
+
+
+358
+00:19:18,926 --> 00:19:22,776
+when that allocation event
+occurred, we can look at streams
+
+
+359
+00:19:23,766 --> 00:19:28,036
+as if it was a live thread,
+and here it takes us right
+
+
+360
+00:19:28,216 --> 00:19:30,426
+to the point where the
+memory has been allocated.
+
+
+361
+00:19:31,506 --> 00:19:34,356
+Okay. So let's see, the size
+of the buffer is calculated
+
+
+362
+00:19:34,356 --> 00:19:37,886
+by taking the size of each point
+and multiplying it by number
+
+
+363
+00:19:37,886 --> 00:19:42,746
+of points and we
+use MK Map Point to,
+
+
+364
+00:19:43,466 --> 00:19:45,286
+as our points representation.
+
+
+365
+00:19:45,286 --> 00:19:46,636
+It's a Struct with two doubles.
+
+
+366
+00:19:48,066 --> 00:19:49,306
+So what is the problem here?
+
+
+367
+00:19:50,106 --> 00:19:52,226
+Let's go back to the Use site.
+
+
+368
+00:19:53,866 --> 00:19:57,506
+Well, the type you pass the
+size of here, is different.
+
+
+369
+00:19:58,146 --> 00:20:01,366
+We pass MK Map Point star.
+
+
+370
+00:20:02,406 --> 00:20:06,216
+But we know that we have just
+allocated a buffer of Structs,
+
+
+371
+00:20:06,216 --> 00:20:07,646
+not a buffer of pointers.
+
+
+372
+00:20:08,636 --> 00:20:12,266
+And since the size of each
+pointer is smaller than the size
+
+
+373
+00:20:12,266 --> 00:20:14,226
+of our struct, that
+contained two doubles,
+
+
+374
+00:20:15,026 --> 00:20:17,976
+the count we get here will
+be larger than the number
+
+
+375
+00:20:17,976 --> 00:20:20,016
+of elements that
+our buffer contains.
+
+
+376
+00:20:20,706 --> 00:20:22,906
+So that would explain
+why we get all
+
+
+377
+00:20:22,946 --> 00:20:26,426
+of those extra points
+on the map.
+
+
+378
+00:20:26,626 --> 00:20:29,606
+To fix this problem, we just
+need to remove the star.
+
+
+379
+00:20:29,606 --> 00:20:31,896
+And as you see, this is
+like a very common mistake
+
+
+380
+00:20:31,896 --> 00:20:35,756
+that people could make and it
+would be very hard to find this
+
+
+381
+00:20:35,816 --> 00:20:37,756
+by just looking at this code.
+
+
+382
+00:20:37,756 --> 00:20:42,906
+Now, in this case, this
+information alone is sufficient
+
+
+383
+00:20:42,906 --> 00:20:44,576
+to diagnose and fix the problem.
+
+
+384
+00:20:45,116 --> 00:20:49,116
+However, you can -- if you
+feel like you want to poke
+
+
+385
+00:20:49,116 --> 00:20:52,936
+at this report even more,
+you can go to the Memory View
+
+
+386
+00:20:52,936 --> 00:20:54,816
+and see which memory is
+considered to be valid,
+
+
+387
+00:20:55,116 --> 00:20:57,116
+and which memory is
+considered to be invalid,
+
+
+388
+00:20:57,196 --> 00:20:58,936
+from Address Sanitizer's
+perspective.
+
+
+389
+00:20:59,646 --> 00:21:03,096
+To go to the Memory View, you
+can click on the address here,
+
+
+390
+00:21:03,876 --> 00:21:07,366
+and here you can see all the
+greyed-out stuff is invalid
+
+
+391
+00:21:07,366 --> 00:21:14,176
+memory, and all the black memory
+is considered to be valid.
+
+
+392
+00:21:14,446 --> 00:21:17,486
+Now let's go back
+and re-run our app,
+
+
+393
+00:21:17,486 --> 00:21:20,576
+and see if removing the
+asterisk did, fix that problem.
+
+
+394
+00:21:21,456 --> 00:21:28,126
+Now, I'm going to go back
+to the Routes view, and aha,
+
+
+395
+00:21:28,326 --> 00:21:31,576
+here is the path that
+Mike ran this morning,
+
+
+396
+00:21:31,846 --> 00:21:33,436
+and the morning after
+the Bash, too.
+
+
+397
+00:21:34,006 --> 00:21:34,776
+I'm impressed.
+
+
+398
+00:21:35,426 --> 00:21:36,916
+So let's go back and
+switch to the slides.
+
+
+399
+00:21:37,836 --> 00:21:40,756
+So as you had seen, turning on
+Address Sanitizer is very easy.
+
+
+400
+00:21:40,756 --> 00:21:44,286
+You go to Scheme Editor,
+open the Diagnostics tab,
+
+
+401
+00:21:44,816 --> 00:21:47,176
+and check the Enable
+Address Sanitizer checkbox,
+
+
+402
+00:21:47,946 --> 00:21:50,016
+then you just build
+and run your project.
+
+
+403
+00:21:52,216 --> 00:21:55,406
+And also as you have seen in
+the demo app, the overhead
+
+
+404
+00:21:55,406 --> 00:21:58,106
+of using Address Sanitizer
+was not even noticeable.
+
+
+405
+00:21:58,626 --> 00:22:01,776
+This low runtime overhead allows
+you to use Address Sanitizer,
+
+
+406
+00:22:02,126 --> 00:22:06,136
+not only when you are debugging
+some memory corruption problem,
+
+
+407
+00:22:06,366 --> 00:22:09,516
+but also while performing
+UI-driven testing,
+
+
+408
+00:22:09,516 --> 00:22:13,026
+where you manually test
+different aspects of your app.
+
+
+409
+00:22:13,506 --> 00:22:15,726
+Taking it one step
+further we recommend
+
+
+410
+00:22:15,726 --> 00:22:18,576
+that you use Address Sanitizer
+in your continuous integration.
+
+
+411
+00:22:19,276 --> 00:22:23,236
+Since it's a runtime bug-finding
+tool, it will only catch bugs
+
+
+412
+00:22:23,236 --> 00:22:25,046
+in the code that
+has been executed.
+
+
+413
+00:22:25,696 --> 00:22:27,826
+So you should provide
+it as much coverage
+
+
+414
+00:22:27,826 --> 00:22:29,346
+as possible for best results.
+
+
+415
+00:22:30,656 --> 00:22:34,906
+To enable Address Sanitizer
+in your tasks in Xcode
+
+
+416
+00:22:34,906 --> 00:22:40,706
+or in Xcode Server go to
+Edit Scheme, select Task,
+
+
+417
+00:22:40,706 --> 00:22:42,906
+and then again go to
+the Diagnostics tab,
+
+
+418
+00:22:42,906 --> 00:22:45,096
+and check the Enable
+Address Sanitizer checkbox,
+
+
+419
+00:22:45,166 --> 00:22:46,986
+build and test your app.
+
+
+420
+00:22:47,496 --> 00:22:49,156
+You can also enable
+it on command line,
+
+
+421
+00:22:49,156 --> 00:22:51,936
+by passing an extra
+argument to Xcode Build.
+
+
+422
+00:22:52,576 --> 00:22:56,546
+We recommend that you
+use Address Sanitizer
+
+
+423
+00:22:56,546 --> 00:22:58,956
+in Debug builds, where the
+compiler optimizations are
+
+
+424
+00:22:58,956 --> 00:22:59,616dle
+turned off.
+
+
+425
+00:23:00,426 --> 00:23:03,926
+However, it is also supported
+with the Fast optimization level
+
+
+426
+00:23:05,066 --> 00:23:07,536
+that corresponds to
+01 compiler flag.
+
+
+427
+00:23:08,436 --> 00:23:11,036
+One thing to keep in mind is
+that when you are deciding
+
+
+428
+00:23:11,036 --> 00:23:13,266
+between those two
+optimization levels,
+
+
+429
+00:23:14,346 --> 00:23:17,046
+is that your debugging
+experience will not be as smooth
+
+
+430
+00:23:17,166 --> 00:23:20,476
+in case you have any compiling
+optimizations turned on.
+
+
+431
+00:23:23,026 --> 00:23:26,616
+So now we will go to the most
+exciting part of this talk.
+
+
+432
+00:23:26,816 --> 00:23:29,126
+I will tell you the
+cool technology
+
+
+433
+00:23:29,126 --> 00:23:30,426
+that powers this tool.
+
+
+434
+00:23:30,976 --> 00:23:36,106
+So traditionally, Xcode compiles
+your source code using the clang
+
+
+435
+00:23:36,106 --> 00:23:39,816
+compiler, which produces
+an executable binary.
+
+
+436
+00:23:41,376 --> 00:23:42,896
+In order to use Address
+Sanitizer,
+
+
+437
+00:23:42,896 --> 00:23:45,366
+Xcode passes a special
+flag to clang.
+
+
+438
+00:23:45,596 --> 00:23:47,356
+It produces an instrumented
+binary
+
+
+439
+00:23:47,356 --> 00:23:48,766
+that contains more
+memory checks.
+
+
+440
+00:23:50,136 --> 00:23:55,566
+And at runtime, this binary
+links with asan runtime dylib,
+
+
+441
+00:23:55,636 --> 00:23:59,096
+that contains even more checks,
+and that dylib is required
+
+
+442
+00:23:59,096 --> 00:24:00,186
+by the instrumentation.
+
+
+443
+00:24:00,726 --> 00:24:03,726
+But how does these
+memory checks work?
+
+
+444
+00:24:04,266 --> 00:24:07,386
+Address Sanitizer checks all
+allocations in your process.
+
+
+445
+00:24:07,386 --> 00:24:09,416
+If this is your process memory,
+
+
+446
+00:24:09,836 --> 00:24:14,156
+Address Sanitizer maintains
+so-called shadow memory,
+
+
+447
+00:24:14,526 --> 00:24:17,766
+that tracks each byte
+in your real memory,
+
+
+448
+00:24:17,876 --> 00:24:20,056
+and it has information
+of whether
+
+
+449
+00:24:20,196 --> 00:24:22,696
+that byte is address-accessible
+or not.
+
+
+450
+00:24:24,136 --> 00:24:27,306
+Bytes on invalid memory are
+called red zones or as we say,
+
+
+451
+00:24:27,306 --> 00:24:28,686
+memory there is poisoned.
+
+
+452
+00:24:28,686 --> 00:24:33,126
+When you compile your program
+with Address Sanitizer,
+
+
+453
+00:24:33,126 --> 00:24:35,066
+it instruments every
+memory access
+
+
+454
+00:24:35,406 --> 00:24:36,746
+and prefixes it with a check.
+
+
+455
+00:24:37,826 --> 00:24:38,986
+If the memory is poisoned,
+
+
+456
+00:24:39,026 --> 00:24:41,226
+the Address Sanitizer
+will track the program
+
+
+457
+00:24:41,566 --> 00:24:43,756
+and generate a diagnostics
+report.
+
+
+458
+00:24:44,166 --> 00:24:46,056
+Otherwise, it will
+allow you to continue.
+
+
+459
+00:24:46,586 --> 00:24:49,126
+Let's take a closer look.
+
+
+460
+00:24:49,246 --> 00:24:50,536
+Assume p is a pointer,
+
+
+461
+00:24:50,956 --> 00:24:54,466
+then IsPoisoned function
+checks the relevant byte
+
+
+462
+00:24:54,466 --> 00:24:55,376
+in the shadow memory.
+
+
+463
+00:24:56,136 --> 00:24:59,466
+In this case, the memory is
+valid, so the program is allowed
+
+
+464
+00:24:59,466 --> 00:25:01,426
+to write to that
+memory location.
+
+
+465
+00:25:01,866 --> 00:25:06,936
+However, if it does not
+point to valid memory,
+
+
+466
+00:25:07,196 --> 00:25:08,646
+the condition will be true,
+
+
+467
+00:25:09,096 --> 00:25:11,606
+and the program will
+trap right there,
+
+
+468
+00:25:11,876 --> 00:25:14,396
+where the invalid memory
+access was about to happen.
+
+
+469
+00:25:15,216 --> 00:25:18,106
+This is how Address
+Sanitizer produces reports,
+
+
+470
+00:25:18,106 --> 00:25:21,896
+and reports this
+problem to the user.
+
+
+471
+00:25:21,966 --> 00:25:24,736
+Now, the lookups into the shadow
+memory need to be very fast.
+
+
+472
+00:25:26,266 --> 00:25:30,226
+To achieve this, we maintain a
+lookup table where every 8 bytes
+
+
+473
+00:25:30,226 --> 00:25:33,636
+of your memory are tracked
+by one byte in the shadow.
+
+
+474
+00:25:35,026 --> 00:25:37,056
+This is a very large
+lookup table.
+
+
+475
+00:25:37,056 --> 00:25:40,276
+So we don't actually allocate
+it, instead, we reserve it
+
+
+476
+00:25:40,326 --> 00:25:42,906
+when the process launches,
+and use it as needed.
+
+
+477
+00:25:44,366 --> 00:25:46,166
+With that, we can
+look up the address
+
+
+478
+00:25:46,166 --> 00:25:49,286
+by simply taking the value
+of the original pointer,
+
+
+479
+00:25:49,496 --> 00:25:52,636
+dividing it by 8, and
+adding a constant offset,
+
+
+480
+00:25:52,676 --> 00:25:55,816
+which is the location of
+the shadow in the memory.
+
+
+481
+00:25:55,816 --> 00:25:58,856
+Even if the byte of the
+computed address is nonzero,
+
+
+482
+00:25:59,136 --> 00:26:00,516
+we know that the
+memory is poisoned.
+
+
+483
+00:26:00,516 --> 00:26:05,176
+Now, let's talk a little
+bit about the heap.
+
+
+484
+00:26:06,116 --> 00:26:08,816
+To catch overflows and
+other bugs in heap,
+
+
+485
+00:26:09,366 --> 00:26:12,266
+Address Sanitizer provides
+its custom allocator
+
+
+486
+00:26:12,266 --> 00:26:15,216
+that replaces the default
+Malloc implementation.
+
+
+487
+00:26:16,106 --> 00:26:18,866
+The default allocator
+can organize objects
+
+
+488
+00:26:18,866 --> 00:26:19,656
+in various ways.
+
+
+489
+00:26:20,346 --> 00:26:23,846
+For example, it can lay out
+objects one after the other,
+
+
+490
+00:26:24,706 --> 00:26:27,926
+which is great for optimizing
+a memory consumption.
+
+
+491
+00:26:28,656 --> 00:26:30,766
+However, this is not so
+good for catching bugs
+
+
+492
+00:26:30,766 --> 00:26:33,336
+because an overflow on
+one object will land
+
+
+493
+00:26:33,336 --> 00:26:35,276
+on another object,
+and therefore,
+
+
+494
+00:26:35,276 --> 00:26:38,036
+it will be indistinguishable
+from a valid memory access.
+
+
+495
+00:26:38,536 --> 00:26:42,786
+So to fix this problem,
+ASan's allocator lays
+
+
+496
+00:26:42,786 --> 00:26:45,006
+out objects further
+apart from each other,
+
+
+497
+00:26:46,016 --> 00:26:49,656
+and all the unused memory in
+between those objects is marked
+
+
+498
+00:26:49,656 --> 00:26:51,006
+as poisoned in the shadow.
+
+
+499
+00:26:51,566 --> 00:26:55,886
+When an object is
+deallocated, we mark the object
+
+
+500
+00:26:55,886 --> 00:26:57,066
+as poisoned in the shadow.
+
+
+501
+00:26:57,706 --> 00:27:03,866
+To summarize, the custom Malloc
+implementation inserts poisoned
+
+
+502
+00:27:03,866 --> 00:27:06,546
+red zones around the
+valid allocations,
+
+
+503
+00:27:06,856 --> 00:27:09,126
+to catch heap underflows
+and overflows.
+
+
+504
+00:27:10,456 --> 00:27:12,616
+It delays the user-freed memory
+
+
+505
+00:27:12,806 --> 00:27:16,966
+to make Address Sanitizer more
+effective at catching user-free
+
+
+506
+00:27:16,966 --> 00:27:18,086
+and double-free errors.
+
+
+507
+00:27:19,306 --> 00:27:22,316
+And it also collects Sect
+traces for allocations
+
+
+508
+00:27:22,316 --> 00:27:25,686
+and deallocations, that allow it
+to provide those comprehensive,
+
+
+509
+00:27:25,686 --> 00:27:28,376
+detailed diagnostics that
+we have seen in our demo,
+
+
+510
+00:27:28,606 --> 00:27:29,946
+and that could be the difference
+
+
+511
+00:27:29,946 --> 00:27:32,176
+between understanding
+the problem immediately,
+
+
+512
+00:27:32,436 --> 00:27:35,866
+or spending a lot of time
+debugging it and, you know,
+
+
+513
+00:27:35,866 --> 00:27:38,596
+figuring out what happens.
+
+
+514
+00:27:38,756 --> 00:27:43,426
+Now, let's talk about the stack.
+
+
+515
+00:27:43,616 --> 00:27:45,906
+So similarly, to heap
+memory, red zones are put
+
+
+516
+00:27:45,906 --> 00:27:47,816
+in between individual
+stack variables.
+
+
+517
+00:27:48,416 --> 00:27:50,846
+So, suppose we have an
+array, and an integer
+
+
+518
+00:27:50,846 --> 00:27:53,876
+as our local variables,
+then when compiling
+
+
+519
+00:27:53,876 --> 00:27:55,236
+under Address Sanitizer,
+
+
+520
+00:27:56,016 --> 00:27:57,856
+additional red zones
+are inserted
+
+
+521
+00:27:57,856 --> 00:27:59,406
+in between those variables,
+
+
+522
+00:27:59,406 --> 00:28:03,486
+so we can detect any
+overflows on stack variables.
+
+
+523
+00:28:04,326 --> 00:28:08,876
+Stack red zones are poisoned
+when you enter the function
+
+
+524
+00:28:08,876 --> 00:28:11,086
+at runtime, and they
+are unpoisoned
+
+
+525
+00:28:11,086 --> 00:28:16,696
+when you are exiting
+the function at runtime.
+
+
+526
+00:28:16,696 --> 00:28:20,396
+Dealing with global variables
+is very similar, again,
+
+
+527
+00:28:20,396 --> 00:28:24,156
+during compilation, the global
+variables are instrumented,
+
+
+528
+00:28:24,656 --> 00:28:27,136
+and additional red zones
+are inserted around them.
+
+
+529
+00:28:27,136 --> 00:28:32,256
+Now, both stack and global
+compiler instrumentation is a
+
+
+530
+00:28:32,256 --> 00:28:34,846
+really useful feature
+of Address Sanitizer.
+
+
+531
+00:28:35,256 --> 00:28:37,856
+This is what allows
+it to find those bugs
+
+
+532
+00:28:37,856 --> 00:28:39,466
+that other tools cannot catch.
+
+
+533
+00:28:39,976 --> 00:28:43,526
+Here is yet another
+type of a unique bug
+
+
+534
+00:28:43,526 --> 00:28:46,656
+that Address Sanitizer finds,
+that is of special interest
+
+
+535
+00:28:46,656 --> 00:28:49,406
+to those of you who are
+Avid C++ developers.
+
+
+536
+00:28:50,856 --> 00:28:53,066
+Here we have a C++
+container vector,
+
+
+537
+00:28:53,666 --> 00:28:56,026
+and even though all
+memory to v.begin,
+
+
+538
+00:28:56,026 --> 00:28:58,476
+to v.begin plus capacity
+has been allocated,
+
+
+539
+00:28:59,186 --> 00:29:02,286
+accessing memory past
+v.end is an error.
+
+
+540
+00:29:03,426 --> 00:29:07,006
+Leap C++ has been instrumented
+to provide more information
+
+
+541
+00:29:07,006 --> 00:29:10,006
+to Address Sanitizer so
+that it can find errors
+
+
+542
+00:29:10,376 --> 00:29:11,246
+such as this one.
+
+
+543
+00:29:15,756 --> 00:29:19,706
+As we had seen, all the
+checks that we have talked
+
+
+544
+00:29:19,706 --> 00:29:21,976
+about required compiler
+instrumentation.
+
+
+545
+00:29:21,976 --> 00:29:26,176
+However, we know that some
+errors could occur even --
+
+
+546
+00:29:26,176 --> 00:29:29,476
+could be triggered even in the
+code has not been recompiled,
+
+
+547
+00:29:29,636 --> 00:29:31,726
+for example when we are
+calling memcpy function.
+
+
+548
+00:29:32,106 --> 00:29:36,496
+Address Sanitizer uses a
+technique called BYOD function
+
+
+549
+00:29:36,496 --> 00:29:40,646
+interposition to replace dozens
+of standard library functions
+
+
+550
+00:29:41,076 --> 00:29:43,326
+with its own versions
+at runtime.
+
+
+551
+00:29:44,206 --> 00:29:45,936
+Since this is a running
+technique,
+
+
+552
+00:29:45,936 --> 00:29:48,546
+those checks will
+trigger even on code
+
+
+553
+00:29:48,546 --> 00:29:49,826
+that has not been recompiled.
+
+
+554
+00:29:51,006 --> 00:29:54,056
+Here's an example
+of a memcpy wrapper.
+
+
+555
+00:29:54,226 --> 00:29:57,126
+As you expect, it first
+checks if the source
+
+
+556
+00:29:57,126 --> 00:30:00,756
+and the destination buffers
+are valid, before forwarding
+
+
+557
+00:30:00,946 --> 00:30:03,256
+on towards the original
+memcpy implementation.
+
+
+558
+00:30:03,756 --> 00:30:08,426
+All of this additional
+checks mean
+
+
+559
+00:30:08,426 --> 00:30:10,136
+that there will be
+a runtime overhead
+
+
+560
+00:30:10,136 --> 00:30:11,616
+and you might be
+wondering what it is.
+
+
+561
+00:30:12,126 --> 00:30:16,796
+The specifics heavily depend
+on your individual program.
+
+
+562
+00:30:16,796 --> 00:30:19,236
+Address Sanitizer typically
+causes CPUs slowdown
+
+
+563
+00:30:19,236 --> 00:30:23,386
+of about 2x, however we have
+seen it go as high as 5x
+
+
+564
+00:30:23,386 --> 00:30:27,766
+in some edge cases, and the
+memory overhead is from 2 to 3x.
+
+
+565
+00:30:28,356 --> 00:30:30,856
+One thing that I
+want to note here is
+
+
+566
+00:30:30,856 --> 00:30:34,236
+that this overhead is much
+smaller than what you would get
+
+
+567
+00:30:34,266 --> 00:30:36,716
+from other tools that
+find similar issues.
+
+
+568
+00:30:37,966 --> 00:30:40,456
+And compiling the
+compiler instrumentation
+
+
+569
+00:30:40,766 --> 00:30:43,396
+with the runtime
+techniques is the key
+
+
+570
+00:30:43,476 --> 00:30:46,866
+that makes Address Sanitizer
+so effective and scalable.
+
+
+571
+00:30:47,786 --> 00:30:52,086
+For example, we run and test
+Safari under Address Sanitizer.
+
+
+572
+00:30:52,086 --> 00:30:53,906
+And that's a large app.
+
+
+573
+00:30:54,416 --> 00:31:00,196
+And this was Address
+Sanitizer, new in Xcode 7.
+
+
+574
+00:31:01,856 --> 00:31:02,726
+Thank you.
+
+
+575
+00:31:03,516 --> 00:31:09,116
+[Applause]
+
+
+576
+00:31:09,616 --> 00:31:12,336
+Let's switch the focus a little
+bit, and take a closer look
+
+
+577
+00:31:12,336 --> 00:31:15,256
+at other memory management tools
+that are also available to you
+
+
+578
+00:31:15,256 --> 00:31:18,916
+on our platform, what they do
+and when you should use them.
+
+
+579
+00:31:19,666 --> 00:31:22,966
+So let's start off with
+Guard Malloc which finds some
+
+
+580
+00:31:22,966 --> 00:31:24,876
+of the same issues
+as Address Sanitizer.
+
+
+581
+00:31:25,256 --> 00:31:27,426
+And the main advantage
+of using Guard Malloc is
+
+
+582
+00:31:27,426 --> 00:31:29,536
+that it doesn't require
+recompilation.
+
+
+583
+00:31:30,076 --> 00:31:32,866
+On the other hand, it has
+other limitations as well.
+
+
+584
+00:31:33,566 --> 00:31:35,716
+Guard Malloc does not
+work on iOS devices,
+
+
+585
+00:31:36,046 --> 00:31:38,246
+and it also doesn't
+find all of the issues
+
+
+586
+00:31:38,246 --> 00:31:39,566
+that Address Sanitizer finds.
+
+
+587
+00:31:40,316 --> 00:31:45,246
+For example, since it uses guard
+pages, it will not catch all
+
+
+588
+00:31:45,246 --> 00:31:46,926
+of by-one buffer overflows,
+
+
+589
+00:31:47,246 --> 00:31:49,136
+which is a common
+mistake to make.
+
+
+590
+00:31:49,976 --> 00:31:52,456
+These are the tradeoffs
+to consider when choosing
+
+
+591
+00:31:52,456 --> 00:31:53,946
+which of the two tools to use.
+
+
+592
+00:31:54,606 --> 00:31:59,126
+And also at your disposal
+is NSZombie, which is good
+
+
+593
+00:31:59,126 --> 00:32:01,616
+for catching Objective-C
+object over-releases.
+
+
+594
+00:32:02,556 --> 00:32:05,516
+It works by replacing
+deallocated objects
+
+
+595
+00:32:05,876 --> 00:32:09,336
+with zombie objects
+that trap when messaged.
+
+
+596
+00:32:10,326 --> 00:32:12,346
+The basic functionality
+can be enabled
+
+
+597
+00:32:12,676 --> 00:32:15,456
+from the same Diagnostics
+tab in Xcode.
+
+
+598
+00:32:15,816 --> 00:32:17,866
+However, if you want
+to gain full power
+
+
+599
+00:32:17,866 --> 00:32:20,566
+of this feature do use
+Zombies Instrument.
+
+
+600
+00:32:22,076 --> 00:32:23,936
+Malloc Scribble will help
+
+
+601
+00:32:23,936 --> 00:32:27,016
+in investigating
+uninitialized memory issues.
+
+
+602
+00:32:27,496 --> 00:32:29,716
+It makes those errors
+much more predictable,
+
+
+603
+00:32:29,956 --> 00:32:32,766
+by filling the allocated
+and deallocated memory
+
+
+604
+00:32:32,766 --> 00:32:33,996
+with preset constants.
+
+
+605
+00:32:34,476 --> 00:32:38,206
+And finally, the leaks
+Instrument will help you find
+
+
+606
+00:32:38,206 --> 00:32:41,586
+retained cycles, and
+abandoned memory that leads
+
+
+607
+00:32:41,616 --> 00:32:43,016
+to higher memory consumption.
+
+
+608
+00:32:43,606 --> 00:32:48,316
+So to summarize, we have seen
+three different techniques
+
+
+609
+00:32:48,316 --> 00:32:51,806
+that will help you get a deeper
+understanding of your program.
+
+
+610
+00:32:52,336 --> 00:32:54,876
+First, use the View
+Debugger to find
+
+
+611
+00:32:54,876 --> 00:32:57,086
+and fix constrained
+problems in your layout.
+
+
+612
+00:32:58,266 --> 00:33:00,166
+Second, set up breakpoint
+actions
+
+
+613
+00:33:00,196 --> 00:33:03,926
+to automatically evaluate and
+print any LLVD expressions,
+
+
+614
+00:33:04,316 --> 00:33:05,876
+and use the exception breakpoint
+
+
+615
+00:33:05,876 --> 00:33:08,896
+to stop debugging your
+program right at the place
+
+
+616
+00:33:08,896 --> 00:33:12,366
+where an exception
+occurs, and finally, third,
+
+
+617
+00:33:12,796 --> 00:33:15,876
+use Address Sanitizer to
+scrub your applications clean
+
+
+618
+00:33:16,256 --> 00:33:18,776
+of those elusive
+memory corruption bugs.
+
+
+619
+00:33:20,196 --> 00:33:23,176
+Here are some resources that
+you can use to learn more
+
+
+620
+00:33:23,176 --> 00:33:26,526
+about what we have talked
+about today, and the sessions
+
+
+621
+00:33:26,526 --> 00:33:30,596
+from earlier this week covered
+LLDB continuous integration
+
+
+622
+00:33:30,596 --> 00:33:31,326
+and testing.
+
+
+623
+00:33:31,686 --> 00:33:34,206
+You can watch them even
+once the conference is over.
+
+
+624
+00:33:34,706 --> 00:33:36,756
+Thank you very much, and
+enjoy the rest of your day.
+
+
+625
+00:33:37,516 --> 00:33:40,500
+[Applause]
+

@@ -1,0 +1,4928 @@
+1
+00:00:07,516 --> 00:00:22,056
+[ Music ]
+
+
+2
+00:00:22,556 --> 00:00:24,616
+>> Good morning and
+welcome to session 406,
+
+
+3
+00:00:24,756 --> 00:00:26,036
+Optimizing App Startup Time.
+
+
+4
+00:00:26,596 --> 00:00:29,136
+My name is Nick Kledzik,
+and today my colleague Louis
+
+
+5
+00:00:29,136 --> 00:00:31,096
+and I are going to take
+you on a guided tour
+
+
+6
+00:00:31,096 --> 00:00:32,276
+of how a process launches.
+
+
+7
+00:00:34,216 --> 00:00:38,226
+Now you may be wondering,
+is this topic right for me.
+
+
+8
+00:00:38,646 --> 00:00:41,406
+So we had our crack developing
+marketing team do some research,
+
+
+9
+00:00:41,646 --> 00:00:43,786
+and they determined there are
+three groups that will benefit
+
+
+10
+00:00:43,786 --> 00:00:44,696
+by listening to this talk.
+
+
+11
+00:00:45,716 --> 00:00:49,646
+The first, is app
+developers that have a app
+
+
+12
+00:00:49,646 --> 00:00:50,646
+that launches to slowly.
+
+
+13
+00:00:52,406 --> 00:00:55,826
+The second group, is app
+developers that don't want to be
+
+
+14
+00:00:55,826 --> 00:00:56,366
+in the first group [laughter].
+
+
+15
+00:00:59,266 --> 00:01:01,786
+And lastly, is anyone
+who's just really curious
+
+
+16
+00:01:01,906 --> 00:01:03,196
+about how the OS operates.
+
+
+17
+00:01:04,916 --> 00:01:06,906
+So this talk is going to
+be divided in two sections,
+
+
+18
+00:01:06,906 --> 00:01:10,276
+the first is more theory and
+the second more practical,
+
+
+19
+00:01:10,276 --> 00:01:11,906
+I'll be doing the
+first theory part.
+
+
+20
+00:01:13,926 --> 00:01:16,156
+And in it I'll be walking
+you through all the steps
+
+
+21
+00:01:16,156 --> 00:01:17,846
+that happen, all
+the way up to main.
+
+
+22
+00:01:18,996 --> 00:01:20,356
+But in order for
+you to understand
+
+
+23
+00:01:20,356 --> 00:01:21,916
+and appreciate all
+the steps I first need
+
+
+24
+00:01:21,916 --> 00:01:25,226
+to give you a crash course
+on Mach-O and Virtual Memory.
+
+
+25
+00:01:27,596 --> 00:01:29,416
+So first some Mach-O
+terminology, quickly.
+
+
+26
+00:01:30,036 --> 00:01:31,566
+Mach-O is a bunch of file types
+
+
+27
+00:01:31,816 --> 00:01:34,106
+for different run
+time executables.
+
+
+28
+00:01:34,326 --> 00:01:37,146
+So the first executable, that's
+the main binary in an app,
+
+
+29
+00:01:37,146 --> 00:01:39,096
+it's also the main binary
+in an app extension.
+
+
+30
+00:01:40,666 --> 00:01:44,676
+A dylib is a dynamic library,
+on other platforms meet,
+
+
+31
+00:01:44,796 --> 00:01:47,096
+you may know those
+as DSOs or DLLs.
+
+
+32
+00:01:47,096 --> 00:01:50,936
+Our platform also has another
+kind of thing called a bundle.
+
+
+33
+00:01:51,246 --> 00:01:52,986
+Now a bundle's a
+special kind of dylib
+
+
+34
+00:01:52,986 --> 00:01:55,646
+that you cannot link against,
+all you can do is load it
+
+
+35
+00:01:55,646 --> 00:01:57,866
+at run time by an
+dlopen and that's used
+
+
+36
+00:01:57,866 --> 00:01:58,896
+on a Mac OS for plug-ins.
+
+
+37
+00:02:00,416 --> 00:02:01,816
+Last, is the term image.
+
+
+38
+00:02:01,816 --> 00:02:03,646
+Image refers to any
+of these three types.
+
+
+39
+00:02:04,056 --> 00:02:05,266
+And I'll be using
+that term a lot.
+
+
+40
+00:02:06,096 --> 00:02:08,606
+And lastly, the term
+framework is very overloaded
+
+
+41
+00:02:08,606 --> 00:02:12,416
+in our industry, but in this
+context, a framework is a dylib
+
+
+42
+00:02:12,416 --> 00:02:14,276
+with a special directory
+structure around it
+
+
+43
+00:02:14,276 --> 00:02:15,796
+to holds files needed
+by that dylib.
+
+
+44
+00:02:17,236 --> 00:02:20,396
+So let's dive right into
+the Mach-O image format.
+
+
+45
+00:02:20,856 --> 00:02:22,796
+A Mach-O image is
+divided into segments,
+
+
+46
+00:02:24,196 --> 00:02:27,156
+by convention all segment names
+are, use upper case letters.
+
+
+47
+00:02:29,366 --> 00:02:33,446
+Now, each segment is always
+a multiple of the page size,
+
+
+48
+00:02:33,866 --> 00:02:36,266
+in this example the text
+is 3 pages, the DATA
+
+
+49
+00:02:36,266 --> 00:02:37,466
+and LINKEDIT are each one page.
+
+
+50
+00:02:38,496 --> 00:02:41,106
+Now the page size is determined
+by the hardware, for arm64,
+
+
+51
+00:02:41,106 --> 00:02:45,006
+the page size is 16K,
+everything else it's 4k.
+
+
+52
+00:02:46,256 --> 00:02:49,286
+Now another way to look
+at the thing is sections.
+
+
+53
+00:02:49,366 --> 00:02:51,126
+So sections is something
+the compiler omits.
+
+
+54
+00:02:51,566 --> 00:02:54,156
+But sections are really just
+a subrange of a segment,
+
+
+55
+00:02:55,006 --> 00:02:56,976
+they don't have any of the
+constraints of being page size,
+
+
+56
+00:02:57,396 --> 00:02:58,706
+but they are non-overlapping.
+
+
+57
+00:03:02,936 --> 00:03:06,556
+Now, the most common segment
+names are TEXT, DATA, LINKEDIT,
+
+
+58
+00:03:06,556 --> 00:03:09,796
+in fact almost every binary has
+exactly those three segments.
+
+
+59
+00:03:09,856 --> 00:03:12,166
+You can add custom ones but it
+usually doesn't add any value.
+
+
+60
+00:03:13,496 --> 00:03:14,666
+So what are these used for?
+
+
+61
+00:03:14,746 --> 00:03:17,216
+Well TEXT is at the
+start of the file,
+
+
+62
+00:03:17,216 --> 00:03:18,326
+it contains the Mach header,
+
+
+63
+00:03:18,326 --> 00:03:20,586
+it contains any machine
+instructions as well
+
+
+64
+00:03:20,586 --> 00:03:22,456
+as any read only constant
+such as c strings.
+
+
+65
+00:03:23,236 --> 00:03:25,366
+The DATA segment is rewrite,
+
+
+66
+00:03:25,476 --> 00:03:27,486
+the DATA segment contains
+all your global variables.
+
+
+67
+00:03:28,686 --> 00:03:29,956
+And lastly, is the LINKEDIT.
+
+
+68
+00:03:30,486 --> 00:03:32,576
+Now the LINKEDIT doesn't
+contain your functions
+
+
+69
+00:03:32,576 --> 00:03:34,706
+of global variables, a
+LINKEDIT contains information
+
+
+70
+00:03:34,706 --> 00:03:37,166
+about your function of variables
+such as their name and address.
+
+
+71
+00:03:39,566 --> 00:03:42,286
+You may have also heard of
+universal files, what are they?
+
+
+72
+00:03:43,016 --> 00:03:45,746
+Well suppose you build
+an iOS app, for a 64 bit,
+
+
+73
+00:03:45,746 --> 00:03:48,306
+and now you have
+this Mach-O file,
+
+
+74
+00:03:48,306 --> 00:03:50,356
+so what happens the next code
+when you say you also want
+
+
+75
+00:03:50,356 --> 00:03:52,216
+to build it for 32 bit devices?
+
+
+76
+00:03:53,016 --> 00:03:57,386
+When you rebuild, Xcode will
+build another separate Mach-O
+
+
+77
+00:03:57,386 --> 00:03:59,596
+file, this one built
+for 32 bits, RB7.
+
+
+78
+00:04:00,366 --> 00:04:04,236
+And then those two files are
+merged into a third file,
+
+
+79
+00:04:04,386 --> 00:04:05,646
+called the Mach-O
+universal file.
+
+
+80
+00:04:06,146 --> 00:04:07,506
+And that has a header
+at the start,
+
+
+81
+00:04:07,506 --> 00:04:09,716
+and all the header has a
+list of all the architectures
+
+
+82
+00:04:09,906 --> 00:04:11,466
+and what their offsets
+are in the file.
+
+
+83
+00:04:12,166 --> 00:04:14,596
+And that header is
+also one page in size.
+
+
+84
+00:04:15,176 --> 00:04:16,726
+Now you may be wondering,
+
+
+85
+00:04:16,976 --> 00:04:19,046
+why are the segments
+multiple page sizes?
+
+
+86
+00:04:19,046 --> 00:04:21,776
+Why is the header a page sizes,
+and it's wasting a lot of space.
+
+
+87
+00:04:22,656 --> 00:04:24,666
+Well the reason everything
+is page based has to do
+
+
+88
+00:04:24,666 --> 00:04:26,246
+with our next topic
+which is virtual memory.
+
+
+89
+00:04:27,336 --> 00:04:28,746
+So what is virtual memory?
+
+
+90
+00:04:30,556 --> 00:04:32,886
+Some of you may know the
+adage in software engineering
+
+
+91
+00:04:32,886 --> 00:04:33,976
+that every problem can be solved
+
+
+92
+00:04:33,976 --> 00:04:35,096
+by adding a level
+of indirection.
+
+
+93
+00:04:35,906 --> 00:04:38,916
+So the problem with, that
+virtual memory solves,
+
+
+94
+00:04:39,696 --> 00:04:41,856
+is how do you manage
+all your physical RAM
+
+
+95
+00:04:41,936 --> 00:04:42,996
+when you have all
+these processes?
+
+
+96
+00:04:43,456 --> 00:04:45,006
+So they added a little
+of indirection.
+
+
+97
+00:04:45,396 --> 00:04:48,996
+Every process is a logical
+address space which gets mapped
+
+
+98
+00:04:48,996 --> 00:04:50,376
+to some physical page of RAM.
+
+
+99
+00:04:51,246 --> 00:04:55,866
+Now this mapping does not
+have to be one to one,
+
+
+100
+00:04:56,396 --> 00:05:00,096
+you could have logical addresses
+that go to no physical RAM
+
+
+101
+00:05:00,096 --> 00:05:02,176
+and you can have multiple
+logical addresses that go
+
+
+102
+00:05:02,176 --> 00:05:03,666
+to the same physical RAM.
+
+
+103
+00:05:04,536 --> 00:05:06,496
+This offered lots of
+opportunities here.
+
+
+104
+00:05:07,346 --> 00:05:08,856
+So what can you do with VM?
+
+
+105
+00:05:09,056 --> 00:05:10,996
+Well first, if you
+have a logical address
+
+
+106
+00:05:10,996 --> 00:05:14,066
+that does not map to any
+physical RAM, when you access
+
+
+107
+00:05:14,106 --> 00:05:16,466
+that address in your
+process, a page fault happens.
+
+
+108
+00:05:16,786 --> 00:05:19,106
+At that point the kernel stops
+that thread and tries to figure
+
+
+109
+00:05:19,106 --> 00:05:20,346
+out what needs to happen.
+
+
+110
+00:05:20,346 --> 00:05:24,826
+The next thing is if
+you have two processes,
+
+
+111
+00:05:25,466 --> 00:05:26,526
+with different logical
+addresses,
+
+
+112
+00:05:26,526 --> 00:05:28,066
+mapping to the same
+physical page,
+
+
+113
+00:05:28,316 --> 00:05:30,946
+those two processes are now
+sharing the same bit of RAM.
+
+
+114
+00:05:31,156 --> 00:05:32,596
+You now have sharing
+between processes.
+
+
+115
+00:05:34,446 --> 00:05:37,056
+Another interesting feature
+is file backed mapping.
+
+
+116
+00:05:38,166 --> 00:05:40,156
+Rather than actually
+read an entire file
+
+
+117
+00:05:40,156 --> 00:05:43,186
+into RAM you can tell the VM
+system through the mmap call,
+
+
+118
+00:05:44,306 --> 00:05:47,226
+the I want this slice
+of this file mapped
+
+
+119
+00:05:47,226 --> 00:05:49,046
+to this address range
+in my process.
+
+
+120
+00:05:49,756 --> 00:05:50,666
+So why would you do that?
+
+
+121
+00:05:51,416 --> 00:05:53,196
+Well rather than having
+to read the entire file,
+
+
+122
+00:05:53,256 --> 00:05:54,486
+by having that mapping set up,
+
+
+123
+00:05:55,076 --> 00:05:57,556
+as you first access those
+different addresses,
+
+
+124
+00:05:57,636 --> 00:06:01,266
+as if you had read it in memory,
+each time you access an address
+
+
+125
+00:06:01,266 --> 00:06:03,046
+that hasn't been accessed before
+it will cause a page fault,
+
+
+126
+00:06:03,046 --> 00:06:04,766
+the kernel will read
+just that one page.
+
+
+127
+00:06:05,186 --> 00:06:07,176
+And that gives you lazy
+reading of your file.
+
+
+128
+00:06:08,246 --> 00:06:10,066
+Now we can put all
+these features together,
+
+
+129
+00:06:10,626 --> 00:06:12,456
+and what I told you about
+Mach-O you now realize
+
+
+130
+00:06:12,456 --> 00:06:14,896
+that the TEXT segment
+of any of that dylib
+
+
+131
+00:06:14,896 --> 00:06:17,596
+or image can be mapped
+into multiple processes,
+
+
+132
+00:06:18,066 --> 00:06:20,816
+it will be read lazily, and
+all those pages can be shared
+
+
+133
+00:06:20,816 --> 00:06:21,796
+between those processes.
+
+
+134
+00:06:26,136 --> 00:06:27,366
+What about the DATA segment?
+
+
+135
+00:06:27,366 --> 00:06:28,676
+The DATA segment is read, write,
+
+
+136
+00:06:29,036 --> 00:06:30,956
+so for that we have trick
+called copy on write,
+
+
+137
+00:06:31,736 --> 00:06:34,776
+it's kind of similar to
+the, cloning that seen
+
+
+138
+00:06:34,776 --> 00:06:35,686
+in the Apple file system.
+
+
+139
+00:06:36,666 --> 00:06:39,876
+What copy and write does is it
+optimistically shares the DATA
+
+
+140
+00:06:39,876 --> 00:06:41,176
+page between all the processes.
+
+
+141
+00:06:42,406 --> 00:06:45,466
+What happens when one process,
+as long as they're only reading
+
+
+142
+00:06:45,466 --> 00:06:46,796
+from the global variables
+that sharing works.
+
+
+143
+00:06:46,996 --> 00:06:49,056
+But as soon as one process
+actually tries to write
+
+
+144
+00:06:49,246 --> 00:06:51,586
+to its DATA page, the
+copy and write happens.
+
+
+145
+00:06:51,986 --> 00:06:54,156
+The copy and write causes
+the kernel to make a copy
+
+
+146
+00:06:54,156 --> 00:06:55,676
+of that page into
+another physical RAM
+
+
+147
+00:06:55,676 --> 00:06:57,886
+and redirect the
+mapping to go to that.
+
+
+148
+00:06:58,106 --> 00:07:01,256
+So that one process now has
+its own copy of that page.
+
+
+149
+00:07:02,646 --> 00:07:04,536
+Which brings us to clean
+versus dirty pages.
+
+
+150
+00:07:04,886 --> 00:07:06,916
+So that copy is considered
+a dirty page.
+
+
+151
+00:07:07,186 --> 00:07:08,916
+A dirty page is something
+
+
+152
+00:07:08,916 --> 00:07:11,236
+that contains process
+specific information.
+
+
+153
+00:07:11,936 --> 00:07:12,926
+A clean page is something
+
+
+154
+00:07:12,926 --> 00:07:14,586
+that the kernel could
+regenerate later if needed
+
+
+155
+00:07:14,586 --> 00:07:15,916
+such as rereading from disc.
+
+
+156
+00:07:16,456 --> 00:07:19,296
+So dirty pages are much more
+expensive than clean pages.
+
+
+157
+00:07:20,856 --> 00:07:22,816
+And the last thing is the
+permission boundaries are
+
+
+158
+00:07:22,816 --> 00:07:23,716
+on page boundaries.
+
+
+159
+00:07:24,386 --> 00:07:28,526
+By that I mean the permissions
+are you can mark a page
+
+
+160
+00:07:28,526 --> 00:07:30,156
+readable, writable,
+or executable,
+
+
+161
+00:07:30,156 --> 00:07:32,766
+or any combination of those.
+
+
+162
+00:07:33,586 --> 00:07:34,456
+So let's put this all together,
+
+
+163
+00:07:34,456 --> 00:07:35,586
+I talked about the
+Mach-O format,
+
+
+164
+00:07:35,766 --> 00:07:36,716
+something about virtual memory,
+
+
+165
+00:07:37,046 --> 00:07:38,026
+let's see how they
+play together.
+
+
+166
+00:07:38,716 --> 00:07:40,776
+Now I'm going to skip
+ahead and talk a little,
+
+
+167
+00:07:40,776 --> 00:07:43,976
+how the dyld operates and in a
+few moments I'll actually walk
+
+
+168
+00:07:43,976 --> 00:07:44,876
+you through this but for now,
+
+
+169
+00:07:44,876 --> 00:07:45,996
+I just want to show
+you how this maps
+
+
+170
+00:07:45,996 --> 00:07:47,436
+between Mach-O and
+virtual memory.
+
+
+171
+00:07:48,146 --> 00:07:51,246
+So we have a dylib file here,
+and rather than reading it
+
+
+172
+00:07:51,246 --> 00:07:52,786
+in memory we've mapped
+it in memory.
+
+
+173
+00:07:53,486 --> 00:07:57,476
+So, in memory this dylib
+would have taken eight pages.
+
+
+174
+00:07:59,516 --> 00:08:01,576
+The savings, why it's
+different is these ZeroFills.
+
+
+175
+00:08:01,966 --> 00:08:04,066
+So it turns out most global
+variables are zero initially.
+
+
+176
+00:08:04,456 --> 00:08:06,066
+So the static [inaudible]
+makes an optimization
+
+
+177
+00:08:06,066 --> 00:08:08,276
+that moves all the zero
+global variables to the end,
+
+
+178
+00:08:08,276 --> 00:08:09,986
+and then takes up no disc space.
+
+
+179
+00:08:10,536 --> 00:08:12,076
+And instead, we use
+the VM feature
+
+
+180
+00:08:12,426 --> 00:08:14,436
+to tell the VM the first
+time this page is accessed,
+
+
+181
+00:08:14,436 --> 00:08:15,106
+fill it with zero's.
+
+
+182
+00:08:15,826 --> 00:08:17,216
+So it requires no reading.
+
+
+183
+00:08:18,556 --> 00:08:21,066
+So the first thing dyld
+has to do is it has to look
+
+
+184
+00:08:21,066 --> 00:08:23,586
+at the Mach header, in
+memory, in this process.
+
+
+185
+00:08:23,866 --> 00:08:25,656
+So it'll be looking at
+the top box in memory,
+
+
+186
+00:08:26,146 --> 00:08:27,806
+when that happens,
+there's nothing there,
+
+
+187
+00:08:27,876 --> 00:08:29,966
+there's no mapping to a physical
+page so a page fault happens.
+
+
+188
+00:08:29,966 --> 00:08:31,996
+At that point the kernel
+realizes this is mapped
+
+
+189
+00:08:32,196 --> 00:08:34,765
+to a file, so it'll read
+the first page of the file,
+
+
+190
+00:08:35,655 --> 00:08:37,535
+place it into physical
+RAM, set the mapping to it.
+
+
+191
+00:08:38,546 --> 00:08:41,145
+Now dyld can actually start
+reading through the Mach header.
+
+
+192
+00:08:41,586 --> 00:08:43,496
+It reads through the Mach
+header, the Mach header says oh,
+
+
+193
+00:08:43,496 --> 00:08:44,155
+there's some information
+
+
+194
+00:08:44,155 --> 00:08:45,506
+in the LINKEDIT segment
+you need to look at.
+
+
+195
+00:08:45,966 --> 00:08:47,836
+So again, dyld drops down what's
+
+
+196
+00:08:47,836 --> 00:08:49,786
+in the bottom box
+in process one.
+
+
+197
+00:08:50,676 --> 00:08:51,936
+Which again causes a page fault.
+
+
+198
+00:08:53,616 --> 00:08:55,256
+Kernel services it by reading
+
+
+199
+00:08:55,256 --> 00:08:57,036
+into another physical
+page of RAM, the LINKEDIT.
+
+
+200
+00:08:57,226 --> 00:08:58,906
+Now dyld can expect a LINKEDIT.
+
+
+201
+00:08:59,556 --> 00:09:01,516
+Now in process, the
+LINKEDIT will tell dyld,
+
+
+202
+00:09:01,516 --> 00:09:03,716
+you need to make some
+fix ups to this DATA page
+
+
+203
+00:09:03,716 --> 00:09:05,986
+to make this dylib runable.
+
+
+204
+00:09:07,206 --> 00:09:11,026
+So, the same thing happens,
+dyld is now, reads some data
+
+
+205
+00:09:11,026 --> 00:09:14,226
+from the DATA page, but there's
+something different here.
+
+
+206
+00:09:14,406 --> 00:09:16,306
+dyld is actually going
+to write something back,
+
+
+207
+00:09:16,306 --> 00:09:17,756
+it's actually going to
+change that DATA page
+
+
+208
+00:09:17,756 --> 00:09:19,546
+and at this point, a
+copy on write happens.
+
+
+209
+00:09:20,306 --> 00:09:21,286
+And this page becomes dirty.
+
+
+210
+00:09:23,076 --> 00:09:26,036
+So what would have been
+8 pages of dirty RAM
+
+
+211
+00:09:26,036 --> 00:09:28,626
+if I just malloced eight pages
+and then the read the stuff
+
+
+212
+00:09:28,626 --> 00:09:30,026
+into it I would have
+eight pages of dirty RAM.
+
+
+213
+00:09:30,026 --> 00:09:32,016
+But now I only have one page of
+dirty RAM and two clean pages.
+
+
+214
+00:09:32,506 --> 00:09:33,436
+So what's going to happen
+
+
+215
+00:09:33,436 --> 00:09:35,246
+when the second process
+loads the same dylib.
+
+
+216
+00:09:35,816 --> 00:09:38,876
+So in the second process dyld
+goes through the same steps.
+
+
+217
+00:09:38,876 --> 00:09:39,926
+First it looks at
+the Mach header,
+
+
+218
+00:09:40,786 --> 00:09:43,686
+but this time the kernel says,
+ah, I already have that page
+
+
+219
+00:09:43,686 --> 00:09:46,676
+in RAM somewhere so it simply
+redirects the mapping to reuse
+
+
+220
+00:09:46,676 --> 00:09:48,036
+that page no iO was done.
+
+
+221
+00:09:48,726 --> 00:09:50,506
+The same think with
+LINKEDIT, it's much faster.
+
+
+222
+00:09:51,306 --> 00:09:54,636
+Now we get to the DATA page,
+at this point the kernel has
+
+
+223
+00:09:54,636 --> 00:09:56,506
+to look to see if the DATA page,
+
+
+224
+00:09:56,656 --> 00:09:59,216
+the clean copy already still
+exists in RAM somewhere,
+
+
+225
+00:09:59,216 --> 00:10:02,496
+and if it does it can reuse it,
+if not, it has to reread it.
+
+
+226
+00:10:02,906 --> 00:10:04,986
+And now in this process,
+dyld will dirty the RAM.
+
+
+227
+00:10:06,266 --> 00:10:09,356
+Now the last step is the
+LINKEDIT is only needed while
+
+
+228
+00:10:09,356 --> 00:10:10,666
+dyld is doing its operations.
+
+
+229
+00:10:11,176 --> 00:10:13,316
+So it can hint to the
+kernel, once it's done,
+
+
+230
+00:10:13,766 --> 00:10:15,946
+that it doesn't really need
+these LINKEDIT pages anymore,
+
+
+231
+00:10:15,946 --> 00:10:17,746
+you can reclaim them when
+someone else needs RAM.
+
+
+232
+00:10:19,336 --> 00:10:21,896
+So the result is now we have two
+processes sharing these dylibs,
+
+
+233
+00:10:22,286 --> 00:10:23,506
+each one would have
+been eight pages,
+
+
+234
+00:10:23,626 --> 00:10:25,206
+or a total of 16 dirty pages,
+
+
+235
+00:10:25,606 --> 00:10:27,086
+but now we only have
+two dirty pages
+
+
+236
+00:10:27,086 --> 00:10:28,436
+and one clean, shared page.
+
+
+237
+00:10:29,076 --> 00:10:33,086
+Two other minor things
+I want to go over is
+
+
+238
+00:10:33,086 --> 00:10:35,846
+that how security effects dyld,
+these two big security things
+
+
+239
+00:10:35,846 --> 00:10:36,726
+that have impacted dyld.
+
+
+240
+00:10:36,956 --> 00:10:39,946
+So one is ASLR, address
+space layout randomization,
+
+
+241
+00:10:40,726 --> 00:10:42,726
+this is a decade or
+two old technology,
+
+
+242
+00:10:42,726 --> 00:10:44,636
+where basically you
+randomize the load address.
+
+
+243
+00:10:46,056 --> 00:10:50,456
+The second is code signing, it
+has to, many of you have had
+
+
+244
+00:10:50,456 --> 00:10:53,156
+to deal with code signing,
+in Xcode, and you think
+
+
+245
+00:10:53,156 --> 00:10:56,496
+of code signing as, you
+run a cryptographic hash
+
+
+246
+00:10:56,496 --> 00:10:59,666
+over the entire file, and then
+sign it with your signature.
+
+
+247
+00:11:00,016 --> 00:11:03,186
+Well, in order to
+validate that run time,
+
+
+248
+00:11:03,186 --> 00:11:04,966
+that means the entire file
+would have to be re-read.
+
+
+249
+00:11:05,356 --> 00:11:07,326
+So instead what actually
+happens at build time,
+
+
+250
+00:11:07,326 --> 00:11:10,986
+is every single page of your
+Mach-O file gets its own
+
+
+251
+00:11:11,166 --> 00:11:13,036
+individual cryptographic hash.
+
+
+252
+00:11:13,346 --> 00:11:15,136
+And all those hashes are
+stored in the LINKEDIT.
+
+
+253
+00:11:16,406 --> 00:11:19,346
+This allows each
+page to be validated
+
+
+254
+00:11:19,556 --> 00:11:21,046
+that it hasn't been
+tampered with and was owned
+
+
+255
+00:11:21,046 --> 00:11:22,666
+by you at page in time.
+
+
+256
+00:11:24,516 --> 00:11:26,656
+Okay, so we finished the
+crash course, now I'm going
+
+
+257
+00:11:26,656 --> 00:11:28,036
+to walk you from exec to main.
+
+
+258
+00:11:30,706 --> 00:11:33,006
+So what is exec?
+
+
+259
+00:11:33,126 --> 00:11:34,306
+Exec is a system call.
+
+
+260
+00:11:36,336 --> 00:11:38,306
+When you trap into the kernel,
+you basically say I want
+
+
+261
+00:11:38,306 --> 00:11:40,156
+to replace this process
+with this new program.
+
+
+262
+00:11:40,536 --> 00:11:42,926
+The kernel wipes the entire
+address space and maps
+
+
+263
+00:11:42,926 --> 00:11:44,646
+in that executable
+you specified.
+
+
+264
+00:11:45,106 --> 00:11:47,496
+Now for ASLR it maps it
+in at a random address.
+
+
+265
+00:11:48,456 --> 00:11:51,866
+The next thing it does is from
+that random, back down to zero,
+
+
+266
+00:11:52,706 --> 00:11:54,406
+it marks that whole
+region inaccessible,
+
+
+267
+00:11:54,406 --> 00:11:56,456
+ad by that I mean it's
+marked not readable,
+
+
+268
+00:11:56,456 --> 00:11:57,736
+not writeable, not executable.
+
+
+269
+00:11:58,816 --> 00:12:01,556
+The size of that region is at
+least 4KB to 32 bit processes
+
+
+270
+00:12:01,596 --> 00:12:04,546
+and at least 4GB for
+64 bit processes.
+
+
+271
+00:12:04,896 --> 00:12:06,856
+This catches any NULL
+pointer references
+
+
+272
+00:12:07,256 --> 00:12:08,656
+and also foresees more bits,
+
+
+273
+00:12:09,096 --> 00:12:11,506
+it catches any, pointer
+truncations.
+
+
+274
+00:12:13,516 --> 00:12:17,556
+Now, life was easy for
+the first couple decades,
+
+
+275
+00:12:17,556 --> 00:12:19,546
+of Unix because all I
+do is map a program,
+
+
+276
+00:12:19,546 --> 00:12:20,856
+set the PC into it,
+and start running it.
+
+
+277
+00:12:21,066 --> 00:12:22,506
+And then shared libraries
+were invented.
+
+
+278
+00:12:23,146 --> 00:12:24,686
+So who loads dylibs?
+
+
+279
+00:12:25,636 --> 00:12:27,666
+They quickly realize that they
+got really complicated fast
+
+
+280
+00:12:27,666 --> 00:12:29,646
+and the kernel people didn't
+want the kernel to do it,
+
+
+281
+00:12:29,646 --> 00:12:32,366
+so instead a helper
+program was created.
+
+
+282
+00:12:32,366 --> 00:12:34,116
+In our platform it's
+called dyld.
+
+
+283
+00:12:34,706 --> 00:12:37,056
+On other Unix's you
+may know it as LD.SO.
+
+
+284
+00:12:37,856 --> 00:12:40,056
+So when the kernel's done
+mapping a process it now maps
+
+
+285
+00:12:40,056 --> 00:12:42,666
+another Mach-O called
+dyld into that process
+
+
+286
+00:12:42,866 --> 00:12:44,146
+at another random address.
+
+
+287
+00:12:44,926 --> 00:12:48,066
+Sets the PC into dyld and
+let's dyld finish launching
+
+
+288
+00:12:49,106 --> 00:12:50,416
+the process.
+
+
+289
+00:12:50,536 --> 00:12:53,066
+So now dyld's running in
+process and its job is
+
+
+290
+00:12:53,066 --> 00:12:55,706
+to load all the dylibs
+that you depend on
+
+
+291
+00:12:55,936 --> 00:12:57,076
+and get everything
+prepared and running.
+
+
+292
+00:12:58,186 --> 00:12:59,276
+So let's walk through
+those steps.
+
+
+293
+00:12:59,756 --> 00:13:01,446
+This is a whole bunch
+of steps and it has sort
+
+
+294
+00:13:01,446 --> 00:13:03,356
+of a timeline along
+the bottom here,
+
+
+295
+00:13:03,356 --> 00:13:05,196
+as we walk through these we'll
+walk through the timeline.
+
+
+296
+00:13:06,316 --> 00:13:10,026
+So first thing, is dyld has to
+map all the dependent dylibs.
+
+
+297
+00:13:10,696 --> 00:13:12,066
+Well what are the
+dependent dylibs?
+
+
+298
+00:13:12,256 --> 00:13:16,246
+To find those it first reads the
+header of the main executable
+
+
+299
+00:13:16,336 --> 00:13:18,466
+that the kernel already mapped
+in that header is a list
+
+
+300
+00:13:18,466 --> 00:13:19,556
+of all the dependent libraries.
+
+
+301
+00:13:19,626 --> 00:13:21,466
+So it's got to parse that out.
+
+
+302
+00:13:22,116 --> 00:13:23,876
+Then it has to find each dylib.
+
+
+303
+00:13:25,446 --> 00:13:27,946
+And once it's found each dylib
+it has to open and run the start
+
+
+304
+00:13:27,946 --> 00:13:30,776
+of each file, it needs to make
+sure that it is a Mach-O file,
+
+
+305
+00:13:31,806 --> 00:13:33,816
+validate it, find
+its code signature,
+
+
+306
+00:13:33,816 --> 00:13:35,246
+register that code
+signature to the kernel.
+
+
+307
+00:13:35,866 --> 00:13:39,716
+And then it can actually
+call mmap
+
+
+308
+00:13:39,716 --> 00:13:40,896
+at each segment in that dylib.
+
+
+309
+00:13:42,516 --> 00:13:43,756
+Okay, so that's pretty simple.
+
+
+310
+00:13:44,506 --> 00:13:47,266
+Your app knows about
+the kernel dyld,
+
+
+311
+00:13:47,266 --> 00:13:50,046
+dyld then says oh this app
+depends on A and B dylib,
+
+
+312
+00:13:50,166 --> 00:13:51,166
+load the two of those,
+we're done.
+
+
+313
+00:13:51,546 --> 00:13:53,566
+Well, it gets more
+complicated, because A.dylib
+
+
+314
+00:13:53,566 --> 00:13:56,236
+and B.dylib themselves could
+depend upon the dylibs.
+
+
+315
+00:13:57,526 --> 00:14:00,426
+So dyld has to do the same
+thing over again for each
+
+
+316
+00:14:00,426 --> 00:14:02,536
+of those dylibs, and each
+of the dylibs may depend
+
+
+317
+00:14:02,536 --> 00:14:04,036
+on something that's already
+loaded or something new
+
+
+318
+00:14:04,036 --> 00:14:05,736
+so it has to determine whether
+it's already been loaded or not,
+
+
+319
+00:14:05,736 --> 00:14:07,176
+and if not, it needs to load it.
+
+
+320
+00:14:07,896 --> 00:14:09,276
+So, this continues on and on.
+
+
+321
+00:14:10,676 --> 00:14:13,236
+And eventually it has
+everything loaded.
+
+
+322
+00:14:13,526 --> 00:14:16,616
+Now if you look at a
+process, the average process
+
+
+323
+00:14:16,616 --> 00:14:20,056
+in our system, loads anywhere
+between 1 to 400 dylibs,
+
+
+324
+00:14:20,056 --> 00:14:22,296
+so that's a lot of
+dylibs to be loaded.
+
+
+325
+00:14:23,186 --> 00:14:26,506
+Luckily most of those are OS
+dylibs, and we do a lot of work
+
+
+326
+00:14:26,506 --> 00:14:28,576
+when building the
+OS to pre-calculate
+
+
+327
+00:14:28,576 --> 00:14:30,616
+and pre-cache a lot of
+the work that dyld has
+
+
+328
+00:14:30,616 --> 00:14:31,516
+to do to load these things.
+
+
+329
+00:14:31,916 --> 00:14:34,046
+So OS dylibs load
+very, very quickly.
+
+
+330
+00:14:37,636 --> 00:14:40,556
+So now we've loaded all the
+dylibs, but they're all sitting
+
+
+331
+00:14:40,556 --> 00:14:41,866
+in their floating
+independent of each other,
+
+
+332
+00:14:41,866 --> 00:14:43,336
+and now we actually have
+to bind them together.
+
+
+333
+00:14:43,916 --> 00:14:45,406
+That's called fix-ups.
+
+
+334
+00:14:45,926 --> 00:14:48,166
+But one thing about
+fix-ups is we've learned,
+
+
+335
+00:14:48,416 --> 00:14:50,776
+because of code signing we can't
+actually alter instructions.
+
+
+336
+00:14:51,416 --> 00:14:53,916
+So how does one dylib
+call into another dylib
+
+
+337
+00:14:53,916 --> 00:14:55,966
+if you can't change the
+instructions of how it calls?
+
+
+338
+00:14:56,466 --> 00:14:57,986
+Well, we call back
+our old friend,
+
+
+339
+00:14:58,036 --> 00:14:59,306
+and we add a lot
+of old indirection.
+
+
+340
+00:15:00,166 --> 00:15:02,486
+So our code-gen, is
+called dynamic PIC.
+
+
+341
+00:15:02,976 --> 00:15:04,186
+It's positioned independent
+code,
+
+
+342
+00:15:04,186 --> 00:15:06,396
+meaning the code can be loaded
+into the address and is dynamic,
+
+
+343
+00:15:06,396 --> 00:15:09,466
+meaning things are,
+addressed indirectly.
+
+
+344
+00:15:10,046 --> 00:15:12,026
+What that means is to call
+for one thing to another,
+
+
+345
+00:15:12,546 --> 00:15:15,276
+the co-gen actually creates
+a pointer in the DATA segment
+
+
+346
+00:15:15,576 --> 00:15:17,296
+and that pointer points
+to what you want to call.
+
+
+347
+00:15:17,696 --> 00:15:21,916
+The code loads that pointer
+and jumps to the pointer.
+
+
+348
+00:15:22,406 --> 00:15:24,986
+So all dyld is doing is
+fixing up pointers and data.
+
+
+349
+00:15:26,936 --> 00:15:29,476
+Now there's two main
+categories of fix-ups, rebasing
+
+
+350
+00:15:29,476 --> 00:15:30,806
+and binding, so what's
+the difference?
+
+
+351
+00:15:31,366 --> 00:15:33,626
+So rebasing is if you have
+a pointer that's pointing
+
+
+352
+00:15:33,626 --> 00:15:37,106
+to within your image, and any
+adjustments needed by that,
+
+
+353
+00:15:37,556 --> 00:15:38,686
+the second is binding.
+
+
+354
+00:15:39,016 --> 00:15:41,116
+Binding is if you're pointing
+something outside your image.
+
+
+355
+00:15:41,296 --> 00:15:43,256
+And they each need to
+be fixed up differently,
+
+
+356
+00:15:43,296 --> 00:15:44,476
+so I'll go through the steps.
+
+
+357
+00:15:45,376 --> 00:15:47,686
+But first, if you're
+curious, there's a command,
+
+
+358
+00:15:47,686 --> 00:15:49,586
+dyld info with a bunch
+of options on it.
+
+
+359
+00:15:49,636 --> 00:15:52,866
+You can run this on any binary
+and you'll see all the fix-ups
+
+
+360
+00:15:52,866 --> 00:15:57,546
+that dyld will have to be doing
+for that binary to prepare it.
+
+
+361
+00:15:58,816 --> 00:15:59,536ddle
+So rebasing.
+
+
+362
+00:16:00,816 --> 00:16:03,896
+Well in the old age you could
+specify a preferred load address
+
+
+363
+00:16:03,896 --> 00:16:07,596
+for each dylib, and that
+preferred load address was the
+
+
+364
+00:16:07,596 --> 00:16:10,106
+static linker and dyld work
+together such that, if you load,
+
+
+365
+00:16:10,106 --> 00:16:12,336
+it to that preferred load
+address, all the pointers
+
+
+366
+00:16:12,336 --> 00:16:14,476
+and data that was supposed to
+code internally, were correct
+
+
+367
+00:16:14,476 --> 00:16:15,806
+and dyld wouldn't have
+to do any fix-ups.
+
+
+368
+00:16:16,646 --> 00:16:17,776
+But these days, with ASLR,
+
+
+369
+00:16:17,776 --> 00:16:21,396
+your dylib is loaded
+to a random address.
+
+
+370
+00:16:22,036 --> 00:16:25,256
+It's slid to some other address,
+which means all those pointers
+
+
+371
+00:16:25,256 --> 00:16:27,256
+and data are now still
+pointed to the old address.
+
+
+372
+00:16:27,866 --> 00:16:31,346
+So in order to fix those up,
+we need to calculate the slide,
+
+
+373
+00:16:31,346 --> 00:16:33,236
+which is how much has
+it moved, and for each
+
+
+374
+00:16:33,236 --> 00:16:34,996
+of those interior pointers,
+
+
+375
+00:16:35,146 --> 00:16:36,906
+to basically add the
+slide value to them.
+
+
+376
+00:16:37,816 --> 00:16:41,446
+So rebasing means going
+through all your data pointers,
+
+
+377
+00:16:41,656 --> 00:16:43,846
+that are internal, and basically
+adding a slide to them.
+
+
+378
+00:16:44,286 --> 00:16:46,016
+So the concept is very
+simple, read, add,
+
+
+379
+00:16:46,016 --> 00:16:46,726
+write, read, add, write.
+
+
+380
+00:16:47,776 --> 00:16:49,066
+But where are those
+data pointers?
+
+
+381
+00:16:49,596 --> 00:16:51,166
+Where those pointers
+are in your segment,
+
+
+382
+00:16:51,496 --> 00:16:52,986
+are encoded in the
+LINKEDIT segment.
+
+
+383
+00:16:54,066 --> 00:16:56,926
+Now, at this point, all we've
+had is everything mapped in,
+
+
+384
+00:16:57,256 --> 00:16:58,446
+so when we start doing rebasing,
+
+
+385
+00:16:58,446 --> 00:17:00,276
+we're actually causing
+page faults to page
+
+
+386
+00:17:00,276 --> 00:17:01,386
+in all the DATA pages.
+
+
+387
+00:17:01,776 --> 00:17:04,406
+And then we causing copy and
+writes as we're changing them.
+
+
+388
+00:17:04,576 --> 00:17:07,496
+So rebasing can sometimes be
+expensive because of all the iO.
+
+
+389
+00:17:07,996 --> 00:17:10,336
+But one trick we do is
+we do it sequentially
+
+
+390
+00:17:10,396 --> 00:17:11,736
+and from the kernel's
+point of view,
+
+
+391
+00:17:11,996 --> 00:17:14,156
+it sees data faults
+happen sequentially.
+
+
+392
+00:17:14,506 --> 00:17:17,246
+And when it sees that, the
+kernel, is reading ahead for us
+
+
+393
+00:17:17,596 --> 00:17:18,935
+which makes the iO less costly.
+
+
+394
+00:17:19,705 --> 00:17:23,695
+So next is binding,
+binding is for pointers
+
+
+395
+00:17:23,695 --> 00:17:25,266
+that point outside your dylib.
+
+
+396
+00:17:26,256 --> 00:17:28,636
+They're actually bound by name,
+they're actually is the string,
+
+
+397
+00:17:28,636 --> 00:17:30,796
+in this case, malloc
+stored in the link edit,
+
+
+398
+00:17:31,006 --> 00:17:33,256
+that says this data pointer
+needs to point to malloc.
+
+
+399
+00:17:33,596 --> 00:17:36,676
+So at run time, dyld needs to
+actually find the implementation
+
+
+400
+00:17:36,676 --> 00:17:41,396
+of that symbol, which
+requires a lot of computation,
+
+
+401
+00:17:41,396 --> 00:17:42,346
+looking through symbol tables.
+
+
+402
+00:17:42,646 --> 00:17:44,026
+Once it's found, that
+values that's stored
+
+
+403
+00:17:44,026 --> 00:17:44,856
+in that data pointer.
+
+
+404
+00:17:45,366 --> 00:17:47,256
+So this is way more
+computationally complex
+
+
+405
+00:17:47,256 --> 00:17:48,076
+than rebasing is.
+
+
+406
+00:17:48,616 --> 00:17:50,056
+But there's very little iO
+
+
+407
+00:17:50,056 --> 00:17:56,096
+because rebasing has done
+most of the iO already.
+
+
+408
+00:17:56,406 --> 00:17:59,466
+Next, so ObjC has a
+bunch of DATA structures,
+
+
+409
+00:17:59,466 --> 00:18:01,676
+class DATA structure which
+is a pointer to its methods
+
+
+410
+00:18:01,676 --> 00:18:03,216
+and a pointer to a super
+gloss and so forth.
+
+
+411
+00:18:03,436 --> 00:18:06,186
+Almost all those are fixed
+up, via rebasing or binding.
+
+
+412
+00:18:07,056 --> 00:18:10,776
+But there's a few extra things
+that ObjC run time requires.
+
+
+413
+00:18:11,516 --> 00:18:13,726
+The first is ObjC
+is dynamic language
+
+
+414
+00:18:13,726 --> 00:18:16,806
+and you can request a class
+become substantiated by name.
+
+
+415
+00:18:17,126 --> 00:18:19,286
+So that means the ObjC run
+time has to maintain a table
+
+
+416
+00:18:19,286 --> 00:18:21,096
+of all names of which
+class that they map to.
+
+
+417
+00:18:21,586 --> 00:18:23,546
+So every time you load
+something, it defines a class,
+
+
+418
+00:18:23,756 --> 00:18:25,556
+its name needs to be
+registered with a global table.
+
+
+419
+00:18:26,846 --> 00:18:28,546
+Next, in C++ you may have heard
+
+
+420
+00:18:28,546 --> 00:18:32,216
+of the fragile ivar
+problem, sorry.
+
+
+421
+00:18:32,606 --> 00:18:33,986
+Fragile base class problem.
+
+
+422
+00:18:35,116 --> 00:18:37,316
+We don't have that problem
+with ObjC because one
+
+
+423
+00:18:37,316 --> 00:18:39,116
+of the fix-ups we do is
+we change the offsets
+
+
+424
+00:18:39,116 --> 00:18:41,206
+of all the ivars
+dynamically, at load time.
+
+
+425
+00:18:42,996 --> 00:18:46,616
+Next, in ObjC you
+can define categories
+
+
+426
+00:18:46,616 --> 00:18:49,276
+which change the
+methods of another class.
+
+
+427
+00:18:49,556 --> 00:18:52,006
+Sometimes those are in classes
+that are not in your image
+
+
+428
+00:18:52,006 --> 00:18:55,706
+on another dylib, that,
+those method fix-ups have
+
+
+429
+00:18:55,706 --> 00:18:56,596
+to be applied at this point.
+
+
+430
+00:18:58,156 --> 00:19:00,646
+And lastly, ObjC [inaudible] is
+based on selectors being unique
+
+
+431
+00:19:00,646 --> 00:19:02,806
+so we need unique selectors.
+
+
+432
+00:19:05,036 --> 00:19:07,286
+So now the work that we've
+done all the DATA fix-ups,
+
+
+433
+00:19:07,386 --> 00:19:10,076
+now we can do all
+the DATA fix-ups
+
+
+434
+00:19:10,076 --> 00:19:11,946
+that can be basically
+described statically.
+
+
+435
+00:19:12,256 --> 00:19:14,226
+So now's our chance to
+do dynamic DATA fix ups.
+
+
+436
+00:19:14,816 --> 00:19:17,476
+So in C++, you can
+have an initializer,
+
+
+437
+00:19:17,476 --> 00:19:19,606
+you can say [inaudible] equals
+whatever expression you want.
+
+
+438
+00:19:20,156 --> 00:19:23,256
+That arbitrary expression,
+at this time needs to be run
+
+
+439
+00:19:23,336 --> 00:19:24,466
+and it's run at this point now.
+
+
+440
+00:19:24,766 --> 00:19:28,566
+So the C++ compiler
+generates, initiliazers
+
+
+441
+00:19:28,936 --> 00:19:30,606
+for these arbitrary
+DATA initialization.
+
+
+442
+00:19:31,676 --> 00:19:34,486
+In ObjC, there's something
+called the +load method.
+
+
+443
+00:19:34,986 --> 00:19:37,356
+Now the +load method is
+deprecated, we recommend
+
+
+444
+00:19:37,356 --> 00:19:38,056
+that you don't use it.
+
+
+445
+00:19:38,056 --> 00:19:39,586
+We recommend you use
+a plus initialize.
+
+
+446
+00:19:39,856 --> 00:19:41,506
+But if you have one,
+it's run at this point.
+
+
+447
+00:19:43,456 --> 00:19:45,476
+So, now I have this big graph,
+
+
+448
+00:19:45,476 --> 00:19:48,386
+we have your main executable
+top, all the dylibs depend on,
+
+
+449
+00:19:48,386 --> 00:19:50,806
+this huge graph, we have
+to run initializers.
+
+
+450
+00:19:51,286 --> 00:19:52,586
+What order do we want them in?
+
+
+451
+00:19:52,756 --> 00:19:54,316
+Well, we run them bottom up.
+
+
+452
+00:19:54,316 --> 00:19:58,896
+And the reason is, when an
+initialize is run it may need
+
+
+453
+00:19:58,896 --> 00:20:00,726
+to call up some dylib
+and you want to make sure
+
+
+454
+00:20:00,726 --> 00:20:02,506
+that dylibs already
+ready to be called.
+
+
+455
+00:20:02,776 --> 00:20:04,986
+So by running the initializers
+from the bottom all the way
+
+
+456
+00:20:04,986 --> 00:20:07,686
+up the app class
+you're safe to call
+
+
+457
+00:20:07,686 --> 00:20:09,466
+into something you depend on.
+
+
+458
+00:20:11,046 --> 00:20:12,836
+So once all initiliazers
+are done,
+
+
+459
+00:20:13,186 --> 00:20:15,646
+now we actually finally get
+to call the main dyld program.
+
+
+460
+00:20:17,546 --> 00:20:20,746
+So you survived this theory
+part, you now all are experts
+
+
+461
+00:20:20,746 --> 00:20:22,826
+on how processes
+start, you now know
+
+
+462
+00:20:22,826 --> 00:20:24,366
+that dyld is a helper program,
+
+
+463
+00:20:25,296 --> 00:20:27,046
+it loads all dependent
+libraries,
+
+
+464
+00:20:28,086 --> 00:20:31,116
+fixing up all the DATA
+pages, runs initializers
+
+
+465
+00:20:31,116 --> 00:20:32,066
+and then jumps to main.
+
+
+466
+00:20:32,556 --> 00:20:35,636
+So now to put all this
+theory you've learned to use,
+
+
+467
+00:20:35,906 --> 00:20:37,196
+I'd like to hand
+it over to Louis,
+
+
+468
+00:20:37,306 --> 00:20:40,276
+who will be giving you
+some practical tips.
+
+
+469
+00:20:41,516 --> 00:20:47,876
+[ Applause ]
+
+
+470
+00:20:48,376 --> 00:20:48,896
+>> Thanks, Nick.
+
+
+471
+00:20:50,916 --> 00:20:52,766
+We've all had that experience
+where we pull our phone
+
+
+472
+00:20:52,766 --> 00:20:56,506
+out of our pocket, press the
+home button, and then tap
+
+
+473
+00:20:56,506 --> 00:20:57,796
+on an application
+we want to run.
+
+
+474
+00:20:58,546 --> 00:21:01,026
+And then tap, and tap, and
+tap again on some button
+
+
+475
+00:21:01,026 --> 00:21:02,226
+because it's not responding.
+
+
+476
+00:21:03,236 --> 00:21:05,556
+When that happens to me,
+it's really frustrating,
+
+
+477
+00:21:05,556 --> 00:21:07,806
+and I want to delete the app.
+
+
+478
+00:21:08,636 --> 00:21:11,776
+I'm Louis Gerbarg I
+work on dyld and today,
+
+
+479
+00:21:11,776 --> 00:21:13,756
+we're going to discuss how to
+make your app launch instantly,
+
+
+480
+00:21:13,836 --> 00:21:16,000
+so your users are delighted.
+
+
+481
+00:21:23,556 --> 00:21:25,996
+So first off, let's discuss
+what we're going to go
+
+
+482
+00:21:25,996 --> 00:21:26,986
+through in this part
+of the talk.
+
+
+483
+00:21:29,076 --> 00:21:32,346
+We're going to discuss how fast
+you actually need to launch
+
+
+484
+00:21:32,346 --> 00:21:35,066
+so that your users are going
+to have a good experience.
+
+
+485
+00:21:36,816 --> 00:21:38,666
+How to measure that launch time.
+
+
+486
+00:21:38,946 --> 00:21:40,096
+Because it can be
+very difficult.
+
+
+487
+00:21:40,636 --> 00:21:43,066
+The standard ways you measure
+your application don't apply
+
+
+488
+00:21:43,066 --> 00:21:44,196
+before your code can run.
+
+
+489
+00:21:45,926 --> 00:21:47,316
+We're going to go through a list
+
+
+490
+00:21:47,316 --> 00:21:51,756
+of the common reasons why your
+code, or sorry we're going to go
+
+
+491
+00:21:51,756 --> 00:21:53,716
+through a list of, why,
+
+
+492
+00:21:53,716 --> 00:21:55,566
+the common reasons your
+launch can be slow.
+
+
+493
+00:21:56,646 --> 00:21:57,926
+And finally, we're
+going to go through,
+
+
+494
+00:21:57,926 --> 00:22:00,566
+a way to fix all the slow downs.
+
+
+495
+00:22:01,376 --> 00:22:03,346
+So I'm going to give
+you a little spoiler
+
+
+496
+00:22:03,346 --> 00:22:06,546
+for the rest of my talk.
+
+
+497
+00:22:07,096 --> 00:22:08,236
+You need to do less
+stuff [laughter].
+
+
+498
+00:22:09,976 --> 00:22:12,756
+Now, I don't mean your app
+should have less features,
+
+
+499
+00:22:13,476 --> 00:22:14,366
+I'm saying that your app has
+
+
+500
+00:22:14,366 --> 00:22:16,616
+to do less things
+before it's running.
+
+
+501
+00:22:16,796 --> 00:22:18,636
+We want you to figure
+out how to defer some
+
+
+502
+00:22:18,636 --> 00:22:21,476
+of your launch behaviors
+in order
+
+
+503
+00:22:21,476 --> 00:22:23,776
+to initialize them
+just before execution.
+
+
+504
+00:22:26,326 --> 00:22:29,166
+So, let's discuss the goals,
+how fast we want to launch.
+
+
+505
+00:22:29,606 --> 00:22:34,686
+Well, the launch time for
+various platforms are different.
+
+
+506
+00:22:34,686 --> 00:22:38,946
+But, a good, a good
+rule of thumb,
+
+
+507
+00:22:39,846 --> 00:22:42,206
+is 400 milliseconds
+is a good launch time.
+
+
+508
+00:22:43,436 --> 00:22:48,336
+Now, the reason for that is
+that we have launch animations
+
+
+509
+00:22:48,466 --> 00:22:50,266
+on the phone to give
+a sense of continuity
+
+
+510
+00:22:50,266 --> 00:22:53,326
+between the home screen
+and your application,
+
+
+511
+00:22:53,326 --> 00:22:54,296
+when you see it execute.
+
+
+512
+00:22:54,856 --> 00:22:57,956
+And those animations take
+time, and those animations,
+
+
+513
+00:22:59,146 --> 00:23:01,606
+give you a chance to
+hide your launch times.
+
+
+514
+00:23:02,236 --> 00:23:03,806
+Obviously that may be different,
+
+
+515
+00:23:03,806 --> 00:23:05,976
+in different context your app
+extensions are also applications
+
+
+516
+00:23:05,976 --> 00:23:07,906
+that have to launch, they launch
+in different amounts of time.
+
+
+517
+00:23:08,576 --> 00:23:10,556
+And a phone and TV, and a
+watch are different things,
+
+
+518
+00:23:10,656 --> 00:23:14,066
+but 400 milliseconds
+is a good target.
+
+
+519
+00:23:14,296 --> 00:23:16,526
+You can never take longer
+than 20 seconds to launch.
+
+
+520
+00:23:16,556 --> 00:23:18,276
+If you take longer
+than 20 seconds,
+
+
+521
+00:23:18,596 --> 00:23:20,446
+the OS will kill your
+app, assuming it's going
+
+
+522
+00:23:20,446 --> 00:23:22,556
+through an infinite loop, and
+we've all had that experience.
+
+
+523
+00:23:22,556 --> 00:23:24,396
+Where you click an app, it
+comes up to a home screen,
+
+
+524
+00:23:24,396 --> 00:23:26,396
+it doesn't respond, and
+then it just goes away,
+
+
+525
+00:23:26,906 --> 00:23:28,266
+and that's usually
+what's happening here.
+
+
+526
+00:23:30,096 --> 00:23:33,526
+Finally, it's very
+important to test
+
+
+527
+00:23:33,526 --> 00:23:34,786
+on your slowest supported
+device.
+
+
+528
+00:23:34,786 --> 00:23:36,886
+So those timers are
+constant values
+
+
+529
+00:23:36,886 --> 00:23:39,426
+across all supported
+devices on our platforms.
+
+
+530
+00:23:39,896 --> 00:23:43,686
+So, if you hit 400 milliseconds
+on a iPhone 6S that you're using
+
+
+531
+00:23:43,686 --> 00:23:47,306
+for testing right now, you're
+probably just barely hitting it,
+
+
+532
+00:23:47,306 --> 00:23:49,376
+you're probably not going
+to hit it on a iPhone 5.
+
+
+533
+00:23:51,256 --> 00:23:54,116
+So let's do a recap of
+Nick's part of the talk.
+
+
+534
+00:23:54,116 --> 00:23:56,576
+What do we have to do to
+launch, we have to parse images,
+
+
+535
+00:23:56,576 --> 00:23:58,306
+map images, rebase
+images, bind images,
+
+
+536
+00:23:58,306 --> 00:24:00,326
+run image initializers,
+and then call main.
+
+
+537
+00:24:00,906 --> 00:24:02,506
+If that sounds like
+a lot, it is,
+
+
+538
+00:24:02,706 --> 00:24:04,016
+I'm exhausted just saying it.
+
+
+539
+00:24:04,866 --> 00:24:09,756
+And then after that, we have
+to call UIApplicationMain,
+
+
+540
+00:24:09,756 --> 00:24:11,776
+you'll see that in
+your ObjC apps
+
+
+541
+00:24:11,876 --> 00:24:13,576
+or in your Swift apps
+handled implicitly.
+
+
+542
+00:24:14,136 --> 00:24:16,366
+That does some other things,
+
+
+543
+00:24:16,366 --> 00:24:19,016
+including running the
+framework initializers
+
+
+544
+00:24:19,016 --> 00:24:20,026
+and loading your nibs.
+
+
+545
+00:24:20,666 --> 00:24:22,686
+And then finally
+you'll get a call back
+
+
+546
+00:24:22,686 --> 00:24:23,666
+in your application delegate.
+
+
+547
+00:24:24,226 --> 00:24:26,216
+I'm mentioning these last
+two because those are counted
+
+
+548
+00:24:26,216 --> 00:24:28,526
+in those 400 milliseconds
+times that I just mentioned.
+
+
+549
+00:24:28,906 --> 00:24:30,936
+But we're not going to
+discuss them in this talk.
+
+
+550
+00:24:31,436 --> 00:24:33,556
+If you want a better view
+of what goes on there,
+
+
+551
+00:24:33,556 --> 00:24:36,916
+there's a talk from 2012, iOS
+app performance responsiveness.
+
+
+552
+00:24:37,306 --> 00:24:39,246
+I highly recommend you go
+back and view the video.
+
+
+553
+00:24:40,066 --> 00:24:42,796
+But that's the last we're going
+to speak of them right now.
+
+
+554
+00:24:44,186 --> 00:24:47,976
+So, let's move on, one more
+thing I want to talk about,
+
+
+555
+00:24:48,136 --> 00:24:49,446
+warm versus cold launches.
+
+
+556
+00:24:50,026 --> 00:24:51,276
+So when you launch an app,
+
+
+557
+00:24:51,436 --> 00:24:53,136
+we talk about warm
+and cold launches.
+
+
+558
+00:24:53,546 --> 00:24:57,246
+And a warm launch is an app
+where the application is already
+
+
+559
+00:24:57,246 --> 00:24:59,486
+in memory, either
+because it's been launched
+
+
+560
+00:24:59,486 --> 00:25:02,736
+and quit previously, and it's
+still sitting in the discache
+
+
+561
+00:25:03,226 --> 00:25:06,206
+in the kernel, or because
+you just copied it over.
+
+
+562
+00:25:07,276 --> 00:25:10,416
+A cold launch is a launch
+where it's not in the discache.
+
+
+563
+00:25:11,746 --> 00:25:15,216
+And a cold launch is generally
+the more important to measure.
+
+
+564
+00:25:16,736 --> 00:25:18,666
+The reason a cold launch is more
+important to measure is that's
+
+
+565
+00:25:18,666 --> 00:25:23,046
+when your user is launching an
+app after rebooting the phone,
+
+
+566
+00:25:23,046 --> 00:25:24,566
+or for the first
+time in a long time,
+
+
+567
+00:25:24,566 --> 00:25:26,956
+that's when you really
+want it to be instant.
+
+
+568
+00:25:27,316 --> 00:25:29,456
+In order to measure
+those, you really need
+
+
+569
+00:25:29,456 --> 00:25:30,946
+to reboot between measurements.
+
+
+570
+00:25:31,366 --> 00:25:34,876
+Having said that,
+if you're working
+
+
+571
+00:25:34,876 --> 00:25:36,216
+on improving your warm launches,
+
+
+572
+00:25:36,216 --> 00:25:37,776
+your cold launches will
+tend to improve also.
+
+
+573
+00:25:37,776 --> 00:25:40,016
+You can do rapid development
+cycles on warm launches,
+
+
+574
+00:25:40,426 --> 00:25:46,246
+but then every so often,
+test with a cold launch.
+
+
+575
+00:25:47,696 --> 00:25:52,066
+So, how do we measure
+time before main?
+
+
+576
+00:25:52,186 --> 00:25:55,376
+Well, we have a built in
+measurement system in dyld,
+
+
+577
+00:25:55,376 --> 00:25:58,446
+you can access it through
+setting an environment variable.
+
+
+578
+00:25:59,476 --> 00:26:00,836
+DYLD Print Statistics.
+
+
+579
+00:26:02,366 --> 00:26:04,746
+And it's been available
+in shipping OSes actually,
+
+
+580
+00:26:05,116 --> 00:26:06,876
+but it prints out a lot
+
+
+581
+00:26:06,956 --> 00:26:08,596
+of internal debugging
+information that's not
+
+
+582
+00:26:08,596 --> 00:26:10,796
+particularly useful, it's
+missing some information
+
+
+583
+00:26:10,796 --> 00:26:11,796
+that you probably want.
+
+
+584
+00:26:13,676 --> 00:26:14,976
+And we're fixing that today.
+
+
+585
+00:26:16,926 --> 00:26:19,686
+So it's significantly
+improved on the new OSes.
+
+
+586
+00:26:20,516 --> 00:26:23,786
+[ Applause ]
+
+
+587
+00:26:24,286 --> 00:26:27,626
+It's going to put out, a lot
+more relevant information
+
+
+588
+00:26:27,626 --> 00:26:29,406
+for you that should
+give you actionable ways
+
+
+589
+00:26:29,406 --> 00:26:30,816
+to improve your launch times.
+
+
+590
+00:26:31,286 --> 00:26:33,556
+And it will be available
+in seed 2.
+
+
+591
+00:26:35,946 --> 00:26:39,986
+So, one other thing I want
+to talk about with this,
+
+
+592
+00:26:40,556 --> 00:26:43,346
+is that the debugger
+has to pause launch
+
+
+593
+00:26:43,346 --> 00:26:46,736
+on every single dylib load
+in order to parse the symbols
+
+
+594
+00:26:46,736 --> 00:26:50,116
+from your app and load your
+break points, over a USB cable
+
+
+595
+00:26:50,116 --> 00:26:51,666
+that can be very time consuming.
+
+
+596
+00:26:52,856 --> 00:26:56,056
+But dyld knows about that and
+it subtracts the debugger time
+
+
+597
+00:26:56,056 --> 00:26:57,406
+out from the numbers
+it's registering.
+
+
+598
+00:26:57,456 --> 00:27:00,106
+So you don't have to worry
+about it, but you notice it
+
+
+599
+00:27:00,106 --> 00:27:02,506
+because dyld's going to give
+you much smaller numbers
+
+
+600
+00:27:02,506 --> 00:27:04,356
+than you'll observe by looking
+at the clock on the wall.
+
+
+601
+00:27:04,776 --> 00:27:06,546
+That's expected and understood,
+
+
+602
+00:27:07,066 --> 00:27:09,166
+and it's everything's going
+correctly if you see that,
+
+
+603
+00:27:09,166 --> 00:27:12,326
+but I just wanted
+to make note of it.
+
+
+604
+00:27:12,606 --> 00:27:19,176
+So let's move on, to setting an
+environment variable in Xcode,
+
+
+605
+00:27:20,836 --> 00:27:22,326
+you just go to the
+scheme editor,
+
+
+606
+00:27:23,046 --> 00:27:24,176
+and you add it like this.
+
+
+607
+00:27:24,846 --> 00:27:27,686
+Once you do that you'll get the
+new console log into the output,
+
+
+608
+00:27:27,686 --> 00:27:28,936
+console output logged.
+
+
+609
+00:27:29,366 --> 00:27:31,486
+And what does that look like?
+
+
+610
+00:27:32,686 --> 00:27:34,346
+Well this is what the
+output looks like,
+
+
+611
+00:27:34,346 --> 00:27:35,146
+and we have a time bar
+
+
+612
+00:27:35,146 --> 00:27:36,736
+on the bottom representing
+the different parts of it.
+
+
+613
+00:27:37,366 --> 00:27:38,316
+And let's add one more thing.
+
+
+614
+00:27:39,576 --> 00:27:42,216
+Let's add an indicator for
+that 400 milliseconds target,
+
+
+615
+00:27:42,756 --> 00:27:44,786
+which this app I'm
+working on is not hitting.
+
+
+616
+00:27:46,096 --> 00:27:50,766
+So, if you look in, this is
+in order basically the steps
+
+
+617
+00:27:50,766 --> 00:27:53,056
+that Nick discussed in order to
+launch an app so let's just go
+
+
+618
+00:27:53,056 --> 00:27:53,716
+through them in order.
+
+
+619
+00:27:56,076 --> 00:27:59,806
+So dylib loading, the
+big thing to understand
+
+
+620
+00:27:59,806 --> 00:28:01,706
+about dylib loading and the
+slowdown that you'll see
+
+
+621
+00:28:01,706 --> 00:28:04,516
+from it, is that embedded
+dylibs can be expensive.
+
+
+622
+00:28:04,516 --> 00:28:07,636
+So Nick said an average app
+can be 100 to 400 dylibs.
+
+
+623
+00:28:08,536 --> 00:28:11,056
+But OS dylibs are fast
+because when we build the OS,
+
+
+624
+00:28:11,466 --> 00:28:14,146
+we have ways of pre-calculating
+a lot of that data.
+
+
+625
+00:28:14,146 --> 00:28:16,956
+But we don't have every
+dylib in every app
+
+
+626
+00:28:17,056 --> 00:28:18,306
+when we're building the OS.
+
+
+627
+00:28:18,476 --> 00:28:20,386
+We can't pre-calculate them
+for the dylibs you embed
+
+
+628
+00:28:20,386 --> 00:28:21,466
+with your app, so we have to go
+
+
+629
+00:28:21,466 --> 00:28:26,516
+through a much slower
+process as we load those.
+
+
+630
+00:28:27,376 --> 00:28:30,276
+And the solution for
+this is that we just need
+
+
+631
+00:28:30,276 --> 00:28:33,516
+to use fewer dylibs
+and that can be rough.
+
+
+632
+00:28:34,026 --> 00:28:37,996
+And I'm not saying you can't
+use any, but there are a couple
+
+
+633
+00:28:37,996 --> 00:28:39,976
+of options here you can
+merge existing dylibs.
+
+
+634
+00:28:40,506 --> 00:28:43,766
+You can use static
+archives and link them
+
+
+635
+00:28:44,056 --> 00:28:45,896
+into both, into apps that way.
+
+
+636
+00:28:46,506 --> 00:28:50,706
+And you have an option to lazy
+load, which is to use dlopen,
+
+
+637
+00:28:51,276 --> 00:28:55,166
+but dlopen causes some
+subtle performance
+
+
+638
+00:28:55,166 --> 00:28:57,746
+and correctness issues,
+and it actually results
+
+
+639
+00:28:57,746 --> 00:28:59,716
+in doing more work later
+on, but it is deferred.
+
+
+640
+00:28:59,716 --> 00:29:03,126
+So, it's a viable option but
+you should think long and hard
+
+
+641
+00:29:03,126 --> 00:29:06,736
+about it and, I would discourage
+it if at all possible.
+
+
+642
+00:29:07,656 --> 00:29:12,066
+So, I have an app here that
+currently has 26 dylibs,
+
+
+643
+00:29:12,566 --> 00:29:17,626
+And it's taking 240
+milliseconds just to load those,
+
+
+644
+00:29:18,886 --> 00:29:22,096
+but if I change it and merge
+those dylibs into two dylibs,
+
+
+645
+00:29:22,866 --> 00:29:25,906
+then it only takes 20
+milliseconds to load the dylibs.
+
+
+646
+00:29:26,326 --> 00:29:28,866
+So I can still have dylibs, I
+can still use them to share,
+
+
+647
+00:29:29,306 --> 00:29:33,986
+functionality between my
+app and my extension, but,
+
+
+648
+00:29:34,886 --> 00:29:36,336
+limiting them will
+be very useful.
+
+
+649
+00:29:36,336 --> 00:29:39,156
+And I understand this is
+a tradeoff you're making
+
+
+650
+00:29:39,156 --> 00:29:40,406
+between your development
+convenience
+
+
+651
+00:29:40,406 --> 00:29:42,426
+and your application
+launch time for your users.
+
+
+652
+00:29:42,856 --> 00:29:45,316
+Because the more dylibs that you
+have the easier it is to build
+
+
+653
+00:29:45,316 --> 00:29:47,046
+and re-link your app in and
+the faster your development
+
+
+654
+00:29:47,046 --> 00:29:47,446
+cycles are.
+
+
+655
+00:29:47,896 --> 00:29:51,396
+So you absolutely can and should
+use some, but it's good to try
+
+
+656
+00:29:51,396 --> 00:29:54,236
+to target a limited number, we
+would, I would say off hand,
+
+
+657
+00:29:54,236 --> 00:29:55,856
+a good target's about
+a half a dozen.
+
+
+658
+00:29:57,596 --> 00:30:00,856
+So now that we've fixed up
+our dylib count let's move
+
+
+659
+00:30:00,856 --> 00:30:03,276
+on to the next place where
+we're having a slowdown.
+
+
+660
+00:30:03,686 --> 00:30:08,486
+Between 350 milliseconds
+in binding and rebasing.
+
+
+661
+00:30:09,106 --> 00:30:13,266
+So as Nick mentioned, rebasing
+tends to be slower due to iO
+
+
+662
+00:30:13,266 --> 00:30:15,336
+and binding tends to be
+computationally expensive
+
+
+663
+00:30:15,336 --> 00:30:16,396
+but it's already done the iO.
+
+
+664
+00:30:16,716 --> 00:30:19,216
+So that iO is for both of
+them and they're comingled,
+
+
+665
+00:30:19,216 --> 00:30:20,376
+the timing's also comingled.
+
+
+666
+00:30:22,416 --> 00:30:26,876
+So if we go in and look at
+that, all that is fixing
+
+
+667
+00:30:26,876 --> 00:30:28,176
+up pointers in the DATA section.
+
+
+668
+00:30:28,426 --> 00:30:32,176
+So what we have to do, is
+just fix up fewer pointers.
+
+
+669
+00:30:32,906 --> 00:30:35,026
+Nick showed you a
+tool you can run
+
+
+670
+00:30:35,026 --> 00:30:36,996
+to see what pointers
+are being fixed
+
+
+671
+00:30:36,996 --> 00:30:38,586
+up in the DATA, section,
+dyld info.
+
+
+672
+00:30:39,916 --> 00:30:43,046
+And it shows what segments
+and sections things are in,
+
+
+673
+00:30:43,046 --> 00:30:45,006
+so that will give you a good
+idea of what's being fixed up.
+
+
+674
+00:30:45,006 --> 00:30:48,466
+For instance, if you see
+a symbol to an ObjC class
+
+
+675
+00:30:48,466 --> 00:30:51,516
+in ObjC section, that's probably
+
+
+676
+00:30:51,516 --> 00:30:53,266
+that you have a bunch
+of ObjC classes.
+
+
+677
+00:30:54,006 --> 00:30:57,336
+So, one of the things you
+can do is you can just
+
+
+678
+00:30:57,336 --> 00:30:59,796
+to reduce the number
+of ObjC classes object
+
+
+679
+00:30:59,796 --> 00:31:01,066
+and ivars that you have.
+
+
+680
+00:31:01,656 --> 00:31:04,866
+So there are a number
+of coding styles
+
+
+681
+00:31:04,866 --> 00:31:06,616
+that are encouraging
+very small classes,
+
+
+682
+00:31:06,616 --> 00:31:08,036
+that maybe only have
+one or two functions.
+
+
+683
+00:31:09,306 --> 00:31:15,086
+And, those particular patterns
+may result in gradual slowdowns
+
+
+684
+00:31:15,086 --> 00:31:16,766
+of your applications as you
+add more and more of them.
+
+
+685
+00:31:17,086 --> 00:31:18,416
+So you should be
+careful about those.
+
+
+686
+00:31:18,726 --> 00:31:21,926
+Now having 100 or 1,000
+classes isn't a problem,
+
+
+687
+00:31:21,926 --> 00:31:25,666
+but we've seen apps with
+5, 10, 15, 20,000 classes.
+
+
+688
+00:31:26,026 --> 00:31:29,136
+And in those cases that can
+add up to 7 or 800 milliseconds
+
+
+689
+00:31:29,136 --> 00:31:31,486
+to your launch time for
+the kernel to page them in.
+
+
+690
+00:31:32,916 --> 00:31:35,216
+Another thing you can do is
+you can try to reduce your use
+
+
+691
+00:31:35,216 --> 00:31:37,036
+of C++ virtual functions.
+
+
+692
+00:31:37,446 --> 00:31:39,926
+So virtual functions create
+what we call V tables,
+
+
+693
+00:31:40,296 --> 00:31:44,346
+which are the same as ObjC
+metadata in that in the sense
+
+
+694
+00:31:44,406 --> 00:31:46,966
+that they create structures
+in the DATA section
+
+
+695
+00:31:46,966 --> 00:31:47,906
+that have to be fixed up.
+
+
+696
+00:31:48,626 --> 00:31:51,786
+They're smaller than
+ObjC, they're smaller
+
+
+697
+00:31:51,786 --> 00:31:53,976
+than ObjC metadata but
+they're still significant
+
+
+698
+00:31:53,976 --> 00:31:55,056
+for some applications.
+
+
+699
+00:31:56,766 --> 00:31:58,286
+You can use Swift structs.
+
+
+700
+00:31:58,286 --> 00:32:01,506
+So Swift tends to use less
+data that has pointers
+
+
+701
+00:32:01,506 --> 00:32:02,536
+for fix-ups of this sort.
+
+
+702
+00:32:03,676 --> 00:32:09,416
+And, Swift is more inlinable and
+can better co-gen to avoid a lot
+
+
+703
+00:32:09,416 --> 00:32:13,846
+of that, so migrating to Swift
+is a great way to improve this.
+
+
+704
+00:32:14,856 --> 00:32:17,076
+And one other thing,
+you should be careful
+
+
+705
+00:32:17,076 --> 00:32:20,536
+about machine generated codes,
+so we have instances where,
+
+
+706
+00:32:21,356 --> 00:32:25,776
+you may describe some
+structures in terms of a DSL
+
+
+707
+00:32:25,776 --> 00:32:28,296
+or some custom language
+and then have a program
+
+
+708
+00:32:28,296 --> 00:32:30,576
+that generates other
+code from it.
+
+
+709
+00:32:30,576 --> 00:32:33,516
+And if those generated programs
+have a lot of pointers in them,
+
+
+710
+00:32:33,826 --> 00:32:34,996
+they can become very expensive
+
+
+711
+00:32:34,996 --> 00:32:37,046
+because when you generate your
+code you can generate very,
+
+
+712
+00:32:37,046 --> 00:32:37,746
+very large structures.
+
+
+713
+00:32:37,746 --> 00:32:40,456
+We've seen cases where,
+this causes megabytes
+
+
+714
+00:32:40,456 --> 00:32:41,726
+and megabytes of data.
+
+
+715
+00:32:42,586 --> 00:32:44,616
+But the upside is you
+usually have a lot of control
+
+
+716
+00:32:44,616 --> 00:32:46,316
+because you can just
+change the code generator
+
+
+717
+00:32:46,316 --> 00:32:47,456
+to use something
+that's not pointers,
+
+
+718
+00:32:47,456 --> 00:32:50,156
+for instance offset
+based, structures.
+
+
+719
+00:32:50,746 --> 00:32:52,016
+And that will be a big win.
+
+
+720
+00:32:52,096 --> 00:32:54,966
+So in this case, let's look
+at what's going on here
+
+
+721
+00:32:54,966 --> 00:32:56,456
+with my, with my load time.
+
+
+722
+00:32:57,806 --> 00:33:01,396
+And I have at least 10,000
+classes, I actually have 20,000,
+
+
+723
+00:33:01,636 --> 00:33:02,806
+so many it scrolled
+off the slide.
+
+
+724
+00:33:04,006 --> 00:33:06,256
+And if I cut it down
+to 1,000 classes,
+
+
+725
+00:33:06,676 --> 00:33:09,966
+I just cut my launch times, my
+time in this part of the launch
+
+
+726
+00:33:09,966 --> 00:33:12,036
+from 350 to 20 milliseconds.
+
+
+727
+00:33:13,796 --> 00:33:20,566
+So, now, everything but the
+initializer is actually below
+
+
+728
+00:33:20,566 --> 00:33:24,976
+that 400 millisecond mark,
+so we're doing pretty good.
+
+
+729
+00:33:25,516 --> 00:33:29,026
+So for ObjC set up, well Nick
+mentioned everything it had
+
+
+730
+00:33:29,026 --> 00:33:29,436
+to do.
+
+
+731
+00:33:29,436 --> 00:33:33,576
+It had to do class
+registration, it has to deal
+
+
+732
+00:33:33,576 --> 00:33:36,416
+with the non-fragile ivars, it
+has to do category registration
+
+
+733
+00:33:36,416 --> 00:33:37,676
+and it has to do
+selector uniquing.
+
+
+734
+00:33:37,676 --> 00:33:40,166
+And I'm not going to spend
+much time on this one at all,
+
+
+735
+00:33:40,166 --> 00:33:44,796
+and the reason I'm not is, we
+solved all of those by fixing
+
+
+736
+00:33:44,796 --> 00:33:48,056
+up the rebasing and
+data, and binding before.
+
+
+737
+00:33:48,516 --> 00:33:49,886
+All the reductions
+there are going
+
+
+738
+00:33:49,886 --> 00:33:51,136
+to be the same thing
+you want to do here.
+
+
+739
+00:33:51,596 --> 00:33:53,826
+So we just get a little bit of
+a free win here, it's small.
+
+
+740
+00:33:53,826 --> 00:33:54,726
+It's 8 milliseconds.
+
+
+741
+00:33:55,116 --> 00:33:57,986
+But we didn't do
+anything explicit for it.
+
+
+742
+00:33:59,086 --> 00:34:02,746
+And now finally, we're going
+to look at my initializers
+
+
+743
+00:34:03,026 --> 00:34:04,596
+which are the big
+10 seconds here.
+
+
+744
+00:34:05,766 --> 00:34:08,206
+So I'm going to go a little more
+in depth on this than Nick did.
+
+
+745
+00:34:08,636 --> 00:34:10,906
+There are two types
+of initializers,
+
+
+746
+00:34:11,585 --> 00:34:14,766
+explicit initializers,
+things like +load.
+
+
+747
+00:34:14,766 --> 00:34:17,356
+As Nick said we recommend
+replacing that with +initialize,
+
+
+748
+00:34:17,696 --> 00:34:21,606
+which will cause the ObjC run
+time to initialize your code
+
+
+749
+00:34:21,976 --> 00:34:24,186
+when the classes were
+substantiated instead
+
+
+750
+00:34:24,186 --> 00:34:27,536
+of when the file is loaded.
+
+
+751
+00:34:28,005 --> 00:34:31,216
+Or, in C/C++ there's an
+attribute that can be put
+
+
+752
+00:34:31,216 --> 00:34:35,646
+onto functions which will
+cause it to, generate those
+
+
+753
+00:34:35,646 --> 00:34:38,356
+as initializers, so that's
+an explicit initializer,
+
+
+754
+00:34:38,735 --> 00:34:41,016
+that we just rather
+you didn't use.
+
+
+755
+00:34:41,016 --> 00:34:43,126
+We rather you replace them
+with call site initializers.
+
+
+756
+00:34:43,596 --> 00:34:46,966
+So by call site initializers I
+mean things like dispatch once.
+
+
+757
+00:34:48,025 --> 00:34:50,806
+Or if you're in cross
+platform code, pthread once.
+
+
+758
+00:34:50,886 --> 00:34:54,065
+Or if you're in C++
+code, std once.
+
+
+759
+00:34:54,735 --> 00:34:56,826
+All these functions have
+basically the same sort
+
+
+760
+00:34:56,826 --> 00:34:59,226
+of functionality
+where, any code in one
+
+
+761
+00:34:59,226 --> 00:35:01,006
+of these blocks will be
+executed the first time its hit
+
+
+762
+00:35:01,006 --> 00:35:01,626
+and only that.
+
+
+763
+00:35:02,086 --> 00:35:04,346
+Dispatch once is very, very
+optimized in our system.
+
+
+764
+00:35:04,596 --> 00:35:07,146
+After the first execution of
+it, it's basically equivalent
+
+
+765
+00:35:07,146 --> 00:35:10,526
+to a no op running past it, so
+I highly recommend that instead
+
+
+766
+00:35:10,526 --> 00:35:12,876
+of using, explicit initializers.
+
+
+767
+00:35:14,106 --> 00:35:15,836
+So let's move on to
+implicit initializers.
+
+
+768
+00:35:16,186 --> 00:35:18,616
+So inplicit initializers are
+what Nick described mostly
+
+
+769
+00:35:18,616 --> 00:35:21,686
+from C++ globals with
+non-trivial initializers,
+
+
+770
+00:35:21,686 --> 00:35:23,446
+with non-trivial constructors.
+
+
+771
+00:35:24,566 --> 00:35:27,066
+And one option is
+you can replace those
+
+
+772
+00:35:27,216 --> 00:35:30,106
+with call site initializers
+like we just mentioned.
+
+
+773
+00:35:30,486 --> 00:35:32,876
+There's certainly places
+where you can place globals
+
+
+774
+00:35:32,876 --> 00:35:36,606
+with non-global structures
+or pointers to objects
+
+
+775
+00:35:36,606 --> 00:35:37,456
+that you will initialize.
+
+
+776
+00:35:39,156 --> 00:35:43,556
+Another option is that you don't
+have non-trivial initializers.
+
+
+777
+00:35:43,556 --> 00:35:46,666
+So in C++ there's initializers
+called a POD a plain old data.
+
+
+778
+00:35:47,596 --> 00:35:51,066
+And if you're objects are just
+plain old datas, the static,
+
+
+779
+00:35:51,066 --> 00:35:54,746
+or the static linker will
+pre-calculate all the data
+
+
+780
+00:35:54,746 --> 00:35:56,956
+for the DATA section, lay it
+out as just data seen there,
+
+
+781
+00:35:56,956 --> 00:35:58,886
+it doesn't have to be run, it
+doesn't have to be fixed up.
+
+
+782
+00:36:01,366 --> 00:36:06,176
+Finally, it can be
+really hard to find these,
+
+
+783
+00:36:06,896 --> 00:36:08,986
+because they're implicit,
+but we have a warning
+
+
+784
+00:36:08,986 --> 00:36:11,346
+in the compiler
+-Wglobal-constructors
+
+
+785
+00:36:11,346 --> 00:36:12,866
+and if you do that it will give
+you warnings whenever you're
+
+
+786
+00:36:12,866 --> 00:36:13,606
+generating one of these.
+
+
+787
+00:36:13,606 --> 00:36:16,686
+So it's good to add that to
+the flags your compiler uses.
+
+
+788
+00:36:18,446 --> 00:36:20,606
+Another option is just
+to rewrite them in Swift.
+
+
+789
+00:36:21,376 --> 00:36:25,276
+And the reason is, Swift
+has global variables
+
+
+790
+00:36:25,276 --> 00:36:26,526
+and they'll be initialized,
+they're guaranteed
+
+
+791
+00:36:26,526 --> 00:36:27,886
+to be initialized
+before you use them.
+
+
+792
+00:36:27,966 --> 00:36:29,606
+But the way it does it, instead,
+
+
+793
+00:36:29,896 --> 00:36:32,436
+is instead of using
+an initializer, it,
+
+
+794
+00:36:32,436 --> 00:36:34,376
+behind the scenes, uses
+dispatch once for you.
+
+
+795
+00:36:34,376 --> 00:36:35,966
+It uses one of those
+call site initializers.
+
+
+796
+00:36:36,606 --> 00:36:39,406
+So moving to Swift will
+take care of this for you,
+
+
+797
+00:36:39,696 --> 00:36:41,346
+so I highly encourage
+it that's an option.
+
+
+798
+00:36:41,576 --> 00:36:46,146
+Finally, in your initializers
+please don't call dlopen,
+
+
+799
+00:36:46,146 --> 00:36:49,166
+that will be a big performance
+hit for a bunch of reasons.
+
+
+800
+00:36:49,796 --> 00:36:53,346
+When dyld's running it's
+before the app has started and,
+
+
+801
+00:36:53,866 --> 00:36:55,836
+we can do things like
+turn off our locking,
+
+
+802
+00:36:55,836 --> 00:36:56,736
+because we're single threaded.
+
+
+803
+00:36:57,176 --> 00:37:01,116
+As soon as dlopens
+happened, in those situations,
+
+
+804
+00:37:01,576 --> 00:37:03,046
+the graph of how our
+initializers have
+
+
+805
+00:37:03,046 --> 00:37:04,716
+to run changes, we could
+have multiple threads,
+
+
+806
+00:37:04,716 --> 00:37:05,966
+we have to turn on
+locking, it's just going
+
+
+807
+00:37:05,966 --> 00:37:07,276
+to be a big performance mess.
+
+
+808
+00:37:07,656 --> 00:37:09,756
+You also can have
+subtle deadlocking
+
+
+809
+00:37:09,756 --> 00:37:11,046
+and undefined behaviors.
+
+
+810
+00:37:12,416 --> 00:37:16,326
+Also, please don't start
+threads in your initializers,
+
+
+811
+00:37:17,056 --> 00:37:18,186
+basically for the same reason.
+
+
+812
+00:37:18,506 --> 00:37:20,006
+You can set up a mute
+text if you have to
+
+
+813
+00:37:20,006 --> 00:37:22,696
+and mute text even have like,
+preferred mute texts even have,
+
+
+814
+00:37:23,116 --> 00:37:25,056
+predefined static values
+that you can set them
+
+
+815
+00:37:25,056 --> 00:37:26,116
+up with that run no code.
+
+
+816
+00:37:26,606 --> 00:37:28,946
+But actually starting a
+thread in your initializer is,
+
+
+817
+00:37:29,436 --> 00:37:32,616
+potentially a big performance
+and correctness issue.
+
+
+818
+00:37:32,816 --> 00:37:35,286
+So here we have some
+code, I have a C++ class
+
+
+819
+00:37:35,286 --> 00:37:36,466
+with a non-trivial initializer.
+
+
+820
+00:37:36,766 --> 00:37:38,346
+>> I'm having trouble
+with the connection.
+
+
+821
+00:37:38,776 --> 00:37:41,046
+Please try again in a moment.
+
+
+822
+00:37:41,336 --> 00:37:42,216
+>> Well, thank you Siri.
+
+
+823
+00:37:42,966 --> 00:37:46,506
+I'm having a, I have a
+non-trivial initializer.
+
+
+824
+00:37:47,666 --> 00:37:52,576
+And I guess I had it in for
+debugging all commented out
+
+
+825
+00:37:52,576 --> 00:37:56,176
+and okay, I'm down to
+50 milliseconds, total.
+
+
+826
+00:37:56,176 --> 00:37:59,946
+I have plenty of time
+to initialize my nibs
+
+
+827
+00:37:59,946 --> 00:38:01,466
+and do everything else,
+we're in very good shape.
+
+
+828
+00:38:02,356 --> 00:38:04,526
+So now that we've
+gone through that,
+
+
+829
+00:38:06,666 --> 00:38:11,006
+let's talk about what we
+should know if you just,
+
+
+830
+00:38:11,276 --> 00:38:12,976
+this was really long
+and pretty dense.
+
+
+831
+00:38:13,466 --> 00:38:15,846
+The first one is please
+use dyld print statistics
+
+
+832
+00:38:15,846 --> 00:38:16,976
+to measure your times, add it
+
+
+833
+00:38:16,976 --> 00:38:18,786
+to your performance
+or aggression suites.
+
+
+834
+00:38:19,146 --> 00:38:22,536
+So you can track how your
+app is performing over time,
+
+
+835
+00:38:22,536 --> 00:38:24,306
+so as you're actively doing
+something you don't find it
+
+
+836
+00:38:24,306 --> 00:38:28,436
+months later and have
+trouble debugging it.
+
+
+837
+00:38:29,106 --> 00:38:33,336
+You can improve your app launch
+time by, reducing the number
+
+
+838
+00:38:33,336 --> 00:38:38,276
+of dylibs you have, reducing the
+amount of ObjC classes you have,
+
+
+839
+00:38:38,606 --> 00:38:40,656
+and eliminating your
+static initializers.
+
+
+840
+00:38:41,166 --> 00:38:46,036
+And you can improve in
+general by using more Swift
+
+
+841
+00:38:46,036 --> 00:38:47,576
+because it just does
+the right things.
+
+
+842
+00:38:47,576 --> 00:38:50,856
+Finally, dlopen usage
+is discouraged,
+
+
+843
+00:38:50,856 --> 00:38:52,866
+it causes subtle
+performance issues
+
+
+844
+00:38:52,866 --> 00:38:54,186
+that are hard to diagnose.
+
+
+845
+00:38:54,886 --> 00:38:57,626
+For more information you can
+see the URL up on screen.
+
+
+846
+00:38:59,656 --> 00:39:01,486
+There are several related
+sessions later in the week
+
+
+847
+00:39:01,616 --> 00:39:05,306
+and again, there's the app
+performance session from 2012
+
+
+848
+00:39:05,306 --> 00:39:07,386
+that goes into the other
+parts of app launch,
+
+
+849
+00:39:07,526 --> 00:39:09,226
+that highly recommend you
+watch, if you're interested.
+
+
+850
+00:39:09,886 --> 00:39:11,686
+Thank you for coming
+everybody, have a great week.
+
+
+851
+00:39:12,516 --> 00:39:21,950
+[ Applause ]
+

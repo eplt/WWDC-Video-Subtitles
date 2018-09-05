@@ -1,0 +1,5031 @@
+1
+00:00:00,506 --> 00:00:09,901
+[ Silence ]
+
+
+2
+00:00:10,401 --> 00:00:19,796
+[ Applause ]
+
+
+3
+00:00:20,296 --> 00:00:21,336
+>> OK, thank you.
+
+
+4
+00:00:21,866 --> 00:00:24,376
+So, good afternoon.
+
+
+5
+00:00:24,816 --> 00:00:26,166
+My name is Thomas Goossens.
+
+
+6
+00:00:26,166 --> 00:00:30,516
+And I'm here to talk
+about Scene Kit.
+
+
+7
+00:00:30,516 --> 00:00:35,616
+So Scene Kit is a framework that
+was introduced last year at WWDC
+
+
+8
+00:00:35,896 --> 00:00:39,166
+and it is available on
+OS X since Mountain Lion.
+
+
+9
+00:00:40,296 --> 00:00:43,596
+And the goal of this framework
+is to simplify the integration
+
+
+10
+00:00:43,716 --> 00:00:45,416
+of 3D in applications.
+
+
+11
+00:00:46,006 --> 00:00:48,806
+And they can be whatever
+applications like presentations,
+
+
+12
+00:00:48,966 --> 00:00:53,626
+UI, games, slideshows, data
+visualizations, et cetera.
+
+
+13
+00:00:54,386 --> 00:00:58,856
+Scene Kit is built on top of
+OpenGL to leverage the GPU
+
+
+14
+00:00:59,426 --> 00:01:01,976
+and it can collaborate with
+other graphic technologies
+
+
+15
+00:01:02,526 --> 00:01:05,196
+like Core Image, Core
+Animation, and GLKit
+
+
+16
+00:01:05,396 --> 00:01:06,656
+and then I'll talk
+about that later.
+
+
+17
+00:01:07,976 --> 00:01:10,606
+Scene Kit is a high
+level Objective-C API.
+
+
+18
+00:01:10,926 --> 00:01:14,896
+And basically, it
+exposes a scene graph
+
+
+19
+00:01:14,896 --> 00:01:17,786
+and I will introduce what
+it means right after.
+
+
+20
+00:01:18,526 --> 00:01:24,546
+For OS X Mavericks, we
+introduce 20 great new features.
+
+
+21
+00:01:25,456 --> 00:01:28,166
+We will present some of them
+later in this presentation.
+
+
+22
+00:01:28,166 --> 00:01:32,286
+But I will first start
+with a quick recap
+
+
+23
+00:01:32,286 --> 00:01:35,426
+of Scene Kit's basics.
+
+
+24
+00:01:35,576 --> 00:01:40,366
+So for this presentation, I will
+start by introducing the concept
+
+
+25
+00:01:40,676 --> 00:01:41,946
+of a scene graph, sorry.
+
+
+26
+00:01:42,926 --> 00:01:46,846
+And especially, how the scene
+graph look like in Scene Kit.
+
+
+27
+00:01:47,086 --> 00:01:49,116
+Then I will show the
+basics and usual steps
+
+
+28
+00:01:49,116 --> 00:01:51,986
+to start an application
+that uses Scene Kit.
+
+
+29
+00:01:52,556 --> 00:01:55,256
+Then a section on
+the different ways
+
+
+30
+00:01:55,256 --> 00:01:57,246
+to extend Scene Kit with OpenGL.
+
+
+31
+00:01:58,336 --> 00:02:00,386
+Then we will present some
+
+
+32
+00:02:00,386 --> 00:02:02,566
+of the new features
+we have in Mavericks.
+
+
+33
+00:02:03,506 --> 00:02:06,586
+And we will conclude
+with some techniques
+
+
+34
+00:02:06,586 --> 00:02:08,485
+and notes about performance.
+
+
+35
+00:02:09,136 --> 00:02:10,816
+So let's start with
+the scene graph.
+
+
+36
+00:02:11,986 --> 00:02:14,896
+The scene graph approach
+is the main difference
+
+
+37
+00:02:14,896 --> 00:02:16,386
+with an API like OpenGL.
+
+
+38
+00:02:17,866 --> 00:02:21,216
+With OpenGL, you call
+some draw commands
+
+
+39
+00:02:21,316 --> 00:02:25,196
+and set some draw states for
+every object you want to render,
+
+
+40
+00:02:25,566 --> 00:02:28,776
+one by one and you redo
+this at every frame.
+
+
+41
+00:02:30,286 --> 00:02:34,406
+Scene Kit is a more declarative
+API where you set up a scene,
+
+
+42
+00:02:35,036 --> 00:02:36,676
+set up some properties
+of your scene
+
+
+43
+00:02:36,956 --> 00:02:39,546
+and then you let the framework
+manage the rendering for you.
+
+
+44
+00:02:39,946 --> 00:02:43,136
+So the top level object
+
+
+45
+00:02:43,276 --> 00:02:45,646
+of the scene graph is
+the scene represented
+
+
+46
+00:02:45,646 --> 00:02:47,396
+by the SCNScene class
+
+
+47
+00:02:48,616 --> 00:02:51,946
+and basically a scene
+has a root node.
+
+
+48
+00:02:52,066 --> 00:02:55,826
+A node represents a
+location in 3D space.
+
+
+49
+00:02:56,566 --> 00:02:59,536
+A node may have some child
+nodes to build a hierarchy
+
+
+50
+00:03:00,126 --> 00:03:02,166
+and each node is relative
+to its parent node.
+
+
+51
+00:03:02,166 --> 00:03:05,576
+So it's like layers that are
+relative to their super layers
+
+
+52
+00:03:05,946 --> 00:03:07,926
+or views that are relative
+to their super views.
+
+
+53
+00:03:09,826 --> 00:03:13,176
+Then a node by itself
+doesn't represent anything.
+
+
+54
+00:03:13,516 --> 00:03:15,566
+I mean nothing that can
+be rendered to the screen.
+
+
+55
+00:03:15,566 --> 00:03:20,036
+It's just a position on which
+you can attach some attributes.
+
+
+56
+00:03:20,646 --> 00:03:23,576
+So attributes you can
+attach are the following.
+
+
+57
+00:03:23,696 --> 00:03:26,556
+You can attach a geometry,
+a camera, and a light.
+
+
+58
+00:03:28,096 --> 00:03:30,616
+You can share attributes
+to multiple nodes.
+
+
+59
+00:03:30,956 --> 00:03:33,686
+The typical usage
+is to, for example,
+
+
+60
+00:03:33,686 --> 00:03:37,106
+if you want to show the same
+object to multiple locations
+
+
+61
+00:03:37,106 --> 00:03:39,986
+in your scene, you simply
+attach the same geometry
+
+
+62
+00:03:39,986 --> 00:03:41,106
+to multiple nodes.
+
+
+63
+00:03:41,186 --> 00:03:45,486
+So let's get a quick
+overview of these attributes.
+
+
+64
+00:03:46,456 --> 00:03:47,356
+The geometry first.
+
+
+65
+00:03:48,726 --> 00:03:50,976
+A geometry represents a surface
+
+
+66
+00:03:50,976 --> 00:03:52,326
+that can be rendered
+to the screen.
+
+
+67
+00:03:52,966 --> 00:03:56,616
+It is made of triangles
+that are connected together
+
+
+68
+00:03:56,616 --> 00:03:58,506
+to build the surface.
+
+
+69
+00:03:59,146 --> 00:04:00,866
+The triangles are
+connected to vertices
+
+
+70
+00:04:01,576 --> 00:04:04,046
+and the vertices
+may have a normal
+
+
+71
+00:04:04,276 --> 00:04:06,786
+that indicates the
+direction of the surface.
+
+
+72
+00:04:07,216 --> 00:04:09,926
+And Scene Kit uses it to compute
+the lighting for example.
+
+
+73
+00:04:10,526 --> 00:04:14,606
+Then the geometry may have
+some texture coordinates
+
+
+74
+00:04:14,766 --> 00:04:18,386
+that control how images are
+mapped onto the surface.
+
+
+75
+00:04:19,375 --> 00:04:22,736
+And to finish a geometry
+has some materials
+
+
+76
+00:04:22,736 --> 00:04:25,126
+that control the final
+appearance of your surface.
+
+
+77
+00:04:25,386 --> 00:04:27,346
+Including the colors
+and textures.
+
+
+78
+00:04:27,346 --> 00:04:30,856
+Note that a geometry has
+an array of materials
+
+
+79
+00:04:31,096 --> 00:04:35,066
+because sometimes, the geometry
+is split into several elements.
+
+
+80
+00:04:35,276 --> 00:04:37,686
+For example, this teapot
+here has four elements
+
+
+81
+00:04:37,686 --> 00:04:40,096
+and you can have a different
+material for each element.
+
+
+82
+00:04:41,496 --> 00:04:43,766
+The second attribute are lights.
+
+
+83
+00:04:44,966 --> 00:04:48,096
+A SCNLight represents a light
+source in your 3D scene.
+
+
+84
+00:04:49,066 --> 00:04:51,166
+There are different types
+of lights to illuminate
+
+
+85
+00:04:51,166 --> 00:04:54,206
+from a point, in the
+direction, with a cone,
+
+
+86
+00:04:54,806 --> 00:04:57,186
+or equally in every direction
+with the ambient light.
+
+
+87
+00:04:57,946 --> 00:05:02,566
+To add a light to your scene,
+simply set a light instance
+
+
+88
+00:05:02,766 --> 00:05:05,246
+to your node with the
+light property of the node.
+
+
+89
+00:05:06,426 --> 00:05:09,666
+And then this light will
+illuminate the entire scene
+
+
+90
+00:05:09,666 --> 00:05:14,976
+from this node and not only
+the node it is attached to.
+
+
+91
+00:05:15,226 --> 00:05:16,806
+The last attributes are cameras.
+
+
+92
+00:05:18,346 --> 00:05:21,116
+A node with a camera
+represents a point of view
+
+
+93
+00:05:21,266 --> 00:05:23,156
+that can be used
+to render a scene.
+
+
+94
+00:05:23,996 --> 00:05:28,606
+So when you set up a scene, you
+place your objects in 3D space
+
+
+95
+00:05:28,706 --> 00:05:30,146
+with the X, Y, Z coordinates.
+
+
+96
+00:05:30,536 --> 00:05:32,686
+And then you are free
+to render that scene
+
+
+97
+00:05:32,686 --> 00:05:33,776
+from any point of view.
+
+
+98
+00:05:34,406 --> 00:05:38,386
+So to do this, you add
+some nodes to your scene
+
+
+99
+00:05:38,506 --> 00:05:40,376
+and you attach a camera to it.
+
+
+100
+00:05:40,836 --> 00:05:44,046
+Then to select a point of view,
+simply set one of these nodes
+
+
+101
+00:05:44,226 --> 00:05:46,196
+as the point of view
+of your view
+
+
+102
+00:05:46,196 --> 00:05:47,496
+as the pointOfView property.
+
+
+103
+00:05:48,246 --> 00:05:50,986
+And for example, that's what I
+do here, I added multiple nodes
+
+
+104
+00:05:50,986 --> 00:05:53,566
+to this scene and I can switch
+to another point of view
+
+
+105
+00:05:53,566 --> 00:05:56,756
+like this one, or
+yet another one.
+
+
+106
+00:05:57,636 --> 00:06:00,826
+Then a camera has
+several parameters
+
+
+107
+00:06:00,826 --> 00:06:03,986
+to control how a scene is
+projected to the screen.
+
+
+108
+00:06:04,356 --> 00:06:06,586
+For example, the field of
+view, if you want to increase
+
+
+109
+00:06:06,586 --> 00:06:07,896
+or decrease a perspective.
+
+
+110
+00:06:08,346 --> 00:06:10,536
+So for example, here is
+a narrow field of view,
+
+
+111
+00:06:11,006 --> 00:06:14,656
+so almost no perspective and
+here is a wide field of view
+
+
+112
+00:06:14,656 --> 00:06:15,756
+with a strong perspective.
+
+
+113
+00:06:16,366 --> 00:06:22,896
+So to sum up, a scene is made of
+nodes that can have child nodes.
+
+
+114
+00:06:24,496 --> 00:06:26,856
+Then these nodes just
+represent locations
+
+
+115
+00:06:26,856 --> 00:06:28,696
+and you can attach
+attributes to them.
+
+
+116
+00:06:28,696 --> 00:06:30,016
+For example, a geometry,
+
+
+117
+00:06:30,016 --> 00:06:31,866
+if I want to render
+something to the screen.
+
+
+118
+00:06:32,876 --> 00:06:35,516
+Then I can configure the
+materials of my geometries
+
+
+119
+00:06:35,516 --> 00:06:36,786
+to customize the appearance.
+
+
+120
+00:06:38,056 --> 00:06:39,906
+And I can attach
+other attributes
+
+
+121
+00:06:39,906 --> 00:06:42,376
+like for example here, I
+attach a light to the sun
+
+
+122
+00:06:42,896 --> 00:06:46,806
+to illuminate from the sun.
+
+
+123
+00:06:47,036 --> 00:06:48,976
+So you know-- with this
+you know everything
+
+
+124
+00:06:48,976 --> 00:06:50,306
+about the models of Scene Kit.
+
+
+125
+00:06:51,296 --> 00:06:56,286
+Now, let's see how to start
+an application that uses it.
+
+
+126
+00:06:56,286 --> 00:06:59,746
+So the first thing you will need
+to do is to render somewhere.
+
+
+127
+00:06:59,836 --> 00:07:05,076
+And for this, Scene Kit provides
+a SCNView if you want to render
+
+
+128
+00:07:05,076 --> 00:07:08,116
+into a view, a SCNLayer if you
+want to render into a layer
+
+
+129
+00:07:08,306 --> 00:07:10,436
+and a SCNRenderer if
+you want to render
+
+
+130
+00:07:10,606 --> 00:07:12,576
+into an offscreen framebuffer.
+
+
+131
+00:07:13,686 --> 00:07:17,696
+So let's consider the simplest
+and fastest which is a SCNView.
+
+
+132
+00:07:18,276 --> 00:07:22,746
+To create a SCNView, simply
+drag and drop the SCNView object
+
+
+133
+00:07:22,936 --> 00:07:25,286
+from the library of
+Interface Builder.
+
+
+134
+00:07:26,276 --> 00:07:28,536
+Drag this to your user
+interface and you are done.
+
+
+135
+00:07:30,406 --> 00:07:31,716
+Once you have your view ready,
+
+
+136
+00:07:32,276 --> 00:07:33,686
+you will need a scene
+to put into.
+
+
+137
+00:07:34,986 --> 00:07:37,086
+And to create a scene,
+you have two options.
+
+
+138
+00:07:38,156 --> 00:07:40,746
+You can create everything
+programmatically.
+
+
+139
+00:07:41,346 --> 00:07:42,846
+Or you can load a
+scene from a file.
+
+
+140
+00:07:43,856 --> 00:07:45,336
+So let's see the first option.
+
+
+141
+00:07:45,706 --> 00:07:48,546
+So to create a scene
+programmatically,
+
+
+142
+00:07:48,766 --> 00:07:55,086
+Scene Kit provides a set of
+built-in primitives like a cube,
+
+
+143
+00:07:55,086 --> 00:07:58,636
+a plain sphere, et cetera that
+you can create and configure
+
+
+144
+00:07:58,896 --> 00:08:03,156
+with simple parameters
+like width, length, height,
+
+
+145
+00:08:03,476 --> 00:08:06,346
+corner radius, segment
+count, et cetera.
+
+
+146
+00:08:08,176 --> 00:08:12,766
+Scene Kit also supports 3D
+text with the SCNText class.
+
+
+147
+00:08:14,336 --> 00:08:17,186
+And this supports a text
+that use an extrusion,
+
+
+148
+00:08:17,186 --> 00:08:19,956
+multiple materials, a chamfer,
+
+
+149
+00:08:20,876 --> 00:08:23,856
+and new in Mavericks even the
+curve you want for the chamfer
+
+
+150
+00:08:23,856 --> 00:08:27,686
+if you want to create
+really fancy text.
+
+
+151
+00:08:27,736 --> 00:08:30,076
+And regarding the layout,
+
+
+152
+00:08:30,076 --> 00:08:32,936
+it supports everything
+Core Text supports.
+
+
+153
+00:08:33,056 --> 00:08:36,866
+So all the fonts, kerning,
+ligature, and things like that.
+
+
+154
+00:08:37,916 --> 00:08:43,066
+Then, new in Mavericks,
+we introduce SCNShape.
+
+
+155
+00:08:44,126 --> 00:08:48,486
+A SCNShape lets you create a
+3D object from a Bezier path.
+
+
+156
+00:08:48,786 --> 00:08:53,146
+So Scene Kit takes your
+NSBezierPath and it extrudes it
+
+
+157
+00:08:53,146 --> 00:08:54,586
+to create a 3D object.
+
+
+158
+00:08:55,546 --> 00:08:58,606
+So to do this, instantiate
+to SCNShape object
+
+
+159
+00:08:58,606 --> 00:09:01,636
+and give your Bezier path
+and an extrusion depth.
+
+
+160
+00:09:02,426 --> 00:09:06,146
+Optionally, you can even provide
+the curve you want for a chamfer
+
+
+161
+00:09:06,146 --> 00:09:07,126
+if you want a chamfer.
+
+
+162
+00:09:08,356 --> 00:09:08,896
+And that's it.
+
+
+163
+00:09:09,576 --> 00:09:13,806
+So for example, here is a Bezier
+path that represents the map
+
+
+164
+00:09:13,806 --> 00:09:15,476
+of the second floor
+of the Moscone.
+
+
+165
+00:09:16,196 --> 00:09:20,116
+I can use SCNShape to
+create a 3D version of it.
+
+
+166
+00:09:20,486 --> 00:09:22,776
+And same thing for the
+walls here, they are created
+
+
+167
+00:09:22,776 --> 00:09:25,836
+from another Bezier
+path with SCNShape.
+
+
+168
+00:09:25,836 --> 00:09:31,316
+The last way to create things
+programmatically is using
+
+
+169
+00:09:31,316 --> 00:09:32,366
+custom geometry.
+
+
+170
+00:09:32,726 --> 00:09:37,526
+So using the SCNGeometry class,
+you can provide the vertex,
+
+
+171
+00:09:37,526 --> 00:09:39,466
+normals and texture
+coordinates you want
+
+
+172
+00:09:39,806 --> 00:09:42,416
+to create your pure
+custom geometry.
+
+
+173
+00:09:44,256 --> 00:09:46,916
+And so you have the full
+control and you will need this,
+
+
+174
+00:09:46,916 --> 00:09:48,096
+for example, if you want
+
+
+175
+00:09:48,096 --> 00:09:50,866
+to represent some mathematical
+functions or any kind
+
+
+176
+00:09:50,866 --> 00:09:52,636
+of data visualization
+for example.
+
+
+177
+00:09:53,866 --> 00:09:56,366
+So that's for creating
+scenes programmatically.
+
+
+178
+00:09:56,906 --> 00:10:00,576
+Now, the other way is to
+load a scene from a file.
+
+
+179
+00:10:01,166 --> 00:10:03,276
+And loading a scene
+from a file is essential
+
+
+180
+00:10:03,276 --> 00:10:05,826
+because complex scenes
+are really hard
+
+
+181
+00:10:05,826 --> 00:10:06,906
+to create programmatically.
+
+
+182
+00:10:07,876 --> 00:10:12,256
+Complex geometries and complex
+animations are usually created
+
+
+183
+00:10:12,256 --> 00:10:14,006
+using very specialized tools.
+
+
+184
+00:10:14,536 --> 00:10:19,656
+Scene Kit allows you to load
+3D scenes from DAE documents.
+
+
+185
+00:10:20,516 --> 00:10:24,756
+A DAE document is an XML
+file, XML-based format,
+
+
+186
+00:10:26,156 --> 00:10:30,336
+that is supported by all the
+major 3D tools like 3ds Max,
+
+
+187
+00:10:30,336 --> 00:10:32,526
+Maya, Modo, Cinema
+4D, et cetera.
+
+
+188
+00:10:33,956 --> 00:10:37,136
+A DAE document can describe a
+lot of things in a 3D scene.
+
+
+189
+00:10:37,576 --> 00:10:40,176
+Obviously, you can describe
+the geometry information
+
+
+190
+00:10:41,026 --> 00:10:44,336
+but also some animations,
+reference to images,
+
+
+191
+00:10:44,716 --> 00:10:47,196
+all the light settings, the
+different points of view
+
+
+192
+00:10:47,736 --> 00:10:49,856
+and even some more advanced
+features like skinning
+
+
+193
+00:10:49,856 --> 00:10:51,936
+and morphing, and I will
+talk about that later.
+
+
+194
+00:10:52,446 --> 00:10:57,826
+So DAE documents are
+well supported on OS X.
+
+
+195
+00:10:58,816 --> 00:11:02,196
+You can open them in
+Preview or with Quick Look
+
+
+196
+00:11:02,196 --> 00:11:03,156
+to get a preview of it.
+
+
+197
+00:11:03,236 --> 00:11:05,266
+We can directly see it
+in Finder for example.
+
+
+198
+00:11:05,746 --> 00:11:10,136
+And you can do even
+more with Xcode.
+
+
+199
+00:11:10,236 --> 00:11:13,176
+Indeed, Xcode has a
+Scene Kit editor built-in
+
+
+200
+00:11:13,786 --> 00:11:16,876
+and this editor will let
+you preview a 3D file,
+
+
+201
+00:11:17,686 --> 00:11:21,226
+play the animations, inspect
+the scene graph, rename nodes,
+
+
+202
+00:11:21,746 --> 00:11:23,076
+duplicate nodes if you want.
+
+
+203
+00:11:23,076 --> 00:11:25,346
+Edit the materials,
+configure the lighting,
+
+
+204
+00:11:25,476 --> 00:11:26,746
+change the point
+of view, et cetera.
+
+
+205
+00:11:28,396 --> 00:11:32,456
+Once you are happy with your
+scene, it's easy to load it
+
+
+206
+00:11:32,456 --> 00:11:33,396
+into your application.
+
+
+207
+00:11:34,506 --> 00:11:36,946
+Usually the first
+step is to get the URL
+
+
+208
+00:11:36,946 --> 00:11:40,676
+to your document using NSBundle
+and once you get the URL,
+
+
+209
+00:11:40,676 --> 00:11:44,776
+simply load that scene with
+sceneWithURL:options:error:
+
+
+210
+00:11:44,876 --> 00:11:48,696
+and you will get
+your scene created.
+
+
+211
+00:11:48,696 --> 00:11:51,046
+Once you have your scene,
+it's easy also to render it.
+
+
+212
+00:11:51,946 --> 00:11:55,466
+Simply assign this scene to your
+view using the scene property.
+
+
+213
+00:11:56,306 --> 00:11:59,096
+Same thing if you use a
+SCNLayer or SCNRenderer.
+
+
+214
+00:11:59,166 --> 00:12:02,566
+And then, any modification
+you do
+
+
+215
+00:12:02,566 --> 00:12:05,696
+on the scene graph automatically
+reflects into the view.
+
+
+216
+00:12:06,346 --> 00:12:10,276
+There is no need to call some
+update or setNeedsDisplay:
+
+
+217
+00:12:10,276 --> 00:12:13,656
+methods it's all automatic.
+
+
+218
+00:12:14,036 --> 00:12:16,396
+So let's see what kind of
+modification you can do.
+
+
+219
+00:12:16,446 --> 00:12:19,456
+So the scene graph API
+will let you do everything.
+
+
+220
+00:12:19,506 --> 00:12:22,286
+You can of course move, scale,
+and rotate your objects,
+
+
+221
+00:12:22,526 --> 00:12:26,386
+add some animations, change the
+colors and images dynamically,
+
+
+222
+00:12:26,386 --> 00:12:30,046
+change the lighting,
+duplicate objects, et cetera.
+
+
+223
+00:12:30,666 --> 00:12:32,366
+And all of these are simply done
+
+
+224
+00:12:32,366 --> 00:12:35,066
+by modifying Objective-C
+properties
+
+
+225
+00:12:35,066 --> 00:12:36,546
+of the objects of
+the scene graph.
+
+
+226
+00:12:37,676 --> 00:12:41,316
+So the usual first step is
+to retrieve the node you want
+
+
+227
+00:12:41,316 --> 00:12:44,426
+to manipulate with its
+name and this is done
+
+
+228
+00:12:44,426 --> 00:12:46,376
+with
+childNodeWithName:recursively:.
+
+
+229
+00:12:47,366 --> 00:12:49,876
+You can do it for
+instance starting
+
+
+230
+00:12:49,876 --> 00:12:51,686
+from the root node
+since it's recursive.
+
+
+231
+00:12:52,556 --> 00:12:54,536
+And once you get the node
+you are interested in,
+
+
+232
+00:12:55,476 --> 00:13:00,646
+you can modify everything with
+simple Objective-C properties.
+
+
+233
+00:13:01,556 --> 00:13:03,526
+For example, if you want
+to move it to the origin,
+
+
+234
+00:13:04,036 --> 00:13:06,316
+set this position to
+the vector (0,0,0).
+
+
+235
+00:13:06,896 --> 00:13:09,676
+And from the node you have
+access to the attributes
+
+
+236
+00:13:09,676 --> 00:13:10,946
+like geometry, camera and light.
+
+
+237
+00:13:11,216 --> 00:13:13,666
+And from the geometry, you also
+have access to the materials.
+
+
+238
+00:13:14,206 --> 00:13:18,836
+But you can do more than
+simply modifying positions,
+
+
+239
+00:13:18,836 --> 00:13:22,186
+you can also animate
+everything in your scene.
+
+
+240
+00:13:22,376 --> 00:13:25,436
+And for animations, Scene Kit
+includes an animation engine
+
+
+241
+00:13:26,006 --> 00:13:29,596
+and regarding the API, it uses
+the same programming model
+
+
+242
+00:13:29,596 --> 00:13:33,726
+as Core Animation with implicit
+and explicit animations.
+
+
+243
+00:13:34,336 --> 00:13:35,946
+And actually, all the properties
+
+
+244
+00:13:35,946 --> 00:13:39,176
+of the scene graph are
+animatable implicitly
+
+
+245
+00:13:39,176 --> 00:13:39,926
+and explicitly.
+
+
+246
+00:13:40,916 --> 00:13:43,676
+So implicit animations
+are the animations
+
+
+247
+00:13:43,676 --> 00:13:45,596
+that are automatically generated
+
+
+248
+00:13:45,596 --> 00:13:48,126
+when you modify the
+properties of the scene.
+
+
+249
+00:13:48,856 --> 00:13:50,756
+It works like Core Animation.
+
+
+250
+00:13:51,186 --> 00:13:52,386
+You start a transaction
+
+
+251
+00:13:52,386 --> 00:13:56,706
+and configure the animation
+duration and timing function.
+
+
+252
+00:13:56,706 --> 00:14:00,766
+Note that here, you have
+to use SCNTransaction
+
+
+253
+00:14:00,766 --> 00:14:02,156
+and not CATransaction.
+
+
+254
+00:14:02,836 --> 00:14:04,606
+And then inside the transaction,
+
+
+255
+00:14:04,606 --> 00:14:06,436
+you can modify whatever
+property you like.
+
+
+256
+00:14:07,306 --> 00:14:10,046
+For example here, I
+modify the opacity
+
+
+257
+00:14:10,046 --> 00:14:11,176
+and the rotation of my node.
+
+
+258
+00:14:11,176 --> 00:14:13,576
+And when you are done,
+commit the transaction
+
+
+259
+00:14:13,796 --> 00:14:15,556
+and the animation
+automatically--
+
+
+260
+00:14:15,926 --> 00:14:16,966
+is automatically triggered.
+
+
+261
+00:14:17,636 --> 00:14:20,726
+Then explicit animations,
+
+
+262
+00:14:20,726 --> 00:14:23,066
+this time we don't
+introduce any new API.
+
+
+263
+00:14:23,266 --> 00:14:25,616
+We simply use the objects
+from Core Animation.
+
+
+264
+00:14:26,206 --> 00:14:28,346
+So we support CABasicAnimation,
+
+
+265
+00:14:28,466 --> 00:14:31,726
+CAKeyframeAnimation,
+and CAAnimationGroup.
+
+
+266
+00:14:32,826 --> 00:14:34,606
+For example, here
+I create a simple--
+
+
+267
+00:14:34,606 --> 00:14:37,646
+a basic animation that targets
+the rotation of my node.
+
+
+268
+00:14:38,306 --> 00:14:40,966
+Then I configure its
+duration and destination value
+
+
+269
+00:14:41,756 --> 00:14:43,406
+and set it to repeat forever.
+
+
+270
+00:14:44,256 --> 00:14:47,826
+Finally, I add my animation
+to my node with the same API
+
+
+271
+00:14:47,826 --> 00:14:50,626
+as Core Animation which
+is addAnimation:forKey:.
+
+
+272
+00:14:51,756 --> 00:14:56,666
+And this makes my node to
+animate forever like this.
+
+
+273
+00:14:56,866 --> 00:14:59,156
+OK. But you can do
+more than just moving
+
+
+274
+00:14:59,156 --> 00:15:00,566
+and rotating around your nodes.
+
+
+275
+00:15:01,046 --> 00:15:04,626
+And the materials in particular
+are something very powerful.
+
+
+276
+00:15:05,766 --> 00:15:09,146
+A material controls the
+appearance of the surface.
+
+
+277
+00:15:09,766 --> 00:15:12,626
+It's represented by
+the SCNMaterial class.
+
+
+278
+00:15:12,716 --> 00:15:15,856
+And the material is made
+of material properties
+
+
+279
+00:15:16,246 --> 00:15:18,806
+that can contain a
+color or an image.
+
+
+280
+00:15:18,806 --> 00:15:21,266
+So let me explain this.
+
+
+281
+00:15:21,896 --> 00:15:25,656
+A material is made of the
+eight following properties.
+
+
+282
+00:15:26,286 --> 00:15:28,926
+And each of them has
+a very specific role
+
+
+283
+00:15:29,326 --> 00:15:31,466
+in the final appearance
+of your material.
+
+
+284
+00:15:32,316 --> 00:15:36,016
+The diffuse is the base
+color of your material.
+
+
+285
+00:15:36,216 --> 00:15:39,176
+It's what the material reflects
+when it is hit by some light.
+
+
+286
+00:15:39,966 --> 00:15:42,686
+It can be set to a color like
+here, if I set to blue color
+
+
+287
+00:15:43,166 --> 00:15:46,326
+or it can be set to an image
+like this earth texture.
+
+
+288
+00:15:46,406 --> 00:15:50,776
+Then the ambient property is
+what the material reflects
+
+
+289
+00:15:50,776 --> 00:15:52,396
+when it is hit by
+the ambient light.
+
+
+290
+00:15:52,786 --> 00:15:56,666
+For example here, it lets me
+make the parts of the sphere
+
+
+291
+00:15:56,756 --> 00:15:59,086
+that are black because
+they don't receive light
+
+
+292
+00:15:59,466 --> 00:16:01,696
+to show the earth
+texture a little bit,
+
+
+293
+00:16:02,036 --> 00:16:03,536
+thanks to the ambient lighting.
+
+
+294
+00:16:05,176 --> 00:16:07,916
+Then the specular and shininess
+control the specular highlight
+
+
+295
+00:16:08,156 --> 00:16:12,236
+and can be set to a color like
+this or an image like here
+
+
+296
+00:16:12,976 --> 00:16:16,046
+if I want some part of
+my materials to be shiny
+
+
+297
+00:16:16,696 --> 00:16:19,776
+and some other to be not shiny.
+
+
+298
+00:16:19,936 --> 00:16:23,226
+Then the normal property
+lets me make--
+
+
+299
+00:16:23,436 --> 00:16:26,026
+set a normal map which
+is a popular technique
+
+
+300
+00:16:26,296 --> 00:16:29,126
+to add some details to a surface
+without adding more polygons.
+
+
+301
+00:16:29,906 --> 00:16:33,416
+For example here, I use one
+to add some elevation to my--
+
+
+302
+00:16:33,416 --> 00:16:36,676
+to the mountains, to add
+some bumps to the sphere.
+
+
+303
+00:16:38,176 --> 00:16:42,076
+Then the reflective is an image
+or a cube map that is used
+
+
+304
+00:16:42,076 --> 00:16:43,606
+as a reflective environment.
+
+
+305
+00:16:43,606 --> 00:16:46,646
+For example here, I use a
+simple image like this one
+
+
+306
+00:16:47,256 --> 00:16:49,286
+to add some sort of
+glossy reflection.
+
+
+307
+00:16:49,336 --> 00:16:52,846
+This image is reflected
+by the sphere and note
+
+
+308
+00:16:52,846 --> 00:16:56,656
+that it combines well with
+the normal map as well.
+
+
+309
+00:16:57,186 --> 00:17:03,356
+Then the emission is a color
+or an image that is emissive.
+
+
+310
+00:17:04,006 --> 00:17:05,476
+That means that it doesn't need
+
+
+311
+00:17:05,476 --> 00:17:07,205
+to receive any light
+to be visible.
+
+
+312
+00:17:07,685 --> 00:17:09,066
+For example here, I set an image
+
+
+313
+00:17:09,066 --> 00:17:11,915
+that represents the lights
+emitted by big cities.
+
+
+314
+00:17:12,425 --> 00:17:16,266
+So it's not very visible here
+but if I switch off the lights,
+
+
+315
+00:17:16,976 --> 00:17:19,636
+you can see that the
+other properties go away
+
+
+316
+00:17:19,736 --> 00:17:22,146
+and the emission
+is still visible.
+
+
+317
+00:17:23,906 --> 00:17:25,925
+Now, let's switch
+back the lights on.
+
+
+318
+00:17:26,766 --> 00:17:28,156
+Let's say, I want now
+
+
+319
+00:17:28,156 --> 00:17:30,306
+to add some clouds
+over the earth model.
+
+
+320
+00:17:30,306 --> 00:17:32,786
+I can do it by adding a
+sphere over the earth.
+
+
+321
+00:17:33,596 --> 00:17:36,596
+And then, use the transparent
+property and set an image
+
+
+322
+00:17:37,266 --> 00:17:40,976
+that will control the
+transparent areas of my surface.
+
+
+323
+00:17:41,376 --> 00:17:44,746
+You can use an image with colors
+and gray scales if you want,
+
+
+324
+00:17:44,746 --> 00:17:46,476
+it's not just a binary image.
+
+
+325
+00:17:47,666 --> 00:17:52,136
+And last, the multiply
+property is a color or an image
+
+
+326
+00:17:52,136 --> 00:17:54,736
+that is multiplied
+to the material color
+
+
+327
+00:17:54,736 --> 00:17:56,146
+to produce the final fragment.
+
+
+328
+00:17:56,736 --> 00:17:58,516
+It is usually used
+for shadow maps
+
+
+329
+00:17:58,516 --> 00:18:01,396
+and we'll talk about it later.
+
+
+330
+00:18:01,396 --> 00:18:04,736
+But you can also use it
+to dim or tint an object.
+
+
+331
+00:18:04,736 --> 00:18:07,476
+For example, if I set a
+yellow color, it is multiplied
+
+
+332
+00:18:07,506 --> 00:18:10,136
+with my material to
+add a yellow tint.
+
+
+333
+00:18:10,806 --> 00:18:12,936
+And once your material
+is configured,
+
+
+334
+00:18:13,736 --> 00:18:17,176
+it automatically adapts
+depending on the light settings.
+
+
+335
+00:18:17,506 --> 00:18:19,406
+So if I switch off
+the light again,
+
+
+336
+00:18:20,456 --> 00:18:23,186
+you can see that
+the diffuse, ambient
+
+
+337
+00:18:23,186 --> 00:18:26,036
+and specular are
+not here anymore
+
+
+338
+00:18:26,036 --> 00:18:27,276
+because there is no
+light to reflect.
+
+
+339
+00:18:27,916 --> 00:18:29,946
+But the emission is still
+emissive, this time,
+
+
+340
+00:18:29,946 --> 00:18:31,936
+it is tinted by the
+multiply property.
+
+
+341
+00:18:32,456 --> 00:18:35,486
+And the clouds are still there
+but this time they render black
+
+
+342
+00:18:35,986 --> 00:18:40,036
+because there is no
+more light to reflect.
+
+
+343
+00:18:40,036 --> 00:18:43,686
+Regarding the API,
+it's straightforward.
+
+
+344
+00:18:43,686 --> 00:18:46,436
+You can have-- you can access
+the geometry from your node
+
+
+345
+00:18:46,956 --> 00:18:48,176
+with the geometry property.
+
+
+346
+00:18:48,866 --> 00:18:54,046
+To create a new material, simply
+instantiate a SCNMaterial object
+
+
+347
+00:18:54,706 --> 00:18:57,856
+and set its diffuse, for
+example here to a red color.
+
+
+348
+00:18:58,596 --> 00:19:00,376
+And finally, you can
+assign your material
+
+
+349
+00:19:00,376 --> 00:19:03,616
+to your geometry to
+make it look red.
+
+
+350
+00:19:04,336 --> 00:19:07,406
+As I said, every material
+property can be set
+
+
+351
+00:19:07,406 --> 00:19:08,966
+to a color or an image.
+
+
+352
+00:19:09,066 --> 00:19:11,736
+But it can also actually
+be set to a layer tree
+
+
+353
+00:19:12,576 --> 00:19:14,016
+which is very handy if you want
+
+
+354
+00:19:14,016 --> 00:19:18,456
+to have some animated content
+mapped onto your 3D objects.
+
+
+355
+00:19:18,566 --> 00:19:21,746
+For example here, I
+set a movie layer--
+
+
+356
+00:19:21,746 --> 00:19:31,446
+I use a movie layer to play a
+movie mapped onto my 3D objects.
+
+
+357
+00:19:31,446 --> 00:19:33,886
+[laughter] And also, once
+we have set your layer tree,
+
+
+358
+00:19:33,886 --> 00:19:35,866
+you can add child
+layers and everything.
+
+
+359
+00:19:35,906 --> 00:19:38,096
+As soon as you modify any layer,
+
+
+360
+00:19:38,096 --> 00:19:40,546
+Scene Kit will automatically
+redraw the scene.
+
+
+361
+00:19:40,546 --> 00:19:42,126
+You don't have to, again,
+
+
+362
+00:19:42,126 --> 00:19:43,846
+to call some setNeedsDisplay:
+yourself.
+
+
+363
+00:19:44,816 --> 00:19:47,376
+So we can do already
+a lot of things
+
+
+364
+00:19:47,376 --> 00:19:50,076
+with Scene Kit's
+high level APIs.
+
+
+365
+00:19:50,446 --> 00:19:51,906
+But sometimes, it's--
+
+
+366
+00:19:51,996 --> 00:19:53,786
+if you want to do some
+really specific task
+
+
+367
+00:19:53,786 --> 00:19:56,106
+or some more specific rendering,
+it can still be useful
+
+
+368
+00:19:56,106 --> 00:19:59,306
+to have access to the lower
+level which is OpenGL.
+
+
+369
+00:19:59,406 --> 00:20:03,046
+And Scene Kit provides the
+necessary hooks for you
+
+
+370
+00:20:03,046 --> 00:20:06,046
+to plug your OpenGL
+code to Scene Kit.
+
+
+371
+00:20:07,076 --> 00:20:09,936
+So Scene Kit allows you to plug
+your code at several levels,
+
+
+372
+00:20:09,986 --> 00:20:13,276
+which are the scene level, the
+node level, and material level.
+
+
+373
+00:20:13,506 --> 00:20:14,966
+And new in Mavericks,
+
+
+374
+00:20:15,166 --> 00:20:17,576
+we introduce the concept
+of shader modifiers.
+
+
+375
+00:20:18,536 --> 00:20:21,196
+Let's start with the
+first one, the scene.
+
+
+376
+00:20:21,196 --> 00:20:25,806
+So we can set a delegate
+to the SCNView, SCNLayer,
+
+
+377
+00:20:25,806 --> 00:20:31,006
+and SCNRenderer, sorry, and your
+delegate will be invoked before
+
+
+378
+00:20:31,216 --> 00:20:32,686
+and after the scene rendered.
+
+
+379
+00:20:33,946 --> 00:20:36,056
+And so, you can at
+this-- in your delegate,
+
+
+380
+00:20:36,056 --> 00:20:38,576
+you can do whatever
+OpenGL code, for example,
+
+
+381
+00:20:38,576 --> 00:20:41,256
+to do some procedural
+background with OpenGL,
+
+
+382
+00:20:41,256 --> 00:20:43,836
+or any kind of overlay
+with OpenGL.
+
+
+383
+00:20:44,156 --> 00:20:46,586
+And here, you are totally
+free of constraints,
+
+
+384
+00:20:46,586 --> 00:20:48,186
+you can do whatever OpenGL code.
+
+
+385
+00:20:48,846 --> 00:20:51,016
+The context will
+be already ready
+
+
+386
+00:20:51,016 --> 00:20:52,766
+and the viewport will
+be already set for you.
+
+
+387
+00:20:52,766 --> 00:20:56,486
+Then at the node level,
+
+
+388
+00:20:56,646 --> 00:20:59,336
+this time you attach
+a delegate to a node.
+
+
+389
+00:21:00,116 --> 00:21:02,626
+And Scene Kit will
+invoke your code
+
+
+390
+00:21:02,626 --> 00:21:04,636
+when this node needs
+to be rendered.
+
+
+391
+00:21:05,006 --> 00:21:08,196
+Scene Kit provides the necessary
+information for you to render
+
+
+392
+00:21:08,196 --> 00:21:09,856
+at the correct location
+in the scene.
+
+
+393
+00:21:10,536 --> 00:21:14,476
+For example, here we added a
+node on top of the hole object
+
+
+394
+00:21:14,576 --> 00:21:17,456
+and set a delegate
+that renders some kind
+
+
+395
+00:21:17,456 --> 00:21:20,536
+of custom particular
+system with OpenGL.
+
+
+396
+00:21:21,576 --> 00:21:24,496
+And note that when you
+set a delegate to a node,
+
+
+397
+00:21:25,046 --> 00:21:27,216
+it replaces Scene
+Kit's rendering.
+
+
+398
+00:21:28,086 --> 00:21:32,026
+So the typical usage
+is to set a delegate
+
+
+399
+00:21:32,026 --> 00:21:36,436
+to an empty node where-- that
+is placed at the location
+
+
+400
+00:21:36,436 --> 00:21:38,756
+where you want your custom
+effect to be rendered.
+
+
+401
+00:21:38,756 --> 00:21:43,496
+Another example of a particle
+system, this time attached
+
+
+402
+00:21:43,496 --> 00:21:46,196
+to a child node of the
+sword object and so,
+
+
+403
+00:21:46,196 --> 00:21:49,276
+you can see that
+when the sword moves,
+
+
+404
+00:21:49,406 --> 00:21:52,546
+the emitter of the particule
+system moves accordingly.
+
+
+405
+00:21:53,066 --> 00:21:58,426
+Next hook, at the
+material level.
+
+
+406
+00:21:58,906 --> 00:22:02,256
+This time, you can provide
+your custom GLSL program
+
+
+407
+00:22:02,346 --> 00:22:03,876
+to replace Scene Kit's shaders.
+
+
+408
+00:22:04,806 --> 00:22:08,956
+Scene Kit provides the
+necessary geometry attributes--
+
+
+409
+00:22:09,356 --> 00:22:12,296
+sorry, the necessary transform
+uniforms and geometry attributes
+
+
+410
+00:22:12,496 --> 00:22:15,596
+that you will plug to your
+custom uniform and attributes
+
+
+411
+00:22:15,596 --> 00:22:16,646
+in your custom shader.
+
+
+412
+00:22:17,696 --> 00:22:20,906
+For example here, we
+set a custom program
+
+
+413
+00:22:20,906 --> 00:22:23,896
+with a custom vertex shader
+that does the morphing effect,
+
+
+414
+00:22:25,316 --> 00:22:27,936
+and a custom fragment shader
+that does the smoke effect.
+
+
+415
+00:22:28,996 --> 00:22:32,976
+Note that in Mavericks, we
+added some new APIs for you
+
+
+416
+00:22:33,046 --> 00:22:36,126
+to bind your custom uniforms
+and custom attributes
+
+
+417
+00:22:36,426 --> 00:22:38,736
+in a more efficient
+manner basically
+
+
+418
+00:22:38,736 --> 00:22:41,186
+by using blocks instead
+of delegate methods.
+
+
+419
+00:22:42,756 --> 00:22:45,926
+So with a customer
+material, you can--
+
+
+420
+00:22:45,926 --> 00:22:48,616
+we have a very fine
+control on the rendering
+
+
+421
+00:22:48,616 --> 00:22:49,886
+because it's your
+custom shaders.
+
+
+422
+00:22:50,486 --> 00:22:52,906
+However, the main
+inconvenient is that you need
+
+
+423
+00:22:52,906 --> 00:22:54,196
+to reimplement everything
+
+
+424
+00:22:54,196 --> 00:22:58,086
+in your GLSL program including
+projecting the vertex,
+
+
+425
+00:22:59,106 --> 00:23:01,616
+computing the lighting,
+and managing the texture.
+
+
+426
+00:23:02,306 --> 00:23:05,386
+So that's for these reasons
+that we introduce the concept
+
+
+427
+00:23:05,386 --> 00:23:07,496
+of shader modifiers
+in Mavericks.
+
+
+428
+00:23:08,736 --> 00:23:14,486
+And the idea here is to
+let you inject some snippet
+
+
+429
+00:23:14,486 --> 00:23:17,656
+of GLSL directly inside
+Scene Kit's shaders.
+
+
+430
+00:23:18,206 --> 00:23:21,436
+And you do it at some very
+specific stages and it combines
+
+
+431
+00:23:21,436 --> 00:23:22,426
+with Scene Kit's rendering.
+
+
+432
+00:23:23,126 --> 00:23:26,246
+So we call these
+stages entry points
+
+
+433
+00:23:26,246 --> 00:23:28,206
+and the API looks like this.
+
+
+434
+00:23:29,586 --> 00:23:35,046
+Basically, you set a dictionary
+to the shaderModifiers property
+
+
+435
+00:23:35,256 --> 00:23:37,706
+of your materials and the keys
+
+
+436
+00:23:37,706 --> 00:23:39,956
+of the dictionary
+are the entry points
+
+
+437
+00:23:40,576 --> 00:23:42,506
+and the values are
+your GLSL code.
+
+
+438
+00:23:43,536 --> 00:23:45,566
+Let's take a very
+simple example.
+
+
+439
+00:23:45,976 --> 00:23:50,396
+At every entry points, you
+have access to some data--
+
+
+440
+00:23:50,396 --> 00:23:53,996
+to some GLSL structures
+that you can read or write
+
+
+441
+00:23:54,156 --> 00:23:55,366
+to modify the rendering.
+
+
+442
+00:23:55,806 --> 00:23:59,846
+For example here, you can
+read the current output color
+
+
+443
+00:23:59,846 --> 00:24:01,976
+and modify it the way
+you want with GLSL.
+
+
+444
+00:24:01,976 --> 00:24:05,036
+For example here, to do a
+simple invert for example.
+
+
+445
+00:24:05,876 --> 00:24:09,626
+So Scene Kits provides four
+entry points which are geometry,
+
+
+446
+00:24:09,626 --> 00:24:11,036
+surface, lighting, and fragment.
+
+
+447
+00:24:12,826 --> 00:24:17,326
+And the geometry entry point
+lets you modify all the geometry
+
+
+448
+00:24:17,326 --> 00:24:20,976
+information in model space
+so you can modify the vertex,
+
+
+449
+00:24:20,976 --> 00:24:23,286
+the normal and texture
+coordinates in GLSL.
+
+
+450
+00:24:24,066 --> 00:24:27,776
+So for example here, I
+can inject a little code
+
+
+451
+00:24:27,826 --> 00:24:30,416
+that just modifies the
+Y position of my vertex
+
+
+452
+00:24:30,896 --> 00:24:31,986
+to do this wave affect.
+
+
+453
+00:24:32,906 --> 00:24:35,306
+And so, you don't have to
+reimplement all the rest,
+
+
+454
+00:24:35,306 --> 00:24:37,196
+all the lighting and
+all the textures.
+
+
+455
+00:24:38,086 --> 00:24:41,826
+You just focus on
+the effect you want.
+
+
+456
+00:24:42,896 --> 00:24:46,446
+The surface entry point let
+you modify all the surface
+
+
+457
+00:24:46,776 --> 00:24:48,856
+attributes which are
+the diffuse, ambient,
+
+
+458
+00:24:48,856 --> 00:24:51,206
+specular, et cetera in GLSL.
+
+
+459
+00:24:52,006 --> 00:24:55,166
+For example here, we
+did a car paint effect
+
+
+460
+00:24:55,986 --> 00:24:59,596
+by injecting a simple code
+that modifies these properties.
+
+
+461
+00:24:59,596 --> 00:25:03,416
+So it generates some random
+flakes by modifying the emission
+
+
+462
+00:25:03,416 --> 00:25:05,266
+and diffuse property
+of the materials.
+
+
+463
+00:25:06,046 --> 00:25:09,226
+But all the rest, all the
+geometry and all the lighting
+
+
+464
+00:25:09,226 --> 00:25:11,826
+and all that are still
+done by Scene Kit.
+
+
+465
+00:25:13,556 --> 00:25:17,926
+Then the lighting entry point
+lets you change the lighting
+
+
+466
+00:25:17,926 --> 00:25:20,296
+equation that is
+applied for each light.
+
+
+467
+00:25:21,056 --> 00:25:24,126
+For example, here is a basic
+rendering done by Scene Kit.
+
+
+468
+00:25:24,546 --> 00:25:27,676
+And here is a shader
+modifier, so another equation
+
+
+469
+00:25:27,956 --> 00:25:30,566
+to do some sort of
+cartoonish rendering.
+
+
+470
+00:25:31,886 --> 00:25:35,836
+And the last one is the
+fragment entry point.
+
+
+471
+00:25:36,506 --> 00:25:38,216
+And this is the very last stage.
+
+
+472
+00:25:38,216 --> 00:25:40,736
+So at this stage, you have
+access to all the information
+
+
+473
+00:25:40,736 --> 00:25:44,276
+from the previous stages like
+all the surface information,
+
+
+474
+00:25:44,726 --> 00:25:45,936
+the lighting, et cetera.
+
+
+475
+00:25:47,096 --> 00:25:49,406
+You also have access to
+the current fragment color,
+
+
+476
+00:25:49,406 --> 00:25:51,576
+and you can modify
+it the way you want
+
+
+477
+00:25:51,576 --> 00:25:53,546
+to produce your custom
+fragment effect.
+
+
+478
+00:25:54,086 --> 00:25:57,606
+So for example, here is the
+default rendering in Scene Kit,
+
+
+479
+00:25:57,606 --> 00:26:01,086
+and here, a fragment modifier
+that does an x-ray effect.
+
+
+480
+00:26:02,376 --> 00:26:05,786
+And this is done simply
+by changing the opacity
+
+
+481
+00:26:05,906 --> 00:26:09,286
+of the fragment based on
+the normal of the object.
+
+
+482
+00:26:10,246 --> 00:26:13,466
+And the color is just
+simply set to a blue color.
+
+
+483
+00:26:13,466 --> 00:26:18,456
+Of course, you can combine
+all of these effects
+
+
+484
+00:26:18,456 --> 00:26:19,746
+into a single dictionary.
+
+
+485
+00:26:20,936 --> 00:26:24,216
+For example here this virus
+has a geometry modifier
+
+
+486
+00:26:24,216 --> 00:26:27,526
+to do the deformation, a
+surface to do the noise effect.
+
+
+487
+00:26:28,216 --> 00:26:29,456
+The lighting is tweaked as well
+
+
+488
+00:26:29,456 --> 00:26:30,916
+to do some sort of
+back lighting.
+
+
+489
+00:26:31,316 --> 00:26:34,346
+And the-- and with the fragment
+modifier to do this kind
+
+
+490
+00:26:34,346 --> 00:26:36,606
+of hologram effect on top of it.
+
+
+491
+00:26:39,116 --> 00:26:42,546
+Regarding the API, you can set
+a shader modifier dictionary
+
+
+492
+00:26:42,656 --> 00:26:46,086
+to the objects that implement
+the SCNShadable protocol.
+
+
+493
+00:26:46,086 --> 00:26:50,366
+So basically, the
+material, SCNGeometry
+
+
+494
+00:26:50,366 --> 00:26:51,936
+and all the geometry subclasses.
+
+
+495
+00:26:53,116 --> 00:26:56,106
+And one thing very useful
+that I didn't talk about is
+
+
+496
+00:26:56,106 --> 00:27:01,736
+that you can even declare your
+own uniform in your GLSL code.
+
+
+497
+00:27:02,206 --> 00:27:04,886
+And these uniforms are
+automatically bound
+
+
+498
+00:27:04,946 --> 00:27:05,946
+to Objective-C.
+
+
+499
+00:27:06,776 --> 00:27:09,796
+That means that you can set the
+values using Objective-C KVC
+
+
+500
+00:27:09,796 --> 00:27:14,246
+to your uniform and you can also
+even animate your uniform using
+
+
+501
+00:27:14,246 --> 00:27:17,356
+implicit and explicit
+animations with Core Animation.
+
+
+502
+00:27:19,026 --> 00:27:21,176
+Another thing that's
+very handy is
+
+
+503
+00:27:21,176 --> 00:27:24,536
+that you can even declare
+your custom texture sampler
+
+
+504
+00:27:24,536 --> 00:27:25,496
+in your shaders.
+
+
+505
+00:27:26,196 --> 00:27:28,816
+And these samplers are
+also automatically bound
+
+
+506
+00:27:28,816 --> 00:27:30,056
+to your Objective-C code.
+
+
+507
+00:27:31,516 --> 00:27:34,676
+That means that you can still
+use KVC to set your texture
+
+
+508
+00:27:34,676 --> 00:27:37,556
+by simply setting a
+material property instance
+
+
+509
+00:27:37,816 --> 00:27:39,896
+to your sampler in
+your GLSL code.
+
+
+510
+00:27:40,146 --> 00:27:42,546
+And since it is a
+material property,
+
+
+511
+00:27:42,936 --> 00:27:45,846
+it works with images
+and also with layers.
+
+
+512
+00:27:49,516 --> 00:27:52,956
+So the shader modifiers are
+a very powerful new feature.
+
+
+513
+00:27:53,716 --> 00:27:56,956
+Now, I am calling Amaury to talk
+
+
+514
+00:27:56,956 --> 00:27:59,996
+about the other features
+we added to OS X Mavericks.
+
+
+515
+00:28:00,216 --> 00:28:00,526
+Thank you.
+
+
+516
+00:28:00,526 --> 00:28:01,046
+[ Applause ]
+
+
+517
+00:28:01,046 --> 00:28:08,836
+>> So hello.
+
+
+518
+00:28:08,836 --> 00:28:11,146
+My name is Amaury and
+I'm a software engineer
+
+
+519
+00:28:11,146 --> 00:28:12,036
+in the Scene Kit team.
+
+
+520
+00:28:12,796 --> 00:28:15,076
+Thomas just showed you
+the shader modifiers.
+
+
+521
+00:28:15,076 --> 00:28:16,016
+They are a fantastic tool
+
+
+522
+00:28:16,016 --> 00:28:17,756
+to bend Scene Kit
+to your own needs.
+
+
+523
+00:28:18,186 --> 00:28:20,416
+And we added many more
+new features in Mavericks
+
+
+524
+00:28:20,736 --> 00:28:22,466
+to help you build
+better applications.
+
+
+525
+00:28:23,056 --> 00:28:26,036
+Today, I would like to talk
+about six of these new features.
+
+
+526
+00:28:26,036 --> 00:28:27,226
+First is morphing.
+
+
+527
+00:28:27,226 --> 00:28:30,856
+Morphing is a popular
+technique used
+
+
+528
+00:28:30,856 --> 00:28:33,686
+to animate objects
+and deform them.
+
+
+529
+00:28:33,736 --> 00:28:37,396
+It works by interpolating
+between a base geometry,
+
+
+530
+00:28:37,396 --> 00:28:40,746
+the geometry of your node,
+and one or more morph targets.
+
+
+531
+00:28:41,386 --> 00:28:44,616
+So for instance, here I have a
+geometry that represents a map.
+
+
+532
+00:28:44,616 --> 00:28:47,486
+I also happen to have
+two other versions
+
+
+533
+00:28:47,666 --> 00:28:52,416
+of this geometry named
+Target A and Target B.
+
+
+534
+00:28:52,416 --> 00:28:54,666
+I will use these
+targets as morph targets.
+
+
+535
+00:28:55,506 --> 00:28:58,726
+So for instance, if I
+increase influence of Target A,
+
+
+536
+00:28:58,726 --> 00:29:01,346
+the map is folded like this.
+
+
+537
+00:29:01,996 --> 00:29:05,076
+I can also use Target B
+to fold the map like this.
+
+
+538
+00:29:05,436 --> 00:29:07,656
+And as you can see, this
+is fully animatable.
+
+
+539
+00:29:08,266 --> 00:29:12,096
+You can smoothly transition
+from one state to the other.
+
+
+540
+00:29:12,096 --> 00:29:15,386
+And of course, you can use
+both targets at the same time
+
+
+541
+00:29:15,646 --> 00:29:17,076
+to combine their effects.
+
+
+542
+00:29:18,026 --> 00:29:18,956
+So, how does it work?
+
+
+543
+00:29:20,506 --> 00:29:23,886
+Scene Kit exposes the SCNMorpher
+class to deal with morphing.
+
+
+544
+00:29:24,516 --> 00:29:28,556
+All the morphing information
+and animations can be loaded
+
+
+545
+00:29:28,666 --> 00:29:30,856
+from a DAE file or
+you can create
+
+
+546
+00:29:30,856 --> 00:29:32,456
+everything programmatically.
+
+
+547
+00:29:32,456 --> 00:29:33,276
+It's really up to you.
+
+
+548
+00:29:34,336 --> 00:29:37,596
+You can also use any kind of
+geometry for your morph targets
+
+
+549
+00:29:37,596 --> 00:29:40,946
+as long as their
+topology matches the one
+
+
+550
+00:29:40,946 --> 00:29:42,786
+of the base geometry, that is
+
+
+551
+00:29:42,786 --> 00:29:45,496
+to mean they have the exact
+same number of vertices
+
+
+552
+00:29:46,206 --> 00:29:47,506
+and the same triangulation.
+
+
+553
+00:29:48,726 --> 00:29:53,446
+So that is morphing, and you
+might want to use this feature
+
+
+554
+00:29:53,446 --> 00:29:57,046
+for say, animate a face with
+different facial expressions
+
+
+555
+00:29:57,116 --> 00:29:58,666
+for your morph targets.
+
+
+556
+00:30:00,396 --> 00:30:05,246
+The second new feature
+is skinning.
+
+
+557
+00:30:05,506 --> 00:30:07,416
+Skinning is a very
+popular technique used
+
+
+558
+00:30:07,416 --> 00:30:09,706
+to animate objects
+and characters.
+
+
+559
+00:30:09,866 --> 00:30:13,266
+It works by attaching
+a skeleton made
+
+
+560
+00:30:13,266 --> 00:30:15,546
+of joints and bones to a node.
+
+
+561
+00:30:16,346 --> 00:30:19,506
+To better understand this,
+let's show the skeleton used
+
+
+562
+00:30:19,506 --> 00:30:21,996
+to animate this character.
+
+
+563
+00:30:22,046 --> 00:30:24,866
+A skeleton is nothing more
+than a node hierarchy.
+
+
+564
+00:30:25,566 --> 00:30:28,986
+The nodes being called joints
+and the segment from a joint
+
+
+565
+00:30:29,126 --> 00:30:31,226
+to its parent, a bone.
+
+
+566
+00:30:33,046 --> 00:30:36,946
+You can simply animate the
+character by moving the joints.
+
+
+567
+00:30:37,756 --> 00:30:43,196
+So, let's hide the skeleton
+and play another animation.
+
+
+568
+00:30:43,196 --> 00:30:43,956
+How does it work?
+
+
+569
+00:30:44,376 --> 00:30:48,536
+3D authoring tools will
+help you design the skeleton
+
+
+570
+00:30:48,536 --> 00:30:51,696
+and your animations, and this
+information can be loaded
+
+
+571
+00:30:51,696 --> 00:30:54,536
+into Scene Kit via a DAE file.
+
+
+572
+00:30:55,066 --> 00:30:57,936
+You can also programmatically
+set--
+
+
+573
+00:30:57,936 --> 00:31:08,316
+dynamically set the skeleton
+of a node and move the joints.
+
+
+574
+00:31:08,316 --> 00:31:08,383
+[ Pause ]
+
+
+575
+00:31:08,383 --> 00:31:09,376
+Next, depth of field.
+
+
+576
+00:31:10,166 --> 00:31:11,626
+This is our third new feature.
+
+
+577
+00:31:12,896 --> 00:31:14,736
+We added a few properties
+on SCNCamera
+
+
+578
+00:31:14,736 --> 00:31:17,496
+to provide a depth
+of field effect.
+
+
+579
+00:31:18,086 --> 00:31:20,506
+The main two properties
+are the focal distance
+
+
+580
+00:31:20,826 --> 00:31:21,996
+and the focal blur radius.
+
+
+581
+00:31:21,996 --> 00:31:23,236
+So, let's have a look.
+
+
+582
+00:31:24,916 --> 00:31:28,296
+The depth of field effect allows
+you to blur areas in your scene.
+
+
+583
+00:31:28,876 --> 00:31:32,286
+The focal distance is a
+distance from the camera
+
+
+584
+00:31:32,286 --> 00:31:35,586
+at which objects should be sharp
+
+
+585
+00:31:35,796 --> 00:31:39,126
+and the focal blur radius is the
+amount of blur you want to use
+
+
+586
+00:31:39,126 --> 00:31:40,886
+for objects that
+are out of focus.
+
+
+587
+00:31:41,156 --> 00:31:47,266
+So, for instance, if I increase
+the focal distance the objects
+
+
+588
+00:31:47,266 --> 00:31:49,746
+in the background are
+now sharp as the ones
+
+
+589
+00:31:49,746 --> 00:31:52,876
+in the foreground are blurred.
+
+
+590
+00:31:53,046 --> 00:31:55,256
+I can animate the focal distance
+
+
+591
+00:31:55,686 --> 00:31:58,316
+and look how the rook
+stands out of the scene.
+
+
+592
+00:31:58,866 --> 00:31:59,906
+This is really beautiful.
+
+
+593
+00:32:00,436 --> 00:32:02,066
+And we worked really hard
+
+
+594
+00:32:02,066 --> 00:32:07,086
+to make this advance technique
+both easy to use and efficient.
+
+
+595
+00:32:08,006 --> 00:32:12,586
+You can just-- right after
+this session you can open your
+
+
+596
+00:32:12,586 --> 00:32:17,086
+projects and add a depth of
+field effect and with no more
+
+
+597
+00:32:17,086 --> 00:32:19,176
+than two lines of
+code and no effort
+
+
+598
+00:32:19,176 --> 00:32:21,616
+from your part you will make
+any scene more beautiful.
+
+
+599
+00:32:24,416 --> 00:32:28,146
+So, our fourth new
+feature is the support
+
+
+600
+00:32:28,146 --> 00:32:29,236
+of Core Image filters.
+
+
+601
+00:32:30,136 --> 00:32:32,536
+We added this support
+in OS X Mavericks
+
+
+602
+00:32:32,636 --> 00:32:35,716
+and you might already
+know how to use it
+
+
+603
+00:32:35,716 --> 00:32:38,036
+because it's the exact
+same API as on CALayer.
+
+
+604
+00:32:38,336 --> 00:32:41,786
+You simply provide Scene
+Kit with an array of filters
+
+
+605
+00:32:42,016 --> 00:32:43,636
+and they are automatically
+applied.
+
+
+606
+00:32:44,286 --> 00:32:46,266
+So, let's take an example.
+
+
+607
+00:32:46,266 --> 00:32:50,206
+Here, I have a grid of objects
+and let's say they are part
+
+
+608
+00:32:50,206 --> 00:32:52,596
+of a 3D application
+with a 3D UI.
+
+
+609
+00:32:53,596 --> 00:32:56,666
+You want the user to be able to
+make a selection and you want
+
+
+610
+00:32:56,786 --> 00:32:58,396
+to highlight this selection.
+
+
+611
+00:32:59,346 --> 00:33:03,366
+This can be done using a
+CIFilter, a glow filter.
+
+
+612
+00:33:04,386 --> 00:33:08,116
+If I remove the filter
+from one node and apply it
+
+
+613
+00:33:08,116 --> 00:33:10,806
+to another node, I can
+move the selection.
+
+
+614
+00:33:11,336 --> 00:33:16,026
+And notice how the glow effect
+exactly follows the shape
+
+
+615
+00:33:16,026 --> 00:33:18,306
+of the object even
+when it's rotating.
+
+
+616
+00:33:19,066 --> 00:33:21,586
+This is because Core Image
+filters work in screen space.
+
+
+617
+00:33:22,566 --> 00:33:24,476
+This kind of effect
+would be really hard
+
+
+618
+00:33:24,476 --> 00:33:28,736
+to achieve in 3D space.
+
+
+619
+00:33:28,936 --> 00:33:32,146
+Also, Core Image filters apply
+on the whole node hierarchy.
+
+
+620
+00:33:32,826 --> 00:33:36,546
+So for instance, if I group all
+the objects in the background
+
+
+621
+00:33:36,626 --> 00:33:40,446
+under our common part and
+set a filter on this parent,
+
+
+622
+00:33:40,446 --> 00:33:43,076
+they all get this old TV effect.
+
+
+623
+00:33:43,726 --> 00:33:47,366
+And of course, you can use
+any of the built-in CI filters
+
+
+624
+00:33:47,536 --> 00:33:52,106
+or you can create your
+own custom filter written
+
+
+625
+00:33:52,106 --> 00:33:53,016
+with your own kernel.
+
+
+626
+00:33:53,886 --> 00:33:57,636
+So, that is Core Image filters
+
+
+627
+00:33:57,636 --> 00:34:01,156
+and we think they will be
+really useful for 3D UIs.
+
+
+628
+00:34:01,281 --> 00:34:03,281
+[ Applause ]
+
+
+629
+00:34:03,406 --> 00:34:11,996
+Next, our fourth feature-- our
+fifth feature is constraints.
+
+
+630
+00:34:13,206 --> 00:34:16,476
+Scene Kit gives you
+a lot of freedom.
+
+
+631
+00:34:17,306 --> 00:34:20,226
+You can manipulate your
+nodes in any way you want
+
+
+632
+00:34:20,456 --> 00:34:24,916
+and you can even animate them
+either explicitly or implicitly.
+
+
+633
+00:34:25,726 --> 00:34:27,976
+But sometimes, this
+is not enough.
+
+
+634
+00:34:28,136 --> 00:34:29,786
+There are some kinds
+of behaviors
+
+
+635
+00:34:29,786 --> 00:34:31,126
+that you cannot implement.
+
+
+636
+00:34:31,985 --> 00:34:34,946
+So that's why in
+Mavericks, we add a new way
+
+
+637
+00:34:34,946 --> 00:34:37,636
+to manipulate your
+nodes via constraints.
+
+
+638
+00:34:39,116 --> 00:34:42,056
+Constraints are applied
+at render time
+
+
+639
+00:34:42,056 --> 00:34:45,216
+and at every frame
+automatically.
+
+
+640
+00:34:46,696 --> 00:34:50,386
+The result of evaluating a
+constraint is not destructive.
+
+
+641
+00:34:51,096 --> 00:34:54,116
+The result is used only
+for presentation purposes
+
+
+642
+00:34:54,576 --> 00:34:56,886
+and do not modify
+the model values.
+
+
+643
+00:34:58,256 --> 00:35:02,426
+So, Scene Kit exposes the
+SCNTransformConstraint class
+
+
+644
+00:35:02,976 --> 00:35:06,066
+to allow you to freely
+manipulate the transform
+
+
+645
+00:35:06,066 --> 00:35:06,796
+of a node.
+
+
+646
+00:35:08,236 --> 00:35:11,476
+You can create a constraint
+by providing a block of code
+
+
+647
+00:35:11,476 --> 00:35:14,646
+that will automatically get
+executed at render time.
+
+
+648
+00:35:15,496 --> 00:35:18,746
+And this-- and in this block of
+code, you can provide Scene Kit
+
+
+649
+00:35:18,836 --> 00:35:22,026
+with any transform you want and
+it's the one that will be used.
+
+
+650
+00:35:22,576 --> 00:35:26,986
+We also provide you with
+the SCNLookAtConstraint.
+
+
+651
+00:35:27,806 --> 00:35:31,316
+As its name suggests, it is
+really useful when you want
+
+
+652
+00:35:31,316 --> 00:35:36,356
+to make a node always look in
+the direction of another node.
+
+
+653
+00:35:37,146 --> 00:35:38,486
+So let's take an example here.
+
+
+654
+00:35:38,676 --> 00:35:43,206
+I have a ball and
+several arrows.
+
+
+655
+00:35:43,956 --> 00:35:47,066
+I will add a "look at"
+constraint to each arrow
+
+
+656
+00:35:47,066 --> 00:35:51,116
+in the scene so that they look
+at the ball in the middle.
+
+
+657
+00:35:51,566 --> 00:35:54,756
+And because constraints are
+evaluated at render time
+
+
+658
+00:35:55,346 --> 00:35:58,556
+and for every frame,
+if I animate the ball,
+
+
+659
+00:35:58,556 --> 00:36:03,176
+the arrows keep looking
+towards it automatically.
+
+
+660
+00:36:03,176 --> 00:36:07,556
+And because constraints
+apply on a node,
+
+
+661
+00:36:07,556 --> 00:36:10,946
+I can also apply this kind
+of constraint on the node
+
+
+662
+00:36:10,946 --> 00:36:13,916
+that holds the camera so that
+it looks towards the ball.
+
+
+663
+00:36:15,306 --> 00:36:25,516
+And you can also use it
+to direct the spot light.
+
+
+664
+00:36:25,516 --> 00:36:25,583
+[ Applause ]
+
+
+665
+00:36:25,583 --> 00:36:27,026
+So the last new feature
+I wanted to talk
+
+
+666
+00:36:27,026 --> 00:36:29,546
+about is animation events.
+
+
+667
+00:36:30,076 --> 00:36:33,076
+When dealing with
+explicit animations,
+
+
+668
+00:36:33,506 --> 00:36:36,046
+it might be really useful
+to trigger some actions
+
+
+669
+00:36:36,176 --> 00:36:38,626
+at some specific
+moments in the animation.
+
+
+670
+00:36:39,256 --> 00:36:44,116
+An animation event is nothing
+more than a block of code
+
+
+671
+00:36:44,256 --> 00:36:46,146
+that gets executed
+automatically.
+
+
+672
+00:36:46,376 --> 00:36:50,526
+For instance, here I will have
+an animation that plays a sound.
+
+
+673
+00:36:50,526 --> 00:36:53,656
+I will play it again.
+
+
+674
+00:36:53,656 --> 00:36:57,626
+Here, we set an event that will
+be triggered when the middle
+
+
+675
+00:36:57,626 --> 00:37:00,346
+of the animation is reached.
+
+
+676
+00:37:00,456 --> 00:37:04,566
+OK. And because animation
+events take every parameter
+
+
+677
+00:37:04,566 --> 00:37:08,816
+of the animation into account
+such as the timing function,
+
+
+678
+00:37:09,016 --> 00:37:13,316
+the speed factor and the repeat
+count, if I have one animation
+
+
+679
+00:37:13,536 --> 00:37:17,466
+with only one event but set
+this animation to repeat,
+
+
+680
+00:37:17,996 --> 00:37:20,236
+the block of code will be
+triggered several times.
+
+
+681
+00:37:21,716 --> 00:37:25,276
+And because you can provide
+several animation events,
+
+
+682
+00:37:25,726 --> 00:37:29,336
+you can have one animation
+with different events
+
+
+683
+00:37:29,436 --> 00:37:32,566
+that play different sounds.
+
+
+684
+00:37:32,716 --> 00:37:34,336
+So these were six
+of the new features
+
+
+685
+00:37:34,336 --> 00:37:36,656
+that will help you build
+new kinds of applications.
+
+
+686
+00:37:37,566 --> 00:37:40,576
+It will-- they will allow
+you to make more dynamic
+
+
+687
+00:37:40,576 --> 00:37:41,676
+and more beautiful scenes.
+
+
+688
+00:37:42,456 --> 00:37:44,906
+But you also want to achieve
+the best performance, right?
+
+
+689
+00:37:46,056 --> 00:37:48,446
+So in Mavericks,
+we add a new tool
+
+
+690
+00:37:48,686 --> 00:37:50,966
+to help you debug
+performance issues.
+
+
+691
+00:37:52,326 --> 00:37:56,936
+By setting the showsStatistics
+property to YES on a scene view,
+
+
+692
+00:37:57,836 --> 00:38:00,276
+you will make an overlay appear.
+
+
+693
+00:38:01,156 --> 00:38:03,876
+This overlay provides you
+with a lot of information
+
+
+694
+00:38:03,876 --> 00:38:07,816
+about what's going
+on in the scene.
+
+
+695
+00:38:08,036 --> 00:38:12,266
+One of the most important
+indicators is the FPS counter.
+
+
+696
+00:38:13,136 --> 00:38:16,506
+Your quest is to always
+have this display 60 frames
+
+
+697
+00:38:16,506 --> 00:38:16,846
+per second.
+
+
+698
+00:38:18,376 --> 00:38:21,596
+So, if you click on the
+little gear icon next
+
+
+699
+00:38:21,596 --> 00:38:24,086
+to the FPS counter, it
+will show a debug panel.
+
+
+700
+00:38:24,086 --> 00:38:27,276
+In this debug panel
+you can do things
+
+
+701
+00:38:27,326 --> 00:38:31,126
+such as showing the bounding
+boxes, tweaking the parameters
+
+
+702
+00:38:31,126 --> 00:38:34,726
+of the depth of field effect,
+dynamically change the point
+
+
+703
+00:38:34,726 --> 00:38:37,266
+of view and you can also
+freeze the rendering,
+
+
+704
+00:38:37,846 --> 00:38:39,246
+and go through the steps--
+
+
+705
+00:38:39,526 --> 00:38:42,096
+go through the steps
+
+
+706
+00:38:42,096 --> 00:38:45,496
+of the rendering process
+one step at a time.
+
+
+707
+00:38:45,706 --> 00:38:50,326
+So, using the slider, you can
+see the rendering process draw
+
+
+708
+00:38:50,326 --> 00:38:51,036
+call by draw call.
+
+
+709
+00:38:51,656 --> 00:38:56,756
+In the overlay, you can also
+check the number of vertices,
+
+
+710
+00:38:57,046 --> 00:38:58,626
+polygons and draw calls.
+
+
+711
+00:38:58,726 --> 00:39:03,196
+We want always this numbers
+to be as low as possible
+
+
+712
+00:39:03,196 --> 00:39:04,986
+to achieve the best
+performances.
+
+
+713
+00:39:05,826 --> 00:39:06,966
+So how can you do that?
+
+
+714
+00:39:07,656 --> 00:39:11,506
+Well, you might not be able to
+reduce the number of vertices
+
+
+715
+00:39:11,506 --> 00:39:13,566
+without affecting the
+quality of your scene.
+
+
+716
+00:39:14,046 --> 00:39:16,886
+But you might be able to reduce
+the number of draw calls.
+
+
+717
+00:39:17,496 --> 00:39:20,416
+And this is what the
+flattenedClone method is for.
+
+
+718
+00:39:20,976 --> 00:39:26,386
+It works by taking a node
+hierarchy and making a copy
+
+
+719
+00:39:26,566 --> 00:39:29,666
+of it that will render exactly
+the same but which is flat,
+
+
+720
+00:39:29,666 --> 00:39:30,646
+which has no child node.
+
+
+721
+00:39:31,406 --> 00:39:35,606
+So for instance, here I have a
+parent node with four children.
+
+
+722
+00:39:36,796 --> 00:39:41,256
+These children have a total
+of eleven geometry elements
+
+
+723
+00:39:41,596 --> 00:39:43,186
+but they use only
+four materials.
+
+
+724
+00:39:43,976 --> 00:39:46,846
+The orange one, the blue one,
+the purple one and the red one.
+
+
+725
+00:39:48,056 --> 00:39:52,486
+If I flatten this node, the
+method will go through each node
+
+
+726
+00:39:52,726 --> 00:39:55,856
+and merge all the geometries
+into one single geometry
+
+
+727
+00:39:56,146 --> 00:39:59,656
+that will have as many
+geometry elements as materials.
+
+
+728
+00:40:00,356 --> 00:40:04,626
+So here instead of having eleven
+draw calls, we have only four
+
+
+729
+00:40:04,626 --> 00:40:07,586
+which is a huge win
+performance wise.
+
+
+730
+00:40:08,836 --> 00:40:10,566
+So what about geometries?
+
+
+731
+00:40:11,316 --> 00:40:15,996
+In Scene Kit, all the geometry--
+
+
+732
+00:40:15,996 --> 00:40:20,876
+all the node attributes
+are shared by default.
+
+
+733
+00:40:20,876 --> 00:40:22,616
+The camera, the light,
+the geometry,
+
+
+734
+00:40:23,066 --> 00:40:24,016
+the skinner, the morpher.
+
+
+735
+00:40:24,746 --> 00:40:27,376
+And this is a good
+thing in general.
+
+
+736
+00:40:27,756 --> 00:40:32,026
+But say, you want to duplicate
+a node and change its materials.
+
+
+737
+00:40:32,836 --> 00:40:36,316
+Because the geometry is shared,
+if you change its materials,
+
+
+738
+00:40:36,466 --> 00:40:38,976
+it would reflect
+everywhere in the scene.
+
+
+739
+00:40:39,356 --> 00:40:43,216
+So, to fix this issue you
+have to unshare the geometry
+
+
+740
+00:40:43,216 --> 00:40:45,546
+by explicitly copying it.
+
+
+741
+00:40:46,316 --> 00:40:48,166
+But the good news is
+
+
+742
+00:40:48,166 --> 00:40:50,036
+that copying a geometry
+is really cheap.
+
+
+743
+00:40:50,576 --> 00:40:52,486
+This is because all the vertices
+
+
+744
+00:40:52,486 --> 00:40:55,136
+and triangulation
+information is immutable.
+
+
+745
+00:40:55,416 --> 00:40:58,176
+So Scene Kit doesn't
+have to copy them.
+
+
+746
+00:40:58,256 --> 00:41:00,906
+So once you have
+a copied geometry,
+
+
+747
+00:41:00,906 --> 00:41:03,336
+you can change its materials
+
+
+748
+00:41:03,336 --> 00:41:05,306
+without affecting the
+other nodes in the scene.
+
+
+749
+00:41:05,636 --> 00:41:10,186
+So, that was about node
+hierarchies and geometries.
+
+
+750
+00:41:10,656 --> 00:41:11,956
+Now, materials.
+
+
+751
+00:41:13,386 --> 00:41:15,686
+It's really important
+to keep your shaders
+
+
+752
+00:41:15,686 --> 00:41:17,796
+as simple as possible.
+
+
+753
+00:41:18,256 --> 00:41:21,096
+This is not only true
+for your custom programs
+
+
+754
+00:41:21,096 --> 00:41:23,476
+and shader modifiers,
+it's also true
+
+
+755
+00:41:23,666 --> 00:41:25,526
+for Scene Kit's default
+rendering.
+
+
+756
+00:41:28,596 --> 00:41:30,486
+The more lights in your scene,
+
+
+757
+00:41:31,186 --> 00:41:33,336
+the most expensive
+the shader will be.
+
+
+758
+00:41:34,086 --> 00:41:36,976
+So, a good idea is to
+keep the number of lights
+
+
+759
+00:41:36,976 --> 00:41:38,706
+in your scene as
+low as possible.
+
+
+760
+00:41:39,466 --> 00:41:40,296
+But what if you can't?
+
+
+761
+00:41:40,736 --> 00:41:44,066
+What if you want a richer
+lighting with many lights?
+
+
+762
+00:41:45,036 --> 00:41:46,546
+Well, a good idea would be
+
+
+763
+00:41:46,546 --> 00:41:48,796
+to pre-compute all the
+lighting information
+
+
+764
+00:41:49,006 --> 00:41:50,506
+and bake them into textures.
+
+
+765
+00:41:51,866 --> 00:41:53,546
+And it's the same
+idea for shadows.
+
+
+766
+00:41:53,926 --> 00:41:55,916
+Dynamic shadows are
+really expensive.
+
+
+767
+00:41:55,916 --> 00:41:59,726
+Whereas pre-computed
+shadows are fast
+
+
+768
+00:41:59,726 --> 00:42:01,106
+and they might even look better.
+
+
+769
+00:42:01,776 --> 00:42:04,936
+3D authoring tools will
+help you bake this lighting
+
+
+770
+00:42:05,026 --> 00:42:09,706
+and shadow information into
+textures and they can be loaded
+
+
+771
+00:42:09,786 --> 00:42:10,706
+from DAE files
+
+
+772
+00:42:11,276 --> 00:42:14,286
+or set programmatically
+using the multiply property
+
+
+773
+00:42:14,566 --> 00:42:15,416
+of a material.
+
+
+774
+00:42:15,736 --> 00:42:17,026
+So let's take an example here.
+
+
+775
+00:42:17,646 --> 00:42:21,096
+Let's say I have a scene
+that represents a dungeon.
+
+
+776
+00:42:21,096 --> 00:42:25,976
+It is lit by only one light, and
+because there is only one light
+
+
+777
+00:42:25,976 --> 00:42:27,696
+in the scene, it's
+very fast to render.
+
+
+778
+00:42:28,646 --> 00:42:31,756
+But it doesn't look
+that great, right?
+
+
+779
+00:42:31,796 --> 00:42:35,746
+So, you might want a
+richer lighting here.
+
+
+780
+00:42:35,966 --> 00:42:40,426
+So instead of adding one dynamic
+light, let's say per candle,
+
+
+781
+00:42:40,656 --> 00:42:43,716
+we'll bake this into
+textures using a 3D tool.
+
+
+782
+00:42:43,766 --> 00:42:48,106
+So, the first step is to
+get rid of all the lights.
+
+
+783
+00:42:48,676 --> 00:42:51,906
+This is the same scene rendered
+with no lighting at all.
+
+
+784
+00:42:52,666 --> 00:42:56,896
+Next, we will apply a light
+map using the multiply property
+
+
+785
+00:42:57,956 --> 00:42:58,736
+to achieve this.
+
+
+786
+00:43:00,026 --> 00:43:03,436
+See, you have colored
+lights, shadows
+
+
+787
+00:43:03,436 --> 00:43:06,016
+and the scene looks much nicer.
+
+
+788
+00:43:06,266 --> 00:43:06,966
+It's richer.
+
+
+789
+00:43:07,866 --> 00:43:11,416
+And in fact, this is
+actually faster to render
+
+
+790
+00:43:11,416 --> 00:43:12,846
+than the first seen
+with only one light.
+
+
+791
+00:43:13,756 --> 00:43:16,116
+So, light maps and shadow maps.
+
+
+792
+00:43:17,136 --> 00:43:18,276
+What about textures?
+
+
+793
+00:43:19,276 --> 00:43:21,676
+Well, one of obvious
+thing is that you want
+
+
+794
+00:43:21,916 --> 00:43:24,176
+to avoid unnecessary
+large images.
+
+
+795
+00:43:25,256 --> 00:43:28,046
+If a texture is never to be
+rendered large on the screen,
+
+
+796
+00:43:28,546 --> 00:43:30,936
+then it shouldn't be
+large in the first place.
+
+
+797
+00:43:31,956 --> 00:43:35,976
+Second, if you plan on using
+the same image on ambient
+
+
+798
+00:43:35,976 --> 00:43:39,326
+and diffuse properties then
+you should let Scene Kit know
+
+
+799
+00:43:39,456 --> 00:43:41,216
+so that it can optimize
+its shaders.
+
+
+800
+00:43:41,996 --> 00:43:45,336
+And finally, you might
+consider using mipmaps.
+
+
+801
+00:43:46,356 --> 00:43:50,556
+When activated, Scene Kit will
+pre-compute several resolutions
+
+
+802
+00:43:50,616 --> 00:43:54,366
+of the image and select the
+best resolution at render time.
+
+
+803
+00:43:55,196 --> 00:43:58,286
+This makes things more
+efficient but it has a cost.
+
+
+804
+00:43:58,986 --> 00:44:02,846
+Pre-computing the mipmaps is a
+bit expensive, so you might want
+
+
+805
+00:44:02,846 --> 00:44:05,956
+to use this feature if you
+need faster rendering more
+
+
+806
+00:44:05,956 --> 00:44:06,526
+than faster setup.
+
+
+807
+00:44:06,526 --> 00:44:12,626
+The last thing I wanted to
+talk about is levels of detail.
+
+
+808
+00:44:13,286 --> 00:44:16,096
+This is a feature that only
+focuses on performance.
+
+
+809
+00:44:16,096 --> 00:44:23,176
+Here, you have two
+objects that represent--
+
+
+810
+00:44:23,546 --> 00:44:25,926
+two geometries that
+represent the same object.
+
+
+811
+00:44:26,886 --> 00:44:31,296
+As you can see, one is high res
+and one is-- and one is low res.
+
+
+812
+00:44:31,686 --> 00:44:34,346
+And you can easy tell the
+difference between the two.
+
+
+813
+00:44:35,226 --> 00:44:38,896
+But if I move these
+objects very far
+
+
+814
+00:44:38,896 --> 00:44:41,606
+at some point it becomes
+hard to tell which is which.
+
+
+815
+00:44:43,006 --> 00:44:46,256
+So, the idea behind
+levels of detail is
+
+
+816
+00:44:46,616 --> 00:44:49,536
+to build several versions
+of a single geometry
+
+
+817
+00:44:50,346 --> 00:44:52,696
+with different polygon counts.
+
+
+818
+00:44:53,276 --> 00:44:56,216
+This is actually a new
+feature in OS X Mavericks
+
+
+819
+00:44:56,726 --> 00:44:59,906
+and Scene Kit exposes the
+SCNLevelOfDetail class.
+
+
+820
+00:45:00,326 --> 00:45:03,376
+This class encapsulates
+a geometry that is used
+
+
+821
+00:45:03,376 --> 00:45:08,016
+for a specific resolution as
+well as a minimal distance
+
+
+822
+00:45:08,506 --> 00:45:14,206
+from the camera at which
+this resolution can be used.
+
+
+823
+00:45:14,206 --> 00:45:17,106
+You then simply set a--
+
+
+824
+00:45:17,106 --> 00:45:21,006
+set an array of levels
+of detail on a geometry.
+
+
+825
+00:45:21,746 --> 00:45:25,176
+So in this scene, I duplicate
+this teapot many, many times.
+
+
+826
+00:45:26,296 --> 00:45:30,146
+If we hadn't activated levels
+of detail, there would be more
+
+
+827
+00:45:30,146 --> 00:45:32,356
+than seven million
+polygons in the scene
+
+
+828
+00:45:32,606 --> 00:45:34,226
+which would kill
+the performance.
+
+
+829
+00:45:35,426 --> 00:45:37,046
+But thanks to levels of detail,
+
+
+830
+00:45:37,636 --> 00:45:39,986
+Scene Kit rarely uses
+the best resolution.
+
+
+831
+00:45:40,796 --> 00:45:41,926
+And since the objects
+
+
+832
+00:45:41,926 --> 00:45:46,376
+in the background only have 256
+polygons it makes rendering this
+
+
+833
+00:45:46,466 --> 00:45:47,236
+scene possible.
+
+
+834
+00:45:47,886 --> 00:45:54,136
+So that was about the new
+features in OS X Mavericks
+
+
+835
+00:45:54,136 --> 00:45:58,586
+and now I hand over to Thomas
+to-- for a quick recap.
+
+
+836
+00:45:59,076 --> 00:45:59,526
+>> Thank you.
+
+
+837
+00:46:00,026 --> 00:46:04,446
+[ Applause ]
+
+
+838
+00:46:04,946 --> 00:46:08,236
+>> So yes to conclude,
+so we presented some
+
+
+839
+00:46:08,236 --> 00:46:11,326
+of the new features we
+added to this release.
+
+
+840
+00:46:11,986 --> 00:46:13,876
+We talked a little
+bit about performance
+
+
+841
+00:46:13,876 --> 00:46:15,386
+and the new tools we have
+
+
+842
+00:46:15,426 --> 00:46:17,506
+to help you debug the
+performance issues,
+
+
+843
+00:46:18,166 --> 00:46:22,026
+and also the new APIs that will
+help you improve the performance
+
+
+844
+00:46:22,026 --> 00:46:22,696
+of your scene.
+
+
+845
+00:46:23,916 --> 00:46:27,026
+There are actually
+many other new features
+
+
+846
+00:46:27,026 --> 00:46:30,496
+that we didn't have the time
+to cover today, like exporting
+
+
+847
+00:46:30,536 --> 00:46:32,296
+to a DAE document for example.
+
+
+848
+00:46:32,296 --> 00:46:35,166
+We also support OpenGL's
+Core Profile,
+
+
+849
+00:46:35,536 --> 00:46:38,316
+if you want to do
+some really late--
+
+
+850
+00:46:38,406 --> 00:46:40,556
+use the latest features
+of OpenGL.
+
+
+851
+00:46:40,556 --> 00:46:43,976
+And more. And I encourage
+you to have a look
+
+
+852
+00:46:43,976 --> 00:46:47,716
+to these new features
+in the seed.
+
+
+853
+00:46:47,716 --> 00:46:48,956
+And you probably guessed
+
+
+854
+00:46:48,956 --> 00:46:53,266
+that this presentation was
+entirely written using Scene Kit
+
+
+855
+00:46:53,786 --> 00:46:57,646
+from the beginning
+and we are very happy
+
+
+856
+00:46:57,696 --> 00:46:59,776
+to share this code
+with you today.
+
+
+857
+00:46:59,776 --> 00:46:59,843
+[ Applause ]
+
+
+858
+00:46:59,843 --> 00:47:08,736
+So this code will be available
+right after the session.
+
+
+859
+00:47:09,636 --> 00:47:14,616
+It is made as one single
+file per slide so it's--
+
+
+860
+00:47:14,646 --> 00:47:16,216
+every time it's a simple file.
+
+
+861
+00:47:16,836 --> 00:47:21,096
+And this is kind of a collection
+of fifty small sample codes
+
+
+862
+00:47:21,506 --> 00:47:23,356
+and every file is
+independent of the other,
+
+
+863
+00:47:23,526 --> 00:47:25,386
+so I really think it's a
+really good sample code
+
+
+864
+00:47:25,776 --> 00:47:28,296
+to get started with Scene Kit.
+
+
+865
+00:47:29,246 --> 00:47:30,436
+For more information,
+
+
+866
+00:47:31,056 --> 00:47:33,606
+please contact our
+evangelist, Allan Schaffer.
+
+
+867
+00:47:34,296 --> 00:47:37,016
+We also have some documentation
+online on the developer website.
+
+
+868
+00:47:37,166 --> 00:47:41,776
+And the developer forum is also
+a good place to ask questions
+
+
+869
+00:47:41,776 --> 00:47:45,766
+and get answers and we
+are very responsive on it.
+
+
+870
+00:47:46,356 --> 00:47:51,816
+So that's about it
+and thanks for coming.
+
+
+871
+00:47:52,316 --> 00:48:01,230
+[ Applause ]
+

@@ -1,0 +1,6202 @@
+1
+00:00:09,956 --> 00:00:13,336
+>> Hello, welcome to
+Optimizing Drawing and Scrolling
+
+
+2
+00:00:13,336 --> 00:00:15,906
+on Mac OS X [applause].
+
+
+3
+00:00:16,006 --> 00:00:18,946
+My name is Corbin Dunn and I'm
+an AppKit Software Engineer.
+
+
+4
+00:00:18,946 --> 00:00:21,116
+I'm going to be giving this talk
+with my colleague, Raleigh Ledet
+
+
+5
+00:00:21,116 --> 00:00:23,266
+and let's just jump
+right into it.
+
+
+6
+00:00:23,316 --> 00:00:25,456
+So what we're going to
+be talking about today,
+
+
+7
+00:00:25,526 --> 00:00:27,286
+we have four major subjects.
+
+
+8
+00:00:27,946 --> 00:00:30,256
+We're going to be talking about
+Optimizing AppKit Drawing,
+
+
+9
+00:00:31,326 --> 00:00:34,016
+Layer-Backed View Drawing
+and utilizing Core Animation
+
+
+10
+00:00:34,016 --> 00:00:35,516
+in your views and
+how to make it fast.
+
+
+11
+00:00:36,536 --> 00:00:39,316
+Raleigh is going to come on
+stage during the second half
+
+
+12
+00:00:39,456 --> 00:00:41,876
+and talk about Responsive
+Scrolling and what you can do
+
+
+13
+00:00:41,876 --> 00:00:44,896
+to opt into that and make
+it fast on Mavericks.
+
+
+14
+00:00:44,896 --> 00:00:46,806
+And then finally,
+Raleigh is going to talk
+
+
+15
+00:00:46,806 --> 00:00:48,566
+about Magnification
+in NSScrollView.
+
+
+16
+00:00:48,566 --> 00:00:52,926
+So let's talk about
+Optimizing AppKit Drawing
+
+
+17
+00:00:53,186 --> 00:00:55,536
+and the best practices that
+you can do in your application.
+
+
+18
+00:00:58,936 --> 00:01:02,086
+So you're probably already
+doing this inside your drawRect.
+
+
+19
+00:01:02,176 --> 00:01:04,766
+Inside of your drawRect
+implementation, you're looking
+
+
+20
+00:01:04,766 --> 00:01:07,116
+at the dirtyRect
+and just filling
+
+
+21
+00:01:07,116 --> 00:01:10,386
+and pointing your model objects
+inside the area that's actually
+
+
+22
+00:01:10,386 --> 00:01:11,856
+dirty that you really
+need to draw.
+
+
+23
+00:01:13,856 --> 00:01:17,136
+The interesting thing about this
+is you're probably already doing
+
+
+24
+00:01:17,636 --> 00:01:19,126
+setNeedsDisplayInRect on just
+
+
+25
+00:01:19,126 --> 00:01:20,856
+that small little rect
+that's really dirty
+
+
+26
+00:01:20,856 --> 00:01:21,886
+that you need to redraw.
+
+
+27
+00:01:22,596 --> 00:01:25,016
+You're hopefully not doing
+setNeedsDisplay:YES an entire
+
+
+28
+00:01:25,016 --> 00:01:26,346
+view and then validating
+everything
+
+
+29
+00:01:26,446 --> 00:01:27,826
+which is not good
+for performance.
+
+
+30
+00:01:28,026 --> 00:01:31,306
+Of course, if you
+have a big red view,
+
+
+31
+00:01:31,556 --> 00:01:34,176
+you do a setNeedsDisplayInRect
+on this little orange rect,
+
+
+32
+00:01:34,936 --> 00:01:36,466
+you do another
+setNeedsDisplayInRect
+
+
+33
+00:01:36,466 --> 00:01:38,016
+on another rect and
+the same run will pass.
+
+
+34
+00:01:39,406 --> 00:01:41,156
+What's going to happen is
+your dirtyRect is going
+
+
+35
+00:01:41,156 --> 00:01:43,536
+to be the union of
+those two Rects.
+
+
+36
+00:01:44,636 --> 00:01:46,396
+So what you can do
+as a developer
+
+
+37
+00:01:46,856 --> 00:01:49,416
+to do better drawing is
+inside of your drawRect,
+
+
+38
+00:01:49,866 --> 00:01:53,526
+utilize getRectsBeingDrawn:count
+which is some older API
+
+
+39
+00:01:53,526 --> 00:01:54,566
+that we've had for a while.
+
+
+40
+00:01:55,676 --> 00:01:58,566
+You can enumerate all the
+dirtyRects and then just fill
+
+
+41
+00:01:58,566 --> 00:02:00,476
+in those Rects that are
+actually really dirty.
+
+
+42
+00:02:01,126 --> 00:02:04,316
+Or, what you can also do here is
+just pull in your model objects
+
+
+43
+00:02:04,346 --> 00:02:07,296
+that exist inside those
+dirtyRects instead of pulling
+
+
+44
+00:02:07,296 --> 00:02:09,265
+in everything inside
+of your view bounds
+
+
+45
+00:02:09,606 --> 00:02:11,336
+or the visibleRect
+or the dirtyRect.
+
+
+46
+00:02:11,336 --> 00:02:12,966
+This is much more performant.
+
+
+47
+00:02:13,346 --> 00:02:18,246
+Another thing you can do is
+you can use needsToDrawRect
+
+
+48
+00:02:18,856 --> 00:02:21,186
+which is some API where
+you can say, "Hey,
+
+
+49
+00:02:21,186 --> 00:02:24,366
+I already have this rect, I need
+to draw it or fill in my model.
+
+
+50
+00:02:24,366 --> 00:02:25,796
+Do I really need to draw it?"
+
+
+51
+00:02:25,976 --> 00:02:28,886
+If you do, call needsToDrawRect,
+it'll say yes or no
+
+
+52
+00:02:28,916 --> 00:02:31,636
+and then you can actually do
+your logic based on that answer.
+
+
+53
+00:02:32,186 --> 00:02:36,556
+What types of things
+should you be doing inside
+
+
+54
+00:02:36,556 --> 00:02:39,616
+of your drawRect, we should
+only be doing drawing inside
+
+
+55
+00:02:39,616 --> 00:02:40,316
+of your drawRect.
+
+
+56
+00:02:40,896 --> 00:02:43,376
+You don't want to be doing
+network calls, you don't want
+
+
+57
+00:02:43,376 --> 00:02:46,386
+to be doing image allocation or
+loading, you probably don't want
+
+
+58
+00:02:46,386 --> 00:02:48,746
+to be doing file access,
+you definitely don't want
+
+
+59
+00:02:48,746 --> 00:02:52,236
+to be doing layout or adding and
+removing subviews which are kind
+
+
+60
+00:02:52,236 --> 00:02:53,106
+of be a recursive loop.
+
+
+61
+00:02:53,106 --> 00:02:55,116
+If you add a view inside
+drawing, it's going to need
+
+
+62
+00:02:55,116 --> 00:02:58,696
+to draw again and
+that's not good.
+
+
+63
+00:02:58,916 --> 00:03:01,376
+Now, other things that you can
+do that are performant, well,
+
+
+64
+00:03:01,636 --> 00:03:03,926
+hiding a view may
+be actually better
+
+
+65
+00:03:03,926 --> 00:03:06,246
+and faster than adding the view.
+
+
+66
+00:03:07,276 --> 00:03:11,206
+So, you can utilize setHidden
+to make the views be hidden.
+
+
+67
+00:03:11,206 --> 00:03:13,926
+An exception to this, which I'll
+discuss a little bit later is
+
+
+68
+00:03:13,926 --> 00:03:15,406
+if you're using layer-backed
+views
+
+
+69
+00:03:16,246 --> 00:03:18,656
+and I'll discuss the
+details on why in a bit.
+
+
+70
+00:03:18,656 --> 00:03:22,776
+So let's talk a little
+bit more about images
+
+
+71
+00:03:23,246 --> 00:03:26,706
+and utilizing loading of
+images and what you should do.
+
+
+72
+00:03:27,456 --> 00:03:30,706
+It's really good to cache images
+so if you're using -imageNamed
+
+
+73
+00:03:30,706 --> 00:03:34,336
+to load an image, you probably
+want to retain it into an ivar.
+
+
+74
+00:03:35,066 --> 00:03:38,066
+It's quite possible that AppKit
+may not retain that image
+
+
+75
+00:03:38,066 --> 00:03:41,206
+and it may be cached, the cache
+may go away so if you want
+
+
+76
+00:03:41,206 --> 00:03:43,096
+to draw it again and
+again, retain it.
+
+
+77
+00:03:43,096 --> 00:03:48,716
+Now, if you have a big
+image that you want to load,
+
+
+78
+00:03:49,316 --> 00:03:51,976
+it's probably a good idea to
+not load it inside drawRect
+
+
+79
+00:03:51,976 --> 00:03:54,426
+and to asynchronously load
+it in the background thread.
+
+
+80
+00:03:55,066 --> 00:03:56,996
+So you can use an
+NSOperationQueue,
+
+
+81
+00:03:57,366 --> 00:04:00,566
+add an operation with block to
+do some work on the background.
+
+
+82
+00:04:01,106 --> 00:04:02,646
+You can actually do
+your heavy lifting
+
+
+83
+00:04:02,826 --> 00:04:05,426
+such as initWithContentsOfURL
+to allocate your image.
+
+
+84
+00:04:06,596 --> 00:04:08,856
+You can then kind of
+pre-cache and warm the image
+
+
+85
+00:04:09,056 --> 00:04:11,736
+by calling
+CGImageForProposedRect context:
+
+
+86
+00:04:11,736 --> 00:04:14,656
+hints and pass in the actual
+size which you're going
+
+
+87
+00:04:14,656 --> 00:04:17,935
+to be drawing and this will kind
+of warm the image up to get be--
+
+
+88
+00:04:17,935 --> 00:04:19,346
+to get to be ready
+to be drawing.
+
+
+89
+00:04:20,956 --> 00:04:24,066
+Then once it's warmed
+up, you can kick it back
+
+
+90
+00:04:24,066 --> 00:04:26,996
+over to the main queue
+and add another operation
+
+
+91
+00:04:26,996 --> 00:04:29,566
+that actually updates your
+image property of your view
+
+
+92
+00:04:29,566 --> 00:04:32,976
+and actually marks the
+area need to be redrawn
+
+
+93
+00:04:33,666 --> 00:04:35,666
+which will then be
+happening on the main thread.
+
+
+94
+00:04:36,216 --> 00:04:41,906
+As I mentioned before, you
+only want to do drawing
+
+
+95
+00:04:41,906 --> 00:04:44,776
+and don't do any layout in
+the background and inside
+
+
+96
+00:04:44,776 --> 00:04:48,006
+of drawRect so where
+should you do layout?
+
+
+97
+00:04:48,006 --> 00:04:50,396
+You should probably do
+layout in the layout method
+
+
+98
+00:04:50,866 --> 00:04:54,586
+or utilize viewWillDraw,
+that's the location to add
+
+
+99
+00:04:54,706 --> 00:04:58,266
+and remove subviews, mark areas
+as being dirty and whatnot.
+
+
+100
+00:04:59,216 --> 00:05:01,026
+Definitely, do not
+do inside drawRect
+
+
+101
+00:05:01,446 --> 00:05:02,696
+because it's bad
+for performance.
+
+
+102
+00:05:03,396 --> 00:05:08,406
+Of course, if your view
+is opaque, and you want
+
+
+103
+00:05:08,406 --> 00:05:10,636
+to override isOpaque on
+[inaudible] view and say yes.
+
+
+104
+00:05:11,606 --> 00:05:13,456
+If your view isn't, then
+you have to so say, no.
+
+
+105
+00:05:13,656 --> 00:05:15,806
+But if it opaque,
+then you tell AppKit,
+
+
+106
+00:05:16,016 --> 00:05:17,936
+that we can do more
+performing operations
+
+
+107
+00:05:18,496 --> 00:05:19,666
+by knowing this information.
+
+
+108
+00:05:20,156 --> 00:05:23,396
+Another thing that you can do
+
+
+109
+00:05:23,396 --> 00:05:27,446
+to make faster drawing is
+override wantsDefaultClipping.
+
+
+110
+00:05:28,276 --> 00:05:31,086
+By default, wantsDefaultClipping
+says yes,
+
+
+111
+00:05:31,646 --> 00:05:33,316
+meaning your view
+is going to clip
+
+
+112
+00:05:33,316 --> 00:05:35,406
+to whatever bounce it
+is actually drawing to.
+
+
+113
+00:05:36,526 --> 00:05:38,136
+Now, if you can strain
+all your drawing
+
+
+114
+00:05:38,136 --> 00:05:39,396
+to get Rects being drawn,
+
+
+115
+00:05:40,026 --> 00:05:42,306
+you can override
+-wantsDefaultClipping and say no
+
+
+116
+00:05:42,306 --> 00:05:44,106
+and we won't do that
+clipping for you
+
+
+117
+00:05:44,616 --> 00:05:45,946
+and it might be faster
+for drawing.
+
+
+118
+00:05:46,486 --> 00:05:50,206
+There are some methods
+in the AppKit
+
+
+119
+00:05:50,846 --> 00:05:52,066
+which are a little
+bit heavyweight
+
+
+120
+00:05:52,066 --> 00:05:54,366
+and called frequently
+and it's very good
+
+
+121
+00:05:54,366 --> 00:05:56,526
+to avoid overriding these
+methods if possible.
+
+
+122
+00:05:57,366 --> 00:05:59,316
+The class methods are
+the GState methods.
+
+
+123
+00:05:59,756 --> 00:06:03,966
+So if you're overriding or
+calling GState, allocateGState,
+
+
+124
+00:06:03,966 --> 00:06:08,606
+releaseGState and in particular,
+setupGState and renewGState,
+
+
+125
+00:06:09,286 --> 00:06:11,606
+we'd frequently see people
+overriding these methods,
+
+
+126
+00:06:11,846 --> 00:06:14,676
+in particular, renewGstate
+to do things to know
+
+
+127
+00:06:14,676 --> 00:06:16,696
+when their view's
+global position
+
+
+128
+00:06:16,696 --> 00:06:17,916
+within the window changes.
+
+
+129
+00:06:18,396 --> 00:06:20,816
+So for example, the views
+frame hasn't really changed
+
+
+130
+00:06:21,146 --> 00:06:24,056
+but its position inside the
+window globally does change
+
+
+131
+00:06:24,406 --> 00:06:25,926
+and some people are
+using this as a hook
+
+
+132
+00:06:25,926 --> 00:06:26,776
+to know when that happens.
+
+
+133
+00:06:27,946 --> 00:06:31,456
+Instead, it is much better
+to use notifications to find
+
+
+134
+00:06:31,456 --> 00:06:33,006
+out when your views
+position changes.
+
+
+135
+00:06:33,746 --> 00:06:36,136
+Use the
+NSViewFrameDidChangeNotification
+
+
+136
+00:06:36,816 --> 00:06:39,656
+or the NSViewBalanceDidChange
+Notification.
+
+
+137
+00:06:40,836 --> 00:06:42,456
+Raleigh is going to come
+up in a little bit and talk
+
+
+138
+00:06:42,456 --> 00:06:45,486
+about this a little bit more
+with the context of ScrollView.
+
+
+139
+00:06:46,066 --> 00:06:52,376
+So, that was discussing
+typical AppKit drawing and how
+
+
+140
+00:06:52,376 --> 00:06:54,506
+to do some performant things
+for a traditional drawing.
+
+
+141
+00:06:55,076 --> 00:06:57,356
+Let's talk about layer-backed
+view drawing and some
+
+
+142
+00:06:57,356 --> 00:07:02,686
+of the best practices for Core
+Animation and what you can do.
+
+
+143
+00:07:03,036 --> 00:07:06,476
+So last year, we gave a
+talk on layer-backed views
+
+
+144
+00:07:06,646 --> 00:07:09,516
+which I highly recommend going,
+digging up, and watching.
+
+
+145
+00:07:09,646 --> 00:07:12,346
+It discusses a lot of
+things that are great
+
+
+146
+00:07:12,346 --> 00:07:14,416
+to get performant animations
+using Core Animation.
+
+
+147
+00:07:14,416 --> 00:07:18,866
+I'm going to cover a couple of
+the properties here very quickly
+
+
+148
+00:07:18,996 --> 00:07:20,536
+to just reiterate how
+important they are
+
+
+149
+00:07:20,536 --> 00:07:22,686
+to get good fast animations.
+
+
+150
+00:07:22,686 --> 00:07:25,506
+I'm going to talk about the
+layerContentsRedrawPolicy
+
+
+151
+00:07:26,146 --> 00:07:28,566
+and also updateLayer
+and wantsUpdateLayer.
+
+
+152
+00:07:31,536 --> 00:07:34,436
+So in Lion, we introduced
+some new API called
+
+
+153
+00:07:34,436 --> 00:07:36,236
+the layerContentsRedrawPolicy.
+
+
+154
+00:07:36,656 --> 00:07:38,346
+It has a whole set
+of different values.
+
+
+155
+00:07:39,346 --> 00:07:41,556
+The one that's the
+most important is
+
+
+156
+00:07:41,556 --> 00:07:44,866
+that NSViewLayerContentsRedraw
+OnSetNeedsDisplay.
+
+
+157
+00:07:47,456 --> 00:07:51,896
+So when you set this property on
+your view, what it means is you
+
+
+158
+00:07:51,896 --> 00:07:53,966
+as a developer using
+a layer-backed view,
+
+
+159
+00:07:54,666 --> 00:07:58,246
+whenever your content changes on
+the view or your frame changes,
+
+
+160
+00:07:58,656 --> 00:08:01,326
+you are responsible for
+calling setNeedsDisplay.
+
+
+161
+00:08:02,066 --> 00:08:05,836
+We do not automatically call
+a setNeedsDisplay on the view
+
+
+162
+00:08:05,836 --> 00:08:06,966
+when the frame changes.
+
+
+163
+00:08:08,446 --> 00:08:10,536
+And what this does
+is it allows us
+
+
+164
+00:08:10,576 --> 00:08:12,666
+to utilize Core Animation
+animations
+
+
+165
+00:08:13,046 --> 00:08:15,056
+to smoothly animate your view.
+
+
+166
+00:08:15,496 --> 00:08:17,516
+So prefer to use this
+property if you can.
+
+
+167
+00:08:18,346 --> 00:08:21,006
+The frame change default
+is the default value
+
+
+168
+00:08:21,566 --> 00:08:25,686
+and so we require you to set the
+OnSetNeedsDisplay version of it
+
+
+169
+00:08:25,736 --> 00:08:28,856
+to opt in and please do so
+
+
+170
+00:08:29,346 --> 00:08:32,706
+and should get some fast
+animations doing this.
+
+
+171
+00:08:33,936 --> 00:08:37,336
+So how do we do drawing when
+we have a layer-backed view?
+
+
+172
+00:08:38,426 --> 00:08:41,166
+But since we added
+updateLayer in Mac OS 10.8,
+
+
+173
+00:08:41,166 --> 00:08:43,686
+here is the typical flow
+path that we do for drawing.
+
+
+174
+00:08:43,686 --> 00:08:47,536
+You have a Core Animation
+layer and it needs to draw
+
+
+175
+00:08:47,586 --> 00:08:48,836
+so it was dirty in some way.
+
+
+176
+00:08:49,816 --> 00:08:52,986
+The next thing that happens
+is it ask NSView, hey,
+
+
+177
+00:08:52,986 --> 00:08:56,106
+do you want to use updateLayer
+and depending on what the answer
+
+
+178
+00:08:56,106 --> 00:08:59,226
+to wantsUpdateLayer is, we
+do two different code pass.
+
+
+179
+00:08:59,756 --> 00:09:02,756
+So let's say you say no to
+wantsUpdateLayer, which is more
+
+
+180
+00:09:02,756 --> 00:09:05,216
+of a traditional drawing
+in drawRect-based copath.
+
+
+181
+00:09:06,276 --> 00:09:10,786
+What happens is Core Animation
+creates a CGContextRef the size
+
+
+182
+00:09:10,786 --> 00:09:11,516
+of our view.
+
+
+183
+00:09:12,176 --> 00:09:14,796
+That can be thought of as
+an image the entire size
+
+
+184
+00:09:14,796 --> 00:09:17,696
+of your view then
+uses a delegate method
+
+
+185
+00:09:17,926 --> 00:09:20,376
+drawLayer:inContext
+in order for AppKit
+
+
+186
+00:09:20,376 --> 00:09:22,566
+to call your drawRect
+implementation.
+
+
+187
+00:09:23,086 --> 00:09:25,956
+Then whatever you draw and setup
+your views bounds is captured
+
+
+188
+00:09:25,956 --> 00:09:30,076
+into a layered contents
+as an image.
+
+
+189
+00:09:30,236 --> 00:09:32,806
+Now, you may want to
+use wantsUpdateLayer
+
+
+190
+00:09:32,876 --> 00:09:34,496
+and I'll describe
+why in just a moment.
+
+
+191
+00:09:34,866 --> 00:09:38,726
+The way that works is we use a
+different delegate method called
+
+
+192
+00:09:38,726 --> 00:09:44,276
+displayLayer and then we call
+instead of AppKit updateLayer
+
+
+193
+00:09:44,546 --> 00:09:46,156
+which is a method
+that you can override,
+
+
+194
+00:09:46,656 --> 00:09:48,346
+you can set whatever
+properties you want
+
+
+195
+00:09:48,346 --> 00:09:51,186
+in the layer including
+the layer contents
+
+
+196
+00:09:51,546 --> 00:09:53,586
+to provide your representation
+of the view.
+
+
+197
+00:09:53,586 --> 00:09:56,996
+So let's take a look
+at doing that.
+
+
+198
+00:09:57,456 --> 00:09:59,616
+So here is an example
+using wantsUpdateLayer.
+
+
+199
+00:10:00,046 --> 00:10:02,126
+You override wantsUpdateLayer,
+you say yes.
+
+
+200
+00:10:02,916 --> 00:10:04,476
+Now, instead of getting
+a drawRect,
+
+
+201
+00:10:04,816 --> 00:10:07,986
+you get an update layer call
+and you can set layer properties
+
+
+202
+00:10:07,986 --> 00:10:09,826
+to represent how your view
+should be represented.
+
+
+203
+00:10:10,346 --> 00:10:13,016
+So for here, we don't have
+to create the backing store,
+
+
+204
+00:10:13,016 --> 00:10:14,666
+we don't have to create
+that image that back
+
+
+205
+00:10:14,706 --> 00:10:17,366
+to review instead, you
+can just set properties
+
+
+206
+00:10:17,366 --> 00:10:19,736
+such as the background
+color, the border color,
+
+
+207
+00:10:19,736 --> 00:10:22,446
+the border width and you can
+represent your user interface
+
+
+208
+00:10:22,446 --> 00:10:24,576
+this way without
+having to use memory
+
+
+209
+00:10:24,916 --> 00:10:26,066
+for the actual backing store.
+
+
+210
+00:10:26,826 --> 00:10:29,526
+This is a very efficient
+way to update layers
+
+
+211
+00:10:29,756 --> 00:10:31,066
+without using a lot of memory.
+
+
+212
+00:10:33,656 --> 00:10:35,806
+Speaking of properties
+that people can set
+
+
+213
+00:10:36,246 --> 00:10:38,416
+on Core Animation
+layers, you probably want
+
+
+214
+00:10:38,416 --> 00:10:40,196
+to avoid properties
+that are expensive
+
+
+215
+00:10:40,196 --> 00:10:43,426
+so if you're using the
+cornerRadius property, the mask,
+
+
+216
+00:10:44,226 --> 00:10:46,026
+filters, backgroundFilters,
+
+
+217
+00:10:46,356 --> 00:10:48,056
+those are all expensive
+properties
+
+
+218
+00:10:48,186 --> 00:10:50,426
+which might make your layer
+rendering a little slow.
+
+
+219
+00:10:50,956 --> 00:10:53,746
+So if possible, try to
+do your UI in another way
+
+
+220
+00:10:53,746 --> 00:10:55,646
+that can avoid these
+properties in order
+
+
+221
+00:10:55,646 --> 00:10:56,706
+to get better performance.
+
+
+222
+00:10:57,216 --> 00:11:02,596
+As I mentioned before,
+if your view is opaque
+
+
+223
+00:11:02,596 --> 00:11:04,456
+and you're saying
+yes from isOpaque,
+
+
+224
+00:11:04,726 --> 00:11:07,266
+that value is directly
+assigned to a layer.
+
+
+225
+00:11:07,806 --> 00:11:11,236
+And so, opaque layers are much
+faster to composite together
+
+
+226
+00:11:11,566 --> 00:11:14,666
+so prefer to say yes
+from isOpaque and realize
+
+
+227
+00:11:14,666 --> 00:11:16,456
+that property is
+transferred over to the layer.
+
+
+228
+00:11:18,756 --> 00:11:22,866
+Now, let's say that you are
+drawing a big view inside
+
+
+229
+00:11:22,866 --> 00:11:25,936
+of your drawRect
+of document view.
+
+
+230
+00:11:25,936 --> 00:11:29,056
+So you're drawing this big
+electric bug picture here.
+
+
+231
+00:11:30,976 --> 00:11:32,806
+What you're probably doing
+is you're pipe clipping
+
+
+232
+00:11:32,806 --> 00:11:35,156
+so you have just a tiny little
+area that you want the user
+
+
+233
+00:11:35,156 --> 00:11:38,186
+to see so you have it
+inside of this NSClipView.
+
+
+234
+00:11:39,566 --> 00:11:42,486
+The ClipView in itself is
+inside of the NSScrollView
+
+
+235
+00:11:42,486 --> 00:11:44,376
+so you can scroll around
+to whatever portion
+
+
+236
+00:11:44,376 --> 00:11:48,046
+of that view you want to see.
+
+
+237
+00:11:48,046 --> 00:11:51,156
+So how do we do this when
+you're using layer-backed views
+
+
+238
+00:11:51,156 --> 00:11:51,616
+in AppKit?
+
+
+239
+00:11:52,386 --> 00:11:55,806
+We have a special layer called
+the Tile Layer that we use
+
+
+240
+00:11:55,806 --> 00:11:59,706
+in AppKit to take your big view
+and just chop it up into lots
+
+
+241
+00:11:59,706 --> 00:12:01,016
+of little individual tiles.
+
+
+242
+00:12:01,686 --> 00:12:05,476
+Now, your view still has
+just the visible area
+
+
+243
+00:12:05,736 --> 00:12:08,466
+because a clip use clipping
+to what you just see.
+
+
+244
+00:12:08,906 --> 00:12:12,266
+So what we can do is we can
+make intelligent decisions here
+
+
+245
+00:12:12,266 --> 00:12:15,216
+where only the tiles
+that intersect
+
+
+246
+00:12:15,286 --> 00:12:17,146
+in that visible area are things
+
+
+247
+00:12:17,146 --> 00:12:18,806
+that are going to
+actually be drawn.
+
+
+248
+00:12:20,206 --> 00:12:22,146
+Everything outside of it
+doesn't have to be drawn.
+
+
+249
+00:12:22,226 --> 00:12:24,996
+Add a little asterisk next to
+this because Raleigh is going
+
+
+250
+00:12:24,996 --> 00:12:27,186
+to cover some details where we
+might do something differently.
+
+
+251
+00:12:29,156 --> 00:12:31,056
+So why is this important
+to know?
+
+
+252
+00:12:31,536 --> 00:12:35,556
+Well, all those tiles
+inside of your visible area,
+
+
+253
+00:12:35,556 --> 00:12:38,686
+each one is going to get its
+individual drawRect in order
+
+
+254
+00:12:38,686 --> 00:12:39,796
+to fill in its contents.
+
+
+255
+00:12:40,636 --> 00:12:42,956
+So if you're doing the things
+that I recommended at the start,
+
+
+256
+00:12:43,376 --> 00:12:45,406
+we're properly watching
+for the dirtyRect
+
+
+257
+00:12:45,406 --> 00:12:48,526
+and getRectsbeingdrawn, you'll
+only fill in your model area
+
+
+258
+00:12:48,526 --> 00:12:50,916
+and only draw in the areas
+which you are drawing
+
+
+259
+00:12:51,586 --> 00:12:54,536
+to an actual individual tile so
+it's very important that you do
+
+
+260
+00:12:54,536 --> 00:12:56,816
+that and it's important
+to be aware off
+
+
+261
+00:12:56,816 --> 00:12:59,096
+that we might be calling
+this more than once
+
+
+262
+00:12:59,326 --> 00:13:00,706
+for one particular visible area.
+
+
+263
+00:13:01,406 --> 00:13:05,886
+Of course, we're actually
+much more intelligent
+
+
+264
+00:13:05,886 --> 00:13:07,306
+than the picture I
+was showing before.
+
+
+265
+00:13:07,576 --> 00:13:10,176
+If your view is very
+skinny and tall,
+
+
+266
+00:13:10,176 --> 00:13:13,216
+our tiles might be really
+wide and not very tall
+
+
+267
+00:13:13,556 --> 00:13:16,966
+and so we're creating pow
+sizes that dynamically change
+
+
+268
+00:13:17,406 --> 00:13:18,706
+to be the most efficient
+
+
+269
+00:13:18,706 --> 00:13:20,746
+for your application
+and your view size.
+
+
+270
+00:13:21,236 --> 00:13:22,716
+It's important to realize this
+
+
+271
+00:13:22,716 --> 00:13:24,316
+because our actual
+implementation
+
+
+272
+00:13:24,316 --> 00:13:26,686
+and how we do the tiling
+may change over time
+
+
+273
+00:13:26,736 --> 00:13:27,826
+to make it more efficient.
+
+
+274
+00:13:28,326 --> 00:13:33,786
+So another thing you can do
+to get performant drawing
+
+
+275
+00:13:33,786 --> 00:13:37,076
+in a Core Animation
+layer-backed view is to try
+
+
+276
+00:13:37,076 --> 00:13:38,356
+and reduce your layer count.
+
+
+277
+00:13:38,356 --> 00:13:41,146
+So let's take it a
+typical layer-backed view
+
+
+278
+00:13:41,146 --> 00:13:42,376
+and see how the hierarchy works.
+
+
+279
+00:13:42,376 --> 00:13:45,136
+So you have your
+top most view here
+
+
+280
+00:13:45,406 --> 00:13:46,816
+and you do setWantsLayer, yes.
+
+
+281
+00:13:47,816 --> 00:13:50,896
+Implicitly, all your
+subviews are going
+
+
+282
+00:13:50,896 --> 00:13:52,206
+to get their own backing layers
+
+
+283
+00:13:52,206 --> 00:13:54,046
+so your big parent
+one has a layer,
+
+
+284
+00:13:54,516 --> 00:13:56,526
+all the subviews each have
+their own backing layer.
+
+
+285
+00:13:57,046 --> 00:14:00,526
+What could be the
+problem with this?
+
+
+286
+00:14:01,026 --> 00:14:04,086
+Well, as I mentioned before,
+if you're using drawRect,
+
+
+287
+00:14:04,396 --> 00:14:07,996
+each of those views might have
+their own backing store, again,
+
+
+288
+00:14:07,996 --> 00:14:10,646
+their own little image contents
+and they might be compositing
+
+
+289
+00:14:10,646 --> 00:14:13,066
+on top of each other which
+might be a waste of memory.
+
+
+290
+00:14:14,526 --> 00:14:16,486
+You also might have a
+high composition cost
+
+
+291
+00:14:16,486 --> 00:14:18,216
+where if you're not
+animating that view around,
+
+
+292
+00:14:18,276 --> 00:14:21,256
+why have a bunch of layers there
+when they're not really needed.
+
+
+293
+00:14:22,756 --> 00:14:24,246
+And unlike just regular AppKit,
+
+
+294
+00:14:25,206 --> 00:14:28,446
+hidden layers actually might
+have a composition cost wherein
+
+
+295
+00:14:28,446 --> 00:14:31,086
+if they're in the layer tree,
+this have to be processed.
+
+
+296
+00:14:31,666 --> 00:14:34,746
+So if you a layer-backed view,
+it's probably more performant
+
+
+297
+00:14:34,746 --> 00:14:37,276
+to actually remove the
+view from the hierarchy
+
+
+298
+00:14:37,526 --> 00:14:38,686
+as opposed to hiding it.
+
+
+299
+00:14:38,686 --> 00:14:41,946
+And what I mean here having a
+couple you are hiding is fine,
+
+
+300
+00:14:42,246 --> 00:14:44,496
+but if you're actually
+hiding hundreds of views,
+
+
+301
+00:14:44,496 --> 00:14:46,606
+that's probably not a good
+idea and you probably want
+
+
+302
+00:14:46,606 --> 00:14:48,296
+to remove them from
+the hierarchy instead.
+
+
+303
+00:14:51,056 --> 00:14:54,116
+So, another way to reduce
+your subview count--
+
+
+304
+00:14:54,176 --> 00:14:56,116
+or sorry, your sublayer count is
+
+
+305
+00:14:56,116 --> 00:15:01,266
+to use some new Mac OS 10.9 API
+called CanDrawSubviewsIntoLayer
+
+
+306
+00:15:01,266 --> 00:15:03,926
+and the setter,
+setCanDrawSubviewsIntoLayer.
+
+
+307
+00:15:04,486 --> 00:15:06,876
+Let's take a look
+at how this works
+
+
+308
+00:15:07,186 --> 00:15:08,846
+and why you would
+want to use it.
+
+
+309
+00:15:09,806 --> 00:15:13,166
+So in the same example here,
+you have setWantsLayer:YES
+
+
+310
+00:15:13,606 --> 00:15:14,696
+on your top most view.
+
+
+311
+00:15:14,786 --> 00:15:15,776
+In addition,
+
+
+312
+00:15:15,776 --> 00:15:17,686
+you do
+setCanDrawSubviewsIntoLayer:
+
+
+313
+00:15:17,686 --> 00:15:17,866
+YES.
+
+
+314
+00:15:17,946 --> 00:15:20,526
+And what's going
+to happen is just
+
+
+315
+00:15:20,526 --> 00:15:23,626
+that top most subview is
+going to get the actual layer.
+
+
+316
+00:15:24,616 --> 00:15:28,046
+All those other subviews will
+no longer have their individual
+
+
+317
+00:15:28,046 --> 00:15:30,896
+layers instead, they're
+all drawn
+
+
+318
+00:15:31,106 --> 00:15:32,806
+with their drawRect
+implementation
+
+
+319
+00:15:32,806 --> 00:15:33,976
+into the parent layer.
+
+
+320
+00:15:35,466 --> 00:15:37,946
+The interesting thing here is
+even though the parent layer--
+
+
+321
+00:15:37,946 --> 00:15:42,116
+parent view has a layer, if it
+says yes to wantsUpdateLayer,
+
+
+322
+00:15:42,276 --> 00:15:46,016
+it's not going to get an
+update layer call, that view
+
+
+323
+00:15:46,016 --> 00:15:48,996
+and its layer and all the
+children must utilize drawRect
+
+
+324
+00:15:48,996 --> 00:15:49,816
+to do their drawing.
+
+
+325
+00:15:50,436 --> 00:15:55,196
+But this is a great way to
+reduce your layer count.
+
+
+326
+00:15:55,456 --> 00:15:59,376
+So, one interesting thing here
+is that what if you did want
+
+
+327
+00:15:59,376 --> 00:16:02,566
+to view a subview that has
+its own layer because you want
+
+
+328
+00:16:02,566 --> 00:16:03,876
+to animate that button around,
+
+
+329
+00:16:04,496 --> 00:16:07,976
+you can opt in one individual
+subview really easily
+
+
+330
+00:16:08,216 --> 00:16:11,616
+by just doing setWantsLayer:YES,
+and that view
+
+
+331
+00:16:11,856 --> 00:16:12,996
+which normally would
+have been drawn
+
+
+332
+00:16:12,996 --> 00:16:14,826
+to parent layer will
+now get its own layer
+
+
+333
+00:16:14,906 --> 00:16:16,616
+and you can animate
+it around smoothly.
+
+
+334
+00:16:16,616 --> 00:16:21,066
+So why would you want
+to reduce these layers?
+
+
+335
+00:16:21,406 --> 00:16:22,496
+Let's get a direct example
+
+
+336
+00:16:22,526 --> 00:16:24,766
+where it might be more
+applicable for what you can do.
+
+
+337
+00:16:25,396 --> 00:16:29,046
+So here's a view base table view
+and you want to reduce a lot
+
+
+338
+00:16:29,046 --> 00:16:30,566
+of these subviews
+into a single layer.
+
+
+339
+00:16:31,276 --> 00:16:32,456
+You might have made your layer--
+
+
+340
+00:16:32,616 --> 00:16:34,826
+or you might have made your
+ScrollView layer-backed
+
+
+341
+00:16:34,826 --> 00:16:37,576
+so that you can actually
+get fast mode--
+
+
+342
+00:16:37,856 --> 00:16:41,826
+fast smooth scrolling and also,
+you can do cool row animations.
+
+
+343
+00:16:42,446 --> 00:16:44,086
+But the row animations
+themselves are just
+
+
+344
+00:16:44,086 --> 00:16:45,286
+on the individual row views.
+
+
+345
+00:16:45,716 --> 00:16:48,346
+And so what you can do is you
+can collapse these row views,
+
+
+346
+00:16:48,866 --> 00:16:52,096
+the subviews layers
+into one single layer.
+
+
+347
+00:16:53,336 --> 00:16:54,836
+So what you can do for each
+
+
+348
+00:16:54,836 --> 00:16:58,986
+of those table row views do
+setCanDrawSubviewsintheLayer:
+
+
+349
+00:16:58,986 --> 00:17:02,546
+YES for each of them and all
+those individual subviews,
+
+
+350
+00:17:02,546 --> 00:17:05,516
+the image, the text and
+whatnot will be drawn instead
+
+
+351
+00:17:05,516 --> 00:17:10,516
+of having individual layers into
+just one layer of the row view.
+
+
+352
+00:17:10,746 --> 00:17:13,246
+One interesting caveat
+to note here is
+
+
+353
+00:17:13,246 --> 00:17:16,596
+that for text fonts moving
+to work such as the title
+
+
+354
+00:17:16,596 --> 00:17:19,915
+of that word there, it must
+be drawn into an opaque area
+
+
+355
+00:17:20,576 --> 00:17:22,736
+so the row view or
+something else that was drawn
+
+
+356
+00:17:22,736 --> 00:17:26,386
+in that layer must have filled
+with some opaque color in order
+
+
+357
+00:17:26,386 --> 00:17:29,276
+for fonts moving to work just
+something to be aware of.
+
+
+358
+00:17:29,926 --> 00:17:34,466
+So that was just
+discussing layer-backed views
+
+
+359
+00:17:34,596 --> 00:17:37,206
+in Core Animation, I'm now
+going to bring up Raleigh Ledet
+
+
+360
+00:17:37,206 --> 00:17:38,476
+to talk about Responsive
+Scrolling.
+
+
+361
+00:17:38,776 --> 00:17:42,156
+>> So you've seen the demos
+already for responsive scrolling
+
+
+362
+00:17:42,726 --> 00:17:45,926
+and for an overview, I want to
+give you another demo of that
+
+
+363
+00:17:45,926 --> 00:17:47,756
+so let's take an example.
+
+
+364
+00:17:48,366 --> 00:17:51,356
+So, I'm going to go ahead
+
+
+365
+00:17:51,356 --> 00:17:53,986
+and turn off responsive
+scrolling globally real quick
+
+
+366
+00:17:53,986 --> 00:17:55,556
+and I'm going to run my
+little test app here.
+
+
+367
+00:17:56,256 --> 00:18:01,426
+And this test app does lots of
+horrible things during drawRect
+
+
+368
+00:18:01,426 --> 00:18:04,796
+so your drawRect performance
+is very poor and you can see
+
+
+369
+00:18:04,796 --> 00:18:09,726
+that when we try and scroll the
+scrolling performance is painful
+
+
+370
+00:18:09,796 --> 00:18:10,426
+in this app.
+
+
+371
+00:18:10,426 --> 00:18:13,456
+So we're going to go ahead and
+turn responsive scrolling back
+
+
+372
+00:18:13,456 --> 00:18:16,296
+on and we'll go ahead
+and run the same app
+
+
+373
+00:18:17,316 --> 00:18:19,276
+and I'll just [inaudible] so
+you can see it, there we go.
+
+
+374
+00:18:19,766 --> 00:18:21,876
+And now, when we do scrolling,
+
+
+375
+00:18:22,106 --> 00:18:27,446
+we have nice smooth 60 frames
+per second scrolling and--
+
+
+376
+00:18:27,946 --> 00:18:31,936
+[applause].
+
+
+377
+00:18:32,436 --> 00:18:32,726
+Thank you.
+
+
+378
+00:18:33,216 --> 00:18:36,066
+And, you know, that's--
+that was the point
+
+
+379
+00:18:36,066 --> 00:18:39,346
+of responsive scrolling, we want
+60 frames per second buttery
+
+
+380
+00:18:39,346 --> 00:18:41,906
+smooth scrolling, I could just
+keep listing bullet points
+
+
+381
+00:18:41,906 --> 00:18:43,746
+of describing this all day long.
+
+
+382
+00:18:44,086 --> 00:18:45,296
+We're excited about it.
+
+
+383
+00:18:45,356 --> 00:18:48,856
+And I'm going to give you
+a quick brief overview
+
+
+384
+00:18:49,136 --> 00:18:52,706
+of how this works and you've
+already seen this but--
+
+
+385
+00:18:52,706 --> 00:18:55,166
+say you have your document
+view which is obviously inside
+
+
+386
+00:18:55,166 --> 00:18:58,666
+of a clip view and only a
+small portion of it is visible
+
+
+387
+00:18:59,016 --> 00:19:00,876
+and traditionally,
+that's all that was drawn.
+
+
+388
+00:19:00,876 --> 00:19:02,796
+When we get responsive
+scrolling,
+
+
+389
+00:19:02,796 --> 00:19:06,166
+we're going to ask your
+document view to draw portions
+
+
+390
+00:19:06,166 --> 00:19:08,976
+that aren't visible and
+we call that the overdraw.
+
+
+391
+00:19:08,976 --> 00:19:11,616
+And now that once we
+have this overdraw,
+
+
+392
+00:19:11,616 --> 00:19:14,086
+on a background thread,
+we can go ahead
+
+
+393
+00:19:14,086 --> 00:19:17,366
+and change what the user sees
+on screen very, very quickly
+
+
+394
+00:19:17,366 --> 00:19:19,626
+to any portion that we
+have that's already drawn
+
+
+395
+00:19:19,626 --> 00:19:20,386
+in the overdraw.
+
+
+396
+00:19:21,306 --> 00:19:23,786
+And in a nutshell, that's
+all that we're really doing
+
+
+397
+00:19:23,786 --> 00:19:24,846
+with responsive scrolling.
+
+
+398
+00:19:25,666 --> 00:19:27,756
+Under the hood, there's a
+lot going on and I'm going
+
+
+399
+00:19:27,756 --> 00:19:29,016
+to cover some of those details.
+
+
+400
+00:19:29,486 --> 00:19:31,296
+Particular, I'm going to
+talk about the overdraw model
+
+
+401
+00:19:31,296 --> 00:19:32,426
+and exactly how it works.
+
+
+402
+00:19:32,806 --> 00:19:35,206
+The event model, there's lots
+of big changes going on there.
+
+
+403
+00:19:35,856 --> 00:19:39,216
+Some API that we have to
+help you adapt to the changes
+
+
+404
+00:19:39,216 --> 00:19:42,066
+that we have and what you
+need to do in your application
+
+
+405
+00:19:42,066 --> 00:19:44,336
+so that you can make sure
+that your application adopts
+
+
+406
+00:19:44,336 --> 00:19:45,366
+in to responsive scrolling.
+
+
+407
+00:19:46,406 --> 00:19:48,196
+So let's kick off with overdraw.
+
+
+408
+00:19:49,976 --> 00:19:54,036
+The main thing about overdraw
+is still main thread driven.
+
+
+409
+00:19:54,036 --> 00:19:55,576
+Your drawrect calls, they're
+always going to be called
+
+
+410
+00:19:55,576 --> 00:19:57,296
+in the main thread so
+you don't have to worry
+
+
+411
+00:19:57,296 --> 00:19:58,936
+about doing any additional
+locking
+
+
+412
+00:19:59,236 --> 00:20:00,756
+that your app wasn't
+already doing,
+
+
+413
+00:20:00,756 --> 00:20:02,046
+you can access the
+view hierarchy
+
+
+414
+00:20:02,046 --> 00:20:04,276
+and you're data model
+just like you always did.
+
+
+415
+00:20:05,796 --> 00:20:07,756
+Of course, drawRect is
+now going to be called
+
+
+416
+00:20:07,756 --> 00:20:08,886
+with nonvisible Rects.
+
+
+417
+00:20:09,236 --> 00:20:11,766
+So as Corbin mentioned
+earlier, it's really important
+
+
+418
+00:20:11,766 --> 00:20:13,296
+that you respect
+those dirtyRects
+
+
+419
+00:20:13,296 --> 00:20:15,996
+and you only do drawing and
+you do it just in the areas
+
+
+420
+00:20:15,996 --> 00:20:17,266
+that we're asking you to draw.
+
+
+421
+00:20:20,256 --> 00:20:24,276
+When your app is idle, that's
+when one figures a good time
+
+
+422
+00:20:24,276 --> 00:20:27,506
+for us to go ahead and ask
+you to generate some overdraw.
+
+
+423
+00:20:27,506 --> 00:20:29,956
+We're only going to ask you
+though for a little portion
+
+
+424
+00:20:29,956 --> 00:20:32,256
+of overdraw that way
+your drawRect can be fast
+
+
+425
+00:20:32,256 --> 00:20:33,736
+and if the user tries
+to interact
+
+
+426
+00:20:33,736 --> 00:20:35,486
+with the application
+while you're in the middle
+
+
+427
+00:20:35,486 --> 00:20:38,666
+of generating overdraw, that
+overdraw drawing will be quick
+
+
+428
+00:20:38,666 --> 00:20:41,526
+and the user will not see any
+lag between trying to interact
+
+
+429
+00:20:41,526 --> 00:20:43,526
+with your application while
+you're generating overdraw.
+
+
+430
+00:20:43,826 --> 00:20:46,186
+So last just for a little
+bit, that will get drawn,
+
+
+431
+00:20:46,186 --> 00:20:47,976
+we have some overdraw,
+that's great.
+
+
+432
+00:20:47,976 --> 00:20:50,206
+The application is still idle
+so we'll say, "Hey, great,
+
+
+433
+00:20:50,206 --> 00:20:52,076
+let's draw a little bit more
+and we'll draw some more
+
+
+434
+00:20:52,076 --> 00:20:55,686
+and this is going to go around
+all the access that you have
+
+
+435
+00:20:55,806 --> 00:20:56,976
+for your scroll view."
+
+
+436
+00:20:57,176 --> 00:20:58,516
+This one is only
+doing vertically
+
+
+437
+00:20:58,516 --> 00:21:00,036
+so we'll just go up and down.
+
+
+438
+00:21:00,036 --> 00:21:01,226
+So we have a little bit more.
+
+
+439
+00:21:01,226 --> 00:21:04,096
+If your app is still idle,
+we just continue this process
+
+
+440
+00:21:04,516 --> 00:21:09,016
+until AppKit has decided
+that we have enough overdraw
+
+
+441
+00:21:09,016 --> 00:21:11,746
+to be responsive for what
+the user is likely to do.
+
+
+442
+00:21:12,326 --> 00:21:17,196
+Now, we don't want to
+draw your entire document,
+
+
+443
+00:21:17,516 --> 00:21:20,256
+that would be a huge backing
+store and that would take a lot
+
+
+444
+00:21:20,256 --> 00:21:23,336
+of memory and it would even
+take a lot of power just
+
+
+445
+00:21:23,336 --> 00:21:25,866
+to have you draw that
+whole document view.
+
+
+446
+00:21:25,866 --> 00:21:26,616
+So we don't want to do that.
+
+
+447
+00:21:26,986 --> 00:21:28,976
+AppKit plays a very
+careful balancing act
+
+
+448
+00:21:29,096 --> 00:21:31,786
+between how much overdraw we
+have so that it's responsive
+
+
+449
+00:21:31,786 --> 00:21:35,626
+for the user and not
+using too much memory
+
+
+450
+00:21:35,626 --> 00:21:38,576
+and not using too much power
+to be able to accomplish this.
+
+
+451
+00:21:38,936 --> 00:21:40,976
+And we even go a step
+further and where possible.
+
+
+452
+00:21:40,976 --> 00:21:42,546
+We'll make sure that
+those backing stores
+
+
+453
+00:21:42,546 --> 00:21:44,966
+that we're creating to hold
+the overdraw are purgeable
+
+
+454
+00:21:44,966 --> 00:21:45,916
+by the Kernel.
+
+
+455
+00:21:45,916 --> 00:21:47,446
+So if there's memory
+pressure on the system,
+
+
+456
+00:21:48,046 --> 00:21:49,506
+that memory can be
+freed by the Kernel
+
+
+457
+00:21:49,506 --> 00:21:51,056
+without even waking
+your application
+
+
+458
+00:21:51,406 --> 00:21:53,206
+and when your application
+becomes active again,
+
+
+459
+00:21:53,206 --> 00:21:56,376
+we'll notice that and we'll ask
+for those areas to be redrawn.
+
+
+460
+00:21:56,976 --> 00:22:00,546
+And this is great and in
+general, you won't have
+
+
+461
+00:22:00,546 --> 00:22:03,216
+to do anything but sometimes
+it's not quite enough.
+
+
+462
+00:22:03,246 --> 00:22:06,936
+You need to be able
+to watch what's going
+
+
+463
+00:22:06,936 --> 00:22:09,626
+on with overdraw
+and react to that.
+
+
+464
+00:22:09,626 --> 00:22:12,736
+One example is if you are
+adding your own subviews
+
+
+465
+00:22:13,386 --> 00:22:15,866
+that you only want the
+subviews for your documents
+
+
+466
+00:22:15,866 --> 00:22:17,646
+that are visible to be there.
+
+
+467
+00:22:17,646 --> 00:22:18,986
+This is a common technique.
+
+
+468
+00:22:18,986 --> 00:22:20,866
+Table view does this for
+a view-based table views.
+
+
+469
+00:22:21,466 --> 00:22:23,626
+Now, you need to make
+sure with overdraw
+
+
+470
+00:22:23,626 --> 00:22:26,826
+that those subviews exist
+in the overdraw area is well
+
+
+471
+00:22:26,826 --> 00:22:28,536
+so that they are
+always going to be ready
+
+
+472
+00:22:28,576 --> 00:22:29,946
+for when the user
+scrolls to those.
+
+
+473
+00:22:30,426 --> 00:22:34,486
+So we have new API that you
+can adopt and you can play
+
+
+474
+00:22:34,486 --> 00:22:36,396
+around in the overdraw
+world then make sure
+
+
+475
+00:22:36,396 --> 00:22:38,556
+that your content is
+going to be available.
+
+
+476
+00:22:38,656 --> 00:22:40,636
+And let's give you
+an example of that.
+
+
+477
+00:22:41,216 --> 00:22:44,126
+In your document view, you would
+override PrepareContentInRect
+
+
+478
+00:22:45,526 --> 00:22:49,466
+and we'll go ahead and pass
+in the rect during idle when--
+
+
+479
+00:22:49,826 --> 00:22:52,136
+whenever we want to
+prepare some new content.
+
+
+480
+00:22:52,136 --> 00:22:53,756
+And the rect that
+actually gets passed
+
+
+481
+00:22:53,756 --> 00:22:56,096
+in is not just a little
+sliver that we're going
+
+
+482
+00:22:56,096 --> 00:22:57,336
+to eventually ask you to draw.
+
+
+483
+00:22:57,686 --> 00:23:01,476
+It includes the entire overdraw
+area that we want currently
+
+
+484
+00:23:01,476 --> 00:23:03,806
+which is always going to at
+least include your visible rect
+
+
+485
+00:23:03,806 --> 00:23:06,586
+and in this case, the new
+little section of purple here.
+
+
+486
+00:23:06,586 --> 00:23:09,446
+Then you go ahead and you
+prepare you content as needed.
+
+
+487
+00:23:09,776 --> 00:23:12,126
+In this example, this is what
+we're going to add our subview
+
+
+488
+00:23:12,126 --> 00:23:15,276
+to the view hierarchy because
+this is of course called
+
+
+489
+00:23:15,276 --> 00:23:16,526
+on the main thread always.
+
+
+490
+00:23:16,966 --> 00:23:19,396
+So, adding a few
+to the hierarchy
+
+
+491
+00:23:19,396 --> 00:23:20,716
+at this point is perfectly safe.
+
+
+492
+00:23:21,756 --> 00:23:25,046
+Now, when you override
+and PrepareContentInRect,
+
+
+493
+00:23:25,806 --> 00:23:28,966
+you're not just reacting to
+the rects that we're provided
+
+
+494
+00:23:28,966 --> 00:23:30,936
+in you to do overdraw.
+
+
+495
+00:23:31,216 --> 00:23:33,586
+You can actually be
+an active participant
+
+
+496
+00:23:33,586 --> 00:23:36,136
+in deciding how much
+overdraw is being used.
+
+
+497
+00:23:36,486 --> 00:23:38,926
+And in this example of the
+subviews there, we don't want
+
+
+498
+00:23:38,926 --> 00:23:41,586
+to clip half of it
+off in the overdraw,
+
+
+499
+00:23:41,746 --> 00:23:42,736
+it's just a little bit.
+
+
+500
+00:23:43,086 --> 00:23:45,936
+So when we tell super how
+much overdraw you've prepared,
+
+
+501
+00:23:46,246 --> 00:23:48,826
+we want to extend it just a
+little bit and cover the edge
+
+
+502
+00:23:48,826 --> 00:23:51,636
+of that subview and that will
+be a little bit more efficient.
+
+
+503
+00:23:51,906 --> 00:23:53,596
+So you can be an active
+participant in this.
+
+
+504
+00:23:55,076 --> 00:23:56,566
+After you return from
+this, little bit later,
+
+
+505
+00:23:56,566 --> 00:23:59,176
+we'll go ahead ask that
+new section to be drawn
+
+
+506
+00:23:59,246 --> 00:24:02,536
+and we'll have that in the
+overdraw ready to be scrolled
+
+
+507
+00:24:02,536 --> 00:24:04,516
+to for the user at
+a moment's notice.
+
+
+508
+00:24:05,526 --> 00:24:07,966
+Of course, if you have a
+still idle, we'll go ahead
+
+
+509
+00:24:08,146 --> 00:24:09,796
+and start asking
+for more overdraw
+
+
+510
+00:24:09,796 --> 00:24:12,416
+and as you've seen before, we'll
+just continue this process.
+
+
+511
+00:24:12,416 --> 00:24:14,696
+Continue to call,
+PrepareContentInRect
+
+
+512
+00:24:15,106 --> 00:24:17,856
+and to just further
+drive the point home.
+
+
+513
+00:24:18,086 --> 00:24:20,376
+Now, the rect thats getting
+passed includes that overdraw
+
+
+514
+00:24:20,376 --> 00:24:22,936
+that we drew earlier, the
+visible rect and the new section
+
+
+515
+00:24:22,936 --> 00:24:23,876
+of overdraw that we want
+
+
+516
+00:24:23,876 --> 00:24:26,356
+so you can make sure the whole
+area is properly prepared.
+
+
+517
+00:24:26,356 --> 00:24:31,876
+Again, when I've talked about
+being an active participant
+
+
+518
+00:24:33,006 --> 00:24:36,376
+under very specialized
+circumstances you might know,
+
+
+519
+00:24:36,736 --> 00:24:40,836
+when is the better
+time to end overdraw?
+
+
+520
+00:24:41,116 --> 00:24:43,206
+AppKit plays is very
+careful balancing act,
+
+
+521
+00:24:43,526 --> 00:24:46,306
+there are some situations
+out there where you know
+
+
+522
+00:24:46,456 --> 00:24:48,236
+that pulling in a
+certain amount of content
+
+
+523
+00:24:48,236 --> 00:24:49,326
+for you makes more sense
+
+
+524
+00:24:49,356 --> 00:24:51,096
+than AppKit would
+otherwise want to do.
+
+
+525
+00:24:51,386 --> 00:24:55,046
+And in that case, if the rect
+you return as super as the same
+
+
+526
+00:24:55,046 --> 00:24:57,946
+as the previous time we
+called PrepareContentInRect,
+
+
+527
+00:24:58,326 --> 00:25:02,366
+then we'll of course-- we won't
+ask for that area to be drawn
+
+
+528
+00:25:02,726 --> 00:25:05,296
+and we're going to stop
+asking for overdraw
+
+
+529
+00:25:05,296 --> 00:25:08,456
+on idle unless the overdraw
+gets blown away for some reason
+
+
+530
+00:25:08,736 --> 00:25:11,316
+and then we'll come back on
+idle and rebuild it from scratch
+
+
+531
+00:25:11,476 --> 00:25:14,276
+where you can terminate it
+again through the same mechanism
+
+
+532
+00:25:14,276 --> 00:25:17,816
+that once you return the same
+rect twice in a row, we go ahead
+
+
+533
+00:25:17,816 --> 00:25:18,786
+and stop asking for it.
+
+
+534
+00:25:19,316 --> 00:25:23,796
+Of course, now that you have
+content that isn't even visible,
+
+
+535
+00:25:23,796 --> 00:25:26,816
+if that content becomes dirty,
+please setNeedsDisplayInRect
+
+
+536
+00:25:27,316 --> 00:25:29,486
+and just those portions
+that have been dirtied
+
+
+537
+00:25:30,016 --> 00:25:33,176
+and we will go ahead and have
+those redrawn when appropriate
+
+
+538
+00:25:33,526 --> 00:25:35,966
+and that way when we
+scroll to that section,
+
+
+539
+00:25:35,966 --> 00:25:39,126
+it's always the most up to
+date content for the user.
+
+
+540
+00:25:40,496 --> 00:25:42,836
+There's some special
+circumstances where you need
+
+
+541
+00:25:42,836 --> 00:25:46,406
+to tell AppKit that you should
+totally get rid of any--
+
+
+542
+00:25:46,406 --> 00:25:48,066
+of all that prepared
+overdraw that we have.
+
+
+543
+00:25:48,426 --> 00:25:50,436
+And you can set the
+PreparedContentInRect
+
+
+544
+00:25:50,436 --> 00:25:51,676
+in this case to the
+visible rect.
+
+
+545
+00:25:52,186 --> 00:25:55,366
+For example, the user might
+have changed something,
+
+
+546
+00:25:55,436 --> 00:25:58,796
+choose a different group
+of items which are going
+
+
+547
+00:25:58,796 --> 00:26:00,646
+to totally change the
+content that you're showing
+
+
+548
+00:26:00,646 --> 00:26:04,766
+in the scroll view and the
+original prepared content there
+
+
+549
+00:26:04,766 --> 00:26:06,966
+is completely not even
+appropriate anymore.
+
+
+550
+00:26:06,966 --> 00:26:09,986
+So, you want to go ahead and
+tell AppKit to just drop it all
+
+
+551
+00:26:10,206 --> 00:26:11,856
+and we'll drop down
+to the visible rect
+
+
+552
+00:26:11,856 --> 00:26:13,806
+and the next pass
+to the run loop.
+
+
+553
+00:26:13,806 --> 00:26:16,036
+We'll draw the content
+for the visible rect
+
+
+554
+00:26:17,216 --> 00:26:19,206
+and that's what the user
+will see, and during idle,
+
+
+555
+00:26:19,206 --> 00:26:22,426
+we'll build it back up with your
+new content that's appropriate.
+
+
+556
+00:26:23,426 --> 00:26:26,566
+So, all of this with overdraws
+are done on the main thread,
+
+
+557
+00:26:27,456 --> 00:26:29,186
+drawRect is being called
+your nonvisibleRect,
+
+
+558
+00:26:29,186 --> 00:26:31,066
+make sure your drawRects
+are only doing drawing
+
+
+559
+00:26:31,066 --> 00:26:32,476
+and they're as fast as possible.
+
+
+560
+00:26:33,956 --> 00:26:37,486
+In general, let AppKit balance
+the amount of overdraw along
+
+
+561
+00:26:37,486 --> 00:26:41,116
+with memory empower usage and
+purgeable memory and handle all
+
+
+562
+00:26:41,116 --> 00:26:42,696
+of that complicated matter.
+
+
+563
+00:26:43,226 --> 00:26:47,076
+Only if you have specialized
+needs then you can go ahead
+
+
+564
+00:26:47,076 --> 00:26:48,906
+and cut that short a
+little bit perhaps.
+
+
+565
+00:26:50,206 --> 00:26:52,616
+In other circumstances like when
+you're adding your own views
+
+
+566
+00:26:52,616 --> 00:26:55,496
+and then make sure that the
+prepared content is there
+
+
+567
+00:26:55,546 --> 00:26:57,966
+in the view hierarchy,
+then go ahead
+
+
+568
+00:26:57,966 --> 00:27:01,126
+and use the prepared content
+rect API that we have.
+
+
+569
+00:27:01,856 --> 00:27:03,196
+So that's overdraw.
+
+
+570
+00:27:03,586 --> 00:27:05,756
+Let's move-- switch gears and
+talk about the event model.
+
+
+571
+00:27:06,326 --> 00:27:09,456
+A lot of exciting things here
+as already been pointed out.
+
+
+572
+00:27:10,226 --> 00:27:12,496
+But let's back off a
+little bit and talk
+
+
+573
+00:27:12,496 --> 00:27:14,686
+about the traditional way
+that scrolling is handled.
+
+
+574
+00:27:15,936 --> 00:27:17,216
+You got a scroll
+wheel event comes
+
+
+575
+00:27:17,216 --> 00:27:18,556
+in through your scrolling
+device.
+
+
+576
+00:27:18,556 --> 00:27:20,046
+It gets put into an event queue
+
+
+577
+00:27:20,046 --> 00:27:22,586
+and your main run loop is
+running on the main thread
+
+
+578
+00:27:22,716 --> 00:27:25,356
+of your application
+handling event sources
+
+
+579
+00:27:25,726 --> 00:27:28,646
+and other run loop sources,
+pulls the scroll wheel event
+
+
+580
+00:27:28,646 --> 00:27:30,926
+out of the queue, we hitTest
+that scroll wheel event,
+
+
+581
+00:27:31,246 --> 00:27:32,576
+they get passed to
+your document--
+
+
+582
+00:27:32,576 --> 00:27:34,496
+your some subview of
+your document view.
+
+
+583
+00:27:35,196 --> 00:27:36,866
+And then we call
+scroll wheel on that,
+
+
+584
+00:27:37,606 --> 00:27:40,966
+that goes up the responder chain
+finally gets to scroll wheel
+
+
+585
+00:27:41,316 --> 00:27:42,406
+and in that scroll view,
+
+
+586
+00:27:42,686 --> 00:27:44,406
+then that scroll view
+moves your content,
+
+
+587
+00:27:44,566 --> 00:27:47,306
+withdraw the little section of
+content that became available
+
+
+588
+00:27:47,656 --> 00:27:50,156
+and we'd let the run loop go
+back to handling event sources
+
+
+589
+00:27:50,576 --> 00:27:51,886
+and the next scroll
+wheel comes in
+
+
+590
+00:27:51,886 --> 00:27:53,876
+and we do the whole
+process all over again
+
+
+591
+00:27:53,876 --> 00:27:56,126
+for every single scroll
+wheel event that comes in.
+
+
+592
+00:27:56,126 --> 00:28:00,626
+Well with Responsive scrolling,
+we break that cycle and once
+
+
+593
+00:28:00,626 --> 00:28:02,966
+that first event comes in
+as soon as it gets to--
+
+
+594
+00:28:02,966 --> 00:28:04,986
+in a scroll view, and
+the scroll view sets
+
+
+595
+00:28:04,986 --> 00:28:06,436
+up concurrent tracking thread
+
+
+596
+00:28:06,436 --> 00:28:09,566
+and it will now handle the
+events on the background thread.
+
+
+597
+00:28:10,196 --> 00:28:12,346
+The scroll wheel events from
+the track pad are now going
+
+
+598
+00:28:12,346 --> 00:28:15,156
+to be routed to this private
+event queue so you won't be able
+
+
+599
+00:28:15,156 --> 00:28:18,316
+to see them at all and they will
+be processed by the scroll wheel
+
+
+600
+00:28:18,436 --> 00:28:21,306
+and now your main thread
+is allowed to just run
+
+
+601
+00:28:21,576 --> 00:28:23,836
+as it normally would
+processing other events
+
+
+602
+00:28:23,836 --> 00:28:24,886
+and other run loop sources.
+
+
+603
+00:28:25,786 --> 00:28:26,796
+Let's dig in a little bit more
+
+
+604
+00:28:26,796 --> 00:28:28,216
+with the concurrent
+tracking thread
+
+
+605
+00:28:28,216 --> 00:28:32,196
+and inspect a little bit further
+on exactly what its doing.
+
+
+606
+00:28:32,986 --> 00:28:35,416
+It's pulling events from the
+event queue and it figures
+
+
+607
+00:28:35,416 --> 00:28:37,706
+out where we want to
+move the scrolling.
+
+
+608
+00:28:38,246 --> 00:28:41,196
+And so we can change that
+do the user very quickly
+
+
+609
+00:28:41,196 --> 00:28:43,506
+on a background thread, anywhere
+that we have the overdraw.
+
+
+610
+00:28:43,756 --> 00:28:45,026
+So let's say it lands
+right there,
+
+
+611
+00:28:45,926 --> 00:28:48,496
+course your main thread
+run loop is still running,
+
+
+612
+00:28:48,716 --> 00:28:50,766
+it's still doing its
+thing respecting timers
+
+
+613
+00:28:50,766 --> 00:28:51,406
+that are firing.
+
+
+614
+00:28:52,156 --> 00:28:53,606
+But if you would ask
+your view hierarchy
+
+
+615
+00:28:53,606 --> 00:28:56,166
+at this point what the visible
+rect is, it's still going
+
+
+616
+00:28:56,166 --> 00:28:58,256
+to say is that blue
+square up there.
+
+
+617
+00:28:59,056 --> 00:29:02,166
+Though what the users sees on
+screen is the red dashed area.
+
+
+618
+00:29:02,646 --> 00:29:06,066
+So, that's an important thing to
+realize as what the users sees
+
+
+619
+00:29:06,066 --> 00:29:07,196
+on screen can be different
+
+
+620
+00:29:07,196 --> 00:29:08,566
+than what your main
+thread is reporting.
+
+
+621
+00:29:08,566 --> 00:29:12,486
+Now, the concurrent tracking
+thread whenever it updates the
+
+
+622
+00:29:12,486 --> 00:29:14,286
+screen, it goes ahead
+
+
+623
+00:29:14,286 --> 00:29:17,006
+and it issues a synchronization
+request on the main thread.
+
+
+624
+00:29:17,406 --> 00:29:18,586
+This gets run in
+the main thread,
+
+
+625
+00:29:18,586 --> 00:29:21,956
+it talks it in a scroll view and
+it actually does the scroll too
+
+
+626
+00:29:22,366 --> 00:29:25,766
+and all of your view properties
+are going to be updated
+
+
+627
+00:29:25,766 --> 00:29:28,496
+and their visible rect will
+be the most up to date version
+
+
+628
+00:29:28,496 --> 00:29:30,226
+of the visible rect that
+we possible can have.
+
+
+629
+00:29:31,306 --> 00:29:35,056
+And normally and traditionally,
+this would cause drawRects
+
+
+630
+00:29:35,056 --> 00:29:37,946
+to occur but hopefully here,
+since we already have overdraw,
+
+
+631
+00:29:37,946 --> 00:29:40,256
+this is just updating
+the view frames changes,
+
+
+632
+00:29:40,476 --> 00:29:41,936
+this can happen very,
+very, quickly.
+
+
+633
+00:29:42,426 --> 00:29:44,896
+And if-- and once the
+synchronization occurs,
+
+
+634
+00:29:45,346 --> 00:29:48,126
+it'll match with what we have
+on the screen and every--
+
+
+635
+00:29:48,206 --> 00:29:49,566
+everything will be in sync.
+
+
+636
+00:29:49,566 --> 00:29:52,286
+And if this happens in
+exact same display refresh
+
+
+637
+00:29:52,356 --> 00:29:55,006
+that the concurrent tracking
+thread move things then
+
+
+638
+00:29:55,366 --> 00:29:57,686
+everything appears
+to be in sync.
+
+
+639
+00:29:59,516 --> 00:30:03,106
+The other thing that the
+synchronization request does is
+
+
+640
+00:30:03,106 --> 00:30:05,506
+if your app-- if your main
+thread is otherwise idle,
+
+
+641
+00:30:05,906 --> 00:30:06,906
+it'll ask for some prefetch.
+
+
+642
+00:30:07,096 --> 00:30:09,236
+So we'll do some more overdraw.
+
+
+643
+00:30:09,486 --> 00:30:12,336
+In this case, the
+concurrent tracking thread
+
+
+644
+00:30:12,336 --> 00:30:14,306
+and the synchronizer know
+what direction the user is
+
+
+645
+00:30:14,306 --> 00:30:14,786
+scrolling in.
+
+
+646
+00:30:14,786 --> 00:30:16,836
+So we ask for prefetch
+in that direction.
+
+
+647
+00:30:16,836 --> 00:30:19,166
+So unlike idle which is
+trying to get a general case,
+
+
+648
+00:30:19,166 --> 00:30:21,766
+this is more specific and
+we can get drawing ahead
+
+
+649
+00:30:21,766 --> 00:30:24,616
+of where the user is
+going but it does bring
+
+
+650
+00:30:24,616 --> 00:30:25,836
+up an interesting situation.
+
+
+651
+00:30:26,866 --> 00:30:28,616
+What happens when the user
+tries to scroll to area
+
+
+652
+00:30:28,616 --> 00:30:30,696
+that you haven't been
+able to catch up to yet.
+
+
+653
+00:30:31,156 --> 00:30:34,176
+Well, in that case,
+we have to back off
+
+
+654
+00:30:34,376 --> 00:30:37,946
+and respect what the main
+thread can keep up with.
+
+
+655
+00:30:38,286 --> 00:30:41,306
+We don't want to show blank
+content that could be drawing
+
+
+656
+00:30:41,306 --> 00:30:42,316
+and confusing to the user.
+
+
+657
+00:30:42,836 --> 00:30:46,476
+So we end up-- what's we run
+out of overdraw, we have to slow
+
+
+658
+00:30:46,476 --> 00:30:48,346
+down to whatever the
+main thread can do
+
+
+659
+00:30:48,466 --> 00:30:49,906
+and if the main thread
+catches back up,
+
+
+660
+00:30:50,296 --> 00:30:52,906
+because maybe it was
+just a long processing
+
+
+661
+00:30:52,906 --> 00:30:54,466
+of some timer information,
+
+
+662
+00:30:54,946 --> 00:30:56,566
+once the main thread
+can catch back up,
+
+
+663
+00:30:56,566 --> 00:30:58,296
+if the user is still
+scrolling, we can get back
+
+
+664
+00:30:58,296 --> 00:30:59,256
+into responsive scrolling.
+
+
+665
+00:30:59,776 --> 00:31:01,506
+But it's a situation
+we want to avoid.
+
+
+666
+00:31:01,896 --> 00:31:04,726
+So, my point here is
+it's not a silver bullet.
+
+
+667
+00:31:05,406 --> 00:31:08,526
+Responsive scrolling works
+really great to make sure
+
+
+668
+00:31:08,526 --> 00:31:11,736
+that it's responsive right away
+when the users starts scrolling
+
+
+669
+00:31:12,116 --> 00:31:13,916
+and that there are
+any little hiccups
+
+
+670
+00:31:13,916 --> 00:31:16,106
+that your main thread might
+have in responding to timers
+
+
+671
+00:31:16,106 --> 00:31:18,996
+or network request or anything
+like that won't interfere
+
+
+672
+00:31:18,996 --> 00:31:22,096
+with user's experience
+but at some point,
+
+
+673
+00:31:22,096 --> 00:31:24,466
+if your app can't keep up and
+the user is scrolling fast
+
+
+674
+00:31:24,466 --> 00:31:26,966
+and they're scrolling
+far, we'll have to drop
+
+
+675
+00:31:26,966 --> 00:31:28,896
+down to whatever your
+main thread can handle.
+
+
+676
+00:31:30,066 --> 00:31:31,036
+So quick overview,
+
+
+677
+00:31:31,996 --> 00:31:33,616
+event tracking is now
+done concurrently.
+
+
+678
+00:31:33,846 --> 00:31:35,586
+Once we get that first
+scroll wheel event,
+
+
+679
+00:31:35,586 --> 00:31:36,626
+you won't see the other ones
+
+
+680
+00:31:36,626 --> 00:31:38,356
+until the gesture
+is fully completed.
+
+
+681
+00:31:39,556 --> 00:31:42,126
+What's on the screen may not
+match what the main thread is
+
+
+682
+00:31:42,126 --> 00:31:45,506
+reporting as the visibleRect
+and it's not a silver bullet.
+
+
+683
+00:31:45,506 --> 00:31:48,026
+So make sure you drawRects
+are as fast as possible
+
+
+684
+00:31:48,026 --> 00:31:49,716
+and you're only doing
+drawing in those drawRects.
+
+
+685
+00:31:50,226 --> 00:31:54,296
+Let's go ahead and move on to
+some API and how you can play
+
+
+686
+00:31:54,296 --> 00:31:55,236
+with this brand new world.
+
+
+687
+00:31:55,666 --> 00:32:00,486
+Overriding scroll wheel
+is obviously isn't going
+
+
+688
+00:32:00,486 --> 00:32:02,396
+to work the way that it used
+to because scroll will use
+
+
+689
+00:32:02,396 --> 00:32:05,146
+to see every single scroll wheel
+event in your document view
+
+
+690
+00:32:05,146 --> 00:32:07,636
+or in your subclass and
+that's not the case anymore.
+
+
+691
+00:32:08,886 --> 00:32:11,266
+A better way of watching
+scrolling changes is
+
+
+692
+00:32:11,316 --> 00:32:13,216
+to watch the clip
+views bound changes.
+
+
+693
+00:32:13,636 --> 00:32:15,356
+And the clip view of
+course is the contentView
+
+
+694
+00:32:15,356 --> 00:32:17,736
+of the scrollView and you'll
+need to tell the clip view
+
+
+695
+00:32:17,736 --> 00:32:21,146
+to pout-- to post its
+bounds change notifications
+
+
+696
+00:32:21,146 --> 00:32:23,956
+so setPostBoundsChanged
+Notifications: YES,
+
+
+697
+00:32:24,666 --> 00:32:27,516
+and then once the clip view
+is posting its bounds change
+
+
+698
+00:32:27,516 --> 00:32:29,756
+notifications, you
+can ask to observe
+
+
+699
+00:32:29,756 --> 00:32:31,256
+that on the notification center
+
+
+700
+00:32:31,256 --> 00:32:34,546
+with the NSViewBoundsDidChange
+Notification on the clip view.
+
+
+701
+00:32:35,586 --> 00:32:39,116
+Now, this is better in general
+then overriding scroll wheel
+
+
+702
+00:32:39,116 --> 00:32:42,016
+because now you'll be informed
+anytime the scroll wheel--
+
+
+703
+00:32:42,496 --> 00:32:45,156
+the scroll view scrolls
+which could be in response
+
+
+704
+00:32:45,156 --> 00:32:47,286
+to a scroll wheel event,
+it might be in response
+
+
+705
+00:32:47,286 --> 00:32:51,956
+to the user moving the scroll
+bar, it might be in response
+
+
+706
+00:32:51,996 --> 00:32:54,956
+to keyboard access or it could
+be even you've programatically
+
+
+707
+00:32:54,956 --> 00:32:57,906
+moved the clip view bounds.
+
+
+708
+00:32:58,086 --> 00:33:00,186
+And this way, you'll catch all
+of those and you can respond
+
+
+709
+00:33:00,186 --> 00:33:02,116
+to them appropriately
+in your application all
+
+
+710
+00:33:02,116 --> 00:33:05,416
+in one central case-- all in
+one central place without having
+
+
+711
+00:33:05,416 --> 00:33:09,096
+to have codes sprinkled all over
+your application to handle that.
+
+
+712
+00:33:09,376 --> 00:33:12,286
+So this is the way that we've
+been suggesting that you watch
+
+
+713
+00:33:12,456 --> 00:33:14,646
+for your scroll view
+bounds changes instead
+
+
+714
+00:33:14,646 --> 00:33:15,816
+of overriding scroll wheel.
+
+
+715
+00:33:16,766 --> 00:33:19,066
+However, there's a case
+where you really want to know
+
+
+716
+00:33:19,066 --> 00:33:20,926
+that the user initiated
+scrolling.
+
+
+717
+00:33:21,376 --> 00:33:22,076
+Well, until now,
+
+
+718
+00:33:22,076 --> 00:33:25,756
+we've implemented some new
+live scroll notifications
+
+
+719
+00:33:26,506 --> 00:33:28,196
+and you can get exactly
+that information.
+
+
+720
+00:33:28,596 --> 00:33:32,386
+You can find out when the user
+starts to do a live scroll,
+
+
+721
+00:33:32,546 --> 00:33:33,806
+you'll get a whole bunch of Dids
+
+
+722
+00:33:33,806 --> 00:33:36,906
+as the user is scrolling every
+time we move the content.
+
+
+723
+00:33:37,356 --> 00:33:40,096
+And then when the last
+scrolling completely ends,
+
+
+724
+00:33:40,096 --> 00:33:41,446
+you'll get a DidEndLiveScroll.
+
+
+725
+00:33:41,756 --> 00:33:44,426
+So this worked great
+with the gesture capable
+
+
+726
+00:33:44,616 --> 00:33:45,466
+scrolling devices.
+
+
+727
+00:33:45,986 --> 00:33:48,506
+And what we do here
+with these devices is
+
+
+728
+00:33:48,566 --> 00:33:51,046
+as the user scrolls
+multiple times consecutively,
+
+
+729
+00:33:51,536 --> 00:33:54,386
+you will only see one bracket
+of will start and did end.
+
+
+730
+00:33:54,686 --> 00:33:56,226
+So even though the user
+scrolled three or four,
+
+
+731
+00:33:56,226 --> 00:33:58,416
+five times in a row
+will coalesce those all
+
+
+732
+00:33:58,416 --> 00:34:01,826
+into one will start, a whole
+bunch of dids and did end.
+
+
+733
+00:34:02,426 --> 00:34:06,556
+Not only that, we will
+actually extend this
+
+
+734
+00:34:06,556 --> 00:34:07,776
+across the animations.
+
+
+735
+00:34:07,776 --> 00:34:09,856
+So if the user goes into
+rubber banding for example
+
+
+736
+00:34:09,856 --> 00:34:11,485
+and there are no more
+events coming in,
+
+
+737
+00:34:11,735 --> 00:34:13,896
+there's that little bit of a
+rubber band animation going on.
+
+
+738
+00:34:14,246 --> 00:34:17,216
+We don't call dead-end until
+the animation completes.
+
+
+739
+00:34:17,525 --> 00:34:19,906
+And every frame of the
+animation we issued dids.
+
+
+740
+00:34:20,136 --> 00:34:23,156
+So you've got a will start,
+some dids, the animation starts,
+
+
+741
+00:34:23,156 --> 00:34:24,146
+you'll get a few more dids.
+
+
+742
+00:34:24,426 --> 00:34:25,446
+When it ends, you'll get a--
+
+
+743
+00:34:25,866 --> 00:34:27,456
+in a scroll view
+did end live scroll
+
+
+744
+00:34:27,456 --> 00:34:29,416
+and the scroll is
+completely over at that point.
+
+
+745
+00:34:30,176 --> 00:34:31,166
+We take it a step further
+
+
+746
+00:34:31,166 --> 00:34:33,626
+and says this is user-initiated
+scrolling, we can--
+
+
+747
+00:34:33,746 --> 00:34:35,346
+we know when they're
+tracking the scroll bar.
+
+
+748
+00:34:36,056 --> 00:34:38,116
+Now, this is checking the
+scroll bar still driven
+
+
+749
+00:34:38,116 --> 00:34:41,116
+on the main thread in this case
+but we know when it starts,
+
+
+750
+00:34:41,226 --> 00:34:43,096
+we know every frame
+that happens in between
+
+
+751
+00:34:43,096 --> 00:34:44,446
+and we know when it stops.
+
+
+752
+00:34:44,696 --> 00:34:46,545
+So we'll go ahead and
+report those notifications
+
+
+753
+00:34:46,545 --> 00:34:47,065
+in that case.
+
+
+754
+00:34:47,856 --> 00:34:50,976
+We'll even do this for
+keyboard things, page up
+
+
+755
+00:34:50,976 --> 00:34:52,096
+and page down for example.
+
+
+756
+00:34:52,315 --> 00:34:53,666
+Those are animations generally.
+
+
+757
+00:34:53,666 --> 00:34:55,065
+Well, we know when
+the animation starts
+
+
+758
+00:34:55,065 --> 00:34:57,036
+and we knows when--
+we know when it ends.
+
+
+759
+00:34:57,856 --> 00:34:59,716
+And then all of these
+cases, the--
+
+
+760
+00:34:59,716 --> 00:35:02,826
+these notifications are being
+issued on the main thread.
+
+
+761
+00:35:02,886 --> 00:35:04,356
+So that's an important
+thing to point out.
+
+
+762
+00:35:04,886 --> 00:35:07,726
+Your notifications-- these live
+scroll notifications are always
+
+
+763
+00:35:07,776 --> 00:35:09,026
+issued on the main thread.
+
+
+764
+00:35:09,286 --> 00:35:12,156
+But this device is a
+little interesting.
+
+
+765
+00:35:12,726 --> 00:35:14,346
+If you look at the devices
+
+
+766
+00:35:14,346 --> 00:35:16,376
+that actually have a physical
+scroll wheel or something
+
+
+767
+00:35:16,376 --> 00:35:20,526
+that has like a scroll ball
+like the Mighty Mouse, it does--
+
+
+768
+00:35:20,696 --> 00:35:23,656
+we don't know when it starts,
+we don't know when it ends.
+
+
+769
+00:35:23,656 --> 00:35:25,666
+All we know is that a
+scroll wheel event happened.
+
+
+770
+00:35:26,376 --> 00:35:28,246
+Another one might happen
+soon, it might not.
+
+
+771
+00:35:28,836 --> 00:35:32,096
+So in that case, we issued just
+a did live scroll notification
+
+
+772
+00:35:32,096 --> 00:35:33,136
+and of course, that's
+going to happen
+
+
+773
+00:35:33,136 --> 00:35:35,086
+on the main thread just
+like all the others.
+
+
+774
+00:35:35,576 --> 00:35:37,636
+So, if you're looking for
+this and you're looking
+
+
+775
+00:35:37,636 --> 00:35:39,926
+for user-initiated scrolling,
+it's important to realize
+
+
+776
+00:35:39,926 --> 00:35:41,806
+that some devices
+won't be bracketed
+
+
+777
+00:35:41,806 --> 00:35:43,246
+with the will start
+and a did end.
+
+
+778
+00:35:43,736 --> 00:35:49,626
+If you have some floating
+subviews in your content,
+
+
+779
+00:35:50,376 --> 00:35:52,796
+like let's look at
+this table view here.
+
+
+780
+00:35:52,796 --> 00:35:54,006
+It's a floating group row.
+
+
+781
+00:35:54,986 --> 00:35:57,696
+What's going on here during
+scrolling is that your--
+
+
+782
+00:35:57,766 --> 00:36:00,706
+generally, you have a subview
+in your content, it scrolls
+
+
+783
+00:36:00,706 --> 00:36:02,336
+and you change the
+frame of this view.
+
+
+784
+00:36:02,336 --> 00:36:04,146
+So to the user, it appears
+
+
+785
+00:36:04,146 --> 00:36:05,346
+that it's floating
+above your content.
+
+
+786
+00:36:05,396 --> 00:36:06,186
+It hasn't moved.
+
+
+787
+00:36:06,626 --> 00:36:09,756
+Though in reality, it has moved
+within your view hierarchy
+
+
+788
+00:36:10,546 --> 00:36:12,326
+or for moving the content
+on the background thread
+
+
+789
+00:36:12,326 --> 00:36:13,326
+that can get out of sync.
+
+
+790
+00:36:14,076 --> 00:36:16,056
+And it's a lot of code
+that you shouldn't have
+
+
+791
+00:36:16,086 --> 00:36:17,186
+to write for yourself anyway.
+
+
+792
+00:36:17,596 --> 00:36:20,976
+So in a scroll view, we have
+this new API addFloatingSubviews
+
+
+793
+00:36:20,976 --> 00:36:23,376
+for access, you tell us which
+access you want this view
+
+
+794
+00:36:23,376 --> 00:36:27,296
+to be floating on and we'll go
+ahead and put in a special place
+
+
+795
+00:36:27,296 --> 00:36:28,106
+in the view hierarchy
+
+
+796
+00:36:28,456 --> 00:36:32,556
+and scrolling will be
+handled automatically in sync.
+
+
+797
+00:36:32,606 --> 00:36:34,976
+So if you're scrolling ob the
+access is not floating on,
+
+
+798
+00:36:34,976 --> 00:36:38,396
+it'll scroll that content in
+sync with the clip views content
+
+
+799
+00:36:38,746 --> 00:36:42,276
+and when it's floating, it's
+just handled automatically
+
+
+800
+00:36:42,276 --> 00:36:45,216
+for you without you having
+to update those frames.
+
+
+801
+00:36:45,666 --> 00:36:48,466
+So, it's less code for you
+to write, a lot easier to do,
+
+
+802
+00:36:48,706 --> 00:36:51,016
+and this is what table
+view does automatically
+
+
+803
+00:36:51,496 --> 00:36:53,866
+for responsive scrolling
+on 10.9.
+
+
+804
+00:36:53,866 --> 00:37:01,136
+So that was a whole-- there's
+a whole lot there going
+
+
+805
+00:37:01,136 --> 00:37:02,356
+on with responsive scrolling.
+
+
+806
+00:37:03,726 --> 00:37:06,286
+In order to adopt in
+to responses scrolling,
+
+
+807
+00:37:06,846 --> 00:37:08,586
+you have to be linked
+on 10.8 or later.
+
+
+808
+00:37:09,666 --> 00:37:11,186
+Your window that your
+scroll view was in,
+
+
+809
+00:37:11,186 --> 00:37:14,646
+its alpha must be 1, it
+has to be completely opaque
+
+
+810
+00:37:15,346 --> 00:37:17,736
+and your document must
+not be an OpenGL context.
+
+
+811
+00:37:17,736 --> 00:37:20,326
+These are the absolute
+basics that we need
+
+
+812
+00:37:20,466 --> 00:37:24,736
+to start adopting your scroll
+views into responsive scrolling.
+
+
+813
+00:37:25,686 --> 00:37:26,666
+We have a few more.
+
+
+814
+00:37:26,666 --> 00:37:29,816
+But from that-- this point on,
+we try to make it as automatic
+
+
+815
+00:37:29,816 --> 00:37:31,316
+as possible, we want you to--
+
+
+816
+00:37:31,496 --> 00:37:33,976
+have to do as a little
+work as possible.
+
+
+817
+00:37:34,976 --> 00:37:36,856
+But as you know,
+scrolling is the cooperation
+
+
+818
+00:37:36,856 --> 00:37:39,216
+of a scroll view, the clip
+view, and your document view.
+
+
+819
+00:37:39,766 --> 00:37:43,026
+If anyone of these views for
+whatever reason can adopt
+
+
+820
+00:37:43,026 --> 00:37:45,566
+into responsive scrolling,
+then as a collection,
+
+
+821
+00:37:45,806 --> 00:37:47,826
+these three views won't
+do responsive scrolling.
+
+
+822
+00:37:52,596 --> 00:37:55,646
+I'm going to talk about some
+more things that you need to do
+
+
+823
+00:37:55,646 --> 00:37:57,776
+to adopt in the responses
+going in the next few slides.
+
+
+824
+00:37:58,036 --> 00:38:01,046
+But from this point on, you
+can use this explicit API
+
+
+825
+00:38:01,286 --> 00:38:03,576
+isCompatibleWithResponsive
+Scrolling
+
+
+826
+00:38:03,986 --> 00:38:06,336
+to bypass all those checks.
+
+
+827
+00:38:06,336 --> 00:38:08,536
+When you return yes,
+we won't even check
+
+
+828
+00:38:08,766 --> 00:38:10,096
+and we'll just adopt you
+
+
+829
+00:38:10,096 --> 00:38:12,076
+in the responsive
+scrolling from this point on.
+
+
+830
+00:38:13,846 --> 00:38:18,656
+Obviously, you can override
+scrollWheel or lockFocus,
+
+
+831
+00:38:18,816 --> 00:38:20,326
+scrollWheel in particular
+as we've covered,
+
+
+832
+00:38:20,536 --> 00:38:21,976
+there's a huge behavior
+change here.
+
+
+833
+00:38:21,976 --> 00:38:24,986
+So if you notice that,
+your scroll view subclass,
+
+
+834
+00:38:24,986 --> 00:38:25,856
+your clip view subclass,
+
+
+835
+00:38:25,856 --> 00:38:29,046
+your document view is overriding
+scroll wheel then we're going
+
+
+836
+00:38:29,046 --> 00:38:30,996
+to adopt you in to
+responsive scrolling.
+
+
+837
+00:38:31,366 --> 00:38:35,106
+So please as I've pointed out
+earlier, use other API and try
+
+
+838
+00:38:35,106 --> 00:38:38,126
+and just remove your scroll
+wheel override all together.
+
+
+839
+00:38:38,736 --> 00:38:40,606
+Or if you absolutely have
+to have it and you're OK
+
+
+840
+00:38:40,606 --> 00:38:42,766
+with just peaking at the one
+event because you need to decide
+
+
+841
+00:38:42,766 --> 00:38:46,056
+if it's a scroll or not period,
+before you have been passed it
+
+
+842
+00:38:46,086 --> 00:38:49,026
+to super, then go ahead
+and override scrollWheel
+
+
+843
+00:38:49,056 --> 00:38:50,916
+and in the class that
+you override scrollWheel,
+
+
+844
+00:38:51,496 --> 00:38:54,396
+override is compatible
+with responsive scrolling.
+
+
+845
+00:38:54,426 --> 00:38:56,766
+Remember, it's a class
+method and return yes.
+
+
+846
+00:38:57,596 --> 00:38:59,176
+lockFocus turns out with the way
+
+
+847
+00:38:59,176 --> 00:39:01,216
+that we do overdraw
+just isn't applicable.
+
+
+848
+00:39:01,216 --> 00:39:03,566
+So, please stop overriding
+lockFocus.
+
+
+849
+00:39:04,406 --> 00:39:07,446
+But, you can-- like I said,
+with the previous slide,
+
+
+850
+00:39:07,646 --> 00:39:08,896
+this is something
+that you can override
+
+
+851
+00:39:08,896 --> 00:39:10,236
+with the
+isCompatibleWithResponsive
+
+
+852
+00:39:10,236 --> 00:39:11,706
+Scrolling and you can find
+
+
+853
+00:39:11,706 --> 00:39:12,926
+out what happens in
+your application.
+
+
+854
+00:39:14,216 --> 00:39:16,596
+From this point on,
+we have two models
+
+
+855
+00:39:16,966 --> 00:39:19,646
+that we've been talking about,
+the traditional drawing model
+
+
+856
+00:39:19,646 --> 00:39:21,516
+and the layer-backed
+model that we have
+
+
+857
+00:39:21,516 --> 00:39:22,946
+and Corbin covered
+the various cases.
+
+
+858
+00:39:23,836 --> 00:39:25,226
+Responses scrolling
+support both.
+
+
+859
+00:39:26,196 --> 00:39:29,016
+If you're using traditional
+drawing then copiesOnScroll
+
+
+860
+00:39:29,016 --> 00:39:31,946
+which is a property actually on
+the clip view, but there's also
+
+
+861
+00:39:31,946 --> 00:39:34,996
+on the scroll view and it
+brought it over to the clip view
+
+
+862
+00:39:34,996 --> 00:39:38,856
+and there's little check you
+can check in interface builder.
+
+
+863
+00:39:39,216 --> 00:39:42,156
+That should be yes and
+isOpaque must return yes
+
+
+864
+00:39:42,156 --> 00:39:42,986
+for the document view.
+
+
+865
+00:39:43,456 --> 00:39:45,406
+The isOpaque one
+is really important
+
+
+866
+00:39:45,406 --> 00:39:46,956
+because as Corbin
+covered earlier,
+
+
+867
+00:39:47,186 --> 00:39:49,986
+in order to get fonts moving
+right, your checks needs to be
+
+
+868
+00:39:49,986 --> 00:39:54,576
+on an opaque-- needs to
+have opaque pixels in order
+
+
+869
+00:39:54,576 --> 00:39:56,976
+for fonts moving
+to work correctly.
+
+
+870
+00:39:57,666 --> 00:39:59,586
+And if your isOpaque
+is returning no
+
+
+871
+00:39:59,586 --> 00:40:02,726
+which is the default case, then
+we're not sure what's going
+
+
+872
+00:40:02,726 --> 00:40:04,136
+on there and we won't
+be able to adopt you
+
+
+873
+00:40:04,136 --> 00:40:04,976
+in to responsive scrolling.
+
+
+874
+00:40:05,636 --> 00:40:09,236
+However, if you know that your
+view has some transparent parts
+
+
+875
+00:40:09,236 --> 00:40:11,476
+but those transparent
+parts don't have any text,
+
+
+876
+00:40:12,316 --> 00:40:15,086
+then go ahead and override
+the isCompatibleWithResponsive
+
+
+877
+00:40:15,086 --> 00:40:17,926
+Scrolling and you can have
+a non-opaque document view.
+
+
+878
+00:40:18,756 --> 00:40:19,896
+Or you can just go layer-backed.
+
+
+879
+00:40:19,896 --> 00:40:21,606
+We don't even check
+the copiesOnScroll
+
+
+880
+00:40:21,606 --> 00:40:23,506
+and isOpaque if you layer-back.
+
+
+881
+00:40:24,076 --> 00:40:25,986
+But when you go layer-back,
+you need to make sure
+
+
+882
+00:40:25,986 --> 00:40:28,916
+that your layer-back at least
+at the end of scroll view layer,
+
+
+883
+00:40:29,336 --> 00:40:33,206
+in a scroll view level, or any
+of the scroll views ancestors.
+
+
+884
+00:40:33,736 --> 00:40:37,326
+You can do that by calling
+setWantsLayer on the scroll view
+
+
+885
+00:40:37,326 --> 00:40:39,196
+or you have a scroll
+view subclass,
+
+
+886
+00:40:39,196 --> 00:40:41,716
+you can just return
+yes from wantsLayer.
+
+
+887
+00:40:41,716 --> 00:40:44,206
+An interface builder in
+the Core Animation section,
+
+
+888
+00:40:44,206 --> 00:40:45,636
+there's a nice little check box
+
+
+889
+00:40:45,636 --> 00:40:49,136
+and that check box is the same
+thing as saying setWantsLayer
+
+
+890
+00:40:49,486 --> 00:40:52,276
+and so you would do that on a
+scroll view or its ancestor.
+
+
+891
+00:40:54,036 --> 00:40:55,866
+And also, as Corbin mentioned,
+
+
+892
+00:40:55,866 --> 00:40:58,726
+I want to reiterate the
+canDrawSubviewsIntoLayer.
+
+
+893
+00:40:59,946 --> 00:41:01,446
+There are different
+performance characteristics
+
+
+894
+00:41:01,446 --> 00:41:03,106
+when you go layer-back,
+when you have--
+
+
+895
+00:41:03,206 --> 00:41:05,206
+you have to composite all those
+different layers together.
+
+
+896
+00:41:05,576 --> 00:41:09,096
+So, depending on your
+application and the amount
+
+
+897
+00:41:09,096 --> 00:41:11,686
+of memory that all these
+layers use and what--
+
+
+898
+00:41:11,686 --> 00:41:15,446
+and exactly what you're
+animating, you can decide
+
+
+899
+00:41:15,446 --> 00:41:17,856
+at what is the appropriate
+level that you want
+
+
+900
+00:41:17,856 --> 00:41:21,086
+to collapse these all down
+into one layer and the--
+
+
+901
+00:41:21,406 --> 00:41:23,416
+Corbin's example that he gave
+was great, you might want
+
+
+902
+00:41:23,416 --> 00:41:24,936
+to do it for a view-based
+table view
+
+
+903
+00:41:24,936 --> 00:41:26,326
+on the row view for example.
+
+
+904
+00:41:26,376 --> 00:41:29,566
+And that way, you can animate
+each individual row smoothly
+
+
+905
+00:41:29,616 --> 00:41:35,706
+and quickly, but this will be a
+lot less layers for us to have
+
+
+906
+00:41:35,706 --> 00:41:36,666
+in the view hierarchy
+
+
+907
+00:41:37,286 --> 00:41:39,666
+to composite together
+for each frame.
+
+
+908
+00:41:40,216 --> 00:41:43,566
+We have some support in Xcode
+
+
+909
+00:41:43,566 --> 00:41:45,386
+for helping you debug
+some of this stuff.
+
+
+910
+00:41:45,826 --> 00:41:47,706
+When you're running
+application at this new menu
+
+
+911
+00:41:47,706 --> 00:41:50,166
+which has some neat--
+some neat options,
+
+
+912
+00:41:50,166 --> 00:41:52,346
+in particular Show
+Responsive Scrolling Status.
+
+
+913
+00:41:52,926 --> 00:41:56,116
+If your scroll view is not
+opted into responsive scrolling,
+
+
+914
+00:41:56,116 --> 00:41:58,866
+it'll look like this and
+well, we don't want that.
+
+
+915
+00:41:58,866 --> 00:41:59,916
+What we want is this.
+
+
+916
+00:41:59,916 --> 00:42:00,506le
+We want green.
+
+
+917
+00:41:59,916 --> 00:42:00,506
+We want green.
+
+
+918
+00:42:01,056 --> 00:42:05,456
+So, if everything turns out--
+
+
+919
+00:42:05,516 --> 00:42:07,886
+everything is laid out
+appropriately, and we can opt
+
+
+920
+00:42:07,886 --> 00:42:11,236
+in your view, all of the views
+into the responsive scrolling,
+
+
+921
+00:42:11,236 --> 00:42:14,096
+your scroll view or subclass,
+your NSClipView subclass,
+
+
+922
+00:42:14,636 --> 00:42:18,146
+and the document view, it'll
+be green and this is a way
+
+
+923
+00:42:18,146 --> 00:42:20,016
+of being able to provide
+that feedback to you
+
+
+924
+00:42:20,016 --> 00:42:23,106
+through the debugger that your
+scroll view has completely opted
+
+
+925
+00:42:23,106 --> 00:42:24,096
+in to responsive scrolling.
+
+
+926
+00:42:25,476 --> 00:42:27,346
+So in summary, we
+really want to make this
+
+
+927
+00:42:27,346 --> 00:42:28,866
+as automatic as possible.
+
+
+928
+00:42:29,306 --> 00:42:33,826
+You can explicitly opt in but
+do that as a last resort please,
+
+
+929
+00:42:34,696 --> 00:42:37,706
+but there are cases where
+that's the only way to do it.
+
+
+930
+00:42:38,516 --> 00:42:40,236
+Think carefully about
+layer-backing
+
+
+931
+00:42:40,236 --> 00:42:41,206
+if you're not already
+layer backed,
+
+
+932
+00:42:41,206 --> 00:42:42,176
+if you want to go layer-backed,
+
+
+933
+00:42:42,176 --> 00:42:43,926
+there's some difference
+performance characteristics.
+
+
+934
+00:42:43,926 --> 00:42:46,666
+So, but for responsive
+scrolling,
+
+
+935
+00:42:46,666 --> 00:42:48,956
+we'll support both layer-backed
+and traditional drawing.
+
+
+936
+00:42:49,556 --> 00:42:52,076
+And you can use Xcode to verify.
+
+
+937
+00:42:52,076 --> 00:42:53,506
+So that comes out to be handy.
+
+
+938
+00:42:54,696 --> 00:42:58,066
+So, thats responsive
+scrolling and we'll go ahead
+
+
+939
+00:42:58,066 --> 00:42:59,696
+and move on to magnification.
+
+
+940
+00:43:00,326 --> 00:43:04,016
+Specifically, in magnification
+as relates to NSScrollView.
+
+
+941
+00:43:04,546 --> 00:43:08,286
+And 10.8, we introduced
+magnification support natively
+
+
+942
+00:43:08,286 --> 00:43:09,896
+into NSScrollView
+and all you have
+
+
+943
+00:43:09,896 --> 00:43:11,926
+to do is set the
+allowsMagnification property
+
+
+944
+00:43:11,926 --> 00:43:14,646
+which you can also do
+an interface builder.
+
+
+945
+00:43:14,646 --> 00:43:16,646
+There's a nice little check
+box and you could check that.
+
+
+946
+00:43:17,666 --> 00:43:21,786
+And your scroll view will
+response to the pitch gesture
+
+
+947
+00:43:21,786 --> 00:43:24,086
+and we'll do zooming
+and magnification
+
+
+948
+00:43:24,086 --> 00:43:24,776
+for you automatically.
+
+
+949
+00:43:24,776 --> 00:43:30,156
+When it comes to responsiveness,
+if your scroll view is opted
+
+
+950
+00:43:30,156 --> 00:43:31,116
+into responsive scrolling,
+
+
+951
+00:43:31,766 --> 00:43:34,546
+magnification is still main
+thread driven at the moment.
+
+
+952
+00:43:35,136 --> 00:43:38,916
+But you'll likely to have
+overdraw and we can use that.
+
+
+953
+00:43:39,766 --> 00:43:43,326
+So during the magnification
+gesture, we use that overdraw
+
+
+954
+00:43:43,326 --> 00:43:44,956
+and we scale your
+existing content.
+
+
+955
+00:43:44,956 --> 00:43:46,866
+So if you have content like
+this and you zoom into it,
+
+
+956
+00:43:47,256 --> 00:43:49,806
+during the overdraw, it
+will scale that content
+
+
+957
+00:43:49,806 --> 00:43:50,936
+and it will look
+kind of like this.
+
+
+958
+00:43:50,936 --> 00:43:53,606
+But when the gesture
+completes, we'll go ahead
+
+
+959
+00:43:53,606 --> 00:43:56,376
+and redraw the visible
+rect when the gesture ends
+
+
+960
+00:43:56,376 --> 00:43:59,276
+and we'll get the nice
+crisp content back in there.
+
+
+961
+00:44:00,016 --> 00:44:02,656
+But during that whole gesture,
+it was nice and responsive
+
+
+962
+00:44:02,656 --> 00:44:04,896
+to the user, we weren't
+even calling drawRect,
+
+
+963
+00:44:05,336 --> 00:44:06,976
+so that was great.
+
+
+964
+00:44:06,976 --> 00:44:09,776
+If you're going the opposite
+direction for example
+
+
+965
+00:44:09,776 --> 00:44:12,816
+and you get to here and we run
+out of overdraw, we don't want
+
+
+966
+00:44:12,816 --> 00:44:14,736
+to draw blank content
+on the sides there.
+
+
+967
+00:44:15,366 --> 00:44:18,316
+So in this case, if we run out
+of overdraw, we have to pause
+
+
+968
+00:44:18,316 --> 00:44:19,416
+and wait for new drawing to come
+
+
+969
+00:44:19,416 --> 00:44:21,726
+in since this is all
+main thread driven
+
+
+970
+00:44:22,096 --> 00:44:25,786
+and so the user will see a
+lag in the responsiveness
+
+
+971
+00:44:25,856 --> 00:44:27,856
+of your magnification here.
+
+
+972
+00:44:28,146 --> 00:44:30,036
+So make sure you
+drawRects are as fast
+
+
+973
+00:44:30,036 --> 00:44:32,306
+as possible but they'll pop in.
+
+
+974
+00:44:33,546 --> 00:44:34,676
+During the middle
+of the gesture,
+
+
+975
+00:44:35,406 --> 00:44:37,656
+if new content comes in,
+that content will be drawn
+
+
+976
+00:44:37,656 --> 00:44:39,746
+at the appropriate scale because
+your drawRect will be called.
+
+
+977
+00:44:39,746 --> 00:44:43,066
+Likewise, if you dirty
+any content in the middle
+
+
+978
+00:44:43,066 --> 00:44:46,016
+of a magnification gesture,
+we will redraw that content
+
+
+979
+00:44:46,016 --> 00:44:47,146
+at the appropriate scale factors
+
+
+980
+00:44:47,666 --> 00:44:51,026
+but that will require
+a drawRect right
+
+
+981
+00:44:51,026 --> 00:44:52,286
+in the middle of your gestures.
+
+
+982
+00:44:52,286 --> 00:44:53,936
+So you want to try
+and prevent that.
+
+
+983
+00:44:53,936 --> 00:44:57,736
+So when it comes
+to magnification,
+
+
+984
+00:44:57,736 --> 00:45:00,116
+your drawRect speed is crucial
+
+
+985
+00:45:00,116 --> 00:45:03,156
+to getting responsive
+feedback to the user.
+
+
+986
+00:45:04,446 --> 00:45:06,656
+We do have some live
+magnification notifications,
+
+
+987
+00:45:07,146 --> 00:45:08,266
+these were introduced with 10.8
+
+
+988
+00:45:08,266 --> 00:45:10,826
+when we introduced
+magnifications NSScrollView,
+
+
+989
+00:45:10,826 --> 00:45:12,826
+the WillStartLiveMagnification
+Notification
+
+
+990
+00:45:12,826 --> 00:45:15,366
+and
+DidEndLiveMagnifynNotification.
+
+
+991
+00:45:15,366 --> 00:45:19,876
+These are great that you can
+perhaps stop doing some things
+
+
+992
+00:45:19,876 --> 00:45:23,426
+in the main thread, turn off
+some timers or pause some things
+
+
+993
+00:45:23,426 --> 00:45:26,316
+so that you can devote as much
+as your resources as possible
+
+
+994
+00:45:26,566 --> 00:45:28,326
+to being responsive to
+what the user is the doing
+
+
+995
+00:45:28,326 --> 00:45:29,466
+with the magnification gesture.
+
+
+996
+00:45:31,856 --> 00:45:34,786
+If you're overriding clip
+view, one of the reasons--
+
+
+997
+00:45:34,786 --> 00:45:36,616
+main reasons people
+override clip view is
+
+
+998
+00:45:36,696 --> 00:45:39,066
+to center the content
+in your clip view
+
+
+999
+00:45:39,066 --> 00:45:41,406
+when your content is smaller
+than the size of your clip view.
+
+
+1000
+00:45:41,826 --> 00:45:44,076
+And to do that, you override
+constrainScrollPoint.
+
+
+1001
+00:45:45,056 --> 00:45:46,556
+And with magnification,
+
+
+1002
+00:45:47,116 --> 00:45:49,166
+if you zoom pass the
+minimum amount here,
+
+
+1003
+00:45:50,036 --> 00:45:53,066
+when the user removes their
+fingers, we want that to animate
+
+
+1004
+00:45:53,066 --> 00:45:55,046
+to the center, but
+this is what happens.
+
+
+1005
+00:45:56,116 --> 00:45:58,326
+In constrainScrollPoint,
+you're given a point
+
+
+1006
+00:45:58,476 --> 00:46:01,636
+and all you have is whatever
+the current bounds are
+
+
+1007
+00:46:01,636 --> 00:46:02,826
+of the clip view.
+
+
+1008
+00:46:02,826 --> 00:46:05,726
+You don't know where we're
+going to, what the new size
+
+
+1009
+00:46:05,726 --> 00:46:06,696
+of the clip view is going to be.
+
+
+1010
+00:46:06,696 --> 00:46:09,016
+So you can't give us an
+appropriately constrained scroll
+
+
+1011
+00:46:09,016 --> 00:46:11,806
+point and your content isn't
+centered like you want it to be.
+
+
+1012
+00:46:12,256 --> 00:46:14,366
+So we've deprecated
+constrainScrollPoint
+
+
+1013
+00:46:14,396 --> 00:46:16,616
+and we've replaced it
+with constrainBoundsRect.
+
+
+1014
+00:46:17,246 --> 00:46:19,086
+We'll go ahead and
+pass in a complete rect
+
+
+1015
+00:46:19,436 --> 00:46:22,676
+so that you have what we want
+the proposed new size to be
+
+
+1016
+00:46:22,936 --> 00:46:24,326
+and you can constrain
+that hopefully,
+
+
+1017
+00:46:24,326 --> 00:46:25,846
+all you're changing
+is the origin.
+
+
+1018
+00:46:26,206 --> 00:46:29,806
+But now, as the user
+pinches and go
+
+
+1019
+00:46:29,806 --> 00:46:31,996
+and pass the minimum
+allowed size so that we need
+
+
+1020
+00:46:32,126 --> 00:46:35,156
+to bounce back, when they
+let go, we'll animate
+
+
+1021
+00:46:35,156 --> 00:46:36,786
+to the appropriate
+centered position.
+
+
+1022
+00:46:37,456 --> 00:46:40,446
+So, for those of you that
+are overriding clip views,
+
+
+1023
+00:46:40,496 --> 00:46:43,426
+please add constrainBoundsRect
+and override
+
+
+1024
+00:46:43,426 --> 00:46:44,346
+that in your application.
+
+
+1025
+00:46:44,946 --> 00:46:48,676
+So in conclusion, we covered
+a lot in this session.
+
+
+1026
+00:46:49,216 --> 00:46:51,966
+We talked about optimizing
+your AppKit drawing
+
+
+1027
+00:46:52,806 --> 00:46:55,486
+and layer-backed drawing
+and optimizing that and some
+
+
+1028
+00:46:55,486 --> 00:46:56,776
+of the performance
+characteristics
+
+
+1029
+00:46:56,776 --> 00:46:58,136
+with layer-backed drawing.
+
+
+1030
+00:46:59,216 --> 00:47:02,266
+These are still very important
+with responsive scrolling
+
+
+1031
+00:47:02,266 --> 00:47:06,036
+as you've seen, it can get
+over a lot of rough edges and--
+
+
+1032
+00:47:06,036 --> 00:47:08,496
+that the main thread might
+be doing and be responsive
+
+
+1033
+00:47:08,496 --> 00:47:12,456
+to the user and that is
+a tremendous advantage
+
+
+1034
+00:47:12,456 --> 00:47:15,186
+for your application as you've
+seen in that demo application,
+
+
+1035
+00:47:15,186 --> 00:47:16,296
+it can make a huge difference.
+
+
+1036
+00:47:16,716 --> 00:47:18,346
+However, it's not
+a silver bullet,
+
+
+1037
+00:47:18,346 --> 00:47:21,896
+so make sure your drawing is as
+fast as possible at all times.
+
+
+1038
+00:47:22,276 --> 00:47:23,966
+So all-- everything that
+we said at the beginning
+
+
+1039
+00:47:23,966 --> 00:47:25,426
+of this talk is very important.
+
+
+1040
+00:47:26,626 --> 00:47:28,346
+And we've also covered
+magnification
+
+
+1041
+00:47:28,656 --> 00:47:29,846
+and how we've made
+some changes there
+
+
+1042
+00:47:29,846 --> 00:47:31,756
+to make it a little bit more
+responsive even though it's
+
+
+1043
+00:47:31,756 --> 00:47:32,886
+still main thread driven.
+
+
+1044
+00:47:34,636 --> 00:47:36,846
+For more information, there's--
+
+
+1045
+00:47:36,846 --> 00:47:39,296
+you can see our App
+Frameworks Evangelist Jake
+
+
+1046
+00:47:39,296 --> 00:47:41,376
+and we have the documentation
+
+
+1047
+00:47:41,376 --> 00:47:45,266
+in particular the Core Animation
+Programming Guide has got some
+
+
+1048
+00:47:45,266 --> 00:47:46,606
+really nice information there
+
+
+1049
+00:47:46,606 --> 00:47:48,906
+for when you're making
+your views layer-backed
+
+
+1050
+00:47:48,906 --> 00:47:49,676
+and doing animations.
+
+
+1051
+00:47:50,316 --> 00:47:52,896
+The Developer Forums and I
+didn't get a chance to put
+
+
+1052
+00:47:52,896 --> 00:47:55,056
+on the slide but make sure
+you read the release notes,
+
+
+1053
+00:47:55,316 --> 00:47:58,706
+we cover a lot of details and
+everything I've talked here
+
+
+1054
+00:47:59,016 --> 00:48:04,256
+in the release notes as it
+relates to responsive scrolling.
+
+
+1055
+00:48:07,276 --> 00:48:09,176
+The Best Practices
+for Cocoa Animation
+
+
+1056
+00:48:09,176 --> 00:48:11,336
+which actually just occurred
+right before this one,
+
+
+1057
+00:48:11,336 --> 00:48:13,036
+but if you haven't seen
+that one yet, please go back
+
+
+1058
+00:48:13,036 --> 00:48:15,856
+and watch the video, it's
+another great session that you--
+
+
+1059
+00:48:15,856 --> 00:48:17,436
+that relates to responsive
+scrolling
+
+
+1060
+00:48:17,436 --> 00:48:17,976
+and animating your views.
+
+
+1061
+00:48:19,056 --> 00:48:19,976
+And that's it for
+responsive scrolling.
+
+
+1062
+00:48:21,196 --> 00:48:21,966
+Thank you guys for coming out.
+
+
+1063
+00:48:22,126 --> 00:48:22,976
+I hope you enjoy the
+rest of the show.
+
+
+1064
+00:48:23,516 --> 00:48:28,430
+[Applause]
+

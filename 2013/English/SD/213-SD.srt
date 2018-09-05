@@ -1,0 +1,6065 @@
+1
+00:00:00,506 --> 00:00:10,596
+[ Silence ]
+
+
+2
+00:00:11,096 --> 00:00:11,976
+>> Chris Dreessen:
+Good afternoon.
+
+
+3
+00:00:12,516 --> 00:00:16,286
+[ Applause ]
+
+
+4
+00:00:16,786 --> 00:00:18,166
+Welcome to session 213.
+
+
+5
+00:00:18,166 --> 00:00:20,196
+This is best practices
+for Cocoa Animation.
+
+
+6
+00:00:20,356 --> 00:00:21,486
+I'm Chris Dreessen.
+
+
+7
+00:00:21,486 --> 00:00:24,996
+I'm an AppKit Engineer
+so I work on this stuff.
+
+
+8
+00:00:24,996 --> 00:00:26,956
+We have a lot of great things
+we'd like to show you here.
+
+
+9
+00:00:26,956 --> 00:00:30,126
+So I'm going to give you
+a basic overview of this.
+
+
+10
+00:00:30,676 --> 00:00:33,086
+So I said a lot of great things,
+I meant a lot of great things.
+
+
+11
+00:00:33,746 --> 00:00:36,706
+I'm going to start with a
+brief overview of how Animation
+
+
+12
+00:00:36,706 --> 00:00:38,056
+in Cocoa works, how to use it.
+
+
+13
+00:00:38,056 --> 00:00:39,616
+We're going to continue
+to describe how
+
+
+14
+00:00:39,616 --> 00:00:42,356
+to make your own view
+subclasses animatable
+
+
+15
+00:00:42,356 --> 00:00:45,006
+for your own properties
+and describe how to augment
+
+
+16
+00:00:45,006 --> 00:00:47,076
+that with context
+sensitive animations.
+
+
+17
+00:00:47,806 --> 00:00:49,546
+I'm going to share
+with you a technique I
+
+
+18
+00:00:49,546 --> 00:00:51,806
+like to call chaining animations
+where we use the completion
+
+
+19
+00:00:51,806 --> 00:00:54,776
+of one animation to start
+off another animation.
+
+
+20
+00:00:55,466 --> 00:00:57,826
+Some of you are familiar
+
+
+21
+00:00:57,826 --> 00:00:59,956
+with the implicit
+animation functionality
+
+
+22
+00:00:59,956 --> 00:01:02,286
+of NSAnimation Contest
+we added in 10.8
+
+
+23
+00:01:02,286 --> 00:01:04,146
+and I'm going to cover that.
+
+
+24
+00:01:04,146 --> 00:01:05,996
+And then I'm going to cover
+a bit of Core Animation,
+
+
+25
+00:01:05,996 --> 00:01:07,906
+not how you can use
+Core Animation
+
+
+26
+00:01:08,296 --> 00:01:10,616
+but rather how NSView
+uses Core Animation
+
+
+27
+00:01:10,616 --> 00:01:12,286
+to do animations
+for layer back use.
+
+
+28
+00:01:12,636 --> 00:01:13,756
+At that point I'm going
+
+
+29
+00:01:13,756 --> 00:01:17,346
+to invite my colleague Peter
+Amman onstage and he's going
+
+
+30
+00:01:17,346 --> 00:01:19,516
+to talk about this great new
+class called NSStackView.
+
+
+31
+00:01:19,516 --> 00:01:22,326
+He's going to describe how
+you can use auto layout
+
+
+32
+00:01:22,326 --> 00:01:23,416
+to animate view positions,
+
+
+33
+00:01:23,416 --> 00:01:25,976
+how you can animate those
+constraints directly
+
+
+34
+00:01:26,176 --> 00:01:27,676
+and additionally best practices
+
+
+35
+00:01:27,676 --> 00:01:29,596
+for animating window
+size changes.
+
+
+36
+00:01:31,246 --> 00:01:33,586
+So throughout the course of
+this presentation I'm going
+
+
+37
+00:01:33,586 --> 00:01:36,186
+to be talking a lot about
+the NSAnimatableProperty
+
+
+38
+00:01:36,186 --> 00:01:39,786
+ContainerProtocol and that lives
+in the NSAnimimation.h header.
+
+
+39
+00:01:40,176 --> 00:01:42,796
+And it's a simple protocol, it's
+just five methods but I'm going
+
+
+40
+00:01:42,796 --> 00:01:43,916
+to be coming back here a lot
+
+
+41
+00:01:43,916 --> 00:01:45,496
+and we'll touch each
+of these one by one.
+
+
+42
+00:01:46,766 --> 00:01:49,986
+So basic animations, most of
+you are familiar with this
+
+
+43
+00:01:50,626 --> 00:01:52,916
+but this is how you animate
+basic things for NSView.
+
+
+44
+00:01:53,996 --> 00:01:55,736
+So back to NSAnimatableProperty
+Container,
+
+
+45
+00:01:55,736 --> 00:01:57,196
+I said we'd be coming
+back here a lot.
+
+
+46
+00:01:57,196 --> 00:01:57,636
+I didn't lie.
+
+
+47
+00:01:57,636 --> 00:02:00,336
+The method I want to introduce
+
+
+48
+00:02:00,336 --> 00:02:02,436
+to you here is the animator
+method which returns
+
+
+49
+00:02:02,436 --> 00:02:04,296
+to you the thing we
+call the animator proxy.
+
+
+50
+00:02:04,776 --> 00:02:07,586
+And this is an object that
+implements all the same methods
+
+
+51
+00:02:07,626 --> 00:02:08,666
+that your object does.
+
+
+52
+00:02:09,186 --> 00:02:11,836
+The difference is when you
+message it it will animate them
+
+
+53
+00:02:11,866 --> 00:02:13,586
+instead of just popping
+to the final location.
+
+
+54
+00:02:14,646 --> 00:02:16,886
+So suppose you want to
+fade the Alpha of a view.
+
+
+55
+00:02:16,886 --> 00:02:17,806
+You want this to disappear?
+
+
+56
+00:02:18,586 --> 00:02:20,736
+Well that's not too bad,
+that's just one line of code.
+
+
+57
+00:02:20,736 --> 00:02:22,956
+We set the Alpha value to zero
+through the animator proxy,
+
+
+58
+00:02:23,026 --> 00:02:26,636
+view.animator.alphavalue=0
+and that's all it takes.
+
+
+59
+00:02:27,256 --> 00:02:29,116
+And here's something
+more complicated.
+
+
+60
+00:02:29,116 --> 00:02:33,146
+This is, we're sliding, that's
+got to be way more code, right?
+
+
+61
+00:02:34,796 --> 00:02:37,536
+Same thing,
+view.animator.frameorigin,
+
+
+62
+00:02:37,836 --> 00:02:38,886
+just one line of code again.
+
+
+63
+00:02:39,766 --> 00:02:42,636
+Okay here's one more,
+we resized it.
+
+
+64
+00:02:42,636 --> 00:02:43,626
+That's two dimensions.
+
+
+65
+00:02:43,626 --> 00:02:45,416
+That's got to be
+four times the work
+
+
+66
+00:02:45,696 --> 00:02:46,906
+and it is four times the work.
+
+
+67
+00:02:46,906 --> 00:02:49,876
+It's also one line of code.
+
+
+68
+00:02:50,936 --> 00:02:52,316
+[laughter] Alright so you're
+all familiar with that.
+
+
+69
+00:02:52,316 --> 00:02:56,246
+I want to talk about how to make
+your own views animatable now.
+
+
+70
+00:02:56,816 --> 00:02:59,546
+So suppose you want to do
+an animation like this.
+
+
+71
+00:03:00,316 --> 00:03:03,476
+We have a framed view which is
+a single red line on the outside
+
+
+72
+00:03:03,476 --> 00:03:05,566
+and we change the line
+thickness, we grow it.
+
+
+73
+00:03:06,116 --> 00:03:07,426
+So your view might
+look like this.
+
+
+74
+00:03:07,426 --> 00:03:09,486
+You're going to declare a
+line thickness property,
+
+
+75
+00:03:09,646 --> 00:03:10,456
+it's a float.
+
+
+76
+00:03:10,876 --> 00:03:12,476
+And you're going to
+go in and drawRect
+
+
+77
+00:03:12,476 --> 00:03:13,696
+and this is a simple drawRect.
+
+
+78
+00:03:14,056 --> 00:03:17,286
+We just set the red color and
+then we frame our own bounds
+
+
+79
+00:03:17,506 --> 00:03:19,996
+with a rectangle of the
+appropriate line thickness.
+
+
+80
+00:03:20,716 --> 00:03:22,456
+And additionally in our accessor
+
+
+81
+00:03:22,456 --> 00:03:25,656
+for setLineThickness we
+call setNeedsDisplay yes,
+
+
+82
+00:03:25,656 --> 00:03:27,436
+after we've updated our I-bar.
+
+
+83
+00:03:27,796 --> 00:03:30,226
+So I told you, you know, you
+can just use the animator proxy,
+
+
+84
+00:03:30,226 --> 00:03:31,286
+that works fantastically.
+
+
+85
+00:03:31,676 --> 00:03:34,526
+And if we try this we
+see this animation.
+
+
+86
+00:03:35,096 --> 00:03:38,436
+And technically that
+was an animation.
+
+
+87
+00:03:38,436 --> 00:03:39,906
+Things changed on screen.
+
+
+88
+00:03:39,906 --> 00:03:41,916
+But I don't think any of
+us are really satisfied
+
+
+89
+00:03:41,916 --> 00:03:42,696
+with that animation.
+
+
+90
+00:03:43,316 --> 00:03:44,096
+So what was missing?
+
+
+91
+00:03:45,076 --> 00:03:48,116
+Well back to the NS Animatable
+Property Container Protocol.
+
+
+92
+00:03:48,386 --> 00:03:50,816
+There is this method called
+defaultAnimationForKey.
+
+
+93
+00:03:51,316 --> 00:03:52,256
+It's a class method.
+
+
+94
+00:03:53,476 --> 00:03:54,856
+And that is our missing
+piece here.
+
+
+95
+00:03:55,506 --> 00:03:57,766
+And to make this animatable
+we're going to go ahead
+
+
+96
+00:03:57,766 --> 00:03:59,956
+and implement the
+defaultAnimationForKey method.
+
+
+97
+00:04:00,746 --> 00:04:02,466
+So our implementation we start
+
+
+98
+00:04:02,466 --> 00:04:04,766
+by checking what key we're
+actually talking about here.
+
+
+99
+00:04:05,136 --> 00:04:06,836
+In this case it's our
+line thickness property
+
+
+100
+00:04:06,836 --> 00:04:07,436
+which is great.
+
+
+101
+00:04:07,876 --> 00:04:11,706
+And we return the default
+CABasicAnimationObject
+
+
+102
+00:04:12,016 --> 00:04:14,366
+and CABasicAnimation is one
+
+
+103
+00:04:14,366 --> 00:04:16,426
+of the animation types
+we use most frequently.
+
+
+104
+00:04:16,426 --> 00:04:19,766
+It just has very simple
+from and to values along
+
+
+105
+00:04:19,766 --> 00:04:20,495
+with some properties
+
+
+106
+00:04:20,495 --> 00:04:22,666
+that control how those
+values are interpolated.
+
+
+107
+00:04:23,116 --> 00:04:26,286
+And of course if it's not the
+line thickness property we want
+
+
+108
+00:04:26,286 --> 00:04:27,186
+to fall through as a super
+
+
+109
+00:04:27,186 --> 00:04:29,716
+so the other view properties
+can continue being animatable.
+
+
+110
+00:04:30,406 --> 00:04:33,606
+And just by adding that if we
+do view.animator.linethickness
+
+
+111
+00:04:33,606 --> 00:04:36,456
+again we get this animation
+which is just what we wanted.
+
+
+112
+00:04:38,316 --> 00:04:40,526
+So that's still pretty simple
+
+
+113
+00:04:40,526 --> 00:04:43,426
+so let's complicate
+things a little bit.
+
+
+114
+00:04:43,426 --> 00:04:45,556
+Sometimes you need to
+know more information
+
+
+115
+00:04:45,556 --> 00:04:46,926
+that you can provide
+in a class method.
+
+
+116
+00:04:46,926 --> 00:04:49,036
+You need to know what
+specifically is being animated.
+
+
+117
+00:04:49,636 --> 00:04:52,416
+And you can do that too with MS
+Animatable Property Container.
+
+
+118
+00:04:53,056 --> 00:04:55,176
+There is a method
+called setAnimations
+
+
+119
+00:04:55,176 --> 00:04:56,176
+which takes a dictionary,
+
+
+120
+00:04:56,676 --> 00:04:58,626
+the keys in the dictionary
+are the properties
+
+
+121
+00:04:58,626 --> 00:05:00,486
+that are being changed
+and the values
+
+
+122
+00:05:00,486 --> 00:05:03,056
+in the dictionary are
+CAAnimationObjects describing
+
+
+123
+00:05:03,056 --> 00:05:04,306
+how you want us to change them.
+
+
+124
+00:05:05,806 --> 00:05:09,746
+So this is our method here
+and suppose we wanted to snap
+
+
+125
+00:05:09,946 --> 00:05:12,116
+to multiples of 10
+for our line thickness
+
+
+126
+00:05:12,116 --> 00:05:13,386
+as we did our animation.
+
+
+127
+00:05:13,776 --> 00:05:15,326
+We can't really do this here.
+
+
+128
+00:05:15,326 --> 00:05:16,386
+There's no way of specifying.
+
+
+129
+00:05:16,386 --> 00:05:18,526
+We don't know what the from
+and to values are inside
+
+
+130
+00:05:18,526 --> 00:05:20,556
+of the class
+defaultAnimationForKeyMethod.
+
+
+131
+00:05:22,016 --> 00:05:24,166
+So the way we fix
+that is we're going
+
+
+132
+00:05:24,166 --> 00:05:25,906
+to use this thing called
+CAKeyframeAnimation
+
+
+133
+00:05:25,906 --> 00:05:28,706
+and the key frame animation is
+another animation type we use
+
+
+134
+00:05:28,706 --> 00:05:29,146
+a lot.
+
+
+135
+00:05:29,426 --> 00:05:32,576
+And in it you can, well
+basically you specify values
+
+
+136
+00:05:32,576 --> 00:05:34,616
+to the key frames and you
+can interpolate between those
+
+
+137
+00:05:34,616 --> 00:05:37,126
+or just have it use
+those discreet values
+
+
+138
+00:05:37,126 --> 00:05:38,006
+at different time stamps.
+
+
+139
+00:05:38,356 --> 00:05:41,786
+And in this case we're going to
+populate it with steps from 0
+
+
+140
+00:05:41,786 --> 00:05:43,886
+to 40 moving by 10 each time.
+
+
+141
+00:05:44,726 --> 00:05:49,776
+So once we create our animation
+we turn it into a dictionary
+
+
+142
+00:05:49,886 --> 00:05:52,006
+and we set it on the
+view.animationsproperty
+
+
+143
+00:05:52,366 --> 00:05:55,046
+and that's our new objective
+C dictionary syntax there.
+
+
+144
+00:05:55,046 --> 00:05:56,676
+We specify the key
+as line fitness.
+
+
+145
+00:05:56,726 --> 00:05:58,096
+The value is our
+key frame animation.
+
+
+146
+00:05:58,486 --> 00:06:00,586
+And then we just talk to the
+animator like we always did.
+
+
+147
+00:06:00,716 --> 00:06:04,396
+View.animator.linefitness=40
+and we wind up with an animation
+
+
+148
+00:06:04,396 --> 00:06:07,716
+that looks like this instead,
+which is exactly what we wanted.
+
+
+149
+00:06:07,716 --> 00:06:09,816
+So that's kind of cool.
+
+
+150
+00:06:10,256 --> 00:06:11,786
+But there's a few
+other things you can do
+
+
+151
+00:06:11,786 --> 00:06:13,336
+with key frame animations
+that are neat.
+
+
+152
+00:06:14,076 --> 00:06:17,246
+And I mentioned you could, you
+know you have your key points
+
+
+153
+00:06:17,246 --> 00:06:18,766
+in there that have
+specific values.
+
+
+154
+00:06:18,766 --> 00:06:20,306
+You don't need to interpolate
+between those values.
+
+
+155
+00:06:20,306 --> 00:06:22,336
+And in fact with some types
+of values you can interpolate.
+
+
+156
+00:06:22,816 --> 00:06:25,926
+So in this example I'm setting
+these values to an array
+
+
+157
+00:06:25,926 --> 00:06:31,296
+of images of various Apple
+products and the same as before,
+
+
+158
+00:06:31,296 --> 00:06:34,346
+I set the animations dictionary
+there using our new animation
+
+
+159
+00:06:34,436 --> 00:06:36,446
+for the image property, in
+this case this could be the an
+
+
+160
+00:06:36,486 --> 00:06:38,316
+NSImageView which
+implements an image property.
+
+
+161
+00:06:38,636 --> 00:06:41,186
+And I just tell the animator
+hey, change the image
+
+
+162
+00:06:41,186 --> 00:06:43,096
+to this final Apple TV image.
+
+
+163
+00:06:43,096 --> 00:06:44,436
+And something I want
+to point out,
+
+
+164
+00:06:44,706 --> 00:06:47,786
+my key frame animation
+specified five different types
+
+
+165
+00:06:47,786 --> 00:06:49,976
+of Apple products but it
+didn't specify Apple TV.
+
+
+166
+00:06:50,586 --> 00:06:51,506
+And the reason for this is
+
+
+167
+00:06:51,506 --> 00:06:54,946
+that the value you tell your
+animator proxy is the value
+
+
+168
+00:06:54,946 --> 00:06:57,106
+that's going to wind up
+in the object ultimately.
+
+
+169
+00:06:57,566 --> 00:07:00,746
+The stuff in the animation
+is just used along the way.
+
+
+170
+00:07:00,966 --> 00:07:04,156
+So if we see what this
+looks like, recycling nicely
+
+
+171
+00:07:04,156 --> 00:07:05,876
+through the Apple
+products in our image well,
+
+
+172
+00:07:05,876 --> 00:07:07,246
+and we end at Apple TV.
+
+
+173
+00:07:07,766 --> 00:07:09,046
+And you can do this
+with other things.
+
+
+174
+00:07:09,046 --> 00:07:10,026
+You don't need to do
+it with just images.
+
+
+175
+00:07:10,026 --> 00:07:11,636
+You can do it with string
+values, for example.
+
+
+176
+00:07:11,636 --> 00:07:12,856
+In this case we have
+a text field.
+
+
+177
+00:07:13,606 --> 00:07:15,386
+Our values are various
+city names.
+
+
+178
+00:07:16,956 --> 00:07:19,146
+And again, if we set the
+animations dictionary
+
+
+179
+00:07:19,146 --> 00:07:22,376
+on our text field using string
+value this time as the key
+
+
+180
+00:07:22,686 --> 00:07:25,366
+and our key frame
+animation again as the value,
+
+
+181
+00:07:25,436 --> 00:07:27,286
+and finally we tell
+the animator,
+
+
+182
+00:07:27,286 --> 00:07:29,296
+hey your string value is San
+Francisco because we want
+
+
+183
+00:07:29,296 --> 00:07:31,156
+to wind up in San
+Francisco and all
+
+
+184
+00:07:31,156 --> 00:07:33,366
+of you here have already
+completed the step, good job.
+
+
+185
+00:07:34,476 --> 00:07:35,506
+So we see what that looks like.
+
+
+186
+00:07:35,506 --> 00:07:37,816
+It animates our text field
+just like we expected.
+
+
+187
+00:07:38,636 --> 00:07:40,466
+But you can do a
+few more things.
+
+
+188
+00:07:40,466 --> 00:07:42,146
+You don't need to
+restrict yourself
+
+
+189
+00:07:42,146 --> 00:07:43,146
+to key frame animations.
+
+
+190
+00:07:43,906 --> 00:07:47,066
+So if you're familiar
+with NSCell and NSControl,
+
+
+191
+00:07:47,066 --> 00:07:49,096
+especially NSTextField,
+you're familiar
+
+
+192
+00:07:49,096 --> 00:07:50,706
+with these things
+we call formatters.
+
+
+193
+00:07:51,666 --> 00:07:55,436
+And formatters are objects which
+take an arbitrary object type
+
+
+194
+00:07:55,476 --> 00:07:57,316
+and return a human
+readable string value.
+
+
+195
+00:07:58,176 --> 00:07:59,346
+And in this case I'm going
+
+
+196
+00:07:59,346 --> 00:08:00,766
+to implement my own
+formatter class,
+
+
+197
+00:08:00,766 --> 00:08:03,596
+in this case the cleverly named
+my formatter but we're going
+
+
+198
+00:08:03,596 --> 00:08:05,896
+to delegate most of our
+actual formatting work
+
+
+199
+00:08:06,176 --> 00:08:06,826
+to NSDateFormatter.
+
+
+200
+00:08:08,326 --> 00:08:10,356
+So our string for object
+value method looks like this,
+
+
+201
+00:08:10,356 --> 00:08:13,556
+we take in an NS number and we
+just ask for its double value.
+
+
+202
+00:08:13,556 --> 00:08:16,276
+And one of the ways we
+represent dates on our system is
+
+
+203
+00:08:16,276 --> 00:08:18,906
+as the number of seconds
+since January 1, 2001,
+
+
+204
+00:08:18,936 --> 00:08:21,546
+that's the reference dater,
+in this case the time interval
+
+
+205
+00:08:21,546 --> 00:08:22,626
+since the reference date.
+
+
+206
+00:08:23,076 --> 00:08:25,256
+And we can construct a new date
+
+
+207
+00:08:25,326 --> 00:08:26,996
+from that double value
+representing the number
+
+
+208
+00:08:26,996 --> 00:08:27,426
+of seconds.
+
+
+209
+00:08:27,426 --> 00:08:29,926
+And then we just plug
+this into our NSFormatter
+
+
+210
+00:08:29,926 --> 00:08:32,976
+and it gives us a nice human
+readable string for the date.
+
+
+211
+00:08:33,655 --> 00:08:35,285
+And we couple that
+with this code.
+
+
+212
+00:08:35,506 --> 00:08:38,186
+We go ahead, and I want this to
+be a long, slow animation for us
+
+
+213
+00:08:38,216 --> 00:08:40,056
+to savor so it could
+take 20 seconds.
+
+
+214
+00:08:40,496 --> 00:08:42,556
+And here I'm replacing
+the animations dictionary
+
+
+215
+00:08:42,556 --> 00:08:43,596
+on the text field again,
+
+
+216
+00:08:43,986 --> 00:08:45,616
+this time for the
+double value property.
+
+
+217
+00:08:45,616 --> 00:08:47,396
+Double value is a property most
+
+
+218
+00:08:47,396 --> 00:08:49,166
+of our controls themselves
+implement,
+
+
+219
+00:08:49,396 --> 00:08:51,666
+and again it's a double so
+it's easily interpolatable
+
+
+220
+00:08:51,666 --> 00:08:53,076
+using CABasicAnimation.
+
+
+221
+00:08:53,966 --> 00:08:57,116
+I set the text field's double
+value to the initial value of 0
+
+
+222
+00:08:57,116 --> 00:08:58,786
+and then I ramp it
+up to 1,000,000.
+
+
+223
+00:08:59,566 --> 00:09:02,146
+And when you do this
+you get this animation.
+
+
+224
+00:09:03,046 --> 00:09:06,186
+We are actually formatting
+the interpolated values
+
+
+225
+00:09:06,186 --> 00:09:10,116
+for every second between January
+1, 2001 and wherever this ends.
+
+
+226
+00:09:10,896 --> 00:09:13,316
+So you can also use
+this for other things,
+
+
+227
+00:09:13,316 --> 00:09:15,426
+for example you can implement
+your own double property
+
+
+228
+00:09:15,426 --> 00:09:18,026
+that we can interpolate because
+it's a double and say ramp it
+
+
+229
+00:09:18,026 --> 00:09:20,426
+between 0 and 1 and then
+use that as the input
+
+
+230
+00:09:20,426 --> 00:09:24,036
+to your own calculation to do a
+more complicated interpolation.
+
+
+231
+00:09:24,296 --> 00:09:26,006
+And yes, I love you
+so much I dug
+
+
+232
+00:09:26,006 --> 00:09:28,136
+up the old Chicago font
+for that animation.
+
+
+233
+00:09:29,036 --> 00:09:34,606
+[applause] So we're going to get
+
+
+234
+00:09:34,606 --> 00:09:37,826
+into something I call chaining
+animations now which is simple
+
+
+235
+00:09:37,826 --> 00:09:39,926
+but can look complicated.
+
+
+236
+00:09:39,926 --> 00:09:43,726
+Don't be daunted by this
+next slide, that one.
+
+
+237
+00:09:43,726 --> 00:09:45,066
+You can be daunted by
+this slide, that's okay.
+
+
+238
+00:09:45,986 --> 00:09:49,016
+So in this case we just
+have a few animation groups.
+
+
+239
+00:09:49,426 --> 00:09:50,796
+So we have our first
+animation group
+
+
+240
+00:09:50,796 --> 00:09:52,756
+and we're setting
+properties for our first view.
+
+
+241
+00:09:52,756 --> 00:09:55,166
+And then the completion handler
+
+
+242
+00:09:55,166 --> 00:09:57,786
+of that animation group
+contains another animation group
+
+
+243
+00:09:57,926 --> 00:09:59,666
+and we set properties
+for our second view,
+
+
+244
+00:10:00,316 --> 00:10:02,406
+likewise the completion handler
+
+
+245
+00:10:02,406 --> 00:10:04,346
+for that group contains
+another animation group
+
+
+246
+00:10:04,636 --> 00:10:06,766
+and we're just setting
+properties for view three here
+
+
+247
+00:10:06,846 --> 00:10:10,166
+so you can see here's the 3rd
+animation group encapsulated
+
+
+248
+00:10:10,166 --> 00:10:12,996
+within the second
+animation group, encapsulated
+
+
+249
+00:10:13,166 --> 00:10:15,456
+within the 1st animation group.
+
+
+250
+00:10:16,436 --> 00:10:18,986
+So I'm going to go ahead
+and show you a demo
+
+
+251
+00:10:18,986 --> 00:10:23,966
+of how you can use
+this in your own code.
+
+
+252
+00:10:25,156 --> 00:10:27,316
+So let me show you what
+this program is here.
+
+
+253
+00:10:28,876 --> 00:10:32,496
+This is just a simple
+list of fonts on the left
+
+
+254
+00:10:32,706 --> 00:10:35,886
+and a rotated shadowed preview
+of that font on the right
+
+
+255
+00:10:35,886 --> 00:10:37,676
+and we can actually select
+multiple ones of these
+
+
+256
+00:10:37,996 --> 00:10:39,816
+and we get this sort
+of page fanning effect.
+
+
+257
+00:10:39,816 --> 00:10:43,186
+And if you've used mail and you
+select multiple messages you
+
+
+258
+00:10:43,186 --> 00:10:44,606
+notice they do a
+very similar effect.
+
+
+259
+00:10:45,036 --> 00:10:46,326
+One of the differences though is
+
+
+260
+00:10:46,326 --> 00:10:49,816
+that mail actually slides these
+messages in from left to right
+
+
+261
+00:10:49,816 --> 00:10:52,626
+and then right to left
+as they come in and out.
+
+
+262
+00:10:52,626 --> 00:10:55,156
+And additionally it implements
+this really cool effect
+
+
+263
+00:10:56,006 --> 00:10:58,376
+where they slide
+in one at a time.
+
+
+264
+00:10:58,376 --> 00:11:00,826
+So I'm going to show you how
+we can take this program here
+
+
+265
+00:11:00,826 --> 00:11:02,166
+and implement all of that.
+
+
+266
+00:11:03,276 --> 00:11:06,416
+So the important methods to be
+aware of are these three here,
+
+
+267
+00:11:06,966 --> 00:11:08,136
+update visible views,
+
+
+268
+00:11:09,526 --> 00:11:13,896
+our controller object here
+has two NSIndexSet I-bars
+
+
+269
+00:11:13,896 --> 00:11:16,306
+and an index set is
+basically just an array
+
+
+270
+00:11:16,306 --> 00:11:19,126
+of specific indexes but you
+can perform set operations
+
+
+271
+00:11:19,126 --> 00:11:21,116
+like union, interception,
+subtraction on them.
+
+
+272
+00:11:21,656 --> 00:11:25,536
+And one of these index sets
+stores the rows or fonts
+
+
+273
+00:11:26,056 --> 00:11:29,276
+that we want to be visible
+and another stores the ones
+
+
+274
+00:11:29,276 --> 00:11:30,406
+that actually are visible.
+
+
+275
+00:11:31,086 --> 00:11:35,056
+So to calculate the ones we
+want to remove we take the ones
+
+
+276
+00:11:35,056 --> 00:11:37,446
+that are actually visible and
+we subtract the ones we want
+
+
+277
+00:11:37,446 --> 00:11:40,296
+to be visible and the remainder
+there is what we need to take
+
+
+278
+00:11:40,296 --> 00:11:41,116
+out of the view hierarchy.
+
+
+279
+00:11:41,786 --> 00:11:44,206
+Similarly when we want to bring
+stuff in we take what we want
+
+
+280
+00:11:44,206 --> 00:11:46,626
+to be visible and we subtract
+what's actually visible
+
+
+281
+00:11:46,626 --> 00:11:47,946
+and that tells us
+what we need to add.
+
+
+282
+00:11:48,726 --> 00:11:50,646
+So then we just enumerate
+over these index sets.
+
+
+283
+00:11:50,646 --> 00:11:52,656
+And we hide the rows
+that shouldn't be there
+
+
+284
+00:11:52,756 --> 00:11:54,216
+and we add the rows
+that are there.
+
+
+285
+00:11:54,216 --> 00:11:56,516
+And if we go ahead and
+look at the implementations
+
+
+286
+00:11:56,516 --> 00:11:57,946
+of these methods,
+here's the hide method,
+
+
+287
+00:11:58,016 --> 00:11:59,986
+we just have an early out in
+case it's already visible.
+
+
+288
+00:12:00,346 --> 00:12:01,906
+We update our I-bar.
+
+
+289
+00:12:01,906 --> 00:12:04,616
+We grab a cache view for the
+appropriate font and we take it
+
+
+290
+00:12:04,616 --> 00:12:07,566
+out of our view hierarchy.
+
+
+291
+00:12:07,736 --> 00:12:11,806
+The show method is a little more
+tricky but it's not that bad,
+
+
+292
+00:12:11,806 --> 00:12:14,926
+same thing, early out, update
+our I-bar, grab the view
+
+
+293
+00:12:15,276 --> 00:12:17,566
+and here we position it within
+our right side container
+
+
+294
+00:12:17,566 --> 00:12:18,706
+and we just center it.
+
+
+295
+00:12:19,636 --> 00:12:20,666
+So what we want to do
+
+
+296
+00:12:20,666 --> 00:12:23,556
+for animation though is
+complicate this up a bit.
+
+
+297
+00:12:23,906 --> 00:12:25,466
+We want it to slide
+in left to right.
+
+
+298
+00:12:25,946 --> 00:12:28,096
+So just setting the final
+bounds isn't enough.
+
+
+299
+00:12:28,096 --> 00:12:31,056
+We actually need
+two new variables.
+
+
+300
+00:12:31,056 --> 00:12:36,046
+We need one to specify the
+origin of view of the view
+
+
+301
+00:12:36,046 --> 00:12:39,166
+when it's on screen and
+that's actually the same
+
+
+302
+00:12:39,306 --> 00:12:40,846
+as the value we've
+already computed
+
+
+303
+00:12:41,206 --> 00:12:42,926
+so we can take what we
+set the view frame origin
+
+
+304
+00:12:42,926 --> 00:12:44,366
+and we just assign
+it to this sort
+
+
+305
+00:12:44,366 --> 00:12:45,686
+of temporary in origin value.
+
+
+306
+00:12:45,726 --> 00:12:49,326
+And then we need another one
+which says what the origin
+
+
+307
+00:12:49,326 --> 00:12:51,576
+of the view should be when
+it's off screen or our
+
+
+308
+00:12:51,576 --> 00:12:52,676
+out origin in this case.
+
+
+309
+00:12:53,146 --> 00:12:55,446
+And when it's off screen we
+want the right edge of our view
+
+
+310
+00:12:56,106 --> 00:12:58,686
+to match the left edge of the
+container view so we're going
+
+
+311
+00:12:58,686 --> 00:13:00,436
+to take the MidX of the
+container view instead
+
+
+312
+00:13:00,706 --> 00:13:03,226
+and instead of subtracting
+1/2 of our width we're going
+
+
+313
+00:13:03,226 --> 00:13:04,106
+to subtract our whole width
+
+
+314
+00:13:04,106 --> 00:13:06,916
+and that aligns our
+edges like we'd expect.
+
+
+315
+00:13:07,006 --> 00:13:08,086
+We don't need this bit anymore.
+
+
+316
+00:13:09,686 --> 00:13:11,936
+So one of the things we can do
+now though is we're going to,
+
+
+317
+00:13:11,936 --> 00:13:13,356
+this will look familiar
+if you're paying attention
+
+
+318
+00:13:13,356 --> 00:13:15,956
+to the slides, we're going
+to make a CABasicAnimation
+
+
+319
+00:13:22,226 --> 00:13:24,976
+and we're going to set
+its from and to values.
+
+
+320
+00:13:35,136 --> 00:13:39,816
+We're going to start at the
+out origin and we're going
+
+
+321
+00:13:39,816 --> 00:13:41,486
+to animate to the in origin.
+
+
+322
+00:13:46,486 --> 00:13:48,236
+And it's important
+to remember our steps
+
+
+323
+00:13:48,266 --> 00:13:50,846
+of setting the animations
+dictionary on the view
+
+
+324
+00:13:51,106 --> 00:14:00,946
+so view.animations=frameorigin,
+with our animation there.
+
+
+325
+00:14:00,996 --> 00:14:03,526
+And then we tell
+the animator again,
+
+
+326
+00:14:03,646 --> 00:14:04,856
+hey we want to animate in.
+
+
+327
+00:14:12,976 --> 00:14:19,006
+And we actually want to add
+our subview before we do that.
+
+
+328
+00:14:20,246 --> 00:14:22,496
+So similarly for
+removing this we're going
+
+
+329
+00:14:22,496 --> 00:14:23,896
+to do a very similar
+thing, we're also going
+
+
+330
+00:14:23,896 --> 00:14:25,786
+to specify an animation
+for how to remove it.
+
+
+331
+00:14:26,066 --> 00:14:28,276
+So we actually copy and
+paste a whole lot of this.
+
+
+332
+00:14:29,076 --> 00:14:31,466
+So we copy and paste our
+container bounds, our view frame
+
+
+333
+00:14:31,466 --> 00:14:32,546
+and our from and to values.
+
+
+334
+00:14:33,156 --> 00:14:34,886
+But in this case we need
+our from and to values
+
+
+335
+00:14:34,886 --> 00:14:37,936
+to be switched so
+that's an easy fix.
+
+
+336
+00:14:39,846 --> 00:14:43,466
+And additionally our use of the
+animator is also very similar
+
+
+337
+00:14:43,466 --> 00:14:45,016
+so we can take that
+again as well.
+
+
+338
+00:14:45,846 --> 00:14:48,676
+Importantly we're replacing
+animating to the in origin
+
+
+339
+00:14:48,716 --> 00:14:49,886
+with animating to the out origin
+
+
+340
+00:14:49,886 --> 00:14:51,576
+but we have one remaining
+problem here.
+
+
+341
+00:14:51,576 --> 00:14:53,546
+You'll notice before we
+remove from the super view
+
+
+342
+00:14:53,876 --> 00:14:56,316
+if we did this immediately we
+would tell our view to animate
+
+
+343
+00:14:56,316 --> 00:14:58,336
+and before it ever had a chance
+to draw we would remove it.
+
+
+344
+00:14:58,956 --> 00:15:00,266
+So we're going to go ahead
+
+
+345
+00:15:00,266 --> 00:15:04,326
+and open animation group
+using NSAnimationContext run
+
+
+346
+00:15:04,376 --> 00:15:05,046
+animation group.
+
+
+347
+00:15:05,086 --> 00:15:08,906
+We're going to take our changes
+that kick off the animation
+
+
+348
+00:15:08,906 --> 00:15:10,186
+and move them into
+the changes block.
+
+
+349
+00:15:10,186 --> 00:15:12,736
+We're going to take
+the completion handler
+
+
+350
+00:15:14,066 --> 00:15:17,686
+and we're going to take our
+removeFromSuperview from this.
+
+
+351
+00:15:18,066 --> 00:15:18,976
+And this prevents our view
+
+
+352
+00:15:18,976 --> 00:15:21,926
+from being prematurely removed
+before animations had a chance
+
+
+353
+00:15:21,926 --> 00:15:22,286
+to run.
+
+
+354
+00:15:22,356 --> 00:15:25,336
+So if we go ahead and run
+this and we cross our fingers
+
+
+355
+00:15:25,336 --> 00:15:30,956
+that it compiles, yay,
+we get this instead.
+
+
+356
+00:15:31,036 --> 00:15:34,846
+And you can see these things
+nicely exchanging locations come
+
+
+357
+00:15:34,846 --> 00:15:37,266
+in from the left and
+exiting to the left.
+
+
+358
+00:15:37,266 --> 00:15:39,356
+And that works, we
+bring multiple things,
+
+
+359
+00:15:39,626 --> 00:15:41,676
+or bring them out,
+so that's great.
+
+
+360
+00:15:41,956 --> 00:15:44,006
+But one of the differences
+here is these all fly
+
+
+361
+00:15:44,006 --> 00:15:44,916
+in at the same time.
+
+
+362
+00:15:44,916 --> 00:15:48,096
+We want them to come in one at
+a time so how can we do that?
+
+
+363
+00:15:48,176 --> 00:15:51,946
+Well if we go back to our update
+visible rows method I'm going
+
+
+364
+00:15:51,946 --> 00:15:54,776
+to go ahead and declare some
+block scope storage here
+
+
+365
+00:15:55,076 --> 00:15:57,476
+and just keep an integer that
+keeps track of the number
+
+
+366
+00:15:57,476 --> 00:15:59,036
+of animations we've
+added in this pass.
+
+
+367
+00:15:59,036 --> 00:16:01,976
+So I'm going to begin an
+animation group again.
+
+
+368
+00:16:08,986 --> 00:16:13,316
+And I'm going to copy and paste
+our code that enumerates our
+
+
+369
+00:16:13,416 --> 00:16:16,726
+in and out index sets.
+
+
+370
+00:16:16,856 --> 00:16:19,076
+And one of the differences
+though is I only want
+
+
+371
+00:16:19,076 --> 00:16:20,566
+to remove or add a single view.
+
+
+372
+00:16:21,406 --> 00:16:22,346
+So I'm going to go ahead
+
+
+373
+00:16:22,346 --> 00:16:24,956
+and enter increment my counter
+inside of my enumeration
+
+
+374
+00:16:25,246 --> 00:16:28,206
+and the enumeration method
+has this handy stop argument
+
+
+375
+00:16:28,206 --> 00:16:31,956
+that I can set to yes to exit
+early and I'm going to set
+
+
+376
+00:16:31,956 --> 00:16:34,996
+that to yes if our count has
+been something other than 0,
+
+
+377
+00:16:34,996 --> 00:16:36,306
+which it will always
+be in this case.
+
+
+378
+00:16:36,606 --> 00:16:39,116
+I'm going to make the same
+change for adding a view
+
+
+379
+00:16:39,996 --> 00:16:41,736
+but instead of always
+enumerating the views
+
+
+380
+00:16:41,736 --> 00:16:46,666
+to add I'm only going to do it
+if we haven't removed anything
+
+
+381
+00:16:46,666 --> 00:16:49,246
+so we're only going to get
+one removal or one addition
+
+
+382
+00:16:49,416 --> 00:16:53,756
+for pass through this.
+
+
+383
+00:16:54,376 --> 00:16:58,476
+Now if we didn't add
+anything this time, excuse me,
+
+
+384
+00:16:58,856 --> 00:17:01,266
+if we did add something
+or remove something
+
+
+385
+00:17:01,766 --> 00:17:04,945
+after our animation has
+completed, we want to go ahead
+
+
+386
+00:17:04,945 --> 00:17:06,346
+and just run this another time
+
+
+387
+00:17:06,406 --> 00:17:08,935
+so we call self-update
+visible views
+
+
+388
+00:17:09,546 --> 00:17:16,256
+and of course we add a semicolon
+here to appease the gods.
+
+
+389
+00:17:16,506 --> 00:17:18,925
+So we still have
+our nice animation.
+
+
+390
+00:17:19,566 --> 00:17:22,036
+But you'll notice as I bring
+these things in they come in one
+
+
+391
+00:17:22,036 --> 00:17:24,675
+at a time just like they do
+in mail and they exit one
+
+
+392
+00:17:24,675 --> 00:17:25,955
+at a time just like
+they do in mail
+
+
+393
+00:17:26,256 --> 00:17:27,766
+and that's exactly
+what we're looking for.
+
+
+394
+00:17:27,766 --> 00:17:28,886
+It wasn't as complicated
+
+
+395
+00:17:28,886 --> 00:17:32,066
+as having 10 animation groups
+stuck inside each other.
+
+
+396
+00:17:32,346 --> 00:17:34,526
+It was just the act of
+invoking our single method
+
+
+397
+00:17:34,526 --> 00:17:37,516
+from the completion handler
+that we had already kicked off.
+
+
+398
+00:17:39,396 --> 00:17:41,566
+So that's how you can
+use animation chaining
+
+
+399
+00:17:41,686 --> 00:17:44,256
+to implement some fairly
+entertaining animations.
+
+
+400
+00:17:44,866 --> 00:17:51,686
+That concludes our demo
+for chaining animations.
+
+
+401
+00:17:51,736 --> 00:17:53,846
+So on to the next thing,
+implicit animation.
+
+
+402
+00:17:53,846 --> 00:17:55,906
+This is something we
+added in Mac OS 10.8.
+
+
+403
+00:17:57,026 --> 00:18:01,226
+And some of you have probably
+already used it and enjoyed it
+
+
+404
+00:18:01,226 --> 00:18:02,816
+and or have been
+terrified have it.
+
+
+405
+00:18:03,476 --> 00:18:07,116
+So before we added this you
+would use view.animator.frame
+
+
+406
+00:18:07,266 --> 00:18:09,246
+and you would just set
+it to a new rectangle
+
+
+407
+00:18:09,716 --> 00:18:12,566
+and with implicit animation
+you could use this instead.
+
+
+408
+00:18:12,686 --> 00:18:14,746
+You tell the current animation
+context that it's okay
+
+
+409
+00:18:14,746 --> 00:18:15,966
+to allow implicit animation
+
+
+410
+00:18:15,966 --> 00:18:18,246
+and then you set the frame
+on the view directly.
+
+
+411
+00:18:19,106 --> 00:18:21,936
+So you're actually
+animating as a side effect
+
+
+412
+00:18:21,936 --> 00:18:24,996
+of setting the properties
+on your view.
+
+
+413
+00:18:25,216 --> 00:18:28,476
+So consider this method here
+called swapSubviewFrames.
+
+
+414
+00:18:29,686 --> 00:18:31,486
+In this we just take
+our first two subviews,
+
+
+415
+00:18:31,566 --> 00:18:35,956
+we grab their frame rectangles
+and we set subview 0's frame
+
+
+416
+00:18:35,996 --> 00:18:38,086
+to subviews 1 frame
+and vice versa.
+
+
+417
+00:18:38,786 --> 00:18:43,656
+And if we just execute
+this we get this,
+
+
+418
+00:18:43,706 --> 00:18:46,326
+they just swap positions,
+which is correct
+
+
+419
+00:18:46,326 --> 00:18:47,716
+but it's not necessarily
+what we want.
+
+
+420
+00:18:48,556 --> 00:18:50,486
+You can do this with allowances
+in animation really easily,
+
+
+421
+00:18:50,486 --> 00:18:52,736
+we just setanimation context.
+
+
+422
+00:18:52,736 --> 00:18:53,466
+currentcontext.
+
+
+423
+00:18:53,466 --> 00:18:55,436
+allows implicitaniimaton=guest
+
+
+424
+00:18:55,616 --> 00:18:57,556
+and we execute our
+same method as before.
+
+
+425
+00:18:57,556 --> 00:18:59,456
+And in this case
+it looks like this.
+
+
+426
+00:19:00,176 --> 00:19:01,506
+So when would you use this?
+
+
+427
+00:19:01,856 --> 00:19:03,256
+You would use this in places
+
+
+428
+00:19:03,256 --> 00:19:05,416
+where the animator proxy
+doesn't have visibility
+
+
+429
+00:19:05,416 --> 00:19:06,536
+into what's being animated.
+
+
+430
+00:19:06,786 --> 00:19:09,046
+You'll notice swap subview
+frames was an action.
+
+
+431
+00:19:09,156 --> 00:19:10,336
+It didn't take an argument.
+
+
+432
+00:19:10,336 --> 00:19:12,576
+The animator can't actually
+interpolate anything in there
+
+
+433
+00:19:12,576 --> 00:19:15,516
+so you can use the
+animation context
+
+
+434
+00:19:15,656 --> 00:19:19,736
+AllowsImplicitAnimationProperty
+to animate those frames
+
+
+435
+00:19:19,736 --> 00:19:21,246
+as a side effect of
+your action method.
+
+
+436
+00:19:22,826 --> 00:19:24,376
+There are some caveats.
+
+
+437
+00:19:24,466 --> 00:19:25,986
+First it doesn't
+work for everything.
+
+
+438
+00:19:26,316 --> 00:19:29,406
+It will work reliably for frame,
+frame size and frame origin,
+
+
+439
+00:19:30,086 --> 00:19:31,426
+pass that you're
+beginning to pray.
+
+
+440
+00:19:32,096 --> 00:19:34,156
+But it does tend to
+work for more things
+
+
+441
+00:19:34,156 --> 00:19:35,566
+when you're layer backed and
+we're talk a little bit more
+
+
+442
+00:19:35,566 --> 00:19:37,196
+about layer backing in a bit.
+
+
+443
+00:19:37,196 --> 00:19:41,056
+In fact we'll talk a bit more
+about layer backing right now.
+
+
+444
+00:19:42,666 --> 00:19:46,446
+So I'm going to give a brief
+overview of core animation,
+
+
+445
+00:19:46,446 --> 00:19:48,166
+a very brief overview
+of core animation here.
+
+
+446
+00:19:49,076 --> 00:19:51,346
+And you're probably already
+familiar with CALayer.
+
+
+447
+00:19:51,466 --> 00:19:52,996
+And this is an object
+that contains lots
+
+
+448
+00:19:52,996 --> 00:19:55,686
+of properties very similar
+to MSView, it has like bounds
+
+
+449
+00:19:55,686 --> 00:19:57,006
+and position and opacity.
+
+
+450
+00:19:57,416 --> 00:19:58,236
+And these are all properties
+
+
+451
+00:19:58,236 --> 00:19:59,796
+that Core Animation
+knows how to animate.
+
+
+452
+00:20:00,666 --> 00:20:03,266
+And if you want to use
+explicit animation you want
+
+
+453
+00:20:03,266 --> 00:20:04,846
+to tell core animation
+to animate this,
+
+
+454
+00:20:04,846 --> 00:20:07,136
+you don't modify the
+property, you tell the layer
+
+
+455
+00:20:07,136 --> 00:20:09,576
+to add an animation that
+will look kind of like this.
+
+
+456
+00:20:09,576 --> 00:20:11,836
+Here we construct
+another CABasicAnimation.
+
+
+457
+00:20:12,216 --> 00:20:13,206
+We set its from value.
+
+
+458
+00:20:13,206 --> 00:20:14,076
+We set its to value.
+
+
+459
+00:20:14,076 --> 00:20:16,336
+And we add it to the
+animations on that layer.
+
+
+460
+00:20:16,336 --> 00:20:18,226
+Well what does that do?
+
+
+461
+00:20:18,886 --> 00:20:21,486
+Well first it doesn't
+do anything destructive.
+
+
+462
+00:20:21,486 --> 00:20:23,876
+It's not actually setting
+the property on the layer.
+
+
+463
+00:20:23,876 --> 00:20:26,596
+It just temporarily
+overrides that property
+
+
+464
+00:20:26,596 --> 00:20:28,706
+for rendering purposes.
+
+
+465
+00:20:29,056 --> 00:20:30,386
+So what are the consequences
+of this?
+
+
+466
+00:20:30,386 --> 00:20:32,126
+If you take a look at
+this snippet here we have
+
+
+467
+00:20:32,126 --> 00:20:35,236
+that basic animation again and
+we're interpolating from .75
+
+
+468
+00:20:35,426 --> 00:20:41,316
+to .25 and it really
+is only applying
+
+
+469
+00:20:41,316 --> 00:20:42,376
+that for rendering purposes.
+
+
+470
+00:20:42,376 --> 00:20:45,086
+If you actually ask the layer
+what it is while it's doing its
+
+
+471
+00:20:45,086 --> 00:20:47,136
+interpolation between
+.75 and .25,
+
+
+472
+00:20:47,636 --> 00:20:48,466
+it's going to tell you this.
+
+
+473
+00:20:48,466 --> 00:20:50,886
+It's going to tell you it's
+opacity is a default value of 1
+
+
+474
+00:20:51,166 --> 00:20:52,686
+because nothing has
+actually changed
+
+
+475
+00:20:52,686 --> 00:20:54,006
+that property inside the layer.
+
+
+476
+00:20:55,436 --> 00:20:59,056
+So again we have to
+have implicit animation
+
+
+477
+00:20:59,056 --> 00:21:01,636
+for core animation as well,
+why have one of everything
+
+
+478
+00:21:01,636 --> 00:21:04,126
+when we can have more than one?
+
+
+479
+00:21:04,126 --> 00:21:06,286
+So in this case animations
+are avid
+
+
+480
+00:21:06,286 --> 00:21:07,546
+in response to property changes.
+
+
+481
+00:21:07,546 --> 00:21:09,676
+If you call this code
+you're setting your property
+
+
+482
+00:21:09,676 --> 00:21:12,506
+on your layer, you actually
+get all of this for free,
+
+
+483
+00:21:12,506 --> 00:21:14,486
+which is kind of handy.
+
+
+484
+00:21:14,486 --> 00:21:16,146
+It makes the basic
+animation for you.
+
+
+485
+00:21:16,146 --> 00:21:18,586
+It figures out that the two
+values, what you're setting it
+
+
+486
+00:21:18,586 --> 00:21:20,816
+from and what the from value
+is and what's already on screen
+
+
+487
+00:21:21,026 --> 00:21:22,996
+and then it adds it as an
+animation to your layer.
+
+
+488
+00:21:23,646 --> 00:21:28,126
+If you're curious about that
+there's more information on this
+
+
+489
+00:21:28,126 --> 00:21:31,136
+in the CAAction Protocol which
+lives inside of CALayer.h,
+
+
+490
+00:21:31,136 --> 00:21:32,436
+you can do some pretty
+clever things
+
+
+491
+00:21:32,436 --> 00:21:34,516
+but that's beyond the scope of
+what we're talking about here.
+
+
+492
+00:21:35,676 --> 00:21:37,826
+Tying this back into
+views though,
+
+
+493
+00:21:37,826 --> 00:21:39,356
+how does this effect
+layer backed views?
+
+
+494
+00:21:39,696 --> 00:21:43,186
+Well first of all views can
+optionally delegate a lot
+
+
+495
+00:21:43,186 --> 00:21:45,956
+of the drawing of animating
+responsibility to CALayer.
+
+
+496
+00:21:46,596 --> 00:21:49,196
+And you would generally get this
+
+
+497
+00:21:49,196 --> 00:21:51,446
+by studying the wantsLayer
+property of your view to yes.
+
+
+498
+00:21:51,446 --> 00:21:53,696
+And what that does is
+it causes your view
+
+
+499
+00:21:53,696 --> 00:21:56,836
+to manage its own CALayer
+and it also causes all
+
+
+500
+00:21:56,836 --> 00:21:59,146
+of its descendants to
+manage their own CALayers.
+
+
+501
+00:21:59,736 --> 00:22:03,966
+And there's a few reasons you
+might do this besides animation,
+
+
+502
+00:22:04,246 --> 00:22:07,006
+performance and memory are the
+big ones, and they trade off,
+
+
+503
+00:22:07,006 --> 00:22:10,866
+sometimes non very predictable
+ways but we trust you
+
+
+504
+00:22:10,866 --> 00:22:12,556
+to balance it for your
+own applications needs.
+
+
+505
+00:22:13,426 --> 00:22:14,416
+The take away from
+this though is
+
+
+506
+00:22:14,416 --> 00:22:15,826
+when you're using
+a layer back view,
+
+
+507
+00:22:15,826 --> 00:22:17,266
+it's going to behave
+a little differently
+
+
+508
+00:22:17,266 --> 00:22:19,616
+than a non-layer
+back view, surprise.
+
+
+509
+00:22:20,226 --> 00:22:21,946
+If you want to know more
+
+
+510
+00:22:21,946 --> 00:22:24,196
+about these differences
+I encourage you to stick
+
+
+511
+00:22:24,196 --> 00:22:27,066
+around for our next session,
+215, Optimizing Drawing
+
+
+512
+00:22:27,066 --> 00:22:27,946
+and Scrolling on OS X.
+
+
+513
+00:22:28,686 --> 00:22:32,056
+I realize this slide says this
+was 11 hours ago and we did
+
+
+514
+00:22:32,056 --> 00:22:34,876
+in fact run the session 11
+hours ago but we're going
+
+
+515
+00:22:34,876 --> 00:22:38,036
+to run it again in 40
+minutes or so just for you.
+
+
+516
+00:22:40,301 --> 00:22:42,301
+[laughter and applause]
+
+
+517
+00:22:42,586 --> 00:22:45,096
+So how does AppKit run the
+animation for non-layer
+
+
+518
+00:22:45,286 --> 00:22:46,356
+or even layer backed view
+
+
+519
+00:22:46,356 --> 00:22:48,166
+over not delegating
+our responsibility
+
+
+520
+00:22:48,166 --> 00:22:48,816
+over core animation?
+
+
+521
+00:22:49,856 --> 00:22:52,736
+Well first of all we keep
+this animation around.
+
+
+522
+00:22:52,736 --> 00:22:55,296
+It doesn't immediately change
+the property in your view.
+
+
+523
+00:22:56,226 --> 00:22:59,996
+And we periodically wakeup the
+main thread to do our animation.
+
+
+524
+00:23:00,046 --> 00:23:03,886
+Every time we wakeup we're
+going to evaluate that animation
+
+
+525
+00:23:03,886 --> 00:23:06,216
+for the current time and figure
+out what the current value is
+
+
+526
+00:23:07,116 --> 00:23:08,256
+and we're going to apply it
+
+
+527
+00:23:08,256 --> 00:23:10,116
+to the object that's being
+animated, in this case the view.
+
+
+528
+00:23:10,766 --> 00:23:13,956
+So we're actually replacing
+the property inside the view,
+
+
+529
+00:23:13,956 --> 00:23:14,936
+that means you'll see all
+
+
+530
+00:23:14,936 --> 00:23:16,756
+of your key value
+accessors get called,
+
+
+531
+00:23:16,756 --> 00:23:18,036
+all the change notifications
+get called,
+
+
+532
+00:23:18,036 --> 00:23:19,786
+all the NS notifications
+get posted.
+
+
+533
+00:23:20,626 --> 00:23:23,266
+And the drawing of this
+property actually just happens
+
+
+534
+00:23:23,266 --> 00:23:25,616
+as a side effect of the
+regular NS view drawing cycle.
+
+
+535
+00:23:25,616 --> 00:23:26,776
+And when we change a property
+
+
+536
+00:23:26,776 --> 00:23:29,156
+that effects the visual
+appearance of NS view,
+
+
+537
+00:23:29,386 --> 00:23:31,546
+the view gets marked as
+needing display and we draw
+
+
+538
+00:23:31,546 --> 00:23:33,396
+that on the next from loop pass.
+
+
+539
+00:23:34,616 --> 00:23:37,516
+So here's an example, if you
+do an animation you're going
+
+
+540
+00:23:37,516 --> 00:23:39,456
+to see this happening,
+the main thread wakes up
+
+
+541
+00:23:39,456 --> 00:23:42,096
+and every time it wakes up it
+changes the size of a view.
+
+
+542
+00:23:43,166 --> 00:23:46,976
+Core animation works
+a little differently
+
+
+543
+00:23:47,506 --> 00:23:50,636
+so it also stores the animation
+in addition to property
+
+
+544
+00:23:50,636 --> 00:23:52,176
+on the layer so that's similar.
+
+
+545
+00:23:53,066 --> 00:23:56,016
+And this is somewhat
+nebulously phrased, it is waking
+
+
+546
+00:23:56,016 --> 00:23:58,846
+up periodically on a background
+thread or maybe another process
+
+
+547
+00:23:59,756 --> 00:24:01,976
+but it does different
+things from this point on.
+
+
+548
+00:24:02,556 --> 00:24:04,936
+It evaluates the animation
+but only evaluates it as part
+
+
+549
+00:24:04,936 --> 00:24:07,546
+of rendering so the results
+you see on screen aren't going
+
+
+550
+00:24:07,546 --> 00:24:09,106
+to be back propagated
+into your layer.
+
+
+551
+00:24:09,676 --> 00:24:12,386
+The property of the layer is
+left unchanged and unmodified.
+
+
+552
+00:24:13,446 --> 00:24:16,156
+So suppose you're
+running the same animation
+
+
+553
+00:24:16,156 --> 00:24:18,816
+with a layered back view and we
+delegate this to core animation.
+
+
+554
+00:24:19,256 --> 00:24:22,476
+You're going to notice hey
+the size on screen is changing
+
+
+555
+00:24:22,576 --> 00:24:25,346
+but we're never doing
+anything on the main thread.
+
+
+556
+00:24:25,346 --> 00:24:26,846
+None of those key
+value accessors
+
+
+557
+00:24:26,846 --> 00:24:28,396
+or notifications
+are being posted
+
+
+558
+00:24:28,526 --> 00:24:30,686
+so that's an important
+difference.
+
+
+559
+00:24:31,946 --> 00:24:34,146
+In general we try to let
+core animation drive things
+
+
+560
+00:24:34,146 --> 00:24:34,806
+because doing stuff
+
+
+561
+00:24:34,806 --> 00:24:37,046
+in the background is
+usually more performant
+
+
+562
+00:24:37,046 --> 00:24:39,246
+and lets us be more generous
+
+
+563
+00:24:39,246 --> 00:24:42,436
+with what the main
+thread can do.
+
+
+564
+00:24:43,076 --> 00:24:45,676
+The frame, frame origin
+and frame properties
+
+
+565
+00:24:45,726 --> 00:24:47,716
+of NSView are important
+exceptions to this
+
+
+566
+00:24:47,716 --> 00:24:49,936
+where we don't necessarily
+let Core Animation drive them.
+
+
+567
+00:24:50,716 --> 00:24:53,646
+And our decision is
+governed largely by the value
+
+
+568
+00:24:53,646 --> 00:24:56,456
+of the layerContentsRedrawPolicy
+of your NSView,
+
+
+569
+00:24:57,256 --> 00:25:00,766
+and again that will be covered
+in greater detail in session 215
+
+
+570
+00:25:00,766 --> 00:25:02,496
+in this room right
+after this session.
+
+
+571
+00:25:04,386 --> 00:25:06,236
+So I want to call out
+this code snippet here.
+
+
+572
+00:25:06,236 --> 00:25:07,076
+This is very simple.
+
+
+573
+00:25:07,656 --> 00:25:10,186
+We have a window and we
+want it to animate in a view
+
+
+574
+00:25:10,186 --> 00:25:13,126
+so we want it to look like that.
+
+
+575
+00:25:14,166 --> 00:25:15,416
+We set the views initial frame
+
+
+576
+00:25:15,476 --> 00:25:17,516
+and then we told the animator
+what its final frame was.
+
+
+577
+00:25:17,516 --> 00:25:20,806
+So if we go back to
+here the only difference
+
+
+578
+00:25:20,806 --> 00:25:23,116
+in the snippet is that
+we've told it wants a layer.
+
+
+579
+00:25:23,116 --> 00:25:26,676
+If we run that animation
+we see this.
+
+
+580
+00:25:27,136 --> 00:25:31,536
+Again the screen changed,
+it's technically in animation
+
+
+581
+00:25:31,536 --> 00:25:33,046
+but it's not a great animation.
+
+
+582
+00:25:33,046 --> 00:25:36,786
+It's definitely not what we
+wanted so why did that happen?
+
+
+583
+00:25:36,786 --> 00:25:38,526
+Well first, Core
+Animation groups all
+
+
+584
+00:25:38,526 --> 00:25:40,016
+of its changes into
+transactions.
+
+
+585
+00:25:41,186 --> 00:25:44,646
+And if you're using
+implicit animation,
+
+
+586
+00:25:44,916 --> 00:25:47,286
+Core Animation is going to try
+to grab the on screen value
+
+
+587
+00:25:47,286 --> 00:25:51,006
+as your from value but the
+view was never on screen
+
+
+588
+00:25:51,096 --> 00:25:52,746
+so there wasn't any
+on screen value.
+
+
+589
+00:25:53,076 --> 00:25:56,176
+That initial value we set on
+the view is actually replaced
+
+
+590
+00:25:56,176 --> 00:25:59,026
+in that same transaction by the
+value we set on the animator
+
+
+591
+00:25:59,626 --> 00:26:02,356
+so there's at least two
+easy ways to fix this
+
+
+592
+00:26:02,356 --> 00:26:03,346
+and I'm going to
+show them to you.
+
+
+593
+00:26:04,086 --> 00:26:08,016
+So in this case we're going back
+to manually specifying the from
+
+
+594
+00:26:08,376 --> 00:26:10,066
+and to values of our animation.
+
+
+595
+00:26:10,476 --> 00:26:13,706
+Again we do that by setting
+our animations dictionary
+
+
+596
+00:26:13,706 --> 00:26:15,726
+on the view and then telling
+the animator to go to the
+
+
+597
+00:26:15,726 --> 00:26:16,806
+to value as necessary.
+
+
+598
+00:26:17,216 --> 00:26:20,476
+Technically we will
+automatically fill in the from
+
+
+599
+00:26:20,476 --> 00:26:22,996
+and to values for
+you, in this case the
+
+
+600
+00:26:22,996 --> 00:26:24,746
+from value is the
+important part to specify.
+
+
+601
+00:26:24,746 --> 00:26:26,906
+The to value is inferred from
+what we're setting the frame
+
+
+602
+00:26:26,906 --> 00:26:29,226
+on the animator to so it's
+optional but leaving it
+
+
+603
+00:26:29,226 --> 00:26:30,806
+in there is often
+good for clarity.
+
+
+604
+00:26:31,356 --> 00:26:35,566
+The other way of doing this is
+with animation groups again.
+
+
+605
+00:26:36,156 --> 00:26:38,426
+And in this we actually
+use our changes block
+
+
+606
+00:26:38,426 --> 00:26:41,096
+in the animation group to set
+the initial value on the view
+
+
+607
+00:26:41,096 --> 00:26:44,396
+and then we use our completion
+handler to tell the animator
+
+
+608
+00:26:44,396 --> 00:26:45,486
+to set it to the to value.
+
+
+609
+00:26:45,486 --> 00:26:48,216
+And in both cases we're going
+to get an animation looking
+
+
+610
+00:26:48,216 --> 00:26:50,426
+like this, which is
+exactly what we want.
+
+
+611
+00:26:50,426 --> 00:26:55,276
+So at this point I'd like to
+welcome my colleague Peter Ammon
+
+
+612
+00:26:55,276 --> 00:26:55,856
+on stage.
+
+
+613
+00:26:56,496 --> 00:26:58,486
+He's going to get you
+started with Auto Layout.
+
+
+614
+00:26:59,346 --> 00:26:59,976le
+Welcome Peter.
+
+
+615
+00:27:00,516 --> 00:27:05,076
+[ Applause ]
+
+
+616
+00:27:05,576 --> 00:27:06,206
+>> Peter Ammon: Thanks, Chris.
+
+
+617
+00:27:07,036 --> 00:27:08,176
+I'm Peter Ammon.
+
+
+618
+00:27:08,176 --> 00:27:09,986
+I'm a Cocoa Frameworks Engineer.
+
+
+619
+00:27:10,976 --> 00:27:12,736
+I apologize my voice
+is a little rough.
+
+
+620
+00:27:12,736 --> 00:27:13,676
+I'm fighting off a cold.
+
+
+621
+00:27:14,246 --> 00:27:15,766
+We'll be talking
+about a new class
+
+
+622
+00:27:15,766 --> 00:27:18,456
+in AppKit called NSStackView
+which is really cool
+
+
+623
+00:27:18,586 --> 00:27:20,286
+and then I'll show you
+three different techniques
+
+
+624
+00:27:20,446 --> 00:27:25,466
+for doing animations in
+an auto layout based app.
+
+
+625
+00:27:25,706 --> 00:27:28,926
+So NSStackView, let's say you
+just have a collection of views,
+
+
+626
+00:27:29,216 --> 00:27:30,646
+a button, a text field, a label,
+
+
+627
+00:27:30,646 --> 00:27:33,936
+you want to put them all
+together into a list or a stack,
+
+
+628
+00:27:34,536 --> 00:27:36,176
+well that's what
+NSStackView does for you.
+
+
+629
+00:27:37,486 --> 00:27:38,296
+Pretty simple, right?
+
+
+630
+00:27:38,816 --> 00:27:41,626
+Where it gets its flexibility
+and its power is from its use
+
+
+631
+00:27:41,626 --> 00:27:43,796
+of auto layout, everything
+is strung together
+
+
+632
+00:27:43,966 --> 00:27:44,726
+with constraints.
+
+
+633
+00:27:45,826 --> 00:27:48,396
+That means it knows how things
+should be sized according
+
+
+634
+00:27:48,396 --> 00:27:49,926
+to their intrinsic content size
+
+
+635
+00:27:49,926 --> 00:27:51,466
+or any other constraints
+you apply.
+
+
+636
+00:27:52,646 --> 00:27:54,116
+It knows how things
+should be aligned
+
+
+637
+00:27:54,116 --> 00:27:56,686
+so you can specify a top
+alignment, left alignment,
+
+
+638
+00:27:56,976 --> 00:27:58,296
+here we have a baseline
+alignment.
+
+
+639
+00:27:58,336 --> 00:28:02,146
+And it interacts well
+with window resizing
+
+
+640
+00:28:02,256 --> 00:28:04,346
+so you can make a stack
+view that prevents you
+
+
+641
+00:28:04,346 --> 00:28:07,046
+from resizing the window
+too big or too small
+
+
+642
+00:28:07,046 --> 00:28:09,436
+so the things wouldn't
+clip, etcetera.
+
+
+643
+00:28:10,236 --> 00:28:14,006
+And this is a really common
+type of layout to have
+
+
+644
+00:28:14,366 --> 00:28:17,106
+and StackView makes it very easy
+to create so you can go back
+
+
+645
+00:28:17,106 --> 00:28:20,526
+to [inaudible] or Mountain
+Lion and create these yourself
+
+
+646
+00:28:20,526 --> 00:28:22,246
+but with StackView
+it's a lot easier.
+
+
+647
+00:28:24,336 --> 00:28:25,726
+We figure why stop there?
+
+
+648
+00:28:26,086 --> 00:28:28,476
+We can make a stack view
+that's horizontal or vertical.
+
+
+649
+00:28:29,606 --> 00:28:31,536
+You can have one that
+has flexible spacing
+
+
+650
+00:28:31,536 --> 00:28:32,506
+or equal spacing.
+
+
+651
+00:28:32,506 --> 00:28:35,036
+Equal spacing in particular
+is difficult to create
+
+
+652
+00:28:35,036 --> 00:28:36,366
+with auto layout today.
+
+
+653
+00:28:37,686 --> 00:28:39,126
+You can make a StackView
+nestable
+
+
+654
+00:28:39,126 --> 00:28:41,586
+so you can put a stack
+inside another one, why not?
+
+
+655
+00:28:41,586 --> 00:28:43,916
+And you can have a stack view
+
+
+656
+00:28:44,206 --> 00:28:46,656
+that will automatically
+have views that get thrown
+
+
+657
+00:28:46,656 --> 00:28:49,246
+out when the StackView
+gets too small or put back
+
+
+658
+00:28:49,246 --> 00:28:50,936
+in when the StackView
+has enough space.
+
+
+659
+00:28:52,366 --> 00:28:54,646
+For example, how
+NSToolbar does it.
+
+
+660
+00:28:54,646 --> 00:28:57,006
+And the API for StackView
+could not be simpler.
+
+
+661
+00:28:57,306 --> 00:29:00,906
+You can create a StackView with
+just passing an array of views
+
+
+662
+00:29:00,906 --> 00:29:03,786
+to NSStackView, StackView
+with Views and you're done.
+
+
+663
+00:29:04,046 --> 00:29:06,796
+So we're going to use StackView
+
+
+664
+00:29:06,796 --> 00:29:08,686
+to create an inspector
+type window.
+
+
+665
+00:29:08,786 --> 00:29:11,736
+You may have seen this
+in FindersGetInfo or in
+
+
+666
+00:29:11,736 --> 00:29:12,976
+for example a graphics editor.
+
+
+667
+00:29:14,906 --> 00:29:18,866
+For each of the individual
+views in our inspector window,
+
+
+668
+00:29:19,026 --> 00:29:20,286
+for example filters, we're going
+
+
+669
+00:29:20,286 --> 00:29:21,856
+to string it all
+together with auto layout.
+
+
+670
+00:29:22,426 --> 00:29:24,626
+So we have constraints
+that specify the positions.
+
+
+671
+00:29:24,626 --> 00:29:26,646
+And you'll notice the
+bottom constraint is dashed.
+
+
+672
+00:29:27,166 --> 00:29:28,836
+That means it's breakable.
+
+
+673
+00:29:28,836 --> 00:29:30,736
+It has a priority
+less than required
+
+
+674
+00:29:30,736 --> 00:29:33,596
+and that means it could be
+overridden by a constraint
+
+
+675
+00:29:33,596 --> 00:29:34,656
+with a higher priority.
+
+
+676
+00:29:34,656 --> 00:29:37,276
+So when we want to
+disclose it, when we want
+
+
+677
+00:29:37,276 --> 00:29:41,206
+to collapse this view, we're
+going to add another constraint
+
+
+678
+00:29:41,206 --> 00:29:44,346
+which just says center the
+label in the view, that's going
+
+
+679
+00:29:44,346 --> 00:29:46,276
+to force the bottom
+up until it's centered
+
+
+680
+00:29:46,796 --> 00:29:48,566
+and that's how we collapse it.
+
+
+681
+00:29:49,066 --> 00:29:52,606
+And this way we're going
+to put these in a StackView
+
+
+682
+00:29:52,686 --> 00:29:54,296
+and that's how we'll get
+the inspector window.
+
+
+683
+00:29:54,846 --> 00:29:58,526
+So I'm going to show
+you a demo of that.
+
+
+684
+00:29:58,806 --> 00:30:01,166
+So here's the views that we're
+going to put in our StackView.
+
+
+685
+00:30:01,396 --> 00:30:03,736
+We have the header view.
+
+
+686
+00:30:03,996 --> 00:30:06,536
+We've got three views that
+are all kind of similar
+
+
+687
+00:30:06,536 --> 00:30:09,286
+and I'll zoom in
+here and you'll see
+
+
+688
+00:30:09,776 --> 00:30:12,116
+that all the labels here are
+positioned using auto layout.
+
+
+689
+00:30:12,116 --> 00:30:15,876
+I use the new X Code 5
+Auto Layout Work Code
+
+
+690
+00:30:15,876 --> 00:30:17,136
+which is a lot nicer,
+for those of you
+
+
+691
+00:30:17,136 --> 00:30:19,626
+who attended the session earlier
+here today you saw that too.
+
+
+692
+00:30:20,296 --> 00:30:22,736
+And you'll notice the bottom
+constraint has a priority
+
+
+693
+00:30:22,906 --> 00:30:28,206
+which is still pretty high,
+725 but it's not required,
+
+
+694
+00:30:28,256 --> 00:30:30,286
+which means that a higher
+priority constraint can
+
+
+695
+00:30:30,286 --> 00:30:30,676
+break it.
+
+
+696
+00:30:30,726 --> 00:30:36,276
+And by the way, one of these
+views is itself a StackView.
+
+
+697
+00:30:36,276 --> 00:30:38,946
+You'll notice that we
+have, this is a StackView.
+
+
+698
+00:30:38,946 --> 00:30:41,526
+We have some basic support
+for configuring a StackView
+
+
+699
+00:30:41,526 --> 00:30:43,956
+on the interface builder,
+in the seed build.
+
+
+700
+00:30:44,336 --> 00:30:45,706
+But in a future release
+
+
+701
+00:30:45,706 --> 00:30:48,096
+of X Code hopefully GM
+we will have full support
+
+
+702
+00:30:48,256 --> 00:30:51,086
+for configuring the Stack View
+with all the views inside it.
+
+
+703
+00:30:53,976 --> 00:30:58,536
+So now I'm going to switch
+to the window controller.
+
+
+704
+00:30:58,906 --> 00:30:59,826
+So window did load.
+
+
+705
+00:30:59,826 --> 00:31:03,036
+We're going to start by making
+a list of all our views,
+
+
+706
+00:31:03,036 --> 00:31:04,896
+the header, the filter,
+the shapes view.
+
+
+707
+00:31:04,896 --> 00:31:06,526
+And we're going to
+make a StackView.
+
+
+708
+00:31:06,526 --> 00:31:09,006
+We're going to say
+that it's vertical.
+
+
+709
+00:31:09,686 --> 00:31:12,246
+Alignment is leading, that
+means that it's left aligned.
+
+
+710
+00:31:12,326 --> 00:31:14,046
+They all have the same
+width so it doesn't matter
+
+
+711
+00:31:14,046 --> 00:31:15,796
+but if we wanted everything
+to be left aligned,
+
+
+712
+00:31:15,796 --> 00:31:16,506
+that's what we would do.
+
+
+713
+00:31:16,606 --> 00:31:18,136
+And there's no spacing
+between them.
+
+
+714
+00:31:18,136 --> 00:31:21,806
+We're going to see oh it
+keeps its width and its height
+
+
+715
+00:31:21,806 --> 00:31:24,616
+with a high priority and
+we're going to set it
+
+
+716
+00:31:24,616 --> 00:31:27,956
+as a document view of
+a certain scroll view,
+
+
+717
+00:31:27,956 --> 00:31:29,246
+of the scroll view
+that's in the window.
+
+
+718
+00:31:29,466 --> 00:31:33,966
+Next we're going to tell it
+how do we position ourselves
+
+
+719
+00:31:33,966 --> 00:31:34,616
+in the scroll view?
+
+
+720
+00:31:34,916 --> 00:31:37,816
+Oh using the Visual Format
+Language we're going to say
+
+
+721
+00:31:37,816 --> 00:31:39,306
+if penned to the
+left and the right
+
+
+722
+00:31:39,306 --> 00:31:40,296
+so it just fills that width.
+
+
+723
+00:31:41,306 --> 00:31:45,446
+Vertically its penned to the
+top, that's what that means,
+
+
+724
+00:31:45,446 --> 00:31:46,806
+but it's not penned
+to the bottom.
+
+
+725
+00:31:46,806 --> 00:31:47,706
+It can float freely.
+
+
+726
+00:31:48,126 --> 00:31:51,806
+And this has to be in a flipped
+clipped view, by the way.
+
+
+727
+00:31:53,276 --> 00:31:55,596
+So in our disclosure
+view this is the view
+
+
+728
+00:31:55,746 --> 00:31:57,236
+that goes into the StackView.
+
+
+729
+00:31:59,036 --> 00:32:00,926
+We'll start by creating
+a constraint.
+
+
+730
+00:32:00,926 --> 00:32:03,036
+This is the centering
+constraint that I showed you.
+
+
+731
+00:32:03,676 --> 00:32:07,126
+We're seeing the label
+fields center Y is equal
+
+
+732
+00:32:07,126 --> 00:32:11,576
+to our center Y times 1 plus
+0 so it's exactly centered.
+
+
+733
+00:32:12,606 --> 00:32:15,136
+Now when it comes time to
+collapse it we're going
+
+
+734
+00:32:15,136 --> 00:32:18,336
+to remove that constraint, I'm
+sorry, we want to uncollapse it,
+
+
+735
+00:32:18,336 --> 00:32:22,006
+we remove the constraint, set
+the title of our button and say
+
+
+736
+00:32:22,006 --> 00:32:23,056
+that we're no longer collapsed.
+
+
+737
+00:32:23,906 --> 00:32:27,276
+And when we want to collapse
+it we add the constraint,
+
+
+738
+00:32:27,466 --> 00:32:29,086
+set the title and say
+that we are collapsed.
+
+
+739
+00:32:29,676 --> 00:32:33,426
+So that's not a lot of code
+but here's the affects you get.
+
+
+740
+00:32:36,276 --> 00:32:37,736
+Here's our StackView
+and you'll see
+
+
+741
+00:32:37,736 --> 00:32:42,946
+that I can disclose
+things pretty nice
+
+
+742
+00:32:42,946 --> 00:32:46,116
+and I can resize the window,
+for example, I can scroll.
+
+
+743
+00:32:46,116 --> 00:32:49,756
+So we got this pretty
+sophisticated control
+
+
+744
+00:32:50,036 --> 00:32:54,376
+without a lot of code.
+
+
+745
+00:32:55,296 --> 00:32:58,016
+But this is a talk on animation
+
+
+746
+00:32:58,136 --> 00:33:00,926
+so how would we make this
+disclosure view animate?
+
+
+747
+00:33:02,296 --> 00:33:04,476
+Well the desire is that
+we want to just switch
+
+
+748
+00:33:04,476 --> 00:33:06,166
+from our old layout
+to the new layout.
+
+
+749
+00:33:06,506 --> 00:33:08,776
+We want to just add that
+constraint or remove it.
+
+
+750
+00:33:08,926 --> 00:33:11,716
+But rather than the views just
+jumping we want them to animate
+
+
+751
+00:33:11,716 --> 00:33:13,416
+from their old position
+to the new position.
+
+
+752
+00:33:13,986 --> 00:33:17,906
+So Chris showed you some
+techniques for doing this
+
+
+753
+00:33:17,906 --> 00:33:21,256
+in a non-auto layout based
+app where you set the frame
+
+
+754
+00:33:21,256 --> 00:33:25,856
+through the animator
+proxy or you set the frame
+
+
+755
+00:33:25,856 --> 00:33:28,736
+after setting
+allowsImplicitAnimation to yes.
+
+
+756
+00:33:29,636 --> 00:33:31,986
+But with constraints
+you're never supposed
+
+
+757
+00:33:31,986 --> 00:33:33,056
+to set frames directly
+
+
+758
+00:33:33,546 --> 00:33:36,956
+so how would we do
+this with constraints?
+
+
+759
+00:33:37,096 --> 00:33:39,256
+Well here's some things people
+have tried that don't work.
+
+
+760
+00:33:40,306 --> 00:33:42,736
+What they have done is they've
+tried opening the animation
+
+
+761
+00:33:42,736 --> 00:33:44,956
+block and saying add constraint
+
+
+762
+00:33:45,256 --> 00:33:46,506
+and you'll see that
+doesn't animate.
+
+
+763
+00:33:47,796 --> 00:33:49,526
+They've tried adding
+a constraint
+
+
+764
+00:33:49,526 --> 00:33:50,436
+and maybe setting the constant
+
+
+765
+00:33:50,436 --> 00:33:52,396
+to something, that
+doesn't animate.
+
+
+766
+00:33:52,396 --> 00:33:55,776
+And here's something people have
+tried, they're actually going
+
+
+767
+00:33:55,776 --> 00:33:58,876
+to call layout on the view
+after modifying the constraints.
+
+
+768
+00:33:58,876 --> 00:34:02,326
+And this might seem to work
+but this is really bad,
+
+
+769
+00:34:02,326 --> 00:34:03,996
+you can see it's
+off the page bad.
+
+
+770
+00:34:06,716 --> 00:34:07,916
+Why does it seem to work?
+
+
+771
+00:34:08,096 --> 00:34:10,856
+The underlying step frame calls
+must be in an animation block
+
+
+772
+00:34:10,856 --> 00:34:13,096
+with allows implicit
+animation set to yes.
+
+
+773
+00:34:13,716 --> 00:34:15,676
+And that's actually
+where those calls occur
+
+
+774
+00:34:15,676 --> 00:34:16,545
+in the layout method.
+
+
+775
+00:34:17,476 --> 00:34:19,286
+But the layout method
+is for overriding.
+
+
+776
+00:34:19,286 --> 00:34:21,876
+It's not a method you're ever
+supposed to invoke yourself,
+
+
+777
+00:34:22,096 --> 00:34:23,186
+unless you're invoking super.
+
+
+778
+00:34:24,126 --> 00:34:28,795
+So how do we trigger it
+being called by AppKit?
+
+
+779
+00:34:28,795 --> 00:34:31,866
+Well we're going to start
+by adding the constraint.
+
+
+780
+00:34:31,866 --> 00:34:34,436
+We can do that inside or
+outside the animation block,
+
+
+781
+00:34:35,266 --> 00:34:37,565
+it doesn't matter but
+here we do it outside just
+
+
+782
+00:34:37,565 --> 00:34:38,266
+to make it clear.
+
+
+783
+00:34:38,716 --> 00:34:41,366
+Or you can set the
+constant on a constraint.
+
+
+784
+00:34:41,366 --> 00:34:42,775
+If you're not familiar
+with a constant
+
+
+785
+00:34:42,775 --> 00:34:44,585
+on a width constraint
+it's just the width,
+
+
+786
+00:34:44,916 --> 00:34:46,755
+or it's like the base value.
+
+
+787
+00:34:47,216 --> 00:34:48,755
+For a spacing constraint,
+it's the space
+
+
+788
+00:34:48,755 --> 00:34:50,116
+between the two views, etcetera.
+
+
+789
+00:34:51,096 --> 00:34:53,106
+And then in the animation
+block we're going
+
+
+790
+00:34:53,106 --> 00:34:55,045
+to say allows implicit
+animation yes.
+
+
+791
+00:34:55,045 --> 00:34:56,696
+And we'll trigger layout
+
+
+792
+00:34:56,696 --> 00:34:59,116
+by calling view
+layoutSubtreeIfNeeded.
+
+
+793
+00:34:59,346 --> 00:35:01,946
+If you just want to animate that
+view and all of its descendants
+
+
+794
+00:35:02,406 --> 00:35:04,106
+or you can call window
+layoutIfNeeded
+
+
+795
+00:35:04,106 --> 00:35:05,326
+to animate the entire window.
+
+
+796
+00:35:06,206 --> 00:35:11,686
+So this is the right
+way to do or one way
+
+
+797
+00:35:11,686 --> 00:35:14,046
+to do animation correctly
+in an auto layout based app.
+
+
+798
+00:35:14,686 --> 00:35:17,186
+So let's make our disclosure
+view animated in this way.
+
+
+799
+00:35:21,686 --> 00:35:24,446
+So I'm already in the right
+spot, toggle collapsed,
+
+
+800
+00:35:25,426 --> 00:35:27,906
+and I've already added
+or removed the constraint
+
+
+801
+00:35:28,216 --> 00:35:31,266
+so now all that's left to do is
+open the animation block here.
+
+
+802
+00:35:33,266 --> 00:35:35,676
+Say we allow implicit
+animation yes.
+
+
+803
+00:35:36,626 --> 00:35:38,786
+And then trigger layout if
+needed on the entire window.
+
+
+804
+00:35:40,756 --> 00:35:44,726
+So now when I run this
+you'll see that instead
+
+
+805
+00:35:44,726 --> 00:35:47,186
+of just jumping the views
+actually animate open
+
+
+806
+00:35:47,186 --> 00:35:48,066
+and close like that.
+
+
+807
+00:35:49,396 --> 00:35:51,946
+So just a few lines of code we
+went from this very static UI
+
+
+808
+00:35:52,516 --> 00:35:54,826
+to a nicely animated control.
+
+
+809
+00:35:55,516 --> 00:36:01,666
+[ Applause ]
+
+
+810
+00:36:02,166 --> 00:36:05,086
+It's nice when things
+take a little code.
+
+
+811
+00:36:05,766 --> 00:36:11,686
+So that's one technique where
+you just set your constraints
+
+
+812
+00:36:11,686 --> 00:36:14,526
+and you trigger layout
+in an animation block.
+
+
+813
+00:36:15,186 --> 00:36:17,716
+But another technique is to
+animate constraints directly.
+
+
+814
+00:36:20,186 --> 00:36:23,236
+As I said, constraints have
+only one mutable property,
+
+
+815
+00:36:23,236 --> 00:36:24,446
+once the constraint
+has been installed
+
+
+816
+00:36:24,446 --> 00:36:26,906
+on the view there's only
+one thing you can change
+
+
+817
+00:36:26,976 --> 00:36:29,286
+about that constraint and we
+chose to call that constant.
+
+
+818
+00:36:29,586 --> 00:36:34,256
+You can animate it
+with the animator proxy
+
+
+819
+00:36:34,256 --> 00:36:37,556
+so you can say
+constraint.animator.constant=17
+
+
+820
+00:36:37,556 --> 00:36:39,516
+and this uses the same
+sort of animations
+
+
+821
+00:36:39,516 --> 00:36:40,706
+that Chris was telling
+you about.
+
+
+822
+00:36:40,836 --> 00:36:46,386
+I know the constraints do not
+respect allowsImplicitAnimation
+
+
+823
+00:36:46,386 --> 00:36:49,326
+so the constants will
+always, you either have
+
+
+824
+00:36:49,326 --> 00:36:51,666
+to use the animator proxy
+if you want animation.
+
+
+825
+00:36:51,666 --> 00:36:53,676
+This is because if
+they did respect
+
+
+826
+00:36:53,676 --> 00:36:56,626
+that allowsImplicitAnimation
+you might get layouts
+
+
+827
+00:36:56,626 --> 00:36:58,716
+which are not allowed
+which will cause conflicts
+
+
+828
+00:36:58,716 --> 00:36:59,506
+with other constraints.
+
+
+829
+00:36:59,566 --> 00:37:03,596
+So let's, I'm going to
+give you a demo of how
+
+
+830
+00:37:03,596 --> 00:37:08,676
+to use this technique to make
+our StackView animated again.
+
+
+831
+00:37:08,866 --> 00:37:13,316
+So it was kind of
+nice that it animated
+
+
+832
+00:37:13,316 --> 00:37:16,216
+but the window didn't
+change its height, right,
+
+
+833
+00:37:16,216 --> 00:37:18,466
+so you have to scroll down or
+you have to resize the window.
+
+
+834
+00:37:18,466 --> 00:37:22,016
+It would be a lot nicer if after
+you disclose it the window just
+
+
+835
+00:37:22,016 --> 00:37:24,016
+resized and matched the
+height of the StackView.
+
+
+836
+00:37:25,016 --> 00:37:27,196
+So we're going to do that
+by instead of just penning
+
+
+837
+00:37:27,196 --> 00:37:30,186
+to the top we're also going to
+pen to the top and the bottom.
+
+
+838
+00:37:30,186 --> 00:37:34,476
+And because our layout
+priority is high
+
+
+839
+00:37:35,126 --> 00:37:39,226
+for the vertical orientation,
+it's higher than the strength
+
+
+840
+00:37:39,226 --> 00:37:40,936
+with which the window
+holds its size
+
+
+841
+00:37:40,936 --> 00:37:43,116
+so this will actually
+push the window taller
+
+
+842
+00:37:43,116 --> 00:37:44,146
+or force it to shrink.
+
+
+843
+00:37:44,596 --> 00:37:50,916
+Here's the other implementation
+of where we're going
+
+
+844
+00:37:50,916 --> 00:37:52,086
+to animate the constraint.
+
+
+845
+00:37:52,696 --> 00:37:56,746
+Instead of that centering
+constraint we're going
+
+
+846
+00:37:56,746 --> 00:37:59,666
+to have a constraint which
+just says what is the height
+
+
+847
+00:37:59,666 --> 00:38:00,846
+of my view, of me?
+
+
+848
+00:38:01,546 --> 00:38:03,906
+So it's equal to
+nil, not an attribute
+
+
+849
+00:38:03,906 --> 00:38:05,476
+because we're just setting
+the height to a constant
+
+
+850
+00:38:05,556 --> 00:38:08,616
+and that's going to be
+either the collapsed height,
+
+
+851
+00:38:08,616 --> 00:38:10,506
+which is just the
+height of our top part,
+
+
+852
+00:38:10,966 --> 00:38:14,106
+or our uncollapsed height
+which is our fitting size,
+
+
+853
+00:38:14,106 --> 00:38:15,156
+the height we want to be.
+
+
+854
+00:38:15,696 --> 00:38:18,246
+And then we're going
+to add that constraint
+
+
+855
+00:38:18,246 --> 00:38:21,736
+and then we set the
+title to another button.
+
+
+856
+00:38:22,206 --> 00:38:23,556
+So then the toggle collapsed.
+
+
+857
+00:38:23,556 --> 00:38:27,466
+Instead of triggering layout
+with the animation block,
+
+
+858
+00:38:27,676 --> 00:38:29,426
+we're going to go
+through the animator proxy
+
+
+859
+00:38:29,426 --> 00:38:32,266
+and set the constant to
+either the uncollapsed height
+
+
+860
+00:38:32,746 --> 00:38:34,206
+or the collapsed height.
+
+
+861
+00:38:36,656 --> 00:38:40,966
+So now when I run
+this you'll see
+
+
+862
+00:38:40,966 --> 00:38:42,686
+that not only does it animate
+
+
+863
+00:38:42,686 --> 00:38:45,066
+but it also resizes the
+window bigger or smaller.
+
+
+864
+00:38:47,436 --> 00:38:50,686
+So you may be wondering why did
+we use this separate technique?
+
+
+865
+00:38:50,686 --> 00:38:54,226
+Why couldn't we have just made
+the window resized using the old
+
+
+866
+00:38:54,226 --> 00:38:55,156
+technique for animation?
+
+
+867
+00:38:55,556 --> 00:38:57,426
+Well I'll show you what
+happens if I do that.
+
+
+868
+00:38:58,006 --> 00:39:01,946
+So I if that out, now we're back
+to doing the implicit animation
+
+
+869
+00:39:01,946 --> 00:39:02,946
+and triggering layout.
+
+
+870
+00:39:03,486 --> 00:39:08,636
+When I run this you'll see
+that it, it has this weird kind
+
+
+871
+00:39:08,636 --> 00:39:11,926
+of jumpy behavior here.
+
+
+872
+00:39:12,126 --> 00:39:13,776
+So what's going on with that?
+
+
+873
+00:39:20,336 --> 00:39:24,616
+So what we saw there was a core
+animation driven animation.
+
+
+874
+00:39:24,696 --> 00:39:27,616
+It's using layers concurrent
+
+
+875
+00:39:27,616 --> 00:39:29,356
+with the window resize
+animation,
+
+
+876
+00:39:29,356 --> 00:39:31,206
+which always happens
+on the main thread.
+
+
+877
+00:39:31,956 --> 00:39:34,206
+So when you have these
+two animations going
+
+
+878
+00:39:34,206 --> 00:39:37,096
+at the same time they may get
+out of sync or they may fight.
+
+
+879
+00:39:37,966 --> 00:39:39,286
+We say don't cross the streams
+
+
+880
+00:39:39,286 --> 00:39:43,616
+and if you do something terrible
+will happen or not quite
+
+
+881
+00:39:43,616 --> 00:39:46,586
+that bad but you'll get
+drifting or you'll get jitter.
+
+
+882
+00:39:46,586 --> 00:39:49,336
+You'll see a view maybe
+vibrate a bit and this is a clue
+
+
+883
+00:39:49,336 --> 00:39:50,766
+that there's two
+animations going
+
+
+884
+00:39:50,766 --> 00:39:51,926
+at once on different threads.
+
+
+885
+00:39:52,586 --> 00:39:55,376
+So the solution to
+this, one solution,
+
+
+886
+00:39:55,526 --> 00:39:57,396
+is to go through the
+constraints animator
+
+
+887
+00:39:57,396 --> 00:40:00,566
+that will do an AppKit driven
+animation on the main thread
+
+
+888
+00:40:00,566 --> 00:40:02,666
+so it will not be concurrent
+with the window resize.
+
+
+889
+00:40:03,556 --> 00:40:05,046
+Or you can do the
+other technique
+
+
+890
+00:40:05,046 --> 00:40:06,006
+where you can tell the window
+
+
+891
+00:40:06,006 --> 00:40:08,186
+to just resize itself
+in an animated way.
+
+
+892
+00:40:08,186 --> 00:40:10,846
+And that's the third
+way of doing animations
+
+
+893
+00:40:10,846 --> 00:40:14,336
+with auto layout, which I'm
+going to talk about now.
+
+
+894
+00:40:14,566 --> 00:40:19,186
+Animating window size changes,
+so we're going to switch
+
+
+895
+00:40:19,186 --> 00:40:20,786
+to a totally different
+kind of application.
+
+
+896
+00:40:20,786 --> 00:40:22,446
+This is a shopping list app
+
+
+897
+00:40:23,076 --> 00:40:25,176
+where we have a master
+and a detail window.
+
+
+898
+00:40:25,336 --> 00:40:26,516
+So here we have a shopping list
+
+
+899
+00:40:26,626 --> 00:40:29,076
+and there's a segmented
+control at the bottom right.
+
+
+900
+00:40:29,076 --> 00:40:30,826
+And when I click
+that what I want
+
+
+901
+00:40:30,826 --> 00:40:33,936
+to have happen is a
+side bar will slide out
+
+
+902
+00:40:33,936 --> 00:40:36,386
+and the user can select
+different shopping lists.
+
+
+903
+00:40:37,256 --> 00:40:41,486
+So you may have seen this type
+of UI in reminders or notes app.
+
+
+904
+00:40:42,636 --> 00:40:45,646
+So when the user clicks
+that segmented control,
+
+
+905
+00:40:45,876 --> 00:40:49,126
+we want the window to grow but
+it grows in a different way
+
+
+906
+00:40:49,126 --> 00:40:50,906
+than if the user had
+just resized the window.
+
+
+907
+00:40:51,476 --> 00:40:56,426
+When the user resizes it we want
+the pane on the right to pick
+
+
+908
+00:40:56,426 --> 00:40:58,206
+up this extra space,
+all the slack.
+
+
+909
+00:40:59,286 --> 00:41:03,066
+But with this kind of animation
+what we want is instead all the
+
+
+910
+00:41:03,066 --> 00:41:07,816
+slack should be taken up
+by the pane on the left.
+
+
+911
+00:41:08,116 --> 00:41:08,736
+So how are we going
+
+
+912
+00:41:08,736 --> 00:41:11,706
+to accomplish this
+animation using auto layout?
+
+
+913
+00:41:12,956 --> 00:41:15,656
+Well the trick is we're going
+to set temporary constraints
+
+
+914
+00:41:15,656 --> 00:41:17,926
+that control how the panes
+resize so we're going
+
+
+915
+00:41:17,926 --> 00:41:20,446
+to grow the window and
+remove those constraints.
+
+
+916
+00:41:20,986 --> 00:41:23,956
+But we don't have to add
+these constraints ourselves.
+
+
+917
+00:41:24,456 --> 00:41:27,466
+We can leverage NSSplitView,
+which is a great client
+
+
+918
+00:41:27,466 --> 00:41:29,256
+and auto layout starting
+in Mountain Lion,
+
+
+919
+00:41:29,766 --> 00:41:31,546
+to create these constraints
+for us.
+
+
+920
+00:41:32,946 --> 00:41:36,336
+We do that by adjusting
+the holding priority
+
+
+921
+00:41:36,616 --> 00:41:37,686
+of the split view panes.
+
+
+922
+00:41:37,776 --> 00:41:39,166
+The holding priority
+is the strength
+
+
+923
+00:41:39,166 --> 00:41:41,746
+of which the split view pane
+prefers to hold its size
+
+
+924
+00:41:42,246 --> 00:41:44,406
+so as the window
+gets bigger the pane
+
+
+925
+00:41:44,406 --> 00:41:47,466
+with the lowest holding priority
+will take up all the slack.
+
+
+926
+00:41:48,856 --> 00:41:50,686
+So we start by getting
+the window framed.
+
+
+927
+00:41:50,686 --> 00:41:55,036
+And we're just going to
+adjust the origin left by 120
+
+
+928
+00:41:55,036 --> 00:41:57,936
+and adjust the width by 120
+so the right edge stays fixed
+
+
+929
+00:41:57,936 --> 00:41:59,296
+and the window gets bigger.
+
+
+930
+00:41:59,556 --> 00:42:03,736
+We're going to lower the holding
+priority of the first subview
+
+
+931
+00:42:04,106 --> 00:42:05,776
+to 1, which is very low.
+
+
+932
+00:42:07,066 --> 00:42:08,736
+We'll then set the frame of
+the window and we're going
+
+
+933
+00:42:08,736 --> 00:42:10,186
+to pass yes for animate.
+
+
+934
+00:42:10,186 --> 00:42:12,816
+Instead of just jumping it's
+going to cause it to slide out.
+
+
+935
+00:42:13,176 --> 00:42:15,036
+And then we'll restore
+the holding priority
+
+
+936
+00:42:15,036 --> 00:42:19,746
+of the split view pane.
+
+
+937
+00:42:19,956 --> 00:42:21,986
+So this gets us almost
+all the way there
+
+
+938
+00:42:21,986 --> 00:42:24,856
+but there's one thing
+we can't quite do,
+
+
+939
+00:42:24,936 --> 00:42:26,686
+one remaining wrinkle,
+what's that?
+
+
+940
+00:42:27,216 --> 00:42:28,936
+We want not just the
+pane to disappear
+
+
+941
+00:42:28,936 --> 00:42:30,316
+but also the split view divider.
+
+
+942
+00:42:30,316 --> 00:42:34,376
+And a split view calls
+this collapsing the pane
+
+
+943
+00:42:34,616 --> 00:42:36,406
+so this is something
+it has support for,
+
+
+944
+00:42:36,466 --> 00:42:38,386
+which we want to
+take advantage of.
+
+
+945
+00:42:38,386 --> 00:42:40,586
+But collapsing is a
+deliberate user action.
+
+
+946
+00:42:40,586 --> 00:42:43,086
+There's a special way the
+user collapses a pane,
+
+
+947
+00:42:43,086 --> 00:42:44,906
+it's by dragging more
+than halfway across it
+
+
+948
+00:42:45,656 --> 00:42:47,566
+so it's not something
+constraints can just do
+
+
+949
+00:42:47,566 --> 00:42:48,266
+on their own.
+
+
+950
+00:42:49,816 --> 00:42:51,596
+However, oh, excuse me,
+
+
+951
+00:42:51,806 --> 00:42:53,196
+so here's what constraints
+can get you,
+
+
+952
+00:42:53,196 --> 00:42:57,106
+they can get almost all the
+way down to the last pixel
+
+
+953
+00:42:57,896 --> 00:42:59,556
+but to get it the rest
+of the way we need
+
+
+954
+00:42:59,556 --> 00:43:00,706
+to invoke NSSplitView.
+
+
+955
+00:43:01,936 --> 00:43:05,616
+So the solution is we're going
+to shrink the pane as small
+
+
+956
+00:43:05,616 --> 00:43:06,926
+as we can get using auto layout.
+
+
+957
+00:43:06,926 --> 00:43:08,606
+Then we're going to collapse it
+
+
+958
+00:43:08,606 --> 00:43:12,016
+by calling setPosition:0
+ofDividerAtIndex:0.
+
+
+959
+00:43:12,016 --> 00:43:14,376
+That says take the divider
+and push it all the way
+
+
+960
+00:43:14,376 --> 00:43:16,476
+over to the left, which
+will cause that pane
+
+
+961
+00:43:16,476 --> 00:43:17,346
+on the left to collapse.
+
+
+962
+00:43:18,106 --> 00:43:20,886
+And to uncollapse it is
+almost exactly the same except
+
+
+963
+00:43:20,886 --> 00:43:21,516
+for backwards.
+
+
+964
+00:43:21,516 --> 00:43:23,136
+We start by setting
+the position to 1
+
+
+965
+00:43:23,136 --> 00:43:25,826
+and then we grow the
+pane using auto layout.
+
+
+966
+00:43:26,356 --> 00:43:29,536
+And don't forget we have
+to enable collapsing.
+
+
+967
+00:43:29,686 --> 00:43:31,536
+We do that by implementing
+the delegate method,
+
+
+968
+00:43:32,066 --> 00:43:35,806
+SplitView canCollapseSubview
+and say oh you can collapse it
+
+
+969
+00:43:35,806 --> 00:43:38,386
+if the subview is the first
+subview in a split view
+
+
+970
+00:43:38,616 --> 00:43:41,926
+so let's give a demo of that.
+
+
+971
+00:43:53,346 --> 00:43:55,046
+So here's our master detail view
+
+
+972
+00:43:55,226 --> 00:43:57,116
+and we have the segmented
+control down here.
+
+
+973
+00:43:57,516 --> 00:43:58,526
+When I click that you'll see
+
+
+974
+00:43:58,526 --> 00:44:00,956
+that the split view
+slides nicely in and out
+
+
+975
+00:44:00,956 --> 00:44:03,256
+and I can you know
+resize it how I like
+
+
+976
+00:44:03,256 --> 00:44:05,286
+and then I can collapse
+it and collapse it again.
+
+
+977
+00:44:05,626 --> 00:44:12,726
+How do we accomplish this
+in our split view demo?
+
+
+978
+00:44:13,226 --> 00:44:14,596
+So here's the toggle collapse.
+
+
+979
+00:44:14,626 --> 00:44:17,016
+This is the action method
+of the segmented control.
+
+
+980
+00:44:17,626 --> 00:44:19,906
+We start by getting the first
+subview of the split view
+
+
+981
+00:44:19,906 --> 00:44:21,036
+and that's what we
+want to collapse.
+
+
+982
+00:44:21,986 --> 00:44:25,256
+We say that do we want to
+collapse it or uncollapse it?
+
+
+983
+00:44:25,616 --> 00:44:28,456
+And if it's already
+collapsed the way we want it,
+
+
+984
+00:44:28,456 --> 00:44:29,146
+we just return.
+
+
+985
+00:44:29,146 --> 00:44:31,986
+So we're going to get
+the holding priorities
+
+
+986
+00:44:31,986 --> 00:44:35,006
+of the first subview and the
+second subview and we're going
+
+
+987
+00:44:35,006 --> 00:44:39,226
+to lower the first one and raise
+the second one and we're going
+
+
+988
+00:44:39,226 --> 00:44:41,906
+to restore them at the end.
+
+
+989
+00:44:41,986 --> 00:44:44,446
+Now we're going to call that set
+frame display animate method.
+
+
+990
+00:44:45,316 --> 00:44:46,896
+So we start by, if
+we're collapsing,
+
+
+991
+00:44:47,366 --> 00:44:48,856
+if we already collapsed,
+excuse me,
+
+
+992
+00:44:49,296 --> 00:44:51,566
+we're going to set the
+position to just 1,
+
+
+993
+00:44:52,606 --> 00:44:55,346
+1 of the divider
+index so that's going
+
+
+994
+00:44:55,346 --> 00:44:56,666
+to uncollapse it by one pixel.
+
+
+995
+00:44:57,396 --> 00:45:00,216
+Then we have to resize
+the window by that amount
+
+
+996
+00:45:00,356 --> 00:45:01,806
+so that the right
+edge stays fixed.
+
+
+997
+00:45:02,626 --> 00:45:03,626
+Then we're going
+to do it the rest
+
+
+998
+00:45:03,626 --> 00:45:07,696
+of the way just using a setFrame
+display, yes, animate, yes.
+
+
+999
+00:45:08,216 --> 00:45:11,526
+And likewise if the window
+is already big we want
+
+
+1000
+00:45:11,526 --> 00:45:14,736
+to make it small, we
+want to collapse it.
+
+
+1001
+00:45:14,736 --> 00:45:21,246
+We start by, excuse me, we
+get the frame, we say yes,
+
+
+1002
+00:45:21,246 --> 00:45:23,686
+animate yes and then
+we, excuse me,
+
+
+1003
+00:45:23,686 --> 00:45:24,996
+this is using auto layout here,
+
+
+1004
+00:45:25,796 --> 00:45:28,216
+then to collapse it
+we set the position 0
+
+
+1005
+00:45:28,216 --> 00:45:31,356
+of the divider index zero
+and resize the window
+
+
+1006
+00:45:31,356 --> 00:45:33,136
+in a non-animated way
+for just that last pixel.
+
+
+1007
+00:45:33,306 --> 00:45:35,926
+And then we restore
+the holding priorities
+
+
+1008
+00:45:35,926 --> 00:45:37,256
+to what they were before so that
+
+
+1009
+00:45:37,256 --> 00:45:40,036
+when the user resizes it they
+get the resizing behavior
+
+
+1010
+00:45:40,036 --> 00:45:40,446
+we want.
+
+
+1011
+00:45:41,516 --> 00:45:43,696
+And here's where we implement
+the canCollapseSubview method
+
+
+1012
+00:45:43,926 --> 00:45:45,726
+to indicate that we can
+collapse that first subview.
+
+
+1013
+00:45:46,256 --> 00:45:51,606
+So that's how we
+get that effect.
+
+
+1014
+00:45:58,926 --> 00:46:00,186
+So that's what we have.
+
+
+1015
+00:46:00,496 --> 00:46:03,076
+For more information you
+can contact our Frameworks
+
+
+1016
+00:46:03,266 --> 00:46:04,736
+Evangelist Jake Behrens.
+
+
+1017
+00:46:05,156 --> 00:46:06,706
+There's also really
+good documentation
+
+
+1018
+00:46:06,706 --> 00:46:08,716
+on Core Animation
+and Auto Layout.
+
+
+1019
+00:46:10,046 --> 00:46:12,336
+You can always reach us at
+the Apple Development Forums.
+
+
+1020
+00:46:12,576 --> 00:46:14,206
+We've got some really
+good labs too,
+
+
+1021
+00:46:14,206 --> 00:46:15,996
+oh later sessions,
+related sessions.
+
+
+1022
+00:46:16,976 --> 00:46:19,406
+Hopefully you saw the really
+nice auto layout session
+
+
+1023
+00:46:19,446 --> 00:46:21,266
+for interface builder
+that was earlier today.
+
+
+1024
+00:46:21,266 --> 00:46:24,756
+And there's going to be a
+session immediately following
+
+
+1025
+00:46:24,756 --> 00:46:27,606
+this about Optimizing Drawing
+and Scrolling using some
+
+
+1026
+00:46:27,606 --> 00:46:28,916
+of that responsive
+scrolling stuff,
+
+
+1027
+00:46:29,626 --> 00:46:31,486
+immediately following
+in this room.
+
+
+1028
+00:46:32,096 --> 00:46:33,776
+So what did we see?
+
+
+1029
+00:46:33,776 --> 00:46:37,006
+We saw NSStackView, how it
+can layout views in a list,
+
+
+1030
+00:46:37,006 --> 00:46:38,256
+horizontally or vertically.
+
+
+1031
+00:46:38,766 --> 00:46:41,416
+It's a really powerful
+new class in Mac OS X.
+
+
+1032
+00:46:41,876 --> 00:46:45,676
+We can animate view positions
+by adjusting constraints
+
+
+1033
+00:46:45,676 --> 00:46:47,916
+and triggering layout
+within an animation block.
+
+
+1034
+00:46:48,586 --> 00:46:51,016
+By using layers you can
+produce very smooth animations.
+
+
+1035
+00:46:51,956 --> 00:46:54,346
+We saw how you can animate
+constraints directly
+
+
+1036
+00:46:54,406 --> 00:46:56,966
+by using the animator
+proxy NSLayout constraint
+
+
+1037
+00:46:56,966 --> 00:46:59,056
+and this allows you
+to resize windows.
+
+
+1038
+00:46:59,926 --> 00:47:02,196
+We saw a third technique
+which is you set
+
+
+1039
+00:47:02,196 --> 00:47:03,566
+up your constraints
+the way you want
+
+
+1040
+00:47:03,646 --> 00:47:07,176
+and then you tell the window to
+resize then pass yes for animate
+
+
+1041
+00:47:07,176 --> 00:47:11,276
+and then the animation will
+cause the content to reflow
+
+
+1042
+00:47:11,276 --> 00:47:12,176
+in the way you specify.
+
+
+1043
+00:47:13,296 --> 00:47:15,396
+But be careful to not
+use core animation,
+
+
+1044
+00:47:15,396 --> 00:47:18,106
+driven animations
+alongside window resizing,
+
+
+1045
+00:47:18,766 --> 00:47:19,926
+we call that crossing
+the streams.
+
+
+1046
+00:47:19,926 --> 00:47:21,536
+You'll get that jitter
+or you'll get drifting.
+
+
+1047
+00:47:22,826 --> 00:47:23,836
+Thank you very much.
+
+
+1048
+00:47:23,836 --> 00:47:24,966
+Enjoy the rest of your week.
+
+
+1049
+00:47:25,466 --> 00:47:28,500
+[ Applause ]
+

@@ -1,0 +1,7442 @@
+1
+00:00:00,506 --> 00:00:09,976
+[ Silence ]
+
+
+2
+00:00:10,476 --> 00:00:12,556
+>> Good afternoon, and welcome.
+
+
+3
+00:00:13,626 --> 00:00:14,136
+Thank you.
+
+
+4
+00:00:14,456 --> 00:00:15,696
+How's everybody doing?
+
+
+5
+00:00:16,566 --> 00:00:19,356
+It's been a fun week,
+excellent, good.
+
+
+6
+00:00:19,666 --> 00:00:20,776
+I'm Gordie Freedman.
+
+
+7
+00:00:20,946 --> 00:00:25,746
+I work on UIKit, and
+today we're going to talk
+
+
+8
+00:00:25,746 --> 00:00:28,516
+about State restoration on iOS.
+
+
+9
+00:00:29,486 --> 00:00:31,306
+So has this happened to you?
+
+
+10
+00:00:31,736 --> 00:00:35,536
+You're using an application,
+you go to do something else,
+
+
+11
+00:00:35,966 --> 00:00:39,536
+and when you go back, the
+application's lost your place.
+
+
+12
+00:00:40,476 --> 00:00:44,056
+Maybe you were typing something,
+maybe you were reading something
+
+
+13
+00:00:44,056 --> 00:00:47,356
+and scrolled somewhere, but
+the application went back
+
+
+14
+00:00:47,356 --> 00:00:48,046
+to the beginning.
+
+
+15
+00:00:48,576 --> 00:00:51,086
+In fact, maybe you don't really
+remember what you were doing.
+
+
+16
+00:00:51,276 --> 00:00:53,696
+You were hoping the
+application would remember.
+
+
+17
+00:00:54,296 --> 00:00:57,616
+And as developers, we
+don't want this to happen
+
+
+18
+00:00:57,616 --> 00:00:59,236
+to the users of our apps.
+
+
+19
+00:00:59,746 --> 00:01:01,016
+It can be very frustrating.
+
+
+20
+00:01:01,626 --> 00:01:05,566
+But the good news is we've
+got some really nice APIs
+
+
+21
+00:01:05,726 --> 00:01:08,886
+that make it very easy to
+provide a seamless experience
+
+
+22
+00:01:09,116 --> 00:01:10,576
+when applications start back up.
+
+
+23
+00:01:11,096 --> 00:01:15,036
+I'm going to talk about
+four things today.
+
+
+24
+00:01:16,036 --> 00:01:19,916
+First I'm going to go over a
+small recap of the feature.
+
+
+25
+00:01:20,466 --> 00:01:22,056
+It's not a full review.
+
+
+26
+00:01:22,466 --> 00:01:26,626
+We did a session last year in
+2012, and if you want to fill
+
+
+27
+00:01:26,626 --> 00:01:29,436
+in some of the gaps,
+you can go watch that.
+
+
+28
+00:01:29,436 --> 00:01:31,566
+We also have some
+documentation online,
+
+
+29
+00:01:31,936 --> 00:01:33,076
+and you can check that out.
+
+
+30
+00:01:33,566 --> 00:01:36,446
+But I think even if you're not
+that familiar, you'll be able
+
+
+31
+00:01:36,446 --> 00:01:38,036
+to follow along just fine.
+
+
+32
+00:01:39,056 --> 00:01:43,206
+I'm going to focus a lot
+on what's new in iOS 7.
+
+
+33
+00:01:43,396 --> 00:01:46,076
+We'll see what we've
+added and how that plays.
+
+
+34
+00:01:46,616 --> 00:01:51,106
+We're going to talk a
+little bit about security
+
+
+35
+00:01:51,326 --> 00:01:54,246
+and background operation --
+couple of interesting topics
+
+
+36
+00:01:54,246 --> 00:01:55,506
+that I think we might want
+
+
+37
+00:01:55,506 --> 00:01:57,106
+to spend a little
+time thinking about.
+
+
+38
+00:01:57,756 --> 00:02:01,276
+And then finally, I'm going
+to go over some of the tools
+
+
+39
+00:02:01,276 --> 00:02:06,216
+that we have that can help you
+to be able to both validate
+
+
+40
+00:02:06,216 --> 00:02:08,735
+that you're doing -- or your
+app is doing what you expect,
+
+
+41
+00:02:09,485 --> 00:02:10,966
+and help diagnose problems.
+
+
+42
+00:02:11,526 --> 00:02:15,426
+So when we talk about
+state restoration,
+
+
+43
+00:02:15,906 --> 00:02:16,996
+it's a simple idea --
+
+
+44
+00:02:17,776 --> 00:02:21,696
+one application to just go
+back exactly where it was
+
+
+45
+00:02:21,966 --> 00:02:24,286
+so the user's experience
+is not interrupted,
+
+
+46
+00:02:24,856 --> 00:02:26,926
+as if the application
+had just been
+
+
+47
+00:02:26,926 --> 00:02:28,356
+in the background all the time.
+
+
+48
+00:02:28,946 --> 00:02:33,086
+And if the application exits and
+restarts, the user won't know.
+
+
+49
+00:02:33,756 --> 00:02:37,346
+And it really is predicated
+on how the user views this,
+
+
+50
+00:02:37,346 --> 00:02:39,726
+and we want to think a lot
+about what the user's doing.
+
+
+51
+00:02:40,776 --> 00:02:42,456
+You want to look at
+the different parts
+
+
+52
+00:02:42,456 --> 00:02:46,356
+of your application and
+examine what you need to save
+
+
+53
+00:02:46,356 --> 00:02:47,596
+and what you need to restore.
+
+
+54
+00:02:47,906 --> 00:02:50,476
+And that's great, but
+start at the top down.
+
+
+55
+00:02:50,806 --> 00:02:54,196
+Think about it as if you're
+using the application and think,
+
+
+56
+00:02:54,196 --> 00:02:57,186
+"If I was using this and it
+went away, where do I want it
+
+
+57
+00:02:57,186 --> 00:02:59,406
+to come back," and
+then from there,
+
+
+58
+00:02:59,546 --> 00:03:01,756
+let that inform what
+you save and restore.
+
+
+59
+00:03:02,306 --> 00:03:06,706
+I'm going to give a
+short demo just to kind
+
+
+60
+00:03:06,706 --> 00:03:08,096
+of highlight what
+I'm talking about.
+
+
+61
+00:03:08,206 --> 00:03:13,456
+So I've got a very
+simple application,
+
+
+62
+00:03:13,656 --> 00:03:15,676
+got a collection
+view, you can see,
+
+
+63
+00:03:15,826 --> 00:03:17,916
+do the nice collection
+view layout stuff.
+
+
+64
+00:03:17,916 --> 00:03:20,496
+And I'm going to
+scroll around and look
+
+
+65
+00:03:20,496 --> 00:03:22,796
+for an image that I want to see.
+
+
+66
+00:03:23,636 --> 00:03:26,086
+So these are all thumbnails
+with little titles --
+
+
+67
+00:03:26,276 --> 00:03:27,356
+pretty standard stuff.
+
+
+68
+00:03:27,496 --> 00:03:29,436
+I'm going to select one --
+
+
+69
+00:03:29,536 --> 00:03:31,276
+you can see that I've got
+the selection there --
+
+
+70
+00:03:31,276 --> 00:03:32,376
+let it roll in.
+
+
+71
+00:03:33,376 --> 00:03:36,336
+Let's make it a little
+bigger so it's easier to see.
+
+
+72
+00:03:37,096 --> 00:03:41,716
+Maybe I'll even get rid of these
+bars here and make it like that.
+
+
+73
+00:03:42,376 --> 00:03:44,986
+So as a user you might
+find an interesting picture
+
+
+74
+00:03:45,086 --> 00:03:47,066
+and then you want to
+go show it to somebody,
+
+
+75
+00:03:47,546 --> 00:03:50,556
+or the phone rings,
+or something happens.
+
+
+76
+00:03:50,756 --> 00:03:53,186
+The application goes
+into the background.
+
+
+77
+00:03:53,696 --> 00:03:58,316
+And the application can exit
+if left alone for awhile
+
+
+78
+00:03:58,316 --> 00:04:01,216
+for various reasons, so I'm
+going to force that here.
+
+
+79
+00:04:02,116 --> 00:04:04,056
+Now, I just want to
+point out one thing.
+
+
+80
+00:04:05,066 --> 00:04:08,906
+Ordinarily when a user goes into
+the switcher and flips an app
+
+
+81
+00:04:08,906 --> 00:04:11,356
+up like I just did,
+it'll get rid
+
+
+82
+00:04:11,356 --> 00:04:13,296
+of all the state
+restoration information.
+
+
+83
+00:04:14,076 --> 00:04:16,976
+We do that on purpose
+to kind of save a user
+
+
+84
+00:04:16,976 --> 00:04:18,486
+if every time they run the app,
+
+
+85
+00:04:18,486 --> 00:04:21,146
+it starts up in a bad
+state and they're stuck.
+
+
+86
+00:04:21,736 --> 00:04:23,796
+First thing a frustrated
+user might do is go
+
+
+87
+00:04:23,796 --> 00:04:25,166
+in and flick that up.
+
+
+88
+00:04:25,496 --> 00:04:26,416
+We'll get rid of the state,
+
+
+89
+00:04:26,416 --> 00:04:28,296
+give them a clean
+start if that happens.
+
+
+90
+00:04:28,416 --> 00:04:31,036
+Hopefully it won't,
+but it's an out.
+
+
+91
+00:04:31,806 --> 00:04:35,776
+But for developers, sometimes
+you don't want that to happen.
+
+
+92
+00:04:35,776 --> 00:04:37,706
+If you're trying to chase
+a bug, you're trying
+
+
+93
+00:04:37,706 --> 00:04:40,026
+to diagnose something
+or just simply testing,
+
+
+94
+00:04:40,026 --> 00:04:43,046
+it's very convenient to go in,
+kill the app and restart it.
+
+
+95
+00:04:43,406 --> 00:04:44,596
+You don't want to lose the info.
+
+
+96
+00:04:44,906 --> 00:04:47,416
+And I'll talk about that a
+little more later, but I'm using
+
+
+97
+00:04:47,416 --> 00:04:50,426
+that trick here just to make
+the demo a little easier.
+
+
+98
+00:04:51,086 --> 00:04:54,276
+So the app's not running
+now, and if the user walked
+
+
+99
+00:04:54,276 --> 00:04:55,466
+up to their friend
+and said, "Hey,
+
+
+100
+00:04:55,466 --> 00:04:58,386
+look at this cool picture,"
+well, let's see what happens
+
+
+101
+00:04:58,386 --> 00:04:59,776
+if we start it back up.
+
+
+102
+00:05:00,916 --> 00:05:02,736
+And it goes right
+back to where it was.
+
+
+103
+00:05:03,926 --> 00:05:06,856
+It remembered that we weren't
+showing any of the bars,
+
+
+104
+00:05:06,956 --> 00:05:10,176
+remembered the size of the
+image, and even some things
+
+
+105
+00:05:10,176 --> 00:05:11,306
+that are behind the scenes.
+
+
+106
+00:05:11,346 --> 00:05:14,106
+Let's go here, I'm just
+going to peel it back
+
+
+107
+00:05:14,106 --> 00:05:16,946
+with our cool new
+gesture, and you can see
+
+
+108
+00:05:16,946 --> 00:05:18,726
+that it remembered
+the scrollPosition
+
+
+109
+00:05:19,606 --> 00:05:20,786
+and the selected cell.
+
+
+110
+00:05:20,786 --> 00:05:24,156
+So that's a pretty
+unexciting demo,
+
+
+111
+00:05:24,196 --> 00:05:25,756
+but it was supposed
+to be actually.
+
+
+112
+00:05:26,166 --> 00:05:30,656
+The idea is it's predictable,
+the users get what they want,
+
+
+113
+00:05:30,886 --> 00:05:32,606
+and it's nice and
+easy for everybody.
+
+
+114
+00:05:33,246 --> 00:05:37,146
+So let's look at what we did
+in order to accomplish that.
+
+
+115
+00:05:38,176 --> 00:05:41,536
+So first, what was
+actually restored?
+
+
+116
+00:05:41,776 --> 00:05:44,876
+We saw it from the user's
+perspective, but as a developer,
+
+
+117
+00:05:44,876 --> 00:05:46,776
+what were the constituent
+pieces?
+
+
+118
+00:05:47,296 --> 00:05:50,306
+We had a navigation controller.
+
+
+119
+00:05:50,606 --> 00:05:54,266
+It remembered what
+was pushed on it.
+
+
+120
+00:05:54,536 --> 00:05:56,876
+We also remembered
+the scrollPosition
+
+
+121
+00:05:56,936 --> 00:06:00,156
+in our collection view
+and the selected cell.
+
+
+122
+00:06:00,796 --> 00:06:05,006
+And finally, we remembered
+what image we were showing,
+
+
+123
+00:06:06,206 --> 00:06:09,726
+the transformation we
+applied to resize it.
+
+
+124
+00:06:10,926 --> 00:06:15,456
+So you'll find that when you
+write state restoration code,
+
+
+125
+00:06:15,616 --> 00:06:19,446
+a lot of what you do is map what
+your application has already
+
+
+126
+00:06:19,446 --> 00:06:22,326
+done into what you need
+to save and restore.
+
+
+127
+00:06:23,186 --> 00:06:25,376
+Typically, you'll find
+that there's a lot
+
+
+128
+00:06:25,376 --> 00:06:26,746
+of really strong parallels
+
+
+129
+00:06:26,746 --> 00:06:29,236
+between code you've
+already written, ad in fact,
+
+
+130
+00:06:29,616 --> 00:06:31,566
+you'll be able to
+leverage and reuse most
+
+
+131
+00:06:31,566 --> 00:06:32,486
+of the code you've written.
+
+
+132
+00:06:33,126 --> 00:06:36,786
+So here, let's see what happens
+before we even saved state
+
+
+133
+00:06:37,086 --> 00:06:39,836
+when the user selected
+that cell and we pushed
+
+
+134
+00:06:39,836 --> 00:06:41,186
+on that image view controller.
+
+
+135
+00:06:41,776 --> 00:06:44,526
+If we didn't take any action
+
+
+136
+00:06:44,526 --> 00:06:46,286
+and we just loaded
+the view controller,
+
+
+137
+00:06:46,716 --> 00:06:48,306
+we wouldn't have an
+image or a title.
+
+
+138
+00:06:49,456 --> 00:06:53,126
+We want to put something there,
+and we also want to remember
+
+
+139
+00:06:53,126 --> 00:06:55,276
+that we're going to change
+that title up top, too.
+
+
+140
+00:06:56,546 --> 00:06:57,346
+So what do we do?
+
+
+141
+00:06:58,426 --> 00:07:02,096
+Well, we have a method called
+prepare for segway that you use
+
+
+142
+00:07:02,096 --> 00:07:03,336
+when you have storyboards.
+
+
+143
+00:07:03,956 --> 00:07:05,746
+So that's what I have
+in the example here.
+
+
+144
+00:07:06,486 --> 00:07:08,026
+And then prepare for segway,
+
+
+145
+00:07:08,556 --> 00:07:10,706
+I hand the view controller
+that's coming in,
+
+
+146
+00:07:10,706 --> 00:07:13,686
+our image view controller,
+enough information
+
+
+147
+00:07:13,686 --> 00:07:16,296
+so that it can get the
+image and set that title.
+
+
+148
+00:07:16,836 --> 00:07:20,056
+So now when I did that
+segway, we actually have
+
+
+149
+00:07:20,056 --> 00:07:22,886
+that information right there.
+
+
+150
+00:07:23,486 --> 00:07:26,966
+So similarly, when I save and
+restoreState, I'm going to want
+
+
+151
+00:07:26,966 --> 00:07:28,366
+to be able to maintain that.
+
+
+152
+00:07:29,026 --> 00:07:31,106
+So what do we do?
+
+
+153
+00:07:31,406 --> 00:07:33,286
+Well, let's look at
+how we saved state.
+
+
+154
+00:07:33,956 --> 00:07:36,266
+When the application
+goes in the background,
+
+
+155
+00:07:36,666 --> 00:07:39,686
+we're going to go all the view
+controllers with identifiers,
+
+
+156
+00:07:39,736 --> 00:07:42,276
+all the view controllers that
+need to save their state,
+
+
+157
+00:07:42,466 --> 00:07:43,616
+and give them a chance.
+
+
+158
+00:07:44,186 --> 00:07:48,546
+So we're going to call them
+method encodeRestorableState
+
+
+159
+00:07:48,546 --> 00:07:49,116
+with coder.
+
+
+160
+00:07:49,116 --> 00:07:51,266
+We're going to hand
+a key to archiver
+
+
+161
+00:07:51,266 --> 00:07:53,246
+where it can stash any
+information it wants
+
+
+162
+00:07:53,246 --> 00:07:54,116
+to restore later.
+
+
+163
+00:07:54,566 --> 00:07:56,406
+So what do we need to save here?
+
+
+164
+00:07:58,236 --> 00:08:01,876
+Well, we've got the
+image, also that title.
+
+
+165
+00:08:01,956 --> 00:08:05,566
+But we don't want to write
+out the bits of the image
+
+
+166
+00:08:05,566 --> 00:08:08,336
+and actually save
+an extra image file.
+
+
+167
+00:08:08,376 --> 00:08:12,176
+And in fact, if you think about
+it, you probably have one place
+
+
+168
+00:08:12,176 --> 00:08:15,646
+that informs you of both the
+image itself and that title.
+
+
+169
+00:08:16,406 --> 00:08:21,486
+So let's just save an identifier
+that we can use later to look
+
+
+170
+00:08:21,486 --> 00:08:22,726
+up this information again.
+
+
+171
+00:08:23,246 --> 00:08:27,026
+And that as simple as
+just encoding something
+
+
+172
+00:08:27,156 --> 00:08:29,686
+into that archiver that's
+passed into the method.
+
+
+173
+00:08:29,686 --> 00:08:33,686
+And you can see here my image ID
+is a string, so I'm just going
+
+
+174
+00:08:33,686 --> 00:08:35,926
+to encode an object,
+give it a key
+
+
+175
+00:08:35,926 --> 00:08:37,366
+so I can look it back up later.
+
+
+176
+00:08:38,496 --> 00:08:39,296
+Anything else?
+
+
+177
+00:08:40,376 --> 00:08:41,956
+Well, we also remember whether
+
+
+178
+00:08:41,956 --> 00:08:45,196
+or not the user was showing the
+bars on the top and the bottom.
+
+
+179
+00:08:45,576 --> 00:08:47,116
+So how do we save that?
+
+
+180
+00:08:47,996 --> 00:08:48,836
+Just as simple.
+
+
+181
+00:08:49,136 --> 00:08:50,676
+Just going to encode
+a Boolean here,
+
+
+182
+00:08:51,656 --> 00:08:53,046
+and that's all we have to do.
+
+
+183
+00:08:54,696 --> 00:08:57,476
+So you'll notice, I'm not
+showing a lot of code right now,
+
+
+184
+00:08:57,586 --> 00:08:59,786
+and there's a couple
+reasons for that.
+
+
+185
+00:09:00,036 --> 00:09:03,966
+One is, what's important is to
+try to get the concepts across,
+
+
+186
+00:09:03,966 --> 00:09:06,746
+so you can see what it is that
+we're actually trying to do.
+
+
+187
+00:09:07,266 --> 00:09:10,026
+If I show you the code, it's
+easy to kind of get lost
+
+
+188
+00:09:10,026 --> 00:09:12,406
+in the forest just
+looking at it.
+
+
+189
+00:09:12,716 --> 00:09:15,416
+Now, we have released the code,
+so you'll be able to check
+
+
+190
+00:09:15,416 --> 00:09:17,796
+out this whole example and
+see everything I'm talking
+
+
+191
+00:09:17,796 --> 00:09:22,126
+about here in more detail, but
+you can do it on your own time.
+
+
+192
+00:09:22,906 --> 00:09:27,276
+So how did we know to
+call encodeRestorableState
+
+
+193
+00:09:27,276 --> 00:09:29,096
+for that view controller object?
+
+
+194
+00:09:29,976 --> 00:09:31,436
+Well, here's all
+the view controllers
+
+
+195
+00:09:31,436 --> 00:09:33,206
+in my application so far.
+
+
+196
+00:09:33,386 --> 00:09:36,206
+We've got the navigation
+controller, that collection view
+
+
+197
+00:09:36,206 --> 00:09:38,216
+with all the little
+images, the thumbnails.
+
+
+198
+00:09:38,216 --> 00:09:41,156
+What we just looked at was
+the image view controller,
+
+
+199
+00:09:41,266 --> 00:09:43,546
+and of course there's some
+views that go along with those.
+
+
+200
+00:09:44,976 --> 00:09:47,416
+What you do is you give them
+restoration identifiers.
+
+
+201
+00:09:47,696 --> 00:09:52,156
+That tells us that you want us
+to keep track of those objects
+
+
+202
+00:09:52,576 --> 00:09:54,826
+when we save state and
+when we restore it.
+
+
+203
+00:09:55,306 --> 00:09:58,736
+And we will also call the
+encodeRestorableState method
+
+
+204
+00:09:58,886 --> 00:10:01,876
+on all of them so that
+we save everything.
+
+
+205
+00:10:02,436 --> 00:10:07,256
+Okay. So how about
+when we restoreState?
+
+
+206
+00:10:08,246 --> 00:10:11,486
+So at this point, the
+application is starting back up.
+
+
+207
+00:10:12,746 --> 00:10:14,806
+Do you need to do
+anything different
+
+
+208
+00:10:14,996 --> 00:10:18,386
+when an application starts up
+when you're restoring state
+
+
+209
+00:10:18,386 --> 00:10:20,976
+versus the very first time
+the application launches?
+
+
+210
+00:10:22,236 --> 00:10:25,056
+Well, when an application
+launches, we tell the delegate
+
+
+211
+00:10:25,806 --> 00:10:30,386
+that we're starting up, and here
+we just simply call or recall,
+
+
+212
+00:10:30,796 --> 00:10:34,396
+the method application Will
+finishLaunching with options.
+
+
+213
+00:10:34,896 --> 00:10:37,006
+And you don't have to do
+anything different here
+
+
+214
+00:10:37,376 --> 00:10:40,966
+in the state restoration
+case; just proceed as normal.
+
+
+215
+00:10:41,626 --> 00:10:46,126
+Set up your base interface, will
+either load your base interface
+
+
+216
+00:10:46,126 --> 00:10:47,756
+from a storyboard or a nib,
+
+
+217
+00:10:47,996 --> 00:10:50,056
+or you can execute
+whatever code you have,
+
+
+218
+00:10:50,056 --> 00:10:53,686
+get your window visible,
+and you're good to go,
+
+
+219
+00:10:53,686 --> 00:10:55,126
+and that's our starting point.
+
+
+220
+00:10:55,686 --> 00:10:58,436
+Then we're going to
+go and we're going
+
+
+221
+00:10:58,436 --> 00:11:01,626
+to call the restorationMethods
+for the objects
+
+
+222
+00:11:01,626 --> 00:11:02,576
+that are participating.
+
+
+223
+00:11:02,896 --> 00:11:05,366
+So in this case, let's look
+at the image controller.
+
+
+224
+00:11:06,866 --> 00:11:10,116
+So here, you can see we're
+starting off without our image.
+
+
+225
+00:11:10,246 --> 00:11:11,986
+How do we get it back?
+
+
+226
+00:11:12,716 --> 00:11:16,696
+We have a complimentary method,
+decodeRestorableStateWithCoder.
+
+
+227
+00:11:17,106 --> 00:11:19,416
+It's kind of the analog to
+the one I just showed you,
+
+
+228
+00:11:19,446 --> 00:11:22,166
+where you saved your
+state, fairly logical.
+
+
+229
+00:11:22,166 --> 00:11:25,726
+So what we're going to
+do is we're going to pull
+
+
+230
+00:11:25,726 --> 00:11:28,946
+in that image identifier,
+which informs us both
+
+
+231
+00:11:28,946 --> 00:11:30,596
+of the image and the title.
+
+
+232
+00:11:31,116 --> 00:11:32,486
+You can see that I got that.
+
+
+233
+00:11:33,096 --> 00:11:34,006
+Anything else?
+
+
+234
+00:11:34,156 --> 00:11:36,536
+Well, how did we get it?
+
+
+235
+00:11:37,716 --> 00:11:40,816
+Similar to the way we encoded
+it, we just simply decode it.
+
+
+236
+00:11:41,046 --> 00:11:42,886
+And when you write this
+code and you look at it,
+
+
+237
+00:11:43,116 --> 00:11:45,106
+the code itself is very simple.
+
+
+238
+00:11:46,326 --> 00:11:48,256
+What's interesting
+is when you think
+
+
+239
+00:11:48,256 --> 00:11:51,136
+about how your application is
+structured and see what it is
+
+
+240
+00:11:51,136 --> 00:11:52,696
+that you need to
+save and restore.
+
+
+241
+00:11:52,806 --> 00:11:54,546
+The code is very boilerplate.
+
+
+242
+00:11:56,516 --> 00:11:59,816
+We also kept track of whether or
+not we were showing those bars.
+
+
+243
+00:12:00,466 --> 00:12:03,976
+Again, we just simply
+decoded Boolean and set it up.
+
+
+244
+00:12:04,436 --> 00:12:06,646
+Now, I'm not showing you
+the code that actually goes
+
+
+245
+00:12:06,646 --> 00:12:08,766
+and draws the image
+and sets the title.
+
+
+246
+00:12:09,766 --> 00:12:10,846
+In your application,
+
+
+247
+00:12:10,896 --> 00:12:13,046
+you've already written
+the code that does that.
+
+
+248
+00:12:13,306 --> 00:12:15,716
+When you first presented
+that image view controller
+
+
+249
+00:12:15,716 --> 00:12:19,686
+or used the segway transition,
+you obviously have some code
+
+
+250
+00:12:19,856 --> 00:12:21,406
+that goes and loads
+in the image.
+
+
+251
+00:12:21,666 --> 00:12:23,036
+And with state restoration,
+
+
+252
+00:12:23,486 --> 00:12:25,276
+you'll always be
+able to reuse that.
+
+
+253
+00:12:25,276 --> 00:12:28,376
+So here, all we're trying to do
+is get the information we need
+
+
+254
+00:12:28,376 --> 00:12:29,556
+and then pass it around.
+
+
+255
+00:12:29,746 --> 00:12:32,546
+And I'll show you that in
+a little more detail later.
+
+
+256
+00:12:32,546 --> 00:12:36,926
+So do we have to
+do anything else?
+
+
+257
+00:12:36,926 --> 00:12:37,686
+I mean, we had a lot
+
+
+258
+00:12:37,686 --> 00:12:39,136
+of different things
+getting restored,
+
+
+259
+00:12:39,136 --> 00:12:40,786
+and I just showed you
+a little bit of code.
+
+
+260
+00:12:42,256 --> 00:12:44,666
+Remember, the navigation
+controller remembered to stack.
+
+
+261
+00:12:44,666 --> 00:12:47,436
+It remembered that we had
+this view controller presented
+
+
+262
+00:12:47,436 --> 00:12:50,526
+on top -- I'm sorry -- pushed
+on top of that collection view.
+
+
+263
+00:12:51,816 --> 00:12:59,696
+We also had scroll position
+and our selected self.
+
+
+264
+00:12:59,876 --> 00:13:03,376
+And we also had that image
+sized up as it should have been.
+
+
+265
+00:13:03,816 --> 00:13:06,316
+Did you have to write any
+code to do any of that?
+
+
+266
+00:13:06,686 --> 00:13:08,626
+Well, it turns out you
+didn't have to do anything.
+
+
+267
+00:13:08,946 --> 00:13:10,566
+You get all of that for free.
+
+
+268
+00:13:11,436 --> 00:13:12,556
+And how does that happen?
+
+
+269
+00:13:13,496 --> 00:13:16,186
+Well, I mentioned
+before that when you set
+
+
+270
+00:13:16,186 --> 00:13:20,436
+up all the restoration
+identifiers, it both informs us
+
+
+271
+00:13:20,436 --> 00:13:23,796
+of what needs to be saved but
+also allows us to call methods
+
+
+272
+00:13:23,796 --> 00:13:25,076
+to save and restore state.
+
+
+273
+00:13:25,656 --> 00:13:28,856
+And we have a whole bunch
+of base implementations
+
+
+274
+00:13:29,786 --> 00:13:32,416
+that save all the stuff for
+you which is very convenient,
+
+
+275
+00:13:32,696 --> 00:13:34,316
+saving you the tedium of having
+
+
+276
+00:13:34,316 --> 00:13:36,176
+to write these very
+common things.
+
+
+277
+00:13:36,246 --> 00:13:38,886
+So we keep track of a
+lot of default behaviors,
+
+
+278
+00:13:39,246 --> 00:13:41,566
+a lot of information
+automatically for you.
+
+
+279
+00:13:41,956 --> 00:13:44,606
+So you get a lot of leverage,
+you get a lot of bang
+
+
+280
+00:13:44,606 --> 00:13:47,466
+for your buck for
+setting this up.
+
+
+281
+00:13:50,656 --> 00:13:53,766
+So let's talk about
+what's new in iOS 7.
+
+
+282
+00:13:55,196 --> 00:13:57,106
+We had some great
+successes this year.
+
+
+283
+00:13:57,496 --> 00:13:59,066
+We've seen people
+implementing this
+
+
+284
+00:13:59,066 --> 00:14:01,856
+and some really nice apps
+incorporating state restoration.
+
+
+285
+00:14:02,576 --> 00:14:06,816
+And we felt that we had a nice
+starting point for all this,
+
+
+286
+00:14:07,296 --> 00:14:08,866
+but that there were
+some additional things
+
+
+287
+00:14:08,866 --> 00:14:12,096
+that we could do that would
+make it even easier to use,
+
+
+288
+00:14:12,506 --> 00:14:16,076
+and also we wanted to continue
+to grow as we add new facilities
+
+
+289
+00:14:16,256 --> 00:14:19,776
+to iOS and as apps continue
+to get more sophisticated.
+
+
+290
+00:14:20,656 --> 00:14:24,696
+So let's look at what we've got.
+
+
+291
+00:14:25,276 --> 00:14:29,046
+We found that with view
+controllers and views,
+
+
+292
+00:14:29,406 --> 00:14:33,116
+you sometimes wanted to also
+have objects participate
+
+
+293
+00:14:33,116 --> 00:14:35,226
+in state restoration
+like a data source
+
+
+294
+00:14:35,526 --> 00:14:37,966
+or some other nonview
+controller object
+
+
+295
+00:14:38,616 --> 00:14:40,336
+in the same way the
+view controllers
+
+
+296
+00:14:40,336 --> 00:14:41,526
+and views participate.
+
+
+297
+00:14:42,046 --> 00:14:46,906
+So we added the ability for any
+object to be able to get added
+
+
+298
+00:14:46,906 --> 00:14:51,626
+to the state restoration graph
+and save and restore its state.
+
+
+299
+00:14:52,326 --> 00:14:56,196
+Also, we've made it
+easier for you to figure
+
+
+300
+00:14:56,196 --> 00:14:58,026
+out when you can apply state.
+
+
+301
+00:14:58,616 --> 00:15:01,266
+Something that's a
+little tricky sometimes is
+
+
+302
+00:15:01,266 --> 00:15:05,096
+when your application restores
+all of its state but isn't sure
+
+
+303
+00:15:05,096 --> 00:15:08,216
+of the order that different
+things will get resorted in.
+
+
+304
+00:15:08,336 --> 00:15:11,056
+So after you've pulled the
+view controller state back,
+
+
+305
+00:15:11,466 --> 00:15:13,926
+is it safe to go
+and draw everything
+
+
+306
+00:15:13,926 --> 00:15:15,916
+on the screen, or
+apply everything?
+
+
+307
+00:15:16,226 --> 00:15:18,366
+Well, it might depend
+on other objects
+
+
+308
+00:15:18,366 --> 00:15:20,766
+that are also participating,
+and we don't want you
+
+
+309
+00:15:20,766 --> 00:15:21,976
+to have to worry about that.
+
+
+310
+00:15:22,296 --> 00:15:24,926
+So I'll show how we've
+made that easier to handle.
+
+
+311
+00:15:25,466 --> 00:15:29,836
+We've done a lot of work
+with Snapshot handling.
+
+
+312
+00:15:30,916 --> 00:15:33,676
+Previously when an
+application restored state,
+
+
+313
+00:15:33,676 --> 00:15:35,146
+we would show the default PNG,
+
+
+314
+00:15:35,146 --> 00:15:38,266
+and when the application
+started up, we would just jump
+
+
+315
+00:15:38,636 --> 00:15:39,766
+to wherever its state was.
+
+
+316
+00:15:40,216 --> 00:15:42,486
+Now to provide a more
+seamless experience,
+
+
+317
+00:15:42,746 --> 00:15:44,966
+we'll use a Snapshot
+very aggressively,
+
+
+318
+00:15:45,146 --> 00:15:46,606
+and I'll go through
+how you do that
+
+
+319
+00:15:46,606 --> 00:15:49,186
+and how you still have
+some control over that.
+
+
+320
+00:15:50,056 --> 00:15:52,936
+There's also some small
+enhancements I'll discuss.
+
+
+321
+00:15:53,766 --> 00:15:55,366
+We just keep adding new things.
+
+
+322
+00:15:55,696 --> 00:15:58,686
+Last year in 2012 when
+I talked about this,
+
+
+323
+00:15:58,686 --> 00:16:02,126
+I mentioned you can implement
+some state restoration
+
+
+324
+00:16:02,126 --> 00:16:04,716
+for your app and then
+enhance it or extend it
+
+
+325
+00:16:04,716 --> 00:16:05,946
+as you add new features.
+
+
+326
+00:16:06,276 --> 00:16:09,286
+And we're taking our own advice
+and doing the same thing,
+
+
+327
+00:16:09,556 --> 00:16:13,376
+so we started with the most
+critical things, the basics,
+
+
+328
+00:16:13,566 --> 00:16:16,376
+and then we started to add
+more things for this year.
+
+
+329
+00:16:18,106 --> 00:16:19,496
+So that's what's new.
+
+
+330
+00:16:20,326 --> 00:16:22,436
+Okay, first is generalized
+objects.
+
+
+331
+00:16:23,076 --> 00:16:26,616
+So the idea here is to be
+able to take objects that are
+
+
+332
+00:16:26,616 --> 00:16:29,696
+in view controllers and
+views and also use them
+
+
+333
+00:16:29,696 --> 00:16:32,316
+in the same way in state
+restoration as you've been able
+
+
+334
+00:16:32,316 --> 00:16:34,586
+to with our existing API.
+
+
+335
+00:16:35,696 --> 00:16:38,436
+So here's two of our
+view controllers.
+
+
+336
+00:16:38,526 --> 00:16:41,876
+We have both the collection
+view and then we also have
+
+
+337
+00:16:41,876 --> 00:16:42,696
+that image controller.
+
+
+338
+00:16:42,996 --> 00:16:46,216
+And a very common thing
+in an application is
+
+
+339
+00:16:46,216 --> 00:16:48,686
+to have a data source object.
+
+
+340
+00:16:49,676 --> 00:16:52,846
+And with that data source,
+you'll be referring to it
+
+
+341
+00:16:53,116 --> 00:16:54,846
+for multiple objects
+in the system.
+
+
+342
+00:16:55,526 --> 00:16:58,186
+So here I'm using the
+data source to inform you
+
+
+343
+00:16:58,186 --> 00:17:01,466
+of what images I have, how
+many, what their titles are,
+
+
+344
+00:17:01,646 --> 00:17:03,606
+and to get the image
+bits themselves --
+
+
+345
+00:17:03,606 --> 00:17:06,366
+kind of wraps over where
+all those images are hiding
+
+
+346
+00:17:06,366 --> 00:17:07,856
+in the file system
+so I don't have
+
+
+347
+00:17:07,925 --> 00:17:09,826
+to replicate that
+code everywhere.
+
+
+348
+00:17:10,376 --> 00:17:13,626
+So I'm going to want
+to be able to save
+
+
+349
+00:17:13,626 --> 00:17:15,935
+and restore a reference
+to that directly.
+
+
+350
+00:17:16,006 --> 00:17:18,896
+I don't want to actually
+encode the object completely
+
+
+351
+00:17:18,896 --> 00:17:22,316
+and make copies of it; I
+just want to refer to it.
+
+
+352
+00:17:22,316 --> 00:17:24,396
+And the data source doesn't
+actually need to save
+
+
+353
+00:17:24,396 --> 00:17:27,685
+and restore any state of its
+own, but I will want to be able
+
+
+354
+00:17:27,685 --> 00:17:30,476
+to refer to it when I'm saving
+state for other objects.
+
+
+355
+00:17:30,866 --> 00:17:34,006
+And something that's
+kind of similar is
+
+
+356
+00:17:34,006 --> 00:17:36,306
+when you have a shared
+object amongst the many view
+
+
+357
+00:17:36,306 --> 00:17:38,016
+controllers that
+might be dynamic.
+
+
+358
+00:17:38,726 --> 00:17:41,856
+So I'm going to extend the
+demo that I showed you before,
+
+
+359
+00:17:41,926 --> 00:17:43,976
+and we're going add an
+Inspector so we can set
+
+
+360
+00:17:43,976 --> 00:17:46,626
+up some effects,
+some image effects.
+
+
+361
+00:17:47,416 --> 00:17:50,426
+And here you can see that
+that Inspector and the image
+
+
+362
+00:17:50,426 --> 00:17:52,026
+which is now kind of
+a different color,
+
+
+363
+00:17:52,026 --> 00:17:54,016
+are sharing a filter object.
+
+
+364
+00:17:54,676 --> 00:17:57,446
+And this Filter object does
+have some state, so it will want
+
+
+365
+00:17:57,446 --> 00:18:00,806
+to save and restore state,
+and I'll also want to be able
+
+
+366
+00:18:00,806 --> 00:18:02,286
+to maintain those references.
+
+
+367
+00:18:02,846 --> 00:18:07,856
+So let's look at how our
+example application has changed.
+
+
+368
+00:18:09,356 --> 00:18:13,426
+So I've got a data source object
+here which I just described,
+
+
+369
+00:18:13,516 --> 00:18:17,896
+and it's being referred to by
+both of the view controllers.
+
+
+370
+00:18:18,446 --> 00:18:22,016
+Now, I'm going to
+extend the application
+
+
+371
+00:18:22,016 --> 00:18:24,786
+and add an Inspector, so I'm
+going to present something
+
+
+372
+00:18:25,266 --> 00:18:27,546
+and it's going to
+use a filter object.
+
+
+373
+00:18:28,196 --> 00:18:30,706
+In fact, I might have more
+than one filter object,
+
+
+374
+00:18:31,836 --> 00:18:34,406
+and they'll be referred
+to for multiple places.
+
+
+375
+00:18:35,216 --> 00:18:39,056
+So what I want to focus
+on here is the data source
+
+
+376
+00:18:39,056 --> 00:18:39,976
+and these filters.
+
+
+377
+00:18:40,026 --> 00:18:41,466
+These are these objects
+I'm referring
+
+
+378
+00:18:41,466 --> 00:18:44,056
+to as generalized
+objects, and we're going
+
+
+379
+00:18:44,056 --> 00:18:46,516
+to see how they can play
+along with everything else.
+
+
+380
+00:18:48,096 --> 00:18:52,426
+The first thing you need to do
+if you want to use these objects
+
+
+381
+00:18:52,426 --> 00:18:54,326
+in state restoration
+is register them.
+
+
+382
+00:18:54,976 --> 00:18:57,876
+We've added a new
+method, on UI application.
+
+
+383
+00:18:58,476 --> 00:19:02,926
+It's called RegisterObject
+for state restoration.
+
+
+384
+00:19:04,686 --> 00:19:06,936
+I'm glad we have code
+Complete, because that's long.
+
+
+385
+00:19:08,356 --> 00:19:10,696
+This is very similar to setting
+
+
+386
+00:19:10,696 --> 00:19:13,096
+up a restoration identifier
+on a view controller.
+
+
+387
+00:19:14,116 --> 00:19:16,416
+You pass in the object
+and you can see
+
+
+388
+00:19:16,416 --> 00:19:19,106
+that it actually implements
+a new protocol, and we'll get
+
+
+389
+00:19:19,106 --> 00:19:22,606
+to that in a minute,
+then you also pass us a
+
+
+390
+00:19:22,606 --> 00:19:24,196
+stringRestoration identifier.
+
+
+391
+00:19:24,916 --> 00:19:28,096
+Now, for view controllers and
+views we made this a property,
+
+
+392
+00:19:28,826 --> 00:19:31,926
+but I didn't want to
+force developers to have
+
+
+393
+00:19:32,026 --> 00:19:35,656
+to subclass a base class
+that we would contrive just
+
+
+394
+00:19:35,656 --> 00:19:37,216
+so that they could
+register an object.
+
+
+395
+00:19:38,136 --> 00:19:39,736
+We need to hook in,
+we need to know
+
+
+396
+00:19:39,736 --> 00:19:41,016
+when the object's registered.
+
+
+397
+00:19:41,276 --> 00:19:43,646
+I didn't want you to have to
+subclass something and make sure
+
+
+398
+00:19:43,646 --> 00:19:46,796
+to call Super, so we felt
+this was a nice clear way
+
+
+399
+00:19:47,076 --> 00:19:48,996
+to identify what's
+participating.
+
+
+400
+00:19:49,086 --> 00:19:51,046
+You just call this
+method with your object
+
+
+401
+00:19:51,046 --> 00:19:53,546
+and the identifier you
+want, you're good to go.
+
+
+402
+00:19:54,466 --> 00:19:57,856
+So let's look at that
+protocol that I mentioned.
+
+
+403
+00:19:57,856 --> 00:19:59,756
+It's called UI state restoring.
+
+
+404
+00:20:00,376 --> 00:20:05,226
+It has the methods to save and
+restore state for that object.
+
+
+405
+00:20:05,866 --> 00:20:07,356
+These are actually optional.
+
+
+406
+00:20:07,356 --> 00:20:09,716
+There's some cases where you
+won't actually need to save
+
+
+407
+00:20:09,716 --> 00:20:12,176
+and restore anything; you
+just want to add the object
+
+
+408
+00:20:12,586 --> 00:20:19,026
+to the graph of objects
+we're keeping track of.
+
+
+409
+00:20:19,476 --> 00:20:21,976
+We also have a property
+that you can use
+
+
+410
+00:20:22,246 --> 00:20:24,286
+to scope the object's
+identifier.
+
+
+411
+00:20:25,166 --> 00:20:27,876
+Sometimes you might want
+to use the same object
+
+
+412
+00:20:27,876 --> 00:20:30,696
+or the same class of object
+in more than one place,
+
+
+413
+00:20:30,876 --> 00:20:33,896
+and you'll have creation
+code or something that sets
+
+
+414
+00:20:33,896 --> 00:20:37,846
+up the identifier, and it would
+be contrived to have to give it,
+
+
+415
+00:20:37,846 --> 00:20:39,946
+the restoration identifier
+some weird name just
+
+
+416
+00:20:39,976 --> 00:20:40,996
+because of where you put it.
+
+
+417
+00:20:41,326 --> 00:20:44,286
+As an example, let's
+say on an iPad,
+
+
+418
+00:20:44,286 --> 00:20:45,606
+you have an image editing app
+
+
+419
+00:20:45,756 --> 00:20:47,616
+where you can apply
+two different effects.
+
+
+420
+00:20:47,616 --> 00:20:52,116
+So on the left here, you
+can have one set of effects
+
+
+421
+00:20:52,256 --> 00:20:53,326
+that you're showing
+on the image,
+
+
+422
+00:20:53,506 --> 00:20:55,676
+and you might have a
+different set on the right side
+
+
+423
+00:20:55,676 --> 00:20:58,586
+so the user can kind of
+compare and contrast approaches.
+
+
+424
+00:20:59,316 --> 00:21:01,906
+And you might be using
+the same effect objects,
+
+
+425
+00:21:01,906 --> 00:21:04,446
+or the same filter
+objects, and you just want
+
+
+426
+00:21:04,446 --> 00:21:05,606
+to give them the same name.
+
+
+427
+00:21:06,026 --> 00:21:08,376
+You can scope them by
+setting their parent.
+
+
+428
+00:21:08,906 --> 00:21:11,006
+Often you'll set that
+to a view controller.
+
+
+429
+00:21:11,476 --> 00:21:13,706
+You might set it to
+another restorable object.
+
+
+430
+00:21:14,836 --> 00:21:16,616
+This is what we implicitly do
+
+
+431
+00:21:16,766 --> 00:21:18,336
+for the view controller
+hierarchy.
+
+
+432
+00:21:18,586 --> 00:21:21,416
+We actually keep track of
+the parent of an object based
+
+
+433
+00:21:21,416 --> 00:21:24,056
+on whether it was
+presented, or if it's pushed
+
+
+434
+00:21:24,056 --> 00:21:26,896
+on a navigation stack or in
+another collection controller
+
+
+435
+00:21:26,896 --> 00:21:30,236
+like a tab view, and here
+we make it very explicit
+
+
+436
+00:21:30,236 --> 00:21:32,156
+for you to do.
+
+
+437
+00:21:32,776 --> 00:21:37,326
+Also, in some cases, the objects
+may or may not exist depending
+
+
+438
+00:21:37,326 --> 00:21:38,806
+on what the user has done.
+
+
+439
+00:21:38,886 --> 00:21:41,146
+So I showed you this
+beginning of the demo
+
+
+440
+00:21:41,146 --> 00:21:43,646
+and I didn't create any
+filters, so there aren't any
+
+
+441
+00:21:43,646 --> 00:21:44,936
+in my examples so far.
+
+
+442
+00:21:45,926 --> 00:21:48,556
+Now, if my application
+starts back up, I don't want
+
+
+443
+00:21:48,556 --> 00:21:51,046
+to create every possible
+object I might have
+
+
+444
+00:21:51,086 --> 00:21:53,026
+on the off chance I
+might be restoring them.
+
+
+445
+00:21:53,026 --> 00:21:56,656
+It'd be a lot nicer if somebody
+kept track of that for me
+
+
+446
+00:21:56,926 --> 00:22:00,276
+and told the application, "hey,
+create this because it existed
+
+
+447
+00:22:00,276 --> 00:22:01,526
+when you saved state".
+
+
+448
+00:22:01,986 --> 00:22:04,996
+So by specifying a restoration
+class, you're telling us
+
+
+449
+00:22:05,056 --> 00:22:08,576
+who we can ask to recreate
+this object as needed.
+
+
+450
+00:22:09,076 --> 00:22:13,296
+And in the example
+I'm showing you,
+
+
+451
+00:22:13,426 --> 00:22:14,976
+all these different pieces here,
+
+
+452
+00:22:15,646 --> 00:22:18,786
+these filters are
+actually created on demand,
+
+
+453
+00:22:18,926 --> 00:22:23,886
+and we'll see how
+we can do that.
+
+
+454
+00:22:24,736 --> 00:22:26,676
+This protocol that you use
+
+
+455
+00:22:27,026 --> 00:22:28,816
+to create the object
+is very simple.
+
+
+456
+00:22:29,216 --> 00:22:31,686
+So we've specified
+a restoration Class.
+
+
+457
+00:22:32,026 --> 00:22:34,326
+When we're restoring state
+and we need the object,
+
+
+458
+00:22:34,756 --> 00:22:36,086
+we call a class method,
+
+
+459
+00:22:37,226 --> 00:22:39,346
+objectWithRestorationIdentifier
+path,
+
+
+460
+00:22:39,346 --> 00:22:41,986
+and it gets passed
+in two things.
+
+
+461
+00:22:42,686 --> 00:22:45,646
+We give it an array of
+identifier components.
+
+
+462
+00:22:45,856 --> 00:22:48,656
+The last component in that
+array is the identifier,
+
+
+463
+00:22:48,656 --> 00:22:51,396
+and often that's all
+you'll need to look at.
+
+
+464
+00:22:51,716 --> 00:22:55,286
+However, that array contains
+the identifiers for all
+
+
+465
+00:22:55,286 --> 00:22:56,966
+of the restoration parents.
+
+
+466
+00:22:57,126 --> 00:22:59,906
+That way if you've scoped it
+and you want to be informed
+
+
+467
+00:22:59,906 --> 00:23:02,606
+about which one of these
+objects we're asking for,
+
+
+468
+00:23:02,956 --> 00:23:04,276
+you have that information.
+
+
+469
+00:23:06,576 --> 00:23:09,556
+We also pass in the
+coder that was used
+
+
+470
+00:23:09,866 --> 00:23:11,536
+when you initially
+saved the object.
+
+
+471
+00:23:11,856 --> 00:23:13,566
+So why do we do that?
+
+
+472
+00:23:13,566 --> 00:23:15,196
+Why not just let you
+create an object.
+
+
+473
+00:23:15,866 --> 00:23:17,076
+Well, you're probably
+going to go
+
+
+474
+00:23:17,076 --> 00:23:18,696
+through some initialization
+code,
+
+
+475
+00:23:18,936 --> 00:23:22,306
+you may need some resources, and
+it might be convenient to look
+
+
+476
+00:23:22,306 --> 00:23:24,096
+at a little bit of
+the information
+
+
+477
+00:23:24,096 --> 00:23:27,656
+that was saved to
+help inform that.
+
+
+478
+00:23:27,656 --> 00:23:30,926
+Also, let's say that you
+have a dynamic database,
+
+
+479
+00:23:30,926 --> 00:23:34,466
+and we're restoring an object
+that no longer corresponds
+
+
+480
+00:23:34,466 --> 00:23:35,836
+to anything in the database.
+
+
+481
+00:23:35,836 --> 00:23:38,636
+You might have synchronized
+the database or changed things
+
+
+482
+00:23:38,636 --> 00:23:40,496
+so that that object
+doesn't exist.
+
+
+483
+00:23:41,046 --> 00:23:44,156
+You can look in the coder
+to find out if indeed
+
+
+484
+00:23:44,156 --> 00:23:47,206
+that object is still around
+or not, and if it isn't,
+
+
+485
+00:23:47,206 --> 00:23:49,046
+you can just return
+nill from this method.
+
+
+486
+00:23:49,336 --> 00:23:52,236
+We'll be fine; we'll just
+stop paying attention to it,
+
+
+487
+00:23:52,236 --> 00:23:55,186
+we won't try to restore
+its state.
+
+
+488
+00:23:55,666 --> 00:23:58,126
+You return one of these
+state restoring objects,
+
+
+489
+00:23:58,526 --> 00:24:01,036
+and you'll all done.
+
+
+490
+00:24:01,856 --> 00:24:04,656
+So now let's look at when
+we launched the app before.
+
+
+491
+00:24:04,656 --> 00:24:07,246
+I mentioned when
+you call application
+
+
+492
+00:24:07,246 --> 00:24:10,626
+willFinishLaunchingwithOptions,
+or rather, when we call it,
+
+
+493
+00:24:10,876 --> 00:24:13,686
+you don't have to do anything
+different than you already did
+
+
+494
+00:24:13,686 --> 00:24:14,936
+when the app started up.
+
+
+495
+00:24:15,246 --> 00:24:18,726
+But remember, in that method,
+you're setting up the basis
+
+
+496
+00:24:18,756 --> 00:24:22,126
+for your application, and if
+we have a data source object
+
+
+497
+00:24:22,126 --> 00:24:24,756
+that we want to refer to,
+you're probably going to have
+
+
+498
+00:24:24,816 --> 00:24:28,206
+to do something to connect that
+up when you do your launch code.
+
+
+499
+00:24:28,596 --> 00:24:31,676
+And here I'm adding
+one line to register it
+
+
+500
+00:24:31,676 --> 00:24:32,796
+for state restoration.
+
+
+501
+00:24:32,936 --> 00:24:36,286
+Just as I showed you before,
+we've given it an identifier,
+
+
+502
+00:24:36,596 --> 00:24:40,246
+we've set up our object, and now
+we know about it, we can find it
+
+
+503
+00:24:40,246 --> 00:24:43,166
+if you refer to it while you're
+restoring state, and when you go
+
+
+504
+00:24:43,166 --> 00:24:45,876
+to save state, we'll
+keep track of it for you.
+
+
+505
+00:24:46,416 --> 00:24:50,366
+So let's go back to
+that segway code.
+
+
+506
+00:24:51,026 --> 00:24:54,036
+So before we even save state,
+remember that we want it
+
+
+507
+00:24:54,036 --> 00:24:56,066
+to switch to this
+image controller.
+
+
+508
+00:24:57,336 --> 00:24:59,236
+We're going to also hand
+that image controller
+
+
+509
+00:24:59,236 --> 00:25:02,476
+to the data source as well;
+that way, it knows who to ask
+
+
+510
+00:25:02,676 --> 00:25:06,766
+to get the actual image
+file and to get the title.
+
+
+511
+00:25:07,376 --> 00:25:08,176
+So here we go.
+
+
+512
+00:25:08,826 --> 00:25:10,996
+Now, we've got all the
+information we need
+
+
+513
+00:25:10,996 --> 00:25:13,796
+and we've got a nice shared
+object that we're using
+
+
+514
+00:25:14,196 --> 00:25:15,476
+to keep track of everything.
+
+
+515
+00:25:16,176 --> 00:25:19,046
+So what do we do
+when we save state?
+
+
+516
+00:25:19,856 --> 00:25:23,156
+Well, again, we want to
+keep track of that image
+
+
+517
+00:25:23,156 --> 00:25:25,976
+and the title, so we're going
+to write out an identifier
+
+
+518
+00:25:25,976 --> 00:25:27,436
+for those, but we're
+going to write
+
+
+519
+00:25:27,436 --> 00:25:29,866
+out an additional
+thing, and what's that?
+
+
+520
+00:25:30,166 --> 00:25:32,876
+Well, we want to keep
+track of the data source,
+
+
+521
+00:25:33,136 --> 00:25:37,196
+so that when we restoreState, we
+can get a pointer back to that
+
+
+522
+00:25:37,196 --> 00:25:39,836
+without having to do
+an EndRun with globals
+
+
+523
+00:25:39,836 --> 00:25:42,036
+or doing something
+contrived to try to find it.
+
+
+524
+00:25:42,306 --> 00:25:43,516
+We can just refer to it.
+
+
+525
+00:25:43,516 --> 00:25:45,686
+How do we do it?
+
+
+526
+00:25:45,946 --> 00:25:48,856
+Same way we save anything,
+we'll just encode the object.
+
+
+527
+00:25:50,016 --> 00:25:51,936
+Now, we're not going
+to make a copy of this,
+
+
+528
+00:25:52,086 --> 00:25:54,756
+because it's been registered for
+state restoration and we know
+
+
+529
+00:25:54,756 --> 00:25:57,456
+about it and we know that
+it's a state restoring object,
+
+
+530
+00:25:57,906 --> 00:25:59,906
+so we'll just save a reference.
+
+
+531
+00:26:00,096 --> 00:26:02,646
+That way you don't end up with
+a bunch of disjoined copies,
+
+
+532
+00:26:02,646 --> 00:26:07,616
+strewn about your application
+that aren't the right thing.
+
+
+533
+00:26:08,316 --> 00:26:09,286
+How do we restore it?
+
+
+534
+00:26:09,946 --> 00:26:12,276
+Well, you can probably guess
+what's going to happen here.
+
+
+535
+00:26:12,756 --> 00:26:14,726
+We're going to pull that
+data source back in.
+
+
+536
+00:26:14,726 --> 00:26:17,946
+That's going to inform
+us of what image we want.
+
+
+537
+00:26:18,106 --> 00:26:20,616
+Remember, we saved and
+restored the image identifier.
+
+
+538
+00:26:21,266 --> 00:26:23,756
+And now we're pointing back
+at that data source object
+
+
+539
+00:26:23,756 --> 00:26:26,676
+so we can use it and
+everything's wired up just
+
+
+540
+00:26:26,676 --> 00:26:29,156
+as it was when the
+application was last running.
+
+
+541
+00:26:29,466 --> 00:26:33,316
+So it makes it really simple
+to maintain object graphs.
+
+
+542
+00:26:33,846 --> 00:26:39,046
+And again, we just use that
+coder, simple little line
+
+
+543
+00:26:39,046 --> 00:26:41,606
+of code there, decode it,
+and you're good to go.
+
+
+544
+00:26:43,566 --> 00:26:46,966
+Okay, I'm going to show another
+demo that adds on the first
+
+
+545
+00:26:46,966 --> 00:26:48,556
+so let's take a quick look.
+
+
+546
+00:26:49,716 --> 00:26:53,616
+Okay, so here we are,
+back where we were before.
+
+
+547
+00:26:53,956 --> 00:26:57,466
+Let's go back to this image,
+make it a little bigger.
+
+
+548
+00:26:58,056 --> 00:27:01,966
+So let's say that we want to
+put a cool sepia effect on it.
+
+
+549
+00:27:02,516 --> 00:27:05,936
+So here's that Inspector --
+you might recognize it from one
+
+
+550
+00:27:05,936 --> 00:27:07,226
+of my screenshots earlier --
+
+
+551
+00:27:07,726 --> 00:27:09,906
+and I'm going to dial in
+a whole bunch of sepia
+
+
+552
+00:27:09,966 --> 00:27:11,986
+because I don't think you
+can ever have too much.
+
+
+553
+00:27:13,016 --> 00:27:14,016
+See what it looks like.
+
+
+554
+00:27:15,566 --> 00:27:17,406
+I'm a big fan of
+sepia, actually.
+
+
+555
+00:27:17,996 --> 00:27:28,066
+I think it can use
+even a little more.
+
+
+556
+00:27:28,366 --> 00:27:29,576
+Yeah, I like that,
+nice and gold.
+
+
+557
+00:27:29,576 --> 00:27:33,226
+And maybe I can soften
+it up with some blur --
+
+
+558
+00:27:33,686 --> 00:27:34,776
+that's my other filter.
+
+
+559
+00:27:36,966 --> 00:27:39,006
+Not so much.
+
+
+560
+00:27:39,006 --> 00:27:43,156
+I don't really like that, so
+I'm just going to turn it off,
+
+
+561
+00:27:43,156 --> 00:27:44,816
+but I'm going to keep
+it in my back pocket.
+
+
+562
+00:27:44,816 --> 00:27:46,326
+Maybe I can tweak
+it a little more,
+
+
+563
+00:27:46,526 --> 00:27:47,816
+make it kind of nice again.
+
+
+564
+00:27:48,736 --> 00:27:51,386
+All right so let's put the
+application in the background,
+
+
+565
+00:27:51,696 --> 00:27:55,006
+want to go off and do something
+else, there's something exciting
+
+
+566
+00:27:55,006 --> 00:27:57,596
+on the Internet, don't
+want to miss that.
+
+
+567
+00:27:57,946 --> 00:28:02,896
+And then I usually
+spend probably too long
+
+
+568
+00:28:02,896 --> 00:28:05,836
+on the Internet, so the
+application is exited now,
+
+
+569
+00:28:06,436 --> 00:28:07,886
+so we're going to
+start it back up.
+
+
+570
+00:28:07,886 --> 00:28:09,756
+And let's hope that
+it comes back.
+
+
+571
+00:28:10,356 --> 00:28:12,966
+Again, my goal here
+is unexcitement.
+
+
+572
+00:28:13,486 --> 00:28:15,856
+So there it is.
+
+
+573
+00:28:16,256 --> 00:28:20,126
+Now, it remembered that we were
+showing this filter inspector.
+
+
+574
+00:28:20,126 --> 00:28:23,816
+It also remembered that it
+was disabled and that I had
+
+
+575
+00:28:23,816 --> 00:28:27,756
+that radius set kind of
+low, and it even remembered
+
+
+576
+00:28:27,756 --> 00:28:30,006
+that we'd already applied
+a filter to that image.
+
+
+577
+00:28:30,486 --> 00:28:33,366
+Now, in an image editing
+app, you'd probably play
+
+
+578
+00:28:33,366 --> 00:28:35,596
+around with filters and
+eventually you'd commit them
+
+
+579
+00:28:35,596 --> 00:28:37,886
+and then it would save that
+information in the database,
+
+
+580
+00:28:38,246 --> 00:28:40,946
+but here I'm kind of in
+an editing or playful mode
+
+
+581
+00:28:40,946 --> 00:28:42,886
+where I haven't really
+committed anything;
+
+
+582
+00:28:42,886 --> 00:28:45,246
+I haven't modified this
+image in the database,
+
+
+583
+00:28:45,496 --> 00:28:48,646
+so I want state restoration to
+keep track of what I was doing.
+
+
+584
+00:28:48,646 --> 00:28:53,646
+So it got everything else,
+too, just like it did before.
+
+
+585
+00:28:53,646 --> 00:28:57,776
+If we go back there we can see
+it's got our collection view
+
+
+586
+00:28:57,776 --> 00:29:01,226
+and all that good stuff --
+okay, so we got everything back,
+
+
+587
+00:29:01,226 --> 00:29:03,246
+no gasping, no flashing.
+
+
+588
+00:29:04,296 --> 00:29:06,606
+Great. All right, what happened?
+
+
+589
+00:29:06,686 --> 00:29:08,116
+What did we actually do?
+
+
+590
+00:29:09,466 --> 00:29:11,146
+Well, just like before,
+
+
+591
+00:29:11,396 --> 00:29:13,516
+we brought back the image
+and the image title.
+
+
+592
+00:29:14,776 --> 00:29:17,026
+but now we added
+this new inspector.
+
+
+593
+00:29:17,026 --> 00:29:20,946
+And it was presented, it was
+a presented view controller,
+
+
+594
+00:29:21,336 --> 00:29:23,656
+and that just kind of came
+back in the right place.
+
+
+595
+00:29:23,886 --> 00:29:24,836
+Everything was good.
+
+
+596
+00:29:25,876 --> 00:29:29,836
+And we also had two filters
+and these were those new types
+
+
+597
+00:29:29,836 --> 00:29:33,146
+of objects that also get to
+play with state restoration,
+
+
+598
+00:29:33,886 --> 00:29:35,636
+and they had a little
+bit of state,
+
+
+599
+00:29:35,636 --> 00:29:37,536
+which they saved and restored.
+
+
+600
+00:29:38,776 --> 00:29:41,916
+And then finally, we
+actually were able to apply
+
+
+601
+00:29:42,196 --> 00:29:45,016
+that to the image, and I did
+that kind of behind the scenes.
+
+
+602
+00:29:45,426 --> 00:29:48,636
+And this is interesting, because
+when you do state restoration
+
+
+603
+00:29:48,636 --> 00:29:50,846
+you don't want to just have
+one of those Hollywood houses
+
+
+604
+00:29:50,846 --> 00:29:52,286
+where it looks like a house
+
+
+605
+00:29:52,286 --> 00:29:54,856
+but if you ever walked inside
+there's nothing behind it.
+
+
+606
+00:29:55,386 --> 00:29:58,346
+You actually want to restore
+the entire structure of the app
+
+
+607
+00:29:58,586 --> 00:30:01,356
+so that it presents
+kind of a continuous
+
+
+608
+00:30:01,356 --> 00:30:03,806
+and seamless experience
+when the user navigates back
+
+
+609
+00:30:04,016 --> 00:30:07,136
+to where they were, that they
+don't get anything unexpected.
+
+
+610
+00:30:08,596 --> 00:30:12,386
+Now, when we initially
+presented that inspector --
+
+
+611
+00:30:12,526 --> 00:30:17,086
+again, I'm using storyboards and
+I did a segway -- what did I do?
+
+
+612
+00:30:17,346 --> 00:30:22,346
+I created that filter object
+and then when I present it,
+
+
+613
+00:30:22,786 --> 00:30:24,716
+it had that filter to refer to.
+
+
+614
+00:30:25,446 --> 00:30:27,036
+That way I could
+share the filter
+
+
+615
+00:30:27,416 --> 00:30:30,736
+between both this
+inspector and my image.
+
+
+616
+00:30:31,026 --> 00:30:34,126
+You may have multiple objects
+that are all sharing some state.
+
+
+617
+00:30:34,456 --> 00:30:37,906
+I don't want to get two separate
+filters eventually when I want
+
+
+618
+00:30:37,906 --> 00:30:41,586
+to restore state, because as
+I change the settings here,
+
+
+619
+00:30:41,876 --> 00:30:43,016
+I want it to be operating
+
+
+620
+00:30:43,016 --> 00:30:45,466
+on the same filter that's
+being used by the image.
+
+
+621
+00:30:46,666 --> 00:30:48,576
+By the way, again, this
+is what's happening
+
+
+622
+00:30:48,576 --> 00:30:51,076
+in the application before
+I've even saved state.
+
+
+623
+00:30:51,386 --> 00:30:54,356
+This is the, how did I
+get to where I am piece.
+
+
+624
+00:30:54,716 --> 00:30:58,366
+Now we want to save that off
+so we can restore ourselves.
+
+
+625
+00:30:58,786 --> 00:31:00,046
+So what do we do?
+
+
+626
+00:31:00,396 --> 00:31:00,906
+Again,
+
+
+627
+00:31:01,226 --> 00:31:03,526
+we use encodeRestorableState
+with Coder.
+
+
+628
+00:31:03,526 --> 00:31:06,566
+We're going to want to
+save, whether or not
+
+
+629
+00:31:06,566 --> 00:31:11,486
+that filter's enabled, and
+also what we've got it set to.
+
+
+630
+00:31:11,826 --> 00:31:13,316
+But here's the interesting
+thing.
+
+
+631
+00:31:13,646 --> 00:31:15,876
+Remember that I've got
+this filter object.
+
+
+632
+00:31:16,846 --> 00:31:18,686
+Why don't we use
+that to inform us
+
+
+633
+00:31:18,686 --> 00:31:21,566
+when we restore our state
+rather than save it separately
+
+
+634
+00:31:21,566 --> 00:31:24,146
+in the inspector, so
+all the inspector has
+
+
+635
+00:31:24,206 --> 00:31:27,256
+to save here is a reference
+to this filter object.
+
+
+636
+00:31:27,956 --> 00:31:30,356
+And this filter object
+itself will implement,
+
+
+637
+00:31:30,356 --> 00:31:34,776
+encode and decode, so
+it will save its state.
+
+
+638
+00:31:35,256 --> 00:31:39,636
+And we had one other object that
+also referred to the filter,
+
+
+639
+00:31:40,166 --> 00:31:41,876
+and that was the
+image view controller.
+
+
+640
+00:31:42,466 --> 00:31:44,956
+It'll also save a
+reference to the filter,
+
+
+641
+00:31:45,316 --> 00:31:48,116
+but they're both pointing
+at the same object.
+
+
+642
+00:31:48,616 --> 00:31:50,026
+So let's look at restoration.
+
+
+643
+00:31:51,806 --> 00:31:53,416
+Yes, the filter object
+is shared.
+
+
+644
+00:31:54,376 --> 00:31:58,896
+So let's go through it in
+a little bit more detail.
+
+
+645
+00:31:59,566 --> 00:32:01,426
+So when we wanted to save state,
+
+
+646
+00:32:01,646 --> 00:32:05,476
+we needed to register the filter
+objects with state restoration.
+
+
+647
+00:32:05,476 --> 00:32:07,576
+I've drawn them in a big
+bright blue on the side
+
+
+648
+00:32:07,576 --> 00:32:08,546
+so you can't miss them.
+
+
+649
+00:32:09,406 --> 00:32:11,406
+We need to save references
+to them.
+
+
+650
+00:32:12,476 --> 00:32:15,486
+We want to save the information
+that those filters have,
+
+
+651
+00:32:16,756 --> 00:32:19,336
+so what we need to do is
+we need to register them.
+
+
+652
+00:32:19,766 --> 00:32:22,356
+Very simple, similar to what
+we did with the data source.
+
+
+653
+00:32:22,856 --> 00:32:26,936
+We're going to save a reference
+from our image view controller
+
+
+654
+00:32:26,936 --> 00:32:31,206
+to those filters and also
+from the sepia inspector.
+
+
+655
+00:32:32,126 --> 00:32:35,976
+And then the filters themselves
+will save their own info.
+
+
+656
+00:32:37,246 --> 00:32:40,726
+That's just whether they're
+enabled, what the intensity is.
+
+
+657
+00:32:41,386 --> 00:32:44,446
+Now, we're going to do
+everything kind of in reverse
+
+
+658
+00:32:44,446 --> 00:32:46,446
+when we restore, so
+it's very symmetrical.
+
+
+659
+00:32:46,806 --> 00:32:48,566
+But there's one other
+thing we need to do
+
+
+660
+00:32:48,566 --> 00:32:50,126
+when we're restoring state.
+
+
+661
+00:32:51,526 --> 00:32:54,136
+Remember that these filters
+may not have existed;
+
+
+662
+00:32:54,266 --> 00:32:56,636
+if I hadn't used them,
+they wouldn't be there,
+
+
+663
+00:32:56,636 --> 00:32:57,586
+so I wouldn't need them.
+
+
+664
+00:32:58,206 --> 00:33:00,406
+So we're going to consult
+the restoration class
+
+
+665
+00:33:00,406 --> 00:33:02,386
+to restore them only
+in the cases
+
+
+666
+00:33:02,386 --> 00:33:05,156
+where the user was actually
+using them, when they existed
+
+
+667
+00:33:05,156 --> 00:33:06,386
+at the time we saved state.
+
+
+668
+00:33:06,716 --> 00:33:08,066
+So that's what we'll do here.
+
+
+669
+00:33:08,976 --> 00:33:10,256
+So we'll recreate them,
+
+
+670
+00:33:11,196 --> 00:33:14,566
+we'll then restore
+references, here's our filters.
+
+
+671
+00:33:15,006 --> 00:33:16,956
+So we've just created
+them again.
+
+
+672
+00:33:18,216 --> 00:33:21,746
+The state restoration runtime
+will ask the restoration class
+
+
+673
+00:33:21,746 --> 00:33:24,416
+to create them by calling
+objectWithRestoration
+
+
+674
+00:33:24,416 --> 00:33:25,136
+identifier path.
+
+
+675
+00:33:25,586 --> 00:33:27,816
+Now, you'll notice they
+don't have any state yet,
+
+
+676
+00:33:27,816 --> 00:33:29,306
+so what's going to happen next?
+
+
+677
+00:33:29,786 --> 00:33:32,526
+Well, we're going to restore
+our references to them,
+
+
+678
+00:33:32,866 --> 00:33:34,406
+but they still don't
+have any state.
+
+
+679
+00:33:34,406 --> 00:33:37,506
+We're just going to wire them
+up to our view controllers,
+
+
+680
+00:33:37,636 --> 00:33:39,826
+so we can see there I
+haven't actually applied
+
+
+681
+00:33:39,826 --> 00:33:40,656
+that filter yet.
+
+
+682
+00:33:42,016 --> 00:33:45,206
+So we'll let the filter
+object restore its own state
+
+
+683
+00:33:45,206 --> 00:33:46,146
+recalling decode.
+
+
+684
+00:33:46,816 --> 00:33:48,256
+So now it's restored its state.
+
+
+685
+00:33:48,256 --> 00:33:50,146
+I don't want you
+to have to worry
+
+
+686
+00:33:50,146 --> 00:33:52,566
+about what order this all
+happens in, so I'm going to talk
+
+
+687
+00:33:52,566 --> 00:33:55,806
+about how we can leverage this
+later and make it real simple
+
+
+688
+00:33:55,806 --> 00:33:58,496
+to apply it so that
+you then eventually get
+
+
+689
+00:33:58,496 --> 00:34:00,676
+that nice sepia look
+on your picture,
+
+
+690
+00:34:01,416 --> 00:34:05,316
+and we're back to where we were.
+
+
+691
+00:34:05,966 --> 00:34:07,756
+So let's talk about
+how we apply the state.
+
+
+692
+00:34:08,085 --> 00:34:11,056
+The first thing we do as we're
+restoring is get back our image.
+
+
+693
+00:34:11,056 --> 00:34:13,755
+But we can't go and
+apply that filter yet.
+
+
+694
+00:34:13,926 --> 00:34:15,886
+The filter might not
+even exist at this point.
+
+
+695
+00:34:15,886 --> 00:34:19,485
+We're just in the decode method
+for this view controller object.
+
+
+696
+00:34:20,326 --> 00:34:22,626
+And at some point we are
+going to go grab that filter.
+
+
+697
+00:34:22,626 --> 00:34:24,886
+It'll get created, it
+will restore it state.
+
+
+698
+00:34:25,176 --> 00:34:26,366
+Now we're good to go.
+
+
+699
+00:34:26,505 --> 00:34:28,206
+Now we can apply that filter.
+
+
+700
+00:34:28,636 --> 00:34:30,456
+But when? How do we know?
+
+
+701
+00:34:31,576 --> 00:34:33,505
+So we've added a new method.
+
+
+702
+00:34:35,255 --> 00:34:37,966
+This method's for view
+controllers as well as any
+
+
+703
+00:34:37,966 --> 00:34:39,565
+of the state restoring objects,
+
+
+704
+00:34:39,636 --> 00:34:42,946
+and it decouples decoding
+your state from trying
+
+
+705
+00:34:42,946 --> 00:34:45,466
+to apply what might be
+more of a global state
+
+
+706
+00:34:45,466 --> 00:34:46,726
+across the whole application.
+
+
+707
+00:34:46,726 --> 00:34:49,286
+It's just a simple
+little method,
+
+
+708
+00:34:49,286 --> 00:34:51,716
+application finished
+restoring state.
+
+
+709
+00:34:52,016 --> 00:34:53,626
+It's kind of like awakeFromNib.
+
+
+710
+00:34:53,916 --> 00:34:56,795
+It's telling you, everything
+is restored at state;
+
+
+711
+00:34:56,795 --> 00:34:58,936
+everything is created
+that we know about;
+
+
+712
+00:34:58,936 --> 00:35:00,246
+it's safe to go in the water.
+
+
+713
+00:35:00,556 --> 00:35:02,226
+Go on, apply your filter.
+
+
+714
+00:35:02,806 --> 00:35:07,936
+So if we didn't have this, you'd
+probably have code like this.
+
+
+715
+00:35:07,936 --> 00:35:10,046
+Now, I mentioned I wasn't
+going to show you much code;
+
+
+716
+00:35:10,046 --> 00:35:11,736
+this is actually the
+only code slide --
+
+
+717
+00:35:12,176 --> 00:35:14,866
+so mainly because I
+like this cool effect.
+
+
+718
+00:35:15,646 --> 00:35:18,716
+So the idea here is I don't
+want to update the image
+
+
+719
+00:35:18,716 --> 00:35:20,026
+when I'm decoding my state
+
+
+720
+00:35:20,026 --> 00:35:23,126
+because everything else might
+not exist yet, so I'm just going
+
+
+721
+00:35:23,126 --> 00:35:25,196
+to decode my state
+and not do that thing.
+
+
+722
+00:35:25,746 --> 00:35:29,266
+And then when application
+FinishedResotringState is
+
+
+723
+00:35:29,266 --> 00:35:31,326
+called, I'll call updateImage.
+
+
+724
+00:35:32,246 --> 00:35:34,706
+And if you're wondering,
+what's this updateImage,
+
+
+725
+00:35:35,566 --> 00:35:37,356
+imagine I don't have
+any stateRestoration.
+
+
+726
+00:35:38,076 --> 00:35:39,746
+I have a segway to
+a view controller,
+
+
+727
+00:35:39,746 --> 00:35:41,526
+I tell it what image
+I want it to show,
+
+
+728
+00:35:41,646 --> 00:35:43,766
+there might be some
+filters that are set up.
+
+
+729
+00:35:43,766 --> 00:35:46,086
+So I'm going to write some
+code that goes and fetches
+
+
+730
+00:35:46,086 --> 00:35:48,996
+that imageAppliestoFilter,
+sets the title, do all of that.
+
+
+731
+00:35:49,346 --> 00:35:51,356
+That's updateImage,
+and if you look
+
+
+732
+00:35:51,356 --> 00:35:54,276
+at the sample code you'll see
+that I'm able to just reuse
+
+
+733
+00:35:54,276 --> 00:35:58,126
+that method when the application
+restores its state here,
+
+
+734
+00:35:58,126 --> 00:36:01,376
+so I don't have to go and write
+a whole big bifurcated strategy
+
+
+735
+00:36:01,846 --> 00:36:04,776
+for restoring the image and
+setting it up in this case
+
+
+736
+00:36:04,776 --> 00:36:10,126
+versus that case; got one
+cute little piece of code.
+
+
+737
+00:36:10,326 --> 00:36:13,656
+So there is one area where
+we got a number of questions
+
+
+738
+00:36:13,656 --> 00:36:15,276
+and they were kind
+of the same question.
+
+
+739
+00:36:16,356 --> 00:36:18,886
+When do I have to
+create my objects,
+
+
+740
+00:36:19,136 --> 00:36:21,476
+and when will you
+automatically find the ones I've
+
+
+741
+00:36:21,516 --> 00:36:22,476
+already created?
+
+
+742
+00:36:22,886 --> 00:36:24,386
+You have a lot of
+view controllers.
+
+
+743
+00:36:24,596 --> 00:36:26,896
+You have some of these new
+state resorting objects.
+
+
+744
+00:36:27,286 --> 00:36:30,966
+And some of them exist when
+the application starts up;
+
+
+745
+00:36:31,336 --> 00:36:33,176
+others come into
+being dynamically.
+
+
+746
+00:36:33,666 --> 00:36:35,626
+So let's look at that
+in a little more detail.
+
+
+747
+00:36:36,216 --> 00:36:39,356
+So if you think of the set of
+application objects you have,
+
+
+748
+00:36:40,006 --> 00:36:42,356
+I like to refer to
+everything that exists
+
+
+749
+00:36:42,356 --> 00:36:45,546
+when the application is
+already started as base objects.
+
+
+750
+00:36:45,966 --> 00:36:49,476
+These are loaded from a
+storyboard or from various nibs.
+
+
+751
+00:36:50,076 --> 00:36:51,366
+They're created by your code
+
+
+752
+00:36:51,366 --> 00:36:53,766
+in application
+WillFinishLaunchingwithOptions.
+
+
+753
+00:36:54,166 --> 00:36:55,926
+Before we do state restoration,
+
+
+754
+00:36:56,176 --> 00:36:58,416
+they're already in
+play, they exist.
+
+
+755
+00:36:58,776 --> 00:37:02,116
+So if they're going to be using
+state restoration and we need
+
+
+756
+00:37:02,116 --> 00:37:04,776
+to find them, you don't
+have to do anything.
+
+
+757
+00:37:05,226 --> 00:37:07,256
+We'll just be able to
+find them and look them
+
+
+758
+00:37:07,256 --> 00:37:09,326
+up because we've got some
+magical little tables
+
+
+759
+00:37:09,326 --> 00:37:10,796
+where we keep track
+of everything.
+
+
+760
+00:37:11,566 --> 00:37:14,396
+What about all the
+dynamic objects?
+
+
+761
+00:37:14,556 --> 00:37:16,576
+These are presented controllers,
+
+
+762
+00:37:16,816 --> 00:37:19,626
+view controllers you might have
+pushed on a navigation stack,
+
+
+763
+00:37:20,216 --> 00:37:21,706
+some of these restorable objects
+
+
+764
+00:37:21,706 --> 00:37:26,056
+like those filters --
+how do you get them?
+
+
+765
+00:37:26,286 --> 00:37:29,066
+Well, if it's a view controller
+and it's in a storyboard,
+
+
+766
+00:37:29,656 --> 00:37:31,826
+you actually can get
+it completely for free.
+
+
+767
+00:37:32,086 --> 00:37:33,096
+We'll just find it.
+
+
+768
+00:37:33,336 --> 00:37:35,896
+That's because we know what
+storyboard it came from,
+
+
+769
+00:37:35,896 --> 00:37:38,016
+we know what its
+storyboard identifier was,
+
+
+770
+00:37:38,326 --> 00:37:39,516
+so we can keep track of it.
+
+
+771
+00:37:40,106 --> 00:37:42,326
+So you'll notice
+when I presented some
+
+
+772
+00:37:42,326 --> 00:37:45,156
+of those view controllers there,
+I didn't show any code to have
+
+
+773
+00:37:45,226 --> 00:37:48,206
+to recreate them and represent
+them; we were able to go
+
+
+774
+00:37:48,206 --> 00:37:50,646
+and hoist them out of
+storyboards ourselves.
+
+
+775
+00:37:51,536 --> 00:37:54,476
+However, if it's
+not in a storyboard,
+
+
+776
+00:37:54,996 --> 00:37:56,906
+or if you want a
+little bit more control,
+
+
+777
+00:37:56,906 --> 00:37:58,736
+you have to write a
+little bit of code,
+
+
+778
+00:37:58,866 --> 00:38:00,946
+and that's where the
+restoration class comes in.
+
+
+779
+00:38:02,276 --> 00:38:05,166
+So you can use a restoration
+class for view controllers
+
+
+780
+00:38:05,166 --> 00:38:08,686
+in the same way I showed you for
+these new generalized objects.
+
+
+781
+00:38:09,266 --> 00:38:12,696
+And also for view
+controllers, as a fallback,
+
+
+782
+00:38:13,086 --> 00:38:14,786
+we'll ask the application
+delegate
+
+
+783
+00:38:14,786 --> 00:38:16,806
+for them if all else fails.
+
+
+784
+00:38:17,426 --> 00:38:19,756
+Now, if you implement
+a restoration class,
+
+
+785
+00:38:20,146 --> 00:38:21,686
+that trumps everything.
+
+
+786
+00:38:22,526 --> 00:38:23,766
+That gives you control.
+
+
+787
+00:38:24,136 --> 00:38:26,766
+Let's say -- going back
+to my earlier example --
+
+
+788
+00:38:27,686 --> 00:38:30,316
+maybe you have a dynamic
+database with images.
+
+
+789
+00:38:30,316 --> 00:38:33,386
+These can synchronize and
+images come, images go.
+
+
+790
+00:38:33,796 --> 00:38:37,486
+So if the image that was being
+shown when you saved state isn't
+
+
+791
+00:38:37,486 --> 00:38:40,276
+in the database when you
+restore it, you may not want
+
+
+792
+00:38:40,276 --> 00:38:41,926
+to bring back that
+view controller
+
+
+793
+00:38:41,926 --> 00:38:44,476
+and show us something
+ugly like imageNotFound.
+
+
+794
+00:38:45,536 --> 00:38:47,116
+You want to just
+avoid it altogether.
+
+
+795
+00:38:47,116 --> 00:38:49,796
+And it's always fine to
+return nill when we ask
+
+
+796
+00:38:49,796 --> 00:38:50,726
+for a view controller.
+
+
+797
+00:38:50,726 --> 00:38:51,826
+We'll do the right thing.
+
+
+798
+00:38:51,906 --> 00:38:54,296
+If it was presented, we
+just won't present it;
+
+
+799
+00:38:54,296 --> 00:38:56,716
+if it was pushed on
+the navigation stack,
+
+
+800
+00:38:57,626 --> 00:39:00,106
+we'll go one back and
+so on until we get
+
+
+801
+00:39:00,106 --> 00:39:02,136
+to a view controller
+that still exists.
+
+
+802
+00:39:02,956 --> 00:39:05,896
+So we give you that control
+to make sure that we don't go
+
+
+803
+00:39:06,046 --> 00:39:08,376
+and force you into
+some boundary situation
+
+
+804
+00:39:08,376 --> 00:39:11,636
+where you don't have all the
+assets you need that make sense.
+
+
+805
+00:39:14,436 --> 00:39:18,056
+So here's the base objects in
+the example app I showed you:
+
+
+806
+00:39:18,546 --> 00:39:21,666
+the data source, that
+navigation controller,
+
+
+807
+00:39:22,356 --> 00:39:23,266
+and the collection view.
+
+
+808
+00:39:23,546 --> 00:39:25,306
+They were all in
+my main storyboard;
+
+
+809
+00:39:25,436 --> 00:39:27,106
+they just got created
+by the time I got
+
+
+810
+00:39:27,106 --> 00:39:29,606
+into application
+WillFinishLaunchingwithOptions.
+
+
+811
+00:39:29,916 --> 00:39:35,086
+And I put that Inspector in a
+storyboard, so then I was able
+
+
+812
+00:39:35,086 --> 00:39:36,476
+to just completely
+forget about it.
+
+
+813
+00:39:36,476 --> 00:39:37,956
+I didn't have to recreate it;
+
+
+814
+00:39:37,956 --> 00:39:40,396
+it just magically came
+back, it was presented.
+
+
+815
+00:39:41,246 --> 00:39:43,456
+Now, if I want a
+little more control,
+
+
+816
+00:39:43,956 --> 00:39:46,796
+I can take that image
+controller, and even if it's
+
+
+817
+00:39:46,796 --> 00:39:49,576
+in a storyboard I can still
+give it a restoration class,
+
+
+818
+00:39:49,806 --> 00:39:52,976
+or if I was creating it out
+of whole cloth, myself encode,
+
+
+819
+00:39:53,126 --> 00:39:54,736
+I'd give it a restoration class.
+
+
+820
+00:39:55,166 --> 00:39:58,856
+And the filters, as we saw,
+had a restoration class
+
+
+821
+00:39:59,106 --> 00:40:00,806
+which recreated them on demand.
+
+
+822
+00:40:01,066 --> 00:40:03,236
+So when you think
+about your objects
+
+
+823
+00:40:03,236 --> 00:40:05,596
+and which ones need
+a restoration class,
+
+
+824
+00:40:05,686 --> 00:40:07,496
+which ones you'll
+have to recreate
+
+
+825
+00:40:07,496 --> 00:40:08,496
+when we're restoring state,
+
+
+826
+00:40:08,836 --> 00:40:11,426
+break them up in your
+mind, what's a base object.
+
+
+827
+00:40:12,466 --> 00:40:13,636
+Then you don't have
+to do anything,
+
+
+828
+00:40:14,026 --> 00:40:15,656
+and of the dynamic objects,
+
+
+829
+00:40:15,926 --> 00:40:18,086
+which ones do I actually
+need control of
+
+
+830
+00:40:18,086 --> 00:40:19,666
+or what am I going
+to have to create?
+
+
+831
+00:40:20,186 --> 00:40:21,156
+Makes it a lot simpler.
+
+
+832
+00:40:21,636 --> 00:40:27,216
+I mentioned we did a lot
+with Snapshot handling.
+
+
+833
+00:40:27,866 --> 00:40:31,136
+So in iOS 6, we wouldn't
+use the Snapshot at all.
+
+
+834
+00:40:31,136 --> 00:40:32,946
+And that was kind of jarring,
+
+
+835
+00:40:32,946 --> 00:40:35,706
+because the application would
+come up with the default PNG,
+
+
+836
+00:40:36,066 --> 00:40:39,506
+restore its state and then kind
+of slap you when it went back
+
+
+837
+00:40:39,506 --> 00:40:40,896
+to where it actually was.
+
+
+838
+00:40:41,056 --> 00:40:43,636
+So we're trying to be
+much more aggressive now.
+
+
+839
+00:40:43,686 --> 00:40:47,106
+And we'll show the
+Snapshot wherever we can.
+
+
+840
+00:40:48,106 --> 00:40:49,666
+So when we launch
+an application,
+
+
+841
+00:40:49,926 --> 00:40:51,596
+if the Snapshot's available
+
+
+842
+00:40:51,596 --> 00:40:54,426
+and if we can use
+it, we'll show that.
+
+
+843
+00:40:54,426 --> 00:40:56,356
+It looks much more seamless.
+
+
+844
+00:40:56,896 --> 00:40:59,806
+However, there might be cases
+where you want to use it,
+
+
+845
+00:40:59,806 --> 00:41:01,426
+so we give you some control.
+
+
+846
+00:41:01,426 --> 00:41:02,656
+We've added a new API.
+
+
+847
+00:41:03,386 --> 00:41:06,246
+This is on UI application
+and you can tell it
+
+
+848
+00:41:06,246 --> 00:41:09,166
+to ignore Snapshot
+on the next launch.
+
+
+849
+00:41:09,736 --> 00:41:12,366
+You'll do this while
+we're saving your state.
+
+
+850
+00:41:12,836 --> 00:41:15,846
+So if we're saving state in
+one of your view controllers,
+
+
+851
+00:41:16,086 --> 00:41:19,316
+notices, this is kind of tricky.
+
+
+852
+00:41:19,796 --> 00:41:21,166
+I might not come back exactly
+
+
+853
+00:41:21,166 --> 00:41:24,126
+to the same place,
+ignore the Snapshot.
+
+
+854
+00:41:24,746 --> 00:41:26,116
+Then we'll use the default PNG.
+
+
+855
+00:41:26,756 --> 00:41:29,796
+That means only one of two
+things will ever happen.
+
+
+856
+00:41:30,576 --> 00:41:33,896
+We'll show the same Snapshot
+that we're going to launch to,
+
+
+857
+00:41:34,216 --> 00:41:37,146
+or we'll show the default
+PNG, which is predictable
+
+
+858
+00:41:37,146 --> 00:41:40,206
+and at least it's somewhat
+familiar, second best choice.
+
+
+859
+00:41:40,826 --> 00:41:43,936
+So why would you want us to
+ignore the Snapshot, though?
+
+
+860
+00:41:44,566 --> 00:41:45,716
+Well, here's some examples.
+
+
+861
+00:41:46,506 --> 00:41:49,206
+Maybe your application is
+showing a network error.
+
+
+862
+00:41:50,076 --> 00:41:52,186
+Can't get on network;
+please try again later.
+
+
+863
+00:41:52,186 --> 00:41:55,306
+Click the application in
+the background, it exits,
+
+
+864
+00:41:55,556 --> 00:41:58,886
+user goes to maybe a better
+coffee shop with free Wi-Fi,
+
+
+865
+00:41:59,576 --> 00:42:01,136
+they start the app up again.
+
+
+866
+00:42:01,136 --> 00:42:04,736
+And it would be kind of
+silly for this network thing
+
+
+867
+00:42:04,736 --> 00:42:06,376
+to be showing, seeing
+
+
+868
+00:42:06,376 --> 00:42:08,916
+that there's an error
+freaking the poor user out,
+
+
+869
+00:42:08,916 --> 00:42:11,046
+and then have it
+just dismiss itself
+
+
+870
+00:42:11,046 --> 00:42:12,546
+or disappear when
+the app started.
+
+
+871
+00:42:14,336 --> 00:42:17,616
+You also might have things
+like a table view of data
+
+
+872
+00:42:17,616 --> 00:42:18,826
+that changes frequently.
+
+
+873
+00:42:19,566 --> 00:42:22,176
+Maybe you have the top
+10 awesome kitten videos
+
+
+874
+00:42:22,176 --> 00:42:25,556
+of the day, something
+like that, and they tend
+
+
+875
+00:42:25,556 --> 00:42:28,076
+to change pretty quickly, I
+can tell you from experience.
+
+
+876
+00:42:28,396 --> 00:42:35,016
+So the application when it
+starts up, you might not want
+
+
+877
+00:42:35,016 --> 00:42:37,956
+to show a list of things
+that you're actually not --
+
+
+878
+00:42:37,956 --> 00:42:41,606
+eventually going to land on,
+and the user's stabbing away
+
+
+879
+00:42:41,606 --> 00:42:44,216
+at this video and it doesn't
+show up, so it might be better
+
+
+880
+00:42:44,566 --> 00:42:45,776
+to avoid that altogether.
+
+
+881
+00:42:47,406 --> 00:42:49,306
+There's also some implicit cases
+
+
+882
+00:42:49,306 --> 00:42:53,046
+where we'll actually detect
+Snapshot wouldn't be the best
+
+
+883
+00:42:53,046 --> 00:42:55,356
+choice, so there's
+a couple there.
+
+
+884
+00:42:55,616 --> 00:42:58,466
+One is, if the top most view
+controller doesn't have a
+
+
+885
+00:42:58,466 --> 00:43:01,496
+restoration identifier,
+we're going to assume, okay,
+
+
+886
+00:43:01,496 --> 00:43:02,636
+you're app's pretty awesome
+
+
+887
+00:43:02,636 --> 00:43:04,296
+and it restores state,
+which is great.
+
+
+888
+00:43:04,456 --> 00:43:06,256
+Thank you, but we can
+tell that you're not going
+
+
+889
+00:43:06,256 --> 00:43:07,206
+to restore to this one.
+
+
+890
+00:43:07,616 --> 00:43:09,846
+There might be some
+boundary area of the app
+
+
+891
+00:43:09,896 --> 00:43:12,556
+that users rarely go
+to, setting something
+
+
+892
+00:43:12,556 --> 00:43:14,276
+up that they would
+typically only do once.
+
+
+893
+00:43:14,676 --> 00:43:17,566
+That might not be a battle worth
+fighting for the first release,
+
+
+894
+00:43:17,606 --> 00:43:20,846
+so you may not save the state of
+that particular view controller
+
+
+895
+00:43:20,846 --> 00:43:23,426
+and you may be focusing
+on more important things,
+
+
+896
+00:43:23,906 --> 00:43:25,926
+such as articles they're
+reading and things like that.
+
+
+897
+00:43:26,416 --> 00:43:29,536
+So in that case, if we
+detect there's no restoration
+
+
+898
+00:43:29,536 --> 00:43:31,946
+identifier, we won't show
+the Snapshot; we don't want
+
+
+899
+00:43:31,946 --> 00:43:34,936
+to give the user false hope
+when it's starting back up.
+
+
+900
+00:43:35,886 --> 00:43:39,516
+Also, there may be some
+things that we don't restore,
+
+
+901
+00:43:40,136 --> 00:43:41,776
+and I'll show you
+an example of that.
+
+
+902
+00:43:42,216 --> 00:43:44,136
+So there's a whole
+bunch of areas
+
+
+903
+00:43:44,136 --> 00:43:47,386
+where it's either inefficient
+to try to restore everything
+
+
+904
+00:43:47,386 --> 00:43:49,086
+or it's just complicated enough
+
+
+905
+00:43:49,386 --> 00:43:50,696
+that we haven't gotten
+to it yet.
+
+
+906
+00:43:50,696 --> 00:43:52,796
+Similar to the advice
+I gave last year
+
+
+907
+00:43:52,796 --> 00:43:54,676
+where you take an
+approach where you start
+
+
+908
+00:43:54,676 --> 00:43:57,226
+with the most important
+things and then add to it,
+
+
+909
+00:43:57,686 --> 00:43:59,066
+we're in the same boat.
+
+
+910
+00:43:59,066 --> 00:44:01,006
+So we don't want
+to show a Snapshot
+
+
+911
+00:44:01,006 --> 00:44:01,946
+if we know we're not going
+
+
+912
+00:44:01,946 --> 00:44:04,026
+to come exactly back
+to the same place.
+
+
+913
+00:44:04,816 --> 00:44:08,596
+So I'm going to do another demo,
+but this one's kind of quick,
+
+
+914
+00:44:08,696 --> 00:44:12,706
+so I'm actually going
+to use a movie.
+
+
+915
+00:44:13,106 --> 00:44:15,796
+So here's our application,
+we're looking at the image,
+
+
+916
+00:44:16,146 --> 00:44:18,406
+and let's say that I go
+to the activity sheet.
+
+
+917
+00:44:19,676 --> 00:44:24,186
+Okay, so we actually don't share
+the activity view controller
+
+
+918
+00:44:24,186 --> 00:44:27,126
+state, and there's a couple
+of reasons why we don't.
+
+
+919
+00:44:27,876 --> 00:44:30,916
+Mostly, it's because the
+application is handing us a
+
+
+920
+00:44:30,916 --> 00:44:31,946
+whole bunch of data.
+
+
+921
+00:44:31,946 --> 00:44:34,656
+It could have handed us a
+video to mail to somebody
+
+
+922
+00:44:34,656 --> 00:44:38,666
+to really annoy them, it could
+have handed us a lot of content,
+
+
+923
+00:44:39,166 --> 00:44:42,326
+and it can often be a
+[inaudible] content or something
+
+
+924
+00:44:42,326 --> 00:44:45,376
+that may not exist when the
+application starts back up.
+
+
+925
+00:44:45,616 --> 00:44:48,026
+So it would be both
+be very costly for us
+
+
+926
+00:44:48,076 --> 00:44:52,906
+to save all this data
+and it might also bite us
+
+
+927
+00:44:52,906 --> 00:44:55,026
+when we start the app back
+up but we can't find it.
+
+
+928
+00:44:55,396 --> 00:44:57,366
+And it could be confusing
+for the user
+
+
+929
+00:44:57,726 --> 00:44:59,626
+if they start the
+application back up
+
+
+930
+00:44:59,626 --> 00:45:01,666
+and they just see this
+activity view controller
+
+
+931
+00:45:01,666 --> 00:45:04,176
+and they're not really sure what
+it was they were trying to share
+
+
+932
+00:45:04,176 --> 00:45:05,366
+or what they were trying to do.
+
+
+933
+00:45:05,536 --> 00:45:06,906
+And you can see the
+image peaking
+
+
+934
+00:45:06,906 --> 00:45:07,906
+through a little bit here,
+
+
+935
+00:45:07,906 --> 00:45:09,856
+but in other cases you
+might not see that.
+
+
+936
+00:45:10,656 --> 00:45:15,086
+So what do we do if we put the
+application in the background
+
+
+937
+00:45:15,086 --> 00:45:17,346
+and it exits and we
+start it back up?
+
+
+938
+00:45:18,406 --> 00:45:21,586
+So let's take a look.
+
+
+939
+00:45:22,146 --> 00:45:25,326
+So I did something
+kind of subtle here.
+
+
+940
+00:45:25,536 --> 00:45:27,876
+It might not have jumped out
+at you, so I'm going to replay
+
+
+941
+00:45:27,876 --> 00:45:29,486
+that kind of in slow motion.
+
+
+942
+00:45:29,946 --> 00:45:33,706
+So let's see the
+application start back up,
+
+
+943
+00:45:34,426 --> 00:45:35,976
+now watch the transition.
+
+
+944
+00:45:36,516 --> 00:45:38,086
+See how it kind of faded in?
+
+
+945
+00:45:38,646 --> 00:45:42,426
+It's very subtle, but let's
+look at it if it doesn't do it.
+
+
+946
+00:45:43,416 --> 00:45:45,136
+Starts up, boom.
+
+
+947
+00:45:45,796 --> 00:45:48,326
+Kind of jarring,
+kind of disjoint.
+
+
+948
+00:45:48,566 --> 00:45:49,336
+See it again.
+
+
+949
+00:45:49,926 --> 00:45:54,156
+So that's kind of unpleasant
+as a user, and let's look
+
+
+950
+00:45:54,156 --> 00:45:56,126
+at what we do regular speed.
+
+
+951
+00:45:56,766 --> 00:46:00,346
+Nice. It just kind
+of fades right there.
+
+
+952
+00:46:00,646 --> 00:46:03,656
+So at least we're not
+slapping the user's attention
+
+
+953
+00:46:03,656 --> 00:46:04,366
+around with this.
+
+
+954
+00:46:05,106 --> 00:46:07,726
+So that shows a few
+different things.
+
+
+955
+00:46:08,176 --> 00:46:10,706
+Already in the previous
+demos that I did,
+
+
+956
+00:46:10,946 --> 00:46:14,066
+you saw us using the Snapshot,
+so that covers the first part.
+
+
+957
+00:46:14,116 --> 00:46:16,676
+Now when the application
+starts up in restoreState,
+
+
+958
+00:46:16,826 --> 00:46:18,596
+it really does look seamless.
+
+
+959
+00:46:18,996 --> 00:46:20,416
+You might have even
+thought I'm cheating
+
+
+960
+00:46:20,416 --> 00:46:23,146
+and I didn't really kill the
+application but I promise I did.
+
+
+961
+00:46:23,776 --> 00:46:24,936
+And in this example,
+
+
+962
+00:46:25,146 --> 00:46:28,086
+we're showing how you
+both have control,
+
+
+963
+00:46:28,086 --> 00:46:30,796
+how we'll sometimes
+implicitly notice
+
+
+964
+00:46:30,796 --> 00:46:33,616
+that we shouldn't use the
+Snapshot, and how we'll do kind
+
+
+965
+00:46:33,616 --> 00:46:36,706
+of a nice transition
+in these cases to sort
+
+
+966
+00:46:36,706 --> 00:46:38,726
+of ease the user back in.
+
+
+967
+00:46:39,296 --> 00:46:42,796
+So we've added a
+few enhancements.
+
+
+968
+00:46:42,796 --> 00:46:45,046
+I'm just going to go over
+them kind of briefly now.
+
+
+969
+00:46:46,436 --> 00:46:49,526
+We've got some keys that are
+available in every coder.
+
+
+970
+00:46:50,346 --> 00:46:52,466
+So in the initial
+implementation when we came
+
+
+971
+00:46:52,466 --> 00:46:55,266
+out with this last year,
+an application could look
+
+
+972
+00:46:55,266 --> 00:46:59,976
+at the bundled version that
+was used when it saved state.
+
+
+973
+00:47:00,536 --> 00:47:03,216
+So it could tell,
+this old version
+
+
+974
+00:47:03,216 --> 00:47:06,046
+of the app saveState
+I've changed drastically
+
+
+975
+00:47:06,046 --> 00:47:08,056
+so as I restore the
+state I might have
+
+
+976
+00:47:08,086 --> 00:47:11,206
+to do some transformations,
+or maybe I don't actually want
+
+
+977
+00:47:11,206 --> 00:47:13,666
+to restore state from this
+very, very old version
+
+
+978
+00:47:13,666 --> 00:47:15,536
+of the app, it's just too much.
+
+
+979
+00:47:16,306 --> 00:47:18,326
+And that information
+was available
+
+
+980
+00:47:18,326 --> 00:47:19,626
+in every one of the coders.
+
+
+981
+00:47:20,166 --> 00:47:22,546
+Most of your app might be
+fine with this old state
+
+
+982
+00:47:22,546 --> 00:47:24,956
+but there might be one view
+controller that's changed more
+
+
+983
+00:47:24,956 --> 00:47:26,476
+radically, so it
+would look at this
+
+
+984
+00:47:26,476 --> 00:47:28,036
+and say, "hey, wait a minute.
+
+
+985
+00:47:28,226 --> 00:47:31,396
+Let me see who saved this state,
+our old version of the app."
+
+
+986
+00:47:32,416 --> 00:47:36,226
+We've added a few new keys that
+accomplish very similar things.
+
+
+987
+00:47:36,396 --> 00:47:38,466
+The first one is to tell
+you the system version.
+
+
+988
+00:47:39,626 --> 00:47:43,086
+You may have noticed iOS 7
+changed a little bit from iOS 6,
+
+
+989
+00:47:43,576 --> 00:47:45,656
+so your app might
+need to adjust metrics
+
+
+990
+00:47:45,656 --> 00:47:47,926
+or do something different
+when it's restoring state,
+
+
+991
+00:47:47,926 --> 00:47:51,146
+so you can tell what version
+it ran on when it saved state.
+
+
+992
+00:47:51,876 --> 00:47:55,066
+Also, we put the time stamp
+from when we saved state.
+
+
+993
+00:47:55,376 --> 00:47:58,206
+This was a very common
+request, as it's so useful.
+
+
+994
+00:47:59,006 --> 00:48:02,846
+In some cases, after an app's
+been inactive for awhile,
+
+
+995
+00:48:02,846 --> 00:48:03,876
+you might actually want
+
+
+996
+00:48:03,876 --> 00:48:05,826
+to restore something a
+little bit different.
+
+
+997
+00:48:05,826 --> 00:48:07,676
+You might want to go
+back up to the beginning.
+
+
+998
+00:48:08,536 --> 00:48:11,626
+Because it might be confusing
+to the user if they dig way,
+
+
+999
+00:48:11,626 --> 00:48:14,146
+way down in the app
+and then a month later,
+
+
+1000
+00:48:14,146 --> 00:48:16,496
+when they run it again,
+it goes to something
+
+
+1001
+00:48:16,496 --> 00:48:18,266
+that doesn't even make
+any sense anymore,
+
+
+1002
+00:48:18,266 --> 00:48:19,756
+something that's
+no longer relevant.
+
+
+1003
+00:48:20,296 --> 00:48:23,066
+So you'll want to take
+maybe a little bit of notice
+
+
+1004
+00:48:23,066 --> 00:48:25,456
+of what time or the date
+that this was saved.
+
+
+1005
+00:48:26,056 --> 00:48:31,266
+It made it easier to
+handle static table views
+
+
+1006
+00:48:31,266 --> 00:48:32,776
+where their content
+doesn't change.
+
+
+1007
+00:48:34,036 --> 00:48:36,876
+Now, because a table view
+can have dynamic content,
+
+
+1008
+00:48:37,406 --> 00:48:41,436
+in the first release of
+this, when we saved state
+
+
+1009
+00:48:41,436 --> 00:48:45,446
+and we wanted to keep track of
+selected cells and the top cell
+
+
+1010
+00:48:45,446 --> 00:48:46,416
+that you were scrolled to,
+
+
+1011
+00:48:46,806 --> 00:48:49,666
+we would actually ask the data
+source for the table view,
+
+
+1012
+00:48:50,786 --> 00:48:55,176
+what is an identifier for this
+cell that makes sense to you?
+
+
+1013
+00:48:55,586 --> 00:48:58,696
+The reason we did that
+was because the cell
+
+
+1014
+00:48:58,736 --> 00:49:02,806
+at index 3 today may not be
+the cell at index 3 tomorrow.
+
+
+1015
+00:49:02,806 --> 00:49:06,286
+It may not even be the cell at
+index 3 in 5 minutes or an hour.
+
+
+1016
+00:49:06,906 --> 00:49:09,546
+So we don't want to just
+select something based
+
+
+1017
+00:49:09,546 --> 00:49:12,226
+on its index path if
+that data could change.
+
+
+1018
+00:49:12,606 --> 00:49:15,936
+So we would ask the data source,
+who knows all about the data,
+
+
+1019
+00:49:16,516 --> 00:49:19,116
+to give us some identifier,
+which we would save instead
+
+
+1020
+00:49:19,116 --> 00:49:20,716
+of just the index path.
+
+
+1021
+00:49:21,486 --> 00:49:25,826
+And when we restored state,
+we would then do the converse
+
+
+1022
+00:49:25,826 --> 00:49:28,866
+and say, "here's an identifier;
+where's the index path now?"
+
+
+1023
+00:49:29,486 --> 00:49:31,976
+And that works out great,
+especially if you have something
+
+
+1024
+00:49:31,976 --> 00:49:36,046
+like music or photos or a set
+of articles that could be moving
+
+
+1025
+00:49:36,046 --> 00:49:38,286
+around and getting
+sorted and changed
+
+
+1026
+00:49:38,286 --> 00:49:40,096
+with things getting
+deleted and added.
+
+
+1027
+00:49:40,816 --> 00:49:43,426
+However, it's also pretty
+common to use table view
+
+
+1028
+00:49:43,646 --> 00:49:45,066
+for a static set of things,
+
+
+1029
+00:49:45,066 --> 00:49:46,836
+maybe some switches
+that you have.
+
+
+1030
+00:49:47,266 --> 00:49:49,216
+Maybe that inspector
+I have there might end
+
+
+1031
+00:49:49,216 --> 00:49:50,546
+up with a fancy table view
+
+
+1032
+00:49:50,546 --> 00:49:51,966
+with a whole bunch
+of different items.
+
+
+1033
+00:49:52,236 --> 00:49:54,196
+And it's kind of a
+lot of work to have
+
+
+1034
+00:49:54,196 --> 00:49:57,406
+to convert these index
+paths into some identifier
+
+
+1035
+00:49:57,406 --> 00:49:59,436
+that you contrive
+and convert it back
+
+
+1036
+00:49:59,436 --> 00:50:00,576
+when they're never
+going to move.
+
+
+1037
+00:50:01,326 --> 00:50:04,916
+So now, if your data source
+doesn't implement the protocol
+
+
+1038
+00:50:04,916 --> 00:50:08,486
+we detect to ask this
+question, we'll just go
+
+
+1039
+00:50:08,486 --> 00:50:10,216
+and save the index
+path directly,
+
+
+1040
+00:50:10,326 --> 00:50:11,536
+and it can be really useful.
+
+
+1041
+00:50:12,646 --> 00:50:17,686
+And speaking of selected and
+scrolled, we now added support
+
+
+1042
+00:50:17,686 --> 00:50:18,886
+to UI collection view.
+
+
+1043
+00:50:19,176 --> 00:50:22,196
+We'll remember all the selected
+cells in a collection view
+
+
+1044
+00:50:22,276 --> 00:50:23,926
+and also of the scroll position.
+
+
+1045
+00:50:24,316 --> 00:50:26,056
+And you actually saw
+that in the demo,
+
+
+1046
+00:50:26,386 --> 00:50:27,816
+so we do that all for free.
+
+
+1047
+00:50:28,616 --> 00:50:33,286
+And then finally, one thing that
+can be extremely frustrating
+
+
+1048
+00:50:33,286 --> 00:50:36,066
+to a user is when
+they're composing mail.
+
+
+1049
+00:50:36,066 --> 00:50:38,716
+Let's say that you find
+a really awesome image
+
+
+1050
+00:50:38,976 --> 00:50:41,266
+or an interesting article
+and you want to share it,
+
+
+1051
+00:50:41,476 --> 00:50:44,126
+so you bring up the activity
+sheet as I showed before,
+
+
+1052
+00:50:44,446 --> 00:50:46,576
+and continue all
+the way to mail.
+
+
+1053
+00:50:46,806 --> 00:50:47,676
+So now you're not
+
+
+1054
+00:50:47,676 --> 00:50:49,646
+in the activity view
+controller anymore.
+
+
+1055
+00:50:49,896 --> 00:50:52,146
+That's gone, you're now actually
+
+
+1056
+00:50:52,146 --> 00:50:54,216
+in a mail composition
+controller.
+
+
+1057
+00:50:54,696 --> 00:50:56,546
+And you type this
+elaborate message,
+
+
+1058
+00:50:57,006 --> 00:50:59,836
+put the app in the background
+for whatever reason, it exits,
+
+
+1059
+00:51:00,366 --> 00:51:02,506
+start it back up -- oh, no.
+
+
+1060
+00:51:02,906 --> 00:51:05,786
+Gone. So we thought that
+was a really important thing
+
+
+1061
+00:51:05,786 --> 00:51:09,316
+to keep track of for users as
+mail can be fairly lengthy.
+
+
+1062
+00:51:09,446 --> 00:51:12,726
+So if you have an
+activity view controller
+
+
+1063
+00:51:12,726 --> 00:51:16,426
+and you give it a restoration
+identifier, we'll keep track
+
+
+1064
+00:51:16,426 --> 00:51:18,686
+of mail drafts and
+we'll save them
+
+
+1065
+00:51:18,686 --> 00:51:21,226
+and we'll bring the user
+right back and restore them.
+
+
+1066
+00:51:21,746 --> 00:51:25,056
+And over time we plan to
+add more to this as well
+
+
+1067
+00:51:25,056 --> 00:51:27,956
+so that we'll start saving more
+and more specific activities,
+
+
+1068
+00:51:28,116 --> 00:51:30,276
+but we thought mail was
+the best place to start.
+
+
+1069
+00:51:36,376 --> 00:51:40,286
+So I just want to take a moment
+to talk about security and how
+
+
+1070
+00:51:40,286 --> 00:51:41,956
+that relates to state
+restoration.
+
+
+1071
+00:51:43,726 --> 00:51:47,816
+We actually use data protection
+on the archive itself.
+
+
+1072
+00:51:48,676 --> 00:51:52,926
+So the state restoration archive
+that's saved is not accessible
+
+
+1073
+00:51:52,926 --> 00:51:54,136
+when the device is locked.
+
+
+1074
+00:51:55,376 --> 00:51:58,476
+It's an encrypted file, and
+if the device is locked,
+
+
+1075
+00:51:58,476 --> 00:52:01,026
+even if somebody stole your
+phone, managed to break
+
+
+1076
+00:52:01,026 --> 00:52:02,996
+into the file system
+and pulled that off,
+
+
+1077
+00:52:03,246 --> 00:52:06,476
+they wouldn't be
+able to look at it.
+
+
+1078
+00:52:06,476 --> 00:52:07,806
+So why do we do that?
+
+
+1079
+00:52:08,256 --> 00:52:11,176
+Why is it important
+to protect this file?
+
+
+1080
+00:52:11,486 --> 00:52:12,716
+Well, there's a few reasons.
+
+
+1081
+00:52:13,136 --> 00:52:16,906
+One is it's really easy to
+leak sensitive information
+
+
+1082
+00:52:16,906 --> 00:52:17,526
+by mistake.
+
+
+1083
+00:52:18,746 --> 00:52:20,846
+You might keep track
+of the scroll position,
+
+
+1084
+00:52:21,766 --> 00:52:23,176
+which could inform somebody
+
+
+1085
+00:52:23,176 --> 00:52:25,156
+who really knows what
+the app's all about,
+
+
+1086
+00:52:25,586 --> 00:52:28,586
+how many entries you have
+and how you've been using it.
+
+
+1087
+00:52:29,086 --> 00:52:31,536
+There might be identifiers
+that you use for some
+
+
+1088
+00:52:31,536 --> 00:52:33,656
+of your view controllers
+or some of these objects
+
+
+1089
+00:52:33,976 --> 00:52:36,216
+that actually give away a
+little bit of information
+
+
+1090
+00:52:36,216 --> 00:52:38,066
+about what a user is
+doing with the app,
+
+
+1091
+00:52:38,276 --> 00:52:41,136
+and for some business apps
+or sensitive personal apps,
+
+
+1092
+00:52:41,486 --> 00:52:43,516
+you might not want
+anybody to know about this.
+
+
+1093
+00:52:43,846 --> 00:52:45,786
+You might be adding
+a new contact
+
+
+1094
+00:52:45,786 --> 00:52:48,326
+and it's not saved
+completely, but you're adding
+
+
+1095
+00:52:48,326 --> 00:52:50,056
+in someone's personal
+information;
+
+
+1096
+00:52:50,296 --> 00:52:52,046
+you want that to
+be kept private.
+
+
+1097
+00:52:52,916 --> 00:52:57,576
+Also, your application already
+may be keeping things private.
+
+
+1098
+00:52:57,576 --> 00:53:01,746
+You may already be using data
+protection for the application,
+
+
+1099
+00:53:02,156 --> 00:53:04,686
+and we don't want to be the
+weak link in that chain,
+
+
+1100
+00:53:05,026 --> 00:53:08,616
+so we felt that it was
+very important to make sure
+
+
+1101
+00:53:08,616 --> 00:53:11,986
+that the state restoration
+archive was protected
+
+
+1102
+00:53:11,986 --> 00:53:13,796
+and that you didn't
+have to worry about it.
+
+
+1103
+00:53:14,006 --> 00:53:17,186
+So the action on your part,
+you don't have to do anything.
+
+
+1104
+00:53:17,316 --> 00:53:20,146
+You can put whatever you
+want in there and not worry
+
+
+1105
+00:53:20,146 --> 00:53:22,866
+about anything leaking out
+because we're protecting it.
+
+
+1106
+00:53:24,076 --> 00:53:26,466
+I'm going to come back to
+that in a minute and see how
+
+
+1107
+00:53:26,466 --> 00:53:28,136
+that relates to this topic.
+
+
+1108
+00:53:29,276 --> 00:53:32,036
+So we added something
+really neat on iOS 7
+
+
+1109
+00:53:32,296 --> 00:53:35,096
+that allows applications
+to run in the background,
+
+
+1110
+00:53:36,206 --> 00:53:39,706
+and they can go and fetch assets
+or do calculations or get ready
+
+
+1111
+00:53:39,706 --> 00:53:40,756
+for when the user's going
+
+
+1112
+00:53:40,756 --> 00:53:43,136
+to use the application,
+which is pretty cool.
+
+
+1113
+00:53:43,606 --> 00:53:46,396
+So if we're doing some
+background operation
+
+
+1114
+00:53:47,786 --> 00:53:50,796
+and the application
+does state restoration,
+
+
+1115
+00:53:51,016 --> 00:53:51,916
+we want to make sure
+
+
+1116
+00:53:51,916 --> 00:53:53,916
+that everything comes
+back predictably.
+
+
+1117
+00:53:54,296 --> 00:53:55,176
+So what do we do?
+
+
+1118
+00:53:55,666 --> 00:53:58,056
+So this is my application,
+and let's say
+
+
+1119
+00:53:58,056 --> 00:54:00,996
+that your application just gets
+started up in the background
+
+
+1120
+00:54:00,996 --> 00:54:03,686
+and here's my little magic wand.
+
+
+1121
+00:54:04,316 --> 00:54:07,546
+So your application just
+ran unbeknownst to the user,
+
+
+1122
+00:54:07,756 --> 00:54:10,716
+did its thing, and since
+it participates the state
+
+
+1123
+00:54:10,716 --> 00:54:14,566
+restoration and since the device
+unlocked, when it starts up,
+
+
+1124
+00:54:14,566 --> 00:54:17,366
+we go through the standard
+state restoration flow just
+
+
+1125
+00:54:17,366 --> 00:54:18,356
+like we normally would.
+
+
+1126
+00:54:18,686 --> 00:54:21,966
+That's because the user might
+take their unlocked device
+
+
+1127
+00:54:21,966 --> 00:54:24,696
+and switch over to your
+application, and we'd want it
+
+
+1128
+00:54:24,696 --> 00:54:27,996
+to a restored state and be back
+where the user expects it to.
+
+
+1129
+00:54:28,656 --> 00:54:32,716
+But what do we do if
+the device is locked?
+
+
+1130
+00:54:33,906 --> 00:54:36,846
+Well, we can't access that
+state restoration archive,
+
+
+1131
+00:54:37,566 --> 00:54:40,546
+so in this case we
+take a simpler path.
+
+
+1132
+00:54:41,096 --> 00:54:44,526
+We let the application get its
+work done, fetch its assets,
+
+
+1133
+00:54:44,826 --> 00:54:48,486
+do whatever it needs to do in
+the background, but we don't try
+
+
+1134
+00:54:48,486 --> 00:54:51,186
+to restore state, we won't
+be able to access the file
+
+
+1135
+00:54:51,186 --> 00:54:53,756
+and it will fail,
+and very importantly,
+
+
+1136
+00:54:54,246 --> 00:54:57,916
+when the application finishes
+running in the background,
+
+
+1137
+00:54:58,106 --> 00:54:59,576
+we won't clobber the state
+
+
+1138
+00:54:59,616 --> 00:55:02,526
+by saving whatever
+its current state is.
+
+
+1139
+00:55:02,736 --> 00:55:06,216
+If the application is running
+while the device is unlocked,
+
+
+1140
+00:55:06,216 --> 00:55:07,366
+if it runs in the background,
+
+
+1141
+00:55:07,636 --> 00:55:10,606
+when it completes its
+background task and notifies us,
+
+
+1142
+00:55:10,866 --> 00:55:12,226
+we'll save state again.
+
+
+1143
+00:55:12,226 --> 00:55:14,826
+The application may have
+changed its appearance,
+
+
+1144
+00:55:14,826 --> 00:55:17,886
+it may have changed some of
+the behavior when it did this
+
+
+1145
+00:55:17,886 --> 00:55:20,746
+in the background, but
+if the device is locked
+
+
+1146
+00:55:20,746 --> 00:55:23,836
+and it couldn't restore state in
+the first place, we're not going
+
+
+1147
+00:55:23,836 --> 00:55:26,506
+to have it save state; in fact,
+the app's just going to exit
+
+
+1148
+00:55:26,506 --> 00:55:27,926
+after it's all done
+with its work,
+
+
+1149
+00:55:28,226 --> 00:55:31,896
+so that it's just getting work
+done, loading those assets,
+
+
+1150
+00:55:32,266 --> 00:55:34,956
+but not perturbing the user,
+and when they start it back
+
+
+1151
+00:55:34,956 --> 00:55:37,906
+up it'll go back to where
+it was last time the device
+
+
+1152
+00:55:38,216 --> 00:55:41,256
+was unlocked.
+
+
+1153
+00:55:42,066 --> 00:55:45,656
+One other thing about this,
+now that it's more likely
+
+
+1154
+00:55:45,656 --> 00:55:48,966
+or that there's more potential
+for our application to run
+
+
+1155
+00:55:49,226 --> 00:55:52,936
+in the background, if you're
+restoring state, keep in mind
+
+
+1156
+00:55:52,936 --> 00:55:54,266
+when you start up,
+
+
+1157
+00:55:54,266 --> 00:55:56,556
+the application's
+data may be different
+
+
+1158
+00:55:57,336 --> 00:55:59,086
+and that you might want
+to take that into account.
+
+
+1159
+00:55:59,176 --> 00:56:02,066
+And state restoration
+is built around the idea
+
+
+1160
+00:56:02,066 --> 00:56:05,426
+that you should be able to save
+state and then restore it even
+
+
+1161
+00:56:05,426 --> 00:56:06,936
+if all your data has changed.
+
+
+1162
+00:56:06,936 --> 00:56:09,496
+Many of the things I was
+describing before are
+
+
+1163
+00:56:09,496 --> 00:56:10,686
+about that very thing.
+
+
+1164
+00:56:11,126 --> 00:56:16,536
+But just be sensitive
+and keep it in mind.
+
+
+1165
+00:56:17,546 --> 00:56:20,606
+So now you've gone and
+implemented state restoration,
+
+
+1166
+00:56:20,986 --> 00:56:21,776
+but you want to be sure
+
+
+1167
+00:56:21,776 --> 00:56:23,586
+that your application's
+doing the right thing.
+
+
+1168
+00:56:24,146 --> 00:56:26,086
+So do we have any tools
+that can help you?
+
+
+1169
+00:56:26,946 --> 00:56:30,536
+Well, one of the problems
+with developing this
+
+
+1170
+00:56:30,536 --> 00:56:34,736
+that you might run into, the
+archive itself is fairly opaque.
+
+
+1171
+00:56:34,736 --> 00:56:36,006
+It's not a text file.
+
+
+1172
+00:56:36,006 --> 00:56:37,586
+You can't just go and look at.
+
+
+1173
+00:56:37,906 --> 00:56:39,556
+So how do you tell
+what's in there?
+
+
+1174
+00:56:39,986 --> 00:56:43,506
+How can you ensure that you've
+actually saved what you intended
+
+
+1175
+00:56:43,506 --> 00:56:46,266
+to save and make sure
+that we've kept track
+
+
+1176
+00:56:46,266 --> 00:56:48,036
+of everything that you expect?
+
+
+1177
+00:56:48,766 --> 00:56:52,016
+Well, we have a new tool that
+we're going to make available
+
+
+1178
+00:56:52,486 --> 00:56:53,996
+from our developer support.
+
+
+1179
+00:56:54,396 --> 00:56:57,396
+You can run this tool and
+it'll output everything that's
+
+
+1180
+00:56:57,396 --> 00:56:58,106
+in the archive.
+
+
+1181
+00:56:58,216 --> 00:57:00,456
+I'm just going to show
+you a little bit of that.
+
+
+1182
+00:57:01,156 --> 00:57:04,466
+Kind of looks like one of those
+1960s movies about computers
+
+
+1183
+00:57:04,526 --> 00:57:07,876
+so very textual but
+very informative.
+
+
+1184
+00:57:08,406 --> 00:57:10,916
+So you're going to see a whole
+bunch of stuff like this,
+
+
+1185
+00:57:10,916 --> 00:57:12,556
+and this is just kind
+of the top of it.
+
+
+1186
+00:57:13,666 --> 00:57:16,986
+So this first tells you what
+objects have restoration
+
+
+1187
+00:57:16,986 --> 00:57:20,196
+classes, and that's real useful
+because a common problem is
+
+
+1188
+00:57:20,196 --> 00:57:23,556
+when you forget to set a
+restoration class or you set one
+
+
+1189
+00:57:23,556 --> 00:57:25,376
+by mistake on something
+that doesn't need it
+
+
+1190
+00:57:25,376 --> 00:57:26,136
+and you're wondering,
+
+
+1191
+00:57:26,506 --> 00:57:28,376
+either you're not
+getting any objects back
+
+
+1192
+00:57:28,376 --> 00:57:30,316
+or you're getting two
+for the price of one.
+
+
+1193
+00:57:30,736 --> 00:57:34,066
+So right here you can look and
+see everything that we expect
+
+
+1194
+00:57:34,066 --> 00:57:35,626
+to use a restoration class.
+
+
+1195
+00:57:36,916 --> 00:57:39,886
+Also, we just have a set
+of top level information.
+
+
+1196
+00:57:39,886 --> 00:57:42,456
+So I mentioned we keep
+track of the bundle version.
+
+
+1197
+00:57:43,016 --> 00:57:46,236
+We also have these new keys,
+when did you save your state.
+
+
+1198
+00:57:46,566 --> 00:57:48,826
+What was the system
+version that was used
+
+
+1199
+00:57:48,826 --> 00:57:49,796
+when we saved the state?
+
+
+1200
+00:57:50,776 --> 00:57:54,256
+And then for all of the
+objects that are participating,
+
+
+1201
+00:57:54,636 --> 00:57:56,576
+we save a bunch of
+information about those.
+
+
+1202
+00:57:56,916 --> 00:57:58,556
+So here's our image
+view controller.
+
+
+1203
+00:57:59,196 --> 00:58:01,926
+So you can see on the top
+there highlighted in yellow,
+
+
+1204
+00:58:02,306 --> 00:58:05,336
+we tell you the type of object
+it is, so you can kind of scan
+
+
+1205
+00:58:05,336 --> 00:58:07,316
+down -- very quickly
+looking for view controller,
+
+
+1206
+00:58:07,316 --> 00:58:10,136
+view controller -- and it also
+tells you the class of it,
+
+
+1207
+00:58:10,416 --> 00:58:12,006
+so you can look at
+it and go, "hm,
+
+
+1208
+00:58:12,006 --> 00:58:13,526
+that's not the class I expected.
+
+
+1209
+00:58:13,526 --> 00:58:14,476
+How did that happen?"
+
+
+1210
+00:58:14,536 --> 00:58:17,056
+And you can also look
+at what it saved.
+
+
+1211
+00:58:17,056 --> 00:58:20,166
+And this stuff is very,
+very straightforward, right?
+
+
+1212
+00:58:20,596 --> 00:58:22,346
+We referred to our data source.
+
+
+1213
+00:58:22,656 --> 00:58:25,576
+Notice it says, "object
+identifier proxy."
+
+
+1214
+00:58:25,776 --> 00:58:28,046
+That means this is a reference
+
+
+1215
+00:58:28,046 --> 00:58:30,126
+to an object that's
+also participating
+
+
+1216
+00:58:30,126 --> 00:58:32,686
+in state restoration and
+not an actual object.
+
+
+1217
+00:58:33,446 --> 00:58:36,856
+Here, I actually put my
+filters into a dictionary,
+
+
+1218
+00:58:37,006 --> 00:58:40,016
+so this is just a textual
+representation of a dictionary.
+
+
+1219
+00:58:40,366 --> 00:58:42,536
+So the dictionary
+itself was encoded
+
+
+1220
+00:58:43,476 --> 00:58:46,106
+and the keys were encoded,
+but you'll notice again,
+
+
+1221
+00:58:46,216 --> 00:58:48,696
+we're using proxies
+for the actual objects,
+
+
+1222
+00:58:48,876 --> 00:58:50,496
+the filter objects
+in the dictionary.
+
+
+1223
+00:58:51,006 --> 00:58:54,816
+And here's the identifier
+for the image as well.
+
+
+1224
+00:58:55,326 --> 00:58:58,316
+So sometimes when you're
+trying to diagnose issues,
+
+
+1225
+00:58:58,546 --> 00:59:00,296
+you can learn quite a lot simply
+
+
+1226
+00:59:00,296 --> 00:59:02,456
+by taking a look
+at your archive.
+
+
+1227
+00:59:02,786 --> 00:59:06,156
+And I think it's very useful
+as you're building new code
+
+
+1228
+00:59:06,156 --> 00:59:09,096
+and you're testing things,
+to just take the time to go
+
+
+1229
+00:59:09,096 --> 00:59:12,886
+through here and make sure
+everything you expect is in it.
+
+
+1230
+00:59:14,596 --> 00:59:16,716
+Now, I mentioned that
+we can pull things
+
+
+1231
+00:59:16,716 --> 00:59:18,466
+out of the storyboard
+automatically.
+
+
+1232
+00:59:18,886 --> 00:59:21,686
+So here I'm just showing that
+we keep track of the name
+
+
+1233
+00:59:21,686 --> 00:59:25,426
+of the storyboard and also what
+the storyboard identifier was.
+
+
+1234
+00:59:25,816 --> 00:59:27,776
+And that might be
+useful to you as well,
+
+
+1235
+00:59:27,776 --> 00:59:29,866
+even if you're not
+depending on this behavior,
+
+
+1236
+00:59:30,266 --> 00:59:32,586
+just so that it helps
+you to triangulate
+
+
+1237
+00:59:32,586 --> 00:59:34,816
+on what this object actually is.
+
+
+1238
+00:59:34,926 --> 00:59:37,116
+You're not going to have a
+picture of the view controller
+
+
+1239
+00:59:37,116 --> 00:59:39,386
+on the right as I'm showing
+here; you're just going
+
+
+1240
+00:59:39,386 --> 00:59:41,446
+to be looking at text
+and you might think,
+
+
+1241
+00:59:41,446 --> 00:59:42,886
+what is this thing
+I'm looking at?
+
+
+1242
+00:59:43,066 --> 00:59:44,766
+Oh, came out of the storyboard.
+
+
+1243
+00:59:45,266 --> 00:59:45,726
+There we go.
+
+
+1244
+00:59:46,496 --> 00:59:49,426
+Okay. How about these
+generalized objects?
+
+
+1245
+00:59:49,786 --> 00:59:51,296
+Again, we do the same thing.
+
+
+1246
+00:59:51,296 --> 00:59:54,426
+We're showing that it's
+just a general object,
+
+
+1247
+00:59:54,426 --> 00:59:56,956
+it says restorable object
+-- that's my terminology.
+
+
+1248
+00:59:57,556 --> 01:00:01,036
+We show the class of it, and
+it saved a couple things,
+
+
+1249
+01:00:01,156 --> 01:00:02,796
+so we just keep track
+of all of that.
+
+
+1250
+01:00:03,186 --> 01:00:06,436
+So pretty dry, but I think
+it's very interesting
+
+
+1251
+01:00:06,596 --> 01:00:07,646
+when you see all of this.
+
+
+1252
+01:00:08,336 --> 01:00:09,996
+Okay, I'm kind of
+running out of time,
+
+
+1253
+01:00:09,996 --> 01:00:11,496
+but I have a couple more things.
+
+
+1254
+01:00:11,876 --> 01:00:14,706
+We've added a profile
+you can install
+
+
+1255
+01:00:14,706 --> 01:00:17,036
+and we'll log a little
+bit of extra information.
+
+
+1256
+01:00:17,406 --> 01:00:19,636
+You can also set a
+default for the simulator.
+
+
+1257
+01:00:19,826 --> 01:00:23,576
+So you get kind of a play
+by play in Xcode's console
+
+
+1258
+01:00:23,576 --> 01:00:25,916
+as your app is saving
+state and restoring it,
+
+
+1259
+01:00:25,916 --> 01:00:28,266
+and it could be pretty
+useful to look at that, too.
+
+
+1260
+01:00:28,886 --> 01:00:32,686
+And we have a profile that
+you can install that puts you
+
+
+1261
+01:00:32,686 --> 01:00:34,046
+in what I call developer mode.
+
+
+1262
+01:00:34,396 --> 01:00:36,156
+That's what I was
+using in my demo
+
+
+1263
+01:00:36,156 --> 01:00:38,126
+so that I could kill
+the application
+
+
+1264
+01:00:38,386 --> 01:00:40,156
+without losing state
+restoration.
+
+
+1265
+01:00:40,546 --> 01:00:42,716
+And it's really useful
+when you're chasing a bug
+
+
+1266
+01:00:42,716 --> 01:00:45,426
+or you just want to check things
+and you want to be able to go
+
+
+1267
+01:00:45,426 --> 01:00:51,226
+on the switcher and kill it but
+not actually lose the archive.
+
+
+1268
+01:00:51,786 --> 01:00:53,646
+So we did a recap.
+
+
+1269
+01:00:53,646 --> 01:00:55,976
+I'm hoping that if you
+haven't used state restoration,
+
+
+1270
+01:00:56,256 --> 01:00:59,056
+this shows you just how easy
+it can be to incorporate it
+
+
+1271
+01:00:59,116 --> 01:01:02,536
+in your app, and you'll go back
+and you'll want to take a look
+
+
+1272
+01:01:02,536 --> 01:01:03,906
+at this and see what you can do.
+
+
+1273
+01:01:04,486 --> 01:01:06,296
+And for those of you who
+have already been using it
+
+
+1274
+01:01:06,296 --> 01:01:09,976
+and new people as well, I hope
+that the new features show you
+
+
+1275
+01:01:09,976 --> 01:01:11,816
+that you can also extend things
+
+
+1276
+01:01:11,816 --> 01:01:13,826
+and it makes it even
+easier to use.
+
+
+1277
+01:01:14,036 --> 01:01:16,126
+Talked a little bit
+about security
+
+
+1278
+01:01:16,476 --> 01:01:18,046
+and background operation.
+
+
+1279
+01:01:19,196 --> 01:01:22,676
+We covered the tools that
+we have, and that's it.
+
+
+1280
+01:01:23,406 --> 01:01:26,056
+Jake Behrens is our
+Frameworks Evangelist.
+
+
+1281
+01:01:26,426 --> 01:01:27,636
+He'd love to hear from you.
+
+
+1282
+01:01:28,036 --> 01:01:30,246
+We've got some great
+documentation online.
+
+
+1283
+01:01:30,246 --> 01:01:33,696
+Of course, the forms are always
+available, so talk to him
+
+
+1284
+01:01:33,696 --> 01:01:35,826
+if you have a chance,
+and that's it.
+
+
+1285
+01:01:35,826 --> 01:01:36,806
+Thank you very much.
+
+
+1286
+01:01:37,516 --> 01:01:44,100
+[ Applause ]
+

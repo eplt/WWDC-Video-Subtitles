@@ -1,0 +1,4633 @@
+1
+00:00:06,516 --> 00:00:18,500
+[ Music ]
+
+
+2
+00:00:25,516 --> 00:00:29,546
+[ Applause ]
+
+
+3
+00:00:30,046 --> 00:00:32,016
+>> Good afternoon,
+everyone, and welcome.
+
+
+4
+00:00:32,836 --> 00:00:35,846
+I'm Alex, and Jacob and I are
+going to talk to you today
+
+
+5
+00:00:36,256 --> 00:00:38,696
+about how you can use
+value types and protocols
+
+
+6
+00:00:38,956 --> 00:00:39,966
+to make your app better.
+
+
+7
+00:00:40,546 --> 00:00:41,766
+And we're going to focus today
+
+
+8
+00:00:41,766 --> 00:00:44,006
+on something called
+local reasoning.
+
+
+9
+00:00:44,556 --> 00:00:47,846
+Local reasoning means that
+when you look at the code,
+
+
+10
+00:00:47,846 --> 00:00:51,256
+right in front of you, you don't
+have to think about how the rest
+
+
+11
+00:00:51,256 --> 00:00:53,426
+of your code interacts
+with that one function.
+
+
+12
+00:00:54,486 --> 00:00:56,026
+You may have had
+this feeling before
+
+
+13
+00:00:56,956 --> 00:00:58,886
+and that's just a
+name for that feeling.
+
+
+14
+00:00:59,846 --> 00:01:03,286
+For example, maybe when
+you just joined a new team
+
+
+15
+00:01:03,506 --> 00:01:06,716
+and you have tons of code to
+look at but very little context,
+
+
+16
+00:01:07,286 --> 00:01:09,646
+can you understand what's going
+on in that single function?
+
+
+17
+00:01:10,846 --> 00:01:13,446
+And so the ability to do
+that is really important
+
+
+18
+00:01:13,526 --> 00:01:16,486
+because it makes it easier
+to maintain, easier to write,
+
+
+19
+00:01:17,096 --> 00:01:19,356
+and easier to test, and easier
+
+
+20
+00:01:19,356 --> 00:01:20,756
+to write the code
+the first time.
+
+
+21
+00:01:21,286 --> 00:01:23,026
+And so we're going to talk
+
+
+22
+00:01:23,026 --> 00:01:26,956
+about how local reasoning
+can improve our UIKit apps
+
+
+23
+00:01:27,296 --> 00:01:30,446
+in the context of model view
+controller design paradigm,
+
+
+24
+00:01:31,196 --> 00:01:34,586
+which is what Cocoa uses, where
+the model stores your data,
+
+
+25
+00:01:35,416 --> 00:01:36,796
+the view presents that data,
+
+
+26
+00:01:36,796 --> 00:01:40,976
+and the controller
+coordinates between the two.
+
+
+27
+00:01:41,216 --> 00:01:43,786
+And so we need a real app to
+put our answers to the test.
+
+
+28
+00:01:45,006 --> 00:01:47,036
+Unfortunately, we actually
+had a problem at Apple
+
+
+29
+00:01:47,036 --> 00:01:48,156
+that we needed to solve.
+
+
+30
+00:01:48,156 --> 00:01:53,476
+So I'm going to tell
+you a little secret
+
+
+31
+00:01:53,636 --> 00:01:55,986
+about how we plan
+WWDC every year.
+
+
+32
+00:01:57,496 --> 00:02:01,236
+Engineers have dreams and
+that's what they're dreaming
+
+
+33
+00:02:01,236 --> 00:02:02,516
+about for what they're
+going to present.
+
+
+34
+00:02:03,096 --> 00:02:06,816
+And so somehow we need to take
+those dreams and record them,
+
+
+35
+00:02:07,456 --> 00:02:09,015
+but we noticed a lot
+
+
+36
+00:02:09,015 --> 00:02:11,616
+of engineers don't actually
+remember their dreams
+
+
+37
+00:02:11,616 --> 00:02:12,786
+by the time they get into work.
+
+
+38
+00:02:13,076 --> 00:02:13,766
+They forget them.
+
+
+39
+00:02:14,756 --> 00:02:18,136
+So Jacob and I developed this
+awesome app to do just that
+
+
+40
+00:02:18,136 --> 00:02:20,966
+and the app is called
+Lucid Dreams.
+
+
+41
+00:02:21,406 --> 00:02:23,846
+I want to show you
+some of the dreams
+
+
+42
+00:02:23,846 --> 00:02:27,386
+that people had over
+the past year.
+
+
+43
+00:02:27,386 --> 00:02:29,486
+Some people dream of unicorns.
+
+
+44
+00:02:30,846 --> 00:02:34,516
+This is serious [laughter].
+
+
+45
+00:02:34,976 --> 00:02:42,606
+Strangely, some people were also
+wrapped up in work stress issues
+
+
+46
+00:02:43,126 --> 00:02:46,086
+and even more wanted to just get
+
+
+47
+00:02:46,086 --> 00:02:48,436
+out of the office
+and ride their bike.
+
+
+48
+00:02:49,166 --> 00:02:52,976
+And some engineers
+even dreams of Crusty.
+
+
+49
+00:02:53,516 --> 00:03:01,716
+[ Applause ]
+
+
+50
+00:03:02,216 --> 00:03:04,546
+And so that was the
+inspiration for our application.
+
+
+51
+00:03:04,746 --> 00:03:05,426
+But since we're going
+
+
+52
+00:03:05,426 --> 00:03:07,476
+to be using the app
+throughout our session,
+
+
+53
+00:03:07,476 --> 00:03:10,286
+I want to give you a quick
+demo so you can get a feel
+
+
+54
+00:03:10,286 --> 00:03:11,726
+for what this application does.
+
+
+55
+00:03:13,016 --> 00:03:15,686
+And so if we launch the app,
+you'll notice it takes us right
+
+
+56
+00:03:15,686 --> 00:03:17,206
+to the list of dreams
+that we've had.
+
+
+57
+00:03:18,706 --> 00:03:21,096
+And if you tap one of the
+dreams, you can edit it.
+
+
+58
+00:03:21,436 --> 00:03:24,496
+And so you can see we
+have a preview at the top.
+
+
+59
+00:03:25,306 --> 00:03:28,046
+We can scroll down and we're
+going to add some effects,
+
+
+60
+00:03:28,296 --> 00:03:30,386
+like laser focus and rain.
+
+
+61
+00:03:30,956 --> 00:03:36,446
+And so if we scroll back up, you
+can see the preview of a dream
+
+
+62
+00:03:36,676 --> 00:03:40,876
+of a unicorn with laser focus,
+rain, and fire breathing.
+
+
+63
+00:03:41,326 --> 00:03:45,406
+And so when we're done editing
+the dream, we can just go back
+
+
+64
+00:03:45,406 --> 00:03:46,416
+to the list of our dreams.
+
+
+65
+00:03:47,046 --> 00:03:49,526
+And so that's the app.
+
+
+66
+00:03:50,446 --> 00:03:51,896
+And we wanted to think really,
+
+
+67
+00:03:51,896 --> 00:03:54,686
+really hard about how we could
+make our code just awesome.
+
+
+68
+00:03:55,156 --> 00:03:57,746
+And so we watched these
+fantastic Swift talks
+
+
+69
+00:03:57,746 --> 00:03:58,436
+from last year.
+
+
+70
+00:03:59,756 --> 00:04:02,096
+These sessions focus on
+the benefits of value types
+
+
+71
+00:04:02,096 --> 00:04:03,636
+and protocol-oriented
+programming.
+
+
+72
+00:04:03,636 --> 00:04:07,866
+And these ideas were so powerful
+that we wanted to take advantage
+
+
+73
+00:04:07,866 --> 00:04:10,176
+of them because they can
+help improve local reasoning
+
+
+74
+00:04:10,176 --> 00:04:11,076
+in our application.
+
+
+75
+00:04:12,456 --> 00:04:14,636
+And so we wrote our app with
+this different way of thinking.
+
+
+76
+00:04:16,005 --> 00:04:18,156
+Now some of these ideas
+might feel foreign
+
+
+77
+00:04:18,156 --> 00:04:19,636
+to you and that's okay.
+
+
+78
+00:04:19,636 --> 00:04:22,326
+When we were initially
+trying these techniques out,
+
+
+79
+00:04:22,326 --> 00:04:23,996
+they felt foreign to us too.
+
+
+80
+00:04:24,476 --> 00:04:25,146
+So don't worry.
+
+
+81
+00:04:25,176 --> 00:04:26,236
+Just stick with us.
+
+
+82
+00:04:30,056 --> 00:04:32,306
+And so we're going to
+quickly go over the benefits
+
+
+83
+00:04:32,616 --> 00:04:34,256
+of value types in
+the model layer.
+
+
+84
+00:04:34,886 --> 00:04:36,336
+This was already
+covered last year,
+
+
+85
+00:04:36,336 --> 00:04:38,226
+so it's going to
+be a quick recap.
+
+
+86
+00:04:39,056 --> 00:04:41,736
+Then we're going to focus on
+how we can use value types
+
+
+87
+00:04:41,736 --> 00:04:44,206
+in the viewing controller
+layers since that's
+
+
+88
+00:04:44,206 --> 00:04:47,696
+where we think most people don't
+think they can take advantage
+
+
+89
+00:04:47,866 --> 00:04:50,336
+of value types, even
+though there're some really
+
+
+90
+00:04:50,336 --> 00:04:51,246
+tangible benefits.
+
+
+91
+00:04:51,396 --> 00:04:55,226
+And along the way we're going to
+show you how using value types
+
+
+92
+00:04:55,226 --> 00:04:57,846
+and protocols made
+our code testable.
+
+
+93
+00:04:59,306 --> 00:05:02,966
+And as you just saw this awesome
+app, I know you want to test it.
+
+
+94
+00:05:03,036 --> 00:05:04,596
+We've shipped this
+as a sample app
+
+
+95
+00:05:04,596 --> 00:05:08,126
+so you can go download it
+yourself, see the code,
+
+
+96
+00:05:08,126 --> 00:05:10,166
+and log your own dreams.
+
+
+97
+00:05:12,176 --> 00:05:15,136
+All right, so now it's time
+to talk about the model layer.
+
+
+98
+00:05:16,166 --> 00:05:17,386
+So what is a dream?
+
+
+99
+00:05:17,986 --> 00:05:21,056
+A dream is our model type
+
+
+100
+00:05:21,166 --> 00:05:23,676
+that represents a dream
+entry in our application.
+
+
+101
+00:05:24,536 --> 00:05:28,816
+A dream as a description, a
+creature, and a set of effects,
+
+
+102
+00:05:28,816 --> 00:05:30,446
+as you saw in the UI earlier on.
+
+
+103
+00:05:31,526 --> 00:05:33,366
+Now I want to show you a
+version of the dream type
+
+
+104
+00:05:33,416 --> 00:05:37,016
+that we used last year in
+the first version of our app.
+
+
+105
+00:05:37,236 --> 00:05:38,956
+We started with a dream
+type being a class.
+
+
+106
+00:05:40,346 --> 00:05:42,586
+Now classes have
+reference semantics,
+
+
+107
+00:05:42,966 --> 00:05:43,836
+meaning that references
+
+
+108
+00:05:43,836 --> 00:05:46,356
+to the same instance
+share their storage
+
+
+109
+00:05:46,416 --> 00:05:47,646
+and that sharing is implicit.
+
+
+110
+00:05:48,756 --> 00:05:52,276
+So why is that a problem?
+
+
+111
+00:05:52,376 --> 00:05:56,166
+Well, let's say someone tries
+to modify dream2's description.
+
+
+112
+00:05:57,606 --> 00:06:00,656
+If we only care about
+dream1, we may be surprised
+
+
+113
+00:06:00,656 --> 00:06:02,836
+that the variable's
+value changed
+
+
+114
+00:06:02,836 --> 00:06:04,066
+from underneath our control.
+
+
+115
+00:06:04,066 --> 00:06:08,376
+And this really hurts
+local reasoning.
+
+
+116
+00:06:08,936 --> 00:06:13,416
+And we had exactly this kind
+of bug in our own application,
+
+
+117
+00:06:13,416 --> 00:06:14,896
+even though our test passed.
+
+
+118
+00:06:15,666 --> 00:06:16,506
+But why was that?
+
+
+119
+00:06:16,506 --> 00:06:22,096
+And so this diagram
+shows the relationships
+
+
+120
+00:06:22,096 --> 00:06:23,866
+of the first version
+of our application.
+
+
+121
+00:06:24,476 --> 00:06:27,966
+Some of these relationships
+can be explicit and implicit,
+
+
+122
+00:06:28,246 --> 00:06:30,256
+some of them can be
+one-way or two-way,
+
+
+123
+00:06:30,326 --> 00:06:33,036
+and some of them can even
+be dynamic or static.
+
+
+124
+00:06:33,106 --> 00:06:37,296
+And so these relationships can
+get very, very complicated.
+
+
+125
+00:06:39,176 --> 00:06:41,046
+So what happens when we try
+
+
+126
+00:06:41,046 --> 00:06:45,446
+and test just the
+dream type on its own?
+
+
+127
+00:06:45,666 --> 00:06:49,496
+Well, even if you create a
+dream that stands by itself,
+
+
+128
+00:06:50,406 --> 00:06:53,136
+this doesn't reflect
+the reality in the app
+
+
+129
+00:06:53,196 --> 00:06:54,406
+because there are
+many more dependencies
+
+
+130
+00:06:54,406 --> 00:06:54,976
+that actually exist.
+
+
+131
+00:07:00,606 --> 00:07:01,746
+And so that's not good.
+
+
+132
+00:07:06,786 --> 00:07:09,846
+And so we can solve this by
+making our dream type a struct
+
+
+133
+00:07:09,846 --> 00:07:11,246
+which has value semantics.
+
+
+134
+00:07:12,536 --> 00:07:15,106
+This means each variable
+has independent storage.
+
+
+135
+00:07:15,226 --> 00:07:16,776
+So changing the value
+
+
+136
+00:07:16,776 --> 00:07:19,096
+in one doesn't change
+the value in the other.
+
+
+137
+00:07:19,096 --> 00:07:22,886
+And so if we modify
+dream2's description,
+
+
+138
+00:07:23,886 --> 00:07:26,966
+we only change dream2's
+description, not dream1's.
+
+
+139
+00:07:28,116 --> 00:07:31,376
+And so this guarantees us
+that dreams aren't involved
+
+
+140
+00:07:31,376 --> 00:07:33,746
+in the complicated relationships
+that we saw earlier.
+
+
+141
+00:07:34,296 --> 00:07:40,326
+And so this really improves
+our ability to reason locally
+
+
+142
+00:07:40,326 --> 00:07:43,306
+because no code can change
+the value we're using
+
+
+143
+00:07:43,366 --> 00:07:46,776
+from underneath our control.
+
+
+144
+00:07:46,846 --> 00:07:49,346
+Now using value types --
+
+
+145
+00:07:49,346 --> 00:07:50,986
+So we just saw how
+we can take advantage
+
+
+146
+00:07:51,076 --> 00:07:53,236
+of value types in
+the model layer.
+
+
+147
+00:07:54,016 --> 00:07:55,446
+And using value types
+
+
+148
+00:07:55,446 --> 00:07:57,816
+in the model layer is actually
+pretty uncontroversial.
+
+
+149
+00:07:58,836 --> 00:08:01,326
+But wouldn't you want to take
+advantage of the same benefits
+
+
+150
+00:08:01,326 --> 00:08:03,936
+that we just saw in other
+parts of our application?
+
+
+151
+00:08:04,486 --> 00:08:07,346
+And that might actually
+raise a few eyebrows.
+
+
+152
+00:08:07,346 --> 00:08:10,906
+So I want to share with you
+a quote that I recently saw
+
+
+153
+00:08:10,906 --> 00:08:14,306
+on the Internet and that
+said, "Use values only
+
+
+154
+00:08:14,306 --> 00:08:16,286
+for simple model types."
+
+
+155
+00:08:17,056 --> 00:08:18,596
+That doesn't seem encouraging.
+
+
+156
+00:08:19,816 --> 00:08:22,986
+But do we believe everything
+that we read on the Internet?
+
+
+157
+00:08:22,986 --> 00:08:27,226
+And the answer is no, if you
+didn't know [audience laughter].
+
+
+158
+00:08:27,876 --> 00:08:32,566
+And so for the remainder of
+the talk, we're going to focus
+
+
+159
+00:08:32,566 --> 00:08:34,736
+on how you can use
+value types for more
+
+
+160
+00:08:34,736 --> 00:08:36,666
+than just simply model
+data in your app,
+
+
+161
+00:08:36,666 --> 00:08:38,976
+and at the same time we'll
+prove the Internet wrong.
+
+
+162
+00:08:44,686 --> 00:08:45,076
+There we go.
+
+
+163
+00:08:46,116 --> 00:08:48,216
+And with that, I'd like
+to hand it over to Jacob
+
+
+164
+00:08:48,216 --> 00:08:48,976
+to talk about the view layer.
+
+
+165
+00:08:49,516 --> 00:08:56,596
+[ Applause ]
+
+
+166
+00:08:57,096 --> 00:08:57,776
+>> Thanks, Alex.
+
+
+167
+00:08:57,956 --> 00:09:01,876
+I'm really excited to tell you
+
+
+168
+00:09:01,876 --> 00:09:03,986
+about how we use
+protocol-oriented programming
+
+
+169
+00:09:04,266 --> 00:09:05,286
+together with views.
+
+
+170
+00:09:06,536 --> 00:09:08,386
+So we spent a lot
+of time working
+
+
+171
+00:09:08,386 --> 00:09:09,766
+on our app's table view cells.
+
+
+172
+00:09:10,896 --> 00:09:13,326
+We had a specific design for
+their layout that we wanted
+
+
+173
+00:09:13,326 --> 00:09:16,076
+to implement to make sure that
+the unicorn the people dreamed
+
+
+174
+00:09:16,076 --> 00:09:17,966
+about showed up exactly right.
+
+
+175
+00:09:19,226 --> 00:09:21,806
+Now when we started our
+app, we wrote these layouts
+
+
+176
+00:09:21,806 --> 00:09:24,206
+as abstract subclasses
+of UITableViewCell.
+
+
+177
+00:09:24,766 --> 00:09:28,546
+For example, this simple layout
+we called DecoratingLayoutCell,
+
+
+178
+00:09:29,306 --> 00:09:31,016
+it just shows a small
+decoration on the left
+
+
+179
+00:09:31,296 --> 00:09:33,546
+and a larger content
+area on the right.
+
+
+180
+00:09:35,116 --> 00:09:38,156
+Then, we made a concrete
+subclass of the layout cell
+
+
+181
+00:09:38,336 --> 00:09:40,786
+that added our specific
+logic, like showing a dream.
+
+
+182
+00:09:41,596 --> 00:09:44,326
+And we did this separation
+because we wanted to be able
+
+
+183
+00:09:44,326 --> 00:09:46,516
+to reuse our layouts
+in different places.
+
+
+184
+00:09:47,196 --> 00:09:48,796
+But as we worked
+on the app more,
+
+
+185
+00:09:49,106 --> 00:09:50,666
+we found that this
+wasn't working very well.
+
+
+186
+00:09:51,466 --> 00:09:55,186
+It helped us reuse our layout in
+different cells, but it was hard
+
+
+187
+00:09:55,186 --> 00:09:56,816
+to use outside of a table view.
+
+
+188
+00:09:57,776 --> 00:09:59,476
+For example, we had
+a detail view
+
+
+189
+00:09:59,766 --> 00:10:01,366
+that showed more
+information about a dream
+
+
+190
+00:10:01,366 --> 00:10:03,636
+but we couldn't reuse
+our layout cell there.
+
+
+191
+00:10:05,196 --> 00:10:07,516
+So we wanted to find a
+better way to structure this
+
+
+192
+00:10:07,566 --> 00:10:10,486
+where we could use our layouts
+together with table view cells
+
+
+193
+00:10:11,086 --> 00:10:12,916
+but also in plain UI views.
+
+
+194
+00:10:14,046 --> 00:10:15,836
+And we also want to add
+SpriteKit to our app
+
+
+195
+00:10:15,926 --> 00:10:18,636
+to show those cool particle
+effects and we want to be able
+
+
+196
+00:10:18,636 --> 00:10:19,976
+to use our layouts with
+those SpriteKit nodes too.
+
+
+197
+00:10:20,386 --> 00:10:24,386
+So those are our goals
+and we use what we learned
+
+
+198
+00:10:24,386 --> 00:10:25,866
+about Swift to achieve this.
+
+
+199
+00:10:26,996 --> 00:10:29,326
+Now although I'll be talking
+about layout in detail,
+
+
+200
+00:10:29,666 --> 00:10:30,716
+I want you to keep in mind
+
+
+201
+00:10:30,826 --> 00:10:33,716
+that these techniques can
+be used all across your app.
+
+
+202
+00:10:34,056 --> 00:10:35,366
+All right, let's get started.
+
+
+203
+00:10:37,076 --> 00:10:39,746
+Now this is what our layout
+cell looked like before.
+
+
+204
+00:10:40,496 --> 00:10:44,216
+It has two views that it lays
+out, but there's really no need
+
+
+205
+00:10:44,216 --> 00:10:46,386
+for this layout logic to be
+trapped inside of a cell.
+
+
+206
+00:10:47,196 --> 00:10:49,266
+It's just some math
+and geometry to figure
+
+
+207
+00:10:49,266 --> 00:10:50,466
+out the right set of frames.
+
+
+208
+00:10:51,676 --> 00:10:54,866
+So let's change this from a cell
+to just being a plain struct.
+
+
+209
+00:10:55,706 --> 00:10:59,406
+It will still have our two
+views and we can put all
+
+
+210
+00:10:59,406 --> 00:11:02,086
+of that layout logic into a
+single method that can be called
+
+
+211
+00:11:02,086 --> 00:11:04,546
+in to, to lay them out.
+
+
+212
+00:11:04,796 --> 00:11:06,266
+Now just with that small change,
+
+
+213
+00:11:06,336 --> 00:11:09,396
+we now have a really isolated
+piece of code that knows how
+
+
+214
+00:11:09,396 --> 00:11:11,806
+to do our layout
+and nothing else.
+
+
+215
+00:11:13,296 --> 00:11:16,376
+Then, we can update our dream
+cell to use this new struct
+
+
+216
+00:11:16,476 --> 00:11:17,346
+to lay out its children.
+
+
+217
+00:11:18,536 --> 00:11:20,406
+And what's great is
+that we can now use this
+
+
+218
+00:11:20,456 --> 00:11:22,056
+in our UIView subclass as well.
+
+
+219
+00:11:23,306 --> 00:11:26,136
+Now that this layout logic is
+decoupled from table view cells,
+
+
+220
+00:11:26,296 --> 00:11:27,656
+we can use it in any UIView.
+
+
+221
+00:11:28,246 --> 00:11:31,536
+And there's another
+great benefit with this.
+
+
+222
+00:11:32,036 --> 00:11:35,536
+Now that our layout can be used
+in isolation, it's really easy
+
+
+223
+00:11:35,536 --> 00:11:37,806
+for us to run a unit
+test for it.
+
+
+224
+00:11:38,046 --> 00:11:41,566
+We can just create some
+views, add them to our layout,
+
+
+225
+00:11:41,636 --> 00:11:44,506
+and then lay them
+out in a known rect.
+
+
+226
+00:11:46,056 --> 00:11:47,436
+Then, we just have to verify
+
+
+227
+00:11:47,496 --> 00:11:49,406
+that the resulting frames
+are what we expected.
+
+
+228
+00:11:49,546 --> 00:11:52,776
+Our test doesn't have to
+create a table view or wait
+
+
+229
+00:11:52,776 --> 00:11:54,516
+for the right view layout
+callbacks to happen.
+
+
+230
+00:11:54,516 --> 00:11:57,686
+It can just tell our layout to
+work and then verify the output.
+
+
+231
+00:11:58,556 --> 00:12:00,806
+And this is part of a general
+benefit that we have now.
+
+
+232
+00:12:01,806 --> 00:12:04,486
+Our new layout struct is
+really small and focused.
+
+
+233
+00:12:05,076 --> 00:12:06,246
+This change has made
+it much easier
+
+
+234
+00:12:06,246 --> 00:12:07,766
+to reason locally
+about this code.
+
+
+235
+00:12:08,926 --> 00:12:11,166
+So if we want to understand
+our tests to our layout,
+
+
+236
+00:12:11,516 --> 00:12:14,336
+we just have to understand
+that small struct in isolation.
+
+
+237
+00:12:14,336 --> 00:12:16,326
+We don't have to
+think about what set
+
+
+238
+00:12:16,326 --> 00:12:18,866
+of view capabilities it
+might use or override.
+
+
+239
+00:12:19,516 --> 00:12:24,686
+Okay, now let's go back to
+our DecoratingLayout code.
+
+
+240
+00:12:25,716 --> 00:12:29,126
+So right now, this still only
+knows how to lay out views.
+
+
+241
+00:12:29,286 --> 00:12:31,106
+But as I said earlier,
+we want to use this
+
+
+242
+00:12:31,106 --> 00:12:32,506
+to support SpriteKit as well.
+
+
+243
+00:12:32,586 --> 00:12:36,196
+So we don't want to have
+to duplicate this code,
+
+
+244
+00:12:36,506 --> 00:12:38,726
+but SKNode is not a
+subclass of UIView.
+
+
+245
+00:12:39,046 --> 00:12:41,586
+So there's no common
+superclass that we can use here.
+
+
+246
+00:12:42,216 --> 00:12:45,186
+So how can we combine these
+together into a single layout?
+
+
+247
+00:12:45,246 --> 00:12:48,606
+Well since the only thing
+that our layout ever does
+
+
+248
+00:12:48,606 --> 00:12:50,496
+with these children is
+to set their frames,
+
+
+249
+00:12:50,846 --> 00:12:53,886
+that's the only functionality
+that we need them to have.
+
+
+250
+00:12:53,886 --> 00:12:56,316
+And we can represent that
+requirement with a protocol.
+
+
+251
+00:12:57,686 --> 00:12:58,966
+So we'll make the protocol
+
+
+252
+00:12:59,036 --> 00:13:01,076
+and it'll just have a single
+frame property for now.
+
+
+253
+00:13:01,646 --> 00:13:03,086
+This isn't very flushed out yet,
+
+
+254
+00:13:03,196 --> 00:13:05,936
+but we'll improve
+it in a little bit.
+
+
+255
+00:13:06,156 --> 00:13:08,326
+Then, we use this
+protocol as the type
+
+
+256
+00:13:08,326 --> 00:13:10,906
+of our children instead
+of making them views.
+
+
+257
+00:13:11,426 --> 00:13:16,006
+And finally, we can use
+retroactive modeling
+
+
+258
+00:13:16,236 --> 00:13:19,316
+to make UIView and SKNode
+conform to our new protocol.
+
+
+259
+00:13:20,376 --> 00:13:22,876
+And now we have a layout that
+works with both of these types,
+
+
+260
+00:13:23,386 --> 00:13:25,186
+and this is one of the
+great things about relying
+
+
+261
+00:13:25,186 --> 00:13:28,076
+on protocols instead of
+superclasses for polymorphism.
+
+
+262
+00:13:28,806 --> 00:13:30,836
+We can use this, add
+this functionality
+
+
+263
+00:13:30,836 --> 00:13:34,646
+to unrelated types
+to use both of them.
+
+
+264
+00:13:34,856 --> 00:13:37,296
+Now, our layouts no longer
+have any dependencies
+
+
+265
+00:13:37,296 --> 00:13:38,256
+on UIKit as well.
+
+
+266
+00:13:38,886 --> 00:13:40,786
+And so another thing that we
+could do is bring this same
+
+
+267
+00:13:40,786 --> 00:13:42,686
+system to AppKit
+and support laying
+
+
+268
+00:13:42,686 --> 00:13:44,466
+out NS views just as easily.
+
+
+269
+00:13:44,836 --> 00:13:47,656
+I think that's pretty cool.
+
+
+270
+00:13:47,856 --> 00:13:49,386
+So we're really close now,
+
+
+271
+00:13:49,646 --> 00:13:51,796
+but there's something
+here that we can improve.
+
+
+272
+00:13:53,316 --> 00:13:55,506
+When we're using a
+DecoratingLayout in a view,
+
+
+273
+00:13:55,506 --> 00:13:58,696
+we want to be able to add all
+of its content as subviews.
+
+
+274
+00:13:59,346 --> 00:14:01,646
+And similarly, when we're
+using it in a SpriteKit scene,
+
+
+275
+00:14:02,116 --> 00:14:04,396
+we want to be able to add
+our content as child nodes.
+
+
+276
+00:14:05,366 --> 00:14:06,646
+But right now, content
+
+
+277
+00:14:06,646 --> 00:14:08,946
+and decoration can be any
+type that has a frame.
+
+
+278
+00:14:09,746 --> 00:14:12,756
+And that means that for
+example we could have content
+
+
+279
+00:14:12,756 --> 00:14:15,766
+that was a UIView and
+decoration that was an SKNode.
+
+
+280
+00:14:16,436 --> 00:14:19,886
+But instead, we want our
+layout to just have a set
+
+
+281
+00:14:19,886 --> 00:14:22,626
+of only UI views or only
+SK nodes as its children.
+
+
+282
+00:14:23,226 --> 00:14:25,626
+And that way we'll
+be able to add them
+
+
+283
+00:14:25,696 --> 00:14:27,096
+to their appropriate parent.
+
+
+284
+00:14:28,416 --> 00:14:31,056
+Now Swift has a great way of
+expressing that with generics.
+
+
+285
+00:14:32,336 --> 00:14:34,366
+So we can update our
+layout to be a generic type
+
+
+286
+00:14:34,956 --> 00:14:36,456
+with a type parameter
+called child.
+
+
+287
+00:14:37,676 --> 00:14:40,176
+Then, we can make the content
+
+
+288
+00:14:40,176 --> 00:14:42,666
+and decoration properties
+use that as their type.
+
+
+289
+00:14:42,666 --> 00:14:45,416
+And this gives us
+exactly what we want.
+
+
+290
+00:14:45,546 --> 00:14:47,466
+We can enforce that they're
+the same concrete type.
+
+
+291
+00:14:48,306 --> 00:14:49,766
+And so we can have
+DecoratingLayout
+
+
+292
+00:14:49,816 --> 00:14:52,936
+with just UI views or one
+that just contains SK nodes.
+
+
+293
+00:14:53,496 --> 00:14:54,546
+So generics are a great tool
+
+
+294
+00:14:54,546 --> 00:14:56,256
+that let us have
+a lot more control
+
+
+295
+00:14:56,256 --> 00:14:57,336
+over the types in our code.
+
+
+296
+00:14:58,646 --> 00:15:00,406
+Another great benefit
+of generics is
+
+
+297
+00:15:00,406 --> 00:15:02,086
+that the compiler
+has more information
+
+
+298
+00:15:02,126 --> 00:15:03,266
+about what your code is doing.
+
+
+299
+00:15:03,726 --> 00:15:04,896
+So it can optimize more.
+
+
+300
+00:15:05,906 --> 00:15:08,076
+And you can learn about
+this in a lot more detail
+
+
+301
+00:15:08,076 --> 00:15:09,746
+in the Understanding
+Swift Performance talk.
+
+
+302
+00:15:10,456 --> 00:15:12,786
+It's a great talk for learning
+how Swift works and how
+
+
+303
+00:15:12,786 --> 00:15:16,166
+to write fast Swift code.
+
+
+304
+00:15:16,926 --> 00:15:18,946
+Okay, we now have a
+great implementation
+
+
+305
+00:15:18,946 --> 00:15:19,996
+of our DecoratingLayout.
+
+
+306
+00:15:20,776 --> 00:15:22,756
+But our app also includes
+a lot of other layouts,
+
+
+307
+00:15:23,586 --> 00:15:24,966
+like this fancy cascading one.
+
+
+308
+00:15:25,506 --> 00:15:27,826
+And this layout is very
+similar to the DecoratingLayout
+
+
+309
+00:15:27,826 --> 00:15:29,876
+that we just looked at.
+
+
+310
+00:15:30,216 --> 00:15:31,906
+They both show a large
+area on the right
+
+
+311
+00:15:32,406 --> 00:15:34,176
+with a detailed decoration
+on the left.
+
+
+312
+00:15:34,176 --> 00:15:36,696
+And we don't want to
+copy and paste our code
+
+
+313
+00:15:36,696 --> 00:15:37,706
+to create this new layout
+
+
+314
+00:15:38,366 --> 00:15:39,776
+because that would miss
+a great opportunity
+
+
+315
+00:15:39,776 --> 00:15:42,246
+to create a shared abstraction
+that both of these can use.
+
+
+316
+00:15:43,156 --> 00:15:44,656
+So how can we share
+this code instead?
+
+
+317
+00:15:44,656 --> 00:15:47,486
+Well, one tool you've
+probably all used before
+
+
+318
+00:15:47,486 --> 00:15:48,996
+to share code is inheritance.
+
+
+319
+00:15:49,536 --> 00:15:51,896
+But with inheritance,
+you have both your code,
+
+
+320
+00:15:52,006 --> 00:15:54,676
+and please don't try to read
+this code, but you also have
+
+
+321
+00:15:54,676 --> 00:15:56,806
+to consider what your
+superclass might be doing
+
+
+322
+00:15:57,436 --> 00:15:59,856
+and what your subclasses might
+want to change or override.
+
+
+323
+00:16:00,556 --> 00:16:01,906
+So instead of just
+thinking about the code
+
+
+324
+00:16:01,906 --> 00:16:03,466
+that you're working
+with, your mind has
+
+
+325
+00:16:03,466 --> 00:16:05,186
+to pull together a large amount
+
+
+326
+00:16:05,186 --> 00:16:06,466
+of code that's spread
+across your app.
+
+
+327
+00:16:07,156 --> 00:16:08,636
+And this is just the
+tip of the iceberg.
+
+
+328
+00:16:08,636 --> 00:16:12,086
+A lot of the time you also
+inherit from a framework class,
+
+
+329
+00:16:12,086 --> 00:16:14,646
+like UIView or view
+controller and there's orders
+
+
+330
+00:16:14,646 --> 00:16:15,906
+of magnitude more code there.
+
+
+331
+00:16:17,076 --> 00:16:18,756
+So inheritance is another place
+
+
+332
+00:16:18,756 --> 00:16:21,276
+where you really sacrifice the
+ability to use local reasoning.
+
+
+333
+00:16:24,616 --> 00:16:27,776
+But we can share code in a much
+better way by using composition.
+
+
+334
+00:16:28,956 --> 00:16:31,786
+Composition is a simple idea
+that's just combining smaller
+
+
+335
+00:16:31,786 --> 00:16:33,616
+pieces together to
+build larger pieces.
+
+
+336
+00:16:34,286 --> 00:16:36,966
+But when composing, you can
+understand those independent
+
+
+337
+00:16:36,966 --> 00:16:38,196
+pieces in isolation.
+
+
+338
+00:16:39,156 --> 00:16:41,696
+And you can also enforce
+encapsulation without worrying
+
+
+339
+00:16:41,696 --> 00:16:44,496
+about subclasses or
+superclasses poking holes
+
+
+340
+00:16:44,496 --> 00:16:45,556
+in your abstractions.
+
+
+341
+00:16:46,896 --> 00:16:48,186
+But composition isn't
+new either.
+
+
+342
+00:16:49,206 --> 00:16:50,466
+You've probably used in the past
+
+
+343
+00:16:50,466 --> 00:16:52,226
+with Objective-C
+or other languages.
+
+
+344
+00:16:53,576 --> 00:16:56,136
+And one way that we could've
+made this layout before would be
+
+
+345
+00:16:56,136 --> 00:16:57,256
+to compose views together.
+
+
+346
+00:16:58,016 --> 00:16:59,856
+So you could've written a UIView
+
+
+347
+00:16:59,856 --> 00:17:03,386
+that does this cascading layout
+behavior and another UIView
+
+
+348
+00:17:03,676 --> 00:17:04,986
+that does our decorating
+layout behavior.
+
+
+349
+00:17:05,925 --> 00:17:08,006
+Then you could've added
+both of those as subviews
+
+
+350
+00:17:08,006 --> 00:17:08,945
+in your table view cell.
+
+
+351
+00:17:10,076 --> 00:17:11,316
+But there's a big
+problem with this.
+
+
+352
+00:17:12,256 --> 00:17:13,906
+Class instances are
+very expensive.
+
+
+353
+00:17:14,546 --> 00:17:15,586
+When you make another object,
+
+
+354
+00:17:15,656 --> 00:17:17,066
+you have an extra
+heap allocation
+
+
+355
+00:17:17,486 --> 00:17:19,126
+and this is even
+worse with views.
+
+
+356
+00:17:19,955 --> 00:17:21,955
+There's a lot of work that's
+needed to support a view
+
+
+357
+00:17:22,076 --> 00:17:24,516
+to allow to do things like
+drawing and event handling.
+
+
+358
+00:17:25,215 --> 00:17:27,126
+And because of this,
+we try very hard
+
+
+359
+00:17:27,126 --> 00:17:28,876
+to minimize the number
+of views that we use.
+
+
+360
+00:17:29,946 --> 00:17:32,656
+So making a view that does
+no drawing and only acts
+
+
+361
+00:17:32,656 --> 00:17:34,396
+as a layout abstraction
+is very wasteful.
+
+
+362
+00:17:34,396 --> 00:17:36,626
+And that's why doing composition
+
+
+363
+00:17:36,626 --> 00:17:38,016
+with views doesn't
+work very well.
+
+
+364
+00:17:39,256 --> 00:17:41,806
+But with Swift, we have a much
+better way to do composition
+
+
+365
+00:17:41,806 --> 00:17:45,086
+and that's with value types.
+
+
+366
+00:17:45,226 --> 00:17:47,926
+Structs are very lightweight,
+so we can use them together
+
+
+367
+00:17:47,976 --> 00:17:49,986
+without paying the high
+heavy cost that we have
+
+
+368
+00:17:50,226 --> 00:17:51,476
+with classes and views.
+
+
+369
+00:17:52,686 --> 00:17:55,906
+And structs are also better
+because of value semantics.
+
+
+370
+00:17:56,936 --> 00:17:59,246
+With value types you have
+much better encapsulation
+
+
+371
+00:17:59,696 --> 00:18:02,306
+so you can use these pieces
+together for composition
+
+
+372
+00:18:02,616 --> 00:18:03,486
+without having to worry
+
+
+373
+00:18:03,486 --> 00:18:06,076
+about someone else modifying
+the copy that you're using.
+
+
+374
+00:18:07,336 --> 00:18:09,696
+So let's apply this
+to our layouts.
+
+
+375
+00:18:11,096 --> 00:18:13,766
+Well, we can write the cascading
+part of our layout like this,
+
+
+376
+00:18:14,366 --> 00:18:16,296
+with an array of
+children that it lays out.
+
+
+377
+00:18:17,616 --> 00:18:20,646
+Then, we want to compose this
+layout with our DecoratingLayout
+
+
+378
+00:18:20,946 --> 00:18:22,586
+to get the final effect.
+
+
+379
+00:18:23,156 --> 00:18:25,716
+But there's one more small
+thing we have to change here.
+
+
+380
+00:18:26,586 --> 00:18:28,606
+These layouts only
+expect to have children
+
+
+381
+00:18:28,606 --> 00:18:30,356
+that are UI views or SK nodes.
+
+
+382
+00:18:30,936 --> 00:18:33,616
+So let's generalize this
+so that we can use layouts
+
+
+383
+00:18:33,616 --> 00:18:34,676
+and compose them together.
+
+
+384
+00:18:35,226 --> 00:18:38,616
+Well the layout protocol
+that we're using
+
+
+385
+00:18:38,616 --> 00:18:40,506
+for our children
+requires a frame property.
+
+
+386
+00:18:41,426 --> 00:18:43,356
+But we never need to call
+the getter for that property.
+
+
+387
+00:18:43,356 --> 00:18:45,116
+We're only ever setting
+new values for it.
+
+
+388
+00:18:45,936 --> 00:18:46,966
+And we don't actually care
+
+
+389
+00:18:46,966 --> 00:18:48,416
+if our children have
+a frame or not.
+
+
+390
+00:18:48,926 --> 00:18:50,706
+We really just want to
+be able to tell our child
+
+
+391
+00:18:50,796 --> 00:18:53,066
+to lay itself out
+in a given rect.
+
+
+392
+00:18:53,676 --> 00:18:55,936
+So let's change this to a
+method that reflects that.
+
+
+393
+00:18:55,936 --> 00:18:58,716
+When we decide a rect
+for one of our children,
+
+
+394
+00:18:58,776 --> 00:19:02,246
+we'll tell that child
+to lay out in that rect.
+
+
+395
+00:19:02,636 --> 00:19:05,586
+UIView and SKNode can still
+conform to our protocol.
+
+
+396
+00:19:06,276 --> 00:19:07,556
+When they're asked
+to layout in a rect,
+
+
+397
+00:19:07,826 --> 00:19:09,216
+they'll just use it
+to set their frame.
+
+
+398
+00:19:10,116 --> 00:19:12,306
+But now we can make
+our layouts conform
+
+
+399
+00:19:12,306 --> 00:19:13,406
+to this protocol as well.
+
+
+400
+00:19:13,856 --> 00:19:15,326
+They already know
+how to do layout.
+
+
+401
+00:19:15,576 --> 00:19:17,896
+When they're given a frame,
+they just divide up that rect
+
+
+402
+00:19:18,026 --> 00:19:21,796
+and give it to their children.
+
+
+403
+00:19:21,796 --> 00:19:24,916
+Now we also need to make one
+small change to DecoratingLayout
+
+
+404
+00:19:24,996 --> 00:19:26,516
+to allow it to have
+more flexibility
+
+
+405
+00:19:26,516 --> 00:19:27,526
+in the types of its children.
+
+
+406
+00:19:27,526 --> 00:19:30,066
+And we'll look at that in
+detail a little bit later.
+
+
+407
+00:19:31,876 --> 00:19:35,196
+So now we can build
+our fancy layout
+
+
+408
+00:19:35,196 --> 00:19:38,556
+by composing together a
+CascadingLayout together
+
+
+409
+00:19:38,626 --> 00:19:40,346
+with a Decorating Layout.
+
+
+410
+00:19:42,696 --> 00:19:45,566
+The composition lets us build
+advanced layouts like this
+
+
+411
+00:19:45,916 --> 00:19:48,896
+in a very declarative way and
+there's even more examples
+
+
+412
+00:19:48,896 --> 00:19:50,076
+of this in the sample code.
+
+
+413
+00:19:51,636 --> 00:19:53,866
+So when you're working on your
+own app, the next time you need
+
+
+414
+00:19:53,866 --> 00:19:56,186
+to reuse code or
+customize some behavior,
+
+
+415
+00:19:56,516 --> 00:19:57,536
+trying using Composition.
+
+
+416
+00:19:57,886 --> 00:19:58,566
+It's a great tool.
+
+
+417
+00:20:01,316 --> 00:20:03,886
+So earlier I mentioned
+that we wanted to be able
+
+
+418
+00:20:03,886 --> 00:20:05,726
+to add the contents
+of our layouts
+
+
+419
+00:20:05,846 --> 00:20:08,046
+to either a superview
+or a SpriteKit scene.
+
+
+420
+00:20:08,616 --> 00:20:11,206
+And an important part of
+that is adding those contents
+
+
+421
+00:20:11,256 --> 00:20:11,986
+in the right order.
+
+
+422
+00:20:12,766 --> 00:20:16,366
+For example, our CascadingLayout
+wants its children to be ordered
+
+
+423
+00:20:16,366 --> 00:20:19,526
+so that they line up on top
+of each other, like this.
+
+
+424
+00:20:20,436 --> 00:20:23,426
+So let's expand our protocol to
+be able to support that as well.
+
+
+425
+00:20:24,706 --> 00:20:27,616
+We'll add a property to our
+layout protocol to be able
+
+
+426
+00:20:27,616 --> 00:20:28,826
+to return its contents.
+
+
+427
+00:20:29,796 --> 00:20:32,386
+And our combining layouts will
+return all of their contents
+
+
+428
+00:20:32,446 --> 00:20:33,796
+in the correct order from this.
+
+
+429
+00:20:34,476 --> 00:20:37,176
+And then leaf views and nodes
+can just return themselves.
+
+
+430
+00:20:38,616 --> 00:20:40,416
+But once again, if
+we make the type
+
+
+431
+00:20:40,416 --> 00:20:43,356
+of the contents just be our
+protocol, this would allow
+
+
+432
+00:20:43,356 --> 00:20:45,286
+for mixed environments
+of UI views
+
+
+433
+00:20:45,286 --> 00:20:46,786
+and SK nodes as the contents.
+
+
+434
+00:20:47,596 --> 00:20:49,506
+And since we're adding
+these children to a parent,
+
+
+435
+00:20:49,906 --> 00:20:51,786
+we only want to allow
+a homogenous collection
+
+
+436
+00:20:51,896 --> 00:20:54,306
+of just UI views
+or just SK nodes.
+
+
+437
+00:20:54,816 --> 00:20:58,686
+So to enforce this, we
+can add an associated type
+
+
+438
+00:20:58,766 --> 00:20:59,426
+to our protocol.
+
+
+439
+00:20:59,876 --> 00:21:02,566
+An associated type is
+like a type placeholder.
+
+
+440
+00:21:03,206 --> 00:21:05,156
+The conforming type
+chooses the concrete type
+
+
+441
+00:21:05,236 --> 00:21:06,256
+that it wants to use.
+
+
+442
+00:21:07,356 --> 00:21:09,246
+So our protocol's
+associated type is
+
+
+443
+00:21:09,246 --> 00:21:10,626
+for what we'll be
+putting in the array
+
+
+444
+00:21:10,626 --> 00:21:12,666
+of contents that our layout has.
+
+
+445
+00:21:13,256 --> 00:21:15,986
+This allows us to write
+something that just knows how
+
+
+446
+00:21:15,986 --> 00:21:19,326
+to lay out views and specify
+that its content type is UIView.
+
+
+447
+00:21:20,346 --> 00:21:21,936
+And similarly, we
+can write layouts
+
+
+448
+00:21:21,936 --> 00:21:24,056
+that only have SK nodes
+as their contents.
+
+
+449
+00:21:25,026 --> 00:21:26,426
+And this type safety
+is really great.
+
+
+450
+00:21:26,886 --> 00:21:28,476
+But just like before,
+we don't want to have
+
+
+451
+00:21:28,476 --> 00:21:30,816
+to write a separate
+layout for views and nodes.
+
+
+452
+00:21:31,686 --> 00:21:34,186
+But with the generic
+version of our layouts,
+
+
+453
+00:21:34,316 --> 00:21:36,856
+we can still have a single
+layout that supports both.
+
+
+454
+00:21:37,716 --> 00:21:38,696
+And for our content type,
+
+
+455
+00:21:39,116 --> 00:21:41,416
+we'll just use whatever the
+content of our child is.
+
+
+456
+00:21:42,026 --> 00:21:45,306
+And this means that we can make
+a DecoratingLayout that works
+
+
+457
+00:21:45,306 --> 00:21:48,396
+with just UI views and one
+that works with just SK nodes.
+
+
+458
+00:21:48,936 --> 00:21:51,636
+Both are strongly typed so that
+we can pull out their contents
+
+
+459
+00:21:51,756 --> 00:21:52,996
+and know exactly what they are
+
+
+460
+00:21:53,136 --> 00:21:55,366
+and they can still share
+all of the layout logic.
+
+
+461
+00:21:56,576 --> 00:21:58,196
+So associated types
+are a great way
+
+
+462
+00:21:58,196 --> 00:21:59,976
+that you make your
+protocols even more powerful.
+
+
+463
+00:22:05,136 --> 00:22:07,346
+So now that we have our
+improved layout protocol,
+
+
+464
+00:22:07,526 --> 00:22:10,456
+we can also revisit the types of
+our DecoratingLayout's children.
+
+
+465
+00:22:11,616 --> 00:22:13,246
+Now here they're
+required to be the same.
+
+
+466
+00:22:13,856 --> 00:22:17,566
+And this works great if they're
+both UI views but not if we want
+
+
+467
+00:22:17,566 --> 00:22:20,006
+to have a CascadingLayout
+together with a UIView,
+
+
+468
+00:22:20,246 --> 00:22:21,996
+like we talked about
+earlier for composition.
+
+
+469
+00:22:23,436 --> 00:22:26,306
+What we really want here
+is for all of the contents
+
+
+470
+00:22:26,366 --> 00:22:27,236
+to have the same type.
+
+
+471
+00:22:28,266 --> 00:22:31,036
+So let's update our
+layouts to reflect that.
+
+
+472
+00:22:31,536 --> 00:22:34,526
+We can change our struct to
+have two different generic type
+
+
+473
+00:22:34,526 --> 00:22:37,046
+parameters, one for
+each of its children.
+
+
+474
+00:22:38,296 --> 00:22:41,586
+Then, we can also add a
+generic constraint to require
+
+
+475
+00:22:41,586 --> 00:22:43,666
+that those two types have
+the same kind of contents.
+
+
+476
+00:22:44,536 --> 00:22:47,216
+And this lets us express the
+exact restrictions that we want.
+
+
+477
+00:22:47,596 --> 00:22:49,756
+Our children's content
+must be the same type.
+
+
+478
+00:22:50,306 --> 00:22:53,596
+So this is our finished
+protocol,
+
+
+479
+00:22:54,096 --> 00:22:55,546
+which represents our
+layout abstraction,
+
+
+480
+00:22:56,106 --> 00:22:57,806
+and this is a much
+better protocol
+
+
+481
+00:22:57,806 --> 00:22:58,666
+that what we had earlier.
+
+
+482
+00:22:59,346 --> 00:23:00,486
+This now has real meaning.
+
+
+483
+00:23:01,046 --> 00:23:02,546
+It's a complete set
+of operations
+
+
+484
+00:23:02,836 --> 00:23:05,476
+that represent what it means to
+be a part of the layout process.
+
+
+485
+00:23:06,356 --> 00:23:09,446
+You can also see our sample
+app to learn all of the details
+
+
+486
+00:23:09,446 --> 00:23:12,126
+about how all this works,
+including how we also used it
+
+
+487
+00:23:12,426 --> 00:23:16,366
+to do layout for rendering
+images on a background thread.
+
+
+488
+00:23:16,956 --> 00:23:18,906
+And one last place that
+we can also take advantage
+
+
+489
+00:23:18,906 --> 00:23:21,706
+of our new layout protocol
+is in our unit tests.
+
+
+490
+00:23:22,316 --> 00:23:24,776
+So we can write a struct
+that has a frame property
+
+
+491
+00:23:25,466 --> 00:23:26,946
+and conforms to our
+layout protocol
+
+
+492
+00:23:27,826 --> 00:23:30,686
+and then we can change our
+unit test to use this instead
+
+
+493
+00:23:30,686 --> 00:23:32,676
+of UI views as the
+children in our layout.
+
+
+494
+00:23:33,876 --> 00:23:35,746
+Now our layouts will
+just be setting frames
+
+
+495
+00:23:35,746 --> 00:23:36,836
+on these simple structs.
+
+
+496
+00:23:37,856 --> 00:23:41,066
+And this means that our test is
+completely isolated from UIView
+
+
+497
+00:23:41,316 --> 00:23:44,826
+and only relies on the logic in
+our own layout and test structs.
+
+
+498
+00:23:45,506 --> 00:23:48,576
+So we're unit testing our
+layout without using the GUI.
+
+
+499
+00:23:48,866 --> 00:23:50,256
+I think Crusty would be proud.
+
+
+500
+00:23:51,516 --> 00:23:57,986
+[ Applause ]
+
+
+501
+00:23:58,486 --> 00:24:01,876
+So those are some examples
+of how you can use types
+
+
+502
+00:24:01,876 --> 00:24:04,016
+and protocols in ways you
+might not have expected
+
+
+503
+00:24:04,286 --> 00:24:05,846
+in the view layer of your app.
+
+
+504
+00:24:06,436 --> 00:24:08,796
+And we also saw some great
+general Swift techniques
+
+
+505
+00:24:08,796 --> 00:24:10,016
+that you can apply anywhere.
+
+
+506
+00:24:10,676 --> 00:24:13,616
+First, we looked at how you
+can improve local reasoning
+
+
+507
+00:24:13,946 --> 00:24:15,006
+by using value types.
+
+
+508
+00:24:15,986 --> 00:24:18,296
+Then, we saw how you
+can use generic types
+
+
+509
+00:24:18,406 --> 00:24:20,556
+to get better type
+safety and flexible code.
+
+
+510
+00:24:21,186 --> 00:24:24,836
+And we also saw how composition
+of values is a great tool
+
+
+511
+00:24:24,836 --> 00:24:28,126
+for customizing and building
+up complex behaviors.
+
+
+512
+00:24:29,066 --> 00:24:31,596
+Now I'd like to bring Alex
+back to tell you what we did
+
+
+513
+00:24:31,596 --> 00:24:32,906
+with controllers in our app.
+
+
+514
+00:24:33,516 --> 00:24:37,500
+[ Applause ]
+
+
+515
+00:24:42,556 --> 00:24:43,386
+>> Thanks, Jacob.
+
+
+516
+00:24:44,506 --> 00:24:47,036
+Now I'd like to focus on
+how we can use value types
+
+
+517
+00:24:47,036 --> 00:24:48,026
+in the controller layer.
+
+
+518
+00:24:48,026 --> 00:24:50,516
+And we're going to talk
+about this in the context
+
+
+519
+00:24:50,516 --> 00:24:52,796
+of our app's Undo functionality.
+
+
+520
+00:24:54,696 --> 00:24:58,326
+So we implemented Undo
+for our list of dreams
+
+
+521
+00:24:58,436 --> 00:25:01,606
+and that worked really
+great, but we noticed
+
+
+522
+00:25:01,926 --> 00:25:04,736
+that we had a small bug
+where Undo doesn't work
+
+
+523
+00:25:04,736 --> 00:25:06,126
+for our favorite
+creature feature.
+
+
+524
+00:25:07,106 --> 00:25:10,726
+Now to reproduce this, we can
+tap the Favorite Creature row.
+
+
+525
+00:25:11,346 --> 00:25:14,346
+Right now we have
+our pink unicorn set
+
+
+526
+00:25:14,346 --> 00:25:16,446
+as our favorite creature
+but let's change
+
+
+527
+00:25:16,446 --> 00:25:17,496
+that to be the dragon.
+
+
+528
+00:25:18,046 --> 00:25:20,396
+And to finish the change,
+
+
+529
+00:25:20,396 --> 00:25:24,986
+we can just tap the Done
+button at the top right.
+
+
+530
+00:25:24,986 --> 00:25:27,636
+All right, so we've modified
+the favorite creature
+
+
+531
+00:25:28,006 --> 00:25:31,376
+but the problem is that if we
+shake to Undo, nothing happens.
+
+
+532
+00:25:32,436 --> 00:25:33,486
+And so that's a bug.
+
+
+533
+00:25:33,886 --> 00:25:35,736
+So let's take a look
+at our code and see why
+
+
+534
+00:25:35,736 --> 00:25:36,646
+that actually happened.
+
+
+535
+00:25:37,046 --> 00:25:40,196
+So we have two model properties
+
+
+536
+00:25:40,196 --> 00:25:43,786
+on our view controller right
+now: one for our dreams and one
+
+
+537
+00:25:43,786 --> 00:25:44,916
+for our favorite creature.
+
+
+538
+00:25:45,616 --> 00:25:48,446
+This is a pretty typical
+arrangement in the UIKit app,
+
+
+539
+00:25:48,786 --> 00:25:51,816
+especially as they grow larger
+and your feature set grows.
+
+
+540
+00:25:52,306 --> 00:25:57,026
+And so again we started off with
+just our dreams functionality
+
+
+541
+00:25:57,386 --> 00:25:58,906
+and so we implemented
+Undo for that
+
+
+542
+00:25:58,906 --> 00:26:00,256
+and it worked, which was great.
+
+
+543
+00:26:01,086 --> 00:26:03,876
+But after we added the
+Favorite Creature functionality,
+
+
+544
+00:26:04,076 --> 00:26:05,406
+we didn't have that Undo code.
+
+
+545
+00:26:05,906 --> 00:26:09,156
+And so the bug was just
+that we forgot that code.
+
+
+546
+00:26:10,166 --> 00:26:12,906
+And so to fix this, we
+could've added another code path
+
+
+547
+00:26:13,816 --> 00:26:16,036
+that implemented Undo for
+our favorite creature.
+
+
+548
+00:26:16,646 --> 00:26:18,286
+That sounds like a
+maintenance nightmare,
+
+
+549
+00:26:18,526 --> 00:26:21,276
+because now every time we
+add another model property,
+
+
+550
+00:26:21,916 --> 00:26:24,846
+we have to add another code
+path to implement Undo.
+
+
+551
+00:26:25,276 --> 00:26:26,726
+And so that doesn't seem good.
+
+
+552
+00:26:27,286 --> 00:26:28,436
+So we don't want that.
+
+
+553
+00:26:28,436 --> 00:26:32,806
+And so after that we took a
+step back and wanted to figure
+
+
+554
+00:26:32,806 --> 00:26:34,736
+out a solution that
+would [inaudible] better
+
+
+555
+00:26:34,776 --> 00:26:36,906
+as we add more model properties.
+
+
+556
+00:26:37,456 --> 00:26:41,936
+And so the solution is to
+compose these model properties
+
+
+557
+00:26:42,216 --> 00:26:44,996
+into a single value,
+our model struct.
+
+
+558
+00:26:45,656 --> 00:26:47,766
+And our undo logic is
+going to work solely
+
+
+559
+00:26:47,766 --> 00:26:49,126
+in terms of that one type.
+
+
+560
+00:26:49,646 --> 00:26:51,656
+Note it's really important
+
+
+561
+00:26:51,656 --> 00:26:54,606
+that our model still have
+value semantics and that's
+
+
+562
+00:26:54,606 --> 00:26:56,636
+because it's composed
+of two other values.
+
+
+563
+00:26:57,536 --> 00:26:59,886
+And so this approach
+is really great
+
+
+564
+00:27:00,076 --> 00:27:02,156
+because we now have
+only a single code path
+
+
+565
+00:27:02,156 --> 00:27:04,316
+for our two model properties,
+
+
+566
+00:27:04,526 --> 00:27:06,536
+and if we add another
+model property,
+
+
+567
+00:27:06,536 --> 00:27:07,856
+we still just have
+one code path.
+
+
+568
+00:27:07,856 --> 00:27:08,976
+And so this is really great.
+
+
+569
+00:27:13,866 --> 00:27:16,056
+And so we can accomplish
+this in code
+
+
+570
+00:27:16,056 --> 00:27:17,656
+by moving our two
+model properties
+
+
+571
+00:27:17,656 --> 00:27:20,436
+on our view controller
+into our new model struct.
+
+
+572
+00:27:21,656 --> 00:27:24,366
+And from there, all we have to
+do is add a new model property
+
+
+573
+00:27:24,366 --> 00:27:25,256
+to the view controller.
+
+
+574
+00:27:25,826 --> 00:27:29,396
+So that's how we're going to
+structure it, but now we need
+
+
+575
+00:27:29,396 --> 00:27:30,786
+to implement the Undo code.
+
+
+576
+00:27:31,386 --> 00:27:32,446
+So how do we do that?
+
+
+577
+00:27:33,076 --> 00:27:35,846
+Well, I want to show you first
+the way that it's commonly done
+
+
+578
+00:27:35,846 --> 00:27:37,266
+and we'll see why
+it's a little buggy.
+
+
+579
+00:27:37,806 --> 00:27:42,286
+And so on the left, we have
+our view controller's current
+
+
+580
+00:27:42,286 --> 00:27:43,006
+model value.
+
+
+581
+00:27:43,636 --> 00:27:46,216
+And on the right, we have our
+operations and our undo stack.
+
+
+582
+00:27:47,406 --> 00:27:49,206
+Now in the original
+version of our app,
+
+
+583
+00:27:49,326 --> 00:27:52,466
+we thought of the undo stack
+as a sequence of small steps.
+
+
+584
+00:27:52,986 --> 00:27:56,056
+Each step was responsible
+for modifying first the model
+
+
+585
+00:27:56,376 --> 00:27:59,646
+and then the view to match.
+
+
+586
+00:27:59,826 --> 00:28:01,896
+For example, in the
+first undo step,
+
+
+587
+00:28:02,156 --> 00:28:04,306
+we're going to remove the
+dream that the user just added
+
+
+588
+00:28:04,366 --> 00:28:06,816
+and then we're going to delete
+the row in that tableView.
+
+
+589
+00:28:07,106 --> 00:28:12,306
+And we can continue
+with the next undo step.
+
+
+590
+00:28:12,806 --> 00:28:19,536
+And so in this undo step,
+we're going to change the model
+
+
+591
+00:28:20,066 --> 00:28:21,636
+to be back to a pink unicorn.
+
+
+592
+00:28:22,166 --> 00:28:26,176
+And so this approach of mutating
+individual model properties
+
+
+593
+00:28:26,176 --> 00:28:28,876
+and updating our view
+independently is really easy
+
+
+594
+00:28:28,876 --> 00:28:31,896
+to get wrong and that's because
+you need to match the change
+
+
+595
+00:28:31,896 --> 00:28:35,426
+in the model to the change
+in the view, precisely.
+
+
+596
+00:28:36,286 --> 00:28:39,466
+And so failing to do so leads
+to a lot of inconsistencies
+
+
+597
+00:28:39,466 --> 00:28:42,526
+between your model and
+your view, and so you end
+
+
+598
+00:28:42,526 --> 00:28:43,706
+up with bugs like this.
+
+
+599
+00:28:44,776 --> 00:28:47,096
+And I'm sure all of
+you have run into this.
+
+
+600
+00:28:47,096 --> 00:28:48,506
+I run into this all the time.
+
+
+601
+00:28:49,646 --> 00:28:50,826
+And it's really hard to debug.
+
+
+602
+00:28:50,826 --> 00:28:53,156
+But why is it hard to debug?
+
+
+603
+00:28:54,486 --> 00:28:55,636
+Well, let's take another look
+
+
+604
+00:28:55,906 --> 00:28:58,326
+at our Undo stack
+that we started with.
+
+
+605
+00:28:58,916 --> 00:29:02,226
+Where do these undoable
+changes actually come from?
+
+
+606
+00:29:03,216 --> 00:29:07,386
+Well, each undoable change
+comes from our view controller
+
+
+607
+00:29:07,866 --> 00:29:11,356
+and each of those undoable
+changes matters for order.
+
+
+608
+00:29:12,156 --> 00:29:14,096
+And as we add features
+to our app,
+
+
+609
+00:29:14,196 --> 00:29:16,896
+these opportunities
+for mistakes spread.
+
+
+610
+00:29:18,086 --> 00:29:21,176
+And so there isn't one place
+in our code where we can reason
+
+
+611
+00:29:21,176 --> 00:29:24,156
+about the correspondence between
+our model and our view updates.
+
+
+612
+00:29:24,806 --> 00:29:26,906
+And so this is bad because
+it's really complicated.
+
+
+613
+00:29:26,906 --> 00:29:32,286
+So let's think about a
+simpler way to handle undo.
+
+
+614
+00:29:32,826 --> 00:29:37,146
+What if instead of
+recording small changes,
+
+
+615
+00:29:38,686 --> 00:29:41,456
+each entry in the stack
+is just a whole new value,
+
+
+616
+00:29:41,456 --> 00:29:44,896
+a whole new model and so
+now performing an undo
+
+
+617
+00:29:44,896 --> 00:29:46,406
+on the model is really simple.
+
+
+618
+00:29:47,076 --> 00:29:49,426
+Just replace the current model
+with the one on the stack
+
+
+619
+00:29:50,406 --> 00:29:52,656
+and that way we don't even
+need to worry about order.
+
+
+620
+00:29:52,656 --> 00:29:55,476
+And then we just
+replace the value.
+
+
+621
+00:29:55,476 --> 00:29:59,846
+And so now that we have that
+sorted out with our model,
+
+
+622
+00:29:59,846 --> 00:30:02,116
+we need to figure out how
+we're going to update our UI.
+
+
+623
+00:30:02,396 --> 00:30:07,556
+And so in our view controller,
+whenever a model changes,
+
+
+624
+00:30:07,556 --> 00:30:09,616
+we're going to call this
+modelDidChange method.
+
+
+625
+00:30:10,866 --> 00:30:13,946
+Now, I recommend you go
+download this sample and look
+
+
+626
+00:30:13,946 --> 00:30:16,686
+at this method for more
+information about how it works.
+
+
+627
+00:30:16,686 --> 00:30:19,836
+But in that method, we need
+to find the differences
+
+
+628
+00:30:19,836 --> 00:30:21,926
+between the old and
+the new model values
+
+
+629
+00:30:22,016 --> 00:30:23,576
+and update our UI to match.
+
+
+630
+00:30:24,626 --> 00:30:26,866
+So for example, we
+can check to see
+
+
+631
+00:30:26,866 --> 00:30:29,646
+if the old model's favorite
+creature is different
+
+
+632
+00:30:29,946 --> 00:30:31,946
+than the new model's
+favorite creature.
+
+
+633
+00:30:33,056 --> 00:30:35,586
+And if it is, we're going to
+update our table view section
+
+
+634
+00:30:35,586 --> 00:30:38,466
+that contains the
+Favorite Creature row.
+
+
+635
+00:30:40,266 --> 00:30:44,026
+And there's a more flushed out
+implementation in the project,
+
+
+636
+00:30:44,026 --> 00:30:46,416
+like I just mentioned, so I
+recommend you check out more
+
+
+637
+00:30:46,416 --> 00:30:49,616
+of the UI that we
+update in there.
+
+
+638
+00:30:49,836 --> 00:30:52,376
+And finally, we can just
+register the undo logic
+
+
+639
+00:30:52,966 --> 00:30:54,996
+where we reset our
+model to the old value.
+
+
+640
+00:30:55,676 --> 00:30:58,256
+Now this is great because
+now we only need one
+
+
+641
+00:30:58,306 --> 00:31:01,026
+or we're only registering
+the undo in a single place.
+
+
+642
+00:31:01,766 --> 00:31:05,076
+So what were the benefits here?
+
+
+643
+00:31:05,856 --> 00:31:08,116
+Well, as we saw, we now
+have a single code path
+
+
+644
+00:31:08,116 --> 00:31:09,246
+for updating our UI,
+
+
+645
+00:31:09,666 --> 00:31:11,746
+and operations are
+order independent,
+
+
+646
+00:31:12,006 --> 00:31:13,256
+which was not the case before.
+
+
+647
+00:31:14,256 --> 00:31:16,796
+This really helped us reason
+locally about our code,
+
+
+648
+00:31:17,226 --> 00:31:20,306
+about our UI update code.
+
+
+649
+00:31:20,526 --> 00:31:24,096
+We also saw how values compose
+very well with other values.
+
+
+650
+00:31:24,896 --> 00:31:28,376
+If we have two values as
+properties of a single value,
+
+
+651
+00:31:28,896 --> 00:31:30,956
+that value still
+has value semantics.
+
+
+652
+00:31:37,246 --> 00:31:41,246
+Okay, so we just talked
+about how to use value types
+
+
+653
+00:31:41,246 --> 00:31:44,126
+in the controller layer
+with our model properties.
+
+
+654
+00:31:44,676 --> 00:31:46,026
+And now I want to do the same
+
+
+655
+00:31:46,186 --> 00:31:48,246
+with our controller's
+UI state properties.
+
+
+656
+00:31:48,786 --> 00:31:51,286
+And so you've seen
+this screen before.
+
+
+657
+00:31:51,826 --> 00:31:53,926
+It's just our list of dreams.
+
+
+658
+00:31:54,496 --> 00:31:57,216
+But this view controller has
+many, many different states
+
+
+659
+00:31:57,816 --> 00:31:59,646
+and so I'd like to show
+you the state diagram
+
+
+660
+00:31:59,906 --> 00:32:02,536
+for our view controller as it
+relates to a very cool feature
+
+
+661
+00:32:02,536 --> 00:32:05,536
+that we have, the ability to
+share dreams with friends.
+
+
+662
+00:32:06,546 --> 00:32:07,276
+So let's take a look.
+
+
+663
+00:32:07,976 --> 00:32:10,956
+So this is our basic
+state diagram.
+
+
+664
+00:32:11,596 --> 00:32:17,366
+We're going to start off
+in the viewing state.
+
+
+665
+00:32:17,576 --> 00:32:20,256
+Now we can tap the Share button
+at the top right, which is going
+
+
+666
+00:32:20,256 --> 00:32:21,866
+to take us to the
+selecting state.
+
+
+667
+00:32:23,226 --> 00:32:24,836
+And then we can select
+dreams to share.
+
+
+668
+00:32:25,446 --> 00:32:27,836
+And then we can tap
+the Done button
+
+
+669
+00:32:27,836 --> 00:32:29,886
+to go back to the sharing state.
+
+
+670
+00:32:33,856 --> 00:32:36,576
+Then when we're done, we just
+go back to the viewing state.
+
+
+671
+00:32:37,076 --> 00:32:39,726
+And so that all worked well.
+
+
+672
+00:32:39,726 --> 00:32:41,306
+But let's go back
+
+
+673
+00:32:41,306 --> 00:32:42,756
+to the selecting state
+again real quick.
+
+
+674
+00:32:43,966 --> 00:32:47,516
+You'll notice that we
+can stop sharing midway
+
+
+675
+00:32:47,516 --> 00:32:50,026
+through by tapping the Cancel
+button at the top left.
+
+
+676
+00:32:50,706 --> 00:32:55,876
+And so this moved us back
+into the viewing state.
+
+
+677
+00:32:56,546 --> 00:32:58,946
+And you can see that our
+navigation bar looks correct
+
+
+678
+00:32:59,366 --> 00:33:00,986
+since it shows the
+Share button again.
+
+
+679
+00:33:01,986 --> 00:33:03,976
+But there's actually a
+subtle UI bug in our app
+
+
+680
+00:33:03,976 --> 00:33:06,066
+because of an inconsistent
+state.
+
+
+681
+00:33:07,216 --> 00:33:10,736
+The UI on the left side of the
+table view is still visible
+
+
+682
+00:33:10,736 --> 00:33:13,966
+to allow users to select dreams
+to share and this is wrong.
+
+
+683
+00:33:14,526 --> 00:33:18,766
+So when we went back to debug
+this code, we saw that some
+
+
+684
+00:33:18,766 --> 00:33:21,006
+of our state properties
+weren't fully cleared
+
+
+685
+00:33:21,006 --> 00:33:22,666
+out during a state change.
+
+
+686
+00:33:23,746 --> 00:33:26,906
+And so in this case, even though
+we moved to the viewing state,
+
+
+687
+00:33:26,906 --> 00:33:28,976
+we forgot to clear out
+some of the properties
+
+
+688
+00:33:28,976 --> 00:33:30,376
+of the selecting state.
+
+
+689
+00:33:31,306 --> 00:33:33,596
+So let's take another look
+at our state diagram to see
+
+
+690
+00:33:33,596 --> 00:33:37,846
+if we can come up with a fix.
+
+
+691
+00:33:38,046 --> 00:33:41,056
+Now each state here has
+a corresponding property.
+
+
+692
+00:33:41,876 --> 00:33:43,756
+And those properties
+are properties
+
+
+693
+00:33:43,756 --> 00:33:44,686
+on our view controller.
+
+
+694
+00:33:45,266 --> 00:33:49,736
+And the number of
+state properties
+
+
+695
+00:33:49,886 --> 00:33:52,546
+in our view controller
+can easily explode
+
+
+696
+00:33:52,546 --> 00:33:54,796
+as your app's feature set grows.
+
+
+697
+00:33:55,586 --> 00:33:58,546
+And so it's important that in
+this case our properties are
+
+
+698
+00:33:58,546 --> 00:33:59,886
+mutually exclusive.
+
+
+699
+00:34:00,396 --> 00:34:03,586
+And so when we're
+viewing, we not sharing.
+
+
+700
+00:34:03,586 --> 00:34:05,846
+And when we're sharing,
+we not selecting.
+
+
+701
+00:34:07,456 --> 00:34:10,346
+But the way we've written it,
+when you set one property,
+
+
+702
+00:34:10,346 --> 00:34:12,485
+you need to clear out
+all the other properties
+
+
+703
+00:34:12,485 --> 00:34:13,746
+and this is really error prone.
+
+
+704
+00:34:14,246 --> 00:34:16,926
+And so how can we
+solve this problem?
+
+
+705
+00:34:17,476 --> 00:34:21,606
+Well, enums are actually perfect
+for mutually exclusive values.
+
+
+706
+00:34:22,106 --> 00:34:25,846
+And so we turn all of
+our UI state properties
+
+
+707
+00:34:25,846 --> 00:34:27,826
+into cases on an enum value.
+
+
+708
+00:34:29,036 --> 00:34:31,226
+And from there, we can
+just add a state property
+
+
+709
+00:34:31,295 --> 00:34:32,266
+to our view controller.
+
+
+710
+00:34:32,846 --> 00:34:37,146
+So by using an enum,
+we can make sure
+
+
+711
+00:34:37,146 --> 00:34:38,856
+that our states are
+mutually exclusive.
+
+
+712
+00:34:39,466 --> 00:34:41,525
+And that's great because
+now the invalid state bug
+
+
+713
+00:34:41,525 --> 00:34:44,246
+that we had before
+isn't even possible
+
+
+714
+00:34:44,246 --> 00:34:46,126
+and it's enforced
+by the type system.
+
+
+715
+00:34:46,646 --> 00:34:51,126
+And so this approach also means
+that our state changes all
+
+
+716
+00:34:51,126 --> 00:34:55,346
+at once, without any possibility
+of any intermediate states.
+
+
+717
+00:34:55,346 --> 00:34:59,556
+So we don't to coordinate
+flipping properties
+
+
+718
+00:34:59,936 --> 00:35:01,696
+with implicit timing
+dependencies.
+
+
+719
+00:35:02,386 --> 00:35:05,326
+And as a bonus, having
+your state all
+
+
+720
+00:35:05,326 --> 00:35:07,616
+in one places makes it
+easier to launch your app
+
+
+721
+00:35:07,946 --> 00:35:09,986
+in exactly the same state
+as the user left it.
+
+
+722
+00:35:10,426 --> 00:35:11,816
+So I really recommend
+you checkout
+
+
+723
+00:35:11,816 --> 00:35:14,106
+and download the project again
+
+
+724
+00:35:14,106 --> 00:35:17,306
+to see how we implemented state
+restoration in our application.
+
+
+725
+00:35:17,956 --> 00:35:25,246
+Okay, so we covered a lot today,
+and we started off with the goal
+
+
+726
+00:35:25,246 --> 00:35:28,186
+of improving local
+reasoning in our application
+
+
+727
+00:35:28,556 --> 00:35:31,156
+by introducing value
+types and protocols
+
+
+728
+00:35:31,156 --> 00:35:33,676
+into our model view
+controller based application.
+
+
+729
+00:35:34,316 --> 00:35:35,776
+So how'd we do?
+
+
+730
+00:35:36,596 --> 00:35:39,866
+Well, we started off by making
+our model have value semantics,
+
+
+731
+00:35:40,156 --> 00:35:41,756
+by making the dream
+type a struct.
+
+
+732
+00:35:42,186 --> 00:35:45,676
+And this makes it easier for us
+to locally reason about our code
+
+
+733
+00:35:45,676 --> 00:35:48,916
+because there's no implicit
+sharing of our dream variables.
+
+
+734
+00:35:50,616 --> 00:35:53,486
+Then Jacob showed you how
+we built small components,
+
+
+735
+00:35:53,796 --> 00:35:56,056
+like DecoratingLayout
+and CascadingLayout.
+
+
+736
+00:35:57,096 --> 00:36:00,196
+These small components
+took advantage of protocols
+
+
+737
+00:36:00,196 --> 00:36:01,396
+in generics to make sure
+
+
+738
+00:36:01,396 --> 00:36:04,796
+that the generic components
+were reusable with views,
+
+
+739
+00:36:05,086 --> 00:36:07,306
+SpriteKit nodes,
+and image rendering.
+
+
+740
+00:36:08,046 --> 00:36:10,966
+And all of this led to better
+local reasoning since each
+
+
+741
+00:36:10,966 --> 00:36:13,886
+of these types were
+small, testable,
+
+
+742
+00:36:13,886 --> 00:36:14,976
+and isolated value types.
+
+
+743
+00:36:16,316 --> 00:36:20,226
+And then we saw how
+we can take advantage
+
+
+744
+00:36:20,226 --> 00:36:21,866
+of composing model properties
+
+
+745
+00:36:22,136 --> 00:36:24,066
+on a view controller
+into a single type.
+
+
+746
+00:36:25,156 --> 00:36:28,456
+This made it easier to implement
+undo with a single code path,
+
+
+747
+00:36:29,186 --> 00:36:31,996
+even as our model type grows
+to have more properties.
+
+
+748
+00:36:33,166 --> 00:36:35,586
+And this approach also
+gave us one code path
+
+
+749
+00:36:35,616 --> 00:36:38,926
+for updating our
+UI, making it easier
+
+
+750
+00:36:38,926 --> 00:36:40,306
+to understand the UI logic
+
+
+751
+00:36:40,736 --> 00:36:42,636
+of our view controller
+in isolation.
+
+
+752
+00:36:43,196 --> 00:36:48,276
+And finally, we saw how we can
+turn our mutually exclusive
+
+
+753
+00:36:48,276 --> 00:36:51,676
+state properties into an enum
+value on our view controller.
+
+
+754
+00:36:52,516 --> 00:36:55,046
+Now this reduced the
+potential for our UI to be an
+
+
+755
+00:36:55,046 --> 00:36:56,186
+in inconsistent state.
+
+
+756
+00:36:57,256 --> 00:37:01,786
+And so those were the value
+types that we discussed today.
+
+
+757
+00:37:02,586 --> 00:37:05,316
+But if you go and download
+the sample project,
+
+
+758
+00:37:05,806 --> 00:37:07,366
+you'll see that there
+are actually many more
+
+
+759
+00:37:07,366 --> 00:37:08,036
+in the project.
+
+
+760
+00:37:08,686 --> 00:37:12,736
+And so pretty much our
+whole application is built
+
+
+761
+00:37:12,736 --> 00:37:15,306
+with value types except
+
+
+762
+00:37:15,306 --> 00:37:17,436
+for where we have a
+controller or view object.
+
+
+763
+00:37:18,206 --> 00:37:21,176
+Now these are required to
+be reference types by UIKit
+
+
+764
+00:37:21,316 --> 00:37:23,496
+but we've still moved most
+
+
+765
+00:37:23,496 --> 00:37:26,026
+of our functionality
+into value types.
+
+
+766
+00:37:26,556 --> 00:37:33,216
+And so we spoke about a lot
+today and I want you to go home
+
+
+767
+00:37:33,216 --> 00:37:38,286
+with just a few things in
+your mind to take home.
+
+
+768
+00:37:38,496 --> 00:37:41,496
+So the first is customization
+
+
+769
+00:37:41,906 --> 00:37:43,806
+through composition
+instead of inheritance.
+
+
+770
+00:37:45,066 --> 00:37:46,386
+The next time you're
+at your desk
+
+
+771
+00:37:47,076 --> 00:37:50,096
+and you're drawing a class
+diagram to solve some problem,
+
+
+772
+00:37:50,736 --> 00:37:55,096
+I want you to think how you
+can use composition instead
+
+
+773
+00:37:55,096 --> 00:37:58,306
+of inheritance to solve that
+problem, so you get the benefits
+
+
+774
+00:37:58,306 --> 00:37:59,936
+of value types that
+we talked about today.
+
+
+775
+00:38:00,506 --> 00:38:03,946
+And the second technique
+is to use protocols
+
+
+776
+00:38:03,946 --> 00:38:05,566
+for generic reusable code.
+
+
+777
+00:38:06,616 --> 00:38:09,906
+You can make small reusable
+components that are easy
+
+
+778
+00:38:09,906 --> 00:38:12,346
+to locally reason
+about and easy to test.
+
+
+779
+00:38:13,076 --> 00:38:15,766
+And so I highly recommend
+you check out how we've done
+
+
+780
+00:38:15,766 --> 00:38:18,706
+that in the sample with
+generic types instead
+
+
+781
+00:38:18,706 --> 00:38:21,206
+of having class hierarchies.
+
+
+782
+00:38:21,736 --> 00:38:26,596
+We also showed you how to take
+advantage of value semantics.
+
+
+783
+00:38:27,306 --> 00:38:29,266
+The important thing
+to remember here is
+
+
+784
+00:38:29,266 --> 00:38:32,226
+that if you have a value
+composed of other properties
+
+
+785
+00:38:32,366 --> 00:38:36,386
+that are values, the larger
+value also has value semantics.
+
+
+786
+00:38:36,906 --> 00:38:40,776
+And finally, we talked
+about local reasoning.
+
+
+787
+00:38:42,166 --> 00:38:45,836
+Now, local reasoning is actually
+a very general technique that's
+
+
+788
+00:38:45,836 --> 00:38:51,656
+not specific to UI
+programming, it's not specific
+
+
+789
+00:38:52,076 --> 00:38:54,586
+to mobile development, and
+it's not specific to Swift.
+
+
+790
+00:38:55,336 --> 00:38:57,246
+This is a really
+important aspect
+
+
+791
+00:38:57,316 --> 00:39:00,556
+of all programming language,
+all programming languages.
+
+
+792
+00:39:01,406 --> 00:39:04,096
+So when you get back to your
+desk and you start coding,
+
+
+793
+00:39:04,456 --> 00:39:08,266
+I want you to think, regardless
+of the language, does that code,
+
+
+794
+00:39:08,266 --> 00:39:10,476
+how well does that code
+support local reasoning.
+
+
+795
+00:39:11,716 --> 00:39:17,656
+Now it's no accident that Swift
+emphasizes value types so much
+
+
+796
+00:39:18,076 --> 00:39:21,206
+because they're a hugely
+important aspect for you
+
+
+797
+00:39:21,266 --> 00:39:23,486
+to be able to locally
+reason about your code.
+
+
+798
+00:39:23,986 --> 00:39:27,486
+And that's it.
+
+
+799
+00:39:27,786 --> 00:39:29,316
+So you can find the sample code
+
+
+800
+00:39:29,316 --> 00:39:31,426
+and more relevant
+resources here.
+
+
+801
+00:39:31,426 --> 00:39:33,366
+I highly recommend you do that.
+
+
+802
+00:39:34,096 --> 00:39:35,556
+We have some related sessions
+
+
+803
+00:39:35,556 --> 00:39:36,896
+that we mentioned
+throughout the talk
+
+
+804
+00:39:37,886 --> 00:39:39,346
+and I recommend you
+watch them on video.
+
+
+805
+00:39:40,176 --> 00:39:41,976
+And thank you for a great WWDC.
+
+
+806
+00:39:42,516 --> 00:39:45,500
+[ Applause ]
+

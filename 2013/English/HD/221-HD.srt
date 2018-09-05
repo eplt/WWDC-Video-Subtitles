@@ -1,0 +1,5725 @@
+1
+00:00:00,506 --> 00:00:05,111
+[ Silence ]
+
+
+2
+00:00:05,611 --> 00:00:10,216
+[ Applause ]
+
+
+3
+00:00:10,716 --> 00:00:15,346
+>> Good afternoon.
+
+
+4
+00:00:17,206 --> 00:00:19,326
+Welcome to this WWDC session
+
+
+5
+00:00:19,326 --> 00:00:21,996
+on Advanced Techniques
+with UIKit Dynamics.
+
+
+6
+00:00:23,096 --> 00:00:27,916
+We have a lot of content for
+you today, many lines of code.
+
+
+7
+00:00:29,606 --> 00:00:30,416
+So let's get started.
+
+
+8
+00:00:32,125 --> 00:00:35,606
+We're going to start with a
+very quick recap of dynamics,
+
+
+9
+00:00:36,156 --> 00:00:41,366
+architecture, and we're
+going to explore more of this
+
+
+10
+00:00:41,496 --> 00:00:43,116
+"combining behaviors" idea.
+
+
+11
+00:00:44,076 --> 00:00:46,406
+And we're going to
+talk briefly again
+
+
+12
+00:00:46,406 --> 00:00:49,716
+about dynamic items,
+custom dynamic items.
+
+
+13
+00:00:49,716 --> 00:00:52,256
+And we have a quick example
+
+
+14
+00:00:52,256 --> 00:00:54,946
+about collection
+view and dynamics.
+
+
+15
+00:00:55,506 --> 00:01:01,916
+And we will end with great
+demo and architecture
+
+
+16
+00:01:02,016 --> 00:01:05,316
+about using view
+controllers with dynamics.
+
+
+17
+00:01:06,476 --> 00:01:09,006
+So UIKit Dynamics.
+
+
+18
+00:01:09,506 --> 00:01:12,536
+It's a physics inspired
+animation
+
+
+19
+00:01:12,536 --> 00:01:13,866
+and interaction system.
+
+
+20
+00:01:15,826 --> 00:01:19,396
+Made to be composable,
+combinable, reusable.
+
+
+21
+00:01:19,396 --> 00:01:24,676
+We try to use Dynamics in
+a way which is declarative.
+
+
+22
+00:01:25,546 --> 00:01:29,206
+You tell us what the
+intent of the interaction is
+
+
+23
+00:01:29,526 --> 00:01:33,626
+and we will try to combine the
+effect of all new behaviors
+
+
+24
+00:01:33,626 --> 00:01:35,166
+to animate things on screen.
+
+
+25
+00:01:35,696 --> 00:01:40,556
+Let me stress that this
+does not, in anyway,
+
+
+26
+00:01:40,556 --> 00:01:43,986
+replace what we have to
+day with Core Animation,
+
+
+27
+00:01:44,366 --> 00:01:46,796
+UIView animation,
+or motion effects.
+
+
+28
+00:01:47,296 --> 00:01:52,526
+It is just a new tool for rich,
+real-world like interactions.
+
+
+29
+00:01:54,056 --> 00:01:59,656
+So the base Dynamics
+architecture,
+
+
+30
+00:01:59,656 --> 00:02:04,306
+we have this DynamicAnimator
+which gives us this context
+
+
+31
+00:02:04,586 --> 00:02:08,616
+in which we associate
+various behaviors
+
+
+32
+00:02:08,916 --> 00:02:13,166
+and we associate dynamic
+items which are usually views
+
+
+33
+00:02:13,166 --> 00:02:15,446
+or collection view
+layout attributes.
+
+
+34
+00:02:16,236 --> 00:02:20,086
+And the key thing here
+is, an item might be part
+
+
+35
+00:02:20,156 --> 00:02:22,466
+of different behaviors
+and we're going
+
+
+36
+00:02:22,466 --> 00:02:24,316
+to combine all these effects.
+
+
+37
+00:02:24,976 --> 00:02:27,736
+So let's talk about
+UIDynamicAnimator.
+
+
+38
+00:02:29,796 --> 00:02:35,706
+So its main job is to track
+behaviors and animated items.
+
+
+39
+00:02:36,476 --> 00:02:40,566
+And it wraps the underlying
+physics engine we run for you.
+
+
+40
+00:02:41,106 --> 00:02:46,596
+What's interesting is, we try to
+actually optimize that engine.
+
+
+41
+00:02:46,596 --> 00:02:51,286
+So if we detect that the system
+is at rest, we just stop.
+
+
+42
+00:02:51,916 --> 00:02:56,606
+If you change anything like
+changing the parameter on one
+
+
+43
+00:02:56,606 --> 00:02:59,166
+of your behaviors, we
+start the system again.
+
+
+44
+00:02:59,726 --> 00:03:01,496
+And you can actually
+be notified.
+
+
+45
+00:03:02,476 --> 00:03:05,526
+We have a
+UIDynamicAnimatorDelegate,
+
+
+46
+00:03:06,206 --> 00:03:10,246
+so you can implement methods
+so you can know if we are
+
+
+47
+00:03:10,246 --> 00:03:14,076
+about to pause or
+resume that system.
+
+
+48
+00:03:16,886 --> 00:03:19,996
+You can use a DynamicAnimator
+in three modes basically,
+
+
+49
+00:03:19,996 --> 00:03:22,606
+with views which
+is the common case.
+
+
+50
+00:03:22,726 --> 00:03:25,386
+In collection views--
+collection view layout exactly,
+
+
+51
+00:03:25,956 --> 00:03:28,636
+and you can implement
+your own dynamic item
+
+
+52
+00:03:28,766 --> 00:03:30,956
+to participate in dynamics.
+
+
+53
+00:03:31,366 --> 00:03:35,216
+So let's talk about
+combining behaviors.
+
+
+54
+00:03:38,056 --> 00:03:42,016
+Combining behaviors
+is interesting:
+
+
+55
+00:03:42,016 --> 00:03:46,406
+the underlying model physics
+is in itself quite good
+
+
+56
+00:03:46,406 --> 00:03:49,986
+about combining things, combine
+two forces and you get a force.
+
+
+57
+00:03:50,556 --> 00:03:55,516
+And we build on that,
+we have this base class
+
+
+58
+00:03:55,516 --> 00:03:58,916
+UIDynamicBehavior
+that you can subclass.
+
+
+59
+00:03:59,786 --> 00:04:04,666
+And one of few things we have
+in this class is the ability
+
+
+60
+00:04:04,666 --> 00:04:06,836
+to add child behaviors,
+
+
+61
+00:04:07,516 --> 00:04:09,276
+which means that you
+can use this class
+
+
+62
+00:04:10,136 --> 00:04:13,096
+to construct your own
+high-level behaviors.
+
+
+63
+00:04:13,606 --> 00:04:20,255
+What's interesting here, if
+you attach behavior directly
+
+
+64
+00:04:20,255 --> 00:04:26,126
+to the animator, or if you add
+a child behavior to a behavior
+
+
+65
+00:04:26,646 --> 00:04:28,846
+and add this behavior
+to the animator,
+
+
+66
+00:04:29,716 --> 00:04:30,666
+there is no difference.
+
+
+67
+00:04:31,116 --> 00:04:37,256
+There is no CPU cost or
+any runtime difference
+
+
+68
+00:04:37,256 --> 00:04:38,486
+between these two approaches.
+
+
+69
+00:04:38,746 --> 00:04:42,176
+So there is no cost for
+building your abstractions.
+
+
+70
+00:04:42,676 --> 00:04:46,586
+[ Pause ]
+
+
+71
+00:04:47,086 --> 00:04:49,886
+You can compose your
+behaviors statically
+
+
+72
+00:04:50,206 --> 00:04:54,306
+like by defining your own
+class, adding child behaviors
+
+
+73
+00:04:54,486 --> 00:04:59,706
+and then never changing these
+behaviors again or dynamically
+
+
+74
+00:04:59,706 --> 00:05:02,066
+by adding and removing children
+
+
+75
+00:05:02,506 --> 00:05:04,826
+for a behavior or
+from the animator.
+
+
+76
+00:05:05,716 --> 00:05:09,816
+So let's see a quick
+example of that.
+
+
+77
+00:05:09,966 --> 00:05:11,826
+Let's say that I want to drag
+
+
+78
+00:05:12,806 --> 00:05:19,516
+with this real-world effect a
+view and when my gesture ends,
+
+
+79
+00:05:20,706 --> 00:05:21,906
+I want to apply gravity
+
+
+80
+00:05:21,906 --> 00:05:24,816
+to get this bouncy
+effect I love so much.
+
+
+81
+00:05:25,446 --> 00:05:28,866
+The initial setup was just
+with a collision behavior
+
+
+82
+00:05:29,146 --> 00:05:32,406
+and that view added
+to this behavior.
+
+
+83
+00:05:32,756 --> 00:05:38,236
+But when my gesture actually
+begins, what I want to do is
+
+
+84
+00:05:38,236 --> 00:05:41,436
+to create a new behavior,
+an attachment behavior,
+
+
+85
+00:05:42,076 --> 00:05:45,846
+add that to the animator.
+
+
+86
+00:05:46,366 --> 00:05:50,456
+And when I update-- when
+my gesture is updated,
+
+
+87
+00:05:50,456 --> 00:05:56,356
+I just need to change
+that attachment point
+
+
+88
+00:05:56,626 --> 00:06:00,196
+in my UIAttachmentBehavior
+and it's going
+
+
+89
+00:06:00,196 --> 00:06:02,526
+to drag the view
+as I would expect.
+
+
+90
+00:06:03,706 --> 00:06:10,026
+When I end this gesture,
+what I just need to do is
+
+
+91
+00:06:10,026 --> 00:06:11,546
+to remove the attachment
+behavior
+
+
+92
+00:06:12,346 --> 00:06:16,956
+and at the same time add the
+same view to a gravity behavior.
+
+
+93
+00:06:18,036 --> 00:06:20,496
+A collision behavior is
+still here, so we are going
+
+
+94
+00:06:20,496 --> 00:06:23,566
+to add this fall
+and bounce effect.
+
+
+95
+00:06:24,266 --> 00:06:30,876
+That's a really interesting
+concept and you can build a lot
+
+
+96
+00:06:30,876 --> 00:06:35,146
+of completely different
+effects by combining behaviors.
+
+
+97
+00:06:36,136 --> 00:06:40,166
+For instance, that example I
+was using in the first session,
+
+
+98
+00:06:40,686 --> 00:06:44,296
+a bounce effect is just gravity
+and collision at the same time.
+
+
+99
+00:06:45,266 --> 00:06:47,566
+If I want to drag a
+view and then at the end
+
+
+100
+00:06:47,566 --> 00:06:50,436
+of the gesture snap it
+somewhere else in the screen,
+
+
+101
+00:06:51,306 --> 00:06:55,566
+I can use an attachment behavior
+first and then a snap behavior.
+
+
+102
+00:06:55,566 --> 00:07:01,396
+Something like the Lock
+Screen in iOS 7 can be built
+
+
+103
+00:07:01,396 --> 00:07:05,126
+as a combination of
+collision, gravity,
+
+
+104
+00:07:05,506 --> 00:07:08,186
+attachment, and push behavior.
+
+
+105
+00:07:08,986 --> 00:07:10,986
+But you can imagine
+many other things
+
+
+106
+00:07:12,256 --> 00:07:16,546
+like a magnet-like behavior
+that you could build
+
+
+107
+00:07:16,546 --> 00:07:20,186
+from multiple UIPushBehaviors.
+
+
+108
+00:07:21,866 --> 00:07:24,886
+So I'd like to show
+you a very quick demo
+
+
+109
+00:07:26,506 --> 00:07:32,276
+of the different feel
+you can get by changing,
+
+
+110
+00:07:32,936 --> 00:07:34,806
+removing, and adding behaviors.
+
+
+111
+00:07:39,636 --> 00:07:47,686
+So a very interesting thing here
+is the top right animator label
+
+
+112
+00:07:48,476 --> 00:07:51,146
+is turning green when
+the animator is active.
+
+
+113
+00:07:51,606 --> 00:07:55,286
+I basically just implemented
+this UIDynamicAnimatorDelegate
+
+
+114
+00:07:55,286 --> 00:07:58,466
+so we will know when the
+animator actually stops
+
+
+115
+00:07:58,986 --> 00:07:59,766
+and starts again.
+
+
+116
+00:08:01,286 --> 00:08:03,936
+So I can just drag that view,
+
+
+117
+00:08:04,546 --> 00:08:06,846
+there is no other
+behaviors, just collisions.
+
+
+118
+00:08:07,626 --> 00:08:09,716
+So let's add gravity.
+
+
+119
+00:08:10,816 --> 00:08:16,676
+So now, when I actually move
+this view, the effect is,
+
+
+120
+00:08:16,676 --> 00:08:18,776
+of course, completely different.
+
+
+121
+00:08:19,706 --> 00:08:23,756
+It's moving a little
+bit too much,
+
+
+122
+00:08:23,756 --> 00:08:25,906
+motion sickness is not
+something that I would
+
+
+123
+00:08:25,906 --> 00:08:27,406
+like to have in this demo.
+
+
+124
+00:08:27,996 --> 00:08:32,206
+So we're going to add
+a UIDynamicItemBehavior
+
+
+125
+00:08:32,206 --> 00:08:36,246
+which is a way to set up
+some low-level properties.
+
+
+126
+00:08:36,576 --> 00:08:40,645
+I'm going to set up
+resistance which a way
+
+
+127
+00:08:40,645 --> 00:08:43,696
+to apply damping on velocity.
+
+
+128
+00:08:43,696 --> 00:08:46,296
+So the feel is completely
+different.
+
+
+129
+00:08:47,346 --> 00:08:52,046
+I could add a force
+behavior going to the right,
+
+
+130
+00:08:52,436 --> 00:08:56,906
+an immediate instantaneous
+impulse behavior
+
+
+131
+00:08:59,346 --> 00:09:02,176
+and keep my attachment behavior.
+
+
+132
+00:09:02,176 --> 00:09:04,826
+So I see that this force on the
+view that's trying to move it
+
+
+133
+00:09:04,826 --> 00:09:07,106
+to the right, so
+let's stop that.
+
+
+134
+00:09:09,576 --> 00:09:14,356
+And the other thing is I
+could also change those
+
+
+135
+00:09:14,356 --> 00:09:18,946
+that are low-level property on
+this view like the elasticity
+
+
+136
+00:09:19,846 --> 00:09:21,806
+which is the restitution
+on collision.
+
+
+137
+00:09:22,596 --> 00:09:26,476
+So we have a view which
+is obviously really happy
+
+
+138
+00:09:28,336 --> 00:09:28,846
+[laughter] to be here.
+
+
+139
+00:09:29,496 --> 00:09:32,246
+So let's just turn
+off collisions
+
+
+140
+00:09:32,526 --> 00:09:43,376
+and that's the end of this demo.
+
+
+141
+00:09:43,376 --> 00:09:43,443
+[ Applause ]
+
+
+142
+00:09:43,443 --> 00:09:48,166
+And each action was just
+really add or remove behavior.
+
+
+143
+00:09:48,356 --> 00:09:49,696
+So what do that means?
+
+
+144
+00:09:50,866 --> 00:09:54,666
+It means that the
+effect you want is really
+
+
+145
+00:09:54,666 --> 00:09:56,646
+about building a behavior tree.
+
+
+146
+00:09:57,956 --> 00:10:03,296
+And the behavior tree can be
+using predefined behaviors
+
+
+147
+00:10:03,296 --> 00:10:04,886
+like a collision behavior.
+
+
+148
+00:10:05,366 --> 00:10:09,136
+But maybe your own behavior
+is like a magnet-like behavior
+
+
+149
+00:10:09,136 --> 00:10:13,786
+or a drag behavior which
+are going to be built on top
+
+
+150
+00:10:14,646 --> 00:10:16,396
+of these predefined behaviors.
+
+
+151
+00:10:16,876 --> 00:10:21,856
+And then you need to associate
+items to these behaviors,
+
+
+152
+00:10:22,666 --> 00:10:24,416
+and that is something
+that you can do
+
+
+153
+00:10:24,416 --> 00:10:27,716
+at your high-level
+behavior API level.
+
+
+154
+00:10:28,336 --> 00:10:33,536
+You could directly add the same
+items to predefined behaviors
+
+
+155
+00:10:33,846 --> 00:10:39,676
+or only add just one to
+something just for a while
+
+
+156
+00:10:40,516 --> 00:10:41,916
+when I want to drag this item.
+
+
+157
+00:10:44,266 --> 00:10:45,726
+How do you build
+your own behavior?
+
+
+158
+00:10:47,676 --> 00:10:50,136
+You just have to subclass
+UIDynamicBehavior.
+
+
+159
+00:10:53,466 --> 00:10:56,736
+And let's say I want
+to implement, again,
+
+
+160
+00:10:57,236 --> 00:10:58,916
+this BouncyFallBehavior.
+
+
+161
+00:11:00,056 --> 00:11:03,036
+I'm going to define
+initWithItem initializer.
+
+
+162
+00:11:03,036 --> 00:11:05,906
+How do I implement that?
+
+
+163
+00:11:06,556 --> 00:11:08,706
+The first thing I need is
+
+
+164
+00:11:08,706 --> 00:11:13,006
+to actually create
+the sub-behaviors
+
+
+165
+00:11:13,746 --> 00:11:15,236
+for my high-level behavior,
+
+
+166
+00:11:15,236 --> 00:11:17,066
+so I need gravity
+and collisions here.
+
+
+167
+00:11:17,826 --> 00:11:22,886
+If needed, I will configure
+this collision behavior.
+
+
+168
+00:11:23,456 --> 00:11:30,396
+And the last thing is adding
+these two behaviors I just
+
+
+169
+00:11:30,396 --> 00:11:33,596
+created as children to myself.
+
+
+170
+00:11:35,536 --> 00:11:37,046
+And that's it.
+
+
+171
+00:11:38,196 --> 00:11:42,576
+When I need to use my high-level
+behavior, I am just going
+
+
+172
+00:11:42,576 --> 00:11:46,636
+to actually add alloc
+init that new behavior
+
+
+173
+00:11:47,206 --> 00:11:49,486
+and add it to my animator.
+
+
+174
+00:11:49,986 --> 00:11:53,826
+[ Pause ]
+
+
+175
+00:11:54,326 --> 00:11:56,426
+So something which is useful
+
+
+176
+00:11:56,426 --> 00:11:58,546
+when you're building
+your own behavior is
+
+
+177
+00:11:59,146 --> 00:12:00,826
+to think in terms of API.
+
+
+178
+00:12:02,306 --> 00:12:04,486
+What is the API you
+want to define
+
+
+179
+00:12:05,316 --> 00:12:08,536
+on such an interaction behavior?
+
+
+180
+00:12:09,116 --> 00:12:11,886
+It could be something really
+simple like initWithItems,
+
+
+181
+00:12:12,376 --> 00:12:13,956
+like what we did
+just a minute ago,
+
+
+182
+00:12:14,466 --> 00:12:17,116
+and we'll see another
+example in this session
+
+
+183
+00:12:17,606 --> 00:12:21,296
+when you can actually
+define a more complex API.
+
+
+184
+00:12:21,826 --> 00:12:25,446
+It's useful to think about
+how that is going to integrate
+
+
+185
+00:12:25,446 --> 00:12:27,656
+with your existing
+application flow,
+
+
+186
+00:12:28,286 --> 00:12:31,286
+like if you already
+have a gesture,
+
+
+187
+00:12:31,536 --> 00:12:32,456
+it's always a good thing
+
+
+188
+00:12:32,456 --> 00:12:35,006
+to match the ending
+gesture velocity
+
+
+189
+00:12:35,006 --> 00:12:37,686
+with the system you're
+creating in dynamics.
+
+
+190
+00:12:38,686 --> 00:12:43,226
+And if you need that,
+it's not always the case,
+
+
+191
+00:12:43,226 --> 00:12:47,066
+but if you need that, you
+can define per step actions.
+
+
+192
+00:12:47,496 --> 00:12:52,726
+It's just a block, you can
+define on UIDynamicBehavior
+
+
+193
+00:12:53,526 --> 00:12:59,306
+and we're going to invoke that
+block with each simulation step.
+
+
+194
+00:13:00,186 --> 00:13:02,776
+So that's interesting when
+you want to, for instance,
+
+
+195
+00:13:03,176 --> 00:13:08,136
+change the force based
+on an item position,
+
+
+196
+00:13:08,906 --> 00:13:10,636
+to implement magnets
+for instance.
+
+
+197
+00:13:11,266 --> 00:13:13,156
+Of course, because
+we are running
+
+
+198
+00:13:13,156 --> 00:13:17,226
+that with each simulation
+pick, you have to be careful
+
+
+199
+00:13:17,256 --> 00:13:20,806
+about what we do-- what
+you do in this block.
+
+
+200
+00:13:22,376 --> 00:13:27,976
+There is one catch about
+combining behaviors,
+
+
+201
+00:13:29,056 --> 00:13:33,476
+it's this UIDynamicItemBehavior
+class you can use
+
+
+202
+00:13:33,526 --> 00:13:36,936
+to setup properties
+to your items.
+
+
+203
+00:13:37,406 --> 00:13:42,126
+With UIDynamicItemBehavior, you
+can change density, damping,
+
+
+204
+00:13:42,126 --> 00:13:46,096
+you can block rotation, you can
+change friction or elasticity,
+
+
+205
+00:13:46,096 --> 00:13:49,206
+and I was using that
+in my previous demo.
+
+
+206
+00:13:49,876 --> 00:13:52,466
+And there is no problem
+
+
+207
+00:13:52,466 --> 00:13:57,046
+about combining many
+UIDynamicItemBehavior,
+
+
+208
+00:13:57,636 --> 00:13:59,116
+especially if you are using--
+
+
+209
+00:13:59,556 --> 00:14:02,986
+if you're configuring
+distinct properties in each,
+
+
+210
+00:14:03,196 --> 00:14:05,766
+because that's not going
+to conflict, right?
+
+
+211
+00:14:06,656 --> 00:14:10,546
+If you do want to
+change the same property
+
+
+212
+00:14:11,446 --> 00:14:13,516
+in different
+UIDynamicItemBehavior,
+
+
+213
+00:14:14,456 --> 00:14:15,396
+that's still possible,
+
+
+214
+00:14:16,606 --> 00:14:19,376
+but we have to decide
+which one we pick.
+
+
+215
+00:14:20,366 --> 00:14:21,666
+And the last one wins.
+
+
+216
+00:14:23,336 --> 00:14:25,526
+We actually have quite
+a precise definition
+
+
+217
+00:14:25,526 --> 00:14:27,346
+of what the last one is.
+
+
+218
+00:14:29,066 --> 00:14:32,276
+It's a pre-order depth first
+walk of the behavior tree.
+
+
+219
+00:14:33,196 --> 00:14:39,626
+Get it? Let's check that
+rule on an example, right?
+
+
+220
+00:14:40,446 --> 00:14:42,326
+So here is my behavior tree.
+
+
+221
+00:14:43,946 --> 00:14:47,186
+I have a few behaviors
+I don't care about
+
+
+222
+00:14:47,596 --> 00:14:51,716
+and three UIDynamicItemBehaviors
+configuring elasticity
+
+
+223
+00:14:52,196 --> 00:14:58,126
+and friction, but the question
+is what are the actual venues
+
+
+224
+00:14:59,836 --> 00:15:01,586
+in my dynamic item?
+
+
+225
+00:15:02,936 --> 00:15:05,926
+So let's walk the behavior tree.
+
+
+226
+00:15:07,076 --> 00:15:08,616
+We start with default.
+
+
+227
+00:15:10,106 --> 00:15:12,926
+So first behavior is not
+a dynamic item behavior,
+
+
+228
+00:15:13,456 --> 00:15:14,136
+so we don't care.
+
+
+229
+00:15:15,466 --> 00:15:17,006
+That one, we don't care.
+
+
+230
+00:15:18,166 --> 00:15:19,036
+That one is interesting,
+
+
+231
+00:15:19,036 --> 00:15:22,466
+that's the first
+UIDynamicItemBehavior we have
+
+
+232
+00:15:22,676 --> 00:15:24,226
+in this tree walk.
+
+
+233
+00:15:24,616 --> 00:15:26,986
+Elasticity is 0.5.
+
+
+234
+00:15:27,476 --> 00:15:31,466
+That is new-- the new elasticity
+value for that dynamic item.
+
+
+235
+00:15:33,436 --> 00:15:36,576
+Next behavior, we continue.
+
+
+236
+00:15:37,146 --> 00:15:40,926
+That's another dynamic item
+behavior, defining friction,
+
+
+237
+00:15:40,926 --> 00:15:43,016
+so that's not the same
+property so that's OK.
+
+
+238
+00:15:43,726 --> 00:15:46,256
+We just set the friction
+to be 0.2.
+
+
+239
+00:15:47,436 --> 00:15:52,666
+And then, the last dynamic item
+behavior we have is setting
+
+
+240
+00:15:52,666 --> 00:15:54,826
+elasticity to 0.3.
+
+
+241
+00:15:55,176 --> 00:15:57,126
+That is the end value.
+
+
+242
+00:15:58,866 --> 00:16:03,206
+Then now, let's actually
+remove this one.
+
+
+243
+00:16:03,816 --> 00:16:08,106
+In this case, we
+are basically going
+
+
+244
+00:16:08,106 --> 00:16:13,956
+to reevaluate the behavior tree
+and friction is back to default.
+
+
+245
+00:16:15,286 --> 00:16:20,696
+Let's add at the exact same
+place a UIDynamicItemBehavior
+
+
+246
+00:16:21,426 --> 00:16:23,526
+changing again the
+same property.
+
+
+247
+00:16:24,526 --> 00:16:29,006
+The new value is
+actually still 0.3.
+
+
+248
+00:16:29,696 --> 00:16:34,246
+So that's the last, it's the
+most recent behavior I added,
+
+
+249
+00:16:34,906 --> 00:16:37,796
+but that's not the last
+in this behavior tree
+
+
+250
+00:16:38,066 --> 00:16:39,346
+with my definition.
+
+
+251
+00:16:40,056 --> 00:16:45,746
+So that is how you can combine
+behaviors in a very define way.
+
+
+252
+00:16:46,286 --> 00:16:59,486
+Dynamic Items, so that's a
+protocol and that's a way
+
+
+253
+00:16:59,486 --> 00:17:03,606
+to integrate in Dynamics things
+that are not necessary views
+
+
+254
+00:17:03,916 --> 00:17:05,715
+or collection view
+layout attributes.
+
+
+255
+00:17:07,925 --> 00:17:11,546
+It basically defines
+what we need in UIKit
+
+
+256
+00:17:12,276 --> 00:17:18,556
+to animate something, so
+that's a position, a size,
+
+
+257
+00:17:19,705 --> 00:17:23,796
+and a rotation, knowing
+that UIView
+
+
+258
+00:17:23,796 --> 00:17:28,876
+on UICollectionView obviously
+implement already something
+
+
+259
+00:17:28,876 --> 00:17:29,506
+like that.
+
+
+260
+00:17:30,046 --> 00:17:34,706
+And we only care
+about 2D rotation.
+
+
+261
+00:17:35,356 --> 00:17:38,146
+The engine we run
+is a 2D engine.
+
+
+262
+00:17:40,496 --> 00:17:46,296
+So when you are defining
+your own UIDynamicItem,
+
+
+263
+00:17:47,416 --> 00:17:51,616
+the first time this item
+is added to a behavior,
+
+
+264
+00:17:52,346 --> 00:17:54,876
+and that behavior is
+added to the animator,
+
+
+265
+00:17:55,846 --> 00:17:58,396
+we would get these
+values, because we need
+
+
+266
+00:17:58,396 --> 00:18:01,936
+to inject an initial
+state in the engine.
+
+
+267
+00:18:02,446 --> 00:18:06,296
+Then we're going to
+run the simulation
+
+
+268
+00:18:06,296 --> 00:18:08,616
+and each simulation tick,
+
+
+269
+00:18:08,616 --> 00:18:13,956
+we're going to write
+position and rotation.
+
+
+270
+00:18:15,046 --> 00:18:18,906
+We don't change the size
+of the dynamic item.
+
+
+271
+00:18:21,036 --> 00:18:23,496
+If you're implementing
+that protocol, of course,
+
+
+272
+00:18:24,656 --> 00:18:31,206
+we might write position and
+angle on each simulation tick.
+
+
+273
+00:18:31,586 --> 00:18:37,036
+So, again, that is two methods
+where you should be careful
+
+
+274
+00:18:37,036 --> 00:18:39,476
+about your performance.
+
+
+275
+00:18:45,126 --> 00:18:49,036
+One consequence of
+that is we won't care
+
+
+276
+00:18:49,036 --> 00:18:52,556
+about any external
+change to this value
+
+
+277
+00:18:53,466 --> 00:18:55,966
+after we basically
+grab the initial state.
+
+
+278
+00:18:57,586 --> 00:19:02,816
+So one interesting question
+is how do you change the size
+
+
+279
+00:19:03,286 --> 00:19:04,216
+of something after the effect?
+
+
+280
+00:19:05,296 --> 00:19:09,736
+We don't change views,
+items, bodies in the engine,
+
+
+281
+00:19:09,736 --> 00:19:13,186
+so you have two ways to
+change the size of an item,
+
+
+282
+00:19:13,276 --> 00:19:19,196
+remove it from dynamics,
+and add it again later
+
+
+283
+00:19:19,196 --> 00:19:21,376
+if you want, or cheat.
+
+
+284
+00:19:23,176 --> 00:19:27,056
+For instance, if what you're
+animating is a view of something
+
+
+285
+00:19:27,056 --> 00:19:31,066
+on the screen, you can define a
+subview, apply a scale transform
+
+
+286
+00:19:31,066 --> 00:19:36,526
+or change the size of the
+subview or something like that.
+
+
+287
+00:19:38,186 --> 00:19:41,366
+Again, we need an initial state,
+
+
+288
+00:19:41,876 --> 00:19:44,996
+we need to correct the initial
+state, so we need a size
+
+
+289
+00:19:46,376 --> 00:19:48,036
+and we need reasonable position.
+
+
+290
+00:19:48,426 --> 00:19:51,626
+As I said, MAXFLOAT is
+not a reasonable position.
+
+
+291
+00:19:54,016 --> 00:19:55,176
+What can you do with that?
+
+
+292
+00:19:55,666 --> 00:20:00,006
+One interesting use case for
+dynamic items is to sanitize
+
+
+293
+00:20:00,006 --> 00:20:03,076
+or change the value we sent.
+
+
+294
+00:20:05,076 --> 00:20:06,886
+You can use a single
+dynamic item
+
+
+295
+00:20:07,056 --> 00:20:11,036
+to actually animate the same
+way many different things.
+
+
+296
+00:20:11,576 --> 00:20:16,826
+You can map position
+or rotation,
+
+
+297
+00:20:16,826 --> 00:20:20,616
+which are the only two values
+we compute to something else,
+
+
+298
+00:20:20,936 --> 00:20:25,586
+like mapping to scale
+transform or instead
+
+
+299
+00:20:25,586 --> 00:20:30,326
+of animating a rotation,
+animating a 3D effect.
+
+
+300
+00:20:31,646 --> 00:20:37,556
+So if you need to animate
+something which is not a view
+
+
+301
+00:20:38,356 --> 00:20:40,126
+or a collection view
+layout attribute,
+
+
+302
+00:20:40,866 --> 00:20:44,836
+do not define a view
+hierarchy on the side just
+
+
+303
+00:20:44,836 --> 00:20:46,266
+to be able to use dynamics.
+
+
+304
+00:20:47,056 --> 00:20:48,526
+Use a dynamic item.
+
+
+305
+00:20:50,656 --> 00:20:55,246
+So let me introduce a really
+stupid example of dynamic item
+
+
+306
+00:20:56,146 --> 00:20:58,456
+which doesn't display
+anything on screen, well,
+
+
+307
+00:20:59,216 --> 00:21:01,116
+depends on what you
+call screen actually.
+
+
+308
+00:21:03,596 --> 00:21:05,416
+You could just log
+what we compute.
+
+
+309
+00:21:06,156 --> 00:21:07,586
+You could keep everything
+in a dictionary.
+
+
+310
+00:21:07,586 --> 00:21:10,056
+You can do whatever
+you want with that.
+
+
+311
+00:21:12,806 --> 00:21:15,996
+Let's talk about
+collection view.
+
+
+312
+00:21:16,556 --> 00:21:21,356
+In collection view,
+you can use Dynamics
+
+
+313
+00:21:21,356 --> 00:21:23,706
+in three different ways.
+
+
+314
+00:21:24,746 --> 00:21:27,956
+You can decide to use Dynamics
+for very specific animations
+
+
+315
+00:21:28,496 --> 00:21:30,836
+like when you're
+selecting a cell
+
+
+316
+00:21:31,536 --> 00:21:33,986
+and you want a very
+specific effect
+
+
+317
+00:21:34,376 --> 00:21:35,796
+for that selection for instance.
+
+
+318
+00:21:36,196 --> 00:21:41,216
+In that case, you just need
+to create a dynamic animator
+
+
+319
+00:21:41,896 --> 00:21:47,566
+as this animation or interaction
+and just remove it after that.
+
+
+320
+00:21:48,946 --> 00:21:53,676
+The other thing you can do is
+to animate a subset of a layout
+
+
+321
+00:21:54,036 --> 00:21:57,056
+like you have a few cells,
+you want to drag these cells
+
+
+322
+00:21:57,856 --> 00:21:58,886
+and after that, you're done.
+
+
+323
+00:21:59,896 --> 00:22:03,126
+So you can combine animated
+and non-animated cells.
+
+
+324
+00:22:04,256 --> 00:22:10,746
+You can build an entire layout
+with Dynamics that works for,
+
+
+325
+00:22:12,006 --> 00:22:14,566
+well, non-huge data source.
+
+
+326
+00:22:15,906 --> 00:22:18,806
+Problem is, in dynamics,
+what is off screen
+
+
+327
+00:22:19,296 --> 00:22:22,116
+in the system might
+impact what is on screen.
+
+
+328
+00:22:22,446 --> 00:22:25,526
+So even if you just
+generate cells on screen
+
+
+329
+00:22:25,526 --> 00:22:28,066
+for what is visible,
+you might need
+
+
+330
+00:22:28,116 --> 00:22:32,026
+to simulate the entire system.
+
+
+331
+00:22:32,321 --> 00:22:34,321
+[ Pause ]
+
+
+332
+00:22:34,616 --> 00:22:38,156
+Again, you need to provide some
+initial state for your items
+
+
+333
+00:22:38,966 --> 00:22:43,766
+and you have many ways to
+do that, you can compute
+
+
+334
+00:22:43,996 --> 00:22:46,896
+that initial state,
+create layout attributes
+
+
+335
+00:22:46,896 --> 00:22:50,156
+for that state, and
+feed that to dynamics.
+
+
+336
+00:22:51,056 --> 00:22:53,306
+You can subclass
+an existing layout.
+
+
+337
+00:22:53,396 --> 00:22:55,816
+And in the ScrollView
+session this morning,
+
+
+338
+00:22:56,126 --> 00:22:59,736
+Josh and Eliza showed you how
+to actually build a Messages
+
+
+339
+00:22:59,736 --> 00:23:02,746
+like effect with that technique.
+
+
+340
+00:23:04,256 --> 00:23:11,196
+Or you can create and
+add new items on the fly.
+
+
+341
+00:23:11,306 --> 00:23:13,906
+The key here is to
+create the animator
+
+
+342
+00:23:13,906 --> 00:23:18,576
+with your collection layout
+instance, add behaviors
+
+
+343
+00:23:18,986 --> 00:23:22,806
+and add collection view layout
+attributes to these behaviors.
+
+
+344
+00:23:23,486 --> 00:23:25,966
+We are then going
+to change position
+
+
+345
+00:23:25,966 --> 00:23:27,716
+and rotation on these instances.
+
+
+346
+00:23:28,256 --> 00:23:34,026
+We have some predefined,
+some convenient support
+
+
+347
+00:23:34,026 --> 00:23:36,736
+for dynamics-- for
+collection view in dynamics.
+
+
+348
+00:23:39,276 --> 00:23:43,546
+We take care of invalidating
+the layout if anything changed
+
+
+349
+00:23:43,546 --> 00:23:48,206
+in the system and we also
+pause and resume the animator
+
+
+350
+00:23:48,206 --> 00:23:51,376
+if your layout is no
+longer the current layout
+
+
+351
+00:23:51,376 --> 00:23:53,366
+for the collection view
+because in collection view,
+
+
+352
+00:23:53,366 --> 00:23:54,496
+you can switch layouts.
+
+
+353
+00:23:54,966 --> 00:23:59,536
+We also provide convenience
+method
+
+
+354
+00:23:59,536 --> 00:24:05,006
+for implementing your layout so
+you can ask the animator itself
+
+
+355
+00:24:05,496 --> 00:24:08,296
+for layout attribute
+for cell at index path
+
+
+356
+00:24:09,206 --> 00:24:13,036
+for supplementary views
+and for decoration view.
+
+
+357
+00:24:13,516 --> 00:24:17,306
+So we know that's a
+layout so we help you
+
+
+358
+00:24:17,306 --> 00:24:19,926
+in implementing this
+method in your layout.
+
+
+359
+00:24:20,006 --> 00:24:21,276
+You can ask the animator.
+
+
+360
+00:24:22,146 --> 00:24:28,396
+We have, for layout updates, the
+usual collection view methods,
+
+
+361
+00:24:29,056 --> 00:24:34,286
+so prepareLayout is usually when
+you can instantiate an animator
+
+
+362
+00:24:34,966 --> 00:24:39,756
+or create your initial
+state and prepare for update
+
+
+363
+00:24:39,756 --> 00:24:41,146
+which is another layout method,
+
+
+364
+00:24:41,146 --> 00:24:45,406
+you can add new items
+to your behaviors.
+
+
+365
+00:24:46,766 --> 00:24:49,476
+And there is this very important
+method in collection view
+
+
+366
+00:24:49,976 --> 00:24:54,006
+which is layoutAttributesInRect
+which possibly basically defines
+
+
+367
+00:24:54,006 --> 00:24:55,846
+where the cells are going to be.
+
+
+368
+00:24:56,416 --> 00:24:57,696
+And to implement this method,
+
+
+369
+00:24:58,446 --> 00:25:02,226
+we have itemsInRect
+in the animator.
+
+
+370
+00:25:02,936 --> 00:25:03,736
+So that's really easy.
+
+
+371
+00:25:03,736 --> 00:25:05,056
+You can ask the animator,
+
+
+372
+00:25:05,236 --> 00:25:09,406
+"Give me all the items you're
+tracking in this rect."
+
+
+373
+00:25:11,236 --> 00:25:16,896
+Then you can combine these
+items with maybe attributes
+
+
+374
+00:25:16,936 --> 00:25:18,576
+which are not animated.
+
+
+375
+00:25:19,136 --> 00:25:27,406
+Again, the way you design your
+system will have a direct impact
+
+
+376
+00:25:27,406 --> 00:25:32,346
+on the number of
+cells you can animate.
+
+
+377
+00:25:33,486 --> 00:25:37,156
+I would like to show
+you an example
+
+
+378
+00:25:37,156 --> 00:25:44,016
+of collection view using
+dynamic for a specific effect.
+
+
+379
+00:25:44,156 --> 00:25:45,256
+That's actually an example
+
+
+380
+00:25:45,326 --> 00:25:47,556
+from the collection
+view sessions last year
+
+
+381
+00:25:48,096 --> 00:25:50,966
+when I was dragging
+a cell in a layout.
+
+
+382
+00:25:50,966 --> 00:25:54,756
+So we are going to do
+that the Dynamics way.
+
+
+383
+00:25:56,016 --> 00:25:57,426
+So I select a few cells.
+
+
+384
+00:25:58,546 --> 00:26:05,826
+So the effect is maybe
+a little bit too much
+
+
+385
+00:26:06,506 --> 00:26:08,526
+but you get the idea.
+
+
+386
+00:26:08,906 --> 00:26:11,916
+So we have these cells
+connected to springs
+
+
+387
+00:26:12,286 --> 00:26:13,556
+and reacting to the gesture.
+
+
+388
+00:26:15,416 --> 00:26:21,246
+And when I end my gesture,
+I just clear the animator.
+
+
+389
+00:26:21,246 --> 00:26:22,746
+[ Applause ]
+
+
+390
+00:26:22,746 --> 00:26:29,316
+How complex is that?
+
+
+391
+00:26:30,306 --> 00:26:31,136
+Quite simple.
+
+
+392
+00:26:31,546 --> 00:26:33,296
+You just need to
+decompose this program.
+
+
+393
+00:26:34,036 --> 00:26:36,096
+Why do I need to animate that?
+
+
+394
+00:26:37,696 --> 00:26:39,406
+The way I did it, perhaps,
+
+
+395
+00:26:40,166 --> 00:26:41,966
+there are many solutions
+to this problem.
+
+
+396
+00:26:42,756 --> 00:26:47,826
+I started with a base behavior,
+a single cell that I want
+
+
+397
+00:26:47,826 --> 00:26:49,766
+to drag around with
+a spring effect,
+
+
+398
+00:26:53,166 --> 00:26:57,886
+and the way I defined my
+behavior is four springs
+
+
+399
+00:26:58,616 --> 00:27:03,156
+attached to a plane or
+rectangle and attached
+
+
+400
+00:27:03,386 --> 00:27:04,406
+to the center of this view.
+
+
+401
+00:27:05,216 --> 00:27:08,506
+So I'm going to move these four
+points to get the spring effect.
+
+
+402
+00:27:11,166 --> 00:27:14,696
+Then I need to be able to
+drag many items, right?
+
+
+403
+00:27:15,426 --> 00:27:20,126
+So I'm going to define my
+high-level drag behavior
+
+
+404
+00:27:21,126 --> 00:27:25,286
+and I'm going to do the exact
+same trick for all cells.
+
+
+405
+00:27:26,096 --> 00:27:30,486
+Then I need a layout
+and I'm going
+
+
+406
+00:27:30,486 --> 00:27:35,786
+to define a flow layout
+subclass because the basic mode
+
+
+407
+00:27:35,896 --> 00:27:37,796
+of my layout is just
+to display a grid.
+
+
+408
+00:27:37,796 --> 00:27:41,746
+It only changes when
+I interact with it.
+
+
+409
+00:27:42,916 --> 00:27:48,516
+So I need three classes,
+a DraggableLayout
+
+
+410
+00:27:48,576 --> 00:27:50,866
+which is a
+UIColelctionViewFlowLayout.
+
+
+411
+00:27:51,006 --> 00:27:55,766
+I'm going to define a
+simple API on this layout
+
+
+412
+00:27:56,146 --> 00:27:59,336
+so I can easily connect that
+to a gesture recognizer,
+
+
+413
+00:27:59,456 --> 00:28:03,486
+I can start the interaction
+with an array
+
+
+414
+00:28:03,486 --> 00:28:04,966
+of index paths from a point.
+
+
+415
+00:28:05,376 --> 00:28:09,786
+I can update that location and
+I can stop the interaction.
+
+
+416
+00:28:10,376 --> 00:28:16,096
+My high-level behavior is going
+to be quite similar for the API.
+
+
+417
+00:28:16,096 --> 00:28:19,396
+I'm going to create a
+drag behavior with a set
+
+
+418
+00:28:19,396 --> 00:28:24,246
+of dynamic items--
+and from a point,
+
+
+419
+00:28:24,296 --> 00:28:27,396
+and a way to change
+that location.
+
+
+420
+00:28:28,146 --> 00:28:32,046
+And my low-level behavior
+is going to be defined
+
+
+421
+00:28:32,046 --> 00:28:36,506
+with just one item I want to
+animate, a point and a way
+
+
+422
+00:28:36,506 --> 00:28:40,256
+to update the location
+of this cell.
+
+
+423
+00:28:40,436 --> 00:28:42,306
+So let's see how I
+implemented that.
+
+
+424
+00:28:42,306 --> 00:28:45,276
+Let's start with a
+low-level behavior.
+
+
+425
+00:28:45,736 --> 00:28:49,456
+RectangleAttachmentBehavior,
+I configured that as an item
+
+
+426
+00:28:50,326 --> 00:28:54,266
+at a given point and
+then it's just a matter
+
+
+427
+00:28:54,266 --> 00:28:57,426
+of creating four
+attachment behavior,
+
+
+428
+00:28:57,826 --> 00:28:58,876
+so I have this four points,
+
+
+429
+00:28:58,936 --> 00:29:02,386
+I just create a spring
+AttachmentBehavior
+
+
+430
+00:29:02,626 --> 00:29:07,036
+for each point and I add
+these as children behaviors.
+
+
+431
+00:29:07,346 --> 00:29:13,126
+When I want to update
+the location,
+
+
+432
+00:29:14,066 --> 00:29:16,486
+I just need to compute
+again these four points
+
+
+433
+00:29:17,046 --> 00:29:18,866
+and update the attachment point
+
+
+434
+00:29:18,866 --> 00:29:22,556
+for my four attachment
+behaviors.
+
+
+435
+00:29:23,146 --> 00:29:29,106
+So that's my first low-level
+behavior using four predefined
+
+
+436
+00:29:29,266 --> 00:29:30,566
+attachment behaviors.
+
+
+437
+00:29:31,096 --> 00:29:33,046
+The high-level behavior,
+
+
+438
+00:29:33,396 --> 00:29:38,316
+drag behavior is actually very
+simple, it's all in this slide.
+
+
+439
+00:29:39,726 --> 00:29:40,396
+So what do I need?
+
+
+440
+00:29:40,756 --> 00:29:45,026
+I need to pass the dynamic items
+I want to animate, that point.
+
+
+441
+00:29:45,416 --> 00:29:50,026
+I'm going to create attachments,
+my low-level attachments,
+
+
+442
+00:29:50,296 --> 00:29:51,606
+RectangleAttachmentBehavior.
+
+
+443
+00:29:52,956 --> 00:29:59,906
+I add this as child behaviors
+and to update the drag location,
+
+
+444
+00:29:59,966 --> 00:30:02,386
+I'm just going to basically
+tell my low-level behavior
+
+
+445
+00:30:02,916 --> 00:30:04,356
+to update to this point.
+
+
+446
+00:30:04,356 --> 00:30:07,966
+So that's it for my
+high-level behavior.
+
+
+447
+00:30:09,586 --> 00:30:10,466
+No more layouts.
+
+
+448
+00:30:11,756 --> 00:30:15,136
+The interaction code is
+quite simple actually.
+
+
+449
+00:30:15,766 --> 00:30:18,186
+I need to track these
+index paths.
+
+
+450
+00:30:18,686 --> 00:30:20,096
+I want to create an animator.
+
+
+451
+00:30:21,646 --> 00:30:24,306
+Then for each of
+these attributes,
+
+
+452
+00:30:24,366 --> 00:30:26,566
+I'm going to need
+that initial state.
+
+
+453
+00:30:26,566 --> 00:30:31,986
+So I'm going to ask flow layout
+which is the super class.
+
+
+454
+00:30:32,166 --> 00:30:34,166
+I changed zIndex because
+I'm dragging this.
+
+
+455
+00:30:34,166 --> 00:30:35,686
+I want this cell on top
+
+
+456
+00:30:36,776 --> 00:30:39,426
+and I create my high-level
+drag behavior.
+
+
+457
+00:30:40,916 --> 00:30:44,686
+I add this behavior
+to the animator.
+
+
+458
+00:30:44,686 --> 00:30:46,106
+Updating the location
+
+
+459
+00:30:46,156 --> 00:30:48,676
+and removing everything
+is extremely simple.
+
+
+460
+00:30:49,516 --> 00:30:53,206
+We just update the point
+or clear the animator.
+
+
+461
+00:30:55,996 --> 00:31:01,116
+The layout implementation
+itself, "Why do I need to define
+
+
+462
+00:31:01,116 --> 00:31:04,736
+which cells are in this
+layout for a given rect?"
+
+
+463
+00:31:06,106 --> 00:31:07,896
+Some cells might
+not be animated.
+
+
+464
+00:31:08,446 --> 00:31:13,206
+So I start by asking the super
+class, "Give me all the cells."
+
+
+465
+00:31:15,156 --> 00:31:21,406
+Next, I want to remove the
+cells I'm actually animating.
+
+
+466
+00:31:23,906 --> 00:31:29,166
+And then, I need to add the
+cells I'm actually tracking,
+
+
+467
+00:31:29,166 --> 00:31:31,056
+the layout attributes
+I'm actually tracking,
+
+
+468
+00:31:31,906 --> 00:31:32,696
+from the animator.
+
+
+469
+00:31:33,946 --> 00:31:38,306
+So I use this animator
+itemsInRect method,
+
+
+470
+00:31:39,076 --> 00:31:42,346
+and I just have to return
+all these attributes.
+
+
+471
+00:31:42,696 --> 00:31:46,636
+And that's it, that's the entire
+code for this small example.
+
+
+472
+00:31:48,496 --> 00:31:54,286
+Now, for some more exciting
+stuff, UIKit Dynamics
+
+
+473
+00:31:54,286 --> 00:31:55,556
+and UIViewController Transition,
+
+
+474
+00:31:55,556 --> 00:32:00,316
+I'd like to ask Bruce
+Nilo to show you that.
+
+
+475
+00:32:00,316 --> 00:32:02,116
+[ Applause ]
+
+
+476
+00:32:02,116 --> 00:32:02,746
+>> Thank you.
+
+
+477
+00:32:04,006 --> 00:32:06,566
+Thank you all.
+
+
+478
+00:32:09,436 --> 00:32:10,496
+Thank you, Olivier.
+
+
+479
+00:32:10,496 --> 00:32:14,196
+My name is Bruce Nilo,
+and this stage is huge,
+
+
+480
+00:32:14,196 --> 00:32:15,426
+I've never been on it before.
+
+
+481
+00:32:16,036 --> 00:32:18,906
+So I don't know how
+many of you have been
+
+
+482
+00:32:19,016 --> 00:32:20,296
+at this morning's talk.
+
+
+483
+00:32:20,296 --> 00:32:21,496
+I'd like to get a good sense
+
+
+484
+00:32:21,496 --> 00:32:23,836
+about custom view
+controller transitions.
+
+
+485
+00:32:25,246 --> 00:32:26,336
+Oh, a lot of you, OK.
+
+
+486
+00:32:27,216 --> 00:32:30,266
+So I'm going to kind of
+breeze through a quick review
+
+
+487
+00:32:30,406 --> 00:32:33,106
+of what custom view controller
+transitions are all about.
+
+
+488
+00:32:33,106 --> 00:32:35,966
+And then, what we're going
+to talk about is we're going
+
+
+489
+00:32:35,966 --> 00:32:37,966
+to kind of build a
+little bit on what--
+
+
+490
+00:32:37,966 --> 00:32:40,436
+always discussing about
+how to create kind
+
+
+491
+00:32:40,436 --> 00:32:41,766
+of compound behaviors.
+
+
+492
+00:32:42,106 --> 00:32:44,356
+But these compound
+behaviors that we're going
+
+
+493
+00:32:44,356 --> 00:32:45,956
+to create are going
+to conform to some
+
+
+494
+00:32:45,956 --> 00:32:48,866
+of these new transitioning
+protocols that we've defined,
+
+
+495
+00:32:49,416 --> 00:32:51,086
+and are going to be used
+
+
+496
+00:32:51,086 --> 00:32:53,286
+to actually implement
+some custom view
+
+
+497
+00:32:53,286 --> 00:32:54,286
+controller transitions.
+
+
+498
+00:32:54,286 --> 00:32:55,816
+And we're going to
+walk through a couple
+
+
+499
+00:32:55,816 --> 00:32:58,126
+of examples showing
+two different types,
+
+
+500
+00:32:58,836 --> 00:32:59,776
+and you'll get a sense
+
+
+501
+00:32:59,776 --> 00:33:02,146
+of how these different things
+compose with one another.
+
+
+502
+00:33:02,146 --> 00:33:05,996
+So let's do the quick review.
+
+
+503
+00:33:06,956 --> 00:33:11,316
+First of all, the basic idea
+is that there's a few delegates
+
+
+504
+00:33:11,316 --> 00:33:15,896
+that you create and set on
+your view controller directly
+
+
+505
+00:33:16,036 --> 00:33:19,396
+if you're doing a present or a
+dismiss view controller call,
+
+
+506
+00:33:19,876 --> 00:33:22,726
+or you can implement
+some new methods
+
+
+507
+00:33:22,726 --> 00:33:24,276
+on Navigation Controller
+Delegate
+
+
+508
+00:33:24,276 --> 00:33:25,706
+or Tab Bar Controller Delegate.
+
+
+509
+00:33:26,556 --> 00:33:30,416
+And at the appropriate time
+when you are either pushing
+
+
+510
+00:33:30,416 --> 00:33:33,466
+or popping or presenting or
+dismissing, we're going to ask
+
+
+511
+00:33:33,566 --> 00:33:36,576
+that delegate to vend
+an animation controller
+
+
+512
+00:33:37,336 --> 00:33:38,886
+or an interaction controller.
+
+
+513
+00:33:40,266 --> 00:33:43,836
+So the methods that
+those objects
+
+
+514
+00:33:43,836 --> 00:33:47,746
+that your delegate vends need
+to implement are various few.
+
+
+515
+00:33:48,876 --> 00:33:51,796
+The main one for the animation
+controller is funny enough,
+
+
+516
+00:33:52,526 --> 00:33:53,476
+animateTransition.
+
+
+517
+00:33:53,986 --> 00:33:58,996
+And for interactive transition,
+it's startInteractiveTransition,
+
+
+518
+00:33:59,416 --> 00:34:00,946
+kind of pretty simple.
+
+
+519
+00:34:01,796 --> 00:34:04,366
+These two methods are passed
+
+
+520
+00:34:04,436 --> 00:34:08,275
+in a special object called the
+ContextTransitioning object
+
+
+521
+00:34:08,275 --> 00:34:10,206
+which defines the
+characteristics
+
+
+522
+00:34:10,206 --> 00:34:11,016
+of the transition.
+
+
+523
+00:34:11,656 --> 00:34:15,735
+It defines where views
+start, where they end.
+
+
+524
+00:34:16,126 --> 00:34:20,126
+It also is a little bit active
+and that we define some methods
+
+
+525
+00:34:20,126 --> 00:34:22,176
+that need to be called at
+certain points in time.
+
+
+526
+00:34:22,436 --> 00:34:24,255
+So basically, the declaration
+
+
+527
+00:34:24,255 --> 00:34:25,835
+of the protocol looks
+something like this.
+
+
+528
+00:34:25,835 --> 00:34:26,985
+There is a container view.
+
+
+529
+00:34:27,356 --> 00:34:29,815
+That's the view in
+which the tran--
+
+
+530
+00:34:29,886 --> 00:34:32,696
+the animation takes
+place for the transition.
+
+
+531
+00:34:33,755 --> 00:34:35,596
+There are some methods
+to query to find
+
+
+532
+00:34:35,596 --> 00:34:37,496
+out where I'm supposed
+to end up.
+
+
+533
+00:34:38,406 --> 00:34:42,045
+And then, there are those action
+methods that are on the context.
+
+
+534
+00:34:42,045 --> 00:34:45,775
+And for interactive transitions,
+there is a few of them.
+
+
+535
+00:34:45,775 --> 00:34:47,755
+There is
+updateInteractiveTransition
+
+
+536
+00:34:47,755 --> 00:34:50,786
+with a present, and then
+there's either Finish or Cancel.
+
+
+537
+00:34:51,906 --> 00:34:56,295
+And finally, when the transition
+is all over, and this is true
+
+
+538
+00:34:56,295 --> 00:34:59,996
+for both interactive transitions
+as well as just regular,
+
+
+539
+00:35:00,136 --> 00:35:01,986
+straight up animated
+transitions,
+
+
+540
+00:35:02,446 --> 00:35:05,476
+you must call a special method
+called completeTransition
+
+
+541
+00:35:05,816 --> 00:35:07,876
+indicating whether
+canceled or not.
+
+
+542
+00:35:08,436 --> 00:35:12,976
+And this basically patches
+up any data structures
+
+
+543
+00:35:12,976 --> 00:35:14,596
+and puts things into
+a consistent state
+
+
+544
+00:35:14,596 --> 00:35:16,176
+so your application
+can move forward.
+
+
+545
+00:35:17,406 --> 00:35:19,516
+It moves as a little bit to talk
+
+
+546
+00:35:19,516 --> 00:35:21,686
+about the different
+states involved
+
+
+547
+00:35:21,686 --> 00:35:23,116
+in an interactive transition.
+
+
+548
+00:35:23,536 --> 00:35:26,126
+I've kind of broken it
+into a few sections.
+
+
+549
+00:35:26,126 --> 00:35:28,986
+The first four kind of
+where you go from nothing,
+
+
+550
+00:35:28,986 --> 00:35:31,806
+you're in no particular
+transition mode
+
+
+551
+00:35:32,226 --> 00:35:33,986
+to the interactive mode.
+
+
+552
+00:35:34,586 --> 00:35:37,756
+And you might consider this,
+if you're doing a pop gesture,
+
+
+553
+00:35:37,756 --> 00:35:39,926
+it's as your finger is down
+
+
+554
+00:35:39,926 --> 00:35:42,506
+and you're dragging
+across the screen.
+
+
+555
+00:35:43,136 --> 00:35:44,966
+When you release
+that, your finger,
+
+
+556
+00:35:44,966 --> 00:35:46,316
+the transition isn't over yet.
+
+
+557
+00:35:46,706 --> 00:35:48,086
+It still needs to do something.
+
+
+558
+00:35:48,086 --> 00:35:49,426
+It's either going to animate off
+
+
+559
+00:35:49,426 --> 00:35:51,126
+or animate back to
+where you started.
+
+
+560
+00:35:51,456 --> 00:35:54,336
+And the decision of which
+direction you're going
+
+
+561
+00:35:54,336 --> 00:35:56,576
+in is really up to
+you in your code.
+
+
+562
+00:35:56,976 --> 00:35:59,966
+And so you can either cancel
+the transition or continue it.
+
+
+563
+00:36:00,726 --> 00:36:03,786
+And once you do, you then
+animate it to completion
+
+
+564
+00:36:03,956 --> 00:36:05,716
+and call the completeTransition
+method.
+
+
+565
+00:36:05,836 --> 00:36:09,476
+So it's really kind of that
+simple and if you are interested
+
+
+566
+00:36:09,476 --> 00:36:13,366
+in more details, you can look at
+the video of this morning's talk
+
+
+567
+00:36:13,526 --> 00:36:17,906
+and there are also some
+docs available for that.
+
+
+568
+00:36:18,076 --> 00:36:22,816
+So, two examples that
+we're going to go through.
+
+
+569
+00:36:23,036 --> 00:36:27,076
+One is a-- for lack of a better
+word, a drop in and out dialog.
+
+
+570
+00:36:27,156 --> 00:36:30,326
+It's kind of a dialog which
+will-- you will present.
+
+
+571
+00:36:30,326 --> 00:36:33,336
+It will be a custom view
+controller presentation.
+
+
+572
+00:36:33,336 --> 00:36:34,966
+It will drop on screen.
+
+
+573
+00:36:34,966 --> 00:36:36,386
+It's not going to
+be interactive.
+
+
+574
+00:36:36,386 --> 00:36:38,066
+But what is it going
+to demonstrate?
+
+
+575
+00:36:38,066 --> 00:36:39,876
+It's going to demonstrate
+using kind
+
+
+576
+00:36:39,876 --> 00:36:42,646
+of a two-stage dynamic
+simulation where we're going
+
+
+577
+00:36:42,646 --> 00:36:45,806
+to use the action methods
+and the DidPause methods
+
+
+578
+00:36:45,806 --> 00:36:49,326
+and so forth to change
+the Dynamics of the system
+
+
+579
+00:36:49,326 --> 00:36:51,086
+as the transition evolves.
+
+
+580
+00:36:52,356 --> 00:36:56,686
+The second demo that I'd
+like to deconstruct is kind
+
+
+581
+00:36:56,686 --> 00:36:59,106
+of just a simple drop shade
+transition where I'm going
+
+
+582
+00:36:59,106 --> 00:37:02,616
+to pull down from the top
+of the screen and I'm going
+
+
+583
+00:37:02,616 --> 00:37:04,786
+to release it and either it's
+going to bounce up to the top
+
+
+584
+00:37:04,786 --> 00:37:06,346
+or bounce down to the bottom.
+
+
+585
+00:37:06,876 --> 00:37:10,546
+And the Dynamics there is
+fairly straightforward,
+
+
+586
+00:37:10,746 --> 00:37:14,446
+but it's interesting to see
+how the interaction mode
+
+
+587
+00:37:14,446 --> 00:37:18,036
+of the transition leverages the
+dynamic system and vice versa.
+
+
+588
+00:37:18,936 --> 00:37:21,996
+So let's talk about the drop
+in and drop out dialog a bit.
+
+
+589
+00:37:23,106 --> 00:37:26,146
+So, it's a dynamic
+behavior that conforms
+
+
+590
+00:37:26,146 --> 00:37:28,056
+to the animated transitioning
+protocol
+
+
+591
+00:37:28,556 --> 00:37:30,436
+and it demonstrates a couple
+of interesting things.
+
+
+592
+00:37:30,436 --> 00:37:33,886
+It demonstrates the action
+block which Olivier referred to.
+
+
+593
+00:37:33,886 --> 00:37:37,246
+This is called on every
+step of the simulation,
+
+
+594
+00:37:37,346 --> 00:37:38,516
+of the physics simulation.
+
+
+595
+00:37:40,056 --> 00:37:42,616
+We're going to implement
+a collision behavior,
+
+
+596
+00:37:42,616 --> 00:37:44,896
+but we're also going to
+specify the collision delegate
+
+
+597
+00:37:45,086 --> 00:37:47,726
+because we want to know when
+we've hit a certain boundary.
+
+
+598
+00:37:48,816 --> 00:37:51,196
+And finally, and this
+is kind of interesting,
+
+
+599
+00:37:51,196 --> 00:37:54,506
+we're going to implement the
+dynamic animator delegate.
+
+
+600
+00:37:55,006 --> 00:37:58,446
+And in particular, we're
+interested in DidPause callback.
+
+
+601
+00:37:59,006 --> 00:38:01,926
+And we're also interested in the
+dynamic animator's elapsed time.
+
+
+602
+00:38:02,046 --> 00:38:05,106
+Now, the reason for this is that
+when you're doing a transition,
+
+
+603
+00:38:05,896 --> 00:38:08,256
+typically, transitions take
+a finite amount of time.
+
+
+604
+00:38:08,576 --> 00:38:11,226
+You don't want them to take,
+you know, I don't know,
+
+
+605
+00:38:11,226 --> 00:38:14,226
+30 seconds to converge and go.
+
+
+606
+00:38:14,226 --> 00:38:17,706
+So you might want to put a bound
+on it and make sure you're done
+
+
+607
+00:38:17,706 --> 00:38:20,326
+in two seconds or one and
+a half seconds or whatever.
+
+
+608
+00:38:20,326 --> 00:38:22,716
+And so typically, when
+you build these systems,
+
+
+609
+00:38:22,716 --> 00:38:24,906
+you're kind of iteratively
+trying to figure
+
+
+610
+00:38:24,906 --> 00:38:26,236
+out how does it look, right?
+
+
+611
+00:38:26,236 --> 00:38:28,306
+But you want to actually ensure
+
+
+612
+00:38:28,306 --> 00:38:30,206
+that the transition takes
+a certain amount of time.
+
+
+613
+00:38:30,936 --> 00:38:34,606
+And you can do that by
+looking at the elapsed time
+
+
+614
+00:38:34,606 --> 00:38:37,606
+of the dynamic animator and
+checking in the DidPause
+
+
+615
+00:38:37,606 --> 00:38:38,476
+and the action methods.
+
+
+616
+00:38:38,476 --> 00:38:39,666
+And we're going to
+demonstrate that.
+
+
+617
+00:38:40,206 --> 00:38:41,776
+So I'm going to show
+a quick demo
+
+
+618
+00:38:41,906 --> 00:38:43,306
+of the drop in and out dialog.
+
+
+619
+00:38:44,036 --> 00:38:47,276
+So this is kind of a demo that
+shows all kinds of transitions,
+
+
+620
+00:38:47,276 --> 00:38:49,586
+but I'm going to show
+you the drop dialog.
+
+
+621
+00:38:50,696 --> 00:38:52,786
+Now, this thing comes
+in as little dialog.
+
+
+622
+00:38:52,786 --> 00:38:54,606
+What's interesting about
+this is, first of all,
+
+
+623
+00:38:55,066 --> 00:38:58,086
+this is on a phone and we're
+doing a present view controller
+
+
+624
+00:38:58,086 --> 00:39:01,626
+and guess what, I can see the
+presenting view controller.
+
+
+625
+00:39:02,036 --> 00:39:04,296
+You couldn't do this
+really on the phone before.
+
+
+626
+00:39:04,296 --> 00:39:07,656
+So now, you can implement
+your kind of faux form sheets
+
+
+627
+00:39:07,656 --> 00:39:10,276
+or foe popovers right
+on a phone.
+
+
+628
+00:39:11,176 --> 00:39:13,066
+But you'll notice that
+bounce that came in.
+
+
+629
+00:39:13,376 --> 00:39:16,546
+So it comes in with a bounce
+and I'd also like to show
+
+
+630
+00:39:16,546 --> 00:39:20,776
+that when we created that dialog
+view, before it animated in,
+
+
+631
+00:39:21,316 --> 00:39:26,426
+we did something that I'm
+not sure if we can see it.
+
+
+632
+00:39:26,826 --> 00:39:30,026
+Well, what is supposed
+to be shown here is some
+
+
+633
+00:39:30,026 --> 00:39:34,216
+of that parallax where we
+layer these dialog views.
+
+
+634
+00:39:34,546 --> 00:39:38,396
+And there's new API which
+is available, I believed,
+
+
+635
+00:39:38,396 --> 00:39:41,366
+in the seed that we delivered
+called UIMotionEffect.
+
+
+636
+00:39:41,846 --> 00:39:44,416
+And you can put a
+UIMotionEffect on to a view
+
+
+637
+00:39:44,546 --> 00:39:46,546
+and then animate it directly.
+
+
+638
+00:39:46,636 --> 00:39:49,436
+And if it was working, I would
+show it to you, but it isn't
+
+
+639
+00:39:49,436 --> 00:39:51,476
+so you'll have to
+take my word for.
+
+
+640
+00:39:52,066 --> 00:39:54,126
+Now that was a present.
+
+
+641
+00:39:54,336 --> 00:39:56,656
+Let's see what happens
+when I dismiss.
+
+
+642
+00:39:58,056 --> 00:40:00,596
+Now the first thing that happens
+is we slide off to the side
+
+
+643
+00:40:00,596 --> 00:40:02,876
+and then we bounce
+off and go away.
+
+
+644
+00:40:03,096 --> 00:40:05,146
+That's kind of a
+two step simulation.
+
+
+645
+00:40:09,856 --> 00:40:10,246
+[Applause] OK.
+
+
+646
+00:40:10,496 --> 00:40:11,996
+So how did we do this?
+
+
+647
+00:40:12,396 --> 00:40:13,766
+Let's talk about that.
+
+
+648
+00:40:16,376 --> 00:40:19,036
+So I'm going to show
+quickly some of the steps
+
+
+649
+00:40:19,036 --> 00:40:23,186
+and there's going to be a lot of
+code up here, so bear with me.
+
+
+650
+00:40:23,186 --> 00:40:27,626
+The YYDropOutAnimator
+is the animator object
+
+
+651
+00:40:27,626 --> 00:40:30,726
+which is a subclass of
+dynamic behavior that I used
+
+
+652
+00:40:30,726 --> 00:40:32,376
+to create this effect.
+
+
+653
+00:40:33,436 --> 00:40:36,116
+And everything here
+is just a consequence
+
+
+654
+00:40:36,116 --> 00:40:37,656
+of this specific implementation
+
+
+655
+00:40:37,736 --> 00:40:39,306
+and it's broken up
+into a few things.
+
+
+656
+00:40:39,906 --> 00:40:42,506
+First of all, you'll notice
+that it conforms to a bunch
+
+
+657
+00:40:42,506 --> 00:40:43,336
+of different protocols.
+
+
+658
+00:40:43,336 --> 00:40:45,016
+It conforms to the
+animated transitioning.
+
+
+659
+00:40:45,016 --> 00:40:47,206
+It conforms to the animator
+delegate and conforms
+
+
+660
+00:40:47,206 --> 00:40:48,416
+to the collision
+behavior delegate.
+
+
+661
+00:40:48,776 --> 00:40:51,166
+This is some of the power of
+using protocols, first of all,
+
+
+662
+00:40:51,166 --> 00:40:53,426
+that you're not bound
+to a specific instance
+
+
+663
+00:40:53,426 --> 00:40:56,156
+and you can kind of mold
+the objects of your choice
+
+
+664
+00:40:56,576 --> 00:41:00,926
+for implementing certain
+behaviors in the system.
+
+
+665
+00:41:01,056 --> 00:41:03,306
+When you create this thing,
+you're usually create--
+
+
+666
+00:41:03,306 --> 00:41:05,176
+the delegate is usually
+creating it
+
+
+667
+00:41:05,616 --> 00:41:08,556
+and when the delegate is
+asked, it's actually passed
+
+
+668
+00:41:08,886 --> 00:41:12,506
+in a transition context and we
+scroll that away in the animator
+
+
+669
+00:41:12,506 --> 00:41:14,396
+because we want to
+be able to use it
+
+
+670
+00:41:14,746 --> 00:41:16,736
+in the dynamic behavior
+callbacks.
+
+
+671
+00:41:17,296 --> 00:41:20,446
+We know whether or not the
+dialog is being presented
+
+
+672
+00:41:20,446 --> 00:41:21,096
+or dismissed.
+
+
+673
+00:41:21,096 --> 00:41:22,156
+And, again, the delegate,
+
+
+674
+00:41:22,216 --> 00:41:24,646
+when it's called,
+has that information.
+
+
+675
+00:41:25,746 --> 00:41:27,096
+We set the finish time.
+
+
+676
+00:41:27,096 --> 00:41:29,596
+The finish time is, I think,
+I was alluding to before
+
+
+677
+00:41:29,596 --> 00:41:32,216
+which is I don't want this
+transition to take too long.
+
+
+678
+00:41:32,486 --> 00:41:36,776
+So I want to say, "I want it to
+be done no later than this point
+
+
+679
+00:41:36,776 --> 00:41:39,306
+in time," and we're
+going to check that value
+
+
+680
+00:41:39,826 --> 00:41:43,076
+in the animator's callbacks
+
+
+681
+00:41:43,076 --> 00:41:45,166
+and the dynamic behavior's
+action method.
+
+
+682
+00:41:45,886 --> 00:41:49,276
+And finally, we're going to--
+this is a composite behavior
+
+
+683
+00:41:49,276 --> 00:41:53,586
+and we are going to scroll away
+various primitive behaviors
+
+
+684
+00:41:53,586 --> 00:41:55,696
+that are actually going
+to be added and removed,
+
+
+685
+00:41:55,696 --> 00:41:57,466
+these children behaviors
+
+
+686
+00:41:57,466 --> 00:42:01,236
+as Olivier demonstrated
+a little bit earlier.
+
+
+687
+00:42:01,396 --> 00:42:05,076
+So, amazingly enough, I scrolled
+away in the corner of my office
+
+
+688
+00:42:05,076 --> 00:42:09,456
+with some green felt that
+wasn't being used, and I used it
+
+
+689
+00:42:09,456 --> 00:42:11,006
+to create kind of a visual image
+
+
+690
+00:42:11,006 --> 00:42:15,006
+of what a view controller
+screen might look like.
+
+
+691
+00:42:15,886 --> 00:42:19,346
+And basically, we're getting
+called with animateTransition.
+
+
+692
+00:42:19,436 --> 00:42:21,106
+This is an interactive
+transition.
+
+
+693
+00:42:21,136 --> 00:42:24,506
+It's a straight up animation
+and the question is, now,
+
+
+694
+00:42:24,506 --> 00:42:26,526
+how do we hook up the
+Dynamics to the system?
+
+
+695
+00:42:27,236 --> 00:42:29,706
+Well, the first thing that we
+have to do is we have to figure
+
+
+696
+00:42:29,706 --> 00:42:32,216
+out what's moving and
+what we actually want
+
+
+697
+00:42:32,216 --> 00:42:34,226
+to apply forces and the like to.
+
+
+698
+00:42:34,786 --> 00:42:37,336
+And a lot of this
+code is alighted,
+
+
+699
+00:42:37,596 --> 00:42:39,116
+so I apologize for that.
+
+
+700
+00:42:39,166 --> 00:42:40,976
+But there's this thing
+called the dynamic view.
+
+
+701
+00:42:40,976 --> 00:42:42,726
+The dynamic view is
+the view that's moving.
+
+
+702
+00:42:42,926 --> 00:42:46,886
+It's just a name.
+
+
+703
+00:42:47,096 --> 00:42:48,956
+When it's called, the first
+thing that we do is we add
+
+
+704
+00:42:49,216 --> 00:42:51,286
+that dynamic view into
+the view hierarchy.
+
+
+705
+00:42:51,376 --> 00:42:53,806
+It so happens that
+it's above the screen
+
+
+706
+00:42:54,186 --> 00:42:55,496
+because it's going to drop in.
+
+
+707
+00:42:55,696 --> 00:42:59,166
+And then, we start creating
+some of our primitive behaviors
+
+
+708
+00:42:59,546 --> 00:43:03,476
+like the dynamic item behavior
+where we set up an elasticity,
+
+
+709
+00:43:03,766 --> 00:43:06,926
+we have the dynamic view
+to that primitive behavior.
+
+
+710
+00:43:07,356 --> 00:43:10,816
+And for the first segment of
+this transition, we don't want
+
+
+711
+00:43:11,146 --> 00:43:12,276
+to allow any rotation.
+
+
+712
+00:43:13,466 --> 00:43:14,496
+Then we add some gravity.
+
+
+713
+00:43:15,556 --> 00:43:18,096
+Gravity is a pretty
+simple primitive behavior.
+
+
+714
+00:43:18,366 --> 00:43:20,806
+It's going to be three
+times normal gravity.
+
+
+715
+00:43:21,396 --> 00:43:27,476
+We add a collision behavior
+and you'll notice that the way
+
+
+716
+00:43:27,476 --> 00:43:29,346
+that I set the bounce
+
+
+717
+00:43:29,346 --> 00:43:32,536
+on the collision behavior is
+using a slightly different
+
+
+718
+00:43:32,766 --> 00:43:34,506
+method on the collision
+behavior,
+
+
+719
+00:43:34,576 --> 00:43:37,576
+set translate reference bounds
+into boundaries with insets.
+
+
+720
+00:43:37,886 --> 00:43:40,566
+That's actually a very useful
+method because you can kind
+
+
+721
+00:43:40,566 --> 00:43:43,646
+of take the reference
+coordinate system and move it
+
+
+722
+00:43:43,646 --> 00:43:46,816
+in different directions
+based on simple UIEdgeInsets.
+
+
+723
+00:43:47,746 --> 00:43:51,596
+So now let's talk a little
+bit about the finish time.
+
+
+724
+00:43:51,676 --> 00:43:53,946
+Basically, we query
+the dynamic animator
+
+
+725
+00:43:53,946 --> 00:43:55,256
+for how much time has elapsed.
+
+
+726
+00:43:55,256 --> 00:43:58,116
+It so happens in this case, it's
+going to be 0 but, you know,
+
+
+727
+00:43:58,116 --> 00:43:59,726
+for sake of being true,
+
+
+728
+00:43:59,876 --> 00:44:02,716
+we ask the elapsed time
+then we add the duration
+
+
+729
+00:44:02,976 --> 00:44:05,706
+that was scrolled away when we
+created the behavior object.
+
+
+730
+00:44:06,356 --> 00:44:09,776
+And we create an action block
+and that action block is going
+
+
+731
+00:44:09,776 --> 00:44:14,576
+to check whether or not the
+time has passed that we want
+
+
+732
+00:44:14,576 --> 00:44:16,436
+to dedicate towards
+this transition.
+
+
+733
+00:44:16,736 --> 00:44:19,826
+And if it has, there is a
+very simple way to finish.
+
+
+734
+00:44:20,436 --> 00:44:24,006
+We basically remove ourselves
+from the dynamic animator.
+
+
+735
+00:44:24,486 --> 00:44:28,286
+Now, to get things going,
+
+
+736
+00:44:28,286 --> 00:44:31,116
+we have to add the children
+behavior to ourselves, remember,
+
+
+737
+00:44:31,116 --> 00:44:32,606
+we are a compound behavior.
+
+
+738
+00:44:33,286 --> 00:44:34,726
+And then, we have
+to add ourselves
+
+
+739
+00:44:34,726 --> 00:44:36,836
+and there's only one behavior
+now that's being added
+
+
+740
+00:44:36,926 --> 00:44:39,666
+to the animator and that is us.
+
+
+741
+00:44:40,506 --> 00:44:44,766
+And at this point, the physics
+engine is going to start
+
+
+742
+00:44:44,766 --> 00:44:47,156
+and we're going to start
+simulating our transition.
+
+
+743
+00:44:47,646 --> 00:44:54,586
+And there you have it.
+
+
+744
+00:44:54,826 --> 00:44:55,896
+So we've transitioned.
+
+
+745
+00:44:56,086 --> 00:44:58,136
+We're done, it's up
+on the screen and now,
+
+
+746
+00:44:58,386 --> 00:45:00,306
+we're going to hit the
+good to know button.
+
+
+747
+00:45:01,046 --> 00:45:03,456
+And we're going to
+do the dismiss,
+
+
+748
+00:45:03,456 --> 00:45:06,236
+and the dismiss is
+a two-stage thing.
+
+
+749
+00:45:07,196 --> 00:45:08,926
+Again, we call
+animateTransition.
+
+
+750
+00:45:09,126 --> 00:45:11,166
+We don't have to add a view
+into the view hierarchy.
+
+
+751
+00:45:11,166 --> 00:45:13,166
+This is a dismiss,
+it's already there.
+
+
+752
+00:45:13,476 --> 00:45:15,616
+We're going to set our
+dynamic item behaviors
+
+
+753
+00:45:15,616 --> 00:45:16,696
+up a little bit differently.
+
+
+754
+00:45:16,696 --> 00:45:18,716
+We're going to allow
+rotation this time.
+
+
+755
+00:45:19,376 --> 00:45:22,476
+Gravity is set up exactly
+the same as it was before.
+
+
+756
+00:45:23,376 --> 00:45:26,176
+Our collision boundaries are a
+little bit different and that's
+
+
+757
+00:45:26,176 --> 00:45:29,456
+because the type of
+animation that we're trying
+
+
+758
+00:45:29,456 --> 00:45:30,766
+to achieve is a little
+bit different.
+
+
+759
+00:45:31,176 --> 00:45:34,726
+We're going to add an attachment
+behavior where we're going
+
+
+760
+00:45:34,856 --> 00:45:36,706
+to kind of try to anchor--
+
+
+761
+00:45:37,406 --> 00:45:39,486
+we're going to specify
+a different position
+
+
+762
+00:45:39,486 --> 00:45:40,146
+in the default.
+
+
+763
+00:45:40,146 --> 00:45:42,156
+The default is usually
+the center of the item.
+
+
+764
+00:45:42,546 --> 00:45:44,296
+We're going to kind of put it
+up to the top and we're going
+
+
+765
+00:45:44,296 --> 00:45:46,296
+to put the anchor a
+little bit off to the side.
+
+
+766
+00:45:46,686 --> 00:45:49,766
+We're going to give it a little
+bit of kind of bounciness.
+
+
+767
+00:45:50,266 --> 00:45:53,626
+And then, we're going to set
+up the action block again.
+
+
+768
+00:45:53,626 --> 00:45:54,726
+And this time, it's
+a little interesting.
+
+
+769
+00:45:54,726 --> 00:45:56,656
+First of all, there's
+a bug in that line
+
+
+770
+00:45:56,656 --> 00:45:57,826
+where I'm setting
+the finish time.
+
+
+771
+00:45:57,826 --> 00:46:00,696
+It really should be two-thirds
+of the duration not two-thirds
+
+
+772
+00:46:00,696 --> 00:46:03,046
+of the elapsed time,
+but you get the drift.
+
+
+773
+00:46:03,396 --> 00:46:05,206
+And that's because
+it's two stages.
+
+
+774
+00:46:05,206 --> 00:46:08,016
+I'm going to spend two-thirds of
+my duration doing the first half
+
+
+775
+00:46:08,016 --> 00:46:11,826
+of my-- or first
+two-thirds of my transition.
+
+
+776
+00:46:12,266 --> 00:46:14,786
+And then, I'm going to
+move over to the next bit.
+
+
+777
+00:46:15,016 --> 00:46:17,296
+And the way again I'm going
+to trigger that, is I'm going
+
+
+778
+00:46:17,296 --> 00:46:20,846
+to remove the behaviors which
+is then going to cause me to go
+
+
+779
+00:46:20,846 --> 00:46:23,516
+into the DidPause
+animator's delegate method.
+
+
+780
+00:46:24,536 --> 00:46:27,956
+I do the regular dance of
+adding the children behaviors.
+
+
+781
+00:46:28,076 --> 00:46:31,616
+I do something different based
+on whether or not I'm a--
+
+
+782
+00:46:31,906 --> 00:46:33,596
+whether or not I'm
+presenting or dismissing,
+
+
+783
+00:46:33,596 --> 00:46:36,376
+that's why there's an IF
+clause for the attach behavior
+
+
+784
+00:46:36,896 --> 00:46:45,676
+and then we're going to run.
+
+
+785
+00:46:45,676 --> 00:46:45,876
+[ Pause ]
+
+
+786
+00:46:45,876 --> 00:46:50,256
+So now, we've come to rest.
+
+
+787
+00:46:50,426 --> 00:46:51,596
+DidPause gets called.
+
+
+788
+00:46:51,596 --> 00:46:53,706
+Now, it either got called
+because the system came
+
+
+789
+00:46:53,706 --> 00:46:57,146
+to a rest or because we
+actually hit our elapsed time.
+
+
+790
+00:46:57,616 --> 00:46:59,026
+And we're going to
+do the same thing.
+
+
+791
+00:46:59,026 --> 00:47:00,786
+Now we're using the attach
+behavior a little bit
+
+
+792
+00:47:00,786 --> 00:47:04,076
+as a semaphore here because the
+dynamic animator DidPause is
+
+
+793
+00:47:04,076 --> 00:47:05,866
+saying, "Hey, do I have
+an attach behavior?
+
+
+794
+00:47:05,896 --> 00:47:07,776
+If I do, then I need to go
+
+
+795
+00:47:07,776 --> 00:47:09,916
+into the second step
+of my simulation."
+
+
+796
+00:47:10,956 --> 00:47:13,066
+So I'm going or remove
+the attach behavior,
+
+
+797
+00:47:13,236 --> 00:47:15,576
+clear out that reference to it.
+
+
+798
+00:47:15,576 --> 00:47:19,116
+I'm going to add myself
+back to the dynamic animator
+
+
+799
+00:47:19,696 --> 00:47:20,966
+and I'm going to
+change my finish time.
+
+
+800
+00:47:21,446 --> 00:47:22,436
+Now time has elapsed,
+
+
+801
+00:47:22,666 --> 00:47:25,346
+so animator elapse time
+is actually not going
+
+
+802
+00:47:25,346 --> 00:47:26,486
+to be 0 at this point.
+
+
+803
+00:47:26,926 --> 00:47:29,686
+And now, I only want it to
+run the remaining one third
+
+
+804
+00:47:29,686 --> 00:47:32,046
+of the specified duration
+of the transition.
+
+
+805
+00:47:32,536 --> 00:47:36,506
+At this point, since the
+attachments disappear--
+
+
+806
+00:47:36,986 --> 00:47:38,726
+I should have pressed
+that button before.
+
+
+807
+00:47:38,726 --> 00:47:42,026
+Since the attachments
+disappear, when I run it,
+
+
+808
+00:47:42,026 --> 00:47:44,786
+I'm going to hit this point.
+
+
+809
+00:47:44,786 --> 00:47:49,066
+And now the collision delegate
+is going to kick in because now,
+
+
+810
+00:47:49,636 --> 00:47:51,936
+I want to do something
+after that first bounce.
+
+
+811
+00:47:52,186 --> 00:47:54,926
+I basically want to remove
+the collision behavior so that
+
+
+812
+00:47:55,056 --> 00:47:58,316
+on the next drop, it's going to
+drop all the way off the screen.
+
+
+813
+00:47:58,556 --> 00:48:01,156
+And I want to check
+
+
+814
+00:48:02,126 --> 00:48:04,566
+that I actually bounce
+off the edge I care about.
+
+
+815
+00:48:05,006 --> 00:48:06,936
+So it's possible that I
+might have hit the right edge
+
+
+816
+00:48:06,936 --> 00:48:09,696
+and I really want to
+just trigger this code
+
+
+817
+00:48:09,696 --> 00:48:10,596
+if I hit the bottom.
+
+
+818
+00:48:11,366 --> 00:48:15,276
+And that's what that check is
+doing with point.x < xContact.
+
+
+819
+00:48:16,566 --> 00:48:19,606
+But if I'm there, I'm now going
+to remove the collision behavior
+
+
+820
+00:48:20,746 --> 00:48:22,656
+and I'm going to
+fall off the screen,
+
+
+821
+00:48:22,656 --> 00:48:24,416
+I'm going to get
+back into DidPause.
+
+
+822
+00:48:24,416 --> 00:48:26,986
+Now this time, I'm going to
+get in the DidPause definitely
+
+
+823
+00:48:26,986 --> 00:48:29,826
+because time has elapsed,
+because basically,
+
+
+824
+00:48:29,826 --> 00:48:33,576
+that view has just fallen down
+to the bottom of the earth.
+
+
+825
+00:48:33,576 --> 00:48:34,826
+It's not going to stop.
+
+
+826
+00:48:35,636 --> 00:48:38,876
+But I put in my time
+check and so now I'm
+
+
+827
+00:48:39,286 --> 00:48:40,746
+in the final bits of the code.
+
+
+828
+00:48:40,746 --> 00:48:42,466
+I'm going to clean
+up and you'll notice
+
+
+829
+00:48:42,766 --> 00:48:44,456
+that I call completeTransition.
+
+
+830
+00:48:45,066 --> 00:48:48,276
+That's critical and
+that ends how
+
+
+831
+00:48:48,276 --> 00:48:51,896
+that particular present
+dismiss was implemented.
+
+
+832
+00:48:52,746 --> 00:48:54,166
+So now let's talk about
+the different one,
+
+
+833
+00:48:54,166 --> 00:48:55,116
+this one is interactive.
+
+
+834
+00:48:55,946 --> 00:48:58,106
+It's a drop shade
+transition like I said.
+
+
+835
+00:48:58,366 --> 00:49:01,736
+This one can actually be used
+the way it was implemented.
+
+
+836
+00:49:01,736 --> 00:49:03,346
+It's both the navigation
+transition
+
+
+837
+00:49:03,436 --> 00:49:06,166
+and a regular present
+dismiss transition.
+
+
+838
+00:49:07,186 --> 00:49:10,736
+It's a dynamic behavior
+subclass that conforms
+
+
+839
+00:49:10,736 --> 00:49:14,016
+to both animated transitioning
+and interactive transitioning.
+
+
+840
+00:49:14,426 --> 00:49:17,246
+Again, these are
+protocols, so we're free
+
+
+841
+00:49:17,246 --> 00:49:20,116
+to basically have one object
+implement the whole bunch
+
+
+842
+00:49:20,116 --> 00:49:21,396
+of them if it makes sense.
+
+
+843
+00:49:21,846 --> 00:49:24,956
+And in this case, it's
+very convenient to do so.
+
+
+844
+00:49:25,676 --> 00:49:29,786
+The interactive portion of this
+transition does not use Dynamics
+
+
+845
+00:49:29,786 --> 00:49:30,056
+at all.
+
+
+846
+00:49:31,186 --> 00:49:35,516
+However, when the interaction
+ends, we set up a dynamic finish
+
+
+847
+00:49:35,566 --> 00:49:40,076
+as it were and the dynamic
+finish is actually going
+
+
+848
+00:49:40,076 --> 00:49:42,526
+to be calling out
+to the interactive
+
+
+849
+00:49:42,566 --> 00:49:44,156
+transitioning methods.
+
+
+850
+00:49:44,936 --> 00:49:47,246
+And we do this for a
+very specific reason.
+
+
+851
+00:49:47,806 --> 00:49:49,846
+We do this because that--
+
+
+852
+00:49:49,846 --> 00:49:55,136
+in that way, we are able
+to drive auxiliary views
+
+
+853
+00:49:55,136 --> 00:49:57,836
+that might be participating
+in a transition,
+
+
+854
+00:49:58,006 --> 00:49:59,676
+like for example,
+the navigation bar.
+
+
+855
+00:50:00,566 --> 00:50:03,456
+And it will synchronize in terms
+
+
+856
+00:50:03,456 --> 00:50:07,056
+of how complete the
+transition is or not
+
+
+857
+00:50:07,336 --> 00:50:08,956
+with the Dynamics
+of the systems.
+
+
+858
+00:50:08,956 --> 00:50:10,516
+So that's a pretty
+interesting technique.
+
+
+859
+00:50:11,156 --> 00:50:11,986
+We're going to continue
+
+
+860
+00:50:11,986 --> 00:50:15,046
+to use the same DidPause
+mechanism that we used before.
+
+
+861
+00:50:15,416 --> 00:50:17,226
+So let me give you
+a quick demo of that
+
+
+862
+00:50:17,996 --> 00:50:21,656
+and then we'll deconstruct
+that one.
+
+
+863
+00:50:21,846 --> 00:50:24,876
+OK, basically, it's
+pretty simple.
+
+
+864
+00:50:26,216 --> 00:50:29,056
+You'll see as I move
+this with the gesture,
+
+
+865
+00:50:29,876 --> 00:50:31,166
+I can move it up or down.
+
+
+866
+00:50:31,616 --> 00:50:33,306
+If I cancel it, it goes back.
+
+
+867
+00:50:34,476 --> 00:50:35,926
+If you notice closely,
+
+
+868
+00:50:35,926 --> 00:50:41,036
+you'll see how the
+navigation bar is kind
+
+
+869
+00:50:41,036 --> 00:50:43,466
+of fading in and out.
+
+
+870
+00:50:43,466 --> 00:50:45,226
+And if I go down, it kind of--
+
+
+871
+00:50:45,556 --> 00:50:47,286
+you'll notice that there
+was a slight bounce
+
+
+872
+00:50:47,286 --> 00:50:49,986
+to it as it was settling.
+
+
+873
+00:50:49,986 --> 00:50:52,616
+And the navigation bar itself
+was doing that as well.
+
+
+874
+00:50:53,236 --> 00:50:55,636
+That is a noninteractive
+dismissal.
+
+
+875
+00:50:56,246 --> 00:51:01,256
+And just to prove my point,
+I can make this a full
+
+
+876
+00:51:01,256 --> 00:51:02,986
+on presentation if I want to.
+
+
+877
+00:51:02,986 --> 00:51:08,706
+And exact-- with exactly the
+same code, so that can drop
+
+
+878
+00:51:09,416 --> 00:51:11,436
+in or I can flip it up.
+
+
+879
+00:51:11,736 --> 00:51:13,676
+So that's what we're
+going to deconstruct.
+
+
+880
+00:51:14,456 --> 00:51:15,556
+Let's do that quickly.
+
+
+881
+00:51:20,036 --> 00:51:22,706
+So before, the blogger's
+get out there,
+
+
+882
+00:51:22,706 --> 00:51:25,166
+this is not some
+leak of new hardware.
+
+
+883
+00:51:25,166 --> 00:51:26,556
+We don't have anything
+looking like that.
+
+
+884
+00:51:26,556 --> 00:51:31,806
+I just couldn't fit all
+the code on the screen.
+
+
+885
+00:51:31,966 --> 00:51:33,966
+So gesture starts.
+
+
+886
+00:51:35,406 --> 00:51:36,956
+This has nothing to
+do with dynamics.
+
+
+887
+00:51:36,956 --> 00:51:41,736
+We are just recognizing a pan
+gesture and when it starts,
+
+
+888
+00:51:41,736 --> 00:51:44,086
+we're going to say
+Push View Controller.
+
+
+889
+00:51:44,086 --> 00:51:46,686
+And this case, I'm going
+to through the sequence
+
+
+890
+00:51:46,686 --> 00:51:48,126
+that I demonstrated
+
+
+891
+00:51:48,126 --> 00:51:50,726
+as a navigation controller,
+and that's it.
+
+
+892
+00:51:51,746 --> 00:51:54,276
+Now, I've wired things
+up in such a way
+
+
+893
+00:51:54,566 --> 00:51:56,456
+that when I called
+push view controller,
+
+
+894
+00:51:56,456 --> 00:51:58,066
+my navigation controller
+delegate,
+
+
+895
+00:51:58,126 --> 00:51:59,626
+vended in animation controller,
+
+
+896
+00:51:59,626 --> 00:52:01,276
+vended in interaction
+controller,
+
+
+897
+00:52:01,276 --> 00:52:03,036
+and all those good
+things were happening.
+
+
+898
+00:52:03,036 --> 00:52:06,136
+And then because of that,
+the system called back
+
+
+899
+00:52:06,136 --> 00:52:07,386
+to the interaction controller
+
+
+900
+00:52:07,386 --> 00:52:09,386
+and said Start Interactive
+Transition.
+
+
+901
+00:52:10,556 --> 00:52:13,486
+And we put the view
+into the view hierarchy
+
+
+902
+00:52:13,486 --> 00:52:15,566
+which is what you
+see with the gray box
+
+
+903
+00:52:16,436 --> 00:52:18,976
+and now we are continuing
+to handle the gesture.
+
+
+904
+00:52:19,496 --> 00:52:22,536
+And as our finger moves
+across the screen,
+
+
+905
+00:52:22,576 --> 00:52:26,656
+we are in fact pulling
+the presented
+
+
+906
+00:52:26,656 --> 00:52:30,826
+or the push view controller's
+view in the container hierarchy.
+
+
+907
+00:52:30,826 --> 00:52:34,356
+And we're calling out as we do
+at update interactive transition
+
+
+908
+00:52:34,356 --> 00:52:37,016
+with the percent complete
+which is based on the height
+
+
+909
+00:52:37,576 --> 00:52:40,486
+of the actual view
+controller being presented.
+
+
+910
+00:52:41,476 --> 00:52:42,336
+So far so good.
+
+
+911
+00:52:42,846 --> 00:52:46,416
+Nothing particularly
+new has happened
+
+
+912
+00:52:46,416 --> 00:52:49,366
+until we release our
+finger from the screen.
+
+
+913
+00:52:49,776 --> 00:52:53,406
+At which point, we're
+going to start building
+
+
+914
+00:52:53,406 --> 00:52:54,956
+up the Dynamics of our system.
+
+
+915
+00:52:55,206 --> 00:52:58,326
+We're going to determine
+based on velocity
+
+
+916
+00:52:58,326 --> 00:52:59,646
+and direction perhaps whether
+
+
+917
+00:52:59,646 --> 00:53:01,556
+or not the gesture
+should cancel or not.
+
+
+918
+00:53:01,956 --> 00:53:06,006
+And then, we are going to create
+a collision behavior using
+
+
+919
+00:53:06,276 --> 00:53:07,226
+boundary insets.
+
+
+920
+00:53:07,226 --> 00:53:09,606
+We're going to create an
+attachment behavior this time
+
+
+921
+00:53:10,476 --> 00:53:12,156
+and we're going to
+create an action block.
+
+
+922
+00:53:12,676 --> 00:53:15,226
+And what I'd like to focus
+on this action block is
+
+
+923
+00:53:15,226 --> 00:53:16,586
+that action block is going
+
+
+924
+00:53:16,586 --> 00:53:19,276
+to call
+UpdateInteractiveTransition.
+
+
+925
+00:53:20,116 --> 00:53:23,696
+So as this Dynamics of the
+system affects the view
+
+
+926
+00:53:23,696 --> 00:53:25,216
+as it bounces in and out,
+
+
+927
+00:53:25,596 --> 00:53:28,746
+we're going to compute how
+close we are to the finish
+
+
+928
+00:53:28,746 --> 00:53:29,866
+and we're going to call out to
+
+
+929
+00:53:29,866 --> 00:53:34,046
+that UpdateInteractiveTransition
+method
+
+
+930
+00:53:34,046 --> 00:53:35,416
+on the transition context.
+
+
+931
+00:53:35,906 --> 00:53:40,006
+When it's all over,
+we're going to be
+
+
+932
+00:53:40,006 --> 00:53:42,176
+in the DidPause block again.
+
+
+933
+00:53:43,366 --> 00:53:47,156
+We're going to determine whether
+or not it was canceled or not,
+
+
+934
+00:53:47,156 --> 00:53:48,116
+in which case we're either going
+
+
+935
+00:53:48,116 --> 00:53:49,886
+to call
+CancelInteractiveTransition
+
+
+936
+00:53:49,886 --> 00:53:52,466
+or FinishInteractiveTransition
+depending on the direction.
+
+
+937
+00:53:52,466 --> 00:53:53,576
+In this case, it's finish.
+
+
+938
+00:53:54,306 --> 00:53:55,456
+And then, again, we're going
+
+
+939
+00:53:55,456 --> 00:53:59,426
+to call the completeTransition
+block on our method,
+
+
+940
+00:53:59,846 --> 00:54:01,806
+on the transition context.
+
+
+941
+00:54:02,856 --> 00:54:04,726
+So what did we learn here?
+
+
+942
+00:54:05,456 --> 00:54:06,616
+First of all, Dynamics
+
+
+943
+00:54:06,616 --> 00:54:09,406
+and custom transitions are
+compatible with each other.
+
+
+944
+00:54:09,406 --> 00:54:10,056
+They can be used.
+
+
+945
+00:54:10,056 --> 00:54:12,336
+In fact, we spend a lot of
+times trying to make sure
+
+
+946
+00:54:12,336 --> 00:54:14,666
+that our APIs compose
+well together.
+
+
+947
+00:54:15,746 --> 00:54:18,856
+As a rule of thumb,
+it really pays off
+
+
+948
+00:54:18,856 --> 00:54:21,936
+to create composite behaviors
+that get the function
+
+
+949
+00:54:21,936 --> 00:54:22,976
+that you're interested in.
+
+
+950
+00:54:23,716 --> 00:54:28,046
+We showed how you can create
+complex dynamic transitions
+
+
+951
+00:54:28,416 --> 00:54:30,216
+using the dynamic
+animator delegate,
+
+
+952
+00:54:30,376 --> 00:54:31,626
+the collision behavior delegate,
+
+
+953
+00:54:31,876 --> 00:54:34,066
+and actions on dynamic
+behaviors.
+
+
+954
+00:54:36,216 --> 00:54:40,326
+A dynamic behavior subclass
+can easily conform to one
+
+
+955
+00:54:40,326 --> 00:54:43,346
+or even both of the
+transitioning protocols.
+
+
+956
+00:54:43,406 --> 00:54:46,246
+It makes a lot of sense to
+do so because you can put all
+
+
+957
+00:54:46,246 --> 00:54:47,956
+of the logic in one place.
+
+
+958
+00:54:48,826 --> 00:54:51,066
+Duration is something
+that needs to be thought
+
+
+959
+00:54:51,066 --> 00:54:52,676
+about when you're
+doing transitions.
+
+
+960
+00:54:52,676 --> 00:54:56,406
+Again, a dynamic system doesn't
+necessarily converge ever.
+
+
+961
+00:54:57,126 --> 00:55:00,566
+So you want to put
+checks in place based
+
+
+962
+00:55:00,566 --> 00:55:03,316
+on your application logic
+to ensure that it finishes.
+
+
+963
+00:55:04,636 --> 00:55:05,626
+And then, what's interesting is
+
+
+964
+00:55:05,626 --> 00:55:09,626
+that dynamic behavior
+actions can actually be used
+
+
+965
+00:55:09,986 --> 00:55:13,066
+to drive the interactive
+portion of a transition.
+
+
+966
+00:55:13,326 --> 00:55:15,426
+And that might not
+be entirely obvious.
+
+
+967
+00:55:16,406 --> 00:55:18,376
+I'd like to make one
+other point and that is,
+
+
+968
+00:55:18,376 --> 00:55:23,876
+is that if you're using
+Dynamics and you add behavior
+
+
+969
+00:55:23,876 --> 00:55:26,606
+to the dynamic animator
+and nothing happens
+
+
+970
+00:55:27,766 --> 00:55:30,166
+which has happened to me
+a few times, it's probably
+
+
+971
+00:55:30,166 --> 00:55:32,526
+because you didn't retain
+your dynamic animator.
+
+
+972
+00:55:32,886 --> 00:55:34,146
+Don't let that happen to you.
+
+
+973
+00:55:34,856 --> 00:55:37,026
+So quick wrap up.
+
+
+974
+00:55:37,596 --> 00:55:41,636
+When you're using dynamics,
+focus on what it is precisely
+
+
+975
+00:55:41,636 --> 00:55:44,466
+that you're really trying
+to do in small pieces.
+
+
+976
+00:55:44,856 --> 00:55:49,166
+It really helps to build
+complex dynamic interactions
+
+
+977
+00:55:49,166 --> 00:55:51,426
+and animations piece by piece.
+
+
+978
+00:55:51,706 --> 00:55:54,906
+In fact, we are iterating all
+the time when we create this.
+
+
+979
+00:55:55,196 --> 00:55:56,996
+You're going to have different
+constraints that you want
+
+
+980
+00:55:56,996 --> 00:55:59,976
+to take into account, duration,
+interactivity, et cetera.
+
+
+981
+00:56:01,016 --> 00:56:03,126
+There's all-- there's
+a whole other bunch
+
+
+982
+00:56:03,126 --> 00:56:06,236
+of new animation APIs
+that we added in iOS 7.
+
+
+983
+00:56:06,686 --> 00:56:09,006
+Those might be more
+suitable in many cases.
+
+
+984
+00:56:09,006 --> 00:56:12,836
+For example, there's an
+animate with duration API
+
+
+985
+00:56:13,156 --> 00:56:15,386
+that allows you to
+implement kind
+
+
+986
+00:56:15,386 --> 00:56:17,336
+of a simple spring
+animation as well.
+
+
+987
+00:56:17,846 --> 00:56:19,156
+So look at those two.
+
+
+988
+00:56:20,316 --> 00:56:26,616
+And then just go to town,
+create awesome stuff.
+
+
+989
+00:56:26,826 --> 00:56:29,226
+All these sessions, I
+believe have already happened
+
+
+990
+00:56:29,266 --> 00:56:30,876
+but you can look at
+them on the videos.
+
+
+991
+00:56:31,116 --> 00:56:32,636
+They all talk about dynamics.
+
+
+992
+00:56:32,636 --> 00:56:35,186
+Some of them talk about custom
+view controller transitions.
+
+
+993
+00:56:36,366 --> 00:56:36,776
+That's it.
+
+
+994
+00:56:36,776 --> 00:56:38,186
+[ Applause ]
+
+
+995
+00:56:38,186 --> 00:56:38,516
+Thank you.
+
+
+996
+00:56:39,016 --> 00:56:45,960
+[ Applause ]
+

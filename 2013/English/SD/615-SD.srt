@@ -1,0 +1,4208 @@
+1
+00:00:00,506 --> 00:00:09,536
+[ Silence ]
+
+
+2
+00:00:10,036 --> 00:00:11,046
+>> Mark Hahnenberg:
+Good morning everyone.
+
+
+3
+00:00:12,286 --> 00:00:15,096
+My name is Mark Hahnenberg
+and I'm an engineer
+
+
+4
+00:00:15,096 --> 00:00:16,486
+on the JavaScriptCore team.
+
+
+5
+00:00:16,676 --> 00:00:19,336
+And today, I'm going to be
+talking to you about how
+
+
+6
+00:00:19,406 --> 00:00:20,366
+to integrate JavaScript
+
+
+7
+00:00:20,366 --> 00:00:24,606
+into your Native Apps
+on both iOS and Mac.
+
+
+8
+00:00:25,456 --> 00:00:30,016
+So, prior to today,
+there has been a C API
+
+
+9
+00:00:30,336 --> 00:00:34,436
+to the JavaScriptCore
+framework available on Mac.
+
+
+10
+00:00:34,436 --> 00:00:36,956
+And if you're interested
+in that, there is a session
+
+
+11
+00:00:36,956 --> 00:00:40,566
+that was done on WWDC a number
+of years ago about the C API.
+
+
+12
+00:00:41,586 --> 00:00:43,836
+But today, I'm going
+to be talking to you
+
+
+13
+00:00:43,836 --> 00:00:47,856
+about the new Objective-C
+API that we're releasing
+
+
+14
+00:00:47,856 --> 00:00:50,226
+to JavaScriptCore, and
+it will be available
+
+
+15
+00:00:50,226 --> 00:00:51,636
+on both Mac and iOS.
+
+
+16
+00:00:51,826 --> 00:00:55,226
+So what were some of our goals
+when developing this new API?
+
+
+17
+00:00:55,226 --> 00:00:59,016
+Well for one, we want
+it to be automatic.
+
+
+18
+00:00:59,016 --> 00:01:02,906
+And what this means is that
+there are certain things
+
+
+19
+00:01:02,906 --> 00:01:08,166
+that you want to do with a
+framework like JavaScriptCore
+
+
+20
+00:01:08,166 --> 00:01:11,836
+and we tried to make that as
+automatic and easy as possible.
+
+
+21
+00:01:12,826 --> 00:01:17,146
+The second thing is we
+want the API to be safe.
+
+
+22
+00:01:17,636 --> 00:01:21,026
+So, we want you to be able
+to recover from errors
+
+
+23
+00:01:21,026 --> 00:01:22,926
+if you happen to pass
+something of the wrong type
+
+
+24
+00:01:22,926 --> 00:01:27,026
+across this border because
+JavaScript is a dynamic language
+
+
+25
+00:01:27,026 --> 00:01:28,096
+as you know.
+
+
+26
+00:01:29,296 --> 00:01:33,716
+So you can pass various
+objects around and we want it--
+
+
+27
+00:01:33,716 --> 00:01:35,376
+we want you to be able to not--
+
+
+28
+00:01:35,436 --> 00:01:38,136
+we want you to not crash
+your application if you end
+
+
+29
+00:01:38,136 --> 00:01:39,836
+up doing something
+a little squirrely,
+
+
+30
+00:01:39,836 --> 00:01:42,926
+so we want you to--
+it to be recoverable.
+
+
+31
+00:01:43,816 --> 00:01:48,676
+And the final goal that we had
+was this notion of fidelity
+
+
+32
+00:01:49,096 --> 00:01:52,106
+and what I mean by that is
+whenever you're programming
+
+
+33
+00:01:52,106 --> 00:01:55,546
+in Objective-C and you're
+interacting with JavaScriptCore,
+
+
+34
+00:01:56,356 --> 00:01:59,236
+we want you to feel like you're
+programming in Objective-C
+
+
+35
+00:01:59,236 --> 00:02:01,876
+when you're writing Objective-C,
+and we want you to feel
+
+
+36
+00:02:01,876 --> 00:02:04,426
+like you're writing JavaScript
+when you're writing JavaScript.
+
+
+37
+00:02:05,776 --> 00:02:10,406
+So we don't want there to be,
+you know, these crazy names
+
+
+38
+00:02:10,406 --> 00:02:12,046
+that lead with underscores
+
+
+39
+00:02:12,046 --> 00:02:13,956
+or maybe dollar signs
+in there somewhere.
+
+
+40
+00:02:14,566 --> 00:02:16,926
+We want it to look like
+JavaScript and look
+
+
+41
+00:02:16,926 --> 00:02:19,066
+like Objective-C in
+their respective worlds.
+
+
+42
+00:02:19,066 --> 00:02:23,356
+So what are-- what exactly
+will you learn today?
+
+
+43
+00:02:24,336 --> 00:02:27,416
+First, we'll talk about how to
+get your Objective-C application
+
+
+44
+00:02:27,876 --> 00:02:30,216
+to talk to JavaScript,
+so to call--
+
+
+45
+00:02:30,216 --> 00:02:34,156
+to evaluate JavaScript scripts,
+to call JavaScript functions,
+
+
+46
+00:02:34,156 --> 00:02:36,666
+and to create JavaScript values.
+
+
+47
+00:02:37,136 --> 00:02:40,436
+Then we're going to talk about
+how to get your JavaScript code
+
+
+48
+00:02:40,436 --> 00:02:43,446
+to be able to interact with
+your Objective-C objects
+
+
+49
+00:02:43,446 --> 00:02:44,526
+and call Objective-C methods.
+
+
+50
+00:02:44,526 --> 00:02:49,076
+Then we'll talk a little
+bit about memory management.
+
+
+51
+00:02:49,076 --> 00:02:50,316
+Objective-C uses ARC
+
+
+52
+00:02:50,886 --> 00:02:52,766
+and JavaScript is a
+garbage collected language.
+
+
+53
+00:02:52,896 --> 00:02:55,596
+So, getting these to play
+nicely together requires some
+
+
+54
+00:02:55,596 --> 00:02:56,416
+extra attention.
+
+
+55
+00:02:57,976 --> 00:02:59,596
+Then we'll talk about
+threading and how
+
+
+56
+00:02:59,596 --> 00:03:02,496
+that interacts with the API.
+
+
+57
+00:03:02,666 --> 00:03:05,306
+And then we'll speak to-- a
+little bit about interfacing
+
+
+58
+00:03:05,306 --> 00:03:07,556
+with the C API that
+already exists today.
+
+
+59
+00:03:08,776 --> 00:03:12,396
+And finally, we'll talk a little
+bit about using JavaScriptCore
+
+
+60
+00:03:12,396 --> 00:03:17,206
+in the context of a
+WebKit WebView on Mac.
+
+
+61
+00:03:17,296 --> 00:03:20,446
+So, to start off, I'd like
+to show you just a simple
+
+
+62
+00:03:20,446 --> 00:03:23,836
+application, a simple
+demo using JavaScriptCore.
+
+
+63
+00:03:24,306 --> 00:03:27,016
+So I have a simple
+Cocoa app here.
+
+
+64
+00:03:27,516 --> 00:03:30,406
+It has an NSTextView.
+
+
+65
+00:03:30,726 --> 00:03:32,716
+You can see there are
+some words in there.
+
+
+66
+00:03:33,576 --> 00:03:39,146
+And what you're seeing is
+that the words that correspond
+
+
+67
+00:03:39,146 --> 00:03:41,666
+to colors are being highlighted
+with their corresponding color.
+
+
+68
+00:03:41,666 --> 00:03:43,616
+So for example, brown
+is highlighted brown,
+
+
+69
+00:03:43,976 --> 00:03:44,876
+red is highlighted red.
+
+
+70
+00:03:44,876 --> 00:03:48,426
+And the logic that
+implements this highlighting
+
+
+71
+00:03:48,426 --> 00:03:50,666
+that determines whether a
+particular word corresponds
+
+
+72
+00:03:50,666 --> 00:03:52,296
+to a color is implemented
+in JavaScript.
+
+
+73
+00:03:52,296 --> 00:03:54,236
+So I have a couple other things
+
+
+74
+00:03:54,236 --> 00:03:55,606
+that are implemented
+in JavaScript here.
+
+
+75
+00:03:55,606 --> 00:03:58,116
+I have a button that's connected
+to a JavaScript function
+
+
+76
+00:03:58,116 --> 00:03:59,886
+that shuffles the
+colors and reassigns them
+
+
+77
+00:04:00,356 --> 00:04:03,306
+to drive yourself
+a little crazy.
+
+
+78
+00:04:03,436 --> 00:04:06,336
+And if I don't want to wait
+around for the random shuffle
+
+
+79
+00:04:06,336 --> 00:04:09,406
+to get back to the original
+assignment, I can reset back
+
+
+80
+00:04:09,436 --> 00:04:10,236
+to the original assignment.
+
+
+81
+00:04:11,526 --> 00:04:15,176
+So I can-- as I type, it will
+continue to highlight words
+
+
+82
+00:04:15,236 --> 00:04:19,685
+so you can type red,
+orange, yellow,
+
+
+83
+00:04:21,106 --> 00:04:22,226
+but there's a couple bugs.
+
+
+84
+00:04:22,346 --> 00:04:26,196
+So for example, we have grey
+but we don't have G-R-A-Y,
+
+
+85
+00:04:26,196 --> 00:04:27,596
+that doesn't work correctly.
+
+
+86
+00:04:28,706 --> 00:04:32,056
+And also typing capital
+colors doesn't highlight
+
+
+87
+00:04:32,056 --> 00:04:32,826
+as we would expect.
+
+
+88
+00:04:32,826 --> 00:04:38,086
+And my favorite color cyan is
+also not highlighted correctly.
+
+
+89
+00:04:38,856 --> 00:04:40,706
+So we can fix that
+pretty easily actually.
+
+
+90
+00:04:40,706 --> 00:04:44,836
+I have the script that
+implements this color mapping.
+
+
+91
+00:04:44,836 --> 00:04:49,316
+And what I'm going to do is
+I'm going to edit the script
+
+
+92
+00:04:49,506 --> 00:04:52,486
+to give us a new
+gray and cyan here.
+
+
+93
+00:04:52,486 --> 00:04:56,776
+You can see that this is a map
+of normal JavaScript objects
+
+
+94
+00:04:57,136 --> 00:05:00,356
+that maps color names to their
+corresponding red, green,
+
+
+95
+00:05:00,356 --> 00:05:02,746
+and blue value stored inside
+the JavaScript objects.
+
+
+96
+00:05:03,676 --> 00:05:06,176
+And down here, here's
+our callback
+
+
+97
+00:05:06,176 --> 00:05:10,856
+for determining what color
+a word should be if any.
+
+
+98
+00:05:12,026 --> 00:05:16,376
+So, you can see that
+if I uncomment this,
+
+
+99
+00:05:16,376 --> 00:05:22,166
+then we will take into account
+words that have uppercase
+
+
+100
+00:05:22,166 --> 00:05:23,606
+in them that are still colors.
+
+
+101
+00:05:23,606 --> 00:05:27,726
+So I'm going to save this
+file, go back to my application
+
+
+102
+00:05:27,726 --> 00:05:29,866
+and I have this Reload button
+down in the bottom right
+
+
+103
+00:05:29,866 --> 00:05:32,226
+and it will reload the script
+
+
+104
+00:05:33,196 --> 00:05:37,086
+and now we correctly highlight
+the colors, and I didn't have
+
+
+105
+00:05:37,086 --> 00:05:40,546
+to recompile which
+is kind of neat.
+
+
+106
+00:05:40,846 --> 00:05:46,146
+So, that is a simple way to use
+JavaScript in an application.
+
+
+107
+00:05:46,556 --> 00:05:50,446
+You just saw a simple
+use of JavaScript
+
+
+108
+00:05:52,226 --> 00:05:54,186
+in an application,
+a Cocoa application.
+
+
+109
+00:05:54,766 --> 00:05:59,636
+So let's look at how we might
+implement something like this.
+
+
+110
+00:05:59,896 --> 00:06:02,826
+So, first we're going to talk
+about how to get Objective-C
+
+
+111
+00:06:02,826 --> 00:06:04,106
+to talk to JavaScript.
+
+
+112
+00:06:04,406 --> 00:06:09,836
+So, here is a simple Hello
+World program, Hello World.
+
+
+113
+00:06:10,376 --> 00:06:13,756
+We implement-- or we
+import the framework header,
+
+
+114
+00:06:14,236 --> 00:06:18,596
+so JavaScriptCore.h. We create
+something called a JSContext,
+
+
+115
+00:06:18,596 --> 00:06:20,916
+and we'll talk about
+what that is in a second.
+
+
+116
+00:06:22,456 --> 00:06:27,786
+We use that context and call
+evaluateScript, evaluating 2 + 2
+
+
+117
+00:06:28,176 --> 00:06:31,286
+and that will return
+a result in a--
+
+
+118
+00:06:32,146 --> 00:06:37,566
+with a type of JSValue and
+finally, we convert that JSValue
+
+
+119
+00:06:37,646 --> 00:06:39,626
+to an integer that we can
+print out to the screen.
+
+
+120
+00:06:40,156 --> 00:06:43,006
+So let's talk about these
+two core data types,
+
+
+121
+00:06:43,006 --> 00:06:44,866
+JSContext and JSValue.
+
+
+122
+00:06:46,336 --> 00:06:47,736
+First JSContext.
+
+
+123
+00:06:49,056 --> 00:06:52,436
+JSContext is a context for
+evaluating JavaScript code.
+
+
+124
+00:06:52,806 --> 00:06:55,176
+It corresponds to a
+single global object,
+
+
+125
+00:06:55,426 --> 00:06:58,176
+so in web parlance for you
+guys coming from the web world,
+
+
+126
+00:06:58,566 --> 00:07:01,986
+it corresponds to
+a window object.
+
+
+127
+00:07:01,986 --> 00:07:04,816
+But there is no thing
+called a window
+
+
+128
+00:07:04,866 --> 00:07:08,506
+but there is a single global
+object for global variables.
+
+
+129
+00:07:10,436 --> 00:07:12,746
+And the other type is JSValue.
+
+
+130
+00:07:12,826 --> 00:07:15,336
+JSValues live inside
+of a JSContext.
+
+
+131
+00:07:15,396 --> 00:07:16,346
+They can be things like--
+
+
+132
+00:07:16,346 --> 00:07:18,906
+it's just a reference
+to a JavaScript value
+
+
+133
+00:07:18,946 --> 00:07:23,186
+so they can be objects,
+JavaScript arrays,
+
+
+134
+00:07:23,186 --> 00:07:25,706
+JavaScript functions,
+Booleans, et cetera.
+
+
+135
+00:07:26,746 --> 00:07:30,106
+And they have a strong
+reference to that value.
+
+
+136
+00:07:30,106 --> 00:07:33,506
+So it's kind of a strong handle
+to that JavaScript value.
+
+
+137
+00:07:33,916 --> 00:07:35,296
+So keep it alive as long
+
+
+138
+00:07:35,296 --> 00:07:37,016
+as you're interacting
+with that JSValue.
+
+
+139
+00:07:37,016 --> 00:07:41,416
+And they're tied to a particular
+JSContext, each JSValue is tied
+
+
+140
+00:07:41,476 --> 00:07:42,846
+to a particular JSContext.
+
+
+141
+00:07:43,746 --> 00:07:44,456
+And why is that?
+
+
+142
+00:07:44,586 --> 00:07:49,906
+Well, any JSValue might
+want to evaluate code
+
+
+143
+00:07:50,566 --> 00:07:52,336
+which we need a JSContext to do.
+
+
+144
+00:07:52,446 --> 00:07:53,846
+For example a function,
+
+
+145
+00:07:53,846 --> 00:07:56,356
+a JavaScript function
+needs a JSContext
+
+
+146
+00:07:56,356 --> 00:07:57,486
+in order to evaluate code.
+
+
+147
+00:07:58,306 --> 00:07:59,696
+And that is also a
+strong reference,
+
+
+148
+00:07:59,696 --> 00:08:03,186
+so JSValue keeps alive
+all of those things
+
+
+149
+00:08:03,186 --> 00:08:04,506
+that it needs to do its job.
+
+
+150
+00:08:05,166 --> 00:08:09,726
+So there's a variety of
+ways to create JSValues.
+
+
+151
+00:08:10,256 --> 00:08:14,926
+This is the-- you can create
+things using the corresponding
+
+
+152
+00:08:14,966 --> 00:08:19,096
+Objective-C primitives like
+Boolean's, doubles, et cetera.
+
+
+153
+00:08:19,346 --> 00:08:22,376
+You can create the JavaScript
+values null or undefined.
+
+
+154
+00:08:22,626 --> 00:08:25,656
+You can create new JavaScript
+objects, new JavaScript arrays,
+
+
+155
+00:08:25,656 --> 00:08:31,586
+regular expression and errors,
+hopefully not too many of those.
+
+
+156
+00:08:31,776 --> 00:08:34,905
+And you can also
+create new JSValues
+
+
+157
+00:08:35,166 --> 00:08:38,096
+and pass an arbitrary
+Objective-C object.
+
+
+158
+00:08:38,096 --> 00:08:41,155
+So, this particular method,
+
+
+159
+00:08:41,155 --> 00:08:43,606
+this class method deserves
+its own slide because a lot
+
+
+160
+00:08:43,606 --> 00:08:44,766
+of magic happens here.
+
+
+161
+00:08:45,546 --> 00:08:50,516
+So we will automatically
+bridge your Objective-C object
+
+
+162
+00:08:51,376 --> 00:08:54,066
+to JavaScript so that
+JavaScript can interact with it.
+
+
+163
+00:08:54,866 --> 00:08:56,396
+And we'll talk more
+about exactly how
+
+
+164
+00:08:56,396 --> 00:08:59,196
+that works in a second.
+
+
+165
+00:08:59,346 --> 00:09:01,846
+Once you have a JSValue, if
+you get it back from a call
+
+
+166
+00:09:01,846 --> 00:09:03,326
+or something, you
+want to be able
+
+
+167
+00:09:03,326 --> 00:09:06,966
+to access the data that's inside
+of it so we have various things
+
+
+168
+00:09:07,086 --> 00:09:10,166
+like converting to a
+Boolean, to numbers,
+
+
+169
+00:09:10,546 --> 00:09:12,336
+to dates, strings, et cetera.
+
+
+170
+00:09:13,196 --> 00:09:15,746
+And when you call one
+of these on a JSValue,
+
+
+171
+00:09:16,326 --> 00:09:19,976
+JavaScriptCore will do its best
+effort to convert it to the type
+
+
+172
+00:09:20,036 --> 00:09:22,396
+that you asked for
+using the semantics
+
+
+173
+00:09:22,396 --> 00:09:23,416
+of the JavaScript language.
+
+
+174
+00:09:24,896 --> 00:09:28,846
+You'll also notice at the
+bottom, the two object method.
+
+
+175
+00:09:29,506 --> 00:09:33,376
+And this allows you to get-- if
+you bridge an Objective-C object
+
+
+176
+00:09:33,586 --> 00:09:35,476
+to a JSValue, this
+allows you to get
+
+
+177
+00:09:35,476 --> 00:09:38,066
+that Objective-C object
+back out of the JSValue.
+
+
+178
+00:09:38,776 --> 00:09:42,356
+So now that we know
+how to create values,
+
+
+179
+00:09:42,356 --> 00:09:45,666
+let's talk a little bit about
+calling JavaScript functions.
+
+
+180
+00:09:45,716 --> 00:09:49,386
+So here's a simple factorial
+function written in JavaScript,
+
+
+181
+00:09:49,696 --> 00:09:54,136
+and here's what it
+looks like to call it.
+
+
+182
+00:09:54,496 --> 00:09:56,216
+So first, we load the script
+
+
+183
+00:09:56,216 --> 00:09:58,906
+from wherever it
+resides on disk perhaps.
+
+
+184
+00:09:59,916 --> 00:10:03,316
+We evaluate the script using
+the context like we saw earlier.
+
+
+185
+00:10:03,316 --> 00:10:07,476
+And since the script defines
+a single global function,
+
+
+186
+00:10:09,196 --> 00:10:14,186
+we can use this new subscript
+notation and pass the name
+
+
+187
+00:10:14,186 --> 00:10:17,776
+of the function from the
+context to load that JSValue
+
+
+188
+00:10:17,956 --> 00:10:21,636
+from the global object,
+from the global scope.
+
+
+189
+00:10:22,236 --> 00:10:24,096
+Once we have that
+function, we can--
+
+
+190
+00:10:24,096 --> 00:10:27,676
+we simply use callWithArguments
+and pass this--
+
+
+191
+00:10:27,996 --> 00:10:30,896
+and pass an NSArray
+of arguments.
+
+
+192
+00:10:31,006 --> 00:10:35,256
+So this is this new
+Objective-C notation
+
+
+193
+00:10:35,256 --> 00:10:36,896
+for creating array literals.
+
+
+194
+00:10:37,766 --> 00:10:40,586
+And you'll notice that
+we passed an NSNumber 5
+
+
+195
+00:10:41,116 --> 00:10:44,206
+and this is significant because
+JavaScript doesn't know how
+
+
+196
+00:10:44,206 --> 00:10:45,586
+to interact with NSNumber.
+
+
+197
+00:10:45,796 --> 00:10:49,706
+However, JavaScriptCore will
+automatically bridge this
+
+
+198
+00:10:49,706 --> 00:10:52,686
+for you so that when
+you call that function,
+
+
+199
+00:10:52,686 --> 00:10:56,066
+it gets the correct value, it
+will get 5 as its argument.
+
+
+200
+00:10:56,546 --> 00:11:01,336
+And finally, we get the
+result back and we print it.
+
+
+201
+00:11:01,776 --> 00:11:03,266
+It should be 120, right?
+
+
+202
+00:11:03,266 --> 00:11:07,386
+If the factorial
+function is correct.
+
+
+203
+00:11:07,496 --> 00:11:09,956
+So, now that we know how
+to interact with JavaScript
+
+
+204
+00:11:10,156 --> 00:11:13,806
+from Objective-C,
+let's recap the demo
+
+
+205
+00:11:13,806 --> 00:11:15,666
+that I showed you
+previously to show
+
+
+206
+00:11:15,666 --> 00:11:17,306
+where it uses some
+of these things.
+
+
+207
+00:11:17,736 --> 00:11:21,946
+Here are the callbacks for
+the Shuffle and Reset button.
+
+
+208
+00:11:22,636 --> 00:11:29,266
+And what we do is we look
+at the plug-in object
+
+
+209
+00:11:29,266 --> 00:11:32,126
+that we create inside
+of our JavaScript file,
+
+
+210
+00:11:32,126 --> 00:11:34,386
+and we use the subscript
+notation
+
+
+211
+00:11:34,386 --> 00:11:35,496
+that I showed you earlier.
+
+
+212
+00:11:35,496 --> 00:11:37,316
+You can use this, not
+only on the context,
+
+
+213
+00:11:37,316 --> 00:11:39,816
+but any JavaScript
+value also works
+
+
+214
+00:11:39,816 --> 00:11:42,766
+with this subscript notation
+to access fields of the object.
+
+
+215
+00:11:43,926 --> 00:11:47,696
+So we load the shuffleFunction
+from the plug in,
+
+
+216
+00:11:48,406 --> 00:11:51,676
+and then we call the function
+with an empty set of arguments.
+
+
+217
+00:11:51,936 --> 00:11:54,286
+So, if we look at the
+corresponding JavaScript code,
+
+
+218
+00:11:55,346 --> 00:11:57,606
+here's the shuffleFunction,
+it's a property
+
+
+219
+00:11:57,606 --> 00:11:59,626
+on the plug-in object
+named Colors
+
+
+220
+00:12:00,246 --> 00:12:02,886
+and it does some
+shuffling for us.
+
+
+221
+00:12:05,076 --> 00:12:07,796
+If you look up here, when
+we're loading the plug-in,
+
+
+222
+00:12:07,796 --> 00:12:13,706
+we get the path from the bundle,
+we load the script from the file
+
+
+223
+00:12:14,896 --> 00:12:18,936
+and then we use evaluateScript
+to get the result of loading
+
+
+224
+00:12:18,936 --> 00:12:20,286
+that plug-in and we store it.
+
+
+225
+00:12:20,286 --> 00:12:25,826
+Now that you've seen how we
+use interacting with JavaScript
+
+
+226
+00:12:25,826 --> 00:12:28,736
+from Objective-C in
+that simple application,
+
+
+227
+00:12:29,216 --> 00:12:31,706
+let's move on to
+getting JavaScript
+
+
+228
+00:12:31,836 --> 00:12:33,716
+to talk back to Objective-C.
+
+
+229
+00:12:33,856 --> 00:12:35,576
+There are two primary
+ways to interact
+
+
+230
+00:12:35,666 --> 00:12:37,096
+with Objective-C
+from JavaScript.
+
+
+231
+00:12:37,946 --> 00:12:40,856
+The first is to use
+blocks, Objective-C blocks.
+
+
+232
+00:12:41,866 --> 00:12:45,416
+And these will be wrapped
+inside of a JS function
+
+
+233
+00:12:45,416 --> 00:12:47,476
+that is callable
+from JavaScript.
+
+
+234
+00:12:48,296 --> 00:12:52,016
+So-- And that's a
+really easy way
+
+
+235
+00:12:52,256 --> 00:12:57,276
+to expose just a single function
+to JavaScript that you want
+
+
+236
+00:12:57,276 --> 00:12:59,066
+to be able to call
+back into Objective-C.
+
+
+237
+00:12:59,776 --> 00:13:00,316
+The other way is
+
+
+238
+00:13:00,316 --> 00:13:03,086
+to use something called
+the JSExport protocol
+
+
+239
+00:13:04,776 --> 00:13:11,636
+and this protocol, by using this
+technique, you allow JavaScript
+
+
+240
+00:13:12,156 --> 00:13:14,126
+to interact with your
+Objective-C objects
+
+
+241
+00:13:14,256 --> 00:13:16,226
+as if they were JavaScript
+objects.
+
+
+242
+00:13:16,286 --> 00:13:21,966
+It's a very powerful technique
+for maintaining that fidelity
+
+
+243
+00:13:21,966 --> 00:13:23,066
+that I spoke about earlier.
+
+
+244
+00:13:24,246 --> 00:13:26,876
+So let's look how
+these work exactly.
+
+
+245
+00:13:27,426 --> 00:13:28,356
+First is blocks.
+
+
+246
+00:13:29,996 --> 00:13:34,026
+So, like I said before,
+it's an easy way
+
+
+247
+00:13:34,026 --> 00:13:38,076
+to expose Objective-C code
+to JavaScript, very easy.
+
+
+248
+00:13:38,626 --> 00:13:42,296
+And we automatically wrap
+the Objective-C block inside
+
+
+249
+00:13:42,296 --> 00:13:44,226
+of a callable JavaScript
+function.
+
+
+250
+00:13:45,306 --> 00:13:46,216
+So what does that look like?
+
+
+251
+00:13:46,706 --> 00:13:50,596
+We can insert a block into the
+context using this subscript
+
+
+252
+00:13:50,596 --> 00:13:52,916
+notation that I talked
+about earlier.
+
+
+253
+00:13:53,406 --> 00:13:55,466
+And we pass a block as the value
+
+
+254
+00:13:55,466 --> 00:13:57,376
+that we're bridging
+to JavaScript.
+
+
+255
+00:13:58,186 --> 00:14:02,606
+And you'll notice that the
+block takes an NSDictionary
+
+
+256
+00:14:02,606 --> 00:14:05,596
+of RGB values as its argument.
+
+
+257
+00:14:05,596 --> 00:14:09,836
+And it returns a new
+NSColor using those red,
+
+
+258
+00:14:09,836 --> 00:14:12,946
+green and blue values.
+
+
+259
+00:14:12,946 --> 00:14:16,016
+So, what this does is when
+we pass this block in--
+
+
+260
+00:14:16,016 --> 00:14:18,046
+across this JavaScriptCore
+barrier,
+
+
+261
+00:14:18,336 --> 00:14:21,806
+we create a makeNSColor
+function,
+
+
+262
+00:14:22,506 --> 00:14:24,376
+JavaScript function
+around the block.
+
+
+263
+00:14:24,836 --> 00:14:32,546
+Then, in our code,
+we call makeNSColor
+
+
+264
+00:14:32,906 --> 00:14:35,976
+and we use these
+JavaScript objects
+
+
+265
+00:14:35,976 --> 00:14:37,726
+that I showed you
+earlier in the color map
+
+
+266
+00:14:37,726 --> 00:14:39,596
+and they're just normal
+JavaScript objects.
+
+
+267
+00:14:40,146 --> 00:14:42,896
+And the cool thing about this
+is that, you notice before
+
+
+268
+00:14:42,896 --> 00:14:47,846
+that the block accepts an
+NSDictionary as its argument.
+
+
+269
+00:14:47,846 --> 00:14:51,116
+JavaScriptCore will
+automatically bridge JavaScript
+
+
+270
+00:14:51,116 --> 00:14:55,616
+objects to NSDictionaries when
+calling out to Objective-C code.
+
+
+271
+00:14:55,976 --> 00:14:58,876
+We call this makeNSColor,
+and what happens?
+
+
+272
+00:14:58,976 --> 00:15:02,556
+colorForWord calls the function
+and it forwards that call
+
+
+273
+00:15:02,556 --> 00:15:03,736
+to the Objective-C block.
+
+
+274
+00:15:04,516 --> 00:15:07,976
+It gets the resulting NSColor
+and wraps it in turn inside
+
+
+275
+00:15:07,976 --> 00:15:12,596
+of a JavaScript object, and
+then this colorForWord function
+
+
+276
+00:15:12,596 --> 00:15:14,426
+returns that NSColor.
+
+
+277
+00:15:14,806 --> 00:15:18,036
+So although blocks are very
+easy to use, there are a couple
+
+
+278
+00:15:18,036 --> 00:15:22,516
+of caveats you have to be
+careful about when using them.
+
+
+279
+00:15:22,746 --> 00:15:27,926
+So, the first is you should
+avoid capturing JSValues inside
+
+
+280
+00:15:27,926 --> 00:15:28,496
+of your blocks.
+
+
+281
+00:15:28,856 --> 00:15:29,956
+And the reason for this is
+
+
+282
+00:15:29,956 --> 00:15:33,466
+that JSValues maintain a strong
+reference to both their context
+
+
+283
+00:15:33,466 --> 00:15:35,036
+and their corresponding
+JavaScript value.
+
+
+284
+00:15:35,586 --> 00:15:37,236
+And so if they're
+captured by the block,
+
+
+285
+00:15:37,526 --> 00:15:39,736
+you'll leak that memory
+because you won't be able
+
+
+286
+00:15:39,736 --> 00:15:41,916
+to release that JSValue.
+
+
+287
+00:15:42,536 --> 00:15:46,706
+You should-- instead you
+should prefer to pass JSValues
+
+
+288
+00:15:47,086 --> 00:15:49,336
+as arguments to your blocks.
+
+
+289
+00:15:50,336 --> 00:15:53,406
+The second caveat is
+along similar lines.
+
+
+290
+00:15:53,406 --> 00:15:57,026
+You should avoid capturing
+JSContext inside of your blocks.
+
+
+291
+00:15:57,566 --> 00:16:00,496
+And it's for the same reason,
+
+
+292
+00:16:00,496 --> 00:16:04,806
+the JSContext maintains a strong
+reference to the global object
+
+
+293
+00:16:05,456 --> 00:16:08,716
+and it will leak all of your
+memory when it's captured.
+
+
+294
+00:16:09,406 --> 00:16:12,666
+Instead, you should
+use the class method
+
+
+295
+00:16:12,896 --> 00:16:16,096
+on JSContext called
+currentContext inside
+
+
+296
+00:16:16,096 --> 00:16:19,416
+of the block, and that will
+return to you the context
+
+
+297
+00:16:19,476 --> 00:16:22,416
+of the caller, whoever
+invoked that block.
+
+
+298
+00:16:22,576 --> 00:16:24,456
+This is an example
+of what not to do.
+
+
+299
+00:16:24,456 --> 00:16:29,956
+You create a context, you
+pass a block, and you use,
+
+
+300
+00:16:29,956 --> 00:16:33,326
+you capture that context inside
+of the block, this is bad.
+
+
+301
+00:16:34,356 --> 00:16:36,776
+The right way to do it
+is to create the context,
+
+
+302
+00:16:36,776 --> 00:16:40,796
+insert the block and then
+use JSContext currentContext
+
+
+303
+00:16:40,796 --> 00:16:42,386
+where you were capturing
+it before.
+
+
+304
+00:16:42,966 --> 00:16:46,776
+So now that we've
+talked about blocks,
+
+
+305
+00:16:46,776 --> 00:16:49,836
+let's talk about JSExport
+and how that works.
+
+
+306
+00:16:51,476 --> 00:16:54,886
+JSExport is, like I said
+before, it's a really easy way
+
+
+307
+00:16:54,886 --> 00:16:57,176
+for JavaScript to interact
+with Objective-C objects.
+
+
+308
+00:16:58,086 --> 00:17:00,186
+So, let's take a look at
+what it would look like.
+
+
+309
+00:17:00,516 --> 00:17:03,086
+So imagine that I have a
+MyPoint class represents a two
+
+
+310
+00:17:03,086 --> 00:17:07,776
+dimensional point, it has an X
+and a Y property, description,
+
+
+311
+00:17:08,536 --> 00:17:12,256
+instance method,
+and a factory method
+
+
+312
+00:17:12,256 --> 00:17:15,586
+to create new MyPoints,
+so a class method.
+
+
+313
+00:17:16,736 --> 00:17:19,846
+And what would we like this
+to look like when interacting
+
+
+314
+00:17:19,846 --> 00:17:23,086
+with this-- an object of
+this class in JavaScript?
+
+
+315
+00:17:24,276 --> 00:17:26,215
+Well, we'd want the
+properties to look
+
+
+316
+00:17:26,215 --> 00:17:27,556
+like JavaScript properties.
+
+
+317
+00:17:27,906 --> 00:17:31,166
+So, you could get their value,
+you could set their value.
+
+
+318
+00:17:31,466 --> 00:17:34,796
+We want the instance methods
+to look like functions
+
+
+319
+00:17:34,796 --> 00:17:39,816
+on those objects, so dot
+description in this case.
+
+
+320
+00:17:39,946 --> 00:17:45,346
+And we want class methods
+to look like functions
+
+
+321
+00:17:45,346 --> 00:17:48,896
+on these global class objects,
+in this case, capital MyPoint.
+
+
+322
+00:17:48,946 --> 00:17:54,236
+So, the way to get this to
+work with JSExport is simply
+
+
+323
+00:17:54,236 --> 00:17:56,536
+to change its interface
+into a protocol
+
+
+324
+00:17:57,376 --> 00:17:59,876
+that inherits from JSExport.
+
+
+325
+00:18:01,756 --> 00:18:05,556
+So now, we have a
+MyPointExports.
+
+
+326
+00:18:06,536 --> 00:18:09,816
+And this, by inheriting
+from JSExport,
+
+
+327
+00:18:09,856 --> 00:18:14,416
+you signal to JavaScriptCore
+that this is the list of methods
+
+
+328
+00:18:14,716 --> 00:18:18,036
+and properties that I want
+JavaScript to be able to access
+
+
+329
+00:18:18,356 --> 00:18:20,056
+when I pass an object
+
+
+330
+00:18:20,056 --> 00:18:23,866
+that implements this
+MyPointExports protocol.
+
+
+331
+00:18:24,366 --> 00:18:30,626
+So, you'll also notice that
+when you had your interface
+
+
+332
+00:18:30,626 --> 00:18:34,266
+for MyPoint now, you don't have
+to re-list all of those methods
+
+
+333
+00:18:34,306 --> 00:18:37,466
+because it's a protocol so
+that's how protocols work.
+
+
+334
+00:18:38,006 --> 00:18:40,056
+And that's nice because
+you don't get a lot
+
+
+335
+00:18:40,056 --> 00:18:42,406
+of duplication of information.
+
+
+336
+00:18:43,856 --> 00:18:48,306
+But you can also, if you
+don't list a particular method
+
+
+337
+00:18:48,306 --> 00:18:51,726
+in your JSExport protocol,
+
+
+338
+00:18:52,666 --> 00:18:54,566
+it will not be exported
+to JavaScript.
+
+
+339
+00:18:54,566 --> 00:18:59,596
+So if you only want to-- it's
+a purely opt-in protocol.
+
+
+340
+00:18:59,596 --> 00:19:03,526
+And then your implementation of
+MyPoint will look just exactly
+
+
+341
+00:19:03,526 --> 00:19:04,666
+like Objective-C code.
+
+
+342
+00:19:05,386 --> 00:19:07,746
+This speaks to that
+kind of fidelity
+
+
+343
+00:19:07,746 --> 00:19:08,816
+that we were talking
+about earlier.
+
+
+344
+00:19:08,816 --> 00:19:11,646
+You don't have to register
+all sorts of functions,
+
+
+345
+00:19:11,646 --> 00:19:14,516
+you don't have to do
+a lot of extra stuff
+
+
+346
+00:19:14,666 --> 00:19:17,806
+like you just write your-- you
+write your Objective-C class,
+
+
+347
+00:19:17,876 --> 00:19:20,336
+you write your JavaScript
+code and you're done.
+
+
+348
+00:19:20,696 --> 00:19:24,246
+So like I said before, when
+you inherit from JSExport,
+
+
+349
+00:19:24,246 --> 00:19:26,446
+you enumerate the methods
+and properties that you want
+
+
+350
+00:19:26,446 --> 00:19:27,576
+to export to JavaScript.
+
+
+351
+00:19:28,996 --> 00:19:31,746
+Properties become
+JavaScript getters and setters
+
+
+352
+00:19:32,096 --> 00:19:36,236
+on the objects as you're
+interacting with them
+
+
+353
+00:19:36,236 --> 00:19:39,746
+in JavaScript so it will-- the
+getter and setter will call
+
+
+354
+00:19:39,786 --> 00:19:41,666
+into Objective-C code.
+
+
+355
+00:19:42,516 --> 00:19:45,436
+Instance methods become
+JavaScript functions
+
+
+356
+00:19:45,436 --> 00:19:46,256
+on those objects.
+
+
+357
+00:19:46,816 --> 00:19:50,086
+And class methods become
+JavaScript functions
+
+
+358
+00:19:50,086 --> 00:19:51,776
+on the global class object,
+
+
+359
+00:19:51,776 --> 00:19:53,926
+the capital MyPoint
+that we saw earlier.
+
+
+360
+00:19:55,536 --> 00:19:58,496
+So let's look at how
+we would use this.
+
+
+361
+00:19:59,046 --> 00:20:01,026
+So we allocate our
+context like before.
+
+
+362
+00:20:01,646 --> 00:20:07,196
+We evaluate some geometry script
+which I'll show you in a second.
+
+
+363
+00:20:07,376 --> 00:20:09,986
+Then we create two of our points
+just like we normally would,
+
+
+364
+00:20:10,086 --> 00:20:16,056
+alloc init with XY, and we load
+the function from the context
+
+
+365
+00:20:16,056 --> 00:20:17,306
+like we saw earlier,
+in this case,
+
+
+366
+00:20:17,306 --> 00:20:21,026
+it's euclideanDistance
+between two points.
+
+
+367
+00:20:21,026 --> 00:20:26,056
+And then, we callWithArguments
+and pass the two points
+
+
+368
+00:20:26,056 --> 00:20:29,756
+and they're automatically
+bridged to JavaScript.
+
+
+369
+00:20:29,756 --> 00:20:33,946
+Similarly, if we want to
+expose the global class object,
+
+
+370
+00:20:33,946 --> 00:20:39,676
+capital MyPoint, we can pass
+the class to the context as well
+
+
+371
+00:20:39,676 --> 00:20:41,396
+and it will automatically
+be bridged
+
+
+372
+00:20:41,926 --> 00:20:44,026
+so that JavaScript
+can interact with it.
+
+
+373
+00:20:46,916 --> 00:20:51,166
+Then we can load, for example,
+a function named midpoint
+
+
+374
+00:20:51,166 --> 00:20:53,916
+which might want to create a
+new point given two other points
+
+
+375
+00:20:54,676 --> 00:20:57,176
+and we can call it the same
+way that we did before.
+
+
+376
+00:20:57,296 --> 00:21:02,766
+We get a result back in the form
+of a JSValue and we use toObject
+
+
+377
+00:21:02,876 --> 00:21:04,516
+to get the new point back out.
+
+
+378
+00:21:05,166 --> 00:21:10,506
+So this is the geometry script
+that I referenced earlier.
+
+
+379
+00:21:10,506 --> 00:21:13,316
+It has two functions,
+euclideanDistance and midpoint.
+
+
+380
+00:21:13,526 --> 00:21:17,336
+They accept two arguments
+each, point1 and point2.
+
+
+381
+00:21:18,216 --> 00:21:19,926
+And I'd like to call
+your attention
+
+
+382
+00:21:20,156 --> 00:21:25,346
+to how this script
+uses those properties
+
+
+383
+00:21:25,386 --> 00:21:26,486
+that were defined on point.
+
+
+384
+00:21:27,496 --> 00:21:30,686
+It looks exactly like a
+normal JavaScript property.
+
+
+385
+00:21:30,816 --> 00:21:32,916
+It looks like you're
+programing in JavaScript here.
+
+
+386
+00:21:32,916 --> 00:21:34,476
+It's completely transparent
+
+
+387
+00:21:34,976 --> 00:21:37,406
+that these are actually
+Objective-C objects
+
+
+388
+00:21:37,406 --> 00:21:38,566
+under the hood.
+
+
+389
+00:21:39,066 --> 00:21:42,256
+[ Pause ]
+
+
+390
+00:21:42,756 --> 00:21:46,616
+So, now that we've talked
+about bridging the gap
+
+
+391
+00:21:46,756 --> 00:21:51,026
+between JavaScript and
+Objective-C and vice versa,
+
+
+392
+00:21:51,916 --> 00:21:54,626
+let's talk about some
+more advanced API topics.
+
+
+393
+00:21:55,076 --> 00:21:56,536
+First of all, memory management.
+
+
+394
+00:21:58,066 --> 00:22:00,686
+So as you all are
+probably aware,
+
+
+395
+00:22:01,166 --> 00:22:03,286
+Objective-C uses ARC, yes.
+
+
+396
+00:22:03,756 --> 00:22:06,846
+And JavaScriptCore uses
+garbage collection.
+
+
+397
+00:22:07,106 --> 00:22:09,196
+So what does this mean?
+
+
+398
+00:22:09,386 --> 00:22:11,576
+Well, first of all, it means
+that all the references
+
+
+399
+00:22:11,576 --> 00:22:12,856
+in JavaScript are strong.
+
+
+400
+00:22:13,596 --> 00:22:15,596
+It doesn't matter if you
+create reference cycles
+
+
+401
+00:22:15,596 --> 00:22:17,946
+because the garbage collector
+can handle reference cycles.
+
+
+402
+00:22:18,506 --> 00:22:25,476
+So for this particular
+JavaScript, the Objective-C API,
+
+
+403
+00:22:25,726 --> 00:22:27,516
+the memory management
+is mostly automatic,
+
+
+404
+00:22:27,766 --> 00:22:30,896
+JSValue keeps things
+alive for you as long
+
+
+405
+00:22:30,896 --> 00:22:32,186
+as you're using the JSValue
+
+
+406
+00:22:32,186 --> 00:22:34,776
+so you don't really have
+to worry about that.
+
+
+407
+00:22:35,046 --> 00:22:36,436
+However, there are
+two situations
+
+
+408
+00:22:36,436 --> 00:22:38,146
+that require a little
+bit of extra attention:
+
+
+409
+00:22:39,166 --> 00:22:42,776
+First is storing JavaScript
+values in Objective-C objects
+
+
+410
+00:22:42,776 --> 00:22:44,006
+as instance variables.
+
+
+411
+00:22:44,706 --> 00:22:48,716
+You can't just store a
+JSValue inside of your object,
+
+
+412
+00:22:48,826 --> 00:22:51,876
+you will very easily create a
+reference cycle and we'll talk
+
+
+413
+00:22:51,876 --> 00:22:53,026
+about how to deal
+with that in a second.
+
+
+414
+00:22:54,086 --> 00:22:59,516
+The second is adding JavaScript
+fields to Objective-C objects,
+
+
+415
+00:22:59,596 --> 00:23:02,806
+and what I mean by that is if
+you have an Objective-C object
+
+
+416
+00:23:03,466 --> 00:23:07,916
+that you bridge to JavaScript,
+if you add a field to it
+
+
+417
+00:23:07,916 --> 00:23:10,396
+that is not one of the
+properties that you listed
+
+
+418
+00:23:10,396 --> 00:23:12,766
+in your JSExport
+protocol, we will--
+
+
+419
+00:23:12,766 --> 00:23:16,736
+we allow that but we'll create
+a new extra JavaScript-only side
+
+
+420
+00:23:16,736 --> 00:23:21,496
+field, so you have to be careful
+in that case too and what--
+
+
+421
+00:23:21,496 --> 00:23:25,426
+the mechanism to
+manage this correctly--
+
+
+422
+00:23:25,426 --> 00:23:27,286
+manage these two
+situations correctly,
+
+
+423
+00:23:27,846 --> 00:23:30,366
+I'll talk about it in a second.
+
+
+424
+00:23:31,066 --> 00:23:34,536
+So, here's an example of how you
+can create a retain cycle doing
+
+
+425
+00:23:34,536 --> 00:23:36,676
+the wrong thing.
+
+
+426
+00:23:36,676 --> 00:23:39,986
+So we have a JavaScript
+constructor, ClickHandler,
+
+
+427
+00:23:39,986 --> 00:23:41,646
+looks like a function
+but it's a constructor,
+
+
+428
+00:23:43,346 --> 00:23:45,886
+and it accepts a
+button and a callback,
+
+
+429
+00:23:45,886 --> 00:23:48,416
+so the button is an
+Objective-C object
+
+
+430
+00:23:48,416 --> 00:23:50,576
+and the callback is the
+JavaScript function you want
+
+
+431
+00:23:50,576 --> 00:23:52,166
+to call whenever this
+button is clicked.
+
+
+432
+00:23:52,916 --> 00:23:56,066
+So the ClickHandler makes
+a reference to the button
+
+
+433
+00:23:56,866 --> 00:24:00,106
+and it also sets the buttons
+onClickHandler to itself
+
+
+434
+00:24:00,106 --> 00:24:03,706
+and then it stores the
+callback for use later,
+
+
+435
+00:24:04,916 --> 00:24:06,556
+pretty, pretty pedestrian.
+
+
+436
+00:24:07,796 --> 00:24:13,536
+However, you get into a little
+bit of trouble if you try
+
+
+437
+00:24:13,536 --> 00:24:16,336
+to implement the
+setOnClickHandler setter
+
+
+438
+00:24:16,606 --> 00:24:17,196
+like this.
+
+
+439
+00:24:17,816 --> 00:24:21,856
+The onClickHandler, if you just
+assign the JSValue directly
+
+
+440
+00:24:21,856 --> 00:24:24,116
+into the instance
+variable of MyButton,
+
+
+441
+00:24:24,676 --> 00:24:28,826
+then you'll create a retain
+cycle as you can see here.
+
+
+442
+00:24:29,596 --> 00:24:33,736
+So MyButton has a strong
+reference to its onClickHandler
+
+
+443
+00:24:33,916 --> 00:24:36,116
+through its JSValue to
+the ClickHandler object.
+
+
+444
+00:24:36,116 --> 00:24:38,786
+And the ClickHandler has
+a strong reference back
+
+
+445
+00:24:39,076 --> 00:24:40,536
+to the button through
+this.button.
+
+
+446
+00:24:41,986 --> 00:24:43,396
+And it wouldn't really work
+
+
+447
+00:24:43,396 --> 00:24:44,806
+to make this a weak
+reference either
+
+
+448
+00:24:44,806 --> 00:24:47,076
+because then ClickHandler
+would disappear
+
+
+449
+00:24:47,076 --> 00:24:49,046
+and we wouldn't get our
+callbacks as we expected.
+
+
+450
+00:24:49,496 --> 00:24:51,086
+So we need a different
+type of edge,
+
+
+451
+00:24:51,986 --> 00:24:53,336
+a different type of reference.
+
+
+452
+00:24:53,856 --> 00:24:58,646
+And the name of that
+reference is JSManagedValue.
+
+
+453
+00:24:59,546 --> 00:25:03,576
+So, this is the correct
+setOnClickHandler.
+
+
+454
+00:25:04,686 --> 00:25:09,296
+We take the JSValue
+that's passed to us
+
+
+455
+00:25:10,026 --> 00:25:13,286
+and we create what's called
+a JSManagedValue using
+
+
+456
+00:25:13,286 --> 00:25:17,266
+managedValueWithValue passing
+the handler there, and we assign
+
+
+457
+00:25:17,266 --> 00:25:18,966
+that to our onClickHandler
+field.
+
+
+458
+00:25:19,996 --> 00:25:25,836
+Then we ask the JavaScript
+virtual machine,
+
+
+459
+00:25:25,836 --> 00:25:27,466
+which has access
+through the context,
+
+
+460
+00:25:27,796 --> 00:25:31,516
+to add a managed reference
+between ourselves, the button,
+
+
+461
+00:25:31,956 --> 00:25:34,216
+and the onClickHandler
+that we're now referencing.
+
+
+462
+00:25:35,006 --> 00:25:38,186
+Now, what exactly is this
+addManagedReference deal?
+
+
+463
+00:25:38,296 --> 00:25:41,626
+So you can think of
+addManagedReference
+
+
+464
+00:25:41,626 --> 00:25:44,046
+as creating a garbage
+collected reference,
+
+
+465
+00:25:44,156 --> 00:25:46,526
+it's not a strong reference,
+it's not a weak reference,
+
+
+466
+00:25:46,526 --> 00:25:47,606
+it's a new type of reference,
+
+
+467
+00:25:47,606 --> 00:25:49,046
+it's a garbage collected
+reference
+
+
+468
+00:25:49,396 --> 00:25:51,416
+as represented here
+by the dashed line.
+
+
+469
+00:25:52,506 --> 00:25:54,986
+So now we have this
+garbage collected reference
+
+
+470
+00:25:55,436 --> 00:25:59,706
+that tells JavaScript-- it tells
+the JavaScript garbage collector
+
+
+471
+00:25:59,946 --> 00:26:03,176
+about this edge, it lets it
+know that this edge exist
+
+
+472
+00:26:03,436 --> 00:26:06,186
+and that it may need to
+do some special things
+
+
+473
+00:26:06,276 --> 00:26:07,856
+to keep that memory alive.
+
+
+474
+00:26:08,506 --> 00:26:13,196
+So we resolved our
+reference cycle here.
+
+
+475
+00:26:13,776 --> 00:26:18,416
+So, JSManagedValue by
+itself is a weak reference
+
+
+476
+00:26:18,416 --> 00:26:19,536
+to a JavaScript value.
+
+
+477
+00:26:19,986 --> 00:26:22,606
+So this is how you
+create weak references.
+
+
+478
+00:26:22,836 --> 00:26:25,276
+JSValue is a strong
+reference, JSManagedValue
+
+
+479
+00:26:25,276 --> 00:26:29,276
+by itself is a weak reference
+to a JavaScript value.
+
+
+480
+00:26:29,886 --> 00:26:32,586
+addManagedReference:withOwner
+which is the--
+
+
+481
+00:26:32,586 --> 00:26:34,876
+notifying the virtual
+machine of the presence
+
+
+482
+00:26:34,876 --> 00:26:38,916
+of this JSManagedValue,
+turns the JSManagedValue
+
+
+483
+00:26:38,916 --> 00:26:40,646
+into a garbage collected
+reference.
+
+
+484
+00:26:41,186 --> 00:26:45,686
+And what this means is that, if
+JavaScript can find the owner
+
+
+485
+00:26:45,796 --> 00:26:48,246
+where you saw the owner
+parameter at the end, withOwner,
+
+
+486
+00:26:48,636 --> 00:26:49,736
+if JavaScript can find
+
+
+487
+00:26:49,736 --> 00:26:51,506
+that during its garbage
+collection cycle,
+
+
+488
+00:26:51,506 --> 00:26:53,936
+it keeps the reference alive.
+
+
+489
+00:26:55,216 --> 00:26:57,206
+Otherwise, the reference
+is released.
+
+
+490
+00:26:57,826 --> 00:27:02,476
+So now that we talked
+about memory management,
+
+
+491
+00:27:03,046 --> 00:27:05,486
+let's talk a little
+bit about threading.
+
+
+492
+00:27:06,036 --> 00:27:07,866
+But first to talk about
+threading, we have to talk
+
+
+493
+00:27:07,866 --> 00:27:09,116
+about virtual machines.
+
+
+494
+00:27:09,746 --> 00:27:12,596
+In this case, JSVirtualMachine
+which we used
+
+
+495
+00:27:12,596 --> 00:27:14,316
+in the previous slide
+when we were
+
+
+496
+00:27:14,496 --> 00:27:18,336
+calling addManagedReference.
+
+
+497
+00:27:18,586 --> 00:27:22,056
+So, a JSVirtualMachine
+is a container
+
+
+498
+00:27:22,056 --> 00:27:25,346
+that can contain
+multiple JSContexts
+
+
+499
+00:27:25,836 --> 00:27:27,826
+and you can have
+multiple JSVirtualMachines
+
+
+500
+00:27:27,826 --> 00:27:31,206
+in a single process that
+have different contexts
+
+
+501
+00:27:32,226 --> 00:27:35,626
+and some JSValues live
+inside of these contexts,
+
+
+502
+00:27:36,706 --> 00:27:41,196
+and you can pass JSValues
+between JSContexts
+
+
+503
+00:27:41,196 --> 00:27:42,636
+in the same virtual machine.
+
+
+504
+00:27:44,856 --> 00:27:45,956
+That's good.
+
+
+505
+00:27:46,776 --> 00:27:50,386
+But, you can't pass them
+between JSVirtualMachines.
+
+
+506
+00:27:51,346 --> 00:27:54,356
+And the reasons for this
+are a little bit technical,
+
+
+507
+00:27:54,396 --> 00:27:57,716
+but shortly,
+
+
+508
+00:27:58,346 --> 00:28:00,426
+each JSVirtualMachine
+has its own heap
+
+
+509
+00:28:00,426 --> 00:28:01,886
+and its own garbage collector.
+
+
+510
+00:28:02,516 --> 00:28:05,466
+So if you pass-- if you
+were to pass a JSValue
+
+
+511
+00:28:05,466 --> 00:28:07,616
+from one JSVirtualMachine
+to another,
+
+
+512
+00:28:08,356 --> 00:28:11,106
+that particular garbage
+collector doesn't know how
+
+
+513
+00:28:11,106 --> 00:28:12,866
+to deal with things
+from a different heap.
+
+
+514
+00:28:13,556 --> 00:28:18,006
+So that's the reason that
+you're not allowed to do that.
+
+
+515
+00:28:18,916 --> 00:28:21,086
+So how does JSVirtualMachine
+affect threading?
+
+
+516
+00:28:21,086 --> 00:28:23,766
+Well, so the API itself,
+
+
+517
+00:28:23,766 --> 00:28:25,886
+JavaScriptCore, is
+a thread safe API.
+
+
+518
+00:28:26,276 --> 00:28:33,226
+You can call into various
+JSContexts and evaluate code
+
+
+519
+00:28:33,626 --> 00:28:36,356
+and create values and that sort
+of thing on different threads
+
+
+520
+00:28:36,806 --> 00:28:39,466
+and everything will work fine.
+
+
+521
+00:28:39,656 --> 00:28:42,686
+However, the locking
+granularity is at the level
+
+
+522
+00:28:42,686 --> 00:28:44,116
+of a JSVirtualMachine.
+
+
+523
+00:28:45,406 --> 00:28:50,456
+So, this means that you
+can call into JavaScript
+
+
+524
+00:28:50,456 --> 00:28:54,816
+on different threads in the
+same virtual machine, however,
+
+
+525
+00:28:54,816 --> 00:28:58,266
+whenever one thread is
+executing JavaScript,
+
+
+526
+00:28:58,556 --> 00:29:00,696
+no other thread can be
+executing JavaScript
+
+
+527
+00:29:00,756 --> 00:29:02,066
+in that virtual machine.
+
+
+528
+00:29:02,546 --> 00:29:08,726
+So, if you want to add
+concurrency or parallelism
+
+
+529
+00:29:08,726 --> 00:29:11,666
+to your JavaScript program
+in your native application,
+
+
+530
+00:29:12,216 --> 00:29:15,636
+you should use separate
+JSVirtualMachines
+
+
+531
+00:29:15,636 --> 00:29:17,606
+which can execute concurrently
+on separate threads,
+
+
+532
+00:29:17,606 --> 00:29:19,366
+in that way you can
+take advantage
+
+
+533
+00:29:19,366 --> 00:29:20,326
+of the parallelism there.
+
+
+534
+00:29:20,886 --> 00:29:22,616
+We're going to talk
+about interfacing
+
+
+535
+00:29:22,616 --> 00:29:24,166
+with the JavaScriptCore C API.
+
+
+536
+00:29:24,976 --> 00:29:31,166
+The C API has its inherent
+warts, but it's very easy
+
+
+537
+00:29:31,166 --> 00:29:36,276
+to start to convert over
+to the new Objective-C API.
+
+
+538
+00:29:36,346 --> 00:29:39,086
+There's a one to one
+correspondence between JSValues
+
+
+539
+00:29:39,086 --> 00:29:44,086
+and JSValueRefs and JSContexts
+and JSGlobalContextRefs.
+
+
+540
+00:29:44,556 --> 00:29:48,256
+And we make it very easy to get
+one where you wanted the other
+
+
+541
+00:29:48,256 --> 00:29:50,316
+or get the other
+where you have one.
+
+
+542
+00:29:50,376 --> 00:29:53,736
+So, for example, if you
+have a JSGlobalContextRef,
+
+
+543
+00:29:54,386 --> 00:29:56,906
+you can call
+contextWithJSGlobalContextRef
+
+
+544
+00:29:56,906 --> 00:29:59,026
+and pass that JSGlobalContextRef
+
+
+545
+00:29:59,026 --> 00:30:00,556
+and we'll give you
+the appropriate--
+
+
+546
+00:30:00,556 --> 00:30:02,206
+the corresponding JSContext.
+
+
+547
+00:30:03,006 --> 00:30:04,576
+The same goes for the other way.
+
+
+548
+00:30:05,336 --> 00:30:08,196
+You can call JSGlobalContextRef
+on the context that you have
+
+
+549
+00:30:08,196 --> 00:30:10,716
+and we'll give you
+the C API equivalent.
+
+
+550
+00:30:11,136 --> 00:30:12,686
+Same for JSValue.
+
+
+551
+00:30:12,766 --> 00:30:15,466
+Now that we looked at all
+of these advanced features
+
+
+552
+00:30:15,466 --> 00:30:20,126
+of the API such as memory
+management, let's take a look
+
+
+553
+00:30:20,126 --> 00:30:22,736
+at sort of the tip
+of the iceberg
+
+
+554
+00:30:22,926 --> 00:30:29,726
+of what is possible using
+the new Objective-C API
+
+
+555
+00:30:29,726 --> 00:30:30,746
+in an application.
+
+
+556
+00:30:31,266 --> 00:30:35,816
+So I'm going to show you an
+application called ColorMyCode.
+
+
+557
+00:30:35,816 --> 00:30:39,816
+And to give you an idea of what
+this application is before I
+
+
+558
+00:30:39,816 --> 00:30:44,896
+start opening things, it's a
+simple text editor similar--
+
+
+559
+00:30:44,896 --> 00:30:46,786
+along the same lines
+as ColorMyWords,
+
+
+560
+00:30:46,786 --> 00:30:49,956
+but it's kind of
+turned up to 11.
+
+
+561
+00:30:49,956 --> 00:30:59,336
+So it's a text editor that
+can highlight code as many
+
+
+562
+00:30:59,336 --> 00:31:01,616
+of you probably use
+something like that.
+
+
+563
+00:31:03,116 --> 00:31:06,556
+And it uses JavaScript
+to implement a sort
+
+
+564
+00:31:06,556 --> 00:31:11,746
+of plug-in system, so that it's
+very easy to add new languages
+
+
+565
+00:31:11,826 --> 00:31:13,186
+that it can syntax highlight.
+
+
+566
+00:31:14,226 --> 00:31:18,326
+It also uses JavaScript
+to allow the definition
+
+
+567
+00:31:18,326 --> 00:31:22,096
+of new color schemes
+and uses JavaScript
+
+
+568
+00:31:22,096 --> 00:31:25,156
+to load a configuration
+file that, you know,
+
+
+569
+00:31:25,296 --> 00:31:27,146
+sets all of these
+different things up.
+
+
+570
+00:31:27,476 --> 00:31:28,016
+All right.
+
+
+571
+00:31:28,056 --> 00:31:29,656
+So, I'm going to open
+the project here.
+
+
+572
+00:31:29,656 --> 00:31:37,186
+Build it. We open a new window.
+
+
+573
+00:31:38,356 --> 00:31:47,366
+Now, I'm going to type
+some JavaScript code.
+
+
+574
+00:31:47,366 --> 00:31:47,536
+[ Pause ]
+
+
+575
+00:31:47,536 --> 00:31:50,886
+OK and let's save it.
+
+
+576
+00:31:53,136 --> 00:32:01,846
+And now that we have a file
+extension, the editor detects
+
+
+577
+00:32:01,886 --> 00:32:05,796
+that this is JavaScript so
+it highlights it accordingly.
+
+
+578
+00:32:07,176 --> 00:32:14,016
+So, we can also--
+this particular--
+
+
+579
+00:32:14,416 --> 00:32:17,376
+I implemented two languages.
+
+
+580
+00:32:18,416 --> 00:32:23,716
+One is JavaScript of course
+and the other is Scheme.
+
+
+581
+00:32:24,296 --> 00:32:30,006
+OK, I want to do some Scheme.
+
+
+582
+00:32:30,006 --> 00:32:31,166
+Let's just save that for now.
+
+
+583
+00:32:31,496 --> 00:32:34,746
+Probably you don't want
+to watch me code Scheme.
+
+
+584
+00:32:35,336 --> 00:32:37,736
+So, I'm going to save
+it as a Scheme file.
+
+
+585
+00:32:38,506 --> 00:32:40,906
+And now, the editor
+is configured
+
+
+586
+00:32:40,906 --> 00:32:43,506
+to use a different
+color scheme for Scheme.
+
+
+587
+00:32:43,906 --> 00:32:47,306
+And you can see that it
+highlights different keywords.
+
+
+588
+00:32:47,956 --> 00:32:50,996
+So, if I were to type function
+in here, it doesn't really work
+
+
+589
+00:32:50,996 --> 00:32:51,976
+because that's not a keyword.
+
+
+590
+00:32:51,976 --> 00:32:55,106
+It does things like comments
+so I can type a comment,
+
+
+591
+00:32:55,226 --> 00:32:57,316
+"Hello, this is my comment."
+
+
+592
+00:32:57,796 --> 00:33:01,436
+It does strings, so string.
+
+
+593
+00:33:01,956 --> 00:33:05,166
+Sure, strong, why not.
+
+
+594
+00:33:05,236 --> 00:33:09,266
+[laughter] You can do
+numbers, et cetera,
+
+
+595
+00:33:09,396 --> 00:33:10,476
+same goes for JavaScript.
+
+
+596
+00:33:11,116 --> 00:33:14,596
+We have comments, we
+have block comments,
+
+
+597
+00:33:15,396 --> 00:33:21,086
+we have strings again,
+and numbers as well.
+
+
+598
+00:33:21,086 --> 00:33:26,986
+So that is that, and if
+you look at the code here,
+
+
+599
+00:33:28,166 --> 00:33:30,596
+I'll just show you very
+briefly, don't be afraid.
+
+
+600
+00:33:30,596 --> 00:33:36,116
+It's split up into separate
+plug-ins on this for--
+
+
+601
+00:33:36,116 --> 00:33:37,856
+different ones for highlighting.
+
+
+602
+00:33:38,436 --> 00:33:43,396
+In this particular case, we pass
+a token and based on the type,
+
+
+603
+00:33:43,586 --> 00:33:45,636
+if it's a keyword,
+we do one color;
+
+
+604
+00:33:45,636 --> 00:33:47,646
+if it's an identifier
+we do another color.
+
+
+605
+00:33:48,576 --> 00:33:50,506
+Here's the configuration
+file that says,
+
+
+606
+00:33:50,506 --> 00:33:54,186
+"For a particular file, type
+JavaScript, use this plug-in,
+
+
+607
+00:33:54,536 --> 00:33:57,106
+this highlighting, this
+color scheme, et cetera."
+
+
+608
+00:33:57,646 --> 00:34:00,226
+So that's just a brief example
+
+
+609
+00:34:00,226 --> 00:34:04,516
+of what's possible using
+the new Objective-C API
+
+
+610
+00:34:05,556 --> 00:34:07,466
+to JavaScriptCore.
+
+
+611
+00:34:07,696 --> 00:34:10,505
+And I don't want to
+scare you away with kind
+
+
+612
+00:34:10,666 --> 00:34:13,616
+of the relative complexity
+of that demo.
+
+
+613
+00:34:13,866 --> 00:34:17,186
+It only took about a weekend
+to throw that together
+
+
+614
+00:34:17,186 --> 00:34:19,326
+and it's actually not
+very much coded at all.
+
+
+615
+00:34:19,326 --> 00:34:23,216
+So, it's definitely possible
+and it's very, very easy.
+
+
+616
+00:34:24,275 --> 00:34:27,616
+So, now that you've
+seen that, now we talked
+
+
+617
+00:34:27,616 --> 00:34:31,005
+about native applications
+outside of web content.
+
+
+618
+00:34:31,366 --> 00:34:34,146
+Let's talk a little bit about
+how to use JavaScriptCore
+
+
+619
+00:34:34,396 --> 00:34:37,585
+in the context of a
+WebKit WebView on Mac.
+
+
+620
+00:34:38,815 --> 00:34:40,786
+So first of all, why would
+you want to use this?
+
+
+621
+00:34:40,786 --> 00:34:44,466
+Well, for example, you could
+implement your own custom
+
+
+622
+00:34:44,466 --> 00:34:47,126
+console for your application
+that displays web pages.
+
+
+623
+00:34:47,786 --> 00:34:50,676
+And you could log in
+a very specific way
+
+
+624
+00:34:50,676 --> 00:34:53,446
+like you could log back
+to the web server or,
+
+
+625
+00:34:53,656 --> 00:34:55,266
+you know, a variety of things.
+
+
+626
+00:34:55,376 --> 00:34:59,156
+You can pass your own
+objects that you defined,
+
+
+627
+00:34:59,206 --> 00:35:02,546
+your own native objects and use
+them inside of your web content.
+
+
+628
+00:35:03,036 --> 00:35:08,536
+So, the way to do this is to
+use the WebFrameLoadDelegate,
+
+
+629
+00:35:09,046 --> 00:35:15,746
+and this is a delegate that
+you set on the WebKit WebView.
+
+
+630
+00:35:16,896 --> 00:35:20,526
+And you want to-- it's
+an informal protocol,
+
+
+631
+00:35:20,976 --> 00:35:23,266
+so you'll want to
+override the -webView:
+
+
+632
+00:35:23,266 --> 00:35:27,126
+didCreateJavaScriptContext:
+forFrame delegate callback.
+
+
+633
+00:35:27,126 --> 00:35:31,596
+And so you can install your
+custom objects using the context
+
+
+634
+00:35:31,596 --> 00:35:33,886
+argument passed as
+the second argument,
+
+
+635
+00:35:33,886 --> 00:35:35,596
+so it
+didCreateJavaScriptContext.
+
+
+636
+00:35:36,536 --> 00:35:44,566
+And you can build your whole
+native API using that context
+
+
+637
+00:35:44,566 --> 00:35:46,606
+like I showed you earlier
+with the subscript notation,
+
+
+638
+00:35:46,606 --> 00:35:48,476
+you can insert things
+into the global object
+
+
+639
+00:35:48,476 --> 00:35:50,076
+and all of that good stuff.
+
+
+640
+00:35:50,076 --> 00:35:53,126
+You can evaluate new
+scripts, et cetera.
+
+
+641
+00:35:53,126 --> 00:35:56,386
+And if you used some of
+the old callbacks before
+
+
+642
+00:35:57,176 --> 00:35:59,576
+like the WebScriptObject
+interface
+
+
+643
+00:35:59,576 --> 00:36:01,486
+in the WebFrameLoadDelegate,
+
+
+644
+00:36:01,486 --> 00:36:03,536
+it replaces those old
+callbacks gracefully,
+
+
+645
+00:36:03,916 --> 00:36:06,956
+meaning that if it's
+running on--
+
+
+646
+00:36:06,956 --> 00:36:08,456
+if your application
+is running on a client
+
+
+647
+00:36:08,606 --> 00:36:11,696
+that doesn't have the
+new API available to it,
+
+
+648
+00:36:11,866 --> 00:36:13,356
+it will fallback gracefully
+
+
+649
+00:36:13,356 --> 00:36:16,486
+to use your old implementation
+of your callbacks.
+
+
+650
+00:36:17,076 --> 00:36:21,236
+And a good example of
+this is the iTunes store
+
+
+651
+00:36:21,446 --> 00:36:25,806
+on Mac uses a WebView
+for its content.
+
+
+652
+00:36:25,896 --> 00:36:29,736
+The iTune store uses HTML, CSS,
+JavaScript web technologies
+
+
+653
+00:36:30,516 --> 00:36:36,526
+but it uses its own custom
+native objects to do things
+
+
+654
+00:36:36,526 --> 00:36:39,136
+like when you click
+the Buy button, it--
+
+
+655
+00:36:39,136 --> 00:36:42,396
+the rest of iTunes already
+has a lot of code set up to
+
+
+656
+00:36:42,396 --> 00:36:44,846
+like process your credit card
+and all of that good stuff.
+
+
+657
+00:36:45,196 --> 00:36:47,526
+So, they just call
+into that code
+
+
+658
+00:36:47,526 --> 00:36:50,516
+that they've already written
+and they can take advantage
+
+
+659
+00:36:50,516 --> 00:36:52,016
+of that directly in
+their web content.
+
+
+660
+00:36:52,566 --> 00:36:57,976
+So here's a simple example
+using the console example
+
+
+661
+00:36:57,976 --> 00:36:59,496
+that I described earlier.
+
+
+662
+00:37:00,026 --> 00:37:03,486
+So I define my
+MyFrameLoadDelegete
+
+
+663
+00:37:03,646 --> 00:37:05,376
+and I override the callback.
+
+
+664
+00:37:05,596 --> 00:37:07,756
+You can see the second argument
+is the context, that's the one
+
+
+665
+00:37:07,756 --> 00:37:08,976
+that I really care about.
+
+
+666
+00:37:09,506 --> 00:37:13,206
+And I create a new
+console using alloc init.
+
+
+667
+00:37:13,616 --> 00:37:16,246
+Imagine it's like a kind of
+a normal console that has
+
+
+668
+00:37:16,246 --> 00:37:17,796
+like a log that you can call.
+
+
+669
+00:37:18,276 --> 00:37:19,656
+And I insert it directly
+
+
+670
+00:37:19,656 --> 00:37:21,576
+into the global object
+using the context.
+
+
+671
+00:37:22,076 --> 00:37:27,336
+And so here's the HTML that
+could take advantage of this.
+
+
+672
+00:37:27,676 --> 00:37:30,066
+So you'll see I have a
+normal HTML web page.
+
+
+673
+00:37:30,326 --> 00:37:33,276
+In the body there's a button
+and when you click the button,
+
+
+674
+00:37:33,276 --> 00:37:34,796
+it calls this handler guy
+
+
+675
+00:37:34,866 --> 00:37:40,846
+which will then call the
+myConsole.log function instance
+
+
+676
+00:37:40,846 --> 00:37:44,126
+method on that Objective-C
+object that you inserted.
+
+
+677
+00:37:44,756 --> 00:37:49,586
+So in summary, we've covered
+getting Objective-C to talk
+
+
+678
+00:37:49,586 --> 00:37:52,836
+to JavaScript and in
+turn, getting JavaScript
+
+
+679
+00:37:53,066 --> 00:37:54,886
+to talk back to Objective-C.
+
+
+680
+00:37:55,586 --> 00:38:00,196
+We talked about interfacing
+with the JavaScriptCore C API.
+
+
+681
+00:38:00,286 --> 00:38:02,676
+We talked about how to
+get reference counting
+
+
+682
+00:38:02,676 --> 00:38:04,836
+and garbage collection to
+play nicely together using
+
+
+683
+00:38:06,006 --> 00:38:09,056
+JSManagedValue and
+addManagedReference.
+
+
+684
+00:38:10,166 --> 00:38:13,886
+We talked about threading and
+how to use threads effectively
+
+
+685
+00:38:13,886 --> 00:38:17,376
+at the granularity
+of JSVirtualMachine.
+
+
+686
+00:38:18,496 --> 00:38:22,306
+And we talked about using custom
+objects in WebKit WebViews
+
+
+687
+00:38:23,556 --> 00:38:27,436
+and using that
+WebFrameLoadDelegate callback
+
+
+688
+00:38:27,436 --> 00:38:31,446
+to insert your own native
+objects into your web content.
+
+
+689
+00:38:32,796 --> 00:38:35,156
+So I have a Call to Action.
+
+
+690
+00:38:35,156 --> 00:38:38,166
+For all of you who views the
+C API, I would challenge you
+
+
+691
+00:38:38,206 --> 00:38:42,276
+to convert one bit of your-- one
+small segment of your old code
+
+
+692
+00:38:42,276 --> 00:38:43,596
+to use the new Objective-C API.
+
+
+693
+00:38:44,086 --> 00:38:45,806
+You'll see that it's
+much more concise
+
+
+694
+00:38:46,116 --> 00:38:48,756
+where something might have
+taken five lines before,
+
+
+695
+00:38:48,756 --> 00:38:50,206
+it might take only one now.
+
+
+696
+00:38:51,166 --> 00:38:55,896
+It's much less verbose
+and it eliminates a lot
+
+
+697
+00:38:55,896 --> 00:38:57,886
+of the retain release bugs
+
+
+698
+00:38:57,886 --> 00:39:01,126
+that you might have experienced
+using the old JavaScriptCore
+
+
+699
+00:39:01,126 --> 00:39:02,556
+C API.
+
+
+700
+00:39:03,466 --> 00:39:08,366
+And if you're new to this
+whole JavaScriptCore framework,
+
+
+701
+00:39:08,856 --> 00:39:10,866
+I would challenge you
+to add a small snippet
+
+
+702
+00:39:10,866 --> 00:39:12,856
+of JavaScript somewhere
+in your app,
+
+
+703
+00:39:12,986 --> 00:39:15,256
+maybe to load a configuration
+file
+
+
+704
+00:39:15,256 --> 00:39:16,696
+or something on those lines.
+
+
+705
+00:39:17,206 --> 00:39:18,226
+And you'll see that it's really,
+
+
+706
+00:39:18,226 --> 00:39:21,166
+really easy to do what
+you were trying to do
+
+
+707
+00:39:21,166 --> 00:39:22,256
+and it's very concise.
+
+
+708
+00:39:22,616 --> 00:39:23,906
+But you-- at the same time,
+
+
+709
+00:39:23,906 --> 00:39:25,546
+you feel like you're
+still programming
+
+
+710
+00:39:25,546 --> 00:39:27,956
+in either Objective-C
+or JavaScript depending
+
+
+711
+00:39:27,956 --> 00:39:29,106
+on what you're currently
+writing.
+
+
+712
+00:39:29,986 --> 00:39:36,496
+For more information, I--
+contact John Geleynse.
+
+
+713
+00:39:36,846 --> 00:39:39,706
+He's the technology evangelist.
+
+
+714
+00:39:40,976 --> 00:39:46,086
+The documentation is not
+current but it's coming.
+
+
+715
+00:39:46,086 --> 00:39:49,906
+This is the-- this
+documentation on the slide is
+
+
+716
+00:39:50,436 --> 00:39:54,206
+for the current JavaScriptCore
+C API
+
+
+717
+00:39:54,456 --> 00:39:56,306
+but it will be updated
+in the future.
+
+
+718
+00:39:56,356 --> 00:40:00,946
+And of course you can go
+the Apple Developer Forums.
+
+
+719
+00:40:01,216 --> 00:40:03,766
+So related sessions, this
+is for the people online.
+
+
+720
+00:40:03,766 --> 00:40:05,676
+These are all the kind
+of web content related
+
+
+721
+00:40:05,676 --> 00:40:07,406
+because JavaScript
+is a web technology.
+
+
+722
+00:40:07,406 --> 00:40:10,826
+So if you want to know more
+about web technologies,
+
+
+723
+00:40:10,826 --> 00:40:13,276
+I'd recommend you to
+check out these sessions.
+
+
+724
+00:40:13,276 --> 00:40:14,476
+Most of them have
+already passed.
+
+
+725
+00:40:14,896 --> 00:40:17,806
+But, yeah, thank you very much.
+
+
+726
+00:40:18,306 --> 00:40:26,650
+[ Applause ]
+

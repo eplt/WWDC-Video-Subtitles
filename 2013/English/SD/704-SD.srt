@@ -1,0 +1,7239 @@
+1
+00:00:00,506 --> 00:00:10,396
+[ Silence ]
+
+
+2
+00:00:10,896 --> 00:00:11,686
+>> Good afternoon.
+
+
+3
+00:00:12,336 --> 00:00:13,356
+My name is Anthony Chivetta.
+
+
+4
+00:00:13,356 --> 00:00:15,626
+And I'm an engineer in
+the OS X performance team.
+
+
+5
+00:00:16,096 --> 00:00:17,036
+And I'd like to talk to you
+
+
+6
+00:00:17,036 --> 00:00:19,056
+about building efficient
+OS X apps
+
+
+7
+00:00:19,426 --> 00:00:21,996
+and cover some advanced
+topics in resource management.
+
+
+8
+00:00:21,996 --> 00:00:24,206
+Now most of you are
+probably familiar
+
+
+9
+00:00:24,206 --> 00:00:25,956
+with performance
+testing in some form,
+
+
+10
+00:00:26,376 --> 00:00:29,246
+whereby you evaluate how long
+it takes your application
+
+
+11
+00:00:29,246 --> 00:00:30,426
+to perform a specific action.
+
+
+12
+00:00:31,246 --> 00:00:32,555
+What I want to talk
+to you today is not
+
+
+13
+00:00:32,555 --> 00:00:35,916
+about performance optimization,
+but about resource optimization.
+
+
+14
+00:00:36,476 --> 00:00:39,256
+Looking at-- whether looking
+at latency of an action,
+
+
+15
+00:00:39,506 --> 00:00:42,816
+how much resources it
+consumes to achieve its goal.
+
+
+16
+00:00:45,636 --> 00:00:51,156
+Now, one of the problems that
+we face in resource management
+
+
+17
+00:00:51,156 --> 00:00:53,556
+in OS X is that it's
+fundamentally a multitasking
+
+
+18
+00:00:53,556 --> 00:00:54,356
+operating system.
+
+
+19
+00:00:54,796 --> 00:00:57,056
+If you're coming over
+from iOS, you're coming
+
+
+20
+00:00:57,056 --> 00:00:59,456
+from an environment where
+there's one application
+
+
+21
+00:00:59,456 --> 00:01:01,486
+that a user is actively
+using at a time.
+
+
+22
+00:01:01,486 --> 00:01:05,486
+And so, that application
+can be provided the full use
+
+
+23
+00:01:05,486 --> 00:01:06,716
+of the system's resources.
+
+
+24
+00:01:06,906 --> 00:01:10,076
+On OS X, however, a user
+may be running multiple
+
+
+25
+00:01:10,076 --> 00:01:11,066
+apps simultaneously.
+
+
+26
+00:01:11,286 --> 00:01:13,486
+And so, those apps, consumption
+
+
+27
+00:01:13,486 --> 00:01:16,176
+of system resources can affect
+each other's performance.
+
+
+28
+00:01:16,766 --> 00:01:18,836
+As a result, it's very important
+
+
+29
+00:01:19,146 --> 00:01:22,586
+that your app uses system
+resources efficiently in order
+
+
+30
+00:01:22,586 --> 00:01:24,636
+to help create a
+great user experience.
+
+
+31
+00:01:25,056 --> 00:01:27,996
+So today, we'll cover
+a couple of topics
+
+
+32
+00:01:27,996 --> 00:01:31,126
+about resource efficiency
+including how to profile
+
+
+33
+00:01:31,126 --> 00:01:32,646
+and reduce your app's
+memory footprint,
+
+
+34
+00:01:33,196 --> 00:01:38,506
+how to optimize your access
+of a disk, and how to do work
+
+
+35
+00:01:38,506 --> 00:01:41,756
+in the background without
+impacting system responsiveness.
+
+
+36
+00:01:42,276 --> 00:01:46,296
+So I want to talk
+first about memory.
+
+
+37
+00:01:47,186 --> 00:01:49,816
+And let's take a look at a
+simplified view of a system.
+
+
+38
+00:01:50,066 --> 00:01:53,446
+So we have a OS X system with
+a number of apps running,
+
+
+39
+00:01:54,156 --> 00:01:56,486
+and some of those apps have
+been provided in memory.
+
+
+40
+00:01:57,146 --> 00:01:59,636
+There's also memory that
+is currently unused.
+
+
+41
+00:01:59,926 --> 00:02:02,116
+And this isn't really providing
+any value to the system,
+
+
+42
+00:02:02,116 --> 00:02:02,866
+it's just sitting there.
+
+
+43
+00:02:03,676 --> 00:02:05,686
+And some memory has been devoted
+
+
+44
+00:02:05,686 --> 00:02:08,515
+to caching the contents
+of files on disk.
+
+
+45
+00:02:09,556 --> 00:02:11,896
+Now, as apps request
+more memory,
+
+
+46
+00:02:13,106 --> 00:02:17,176
+we'll first provide the unused
+memory to those applications.
+
+
+47
+00:02:18,386 --> 00:02:23,726
+Now, apps can continue to
+request memory and will continue
+
+
+48
+00:02:23,726 --> 00:02:25,216
+to provide the unused memory
+
+
+49
+00:02:25,516 --> 00:02:28,376
+until there's no more unused
+memory available on the system.
+
+
+50
+00:02:28,516 --> 00:02:29,936
+And this isn't a problem.
+
+
+51
+00:02:30,326 --> 00:02:33,156
+Unused memory wasn't providing
+us any value in the past.
+
+
+52
+00:02:33,546 --> 00:02:36,276
+But if apps continue
+to consume more memory,
+
+
+53
+00:02:36,686 --> 00:02:39,186
+we'll eventually need to start
+providing them the contents the
+
+
+54
+00:02:39,186 --> 00:02:39,936
+disk cache.
+
+
+55
+00:02:40,046 --> 00:02:42,046
+And this is relatively efficient
+
+
+56
+00:02:42,476 --> 00:02:45,226
+because the disk cache is just
+holding data that's already
+
+
+57
+00:02:45,226 --> 00:02:46,036
+stored on disk.
+
+
+58
+00:02:46,396 --> 00:02:49,696
+So it can simply discard it,
+turn it into unused memory
+
+
+59
+00:02:49,766 --> 00:02:51,576
+which is then provided
+to an application.
+
+
+60
+00:02:52,196 --> 00:02:55,946
+But we now no longer have
+that cache data in memory
+
+
+61
+00:02:56,366 --> 00:02:59,136
+which means access to
+disk by application
+
+
+62
+00:02:59,136 --> 00:03:01,096
+to the system may take longer.
+
+
+63
+00:03:01,096 --> 00:03:03,646
+This is where we'll begin
+to see the responsiveness
+
+
+64
+00:03:03,646 --> 00:03:05,006
+of the user system decrease.
+
+
+65
+00:03:05,776 --> 00:03:07,976
+Now, where things
+get really bad is
+
+
+66
+00:03:07,976 --> 00:03:09,986
+when apps continue
+to request memory.
+
+
+67
+00:03:10,256 --> 00:03:13,326
+In this case, we'll need to
+do something called swapping.
+
+
+68
+00:03:13,806 --> 00:03:16,686
+We'll take the contents of
+memory from one app and save it
+
+
+69
+00:03:16,686 --> 00:03:20,846
+to disk, and then provide that
+memory to a different app.
+
+
+70
+00:03:20,846 --> 00:03:24,586
+Now, the problem is this takes
+a long time because we have
+
+
+71
+00:03:24,586 --> 00:03:26,506
+to write out the contents
+of memory to disk.
+
+
+72
+00:03:27,036 --> 00:03:30,256
+And if the original app tries
+to access that memory again,
+
+
+73
+00:03:30,566 --> 00:03:32,586
+we'll have to pull that
+memory and back off disk.
+
+
+74
+00:03:33,146 --> 00:03:36,276
+And both of these actions
+can introduce large latencies
+
+
+75
+00:03:36,536 --> 00:03:38,636
+and cause responsiveness
+problems for users.
+
+
+76
+00:03:39,996 --> 00:03:41,536
+But let's take a
+look under the hood
+
+
+77
+00:03:41,536 --> 00:03:43,086
+at how this works in practice.
+
+
+78
+00:03:43,086 --> 00:03:46,266
+So every app on a system or a
+process has an address space.
+
+
+79
+00:03:46,556 --> 00:03:49,126
+If you're a 64-bit app,
+this is the 64-bit range
+
+
+80
+00:03:49,126 --> 00:03:50,126
+that your pointers use.
+
+
+81
+00:03:51,016 --> 00:03:54,366
+And that address space is
+broken into 4 kilobyte pages.
+
+
+82
+00:03:54,656 --> 00:03:56,816
+And of course, the system
+also has some amount
+
+
+83
+00:03:56,816 --> 00:03:58,146
+of actual physical memory.
+
+
+84
+00:03:58,936 --> 00:04:01,416
+And virtual memory allows
+us to establish a mapping
+
+
+85
+00:04:01,416 --> 00:04:04,536
+from that address space
+to a physical memory.
+
+
+86
+00:04:05,436 --> 00:04:08,456
+Now, when we need to swap,
+what virtual memory allows us
+
+
+87
+00:04:08,456 --> 00:04:11,966
+to do is disconnect one
+of those physical pages
+
+
+88
+00:04:12,136 --> 00:04:15,126
+from the virtual page that
+it's currently backing.
+
+
+89
+00:04:15,636 --> 00:04:17,636
+And then we can use that
+memory somewhere else.
+
+
+90
+00:04:19,096 --> 00:04:22,166
+But if the app wants to access
+that location memory again,
+
+
+91
+00:04:22,166 --> 00:04:23,836
+it will cause what's
+called a page fault.
+
+
+92
+00:04:24,506 --> 00:04:26,046
+The operating system
+will then be able
+
+
+93
+00:04:26,046 --> 00:04:28,976
+to pull the data back off
+disk, place it somewhere else
+
+
+94
+00:04:28,976 --> 00:04:31,026
+in the RAM, and reconnect
+that page
+
+
+95
+00:04:31,026 --> 00:04:32,316
+in the virtual memory mapping.
+
+
+96
+00:04:32,606 --> 00:04:35,126
+Now, what's important
+to understand here is
+
+
+97
+00:04:35,126 --> 00:04:37,836
+that this happens as soon as
+the application tries to access
+
+
+98
+00:04:37,836 --> 00:04:39,336
+that memory which means
+
+
+99
+00:04:39,336 --> 00:04:42,226
+that executing any code could
+potentially cause a page fault.
+
+
+100
+00:04:42,226 --> 00:04:44,496
+And this is what makes
+swapping so dangerous.
+
+
+101
+00:04:44,566 --> 00:04:47,506
+The application has no control
+over when these accesses
+
+
+102
+00:04:47,506 --> 00:04:49,786
+to disk happen or what
+thread they happen on.
+
+
+103
+00:04:49,786 --> 00:04:52,906
+And as a result, it's
+very important to try
+
+
+104
+00:04:52,906 --> 00:04:54,706
+to lower the memory
+footprint of your app.
+
+
+105
+00:04:55,326 --> 00:04:58,176
+This can help reduce the chance
+that your memory will be swapped
+
+
+106
+00:04:58,516 --> 00:05:00,716
+when the system is under
+low memory situations.
+
+
+107
+00:05:01,246 --> 00:05:03,866
+It means that more memory will
+be available to you quickly
+
+
+108
+00:05:03,906 --> 00:05:05,386
+when you need it,
+
+
+109
+00:05:05,386 --> 00:05:07,946
+and it improves overall
+system performance.
+
+
+110
+00:05:08,866 --> 00:05:12,506
+Now, the first step in this is
+going to simply be to profile
+
+
+111
+00:05:12,506 --> 00:05:14,106
+and reduce your app's
+memory use.
+
+
+112
+00:05:14,846 --> 00:05:16,746
+And instruments come
+with two templates
+
+
+113
+00:05:16,746 --> 00:05:18,376
+that can be of great help here.
+
+
+114
+00:05:18,896 --> 00:05:20,606
+The first is the
+allocations template.
+
+
+115
+00:05:20,606 --> 00:05:23,966
+And this can profile the
+objects that your app allocates
+
+
+116
+00:05:23,966 --> 00:05:26,266
+so that you can find
+targets for optimization.
+
+
+117
+00:05:26,376 --> 00:05:29,426
+This might include large objects
+that you want to make smaller,
+
+
+118
+00:05:29,736 --> 00:05:33,356
+or objects that are allocated
+frequently which you can try
+
+
+119
+00:05:33,356 --> 00:05:35,476
+to reduce the quantity
+of their allocations.
+
+
+120
+00:05:36,226 --> 00:05:39,176
+There's also the leaks template,
+and this helps you look
+
+
+121
+00:05:39,176 --> 00:05:40,166
+for objects that are leaked.
+
+
+122
+00:05:40,476 --> 00:05:43,196
+Leaked objects, objects to
+which there's no longer any
+
+
+123
+00:05:43,196 --> 00:05:46,116
+references, and so you
+cannot release them anymore.
+
+
+124
+00:05:46,176 --> 00:05:47,766
+They're simply going
+to stay in memory
+
+
+125
+00:05:47,766 --> 00:05:49,066
+until your app is terminated.
+
+
+126
+00:05:49,426 --> 00:05:50,516
+If your app is not running,
+
+
+127
+00:05:50,806 --> 00:05:52,846
+this can cause unconstrained
+memory growth.
+
+
+128
+00:05:53,456 --> 00:05:56,166
+And so, the Leaks tool
+can help you find leaks
+
+
+129
+00:05:56,166 --> 00:05:59,076
+in your application and
+then analyze those leaks
+
+
+130
+00:05:59,076 --> 00:06:00,916
+to understand their
+cause and fix them.
+
+
+131
+00:06:01,566 --> 00:06:04,046
+Now, both these tools will
+be covered in much more depth
+
+
+132
+00:06:04,416 --> 00:06:06,086
+in the Fixing Memory Issues talk
+
+
+133
+00:06:06,246 --> 00:06:07,796
+and I highly recommend
+you attend.
+
+
+134
+00:06:08,076 --> 00:06:11,236
+What I want to discuss are
+some more advanced tools
+
+
+135
+00:06:11,236 --> 00:06:14,676
+and techniques you can use
+that helps keep your memory--
+
+
+136
+00:06:14,676 --> 00:06:18,446
+your application's memory
+usage small and continue
+
+
+137
+00:06:18,446 --> 00:06:20,186
+to have efficient
+applications over time.
+
+
+138
+00:06:20,706 --> 00:06:24,446
+And the first thing you should
+consider doing is automating
+
+
+139
+00:06:24,446 --> 00:06:25,966
+memory testing of
+your application.
+
+
+140
+00:06:26,356 --> 00:06:29,146
+Hopefully, you do some
+sort of regular testing,
+
+
+141
+00:06:29,576 --> 00:06:32,586
+whether that's a nightly
+test suite, unit tests,
+
+
+142
+00:06:32,866 --> 00:06:34,746
+functional tests,
+continuous integration,
+
+
+143
+00:06:34,966 --> 00:06:38,026
+or simply just a set of
+actions you confirm continue
+
+
+144
+00:06:38,026 --> 00:06:39,356
+to work before you
+ship your app.
+
+
+145
+00:06:39,986 --> 00:06:42,296
+Whatever it may be,
+integrating memory testing
+
+
+146
+00:06:42,296 --> 00:06:44,536
+into that can give
+you a quick barometer
+
+
+147
+00:06:44,536 --> 00:06:46,326
+as to whether a particular
+change
+
+
+148
+00:06:46,326 --> 00:06:48,906
+in your app has introduced
+any memory regressions.
+
+
+149
+00:06:49,156 --> 00:06:50,636
+And you really want to
+look for two things.
+
+
+150
+00:06:51,086 --> 00:06:53,436
+You want to look for
+increases in memory consumption
+
+
+151
+00:06:53,436 --> 00:06:57,376
+that you don't expect, and any
+new leaks in your application.
+
+
+152
+00:06:57,786 --> 00:07:00,206
+And you want to consider
+any leaks that you find
+
+
+153
+00:07:00,606 --> 00:07:02,816
+to be a bug you should
+immediately fix
+
+
+154
+00:07:02,926 --> 00:07:05,546
+because this is important to
+reducing engineering debt.
+
+
+155
+00:07:06,436 --> 00:07:09,866
+Fixing leaks in old code that
+you don't maintain familiarity
+
+
+156
+00:07:09,866 --> 00:07:11,786
+with can be incredibly
+difficult.
+
+
+157
+00:07:12,806 --> 00:07:15,146
+But, if you're able to find
+and fix leaks immediately,
+
+
+158
+00:07:15,456 --> 00:07:18,356
+you can help prevent incurring
+an engineering debt over time.
+
+
+159
+00:07:19,256 --> 00:07:21,126
+There's a couple
+of tools we provide
+
+
+160
+00:07:21,336 --> 00:07:23,146
+that can help you
+automate this process.
+
+
+161
+00:07:23,356 --> 00:07:25,436
+And the first I want to
+talk about is the Heap tool.
+
+
+162
+00:07:26,156 --> 00:07:28,186
+This is similar to the
+allocations instrument.
+
+
+163
+00:07:28,776 --> 00:07:30,636
+But you can run it in
+an automated fashion
+
+
+164
+00:07:30,636 --> 00:07:31,466
+from the command-line.
+
+
+165
+00:07:32,106 --> 00:07:34,186
+So the first thing you want
+to do is simply run your app
+
+
+166
+00:07:34,186 --> 00:07:38,036
+and put it through its paces
+and then run the Heap tool
+
+
+167
+00:07:38,036 --> 00:07:39,876
+and provide the name
+of your application.
+
+
+168
+00:07:40,606 --> 00:07:43,596
+The tool will then analyze the
+running application in memory
+
+
+169
+00:07:43,956 --> 00:07:46,806
+and provide you a list
+of all the objects
+
+
+170
+00:07:46,806 --> 00:07:50,676
+that that application has
+allocated including how many
+
+
+171
+00:07:50,676 --> 00:07:52,536
+times a particular
+object has been allocated,
+
+
+172
+00:07:52,536 --> 00:07:55,726
+and the total amount of memory
+used by that type of object.
+
+
+173
+00:07:56,306 --> 00:07:58,656
+Now, you can compare this
+between multiple releases
+
+
+174
+00:07:58,656 --> 00:08:01,496
+of your app to understand
+whether you've caused memory
+
+
+175
+00:08:01,496 --> 00:08:03,816
+regressions and look for changes
+
+
+176
+00:08:03,816 --> 00:08:05,246
+in the memory use of
+your applications.
+
+
+177
+00:08:05,246 --> 00:08:07,686
+If you look at the [inaudible],
+there are also a number
+
+
+178
+00:08:07,686 --> 00:08:09,376
+of other options that
+can help you dive deeper.
+
+
+179
+00:08:09,646 --> 00:08:11,126
+Now, on the leaks
+side of things,
+
+
+180
+00:08:11,356 --> 00:08:13,216
+we also provide a
+leaks command-line tool
+
+
+181
+00:08:13,306 --> 00:08:13,936
+which you can use
+
+
+182
+00:08:13,936 --> 00:08:16,006
+to automatically detect
+leaks in your application.
+
+
+183
+00:08:16,976 --> 00:08:19,186
+And when you run it, the first
+thing you want to do is turn
+
+
+184
+00:08:19,186 --> 00:08:20,566
+on MallocStackLogging.
+
+
+185
+00:08:21,076 --> 00:08:23,216
+You can do this with the
+scheme editor in Xcode
+
+
+186
+00:08:23,766 --> 00:08:25,746
+by checking the stack
+logging box
+
+
+187
+00:08:26,466 --> 00:08:29,346
+or setting the
+MallocStackLogging equals 1
+
+
+188
+00:08:29,346 --> 00:08:30,336
+environment variable.
+
+
+189
+00:08:31,196 --> 00:08:34,246
+Then, run your app as you
+might when running heap.
+
+
+190
+00:08:34,246 --> 00:08:36,895
+But instead, we'll
+now use the Leaks tool
+
+
+191
+00:08:37,046 --> 00:08:39,206
+and leaks will then provide us
+a couple of pieces of output.
+
+
+192
+00:08:39,576 --> 00:08:42,676
+The first is how many objects
+were leaked by your application
+
+
+193
+00:08:42,676 --> 00:08:44,706
+and what size and
+memory they consume.
+
+
+194
+00:08:44,706 --> 00:08:49,566
+And then for each leak,
+the address of the object
+
+
+195
+00:08:49,566 --> 00:08:50,536
+and the type of object.
+
+
+196
+00:08:50,846 --> 00:08:52,976
+In this case, we
+leaked MyLeakedClass,
+
+
+197
+00:08:52,976 --> 00:08:54,556
+an Objective-C object
+from MyApp.
+
+
+198
+00:08:54,556 --> 00:08:57,276
+And then because we're
+using MallocStackLogging,
+
+
+199
+00:08:57,546 --> 00:09:00,776
+we'll also get the full call
+stack that allocated the object
+
+
+200
+00:09:01,256 --> 00:09:03,656
+which can help you narrow down
+where the object came from
+
+
+201
+00:09:04,046 --> 00:09:07,116
+and then provides you a starting
+point for future analysis,
+
+
+202
+00:09:07,156 --> 00:09:11,146
+perhaps interactively an
+instrument with the Leaks tool.
+
+
+203
+00:09:11,356 --> 00:09:13,706
+Now, you may have already
+eliminated the leaks
+
+
+204
+00:09:13,706 --> 00:09:16,816
+in your app, ensured that you
+don't see any unbound heap
+
+
+205
+00:09:16,816 --> 00:09:18,306
+growth and optimized there.
+
+
+206
+00:09:18,306 --> 00:09:22,936
+But one other place you can
+look for additional memory use
+
+
+207
+00:09:22,936 --> 00:09:25,456
+that you can slim is
+duplicated objects.
+
+
+208
+00:09:26,036 --> 00:09:28,816
+Your application probably
+pulls in data from the network,
+
+
+209
+00:09:28,816 --> 00:09:32,816
+or the files on disk, or accepts
+information from the user.
+
+
+210
+00:09:33,176 --> 00:09:35,986
+And it's easy to accidentally
+produce extra copies
+
+
+211
+00:09:35,986 --> 00:09:36,716
+of that data.
+
+
+212
+00:09:37,266 --> 00:09:40,236
+The stringdups tool can
+analyze your application
+
+
+213
+00:09:40,466 --> 00:09:44,056
+and let you know when you have
+duplicated C strings, NSStrings,
+
+
+214
+00:09:44,056 --> 00:09:45,296
+and other types of objects.
+
+
+215
+00:09:45,756 --> 00:09:48,376
+To run it, you'll
+simply go on stringdups
+
+
+216
+00:09:48,376 --> 00:09:50,116
+and provide the process
+ID of your app.
+
+
+217
+00:09:50,116 --> 00:09:52,556
+And there are two modes that
+you might want to consider.
+
+
+218
+00:09:52,556 --> 00:09:54,626
+The first is the No Stacks Mode.
+
+
+219
+00:09:54,906 --> 00:09:56,336
+It simply gives you a listing
+
+
+220
+00:09:56,336 --> 00:09:58,886
+of all the duplicated
+objects in your application.
+
+
+221
+00:09:58,886 --> 00:10:01,606
+This is really helpful for
+deciding what things you want
+
+
+222
+00:10:01,606 --> 00:10:02,976
+to target to as far
+as slim down.
+
+
+223
+00:10:03,126 --> 00:10:05,906
+Now notice when you do this,
+you'll see that there's a lot
+
+
+224
+00:10:05,906 --> 00:10:08,066
+of strings from localization
+and frameworks
+
+
+225
+00:10:08,066 --> 00:10:09,086
+that you'll find duplicated.
+
+
+226
+00:10:09,476 --> 00:10:12,166
+And those are simply result
+of how those frameworks work.
+
+
+227
+00:10:12,716 --> 00:10:15,346
+What you want to look for are
+large numbers of duplicates
+
+
+228
+00:10:15,346 --> 00:10:17,406
+and strings that your
+application has created
+
+
+229
+00:10:17,646 --> 00:10:20,136
+that contain for example
+content specific to your app.
+
+
+230
+00:10:20,916 --> 00:10:23,626
+Then once you've picked
+a duplicated object,
+
+
+231
+00:10:23,916 --> 00:10:27,416
+if you want to dive deeper into,
+you can use the call stacks view
+
+
+232
+00:10:27,966 --> 00:10:30,346
+and this will show you all
+of the locations in your app,
+
+
+233
+00:10:30,656 --> 00:10:32,886
+where that particular
+object was allocated.
+
+
+234
+00:10:35,076 --> 00:10:36,706
+Now, you may have done
+all these things to try
+
+
+235
+00:10:36,706 --> 00:10:37,846
+to slim down your app.
+
+
+236
+00:10:38,286 --> 00:10:39,756
+But sometimes you're
+still going to get
+
+
+237
+00:10:39,756 --> 00:10:41,656
+into a low memory situation.
+
+
+238
+00:10:42,166 --> 00:10:44,196
+We refer this as being
+under memory pressure.
+
+
+239
+00:10:44,196 --> 00:10:45,716
+I want to talk about
+what the system--
+
+
+240
+00:10:45,716 --> 00:10:47,736
+what you can do to help
+the system behave better
+
+
+241
+00:10:47,736 --> 00:10:48,416
+in this case.
+
+
+242
+00:10:49,086 --> 00:10:51,206
+So let's look at
+just a single app.
+
+
+243
+00:10:53,516 --> 00:10:55,726
+Now, the first thing that
+we want to be aware is
+
+
+244
+00:10:55,726 --> 00:10:58,076
+that the system internally
+has a gauge memory pressure.
+
+
+245
+00:10:58,936 --> 00:11:01,366
+This is roughly,
+an approximation
+
+
+246
+00:11:01,366 --> 00:11:04,996
+of how difficult it is for the
+system to create new free memory
+
+
+247
+00:11:05,326 --> 00:11:06,816
+when it's requested
+by an application.
+
+
+248
+00:11:07,076 --> 00:11:09,656
+And there are two
+tools you can use
+
+
+249
+00:11:09,716 --> 00:11:11,696
+to help the system
+alleviate memory pressure
+
+
+250
+00:11:12,406 --> 00:11:14,596
+and restore the system
+to full responsiveness.
+
+
+251
+00:11:15,136 --> 00:11:16,376
+The first is NSCache.
+
+
+252
+00:11:16,746 --> 00:11:18,576
+This is like a container
+for objects
+
+
+253
+00:11:18,796 --> 00:11:20,956
+that the system can
+automatically evict
+
+
+254
+00:11:20,956 --> 00:11:22,726
+and allow to be reclaimed.
+
+
+255
+00:11:23,296 --> 00:11:26,346
+And, purgeable memory
+which are regions of memory
+
+
+256
+00:11:26,346 --> 00:11:29,596
+that the system can reclaim
+automatically without having
+
+
+257
+00:11:29,596 --> 00:11:31,176
+to interact with your app.
+
+
+258
+00:11:31,516 --> 00:11:35,926
+So in this case, if our app
+requests memory, the system can,
+
+
+259
+00:11:35,926 --> 00:11:39,656
+rather than swapping, acquire
+memory from the NSCache
+
+
+260
+00:11:39,726 --> 00:11:40,976
+in a purgeable memory region.
+
+
+261
+00:11:41,516 --> 00:11:45,396
+[ Pause ]
+
+
+262
+00:11:45,896 --> 00:11:47,426
+So let's dive into this
+a little more deeply.
+
+
+263
+00:11:49,316 --> 00:11:52,116
+The first thing I want to
+talk about is NSPurgeableData.
+
+
+264
+00:11:52,266 --> 00:11:55,146
+This is how we expose purgeable
+memory through the Cocoa APIs.
+
+
+265
+00:11:55,146 --> 00:11:58,326
+And as purgeable data,
+it's similar to NSData
+
+
+266
+00:11:58,736 --> 00:12:01,296
+but it has the property that
+its contents can be discarded
+
+
+267
+00:12:01,296 --> 00:12:03,826
+automatically when the system
+is under memory pressure.
+
+
+268
+00:12:04,576 --> 00:12:06,796
+So in this case, we have
+NSPurgeableData object
+
+
+269
+00:12:07,136 --> 00:12:09,716
+that points to a
+purgeable memory region.
+
+
+270
+00:12:10,406 --> 00:12:11,776
+When a system gets
+under memory pressure,
+
+
+271
+00:12:12,266 --> 00:12:14,566
+the purgeable memory region
+is reclaimed by the system.
+
+
+272
+00:12:14,946 --> 00:12:17,226
+But the NSPurgeableData
+object stays around.
+
+
+273
+00:12:17,226 --> 00:12:20,176
+So this can query for the status
+of that memory region later.
+
+
+274
+00:12:20,946 --> 00:12:22,726
+Let's look at an example
+of how this works.
+
+
+275
+00:12:22,806 --> 00:12:29,566
+So in this case, first create an
+NSPurgeableData using some array
+
+
+276
+00:12:29,566 --> 00:12:31,526
+of bytes we have in
+our code already.
+
+
+277
+00:12:32,306 --> 00:12:34,276
+And then we indicate
+that we're done using it
+
+
+278
+00:12:34,276 --> 00:12:36,126
+by calling endContentAccess.
+
+
+279
+00:12:36,666 --> 00:12:39,206
+Sometime later, if we want
+to access that data again,
+
+
+280
+00:12:39,466 --> 00:12:42,326
+we call beginContentAccess
+and look at the return value.
+
+
+281
+00:12:43,436 --> 00:12:46,606
+If the return value is No,
+then the data has been purged
+
+
+282
+00:12:46,606 --> 00:12:48,876
+from memory and we'll need
+to regenerate that data.
+
+
+283
+00:12:48,876 --> 00:12:51,966
+For example, by reparsing
+a file or redownloading it
+
+
+284
+00:12:51,966 --> 00:12:54,556
+from network depending on where
+the original data came from.
+
+
+285
+00:12:55,376 --> 00:12:58,476
+If the answer is Yes, then we
+can continue to use the data.
+
+
+286
+00:12:58,576 --> 00:13:01,376
+And eventually we'll want to
+call endContentAccess again
+
+
+287
+00:13:01,686 --> 00:13:03,816
+to indicate to the system
+that we're no longer using it.
+
+
+288
+00:13:04,296 --> 00:13:08,036
+By bracketing your use of
+the purgeable data with begin
+
+
+289
+00:13:08,036 --> 00:13:11,026
+and endContentAccess, you ensure
+the system will never remove it
+
+
+290
+00:13:11,026 --> 00:13:11,736
+from underneath you.
+
+
+291
+00:13:12,256 --> 00:13:16,466
+Now, the other approach
+I mentioned is NSCache.
+
+
+292
+00:13:16,896 --> 00:13:20,376
+NSCache is a key value store
+like an NSMutableDictionary.
+
+
+293
+00:13:20,966 --> 00:13:23,636
+But it also has the advantage
+that it's thread-safe, meaning,
+
+
+294
+00:13:23,636 --> 00:13:25,656
+you can use it from any
+thread in your application
+
+
+295
+00:13:25,656 --> 00:13:27,766
+without requiring
+additional synchronization.
+
+
+296
+00:13:28,736 --> 00:13:31,756
+But the special property of
+NSCache is that it's capable
+
+
+297
+00:13:31,756 --> 00:13:34,566
+of automatically evicting
+objects on memory pressure.
+
+
+298
+00:13:34,966 --> 00:13:37,356
+This means that you can put
+as much data into the NSCache
+
+
+299
+00:13:37,356 --> 00:13:40,036
+as you'd like and it will
+automatically size itself
+
+
+300
+00:13:40,446 --> 00:13:43,786
+to an appropriate size given
+the current system conditions.
+
+
+301
+00:13:44,836 --> 00:13:48,686
+It does this by simply
+releasing its strong reference
+
+
+302
+00:13:49,106 --> 00:13:51,196
+to your objects upon eviction.
+
+
+303
+00:13:51,646 --> 00:13:53,956
+So once you have
+another reference to any
+
+
+304
+00:13:53,956 --> 00:13:55,756
+of your objects, you can be
+sure they won't disappear
+
+
+305
+00:13:55,756 --> 00:13:56,466
+from behind you.
+
+
+306
+00:13:57,236 --> 00:14:00,986
+And it uses a version of
+least recently used eviction.
+
+
+307
+00:14:00,986 --> 00:14:02,666
+Should expect the contents
+
+
+308
+00:14:02,666 --> 00:14:05,346
+of an NSCache will eventually
+be evicted if not accessed.
+
+
+309
+00:14:05,556 --> 00:14:08,996
+Now, you can actually combine
+NSPurgeableData and NSCache.
+
+
+310
+00:14:09,066 --> 00:14:11,236
+And this can make working
+purgeable data objects a little
+
+
+311
+00:14:11,236 --> 00:14:11,816
+bit easier.
+
+
+312
+00:14:12,566 --> 00:14:16,216
+NSCache gives aware of when
+NSPurgeableData objects have
+
+
+313
+00:14:16,216 --> 00:14:17,656
+been purged from memory.
+
+
+314
+00:14:18,286 --> 00:14:21,556
+And so, in this case, we placed
+an NSPurgeableData object
+
+
+315
+00:14:21,736 --> 00:14:22,786
+in our NSCache.
+
+
+316
+00:14:22,946 --> 00:14:26,686
+The system reclaims the
+purgeable memory region.
+
+
+317
+00:14:27,376 --> 00:14:30,596
+And then the NSCache will evict
+the NSPurgeableData object.
+
+
+318
+00:14:30,866 --> 00:14:34,756
+So future look ups for its key
+will not return any object.
+
+
+319
+00:14:35,366 --> 00:14:36,896
+So I mentioned memory regions.
+
+
+320
+00:14:37,376 --> 00:14:39,436
+Well, what exactly
+is a memory region?
+
+
+321
+00:14:39,716 --> 00:14:41,226
+Purgeable memory
+regions are one type.
+
+
+322
+00:14:41,226 --> 00:14:43,896
+But there's a variety of types
+of memory regions on a system.
+
+
+323
+00:14:44,076 --> 00:14:46,556
+Let's go back to our
+view of virtual memory.
+
+
+324
+00:14:47,076 --> 00:14:49,316
+I mentioned that a process
+address space is divided
+
+
+325
+00:14:49,316 --> 00:14:50,666
+into 4 kilobyte pages.
+
+
+326
+00:14:51,376 --> 00:14:53,476
+Well, there's actually one
+more level of obstruction here.
+
+
+327
+00:14:53,686 --> 00:14:55,826
+The process of address
+space will first be divided
+
+
+328
+00:14:55,826 --> 00:14:56,976
+into a number of regions.
+
+
+329
+00:14:57,606 --> 00:15:00,736
+These regions, each
+are then subdivided
+
+
+330
+00:15:00,736 --> 00:15:04,846
+into 4 kilobyte pages, and
+those pages inherit a variety
+
+
+331
+00:15:04,846 --> 00:15:06,166
+of properties from the region.
+
+
+332
+00:15:06,556 --> 00:15:09,876
+For example, the region
+can be read-only or read
+
+
+333
+00:15:09,876 --> 00:15:13,776
+and rewritable, it may be backed
+by a file, might be shared
+
+
+334
+00:15:13,776 --> 00:15:15,806
+between processes, and
+these things are all defined
+
+
+335
+00:15:15,806 --> 00:15:16,656
+at their region level.
+
+
+336
+00:15:16,656 --> 00:15:19,346
+And then of course, these
+individual pages may
+
+
+337
+00:15:19,346 --> 00:15:20,856
+or may not be backed
+with physical memory.
+
+
+338
+00:15:21,406 --> 00:15:24,826
+And we've been talking mostly
+so far about objects that exist
+
+
+339
+00:15:24,826 --> 00:15:26,126
+in your process' heap.
+
+
+340
+00:15:26,826 --> 00:15:29,516
+But there are a variety
+of other types of regions
+
+
+341
+00:15:29,596 --> 00:15:31,566
+that consume memory
+inside of your process.
+
+
+342
+00:15:31,746 --> 00:15:33,576
+Now, I want to talk a
+little bit about those.
+
+
+343
+00:15:35,226 --> 00:15:37,936
+So first of all, is this
+actually an important thing
+
+
+344
+00:15:37,936 --> 00:15:38,586
+to be aware of?
+
+
+345
+00:15:39,186 --> 00:15:42,136
+Well, I did some analysis of a
+couple of example applications.
+
+
+346
+00:15:42,506 --> 00:15:43,946
+The first was a media
+player app.
+
+
+347
+00:15:44,226 --> 00:15:47,966
+And in this case, only 34
+percent of the memory consumed
+
+
+348
+00:15:47,966 --> 00:15:51,926
+by the media player application
+was actually due to heap memory,
+
+
+349
+00:15:52,246 --> 00:15:54,096
+the rest came from
+other types of regions.
+
+
+350
+00:15:54,936 --> 00:15:58,276
+Now, graphics memory is
+often not part of the heap.
+
+
+351
+00:15:58,506 --> 00:16:01,716
+And so, a simple game might
+have less than 10 percent
+
+
+352
+00:16:01,716 --> 00:16:04,876
+of its memory actually
+allocated in its heap.
+
+
+353
+00:16:04,926 --> 00:16:07,976
+So what are these other
+non-heap memory regions?
+
+
+354
+00:16:08,706 --> 00:16:12,096
+Well, the first thing is going
+to be anonymous memory regions.
+
+
+355
+00:16:12,096 --> 00:16:15,106
+Now, these are things like
+the heap that store data just
+
+
+356
+00:16:15,106 --> 00:16:16,506
+for the lifetime
+of your process.
+
+
+357
+00:16:16,746 --> 00:16:18,756
+They're private to your process,
+
+
+358
+00:16:19,946 --> 00:16:22,576
+and our tools have the
+ability to name them.
+
+
+359
+00:16:22,576 --> 00:16:25,936
+So as you're looking through
+the anonymous memory regions,
+
+
+360
+00:16:25,936 --> 00:16:27,466
+these are some examples
+that you might see.
+
+
+361
+00:16:28,416 --> 00:16:32,836
+Malloc size, they're like
+Malloc tiny, Malloc large,
+
+
+362
+00:16:33,146 --> 00:16:34,956
+those are going to
+be used for the heap.
+
+
+363
+00:16:35,666 --> 00:16:38,226
+You'll also find Image IO
+regions in your process.
+
+
+364
+00:16:38,226 --> 00:16:40,296
+And these are used to store
+or decode an image data.
+
+
+365
+00:16:40,826 --> 00:16:44,076
+What makes these interesting
+is that the actual object
+
+
+366
+00:16:44,076 --> 00:16:47,196
+in your heap might be very small
+but it will contain a reference
+
+
+367
+00:16:47,196 --> 00:16:48,966
+to an Image IO region in memory.
+
+
+368
+00:16:49,496 --> 00:16:51,736
+So leaking that object
+will, from the perspective
+
+
+369
+00:16:51,736 --> 00:16:54,016
+of the Leaks tool, show
+only a very small leak.
+
+
+370
+00:16:54,416 --> 00:16:56,316
+But because you've also
+leaked the reference
+
+
+371
+00:16:56,316 --> 00:16:59,596
+to a memory region, your app
+has leaked much more memory
+
+
+372
+00:16:59,596 --> 00:17:00,326ddle
+in practice.
+
+
+373
+00:16:59,596 --> 00:17:00,326
+in practice.
+
+
+374
+00:17:01,016 --> 00:17:04,066
+There's also CA layers,
+restore the contents
+
+
+375
+00:17:04,316 --> 00:17:06,556
+of rasterized layer-backed
+views.
+
+
+376
+00:17:07,406 --> 00:17:10,776
+And these will actually have
+annotations giving you the name
+
+
+377
+00:17:10,776 --> 00:17:12,126
+of the delegate of that layer.
+
+
+378
+00:17:12,126 --> 00:17:15,486
+And to learn more about this,
+you should see the optimizing,
+
+
+379
+00:17:15,486 --> 00:17:18,016
+drawing, and scrolling on OS
+X talk which we'll go in-depth
+
+
+380
+00:17:18,016 --> 00:17:19,606
+in the layer backing
+of your views.
+
+
+381
+00:17:20,656 --> 00:17:22,276
+There's also file-backed memory.
+
+
+382
+00:17:22,665 --> 00:17:24,836
+And these are regions
+whose contents are backed
+
+
+383
+00:17:24,836 --> 00:17:25,945
+by a file on disk.
+
+
+384
+00:17:26,116 --> 00:17:28,205
+And what's interesting
+about these regions is
+
+
+385
+00:17:28,205 --> 00:17:31,346
+that we will populate them with
+the contents of that file only
+
+
+386
+00:17:31,346 --> 00:17:33,306
+when you access the
+region for the first time
+
+
+387
+00:17:33,306 --> 00:17:34,376
+and cause a page fault.
+
+
+388
+00:17:35,186 --> 00:17:38,086
+This means that the data
+will only be resident
+
+
+389
+00:17:38,086 --> 00:17:39,006
+if it's been accessed.
+
+
+390
+00:17:39,146 --> 00:17:42,036
+And so, you might have a
+very large file backed region
+
+
+391
+00:17:42,286 --> 00:17:44,246
+with only a very small
+amount of data resident.
+
+
+392
+00:17:44,796 --> 00:17:46,206
+And these are commonly
+used for things
+
+
+393
+00:17:46,206 --> 00:17:49,856
+like decoding your application
+or data files that you want
+
+
+394
+00:17:49,976 --> 00:17:51,126
+to randomly reference.
+
+
+395
+00:17:51,486 --> 00:17:54,896
+And so, in this case, our app
+has file-backed memory region
+
+
+396
+00:17:54,896 --> 00:17:55,636
+for each of these.
+
+
+397
+00:17:56,036 --> 00:17:59,086
+And as it begins to execute
+its code, it will fault
+
+
+398
+00:17:59,086 --> 00:18:00,086
+that code in from disk.
+
+
+399
+00:18:00,476 --> 00:18:02,706
+And then, as it accesses
+a data file,
+
+
+400
+00:18:02,706 --> 00:18:04,736
+will pull that data file
+in from disk as well.
+
+
+401
+00:18:05,736 --> 00:18:08,486
+So let's zoom in on
+that data file region.
+
+
+402
+00:18:09,526 --> 00:18:13,246
+So imagine this is our data
+file region and it's writable.
+
+
+403
+00:18:13,556 --> 00:18:16,586
+When we created that region, we
+specified we wanted to be able
+
+
+404
+00:18:16,586 --> 00:18:18,276
+to write to it, and
+we set it shared,
+
+
+405
+00:18:18,276 --> 00:18:21,016
+meaning that the changes we
+make should be written back
+
+
+406
+00:18:21,016 --> 00:18:21,656
+up to disk.
+
+
+407
+00:18:21,656 --> 00:18:24,956
+Now, in this case, our region
+isn't entirely resident
+
+
+408
+00:18:24,956 --> 00:18:27,086
+in memory because we haven't
+accessed all the data.
+
+
+409
+00:18:27,616 --> 00:18:28,876
+And you can see here some
+
+
+410
+00:18:28,876 --> 00:18:30,856
+of the pages just
+simply aren't populated.
+
+
+411
+00:18:31,786 --> 00:18:33,656
+Now, if we go and try
+to modify that memory,
+
+
+412
+00:18:34,136 --> 00:18:34,996
+we're going to dirty it.
+
+
+413
+00:18:35,216 --> 00:18:40,946
+We refer to clean memory as
+memory that whose contents match
+
+
+414
+00:18:40,946 --> 00:18:43,326
+that on disk and
+dirty memory as memory
+
+
+415
+00:18:43,446 --> 00:18:44,816
+where we have made changes.
+
+
+416
+00:18:49,136 --> 00:18:51,426
+So now, we have dirty
+memory in our app.
+
+
+417
+00:18:51,426 --> 00:18:53,976
+And if the system would
+like to turn that back
+
+
+418
+00:18:53,976 --> 00:18:55,426
+into clean memory, it will have
+
+
+419
+00:18:55,426 --> 00:18:57,396
+to write those pages
+back out to disk.
+
+
+420
+00:18:58,266 --> 00:19:00,556
+Now, what makes a dirty
+memory interesting is
+
+
+421
+00:19:00,556 --> 00:19:03,186
+that it's much more expensive
+to reclaim the clean memory.
+
+
+422
+00:19:03,576 --> 00:19:05,646
+If we need to reclaim
+clean memory to provide it
+
+
+423
+00:19:05,646 --> 00:19:08,456
+to another app, we could
+simply throw that memory away
+
+
+424
+00:19:08,456 --> 00:19:10,006
+and use it for a
+different purpose.
+
+
+425
+00:19:10,236 --> 00:19:12,496
+On the other hand, dirty
+memory needs to be written back
+
+
+426
+00:19:12,496 --> 00:19:15,766
+out to disk so it's more kind
+of swapping in that sense.
+
+
+427
+00:19:17,506 --> 00:19:18,876
+Now, given all these types
+
+
+428
+00:19:18,876 --> 00:19:22,176
+of memory regions your app might
+have, how do you get inside
+
+
+429
+00:19:22,176 --> 00:19:24,226
+into what your app
+is actually doing?
+
+
+430
+00:19:25,156 --> 00:19:29,266
+Well, as of OS 10.9 in iOS 7,
+
+
+431
+00:19:29,746 --> 00:19:32,236
+the allocations instrument
+is capable
+
+
+432
+00:19:32,236 --> 00:19:34,176
+of showing the memory
+regions used by your app.
+
+
+433
+00:19:34,176 --> 00:19:35,616
+But what you'll notice is
+
+
+434
+00:19:35,616 --> 00:19:38,416
+that there's a new
+allocation type selector
+
+
+435
+00:19:38,676 --> 00:19:39,996
+in the allocations instrument
+
+
+436
+00:19:40,206 --> 00:19:43,376
+that you can choose whether you
+want to see all allocations,
+
+
+437
+00:19:43,896 --> 00:19:46,576
+just heap allocations which
+is what you would have seen
+
+
+438
+00:19:46,576 --> 00:19:50,636
+in previous versions, or
+just the new VM regions
+
+
+439
+00:19:50,636 --> 00:19:51,536
+that are being tracked.
+
+
+440
+00:19:51,826 --> 00:19:55,446
+So in this case, we're
+looking at all allocations.
+
+
+441
+00:19:55,446 --> 00:19:57,176
+And you can see that some
+of these allocations start
+
+
+442
+00:19:57,176 --> 00:19:59,666
+with a VM con and
+then provide the name
+
+
+443
+00:19:59,666 --> 00:20:02,406
+of that allocation,
+when it's known.
+
+
+444
+00:20:03,056 --> 00:20:04,686
+And you can then drill
+down to understand
+
+
+445
+00:20:04,686 --> 00:20:06,126
+where these allocations
+come from.
+
+
+446
+00:20:06,226 --> 00:20:09,216
+And in many cases, see a
+stack trace of the code
+
+
+447
+00:20:09,216 --> 00:20:10,526
+that created that object.
+
+
+448
+00:20:11,206 --> 00:20:13,866
+This can then help you
+understand why does this exist.
+
+
+449
+00:20:13,866 --> 00:20:16,626
+And there's the only thing
+I can do to change its size
+
+
+450
+00:20:16,626 --> 00:20:18,016
+or prevent it from
+being created.
+
+
+451
+00:20:18,576 --> 00:20:21,146
+Now, there's also
+the VM Tracker tool.
+
+
+452
+00:20:21,796 --> 00:20:24,676
+And this tool will-- it can take
+a snapshot at a regular interval
+
+
+453
+00:20:24,676 --> 00:20:27,216
+of all of the virtual
+interval regions in your app.
+
+
+454
+00:20:27,706 --> 00:20:29,866
+It can then determine
+a residency information
+
+
+455
+00:20:30,286 --> 00:20:33,026
+and how much of that
+data is dirty or clean.
+
+
+456
+00:20:33,416 --> 00:20:38,576
+You can also look at
+the region MapView.
+
+
+457
+00:20:38,976 --> 00:20:41,316
+And the region map will
+show you simply a listing
+
+
+458
+00:20:41,316 --> 00:20:45,206
+of all the regions of your
+application and you can drill
+
+
+459
+00:20:45,206 --> 00:20:49,376
+down to get per page data
+about residency status
+
+
+460
+00:20:49,436 --> 00:20:50,636
+and whether it's clean or dirty.
+
+
+461
+00:20:51,686 --> 00:20:54,226
+Now, given all of
+these types of memory,
+
+
+462
+00:20:54,226 --> 00:20:55,556
+you're probably asking yourself,
+
+
+463
+00:20:55,796 --> 00:20:58,136
+"How do I just get a
+simple number for the amount
+
+
+464
+00:20:58,136 --> 00:20:59,656
+of memory my application
+is using?"
+
+
+465
+00:21:00,426 --> 00:21:03,286
+Well, this is something we've
+tried to address in Mavericks.
+
+
+466
+00:21:03,646 --> 00:21:05,526
+We've run a new tool
+called Footprint.
+
+
+467
+00:21:05,976 --> 00:21:08,816
+To run Footprint,
+simply specify the name
+
+
+468
+00:21:08,816 --> 00:21:10,786
+of the process you
+would like to analyze.
+
+
+469
+00:21:11,106 --> 00:21:13,846
+And in this case, we're also
+going to run it the -swapped
+
+
+470
+00:21:13,846 --> 00:21:15,586
+and -categories flags.
+
+
+471
+00:21:15,916 --> 00:21:17,206
+This will provide some of--
+
+
+472
+00:21:17,206 --> 00:21:19,316
+just additional information
+about our application.
+
+
+473
+00:21:19,436 --> 00:21:21,436
+It link it out for the
+look something like this.
+
+
+474
+00:21:22,166 --> 00:21:23,216
+And what we can see here is
+
+
+475
+00:21:23,216 --> 00:21:26,386
+that our application has
+a 12-megabyte footprint.
+
+
+476
+00:21:26,836 --> 00:21:29,286
+This is our estimate of
+what the impact of having
+
+
+477
+00:21:29,286 --> 00:21:31,386
+that application
+running is on the system.
+
+
+478
+00:21:32,136 --> 00:21:34,736
+We can then see a
+breakdown of what types
+
+
+479
+00:21:34,736 --> 00:21:36,546
+of memory are contributed
+to that footprint.
+
+
+480
+00:21:37,046 --> 00:21:39,926
+So in this case, we can see
+we have over 5 megabytes
+
+
+481
+00:21:39,926 --> 00:21:41,596
+of private, dirty memory.
+
+
+482
+00:21:42,086 --> 00:21:45,166
+For example, heap memory
+in our application.
+
+
+483
+00:21:45,306 --> 00:21:47,726
+And 2 megabytes of that
+has been swapped already.
+
+
+484
+00:21:48,146 --> 00:21:49,976
+This is probably an
+indication that the system was
+
+
+485
+00:21:49,976 --> 00:21:51,836
+under memory pressure
+at some point.
+
+
+486
+00:21:52,636 --> 00:21:55,546
+Now, one wrinkle in
+this is shared memory.
+
+
+487
+00:21:56,376 --> 00:21:58,896
+Memory regions can be shared
+between multiple processes.
+
+
+488
+00:21:59,416 --> 00:22:01,426
+You'll most commonly see
+this for graphics memory
+
+
+489
+00:22:01,826 --> 00:22:03,766
+or in multi-process
+applications.
+
+
+490
+00:22:03,766 --> 00:22:06,796
+For example, an application
+in a bundled XPC Service.
+
+
+491
+00:22:08,546 --> 00:22:11,426
+And these shared regions
+may not be visible
+
+
+492
+00:22:11,426 --> 00:22:12,936
+in the allocations
+instrument depending
+
+
+493
+00:22:12,936 --> 00:22:13,816
+on how they're created.
+
+
+494
+00:22:15,176 --> 00:22:18,146
+But we have a tool that can
+help you understand the amount
+
+
+495
+00:22:18,146 --> 00:22:20,086
+of memory shared by
+multiple processes.
+
+
+496
+00:22:20,636 --> 00:22:22,206
+And this is once again,
+the footprint tool.
+
+
+497
+00:22:22,646 --> 00:22:26,426
+But instead, we're going to
+run it with 2 proc arguments
+
+
+498
+00:22:26,476 --> 00:22:28,956
+and specify both processes
+that we want to analyze.
+
+
+499
+00:22:28,956 --> 00:22:33,816
+And here we can see that
+we have memory shared
+
+
+500
+00:22:33,816 --> 00:22:36,526
+with the Windows server, and
+at the bottom of the output,
+
+
+501
+00:22:36,526 --> 00:22:39,496
+we get a total footprint of
+all the processes we specified.
+
+
+502
+00:22:40,146 --> 00:22:42,696
+If you're developing an app
+that is a bundled XPC Service,
+
+
+503
+00:22:42,696 --> 00:22:44,436
+you can use this to
+get a footprint number
+
+
+504
+00:22:44,726 --> 00:22:47,506
+for both your app and
+that XPC Service together.
+
+
+505
+00:22:47,976 --> 00:22:50,606
+All right.
+
+
+506
+00:22:50,606 --> 00:22:53,546
+So now, given all of this new
+test memory, what is our picture
+
+
+507
+00:22:53,546 --> 00:22:55,516
+of a system under memory
+pressure look like?
+
+
+508
+00:22:55,886 --> 00:23:00,636
+So I want to walk through what a
+system will do to satisfy demand
+
+
+509
+00:23:00,636 --> 00:23:03,626
+for new memory given these
+different types of memory?
+
+
+510
+00:23:03,626 --> 00:23:06,316
+Now of course, the first thing
+the system will do when it's
+
+
+511
+00:23:06,316 --> 00:23:09,726
+under memory pressure is start
+evicting objects from NSCaches
+
+
+512
+00:23:10,136 --> 00:23:14,366
+and reclaiming the contents
+of purgeable memory regions.
+
+
+513
+00:23:14,806 --> 00:23:16,556
+Well, this is important
+because these are the things
+
+
+514
+00:23:16,556 --> 00:23:19,226
+that applications on a system
+have said that they want
+
+
+515
+00:23:19,226 --> 00:23:21,486
+to be reclaimed first when
+under memory pressure.
+
+
+516
+00:23:21,816 --> 00:23:23,286
+And so, it's the
+tool that you'll use
+
+
+517
+00:23:23,506 --> 00:23:25,346
+to help make sure your
+application is well-behaved
+
+
+518
+00:23:25,346 --> 00:23:28,166
+and that you control which user
+memory will be taken from you.
+
+
+519
+00:23:29,606 --> 00:23:31,966
+Now, once that memory
+has been reclaimed,
+
+
+520
+00:23:32,396 --> 00:23:35,166
+the system will start
+aggressively writing the
+
+
+521
+00:23:35,166 --> 00:23:37,996
+contents of dirty
+memory to disk so that
+
+
+522
+00:23:37,996 --> 00:23:39,436
+that memory can become
+clean again
+
+
+523
+00:23:39,436 --> 00:23:41,106
+and can be easily
+reclaimed when needed.
+
+
+524
+00:23:41,966 --> 00:23:45,266
+Then, we'll start taking the
+contents of file-backed memory.
+
+
+525
+00:23:46,406 --> 00:23:47,246
+And once the amount
+
+
+526
+00:23:47,246 --> 00:23:48,856
+of file-backed memory
+has decreased,
+
+
+527
+00:23:49,036 --> 00:23:52,516
+we'll begin also taking memory
+from anonymous VM regions
+
+
+528
+00:23:52,976 --> 00:23:55,336
+and from the heap
+of applications.
+
+
+529
+00:23:55,586 --> 00:23:58,716
+And this is the point at
+which you'll see the system
+
+
+530
+00:23:58,716 --> 00:24:00,896
+performance really
+begin to decline.
+
+
+531
+00:24:03,976 --> 00:24:06,616
+Now, in Mavericks, there's
+one more part of this.
+
+
+532
+00:24:06,616 --> 00:24:07,876
+And that's compressed memory.
+
+
+533
+00:24:08,746 --> 00:24:12,186
+Compressed memory allows us
+to, before swapping memory
+
+
+534
+00:24:12,186 --> 00:24:15,086
+out to disk, first,
+compress it in RAM.
+
+
+535
+00:24:15,546 --> 00:24:17,776
+And because compressed memory
+consumes a lot of space,
+
+
+536
+00:24:18,046 --> 00:24:20,356
+as we compress memory,
+we free up pages
+
+
+537
+00:24:20,356 --> 00:24:21,836
+which can then be
+put to another use.
+
+
+538
+00:24:22,246 --> 00:24:26,056
+Now of course, once we-- at some
+point, we may still need to swap
+
+
+539
+00:24:26,056 --> 00:24:27,176
+out that memory to disk.
+
+
+540
+00:24:27,426 --> 00:24:30,576
+And then we'll have
+reclaimed the full contents
+
+
+541
+00:24:30,576 --> 00:24:31,186
+of that memory.
+
+
+542
+00:24:31,606 --> 00:24:35,916
+Now, given that all these
+behaviors a system can do
+
+
+543
+00:24:35,916 --> 00:24:38,546
+to create new memory,
+sometimes it's hard
+
+
+544
+00:24:38,546 --> 00:24:41,616
+to get a good system-wide
+picture of what's going on.
+
+
+545
+00:24:42,106 --> 00:24:45,066
+And so, in Mavericks, we've
+improved activity monitor,
+
+
+546
+00:24:45,856 --> 00:24:49,626
+and now have a few more high
+level numbers that you can use
+
+
+547
+00:24:49,626 --> 00:24:52,266
+to understand where memory
+is being used on your system.
+
+
+548
+00:24:52,616 --> 00:24:54,026
+We will look at the bottom
+
+
+549
+00:24:54,026 --> 00:24:55,956
+of activity monitor
+in the memory tab.
+
+
+550
+00:24:56,166 --> 00:24:59,236
+On the right side, you
+can see a breakdown
+
+
+551
+00:24:59,236 --> 00:25:01,186
+of where memory is being
+used in your system.
+
+
+552
+00:25:01,796 --> 00:25:05,266
+App memory refers to anonymous
+memory regions like heap
+
+
+553
+00:25:05,476 --> 00:25:07,456
+and the framework
+allocate memory regions.
+
+
+554
+00:25:08,206 --> 00:25:12,316
+The file cache refers to
+any file-backed region.
+
+
+555
+00:25:14,906 --> 00:25:18,166
+Wire memory is memory that the
+operating system has wired down,
+
+
+556
+00:25:18,166 --> 00:25:20,986
+consumed for its own purposes
+and can't easily be reclaimed.
+
+
+557
+00:25:21,296 --> 00:25:24,216
+And then finally, compressed
+memory is the memory being used
+
+
+558
+00:25:24,216 --> 00:25:27,076
+to store other anonymous
+compressed pages.
+
+
+559
+00:25:28,116 --> 00:25:29,776
+Now, if you want to
+dive even deeper,
+
+
+560
+00:25:30,246 --> 00:25:34,356
+the VMStat tool has also
+been improved in Mavericks.
+
+
+561
+00:25:35,056 --> 00:25:36,386
+And this is just a subset
+
+
+562
+00:25:36,386 --> 00:25:38,246
+of the output you'll
+get from running VMStat.
+
+
+563
+00:25:38,246 --> 00:25:39,536
+For this case, we're
+going to run it
+
+
+564
+00:25:39,536 --> 00:25:41,016
+with a single argument, 1.
+
+
+565
+00:25:41,016 --> 00:25:42,346
+And that specifies the interval
+
+
+566
+00:25:42,346 --> 00:25:43,776
+at which we wanted
+to report data.
+
+
+567
+00:25:43,776 --> 00:25:45,976
+Here, we're seeing
+data every one second.
+
+
+568
+00:25:46,946 --> 00:25:50,036
+Now, some of these column
+headers are a little cryptic.
+
+
+569
+00:25:50,396 --> 00:25:53,336
+But if you run VMStat
+without any arguments,
+
+
+570
+00:25:53,506 --> 00:25:56,546
+you'll get longer titles
+for each of those headers.
+
+
+571
+00:25:57,186 --> 00:26:00,856
+And so, we can see here, we have
+a couple statistics that cover
+
+
+572
+00:26:00,896 --> 00:26:02,786
+where a memory is
+currently being allocated
+
+
+573
+00:26:02,956 --> 00:26:05,736
+and this match roughly what
+you're seeing activity monitor.
+
+
+574
+00:26:05,876 --> 00:26:08,526
+In this case, we can see
+how much memory is used
+
+
+575
+00:26:08,526 --> 00:26:10,146
+for file-backed or
+anonymous memory.
+
+
+576
+00:26:10,606 --> 00:26:13,076
+And then how much
+memory we've compressed
+
+
+577
+00:26:13,076 --> 00:26:15,966
+and how much memory is being
+used to store compressed pages.
+
+
+578
+00:26:16,536 --> 00:26:19,636
+And then we can also
+look at, over time,
+
+
+579
+00:26:19,636 --> 00:26:21,366
+the change in memory
+use on a system.
+
+
+580
+00:26:22,056 --> 00:26:24,836
+So these values represent when
+pages are moving in and out
+
+
+581
+00:26:24,836 --> 00:26:28,326
+of the compressor, to and from
+file-backed memory regions,
+
+
+582
+00:26:28,946 --> 00:26:32,806
+and from the compressor
+to disk and back.
+
+
+583
+00:26:34,066 --> 00:26:36,276
+Now, one question you might
+have is, how do I know
+
+
+584
+00:26:36,276 --> 00:26:39,556
+if my app is being
+affected by swapping
+
+
+585
+00:26:39,836 --> 00:26:41,716
+or other memory pressure
+activity?
+
+
+586
+00:26:42,616 --> 00:26:45,726
+Well, we can do this with
+the time profiler instrument.
+
+
+587
+00:26:45,896 --> 00:26:48,106
+You're going to want to
+run it with two options.
+
+
+588
+00:26:48,446 --> 00:26:51,286
+The first is to record
+waiting threads.
+
+
+589
+00:26:51,376 --> 00:26:53,796
+And this will record threads
+even if they're blocked trying
+
+
+590
+00:26:53,796 --> 00:26:55,396
+to swap data in from disk.
+
+
+591
+00:26:55,746 --> 00:26:58,756
+And then, you want to record
+both user and kernel stacks.
+
+
+592
+00:26:58,786 --> 00:27:00,476
+So you can see what
+the kernel is doing
+
+
+593
+00:27:00,476 --> 00:27:01,776
+in response to a page fault.
+
+
+594
+00:27:03,166 --> 00:27:05,766
+Then, runtime profilers, you
+normally would against your app.
+
+
+595
+00:27:06,286 --> 00:27:08,716
+And you want to look
+for the VM Fault Frame.
+
+
+596
+00:27:09,306 --> 00:27:10,976
+This is the frame
+that you'll see
+
+
+597
+00:27:10,976 --> 00:27:13,746
+in the kernel anytime it
+takes a page fault as a result
+
+
+598
+00:27:13,746 --> 00:27:15,706
+of memory access your app does.
+
+
+599
+00:27:16,136 --> 00:27:17,906
+You can then dive
+even deeper than that
+
+
+600
+00:27:17,956 --> 00:27:19,636
+to understand whether
+it's hitting disk
+
+
+601
+00:27:19,636 --> 00:27:20,796
+or decompressing data.
+
+
+602
+00:27:21,366 --> 00:27:24,486
+And in this case, you can
+see we're spending 2 percent
+
+
+603
+00:27:24,486 --> 00:27:27,836
+of our time in VM Fault,
+that's actually a lot of time.
+
+
+604
+00:27:28,226 --> 00:27:31,146
+Really, any more than
+a few samples you find
+
+
+605
+00:27:31,146 --> 00:27:33,306
+at VM Fault should be
+taken as in occasion
+
+
+606
+00:27:33,546 --> 00:27:37,066
+that your app is seeing the
+effects of memory pressure.
+
+
+607
+00:27:37,066 --> 00:27:39,936
+And it means that you
+should begin to look
+
+
+608
+00:27:39,936 --> 00:27:43,316
+at your apps memory use and
+how you can improve your app's
+
+
+609
+00:27:43,316 --> 00:27:45,036
+performance under
+memory pressure.
+
+
+610
+00:27:45,496 --> 00:27:48,306
+Now, one problem with
+this technique is
+
+
+611
+00:27:48,306 --> 00:27:50,686
+that it requires you to be
+able to reproduce the problem.
+
+
+612
+00:27:50,686 --> 00:27:52,096
+And unfortunately,
+
+
+613
+00:27:52,526 --> 00:27:55,996
+memory pressure-related problems
+typically depend on what's going
+
+
+614
+00:27:55,996 --> 00:27:57,806
+on in the system, what
+other apps are running,
+
+
+615
+00:27:57,806 --> 00:27:59,796
+and could be very
+difficult to reproduce.
+
+
+616
+00:28:01,036 --> 00:28:03,656
+So we provided something
+called sysdiagnose.
+
+
+617
+00:28:04,176 --> 00:28:06,766
+This is a tool that can
+automatically collect a wide
+
+
+618
+00:28:06,766 --> 00:28:09,386
+variety of performance
+diagnostic information
+
+
+619
+00:28:09,386 --> 00:28:10,426
+from the system.
+
+
+620
+00:28:10,906 --> 00:28:12,466
+You could simply run it
+from the command-line,
+
+
+621
+00:28:12,506 --> 00:28:15,466
+pseudo sysdiagnose, and then
+provide an app name that you
+
+
+622
+00:28:15,466 --> 00:28:16,866
+like to target for
+data collection.
+
+
+623
+00:28:17,246 --> 00:28:20,436
+It will then run a bunch
+of diagnostic commands
+
+
+624
+00:28:20,636 --> 00:28:22,766
+and archive the output
+under VAR/TMP
+
+
+625
+00:28:22,766 --> 00:28:25,316
+and a sysdiagnose archive
+including a timestamp.
+
+
+626
+00:28:25,626 --> 00:28:29,426
+And this includes things like
+a spindump which is a sample
+
+
+627
+00:28:29,426 --> 00:28:34,516
+or time profiler like profiling
+of all apps on a system, heap,
+
+
+628
+00:28:34,516 --> 00:28:37,756
+leaks, footprint,
+VMStat, and FS usage
+
+
+629
+00:28:37,756 --> 00:28:40,286
+which I'll cover
+in a little bit.
+
+
+630
+00:28:40,496 --> 00:28:41,516
+You can also trigger this
+
+
+631
+00:28:41,516 --> 00:28:45,036
+with the Shift Control option
+command period key chord,
+
+
+632
+00:28:46,146 --> 00:28:48,876
+if you can manage to
+mash those keys in time.
+
+
+633
+00:28:49,546 --> 00:28:52,326
+But this isn't going to collect
+as much detailed information
+
+
+634
+00:28:52,326 --> 00:28:54,346
+about your specific application.
+
+
+635
+00:28:54,666 --> 00:28:56,846
+And so anytime you can
+use the command-line form,
+
+
+636
+00:28:57,086 --> 00:28:59,176
+it will provide more
+actionable data
+
+
+637
+00:28:59,176 --> 00:29:00,646
+about what your app was doing.
+
+
+638
+00:29:00,646 --> 00:29:01,186
+All right.
+
+
+639
+00:29:02,556 --> 00:29:04,766
+So just a recap, we'll
+be talking about memory.
+
+
+640
+00:29:05,176 --> 00:29:06,846
+You want to make sure
+that when you're looking
+
+
+641
+00:29:06,846 --> 00:29:08,306
+at the memory usage
+of your application,
+
+
+642
+00:29:08,626 --> 00:29:11,036
+you're paying attention to the
+entire footprint of your app,
+
+
+643
+00:29:11,276 --> 00:29:13,336
+not just the usage of your heap.
+
+
+644
+00:29:14,096 --> 00:29:16,276
+When trying to reduce your
+memory usage, consider things
+
+
+645
+00:29:16,276 --> 00:29:17,816
+like leaks and heap growth.
+
+
+646
+00:29:18,626 --> 00:29:22,116
+Look for unnecessary
+VM regions and check
+
+
+647
+00:29:22,116 --> 00:29:23,716
+for instances of
+duplicate memory.
+
+
+648
+00:29:24,686 --> 00:29:28,506
+Consider adopting purgeable
+memory or NSCache for anything
+
+
+649
+00:29:28,506 --> 00:29:31,126
+which you can easily regenerate
+as this will allow you
+
+
+650
+00:29:31,126 --> 00:29:34,626
+to direct the system as
+to how best take memory
+
+
+651
+00:29:34,626 --> 00:29:37,476
+from your application in
+low memory situations.
+
+
+652
+00:29:37,476 --> 00:29:41,176
+And remember, the larger
+memory footprint your app has,
+
+
+653
+00:29:41,226 --> 00:29:43,936
+the more likely it's to slow
+down when under memory pressure.
+
+
+654
+00:29:44,516 --> 00:29:50,916
+[ Pause ]
+
+
+655
+00:29:51,416 --> 00:29:53,396
+So I want to talk
+about disk access.
+
+
+656
+00:29:54,406 --> 00:29:56,526
+Well, why is disk
+access important?
+
+
+657
+00:29:57,366 --> 00:29:59,566
+Well, I did some testing
+with two scenarios
+
+
+658
+00:29:59,566 --> 00:30:01,556
+that you probably care
+about in your app.
+
+
+659
+00:30:01,876 --> 00:30:04,076
+And what that app launch
+and the time it takes
+
+
+660
+00:30:04,076 --> 00:30:04,976
+to open a document.
+
+
+661
+00:30:05,486 --> 00:30:09,296
+And we'll look at these in cases
+where a system was totally idle
+
+
+662
+00:30:10,186 --> 00:30:12,556
+and a case where there
+was another app on system
+
+
+663
+00:30:12,556 --> 00:30:13,926
+that was trying to do IO.
+
+
+664
+00:30:14,656 --> 00:30:18,196
+And when you have multiple apps
+contending to use the disk,
+
+
+665
+00:30:18,636 --> 00:30:21,456
+AppLaunch easily
+regressed 70 percent.
+
+
+666
+00:30:21,726 --> 00:30:23,846
+And this is a huge increase
+
+
+667
+00:30:23,846 --> 00:30:25,766
+in time that's really
+going to impact your users.
+
+
+668
+00:30:26,616 --> 00:30:29,926
+Open document, increased
+55 percent.
+
+
+669
+00:30:30,296 --> 00:30:33,146
+And so, it's important
+that you do IO
+
+
+670
+00:30:33,146 --> 00:30:35,526
+in the most efficient
+way possible to make sure
+
+
+671
+00:30:35,526 --> 00:30:37,806
+that you're-- that one,
+you're being performant.
+
+
+672
+00:30:38,176 --> 00:30:41,166
+And two, that you're not going
+to be affected by other process
+
+
+673
+00:30:41,166 --> 00:30:43,016
+on the system that want
+to compete with you
+
+
+674
+00:30:43,016 --> 00:30:44,936
+for bandwidth to devices.
+
+
+675
+00:30:45,116 --> 00:30:48,066
+Well what exactly are we
+talking about with IO.
+
+
+676
+00:30:48,566 --> 00:30:50,706
+Well, there's a variety of
+layers at the storage stack
+
+
+677
+00:30:50,706 --> 00:30:53,536
+that all interact together to
+help you load data from disk.
+
+
+678
+00:30:54,066 --> 00:30:56,936
+Of course, we have
+your app but in--
+
+
+679
+00:30:56,936 --> 00:30:58,796
+your app is going to use
+some set of frameworks
+
+
+680
+00:30:58,796 --> 00:31:01,426
+to help it do IO,
+but ultimately,
+
+
+681
+00:31:01,806 --> 00:31:04,216
+all access to the disk are
+going to fall through one
+
+
+682
+00:31:04,216 --> 00:31:05,576
+of two interfaces in the kernel.
+
+
+683
+00:31:05,976 --> 00:31:08,966
+Either Memory Mapped IO, and
+these are file-backed regions
+
+
+684
+00:31:08,966 --> 00:31:10,066
+like we talked about earlier,
+
+
+685
+00:31:10,586 --> 00:31:13,026
+or the virtual file
+system interfaces.
+
+
+686
+00:31:13,026 --> 00:31:15,886
+And these are the open, read,
+write and close system calls
+
+
+687
+00:31:15,886 --> 00:31:17,036
+of which you might be familiar.
+
+
+688
+00:31:17,786 --> 00:31:20,136
+And then on the other
+end, the kernel is going
+
+
+689
+00:31:20,136 --> 00:31:23,166
+to use a file system to
+organize data on disk.
+
+
+690
+00:31:23,946 --> 00:31:26,406
+Now, of course, we have to have
+some sort of device driver.
+
+
+691
+00:31:27,086 --> 00:31:31,086
+But then at the end, you'll have
+either a spinning magnetic hard
+
+
+692
+00:31:31,086 --> 00:31:33,956
+disk drive or solid-state
+flash storage
+
+
+693
+00:31:34,286 --> 00:31:36,536
+to which your data is actually
+going to be persisted to.
+
+
+694
+00:31:37,036 --> 00:31:40,976
+Now, it's interesting that today
+we see customers with both kinds
+
+
+695
+00:31:40,976 --> 00:31:43,156
+of storage, hard drives
+and flash storage.
+
+
+696
+00:31:43,476 --> 00:31:46,776
+And so, it's important that you
+consider both types of storage
+
+
+697
+00:31:47,616 --> 00:31:49,196
+when you're profiling
+
+
+698
+00:31:49,196 --> 00:31:50,996
+and performance testing
+your application.
+
+
+699
+00:31:50,996 --> 00:31:54,086
+And the reasons that they have
+incredibly different performance
+
+
+700
+00:31:54,086 --> 00:31:56,636
+characteristics, for example,
+
+
+701
+00:31:57,046 --> 00:31:59,006
+the solid-state drive
+has no seek penalty.
+
+
+702
+00:31:59,456 --> 00:32:02,856
+On the other hand, a hard drive,
+because it uses rotating media
+
+
+703
+00:32:02,856 --> 00:32:05,316
+and must first seek to
+the correct location
+
+
+704
+00:32:05,316 --> 00:32:08,616
+on disk before it can read
+or write data, can experience
+
+
+705
+00:32:08,616 --> 00:32:11,876
+up to 10 milliseconds of latency
+every time you access a new
+
+
+706
+00:32:11,876 --> 00:32:12,886
+location on disk.
+
+
+707
+00:32:13,626 --> 00:32:17,206
+This thing is that while an
+SSD might be capable between 3
+
+
+708
+00:32:17,206 --> 00:32:19,846
+and 30,000 IO operations
+per second,
+
+
+709
+00:32:20,276 --> 00:32:24,056
+a hard drive is only going to
+be capable of maybe 80 to 100.
+
+
+710
+00:32:24,746 --> 00:32:27,376
+Solid-state drives also have
+better sequential speed.
+
+
+711
+00:32:27,736 --> 00:32:29,586
+But the difference there
+is much less pronounced.
+
+
+712
+00:32:30,136 --> 00:32:31,626
+But there's other
+differences too.
+
+
+713
+00:32:31,946 --> 00:32:34,966
+An SSD is capable of some
+limited degree of parallelism.
+
+
+714
+00:32:35,396 --> 00:32:38,146
+This means it's important
+to provide multiple IOs
+
+
+715
+00:32:38,286 --> 00:32:39,846
+to the SSD's queue at a time
+
+
+716
+00:32:40,136 --> 00:32:41,836
+to take advantage
+of that parallelism.
+
+
+717
+00:32:42,026 --> 00:32:44,296
+On the other hand, a hard drive
+is only ever going to be able
+
+
+718
+00:32:44,296 --> 00:32:46,316
+to do one IO request at a time.
+
+
+719
+00:32:46,786 --> 00:32:49,296
+And so, it's not as
+important to keep the queue
+
+
+720
+00:32:49,296 --> 00:32:50,416
+on a hard drive field.
+
+
+721
+00:32:51,246 --> 00:32:53,176
+Finally, on a solid-state drive,
+
+
+722
+00:32:53,456 --> 00:32:56,286
+writes are significantly
+more expensive than reads.
+
+
+723
+00:32:56,636 --> 00:32:59,256
+Wherein a hard drive, those
+had relatively symmetric costs.
+
+
+724
+00:32:59,666 --> 00:33:01,606
+This meant in the past you
+might mostly have focused
+
+
+725
+00:33:01,606 --> 00:33:03,296
+on what reads your
+application was doing.
+
+
+726
+00:33:03,606 --> 00:33:05,056
+So these tend to be more likely
+
+
+727
+00:33:05,056 --> 00:33:08,746
+to block what the user's
+experience of your application.
+
+
+728
+00:33:09,456 --> 00:33:11,186
+On the other hand, with
+a solid-state drive,
+
+
+729
+00:33:11,416 --> 00:33:14,246
+writes become a lot more
+important as these compete
+
+
+730
+00:33:14,246 --> 00:33:17,006
+with reads much more
+heavily for disk bandwidth.
+
+
+731
+00:33:17,396 --> 00:33:19,616
+Now, what I really want you
+to take away from this is
+
+
+732
+00:33:19,616 --> 00:33:22,626
+that the difference--
+different performance profile
+
+
+733
+00:33:22,626 --> 00:33:25,056
+of these devices mean that
+you should be testing your
+
+
+734
+00:33:25,176 --> 00:33:26,396
+application on both.
+
+
+735
+00:33:26,696 --> 00:33:28,796
+If you're developing
+on a new machine
+
+
+736
+00:33:28,796 --> 00:33:31,636
+with a solid-state drive,
+your customers are going
+
+
+737
+00:33:31,636 --> 00:33:33,286
+to have a very different
+experience
+
+
+738
+00:33:33,396 --> 00:33:34,506
+when running on a hard drive.
+
+
+739
+00:33:34,976 --> 00:33:38,996
+And also, high performance
+IO is difficult to do well.
+
+
+740
+00:33:39,406 --> 00:33:41,686
+You need to avoid causing
+trash in your hard drives,
+
+
+741
+00:33:41,956 --> 00:33:45,396
+keep the queue field for SSDs,
+use appropriate buffer sizes,
+
+
+742
+00:33:45,396 --> 00:33:47,386
+compute on data concurrently
+with IO,
+
+
+743
+00:33:47,726 --> 00:33:49,816
+and avoid making extra
+copies of the data.
+
+
+744
+00:33:50,756 --> 00:33:54,476
+So, we provided an API
+to help encapsulate some
+
+
+745
+00:33:54,476 --> 00:33:56,576
+of these best practices
+for doing IO.
+
+
+746
+00:33:56,576 --> 00:33:58,886
+And that comes in the
+form of dispatch IO.
+
+
+747
+00:33:59,646 --> 00:34:02,646
+Dispatch IO is an API that's
+part of Grand Central Dispatch.
+
+
+748
+00:34:03,236 --> 00:34:04,906
+It's been available since 10.7.
+
+
+749
+00:34:04,906 --> 00:34:08,206
+And it provides a declarative
+API for file access.
+
+
+750
+00:34:08,525 --> 00:34:10,716
+What this means is that rather
+than telling a system how
+
+
+751
+00:34:10,716 --> 00:34:13,856
+to access data, you tell it
+what data it should access.
+
+
+752
+00:34:14,556 --> 00:34:17,666
+This allows it to automatically
+encapsulate best practices
+
+
+753
+00:34:17,976 --> 00:34:19,876
+and do things in the most
+performant way possible.
+
+
+754
+00:34:19,876 --> 00:34:23,326
+Now, I want to talk through two
+examples of how to use this API
+
+
+755
+00:34:24,456 --> 00:34:26,076
+that where doing these things
+
+
+756
+00:34:26,076 --> 00:34:28,856
+with the file system calls
+directly would be significantly
+
+
+757
+00:34:28,856 --> 00:34:29,456
+more difficult.
+
+
+758
+00:34:30,126 --> 00:34:33,246
+The first is processing a large
+file in a streaming manner.
+
+
+759
+00:34:33,496 --> 00:34:37,326
+This might be a transcoding
+media searching for a string
+
+
+760
+00:34:37,326 --> 00:34:40,485
+in a file or anything where you
+want to do a sequential read
+
+
+761
+00:34:40,766 --> 00:34:43,025
+and do computation
+concurrently with IO.
+
+
+762
+00:34:43,936 --> 00:34:45,106
+So let's take a look
+at that example.
+
+
+763
+00:34:45,106 --> 00:34:46,775
+And the first thing we're going
+
+
+764
+00:34:46,775 --> 00:34:49,226
+to do is create a
+serial dispatch queue
+
+
+765
+00:34:49,226 --> 00:34:51,485
+that we want our
+computation to run on.
+
+
+766
+00:34:52,356 --> 00:34:58,116
+We'll then create a dispatch
+IO object by providing a path
+
+
+767
+00:34:59,156 --> 00:35:04,636
+and informing dispatch IO that
+we want to read this data.
+
+
+768
+00:35:04,636 --> 00:35:06,326
+We can then set a
+high watermark.
+
+
+769
+00:35:06,606 --> 00:35:07,766
+And what this means
+is that we would
+
+
+770
+00:35:07,766 --> 00:35:10,686
+like to be provided
+opportunity to compute
+
+
+771
+00:35:10,686 --> 00:35:13,156
+on data no larger
+than this size.
+
+
+772
+00:35:13,156 --> 00:35:16,786
+So in this example, we want to
+see data every 32 kilobytes.
+
+
+773
+00:35:17,136 --> 00:35:19,586
+And so, the block we provided
+dispatch will be called
+
+
+774
+00:35:19,586 --> 00:35:21,166
+with data smaller
+than this amount.
+
+
+775
+00:35:21,416 --> 00:35:23,846
+And then finally,
+we issue the read.
+
+
+776
+00:35:24,496 --> 00:35:26,556
+And the read, we
+will provide a block
+
+
+777
+00:35:26,556 --> 00:35:28,386
+to call every time
+data is available.
+
+
+778
+00:35:28,386 --> 00:35:32,136
+In this case, we can simply
+use especially to apply
+
+
+779
+00:35:32,136 --> 00:35:33,966
+to operate on those buffers.
+
+
+780
+00:35:34,416 --> 00:35:37,936
+And this will do the appropriate
+thing involving non-blocking IO
+
+
+781
+00:35:38,336 --> 00:35:40,416
+to ensure that you can have
+as little data and memory
+
+
+782
+00:35:40,416 --> 00:35:43,576
+as possible while still
+concurrently computing on data
+
+
+783
+00:35:43,696 --> 00:35:45,486
+and bringing in more
+data from the drive.
+
+
+784
+00:35:46,056 --> 00:35:48,106
+If you never tried to
+use FileDescriptors
+
+
+785
+00:35:48,136 --> 00:35:50,566
+with the O NONBLOCK option
+to this, you understand
+
+
+786
+00:35:50,566 --> 00:35:52,526
+that it can be a little
+harried to implement yourself.
+
+
+787
+00:35:53,486 --> 00:35:54,656
+Now, this is what
+you might want to do
+
+
+788
+00:35:54,656 --> 00:35:56,096
+if you're reading
+one large file.
+
+
+789
+00:35:56,096 --> 00:35:58,476
+But what if you have
+a lot of small files?
+
+
+790
+00:35:58,756 --> 00:36:00,576
+Let's say for example you
+want to read in a couple
+
+
+791
+00:36:00,576 --> 00:36:02,096
+of hundred thumbnails
+from a disk?
+
+
+792
+00:36:02,816 --> 00:36:05,266
+Well, dispatch IO can help
+you do that correctly too.
+
+
+793
+00:36:05,836 --> 00:36:11,026
+In this case, rather than
+using a single serial queue
+
+
+794
+00:36:11,156 --> 00:36:12,766
+to call our blocks on,
+
+
+795
+00:36:12,766 --> 00:36:15,506
+we're going to provide a
+global concurrent queue.
+
+
+796
+00:36:15,506 --> 00:36:19,156
+And then for every image whose
+thumbnail we want to read in,
+
+
+797
+00:36:19,676 --> 00:36:22,056
+we're going to again,
+create a dispatch IO object.
+
+
+798
+00:36:22,056 --> 00:36:24,346
+But instead of setting
+a high watermark,
+
+
+799
+00:36:24,346 --> 00:36:25,696
+we're going to use
+low watermark.
+
+
+800
+00:36:25,696 --> 00:36:27,586
+And we're going to
+set it to size max.
+
+
+801
+00:36:27,976 --> 00:36:31,376
+This informs dispatch IO that
+we want the entire file contents
+
+
+802
+00:36:31,476 --> 00:36:32,216
+all at once.
+
+
+803
+00:36:32,966 --> 00:36:35,576
+Then, we issue the read
+and in our callback,
+
+
+804
+00:36:35,866 --> 00:36:38,876
+we can use the dispatch
+data provided
+
+
+805
+00:36:39,096 --> 00:36:41,066
+to instantiate for
+example NSImage.
+
+
+806
+00:36:41,576 --> 00:36:46,226
+Now, as of Mavericks, dispatch
+data is bridged automatically
+
+
+807
+00:36:46,676 --> 00:36:47,226
+to NSData.
+
+
+808
+00:36:47,226 --> 00:36:48,586
+On older systems, you'll need
+
+
+809
+00:36:48,586 --> 00:36:51,626
+to use some other dispatch data
+APIs to extract those contents.
+
+
+810
+00:36:52,046 --> 00:36:55,626
+Now, what's important
+about this is
+
+
+811
+00:36:55,626 --> 00:36:57,266
+that if you were trying
+implement it yourself,
+
+
+812
+00:36:57,516 --> 00:36:58,866
+you have to answer
+questions like,
+
+
+813
+00:36:59,006 --> 00:37:00,986
+how many of these
+operations should I have
+
+
+814
+00:37:00,986 --> 00:37:01,846
+running concurrently?
+
+
+815
+00:37:02,386 --> 00:37:03,416
+Simply putting them all
+
+
+816
+00:37:03,416 --> 00:37:05,706
+on a concurrent queue would
+probably run out of threads
+
+
+817
+00:37:06,076 --> 00:37:07,986
+and trying to do it
+yourself means you have
+
+
+818
+00:37:08,026 --> 00:37:11,306
+to understand the performance
+of the underlying hardware.
+
+
+819
+00:37:11,756 --> 00:37:14,176
+Using dispatch data lets
+the system make choices
+
+
+820
+00:37:14,176 --> 00:37:14,916
+like that for you.
+
+
+821
+00:37:15,426 --> 00:37:19,626
+And regardless of
+how you're doing IO.
+
+
+822
+00:37:20,006 --> 00:37:21,906
+You need to organize
+data on disk.
+
+
+823
+00:37:22,186 --> 00:37:25,066
+And what's important
+to understand is
+
+
+824
+00:37:25,336 --> 00:37:26,976
+that using large numbers
+
+
+825
+00:37:26,976 --> 00:37:28,986
+of small files can
+be very expensive.
+
+
+826
+00:37:30,066 --> 00:37:32,286
+And you should consider
+using Core Data
+
+
+827
+00:37:32,326 --> 00:37:34,366
+or SQLite any time you
+have a large number
+
+
+828
+00:37:34,366 --> 00:37:35,316
+of objects to store.
+
+
+829
+00:37:36,316 --> 00:37:37,556
+Now, just how expensive is it?
+
+
+830
+00:37:37,796 --> 00:37:40,756
+Well, imagine we want to
+insert 100,000 objects.
+
+
+831
+00:37:41,056 --> 00:37:44,336
+Storing each of those objects as
+a small file on disk, say, 100--
+
+
+832
+00:37:44,336 --> 00:37:47,876
+couple of 100 bytes would
+take almost 25 seconds,
+
+
+833
+00:37:48,176 --> 00:37:49,096
+whereas inserting them
+
+
+834
+00:37:49,096 --> 00:37:51,856
+to an SQLite database takes
+just about half a second.
+
+
+835
+00:37:52,556 --> 00:37:55,426
+This can be a huge performance
+difference and ensures
+
+
+836
+00:37:55,426 --> 00:37:56,856
+that they're going to
+be less susceptible
+
+
+837
+00:37:56,856 --> 00:37:58,456
+to contention from
+other processes.
+
+
+838
+00:37:59,016 --> 00:38:01,746
+Of course, using a database
+provides other benefits
+
+
+839
+00:38:02,026 --> 00:38:05,896
+like control over atomicity so
+you can put multiple operations
+
+
+840
+00:38:05,896 --> 00:38:06,896
+in a single transaction.
+
+
+841
+00:38:07,486 --> 00:38:08,546
+It's more space efficient
+
+
+842
+00:38:08,866 --> 00:38:10,896
+and gives you better
+querying capabilities.
+
+
+843
+00:38:11,306 --> 00:38:12,486
+Now, one thing you need to think
+
+
+844
+00:38:12,486 --> 00:38:14,426
+about as you're doing
+IO is write buffering.
+
+
+845
+00:38:15,286 --> 00:38:19,406
+This is our typical open,
+write, and close set
+
+
+846
+00:38:19,406 --> 00:38:21,736
+of system calls we might do if
+we want to write it into a file.
+
+
+847
+00:38:22,436 --> 00:38:24,486
+But what might surprise
+some of you is
+
+
+848
+00:38:24,486 --> 00:38:28,216
+that data is actually issued
+when we close the file.
+
+
+849
+00:38:29,056 --> 00:38:30,946
+For smaller [inaudible],
+the system isn't going
+
+
+850
+00:38:30,946 --> 00:38:32,586
+to actually flash
+the data to disk
+
+
+851
+00:38:32,736 --> 00:38:34,526
+until the FileDescriptor
+is closed.
+
+
+852
+00:38:34,906 --> 00:38:37,436
+And there's a couple of system
+calls that can cause this kind
+
+
+853
+00:38:37,436 --> 00:38:38,706
+of write flushing to happen.
+
+
+854
+00:38:39,216 --> 00:38:41,016
+If you're using the
+VFS interfaces,
+
+
+855
+00:38:41,206 --> 00:38:44,076
+it's anytime you close or
+fsync a file descriptor.
+
+
+856
+00:38:44,076 --> 00:38:45,766
+And if you have Memory
+Mapped IO,
+
+
+857
+00:38:45,766 --> 00:38:47,626
+it's going to be
+anytime you use msync.
+
+
+858
+00:38:48,826 --> 00:38:50,906
+And what's important to think
+
+
+859
+00:38:50,906 --> 00:38:53,916
+about here is how often am
+I pushing data app to disk,
+
+
+860
+00:38:53,916 --> 00:38:55,526
+and am I going to
+be pushing data app
+
+
+861
+00:38:55,526 --> 00:38:57,686
+to disk more often
+than necessary?
+
+
+862
+00:38:58,166 --> 00:39:03,306
+If you can combine multiple
+writes into a single flushing
+
+
+863
+00:39:03,306 --> 00:39:05,776
+of data, that can help
+improve the IO performance
+
+
+864
+00:39:05,776 --> 00:39:08,516
+of your application and make you
+less susceptible to contention.
+
+
+865
+00:39:09,626 --> 00:39:12,496
+Now, of course, if you
+have consistency guarantees
+
+
+866
+00:39:12,496 --> 00:39:14,986
+that you need, for example,
+you want to make sure
+
+
+867
+00:39:14,986 --> 00:39:17,906
+that a file is completely
+on disk in a stable storage,
+
+
+868
+00:39:18,306 --> 00:39:20,036
+these APIs won't
+solve that problem.
+
+
+869
+00:39:20,126 --> 00:39:22,846
+And instead, you should
+be considering a database
+
+
+870
+00:39:22,846 --> 00:39:26,316
+like Core Data or
+SQLite which can help--
+
+
+871
+00:39:26,316 --> 00:39:28,716
+which can automatically
+journal your changes and ensure
+
+
+872
+00:39:28,716 --> 00:39:32,276
+that data is consistent on disk.
+
+
+873
+00:39:32,406 --> 00:39:34,206
+Now I mentioned before
+the file cache,
+
+
+874
+00:39:34,816 --> 00:39:36,186
+some amount of memory is devoted
+
+
+875
+00:39:36,186 --> 00:39:38,066
+to caching the contents
+of files on disk.
+
+
+876
+00:39:38,546 --> 00:39:40,396
+And accessing from
+the file cache can be
+
+
+877
+00:39:40,396 --> 00:39:44,856
+over 100 times faster than even
+the fastest solid-state drives.
+
+
+878
+00:39:45,706 --> 00:39:49,136
+But the file cache
+competes with--
+
+
+879
+00:39:49,136 --> 00:39:50,596
+for memory with the
+rest of the system.
+
+
+880
+00:39:51,186 --> 00:39:54,726
+This means that as
+applications memory usage grows,
+
+
+881
+00:39:55,406 --> 00:39:57,236
+less will be available
+for the file cache.
+
+
+882
+00:39:57,456 --> 00:40:00,416
+And any time you pull new
+data into the file cache,
+
+
+883
+00:40:00,756 --> 00:40:02,936
+other data is going
+to need to be evicted.
+
+
+884
+00:40:04,006 --> 00:40:05,716
+You can control whether
+this happens
+
+
+885
+00:40:05,716 --> 00:40:08,726
+for a particular IO you
+do by using non-cached IO.
+
+
+886
+00:40:09,176 --> 00:40:11,836
+This tells the system, "Please
+don't hold on to this data
+
+
+887
+00:40:11,836 --> 00:40:14,276
+and throw it away as soon
+as you're done doing the IO
+
+
+888
+00:40:14,276 --> 00:40:16,736
+so that you can keep more
+important data on memory."
+
+
+889
+00:40:17,336 --> 00:40:19,006
+You might want to do this
+if you're, for example,
+
+
+890
+00:40:19,286 --> 00:40:20,816
+reading an archive to extract it
+
+
+891
+00:40:20,816 --> 00:40:23,006
+or streaming a large
+multimedia file.
+
+
+892
+00:40:23,436 --> 00:40:25,006
+And you don't want
+to impact the rest
+
+
+893
+00:40:25,006 --> 00:40:26,416
+of the file cache
+on the process.
+
+
+894
+00:40:26,726 --> 00:40:29,546
+Now, there are a couple of
+different APIs you can use
+
+
+895
+00:40:29,546 --> 00:40:32,026
+to indicate to the system that
+you want to do non-cached IO.
+
+
+896
+00:40:32,846 --> 00:40:34,866
+If you're using NSData,
+you can use the
+
+
+897
+00:40:34,866 --> 00:40:36,996
+NSDataReadingUncached option.
+
+
+898
+00:40:36,996 --> 00:40:39,276
+And that will automatically
+use non-cached IO.
+
+
+899
+00:40:39,276 --> 00:40:42,036
+On the other hand, if you're
+using the virtual file system
+
+
+900
+00:40:42,036 --> 00:40:46,836
+interfaces, the f-- no cache
+f control can indicate any IO
+
+
+901
+00:40:46,836 --> 00:40:49,846
+on a particular FileDescriptor
+should be done without caching.
+
+
+902
+00:40:50,156 --> 00:40:53,096
+Now of course, you can still
+use that with dispatch IO
+
+
+903
+00:40:53,426 --> 00:40:55,376
+by then providing
+such a FileDescriptor
+
+
+904
+00:40:55,376 --> 00:40:56,566
+to dispatch IO create.
+
+
+905
+00:40:57,206 --> 00:41:00,436
+Now I also mentioned
+in the memory section,
+
+
+906
+00:41:00,436 --> 00:41:02,536
+file-backed memory regions.
+
+
+907
+00:41:02,856 --> 00:41:05,356
+And this is-- this can be
+used to do Memory Mapped IO.
+
+
+908
+00:41:06,066 --> 00:41:07,526
+What's great about
+Memory Mapped IO is
+
+
+909
+00:41:07,526 --> 00:41:11,416
+that it avoids creating any
+additional copy of the data.
+
+
+910
+00:41:11,416 --> 00:41:15,126
+If you're using traditional Read
+commands, you'll have to first,
+
+
+911
+00:41:15,256 --> 00:41:18,296
+pull data into the file
+cache and then copy it
+
+
+912
+00:41:18,296 --> 00:41:19,536
+into a buffer in
+your application.
+
+
+913
+00:41:19,536 --> 00:41:21,536
+And for small IO, this is fine.
+
+
+914
+00:41:21,766 --> 00:41:24,336
+But if you're doing random
+accesses to a large file,
+
+
+915
+00:41:24,776 --> 00:41:27,466
+Memory Mapped IO can avoid
+that extra copy of data.
+
+
+916
+00:41:28,316 --> 00:41:30,246
+It's ideal for random accesses
+
+
+917
+00:41:30,246 --> 00:41:32,586
+because it lets the
+system control whether
+
+
+918
+00:41:32,586 --> 00:41:34,846
+or not a particular piece
+of data is kept in memory
+
+
+919
+00:41:35,106 --> 00:41:37,286
+or can be evicted automatically
+under memory pressure.
+
+
+920
+00:41:37,906 --> 00:41:39,726
+And when doing Memory Mapped IO,
+
+
+921
+00:41:40,056 --> 00:41:42,406
+you can use the madvice
+system call
+
+
+922
+00:41:42,966 --> 00:41:45,666
+to indicate future needs
+allowing prefetching
+
+
+923
+00:41:45,906 --> 00:41:47,576
+or eviction of data
+as necessary.
+
+
+924
+00:41:48,596 --> 00:41:49,996
+Now if you're using
+the NSData APIs,
+
+
+925
+00:41:49,996 --> 00:41:53,986
+you can use the NSData
+reading map to a safe option
+
+
+926
+00:41:54,296 --> 00:41:56,176
+to automatically
+use Memory Mapped IO
+
+
+927
+00:41:56,816 --> 00:42:00,936
+or you can use the mmap system
+call to map a file into memory.
+
+
+928
+00:42:01,946 --> 00:42:05,366
+Now, regardless of how you do
+IO and what data you're writing
+
+
+929
+00:42:05,366 --> 00:42:08,486
+to where, there's one
+very, very important thing
+
+
+930
+00:42:08,486 --> 00:42:10,706
+that you should remember
+and that is
+
+
+931
+00:42:10,706 --> 00:42:12,996
+to never do IO on
+the main thread.
+
+
+932
+00:42:13,766 --> 00:42:17,866
+And hopefully, you've all heard
+this before but it's important
+
+
+933
+00:42:17,866 --> 00:42:19,886
+to keep in mind as you're
+running your applications
+
+
+934
+00:42:19,886 --> 00:42:22,556
+that a wide variety of our
+frameworks are going to need
+
+
+935
+00:42:22,556 --> 00:42:26,436
+to do some IO to accomplish
+the work you've asked of them.
+
+
+936
+00:42:26,436 --> 00:42:28,216
+And in low memory situations,
+
+
+937
+00:42:28,596 --> 00:42:31,616
+any memory access can
+potentially involve a page fault
+
+
+938
+00:42:31,666 --> 00:42:32,896
+and access to the disk.
+
+
+939
+00:42:33,516 --> 00:42:35,086
+Now, this is all very important
+
+
+940
+00:42:35,086 --> 00:42:38,436
+because any time your main
+thread has to block waiting
+
+
+941
+00:42:38,436 --> 00:42:41,556
+on IO, the IO could take a
+very long time to complete.
+
+
+942
+00:42:42,086 --> 00:42:44,886
+And this will result in
+a spinning application
+
+
+943
+00:42:44,886 --> 00:42:47,166
+which is a very poor
+experience for your users.
+
+
+944
+00:42:47,556 --> 00:42:51,336
+So you should aggressively
+consider moving work off
+
+
+945
+00:42:51,336 --> 00:42:53,996
+of a main thread of your
+app and on to for example,
+
+
+946
+00:42:53,996 --> 00:42:55,526
+a dispatch queue
+whenever possible.
+
+
+947
+00:42:55,526 --> 00:43:01,136
+Now, of course, it's-- none
+of these things are important
+
+
+948
+00:43:01,136 --> 00:43:03,806
+until you understand what IO
+your application is actually
+
+
+949
+00:43:03,806 --> 00:43:06,726
+doing, so you can target
+the biggest offenders
+
+
+950
+00:43:07,016 --> 00:43:08,916
+in your application
+for improvement.
+
+
+951
+00:43:09,336 --> 00:43:11,986
+And the FS usage command-line
+tool can help you do this.
+
+
+952
+00:43:12,636 --> 00:43:14,936
+It provides a listing
+of system call
+
+
+953
+00:43:14,936 --> 00:43:16,436
+and IO operations on a system.
+
+
+954
+00:43:17,256 --> 00:43:19,006
+It provides a couple of
+options for filtering.
+
+
+955
+00:43:19,086 --> 00:43:22,376
+For example, you can use the
+-f files as option to filter
+
+
+956
+00:43:22,376 --> 00:43:24,836
+to just files as
+events or disk IO
+
+
+957
+00:43:24,836 --> 00:43:26,386
+to get just access to the disk.
+
+
+958
+00:43:26,976 --> 00:43:29,486
+And you also want to
+consider the -wflag to get
+
+
+959
+00:43:29,486 --> 00:43:30,796
+as much data as possible.
+
+
+960
+00:43:31,526 --> 00:43:34,196
+Let's take a look at what FS
+usage looks like in practice.
+
+
+961
+00:43:34,696 --> 00:43:38,116
+In this case, we're going to
+filter just file system events.
+
+
+962
+00:43:38,376 --> 00:43:42,496
+And this is just a couple
+events from my system
+
+
+963
+00:43:42,496 --> 00:43:43,996
+when I was sitting here
+writing these slides.
+
+
+964
+00:43:44,706 --> 00:43:45,916
+And we can see a
+couple of things.
+
+
+965
+00:43:46,536 --> 00:43:48,436
+The first thing we
+can create is the time
+
+
+966
+00:43:48,436 --> 00:43:49,926
+that a particular
+event completed.
+
+
+967
+00:43:50,336 --> 00:43:51,036
+But, this is important.
+
+
+968
+00:43:51,036 --> 00:43:54,246
+These are ordered by when the
+events completed, not issued.
+
+
+969
+00:43:54,626 --> 00:43:58,716
+We then see what the event
+itself is, have some data
+
+
+970
+00:43:58,716 --> 00:44:02,376
+about the event, the
+duration the event lasted for,
+
+
+971
+00:44:03,156 --> 00:44:05,296
+and finally, the
+process and thread ID
+
+
+972
+00:44:05,296 --> 00:44:06,526
+that performed the operation.
+
+
+973
+00:44:07,596 --> 00:44:10,526
+Now, because these are
+ordered by completion time,
+
+
+974
+00:44:11,246 --> 00:44:15,276
+you can use that fact
+to find matching events.
+
+
+975
+00:44:15,436 --> 00:44:18,746
+So in this case, we have a read
+data command and that indicates
+
+
+976
+00:44:18,746 --> 00:44:22,306
+that we actually pulled data
+from the device into memory.
+
+
+977
+00:44:23,276 --> 00:44:26,016
+And then we see a pread system
+call that completed immediately
+
+
+978
+00:44:26,016 --> 00:44:27,236
+after on the same thread.
+
+
+979
+00:44:27,776 --> 00:44:28,806
+This is a good indication
+
+
+980
+00:44:28,806 --> 00:44:31,996
+that that read data was a
+result of the pread command.
+
+
+981
+00:44:32,076 --> 00:44:34,946
+And to help you see these when
+you're looking at FS' output,
+
+
+982
+00:44:34,946 --> 00:44:38,086
+we'll indent commands like
+read data automatically.
+
+
+983
+00:44:38,596 --> 00:44:40,446
+Now I want to talk
+a little bit more
+
+
+984
+00:44:40,446 --> 00:44:43,276
+about that read data command
+because that's the actual IO
+
+
+985
+00:44:43,276 --> 00:44:45,476
+to a storage device
+that you want
+
+
+986
+00:44:45,476 --> 00:44:46,726
+to be focusing on optimizing.
+
+
+987
+00:44:47,176 --> 00:44:52,116
+And so, if we look at
+just the disk IO commands,
+
+
+988
+00:44:52,116 --> 00:44:55,586
+by using the -f disk IO
+option, we can get a sense
+
+
+989
+00:44:55,586 --> 00:44:57,056
+of what type of IO we're doing.
+
+
+990
+00:44:57,406 --> 00:45:00,216
+So the command name will include
+things like whether it's a write
+
+
+991
+00:45:00,216 --> 00:45:02,766
+or a read, whether
+it's file system data,
+
+
+992
+00:45:03,116 --> 00:45:08,366
+or metadata about files on disk,
+whether it's a page in or page
+
+
+993
+00:45:08,366 --> 00:45:11,586
+out from a file-backed region,
+and whether it's non-cached.
+
+
+994
+00:45:11,776 --> 00:45:13,966
+If you see an N inside
+brackets that indicates
+
+
+995
+00:45:13,966 --> 00:45:16,736
+that the IO was done non-cached.
+
+
+996
+00:45:17,196 --> 00:45:21,766
+You'll then get the file offset
+on disk, the size of the IO,
+
+
+997
+00:45:22,806 --> 00:45:26,906
+the device it was to, and
+in some cases, a file name.
+
+
+998
+00:45:28,106 --> 00:45:30,286
+Now, given this data,
+you then want to try
+
+
+999
+00:45:30,286 --> 00:45:33,606
+to find ways you can improve
+the performance of your app.
+
+
+1000
+00:45:34,596 --> 00:45:38,916
+This includes things like simply
+don't do any IOs unnecessary.
+
+
+1001
+00:45:39,206 --> 00:45:41,856
+And looking at what IOs
+your application is doing
+
+
+1002
+00:45:41,856 --> 00:45:43,446
+with FS users can
+be a great place
+
+
+1003
+00:45:43,446 --> 00:45:46,276
+to find this or do it less.
+
+
+1004
+00:45:46,586 --> 00:45:48,686
+Could you potentially
+read or write less data
+
+
+1005
+00:45:48,686 --> 00:45:49,866
+for a particular operation?
+
+
+1006
+00:45:51,236 --> 00:45:51,866
+Do it later.
+
+
+1007
+00:45:52,406 --> 00:45:53,926
+If you're looking at
+something like AppLaunch,
+
+
+1008
+00:45:53,986 --> 00:45:56,316
+any IO that you do during
+AppLaunch is potentially
+
+
+1009
+00:45:56,316 --> 00:45:58,036
+something that could
+increase the AppLaunch time
+
+
+1010
+00:45:58,036 --> 00:45:59,096
+of your app significantly.
+
+
+1011
+00:45:59,496 --> 00:46:02,426
+Try to defer those to a less
+critical time especially
+
+
+1012
+00:46:02,426 --> 00:46:03,796
+if it's the time
+that won't contend
+
+
+1013
+00:46:03,796 --> 00:46:06,096
+with other operations
+your user might be doing.
+
+
+1014
+00:46:07,396 --> 00:46:10,366
+And for your hard
+drive-based users,
+
+
+1015
+00:46:10,546 --> 00:46:11,896
+try to do IO sequentially.
+
+
+1016
+00:46:11,996 --> 00:46:13,336
+Avoid accessing lots
+
+
+1017
+00:46:13,336 --> 00:46:15,396
+of different files
+in a random order.
+
+
+1018
+00:46:15,836 --> 00:46:18,376
+Now, one thing that
+you want to think
+
+
+1019
+00:46:18,376 --> 00:46:22,596
+about when using FS usage is
+what impact the disk cache is
+
+
+1020
+00:46:22,596 --> 00:46:24,656
+going to have on the
+app that you see.
+
+
+1021
+00:46:24,806 --> 00:46:27,916
+If you're doing at the -f disk
+IO option, you're only going
+
+
+1022
+00:46:27,916 --> 00:46:31,056
+to see accesses that go to
+the actual hard drive itself.
+
+
+1023
+00:46:31,476 --> 00:46:33,206
+Anything that has the disk
+cache won't be printed.
+
+
+1024
+00:46:33,866 --> 00:46:37,406
+So, for example, this is a
+case of a warm AppLaunch.
+
+
+1025
+00:46:40,796 --> 00:46:43,006
+There we go.
+
+
+1026
+00:46:43,166 --> 00:46:44,896
+And by warm, I mean
+that the things
+
+
+1027
+00:46:44,896 --> 00:46:47,136
+that this application needs
+are already in memory.
+
+
+1028
+00:46:47,726 --> 00:46:49,946
+If I haven't run
+the app recently,
+
+
+1029
+00:46:49,946 --> 00:46:51,266
+and instead I get
+a cold AppLaunch,
+
+
+1030
+00:46:51,266 --> 00:46:52,486
+it looks a little
+more like this.
+
+
+1031
+00:46:52,826 --> 00:46:54,066
+And this doesn't
+quite fit in the slide
+
+
+1032
+00:46:54,066 --> 00:46:55,536
+so let me scroll
+through it for you.
+
+
+1033
+00:46:56.516 --> 00:47:01.536 A:middle
+[ Pause ]
+
+
+1034
+00:46:56,516 --> 00:47:01,536
+[ Pause ]
+
+
+1035
+00:47:02,036 --> 00:47:05,026
+Now this is potentially a little
+bit of an extreme example.
+
+
+1036
+00:47:05,706 --> 00:47:07,986
+But I expect that if you
+were to go home and try this
+
+
+1037
+00:47:07,986 --> 00:47:09,606
+on your app, you'll
+see something similar.
+
+
+1038
+00:47:09,996 --> 00:47:11,916
+Launching your app for
+the first time when it's--
+
+
+1039
+00:47:11,916 --> 00:47:13,886
+the files it needs
+aren't cached,
+
+
+1040
+00:47:14,176 --> 00:47:15,506
+it's significantly
+more expensive
+
+
+1041
+00:47:15,506 --> 00:47:18,256
+than subsequent launches
+but it is already cached.
+
+
+1042
+00:47:19,286 --> 00:47:21,946
+Now, as a result, it's
+important to profile
+
+
+1043
+00:47:21,946 --> 00:47:24,956
+in different warm
+states for your app.
+
+
+1044
+00:47:25,226 --> 00:47:27,206
+This means you want
+to run your app once
+
+
+1045
+00:47:27,206 --> 00:47:29,866
+and then use the purge
+command to evict caches
+
+
+1046
+00:47:29,866 --> 00:47:30,906
+and try running it again.
+
+
+1047
+00:47:32,666 --> 00:47:36,076
+Now, remember that some data
+might be automatically cached
+
+
+1048
+00:47:36,076 --> 00:47:37,366
+by the operating system at boot.
+
+
+1049
+00:47:37,486 --> 00:47:40,376
+So you'll need to do at least
+one cycle of running your app
+
+
+1050
+00:47:40,376 --> 00:47:42,876
+and then using purge to
+throw away the contents
+
+
+1051
+00:47:42,876 --> 00:47:44,976
+of the disk cache before
+you'll get good data.
+
+
+1052
+00:47:45,516 --> 00:47:50,476
+[ Pause ]
+
+
+1053
+00:47:50,976 --> 00:47:54,686
+So just to recap some points
+about disk IO, the best practice
+
+
+1054
+00:47:54,686 --> 00:47:57,806
+for doing especially IO to
+large files or large number
+
+
+1055
+00:47:57,806 --> 00:48:01,156
+of files is to usually
+dispatch IO APIs.
+
+
+1056
+00:48:01,236 --> 00:48:03,936
+When profiling your disk
+accesses, make sure to do it
+
+
+1057
+00:48:03,936 --> 00:48:05,136
+in different warm states.
+
+
+1058
+00:48:05,956 --> 00:48:09,796
+Consider adopting non-cached
+IO for any large file access
+
+
+1059
+00:48:09,796 --> 00:48:12,046
+where you don't want to evict
+other data from the cache.
+
+
+1060
+00:48:12,906 --> 00:48:15,706
+Pay attention to when your
+data is flushed to disk,
+
+
+1061
+00:48:16,106 --> 00:48:18,656
+and never ever do IO
+on the main thread.
+
+
+1062
+00:48:18,656 --> 00:48:24,166
+Now last I'd like to talk about
+working in the background.
+
+
+1063
+00:48:28,586 --> 00:48:30,386
+Your app may do some
+sort of work
+
+
+1064
+00:48:30,706 --> 00:48:33,926
+that isn't directly required by
+the user at the time it's done.
+
+
+1065
+00:48:34,176 --> 00:48:37,946
+This can include refreshing
+data from the network,
+
+
+1066
+00:48:37,946 --> 00:48:40,756
+syncing a user's data with
+some sort of server, indexing
+
+
+1067
+00:48:40,756 --> 00:48:43,706
+or backing up a user's files,
+making extra copies of data,
+
+
+1068
+00:48:44,296 --> 00:48:46,406
+whatever it might be,
+anything that you do
+
+
+1069
+00:48:46,406 --> 00:48:47,966
+that isn't directly relevant
+
+
+1070
+00:48:47,966 --> 00:48:51,056
+to what the user has currently
+requested has the potential
+
+
+1071
+00:48:51,056 --> 00:48:53,496
+to hurt system responsiveness
+by contending
+
+
+1072
+00:48:53,496 --> 00:48:56,466
+with other operations the
+user is doing on the system.
+
+
+1073
+00:48:57,356 --> 00:48:59,136
+Backgrounding is a
+technique that you can use
+
+
+1074
+00:48:59,136 --> 00:49:01,056
+to limit the resource
+use of your app
+
+
+1075
+00:49:01,376 --> 00:49:02,736
+when performing these
+operations.
+
+
+1076
+00:49:03,736 --> 00:49:06,346
+Now, the keynote, you
+heard about App Nap.
+
+
+1077
+00:49:06,466 --> 00:49:10,186
+And this is a kind of similar
+technique whereas App Nap is
+
+
+1078
+00:49:10,186 --> 00:49:13,446
+designed to automatically
+put your apps in a nap state
+
+
+1079
+00:49:13,446 --> 00:49:14,506
+when they're not being used.
+
+
+1080
+00:49:14,796 --> 00:49:17,056
+Backgrounding is a way
+you can explicitly specify
+
+
+1081
+00:49:17,056 --> 00:49:19,436
+that a particular piece
+of work is background.
+
+
+1082
+00:49:20,126 --> 00:49:23,296
+These things work together
+and so you may still need
+
+
+1083
+00:49:23,296 --> 00:49:25,786
+to adopt APIs about App
+Nap at the same time
+
+
+1084
+00:49:25,786 --> 00:49:26,596
+as using backgrounding.
+
+
+1085
+00:49:28,436 --> 00:49:29,906
+But what exactly does
+backgrounding do?
+
+
+1086
+00:49:29,906 --> 00:49:32,286
+Well, the first thing
+it's going to do is hint
+
+
+1087
+00:49:32,286 --> 00:49:34,356
+to the entire system that
+this work is backgrounded,
+
+
+1088
+00:49:34,686 --> 00:49:36,996
+and whenever possible
+do it more efficiently.
+
+
+1089
+00:49:37,386 --> 00:49:39,646
+It will be used by a variety
+of places in the system
+
+
+1090
+00:49:39,646 --> 00:49:42,146
+to make choices on about
+how to do your work.
+
+
+1091
+00:49:43,016 --> 00:49:45,776
+It will lower your CPU's
+scheduling priority ensuring
+
+
+1092
+00:49:45,776 --> 00:49:47,796
+that other things can
+run first on the system.
+
+
+1093
+00:49:48,486 --> 00:49:51,046
+And finally, it will apply
+something called IO throttling
+
+
+1094
+00:49:51,046 --> 00:49:53,106
+to any accesses that you
+try to make to the disk.
+
+
+1095
+00:49:53,916 --> 00:49:55,446
+Now, let's look at that
+in a little more detail.
+
+
+1096
+00:49:56,416 --> 00:49:58,766
+Imagine we have an application
+the user is actively using.
+
+
+1097
+00:49:58,766 --> 00:49:59,976
+And some sort of
+background task.
+
+
+1098
+00:50:01,016 --> 00:50:03,656
+The background task wants
+to let's say, copy a file.
+
+
+1099
+00:50:03,656 --> 00:50:05,006
+And so, it's doing lots of IO.
+
+
+1100
+00:50:05,376 --> 00:50:08,486
+Then the application
+tries to do an IO itself.
+
+
+1101
+00:50:09,546 --> 00:50:13,716
+IO throttling will automatically
+hold off the background task
+
+
+1102
+00:50:14,116 --> 00:50:16,656
+giving the application
+full access to the disk
+
+
+1103
+00:50:17,056 --> 00:50:18,776
+to allow its IO to
+complete quickly.
+
+
+1104
+00:50:19,216 --> 00:50:23,356
+If the application
+tries to do more IOs,
+
+
+1105
+00:50:24,276 --> 00:50:27,796
+then IO throttling
+helps base out the IOs
+
+
+1106
+00:50:27,796 --> 00:50:30,116
+of the background task
+in order to continue
+
+
+1107
+00:50:30,116 --> 00:50:32,586
+to give the application as
+much bandwidth as possible.
+
+
+1108
+00:50:33,126 --> 00:50:34,816
+All right.
+
+
+1109
+00:50:34,816 --> 00:50:36,646
+So how do we actually
+accomplish this?
+
+
+1110
+00:50:37,046 --> 00:50:40,016
+Let's imagine you just
+have one block of code
+
+
+1111
+00:50:40,016 --> 00:50:41,536
+in your application
+you like to background.
+
+
+1112
+00:50:41,536 --> 00:50:43,116
+This is probably
+the easiest case.
+
+
+1113
+00:50:43,116 --> 00:50:45,576
+And you can simply background
+that block by dispatching it
+
+
+1114
+00:50:45,576 --> 00:50:47,246
+to the background
+priority queue.
+
+
+1115
+00:50:47,926 --> 00:50:49,886
+Anything you dispatch
+there will run backgrounded
+
+
+1116
+00:50:50,296 --> 00:50:53,246
+but it's important to run where
+that code shouldn't take locks
+
+
+1117
+00:50:53,246 --> 00:50:56,246
+or any way block any code
+that you need to execute
+
+
+1118
+00:50:56,246 --> 00:50:58,076
+in response to UI operations.
+
+
+1119
+00:50:58,836 --> 00:51:00,116
+Things that you run
+
+
+1120
+00:51:00,116 --> 00:51:03,716
+in the background may take
+an unbounded amount of time
+
+
+1121
+00:51:03,716 --> 00:51:05,166
+to complete and will try
+
+
+1122
+00:51:05,166 --> 00:51:06,566
+to complete them as
+fast as possible.
+
+
+1123
+00:51:06,856 --> 00:51:09,406
+You don't want them to
+cause a priority inversion
+
+
+1124
+00:51:09,406 --> 00:51:10,536
+with your user interface.
+
+
+1125
+00:51:11,026 --> 00:51:15,826
+Now, you can also use XPC
+to background larger tasks.
+
+
+1126
+00:51:16,266 --> 00:51:17,906
+There's a new XPC activity API
+
+
+1127
+00:51:17,906 --> 00:51:21,016
+that was discussed a few hours
+ago on the efficient design
+
+
+1128
+00:51:21,016 --> 00:51:24,516
+with XPC Talk that you can use
+to allow the system to tell you
+
+
+1129
+00:51:24,516 --> 00:51:26,586
+when to perform your
+background activities.
+
+
+1130
+00:51:27,306 --> 00:51:28,676
+Any blocks you provide
+
+
+1131
+00:51:28,676 --> 00:51:31,686
+to the XPC activity
+API will also get run
+
+
+1132
+00:51:31,686 --> 00:51:33,006
+on the background
+priority queue.
+
+
+1133
+00:51:33,536 --> 00:51:38,026
+You can also use an XPC
+Service as an adaptive Daemon.
+
+
+1134
+00:51:38,026 --> 00:51:42,496
+So an XPC Service as of 10.9
+will be backgrounded by default
+
+
+1135
+00:51:43,076 --> 00:51:46,936
+and then it will be taken out of
+the background only in response
+
+
+1136
+00:51:46,936 --> 00:51:48,796
+to requests from an application.
+
+
+1137
+00:51:49,436 --> 00:51:52,496
+This is an easy way to
+do things that might need
+
+
+1138
+00:51:52,496 --> 00:51:54,456
+to take locks required
+by an application.
+
+
+1139
+00:51:54,976 --> 00:51:56,776
+If you separate that
+out from other process,
+
+
+1140
+00:51:57,116 --> 00:52:00,456
+you can use this boosting
+mechanism to unbackground tasks
+
+
+1141
+00:52:00,716 --> 00:52:03,536
+so that they complete quickly
+and service the user interface.
+
+
+1142
+00:52:03,996 --> 00:52:06,146
+And again, these are
+discussed in more depth
+
+
+1143
+00:52:06,436 --> 00:52:07,876
+in efficient design with XPC.
+
+
+1144
+00:52:09,046 --> 00:52:12,286
+Finally, if you have a
+legacy service, for example,
+
+
+1145
+00:52:12,286 --> 00:52:13,576
+a Launch Daemon or Launch Agent,
+
+
+1146
+00:52:14,006 --> 00:52:18,086
+you can use the new process type
+launched plist key to specify
+
+
+1147
+00:52:18,086 --> 00:52:20,516
+that that process should
+always run backgrounded
+
+
+1148
+00:52:21,656 --> 00:52:24,076
+or you can use the set
+priority system call
+
+
+1149
+00:52:24,326 --> 00:52:26,666
+to background a particular
+process or thread.
+
+
+1150
+00:52:28,596 --> 00:52:31,396
+There were rules of how
+you adapt backgrounding.
+
+
+1151
+00:52:31,626 --> 00:52:33,336
+There are a couple of
+tools you can use to debug
+
+
+1152
+00:52:33,336 --> 00:52:35,566
+to make sure your backgrounding
+is working as expected.
+
+
+1153
+00:52:36,306 --> 00:52:39,246
+The first is PS which
+is normally list process
+
+
+1154
+00:52:39,246 --> 00:52:39,776
+on the system.
+
+
+1155
+00:52:40,446 --> 00:52:43,546
+But if you provide
+the aMX options,
+
+
+1156
+00:52:43,866 --> 00:52:46,466
+you can see the scheduling
+priority of every thread.
+
+
+1157
+00:52:47,216 --> 00:52:49,746
+And in this case,
+backgrounded things are running
+
+
+1158
+00:52:49,746 --> 00:52:50,846
+in a priority of four.
+
+
+1159
+00:52:50,846 --> 00:52:53,136
+And that-- So that
+indicates that all the threads
+
+
+1160
+00:52:53,136 --> 00:52:55,746
+in this particular process have
+been appropriately backgrounded.
+
+
+1161
+00:52:56,146 --> 00:52:59,236
+You can also use
+the spindump tool.
+
+
+1162
+00:52:59,586 --> 00:53:02,606
+This is similar to
+time profiler sample.
+
+
+1163
+00:53:03,426 --> 00:53:07,436
+But it has the advantage that it
+will also show you the priority
+
+
+1164
+00:53:07,796 --> 00:53:09,416
+of a particular process.
+
+
+1165
+00:53:09,446 --> 00:53:11,926
+So in this case, we can
+see that our accounts--
+
+
+1166
+00:53:11,926 --> 00:53:13,876
+the process is running at
+the background priority.
+
+
+1167
+00:53:13,876 --> 00:53:18,666
+Now, you also want to look for
+the throttle low pry IO frame.
+
+
+1168
+00:53:19,266 --> 00:53:21,556
+This frame is where
+you'll see a process sit
+
+
+1169
+00:53:21,556 --> 00:53:22,896
+if its IO is being throttled.
+
+
+1170
+00:53:23,226 --> 00:53:25,066
+And you can see that
+in the kernel stacks
+
+
+1171
+00:53:25,066 --> 00:53:27,696
+in the time profiler,
+or using spindump.
+
+
+1172
+00:53:29,396 --> 00:53:32,196
+There's a new task policy
+command which is similar
+
+
+1173
+00:53:32,196 --> 00:53:33,306
+to the Unix nice command.
+
+
+1174
+00:53:33,306 --> 00:53:35,896
+And it can allow you to
+run a particular process
+
+
+1175
+00:53:35,896 --> 00:53:36,686
+as backgrounded.
+
+
+1176
+00:53:36,686 --> 00:53:39,046
+This is great if you
+want to test what happens
+
+
+1177
+00:53:39,046 --> 00:53:41,446
+when you background a
+process or application.
+
+
+1178
+00:53:41,726 --> 00:53:46,106
+And finally, FS users can
+show you which IOs were issued
+
+
+1179
+00:53:46,456 --> 00:53:49,746
+by a backgrounded
+process or a thread.
+
+
+1180
+00:53:50,186 --> 00:53:52,266
+And you'll see this
+with the capital T
+
+
+1181
+00:53:52,626 --> 00:53:54,546
+after disk IO commands.
+
+
+1182
+00:53:57,406 --> 00:53:59,676
+Now, one of the things that's
+been a constant theme here is
+
+
+1183
+00:53:59,716 --> 00:54:02,936
+that your users will experience
+different performance based
+
+
+1184
+00:54:02,936 --> 00:54:04,696
+on what type of system
+they're working on.
+
+
+1185
+00:54:05,206 --> 00:54:07,316
+And so, as you're
+testing your application,
+
+
+1186
+00:54:07,746 --> 00:54:10,816
+you should consider using
+multiple types of systems.
+
+
+1187
+00:54:11,686 --> 00:54:15,416
+But for most of us,
+setting up an entire QA lab
+
+
+1188
+00:54:15,416 --> 00:54:17,676
+with different systems
+is a very big task.
+
+
+1189
+00:54:17,676 --> 00:54:19,876
+And so, you can at
+least as a first start,
+
+
+1190
+00:54:19,876 --> 00:54:23,156
+simulate resource constraints
+system in a variety of ways.
+
+
+1191
+00:54:23,786 --> 00:54:25,406
+If you want a test
+running with less memory,
+
+
+1192
+00:54:25,886 --> 00:54:27,776
+you can use the maxmem boot-arg
+
+
+1193
+00:54:28,006 --> 00:54:30,236
+to specify how much memory
+your system should have.
+
+
+1194
+00:54:30,766 --> 00:54:33,536
+In this case, we're eliminating
+a system that had 2 gigabytes.
+
+
+1195
+00:54:34,166 --> 00:54:36,506
+Now, to revert this, you'll want
+to run the [inaudible] command
+
+
+1196
+00:54:36,916 --> 00:54:40,246
+but remove the maxmem
+equals 2048 part.
+
+
+1197
+00:54:40,996 --> 00:54:43,116
+You can also use an
+external Thunderbolt drive
+
+
+1198
+00:54:43,336 --> 00:54:44,986
+to simulate different
+drive speeds.
+
+
+1199
+00:54:45,416 --> 00:54:47,076
+A Thunderbolt-attached
+hard drive is going
+
+
+1200
+00:54:47,076 --> 00:54:49,456
+to have similar performance
+to an internal hard drive.
+
+
+1201
+00:54:49,866 --> 00:54:52,266
+And so, if you're running
+on an SSD configuration,
+
+
+1202
+00:54:52,566 --> 00:54:54,756
+this is a great way to
+experience what it's
+
+
+1203
+00:54:54,756 --> 00:54:55,916
+like for a hard drive user.
+
+
+1204
+00:54:56,386 --> 00:54:59,346
+Simply run the OS installer
+and install a separate OS
+
+
+1205
+00:54:59,346 --> 00:55:01,576
+to your external hard drive
+and then you can boot off
+
+
+1206
+00:55:01,576 --> 00:55:03,886
+that by holding option at
+boot to get the BootPicker.
+
+
+1207
+00:55:04,736 --> 00:55:07,846
+Finally, you can use the
+instruments preferences,
+
+
+1208
+00:55:08,036 --> 00:55:10,736
+just limit the number of
+CPUs in use by the system.
+
+
+1209
+00:55:10,916 --> 00:55:13,996
+And this will be-- this
+will automatically go back
+
+
+1210
+00:55:13,996 --> 00:55:15,876
+to all CPUs whenever
+you restart.
+
+
+1211
+00:55:16,836 --> 00:55:18,736
+Now, if you have questions,
+
+
+1212
+00:55:18,736 --> 00:55:21,806
+you can contact our developer
+evangelists, Paul Danbold
+
+
+1213
+00:55:21,806 --> 00:55:24,276
+or David Delong, or see
+our Apple Developer Forums.
+
+
+1214
+00:55:24,856 --> 00:55:25,826
+There's also a variety
+
+
+1215
+00:55:25,826 --> 00:55:27,856
+of related sessions you
+might want to check out.
+
+
+1216
+00:55:28,786 --> 00:55:32,786
+This morning, we had
+Maximizing Battery Life on OS X
+
+
+1217
+00:55:32,786 --> 00:55:34,246
+and Efficient Design with XPC.
+
+
+1218
+00:55:34,776 --> 00:55:37,586
+But you should also look at
+Improving Power Efficiency
+
+
+1219
+00:55:37,586 --> 00:55:39,846
+with App Nap to learn how
+App Nap will affect your app
+
+
+1220
+00:55:39,846 --> 00:55:42,146
+and how you can work
+best with it.
+
+
+1221
+00:55:42,146 --> 00:55:44,266
+Optimizing Drawing
+and Scrolling on OS X
+
+
+1222
+00:55:44,266 --> 00:55:45,466
+to learn about layerbacking.
+
+
+1223
+00:55:46,286 --> 00:55:48,786
+Energy Best Practices
+will talk about how
+
+
+1224
+00:55:48,786 --> 00:55:50,466
+to use the CPU most efficiently
+
+
+1225
+00:55:50,466 --> 00:55:52,856
+and give the CPU
+form of this talk.
+
+
+1226
+00:55:53,386 --> 00:55:56,096
+And finally, Fixing Memory
+Issues can show you how to dive
+
+
+1227
+00:55:56,096 --> 00:55:57,866
+in with instruments
+
+
+1228
+00:55:57,866 --> 00:55:59,736
+to understand the memory
+uses of your application.
+
+
+1229
+00:56:00,686 --> 00:56:02,956
+So just to summarize
+some key takeaways,
+
+
+1230
+00:56:03,586 --> 00:56:05,786
+remember to regularly
+profile and optimize your app,
+
+
+1231
+00:56:06,016 --> 00:56:07,586
+not just the performance
+of your app,
+
+
+1232
+00:56:07,586 --> 00:56:10,536
+but also the resources it
+consumes while carrying
+
+
+1233
+00:56:10,536 --> 00:56:11,356
+out its actions.
+
+
+1234
+00:56:12,956 --> 00:56:14,966
+Remember that your
+users may have a variety
+
+
+1235
+00:56:14,966 --> 00:56:15,896
+of different systems.
+
+
+1236
+00:56:16,156 --> 00:56:18,676
+And so, just because a
+particular operation works well
+
+
+1237
+00:56:18,676 --> 00:56:21,906
+on your well-equipped
+developed machine doesn't mean
+
+
+1238
+00:56:21,906 --> 00:56:23,716
+that the users will
+have a good experience.
+
+
+1239
+00:56:23,946 --> 00:56:25,826
+And ensure your app
+is a good citizen
+
+
+1240
+00:56:25,826 --> 00:56:30,046
+with shared system resources so
+that users enjoy using your app
+
+
+1241
+00:56:30,046 --> 00:56:31,986
+and don't feel they
+need to quit.
+
+
+1242
+00:56:33,056 --> 00:56:33,786
+Thanks.
+
+
+1243
+00:56:35,516 --> 00:56:39,516
+[ Applause ]
+
+
+1244
+00:56:40,016 --> 00:56:49,616
+[ Silence ]
+

@@ -1,0 +1,4384 @@
+1
+00:00:07,516 --> 00:00:19,500
+[ Music ]
+
+
+2
+00:00:24,516 --> 00:00:27,776
+[ Applause ]
+
+
+3
+00:00:28,276 --> 00:00:29,786
+>> Good morning, and welcome
+
+
+4
+00:00:29,786 --> 00:00:31,386
+to Getting the Most
+Out of HealthKit.
+
+
+5
+00:00:31,896 --> 00:00:34,646
+I'm Matt, I'm a software
+engineer on the HealthKit team,
+
+
+6
+00:00:34,756 --> 00:00:37,296
+and I'll be joined on stage
+shortly by my colleague Jeff.
+
+
+7
+00:00:38,216 --> 00:00:40,656
+In this session, we'll be
+going over some great new
+
+
+8
+00:00:40,656 --> 00:00:42,776
+and recent additions
+to the HealthKit APIs
+
+
+9
+00:00:42,776 --> 00:00:44,496
+in iOS X and watchOS 3.
+
+
+10
+00:00:45,426 --> 00:00:48,796
+Just as importantly, we'll be
+covering some key features,
+
+
+11
+00:00:48,796 --> 00:00:51,756
+core concepts, and important
+workflows to make sure
+
+
+12
+00:00:51,756 --> 00:00:54,636
+that you're really able to
+get the most out of HealthKit.
+
+
+13
+00:00:55,966 --> 00:00:57,956
+We expect you have some
+familiarity with HealthKit
+
+
+14
+00:00:57,956 --> 00:01:00,106
+if you're here watching this
+session, but if you don't,
+
+
+15
+00:01:00,106 --> 00:01:02,316
+we'll list some past sessions
+at the end of this talk
+
+
+16
+00:01:02,316 --> 00:01:04,385
+that you can refer to
+later to get up to speed.
+
+
+17
+00:01:05,146 --> 00:01:06,846
+But for now, let's get started.
+
+
+18
+00:01:09,216 --> 00:01:12,056
+As all of you here
+know, Apple's health
+
+
+19
+00:01:12,056 --> 00:01:15,376
+and fitness ecosystem has become
+a huge hit with our users.
+
+
+20
+00:01:16,106 --> 00:01:18,226
+People are getting more
+fit and more healthy
+
+
+21
+00:01:18,226 --> 00:01:21,506
+because of the integration of
+HealthKit and now ResearchKit
+
+
+22
+00:01:21,506 --> 00:01:24,026
+and CareKit with
+your apps and devices
+
+
+23
+00:01:24,026 --> 00:01:25,316
+for iPhone and Apple Watch.
+
+
+24
+00:01:26,366 --> 00:01:28,286
+We want to make sure
+that you're able
+
+
+25
+00:01:28,286 --> 00:01:29,906
+to keep creating
+these great health
+
+
+26
+00:01:29,906 --> 00:01:31,416
+and fitness user experiences
+
+
+27
+00:01:31,456 --> 00:01:33,716
+that our users have come
+to expect and enjoy.
+
+
+28
+00:01:35,256 --> 00:01:38,106
+So today we're going to be
+covering all the things you need
+
+
+29
+00:01:38,106 --> 00:01:40,476
+to do to get these
+great experiences right.
+
+
+30
+00:01:41,866 --> 00:01:43,786
+First, we'll cover
+authorization,
+
+
+31
+00:01:43,786 --> 00:01:46,036
+which underpins everything
+else you do with HealthKit.
+
+
+32
+00:01:47,126 --> 00:01:51,516
+Next, we'll cover the Activity
+Rings API introduced in iOS 9.3
+
+
+33
+00:01:51,946 --> 00:01:54,286
+and Health Records
+introduced this year in iOS X,
+
+
+34
+00:01:54,906 --> 00:01:57,826
+both of which happen to have
+important implications related
+
+
+35
+00:01:57,826 --> 00:01:58,696
+to authorization.
+
+
+36
+00:02:00,626 --> 00:02:02,766
+Finally, we'll spend the
+rest of the session going
+
+
+37
+00:02:02,766 --> 00:02:05,556
+over a wide range of best
+practices for handling data
+
+
+38
+00:02:05,766 --> 00:02:07,116
+when you're interacting
+with HealthKit.
+
+
+39
+00:02:07,686 --> 00:02:11,706
+So let's dive in.
+
+
+40
+00:02:12,226 --> 00:02:13,896
+First up is authorization.
+
+
+41
+00:02:14,306 --> 00:02:17,346
+If you've been using HealthKit
+for a while, some or even most
+
+
+42
+00:02:17,346 --> 00:02:18,786
+of this section might
+feel like review,
+
+
+43
+00:02:19,296 --> 00:02:21,266
+but we really recommend
+you pay important attention
+
+
+44
+00:02:21,266 --> 00:02:22,926
+to the details because
+they'll be important
+
+
+45
+00:02:22,926 --> 00:02:24,636
+for the stuff we cover
+later in this session.
+
+
+46
+00:02:25,216 --> 00:02:27,056
+We'll sprinkle in some
+best practices as well,
+
+
+47
+00:02:27,056 --> 00:02:29,936
+so keep your ears peeled.
+
+
+48
+00:02:31,126 --> 00:02:34,396
+iOS gives users full control
+over their health data
+
+
+49
+00:02:34,556 --> 00:02:37,126
+and which apps can access
+which parts of that data.
+
+
+50
+00:02:38,336 --> 00:02:39,746
+Before interacting
+with HealthKit,
+
+
+51
+00:02:40,156 --> 00:02:41,696
+your app should request access
+
+
+52
+00:02:41,696 --> 00:02:43,806
+to the appropriate types
+via HK Health Store,
+
+
+53
+00:02:44,036 --> 00:02:45,206
+and then the Health Store
+
+
+54
+00:02:45,206 --> 00:02:47,796
+in turn will present the
+appropriate authorization UI
+
+
+55
+00:02:47,796 --> 00:02:49,206
+to the user if necessary.
+
+
+56
+00:02:51,036 --> 00:02:53,716
+Be aware that the user can
+change permissions for your app
+
+
+57
+00:02:53,716 --> 00:02:55,056
+at any time, so you should keep
+
+
+58
+00:02:55,056 --> 00:02:56,486
+that in mind while you're
+developing your app.
+
+
+59
+00:02:56,956 --> 00:03:00,196
+And just as importantly,
+read authorization
+
+
+60
+00:03:00,326 --> 00:03:02,596
+and write authorization
+are completely independent.
+
+
+61
+00:03:03,376 --> 00:03:05,796
+That last bit can actually be
+a little tricky, so let's look
+
+
+62
+00:03:05,796 --> 00:03:09,946
+at it in a little more detail.
+
+
+63
+00:03:11,196 --> 00:03:13,286
+Here's how read and write
+authorizations work.
+
+
+64
+00:03:13,786 --> 00:03:16,816
+If the user grants you both
+read and write permissions
+
+
+65
+00:03:16,856 --> 00:03:20,226
+to a given HealthKit type, then
+your app can query and save data
+
+
+66
+00:03:20,226 --> 00:03:22,056
+for that HealthKit type
+just like you'd expect.
+
+
+67
+00:03:22,746 --> 00:03:26,176
+If the user grants you only read
+permissions for a given type,
+
+
+68
+00:03:26,326 --> 00:03:28,436
+then your app can read but
+not write HealthKit data
+
+
+69
+00:03:28,436 --> 00:03:28,976
+for that type.
+
+
+70
+00:03:29,226 --> 00:03:30,026
+So far, so good.
+
+
+71
+00:03:30,026 --> 00:03:33,726
+Now, if the user grants
+you write permissions
+
+
+72
+00:03:33,726 --> 00:03:36,826
+for a given type, then your
+app can write data to HealthKit
+
+
+73
+00:03:36,826 --> 00:03:38,496
+for that type but
+not read it back
+
+
+74
+00:03:38,496 --> 00:03:39,566
+from HealthKit for that type.
+
+
+75
+00:03:40,206 --> 00:03:42,896
+Write permissions do not
+imply read permissions.
+
+
+76
+00:03:43,216 --> 00:03:45,656
+However, there's an important
+exception to that point.
+
+
+77
+00:03:46,416 --> 00:03:47,796
+If your app has write
+permissions
+
+
+78
+00:03:47,796 --> 00:03:50,186
+for a HealthKit type, then
+you can read back data
+
+
+79
+00:03:50,186 --> 00:03:53,386
+that your app has written, just
+not data from other sources.
+
+
+80
+00:03:55,366 --> 00:03:58,406
+Finally, if the user denies you
+both read and write permissions
+
+
+81
+00:03:58,406 --> 00:04:01,366
+for a given type, then you can
+neither query nor save data
+
+
+82
+00:04:01,366 --> 00:04:01,896
+for that type.
+
+
+83
+00:04:02,596 --> 00:04:03,836
+And there's an important
+implication
+
+
+84
+00:04:03,836 --> 00:04:04,976
+of that last point as well.
+
+
+85
+00:04:05,246 --> 00:04:08,206
+If the user denies you a
+previously granted write
+
+
+86
+00:04:08,206 --> 00:04:09,166
+permission for that app,
+
+
+87
+00:04:09,586 --> 00:04:11,896
+then that means your app
+can no longer read any data
+
+
+88
+00:04:11,896 --> 00:04:13,046
+from HealthKit for that type,
+
+
+89
+00:04:13,456 --> 00:04:15,636
+even data that your
+app previously wrote,
+
+
+90
+00:04:15,846 --> 00:04:17,016
+so keep that in mind.
+
+
+91
+00:04:18,866 --> 00:04:22,686
+So that was all technically
+review,
+
+
+92
+00:04:22,976 --> 00:04:25,386
+but there is one important
+change to authorizations
+
+
+93
+00:04:25,386 --> 00:04:27,556
+in general in iOS X,
+and that has to do
+
+
+94
+00:04:27,556 --> 00:04:28,756
+with usage descriptions.
+
+
+95
+00:04:30,156 --> 00:04:33,706
+Apps linked on or after iOS
+X must include a description
+
+
+96
+00:04:33,706 --> 00:04:36,106
+for the user of why they're
+trying to access health data.
+
+
+97
+00:04:36,706 --> 00:04:39,556
+This reinforces our principle
+of user control over data.
+
+
+98
+00:04:41,406 --> 00:04:43,466
+These usage descriptions
+should be declared
+
+
+99
+00:04:43,466 --> 00:04:45,886
+on your app's info.plist
+file as values
+
+
+100
+00:04:45,886 --> 00:04:48,246
+for the
+NSHealthShareUsageDescription
+
+
+101
+00:04:48,246 --> 00:04:49,536
+key if you're reading data
+
+
+102
+00:04:49,646 --> 00:04:52,316
+or the
+NSHealthUpdateUsageDescription
+
+
+103
+00:04:52,316 --> 00:04:53,466
+key if you're writing data.
+
+
+104
+00:04:54,056 --> 00:04:58,786
+As a refresher, this is how
+you request authorization.
+
+
+105
+00:04:59,176 --> 00:05:02,126
+The first thing we
+want to do is make sure
+
+
+106
+00:05:02,126 --> 00:05:04,086
+that HealthKit is even
+available on the current device.
+
+
+107
+00:05:04,086 --> 00:05:05,576
+For instance, maybe
+this instance
+
+
+108
+00:05:05,576 --> 00:05:08,006
+of our app is running
+on an iPad.
+
+
+109
+00:05:08,006 --> 00:05:10,276
+After we've established
+that, we list the types
+
+
+110
+00:05:10,276 --> 00:05:12,006
+that we're interested
+in reading and writing.
+
+
+111
+00:05:12,876 --> 00:05:14,936
+And finally, we call
+request authorization
+
+
+112
+00:05:14,936 --> 00:05:17,756
+on HK Health Store, pass in
+the types we're interested in,
+
+
+113
+00:05:17,756 --> 00:05:19,386
+and then handle the
+response and the callback.
+
+
+114
+00:05:19,906 --> 00:05:24,326
+What if you have a watchOS app?
+
+
+115
+00:05:25,206 --> 00:05:27,676
+Authorizations are shared
+between your iOS app
+
+
+116
+00:05:27,676 --> 00:05:29,136
+and its companion watchOS app,
+
+
+117
+00:05:29,546 --> 00:05:31,696
+and you can request
+authorization at any time
+
+
+118
+00:05:31,696 --> 00:05:33,626
+from your iOS code
+or your watchOS code.
+
+
+119
+00:05:34,436 --> 00:05:37,126
+However, the system
+authorization UI can only be
+
+
+120
+00:05:37,126 --> 00:05:38,756
+presented to the
+user on the phone,
+
+
+121
+00:05:39,106 --> 00:05:41,296
+so this has some important
+usability implications.
+
+
+122
+00:05:42,666 --> 00:05:45,396
+For instance, if the user
+is about to start a workout,
+
+
+123
+00:05:45,516 --> 00:05:47,786
+they might already have their
+phone wrapped up in an armband,
+
+
+124
+00:05:47,786 --> 00:05:48,716
+and if that's the case,
+
+
+125
+00:05:49,256 --> 00:05:51,636
+they can't really easily
+approve an authorization request
+
+
+126
+00:05:51,636 --> 00:05:53,766
+from your app, so this
+may not be the best time
+
+
+127
+00:05:53,766 --> 00:05:55,306
+to request initial
+authorization.
+
+
+128
+00:05:57,056 --> 00:05:59,076
+But there's an even
+more important case.
+
+
+129
+00:05:59,636 --> 00:06:02,626
+If the user's using a Watch app,
+their phone may not be nearby
+
+
+130
+00:06:02,626 --> 00:06:03,926
+at all, and if that's the case,
+
+
+131
+00:06:04,096 --> 00:06:06,256
+the authorization sheet
+can't even be shown.
+
+
+132
+00:06:06,996 --> 00:06:09,666
+So we really recommend you
+consider these important cases
+
+
+133
+00:06:09,666 --> 00:06:12,226
+when you're developing
+your Watch app.
+
+
+134
+00:06:12,426 --> 00:06:14,486
+Also remember that
+the response time
+
+
+135
+00:06:14,486 --> 00:06:16,986
+for the request authorization
+call is not guaranteed,
+
+
+136
+00:06:17,036 --> 00:06:19,656
+so definitely don't block
+any UI while you're waiting
+
+
+137
+00:06:19,726 --> 00:06:22,286
+for a response.
+
+
+138
+00:06:24,296 --> 00:06:25,836
+So clearly it's important
+
+
+139
+00:06:25,836 --> 00:06:28,026
+to get the authorization
+user experience right,
+
+
+140
+00:06:28,496 --> 00:06:31,896
+and on top of that, your app
+may be requesting access to some
+
+
+141
+00:06:32,146 --> 00:06:33,876
+or even many HealthKit
+data types,
+
+
+142
+00:06:34,166 --> 00:06:36,176
+so that all raises a
+really important question.
+
+
+143
+00:06:36,736 --> 00:06:38,836
+When should I be
+requesting access to some
+
+
+144
+00:06:38,836 --> 00:06:40,086
+or all of these types?
+
+
+145
+00:06:41,486 --> 00:06:43,386
+Here are our recommendations
+on that front.
+
+
+146
+00:06:44,296 --> 00:06:46,776
+First, we recommend
+that you request access
+
+
+147
+00:06:46,846 --> 00:06:49,606
+to sensible groupings
+of types that correspond
+
+
+148
+00:06:49,606 --> 00:06:51,466
+to logical activities
+in your application.
+
+
+149
+00:06:52,546 --> 00:06:54,706
+So for instance, say
+your app allows users
+
+
+150
+00:06:54,706 --> 00:06:56,436
+to track both food
+intake as well
+
+
+151
+00:06:56,436 --> 00:06:57,776
+as body measurements like BMI.
+
+
+152
+00:06:58,316 --> 00:07:01,376
+If that's the case, you might
+consider requesting access
+
+
+153
+00:07:01,406 --> 00:07:04,476
+to nutrition types the first
+time the user tries to log food,
+
+
+154
+00:07:04,786 --> 00:07:05,966
+but then requesting access
+
+
+155
+00:07:06,006 --> 00:07:08,286
+to body measurement types
+whenever the user tries
+
+
+156
+00:07:08,286 --> 00:07:11,326
+to log one of those.
+
+
+157
+00:07:12,326 --> 00:07:13,626
+One exception to that rule is
+
+
+158
+00:07:13,626 --> 00:07:15,136
+if your app has an
+on-boarding flow.
+
+
+159
+00:07:15,686 --> 00:07:17,946
+If this is the case, it
+might actually make sense
+
+
+160
+00:07:17,986 --> 00:07:20,786
+to request access to all
+the types your app wants
+
+
+161
+00:07:20,786 --> 00:07:23,726
+to use upfront because
+you're already in a context
+
+
+162
+00:07:23,726 --> 00:07:26,656
+where you can clearly explain to
+the user what your app is going
+
+
+163
+00:07:26,656 --> 00:07:27,816
+to be doing with those types.
+
+
+164
+00:07:29,466 --> 00:07:32,256
+Regardless of which you
+choose, we definitely recommend
+
+
+165
+00:07:32,256 --> 00:07:34,176
+that you frequently
+test authorization
+
+
+166
+00:07:34,176 --> 00:07:34,916
+during development.
+
+
+167
+00:07:35,616 --> 00:07:38,196
+You can easily reset the
+initial authorization flow
+
+
+168
+00:07:38,196 --> 00:07:40,286
+by deleting your app
+off of the device or out
+
+
+169
+00:07:40,286 --> 00:07:42,886
+of the simulator before
+building and running again
+
+
+170
+00:07:43,196 --> 00:07:44,756
+so that HealthKit
+presents the user
+
+
+171
+00:07:44,756 --> 00:07:46,996
+with the initial authorization
+flow all over again.
+
+
+172
+00:07:48,156 --> 00:07:51,406
+When you're doing this,
+be sure to test cases
+
+
+173
+00:07:51,406 --> 00:07:53,196
+where authorization
+is either delayed
+
+
+174
+00:07:53,196 --> 00:07:54,846
+or completely denied
+by the user.
+
+
+175
+00:07:55,436 --> 00:07:57,216
+How does your app
+function in these cases?
+
+
+176
+00:07:57,696 --> 00:07:59,166
+What capabilities are left over?
+
+
+177
+00:08:00,976 --> 00:08:03,316
+Finally, if we could
+summarize authorization
+
+
+178
+00:08:03,316 --> 00:08:04,576
+in one sentence, it's this.
+
+
+179
+00:08:05,606 --> 00:08:07,146
+Consider the user experience.
+
+
+180
+00:08:08,046 --> 00:08:10,396
+Don't present obstacles
+at inopportune times,
+
+
+181
+00:08:10,396 --> 00:08:16,236
+and ensure that your
+flows make sense.
+
+
+182
+00:08:16,386 --> 00:08:19,196
+So we've spent a lot of time
+talking about authorization.
+
+
+183
+00:08:19,336 --> 00:08:21,546
+Now let's move onto some
+new features since last year
+
+
+184
+00:08:21,546 --> 00:08:23,566
+in HealthKit, starting
+with Activity Rings.
+
+
+185
+00:08:26,046 --> 00:08:28,846
+Apple's developed a great health
+
+
+186
+00:08:28,846 --> 00:08:31,146
+and fitness tracking
+experience for the Apple Watch.
+
+
+187
+00:08:31,916 --> 00:08:35,076
+Users love how easy it is to
+track key activity metrics
+
+
+188
+00:08:35,076 --> 00:08:38,426
+and improve their day, and
+now in iOS X and watchOS 3,
+
+
+189
+00:08:38,426 --> 00:08:40,566
+users can even share
+their Activity Rings
+
+
+190
+00:08:40,566 --> 00:08:41,816
+with each other and compete.
+
+
+191
+00:08:43,635 --> 00:08:45,296
+Now we're giving you a great way
+
+
+192
+00:08:45,486 --> 00:08:47,906
+to incorporate this Activity
+Ring experience right
+
+
+193
+00:08:47,906 --> 00:08:51,606
+into your app with the
+Activity Rings API in iOS 9.3.
+
+
+194
+00:08:52,296 --> 00:08:57,436
+To do this, we start with
+an HKActivitySummary object.
+
+
+195
+00:08:59,566 --> 00:09:03,706
+HKActivitySummary represents
+the sum of a user's activity
+
+
+196
+00:09:03,706 --> 00:09:04,996
+over the course of a given day.
+
+
+197
+00:09:05,566 --> 00:09:09,346
+That includes their move
+calories, exercise minutes,
+
+
+198
+00:09:09,656 --> 00:09:13,846
+and stand hours, and
+their goals for each.
+
+
+199
+00:09:15,076 --> 00:09:18,776
+HKActivitySummary is a
+distinct type for authorization.
+
+
+200
+00:09:19,376 --> 00:09:22,146
+It's not an HKObject, but
+rather a special read-only type
+
+
+201
+00:09:22,206 --> 00:09:24,366
+that you request
+authorization for distinctly
+
+
+202
+00:09:24,366 --> 00:09:25,426
+from its component types.
+
+
+203
+00:09:26,746 --> 00:09:28,076
+That last part's
+really important.
+
+
+204
+00:09:29,676 --> 00:09:32,946
+HKActivitySummary covers some of
+the same HealthKit information
+
+
+205
+00:09:32,946 --> 00:09:36,536
+as the HealthKit types; active
+energy, exercise minutes,
+
+
+206
+00:09:36,626 --> 00:09:41,026
+and stand hours, but only
+on a daily aggregated basis.
+
+
+207
+00:09:41,206 --> 00:09:44,706
+So for instance, if you want
+to do something more specific
+
+
+208
+00:09:45,186 --> 00:09:49,076
+like contribute to a
+user's Move ring by writing
+
+
+209
+00:09:49,076 --> 00:09:52,766
+to the active energy type or
+shown finer grain statistics
+
+
+210
+00:09:52,766 --> 00:09:55,776
+for activity over the course
+of a given day, in that case,
+
+
+211
+00:09:55,776 --> 00:09:57,126
+you'd want to request access
+
+
+212
+00:09:57,126 --> 00:09:58,946
+to the constituent
+types separately.
+
+
+213
+00:10:01,046 --> 00:10:04,086
+Now, because an ActivitySummary
+object represents activity
+
+
+214
+00:10:04,086 --> 00:10:06,306
+over the course of a given
+calendar day, which may
+
+
+215
+00:10:06,306 --> 00:10:09,326
+or may not correspond to a
+particular 24-hour period,
+
+
+216
+00:10:09,986 --> 00:10:11,586
+we specify the day corresponding
+
+
+217
+00:10:11,586 --> 00:10:14,276
+to an activity summary using
+a DateComponents object.
+
+
+218
+00:10:15,076 --> 00:10:16,936
+Let's see how that works
+in the following example.
+
+
+219
+00:10:17,286 --> 00:10:25,006
+So suppose we want to fetch
+the activity summary for today.
+
+
+220
+00:10:25,566 --> 00:10:28,326
+To do that, we use an
+HKActivitySummaryQuery.
+
+
+221
+00:10:29,916 --> 00:10:31,496
+First, we use our calendar
+
+
+222
+00:10:31,606 --> 00:10:33,866
+to create a DateComponents
+object corresponding
+
+
+223
+00:10:33,866 --> 00:10:36,456
+to today using the
+required components;
+
+
+224
+00:10:36,906 --> 00:10:39,556
+era, year, month, and day.
+
+
+225
+00:10:41,226 --> 00:10:44,076
+Next, we use those components
+to create a predicate object
+
+
+226
+00:10:44,166 --> 00:10:45,436
+that restricts our query
+
+
+227
+00:10:45,756 --> 00:10:48,416
+to activity summaries whose
+day corresponds to today.
+
+
+228
+00:10:49,096 --> 00:10:52,886
+And then finally, we create our
+query, pass in the predicate,
+
+
+229
+00:10:53,156 --> 00:10:55,996
+and then handle the, in this
+case, single activity summary
+
+
+230
+00:10:55,996 --> 00:10:57,446
+that should come
+back in the response.
+
+
+231
+00:10:58,096 --> 00:11:03,346
+So that's how you retrieve
+activity summary data,
+
+
+232
+00:11:03,346 --> 00:11:05,766
+but the really fun part is
+showing the rings themselves.
+
+
+233
+00:11:06,076 --> 00:11:09,256
+To do that, we use
+HKActivityRingView on iOS
+
+
+234
+00:11:09,366 --> 00:11:12,846
+or the analogous
+WKInterfaceActivityRing
+
+
+235
+00:11:13,056 --> 00:11:13,826
+on watchOS.
+
+
+236
+00:11:14,626 --> 00:11:17,096
+They look like this, and
+just like you'd expect,
+
+
+237
+00:11:17,256 --> 00:11:18,696
+they perform this
+great animation
+
+
+238
+00:11:18,846 --> 00:11:21,256
+when you call
+setActivitySummary, animated.
+
+
+239
+00:11:21,786 --> 00:11:27,076
+Some tips for using
+HKActivityRingView
+
+
+240
+00:11:27,076 --> 00:11:28,846
+and WKInterfaceActivityRing.
+
+
+241
+00:11:30,246 --> 00:11:33,116
+Firstly, just like in the
+health and activity apps on iOS
+
+
+242
+00:11:33,116 --> 00:11:36,506
+and watchOS, the rings look
+best on a black background,
+
+
+243
+00:11:36,506 --> 00:11:38,926
+so we recommend display
+them similarly in your apps.
+
+
+244
+00:11:41,026 --> 00:11:42,716
+Secondly, if your
+app has sharing
+
+
+245
+00:11:42,716 --> 00:11:45,756
+and communication features, you
+can use the writable properties
+
+
+246
+00:11:45,756 --> 00:11:48,776
+of HKActivitySummary to
+construct your own object,
+
+
+247
+00:11:49,136 --> 00:11:53,076
+supply it to HKActivityRingView
+or WKInterfaceActivityRing,
+
+
+248
+00:11:53,546 --> 00:11:56,086
+and thereby display another
+user's rings alongside the
+
+
+249
+00:11:56,086 --> 00:11:59,536
+current user's rings
+in your own app.
+
+
+250
+00:12:00,386 --> 00:12:03,036
+Finally, when you're using
+HKActivitySummaryQuery,
+
+
+251
+00:12:03,036 --> 00:12:06,296
+remember to use the required
+DateComponents; era, year,
+
+
+252
+00:12:06,416 --> 00:12:09,276
+month, and day in your
+HKActivitySummaryQuery.
+
+
+253
+00:12:11,166 --> 00:12:12,796
+Date map can be notoriously
+tricky,
+
+
+254
+00:12:12,876 --> 00:12:15,486
+so if you have any
+questions about using Calendar
+
+
+255
+00:12:15,486 --> 00:12:17,886
+or DateComponents, be sure
+to check out this great talk
+
+
+256
+00:12:17,886 --> 00:12:22,976
+from a prior conference.
+
+
+257
+00:12:22,976 --> 00:12:23,996
+So we've been talking a lot
+
+
+258
+00:12:23,996 --> 00:12:25,706
+about authorization
+and Activity Rings.
+
+
+259
+00:12:25,706 --> 00:12:27,516
+Let's put it into
+action with a quick demo.
+
+
+260
+00:12:28,566 --> 00:12:30,946
+Here on the right, we
+have an up and coming app
+
+
+261
+00:12:30,946 --> 00:12:32,536
+for a medical group
+called LoopHealth.
+
+
+262
+00:12:33,276 --> 00:12:34,646
+This app has some
+other features,
+
+
+263
+00:12:34,646 --> 00:12:37,556
+but its main page is a dashboard
+with some helpful information,
+
+
+264
+00:12:37,556 --> 00:12:40,946
+so for instance, your doctor's
+name, upcoming appointments,
+
+
+265
+00:12:41,186 --> 00:12:42,186
+and some healthy tips.
+
+
+266
+00:12:43,646 --> 00:12:46,836
+LoopHealth wants their patients
+to live healthier daily lives
+
+
+267
+00:12:46,836 --> 00:12:48,906
+as well, so they saw this
+as a great opportunity
+
+
+268
+00:12:48,906 --> 00:12:50,926
+to incorporate Apple's
+Activity Rings right
+
+
+269
+00:12:50,926 --> 00:12:51,806
+onto their dashboard.
+
+
+270
+00:12:52,266 --> 00:12:53,606
+As you can see here,
+
+
+271
+00:12:53,606 --> 00:12:56,086
+we've already dropped
+an HKActivityRingView
+
+
+272
+00:12:56,086 --> 00:12:57,936
+into the storyboard
+for our application,
+
+
+273
+00:12:58,246 --> 00:12:59,546
+but we haven't actually
+written the code
+
+
+274
+00:12:59,546 --> 00:13:00,796
+that hooks it up with data yet.
+
+
+275
+00:13:01,066 --> 00:13:02,376
+Let's see how easy
+it is to do that.
+
+
+276
+00:13:03,076 --> 00:13:06,126
+So over here in Xcode, we
+have DashboardViewController.
+
+
+277
+00:13:06,126 --> 00:13:07,856
+This is the view controller
+we were just looking
+
+
+278
+00:13:07,856 --> 00:13:09,496
+at in the LoopHealth app.
+
+
+279
+00:13:10,146 --> 00:13:11,496
+It's pretty empty so far,
+
+
+280
+00:13:11,976 --> 00:13:13,816
+but we do have some
+helpful things filled in.
+
+
+281
+00:13:14,676 --> 00:13:17,696
+You can see right here we have
+an IBOutlet set up connected
+
+
+282
+00:13:17,756 --> 00:13:19,786
+to the activityRingView
+that's already in our app.
+
+
+283
+00:13:21,206 --> 00:13:23,256
+Up here we import HealthKitUI.
+
+
+284
+00:13:23,456 --> 00:13:24,936
+This is the new framework
+
+
+285
+00:13:24,936 --> 00:13:27,726
+that you can find
+HKActivityRingView in on iOS.
+
+
+286
+00:13:29,256 --> 00:13:32,036
+And finally down
+here, LoopHealth sets
+
+
+287
+00:13:32,036 --> 00:13:34,596
+up its app-wide HKHealthStore
+in its app delegate,
+
+
+288
+00:13:34,656 --> 00:13:37,486
+so we've just set up a simple
+computed property to retrieve it
+
+
+289
+00:13:37,486 --> 00:13:40,266
+for convenience when we need it.
+
+
+290
+00:13:41,346 --> 00:13:44,206
+Okay, so if we want to show an
+activity summary in our app,
+
+
+291
+00:13:44,276 --> 00:13:46,946
+the first thing we need to
+do is request read access
+
+
+292
+00:13:46,946 --> 00:13:48,216
+to HKActivitySummary.
+
+
+293
+00:13:49,296 --> 00:13:51,676
+And since we're reading health
+data, that means we need
+
+
+294
+00:13:51,676 --> 00:13:53,086
+to include a usage description,
+
+
+295
+00:13:53,316 --> 00:13:57,306
+so let's go to our info.plist
+file and add a new key.
+
+
+296
+00:13:58,596 --> 00:13:59,926
+The key we're interested
+
+
+297
+00:13:59,926 --> 00:14:02,396
+in is called NSHealthShare
+UsageDescription,
+
+
+298
+00:14:02,396 --> 00:14:05,466
+which is written here in plain
+English as Privacy Health Share.
+
+
+299
+00:14:09,076 --> 00:14:11,336
+Perfect. And I'll drop
+
+
+300
+00:14:11,336 --> 00:14:13,876
+in a quick usage
+description, and that's it.
+
+
+301
+00:14:13,876 --> 00:14:14,446
+We're all set.
+
+
+302
+00:14:15,806 --> 00:14:17,896
+Now I can go back to
+DashboardViewController
+
+
+303
+00:14:17,896 --> 00:14:20,396
+and then write the code that
+actually requests authorization.
+
+
+304
+00:14:21,876 --> 00:14:24,806
+Since we want to show the
+initial prompt to the user
+
+
+305
+00:14:24,836 --> 00:14:27,216
+and also update our rings
+whenever the user navigates
+
+
+306
+00:14:27,216 --> 00:14:29,546
+to the dashboard tab, the
+perfect place to do that is
+
+
+307
+00:14:29,546 --> 00:14:31,136
+in the viewDidAppear method.
+
+
+308
+00:14:32,316 --> 00:14:34,356
+So I'll drop that in here.
+
+
+309
+00:14:34,356 --> 00:14:37,606
+And after our requisite
+call to super,
+
+
+310
+00:14:37,606 --> 00:14:39,586
+notice that we call
+RequestAuthorization
+
+
+311
+00:14:39,586 --> 00:14:43,076
+on HKHealthStore, pass in
+the activity summary type,
+
+
+312
+00:14:43,076 --> 00:14:46,896
+and then in the response, we
+call updateActivitySummary,
+
+
+313
+00:14:47,736 --> 00:14:50,056
+which we'll write to actually
+fetch and update the data.
+
+
+314
+00:14:50,316 --> 00:14:51,346
+Let's go implement that now.
+
+
+315
+00:14:52,966 --> 00:14:58,446
+So here's our skeleton
+for updateActivitySummary,
+
+
+316
+00:14:58,566 --> 00:15:01,246
+and what we want to
+do here is create an
+
+
+317
+00:15:01,246 --> 00:15:05,876
+HKActivitySummaryQuery, request
+today's activity summary,
+
+
+318
+00:15:05,926 --> 00:15:07,576
+and then set that
+activity summary
+
+
+319
+00:15:07,576 --> 00:15:10,296
+on our HKActivityRingView
+once we get it back.
+
+
+320
+00:15:11,846 --> 00:15:13,796
+First, let's create a
+DateComponents object
+
+
+321
+00:15:13,796 --> 00:15:14,796
+corresponding to today.
+
+
+322
+00:15:16,516 --> 00:15:18,796
+Since DateComponents only
+makes sense in the context
+
+
+323
+00:15:18,796 --> 00:15:21,286
+of a particular calendar,
+we set the calendar object
+
+
+324
+00:15:21,286 --> 00:15:25,046
+that we use back on
+the components object.
+
+
+325
+00:15:26,136 --> 00:15:27,406
+Oops, perfect.
+
+
+326
+00:15:28,436 --> 00:15:30,316
+Next, we can create
+our predicate using
+
+
+327
+00:15:30,316 --> 00:15:34,606
+that components object, and
+once we have the predicate,
+
+
+328
+00:15:34,786 --> 00:15:37,446
+we can create our query,
+pass in the predicate,
+
+
+329
+00:15:37,496 --> 00:15:40,796
+and then in the response,
+we grab the single summary
+
+
+330
+00:15:40,796 --> 00:15:41,986
+that should come back for today.
+
+
+331
+00:15:44,596 --> 00:15:46,156
+Now, once we have that summary,
+
+
+332
+00:15:46,286 --> 00:15:48,706
+all we have to do is dispatch
+back to the main queue
+
+
+333
+00:15:48,706 --> 00:15:53,536
+to update our UI and then
+call setActivitySummary,
+
+
+334
+00:15:53,856 --> 00:15:56,166
+animated on our Activity
+Ring view.
+
+
+335
+00:15:57,956 --> 00:15:59,776
+Now that we have our
+query, all we have left
+
+
+336
+00:15:59,776 --> 00:16:04,756
+to do is execute
+it, and that's it.
+
+
+337
+00:16:05,436 --> 00:16:07,806
+So let's build and run and
+see how this all looks.
+
+
+338
+00:16:23,766 --> 00:16:24,286
+Excellent.
+
+
+339
+00:16:24,286 --> 00:16:27,016
+So first thing you see is now
+that we're requesting access
+
+
+340
+00:16:27,016 --> 00:16:29,756
+to activity summary,
+Health is asking the user
+
+
+341
+00:16:29,756 --> 00:16:31,076
+to approve authorization.
+
+
+342
+00:16:33,406 --> 00:16:35,686
+Let's approve read access
+for our activity type,
+
+
+343
+00:16:35,686 --> 00:16:37,596
+and while we're down there,
+notice that at the bottom
+
+
+344
+00:16:37,596 --> 00:16:39,476
+of the screen, that usage
+description that we added
+
+
+345
+00:16:39,476 --> 00:16:42,046
+for reading health data is
+included and shown to the user.
+
+
+346
+00:16:42,646 --> 00:16:44,426
+It's important to note
+that in a real app,
+
+
+347
+00:16:44,426 --> 00:16:46,336
+we'd want to make sure this
+description is localized,
+
+
+348
+00:16:46,386 --> 00:16:49,356
+so we'd include that in our
+info.plist.strings file instead.
+
+
+349
+00:16:51,926 --> 00:16:56,536
+I'll approve authorization
+here, and just like that,
+
+
+350
+00:16:56,536 --> 00:16:59,766
+we see the Activity Rings
+animate beautifully into place.
+
+
+351
+00:17:00,516 --> 00:17:06,500
+[ Applause ]
+
+
+352
+00:17:09,156 --> 00:17:10,215
+So that's how easy it is
+
+
+353
+00:17:10,215 --> 00:17:12,336
+to incorporate Activity Rings
+right into your own app.
+
+
+354
+00:17:12,465 --> 00:17:13,665
+Be sure to check out the API.
+
+
+355
+00:17:14,685 --> 00:17:17,066
+Next, I'll turn it over to
+my colleague Jeff who's going
+
+
+356
+00:17:17,066 --> 00:17:19,576
+to tell you about an
+awesome new feature in iOS X.
+
+
+357
+00:17:20,516 --> 00:17:25,556
+[ Applause ]
+
+
+358
+00:17:26,056 --> 00:17:26,586
+>> Thanks, Matt.
+
+
+359
+00:17:27,215 --> 00:17:28,086
+Good morning, everyone.
+
+
+360
+00:17:28,676 --> 00:17:30,116
+My name is Joefrey Kibuule.
+
+
+361
+00:17:30,656 --> 00:17:33,306
+I work alongside Matt as
+an iOS software engineer
+
+
+362
+00:17:33,346 --> 00:17:34,056
+on the Health team.
+
+
+363
+00:17:34,946 --> 00:17:37,166
+Today I have the proud
+privilege to introduce
+
+
+364
+00:17:37,166 --> 00:17:40,356
+to you a new feature of
+iOS X, Health Records.
+
+
+365
+00:17:41,396 --> 00:17:43,946
+Health Records provides
+an easy and portable way
+
+
+366
+00:17:43,946 --> 00:17:45,896
+to carry the information
+most personal
+
+
+367
+00:17:45,896 --> 00:17:48,216
+to you right on your smartphone.
+
+
+368
+00:17:49,996 --> 00:17:51,966
+Today the current experience
+
+
+369
+00:17:52,096 --> 00:17:55,286
+when users visit a medical
+professional and ask
+
+
+370
+00:17:55,286 --> 00:17:57,646
+for their health records
+afterwards is this.
+
+
+371
+00:17:58,796 --> 00:18:00,966
+A stack of documents
+which may be cumbersome
+
+
+372
+00:18:01,236 --> 00:18:03,596
+to find a particular
+piece of information.
+
+
+373
+00:18:04,816 --> 00:18:06,226
+More recently,
+
+
+374
+00:18:06,226 --> 00:18:09,286
+health organizations have been
+providing their patients this.
+
+
+375
+00:18:10,296 --> 00:18:14,486
+CDs of digitized information
+which may be unintuitive to use.
+
+
+376
+00:18:16,936 --> 00:18:19,566
+But now with Health
+Records in iOS,
+
+
+377
+00:18:19,986 --> 00:18:21,406
+we can help solve this problem.
+
+
+378
+00:18:23,676 --> 00:18:25,966
+Through the work that
+we've done in this release,
+
+
+379
+00:18:26,316 --> 00:18:28,956
+your apps can start to
+unlock new possibilities
+
+
+380
+00:18:29,626 --> 00:18:31,986
+in the exchange and
+interaction of Health Records.
+
+
+381
+00:18:32,656 --> 00:18:36,946
+In fact, in the U.S., adoption
+
+
+382
+00:18:36,946 --> 00:18:39,686
+of these APIs can help
+health organizations comply
+
+
+383
+00:18:39,736 --> 00:18:42,276
+with new regulations
+that require them
+
+
+384
+00:18:42,276 --> 00:18:44,206
+to give their patients
+more control
+
+
+385
+00:18:44,206 --> 00:18:47,996
+of their own health data.
+
+
+386
+00:18:48,176 --> 00:18:49,816
+So first, an overview.
+
+
+387
+00:18:50,606 --> 00:18:53,496
+Health Records in iOS is
+an umbrella term we use
+
+
+388
+00:18:53,666 --> 00:18:54,966
+to represent a variety
+
+
+389
+00:18:54,966 --> 00:18:56,936
+of different patient
+visits generated
+
+
+390
+00:18:56,996 --> 00:18:58,256
+by health institutions.
+
+
+391
+00:18:59,636 --> 00:19:01,966
+Today we're adding
+support specifically
+
+
+392
+00:19:01,966 --> 00:19:03,106
+for health documents.
+
+
+393
+00:19:04,636 --> 00:19:06,836
+Standard machine-readable XML
+
+
+394
+00:19:06,836 --> 00:19:08,856
+that represents specific
+patient visits.
+
+
+395
+00:19:10,106 --> 00:19:12,736
+These include patient
+visit summaries,
+
+
+396
+00:19:13,536 --> 00:19:15,016
+continuity of care visits,
+
+
+397
+00:19:15,506 --> 00:19:19,546
+and operative notes,
+just to name a few.
+
+
+398
+00:19:20,006 --> 00:19:23,136
+We support the international
+HL-7 CDA standard
+
+
+399
+00:19:23,136 --> 00:19:26,056
+for interoperability with a
+variety of different providers.
+
+
+400
+00:19:28,216 --> 00:19:29,816
+These documents are available
+
+
+401
+00:19:29,816 --> 00:19:31,636
+through patient healthcare
+portals online
+
+
+402
+00:19:31,696 --> 00:19:38,406
+and can be imported via Safari,
+Mail, and now all of your apps.
+
+
+403
+00:19:39,716 --> 00:19:41,646
+These documents are stored just
+
+
+404
+00:19:41,646 --> 00:19:44,986
+like all other HealthKit
+data safely
+
+
+405
+00:19:44,986 --> 00:19:49,936
+and securely encrypted
+on your iOS device.
+
+
+406
+00:19:50,086 --> 00:19:51,906
+Next, let's talk
+about permissions.
+
+
+407
+00:19:53,186 --> 00:19:55,316
+Since so much information
+is contained
+
+
+408
+00:19:55,316 --> 00:19:56,566
+within each health document,
+
+
+409
+00:19:56,956 --> 00:19:59,406
+we give the user
+additional controls compared
+
+
+410
+00:19:59,406 --> 00:20:01,566
+to other data types
+in HealthKit.
+
+
+411
+00:20:03,076 --> 00:20:06,356
+Access is granted on a
+per-document basis in addition
+
+
+412
+00:20:06,356 --> 00:20:10,086
+to the health document
+data type.
+
+
+413
+00:20:10,286 --> 00:20:13,346
+As shown on the right, we
+present the UI in order
+
+
+414
+00:20:13,346 --> 00:20:15,056
+to allow the user to both view
+
+
+415
+00:20:15,056 --> 00:20:17,876
+and select the document before
+granting your app access.
+
+
+416
+00:20:19,636 --> 00:20:22,946
+This UI will present it whenever
+you query for a document
+
+
+417
+00:20:23,016 --> 00:20:24,246
+and a new one is available.
+
+
+418
+00:20:25,646 --> 00:20:29,146
+If you query for documents and
+none are, nothing has changed,
+
+
+419
+00:20:30,106 --> 00:20:32,766
+we will not show
+this UI to the user
+
+
+420
+00:20:32,766 --> 00:20:35,516
+and your query will return
+immediately with results.
+
+
+421
+00:20:41,236 --> 00:20:43,796
+If you query for documents
+while your application is
+
+
+422
+00:20:43,796 --> 00:20:47,626
+in the background, we will
+never prompt the user UI
+
+
+423
+00:20:47,626 --> 00:20:49,416
+to grant access to
+new documents.
+
+
+424
+00:20:50,096 --> 00:20:52,566
+HealthKit ensures that
+the user is always aware
+
+
+425
+00:20:52,566 --> 00:20:54,226
+when they're granting
+access to documents
+
+
+426
+00:20:54,226 --> 00:20:56,436
+to your apps the
+first time it occurs.
+
+
+427
+00:20:57,026 --> 00:21:02,006
+Next, let's talk about how to
+create a document in HealthKit.
+
+
+428
+00:21:04,276 --> 00:21:06,236
+When saving a document
+into HealthKit,
+
+
+429
+00:21:06,236 --> 00:21:07,716
+you can save the raw XML
+
+
+430
+00:21:07,716 --> 00:21:10,986
+into the new HKCDADocumentSample
+type.
+
+
+431
+00:21:12,636 --> 00:21:15,356
+We validate on creation
+to ensure compliance
+
+
+432
+00:21:15,356 --> 00:21:18,766
+with the standard and will
+throw errors if this fails.
+
+
+433
+00:21:21,056 --> 00:21:26,196
+We automatically extract the
+title, patient, custodian,
+
+
+434
+00:21:26,196 --> 00:21:28,916
+and author names whenever the
+document is saved into HealthKit
+
+
+435
+00:21:29,296 --> 00:21:32,156
+in order to make querying
+for these fields faster
+
+
+436
+00:21:32,466 --> 00:21:34,266
+without needing to read
+the entire document.
+
+
+437
+00:21:34,766 --> 00:21:38,136
+Let's take a look at
+this example in code.
+
+
+438
+00:21:38,136 --> 00:21:40,286
+We're going to take
+the documentData
+
+
+439
+00:21:40,286 --> 00:21:42,076
+and transform it
+into a data object.
+
+
+440
+00:21:42,666 --> 00:21:44,746
+The origin of this XML
+will typically come
+
+
+441
+00:21:44,746 --> 00:21:46,266
+from a health organization
+server.
+
+
+442
+00:21:47,646 --> 00:21:51,196
+We're then going to create a
+new HKCDADocumentSample passing
+
+
+443
+00:21:51,196 --> 00:21:54,506
+in that data object, setting
+the appropriate dates,
+
+
+444
+00:21:55,116 --> 00:21:58,286
+and any additional metadata,
+just like any other HKSample.
+
+
+445
+00:21:58,286 --> 00:22:02,126
+And then we'll save the
+document to the healthStore.
+
+
+446
+00:22:02,826 --> 00:22:03,646
+That's it.
+
+
+447
+00:22:03,926 --> 00:22:06,986
+Now your health document is
+saved into HealthKit ready
+
+
+448
+00:22:06,986 --> 00:22:09,206
+to be used in other
+apps or viewed directly
+
+
+449
+00:22:09,206 --> 00:22:13,136
+by the user in the Health App.
+
+
+450
+00:22:13,386 --> 00:22:16,086
+Now, let's talk about querying
+for documents in HealthKit.
+
+
+451
+00:22:16,776 --> 00:22:21,546
+Since HKCDADocumentSample
+is a subclass of HKSample,
+
+
+452
+00:22:22,366 --> 00:22:24,776
+existing query objects you
+may be already familiar
+
+
+453
+00:22:24,776 --> 00:22:26,936
+with continue to work
+just as you'd expect.
+
+
+454
+00:22:28,266 --> 00:22:30,796
+However, you need to use
+the new HKDocumentQuery
+
+
+455
+00:22:30,796 --> 00:22:32,416
+in order to fetch the raw XML.
+
+
+456
+00:22:32,946 --> 00:22:35,386
+Fetching the raw XML's
+expensive, and we only do
+
+
+457
+00:22:35,386 --> 00:22:37,706
+so when explicitly specified.
+
+
+458
+00:22:39,556 --> 00:22:42,656
+We provide predicate
+support in order to query
+
+
+459
+00:22:42,656 --> 00:22:48,526
+for the automatically extracted
+fields, and then lastly,
+
+
+460
+00:22:48,526 --> 00:22:52,476
+to remember that since
+HKDocumentSamples are immutable,
+
+
+461
+00:22:52,476 --> 00:22:53,396
+updated information
+
+
+462
+00:22:53,396 --> 00:22:56,446
+to previously samples are
+considered new samples.
+
+
+463
+00:22:56,506 --> 00:23:01,276
+Now, let's take a look at
+an example of how to query
+
+
+464
+00:23:01,276 --> 00:23:02,456
+for documents in HealthKit.
+
+
+465
+00:23:02,846 --> 00:23:04,346
+In this example,
+we're going to query
+
+
+466
+00:23:04,346 --> 00:23:06,426
+for all the documents
+a user has stored.
+
+
+467
+00:23:07,886 --> 00:23:09,706
+So first, we need to
+get the document type.
+
+
+468
+00:23:09,836 --> 00:23:12,246
+We're going to pass
+the CDA identifier
+
+
+469
+00:23:12,246 --> 00:23:14,606
+into the document type
+forIdentifier method
+
+
+470
+00:23:14,606 --> 00:23:15,796
+on HKObjectType.
+
+
+471
+00:23:18,386 --> 00:23:20,486
+We're then going to
+create an HKDocumentQuery.
+
+
+472
+00:23:21,336 --> 00:23:23,146
+You have additional
+fields in order to filter
+
+
+473
+00:23:23,146 --> 00:23:25,076
+and order the documents
+received back
+
+
+474
+00:23:25,076 --> 00:23:26,716
+to you the order
+that you'd like.
+
+
+475
+00:23:27,496 --> 00:23:30,206
+And then we execute
+the query in order
+
+
+476
+00:23:30,206 --> 00:23:32,956
+to get the HKCDADocumentSamples
+back from HealthKit.
+
+
+477
+00:23:33,496 --> 00:23:38,096
+One thing I want to note in
+this particular example we set
+
+
+478
+00:23:38,096 --> 00:23:40,016
+includeDocumentData to false.
+
+
+479
+00:23:40,266 --> 00:23:41,896
+Only ever set it to true
+
+
+480
+00:23:41,896 --> 00:23:47,496
+if you need the full
+raw XML document data.
+
+
+481
+00:23:47,676 --> 00:23:50,276
+Now, let's talk about some
+best practices when dealing
+
+
+482
+00:23:50,276 --> 00:23:52,226
+with the health documents
+in HealthKit.
+
+
+483
+00:23:53,436 --> 00:23:56,726
+First, check for validation
+errors whenever creating
+
+
+484
+00:23:56,726 --> 00:23:58,106
+and HKCDADocumentSample.
+
+
+485
+00:23:59,356 --> 00:24:01,286
+The errors will tell
+you why we weren't able
+
+
+486
+00:24:01,286 --> 00:24:07,126
+to transform your raw
+XML into a usable sample.
+
+
+487
+00:24:07,256 --> 00:24:09,346
+Next, you should
+verify by the Health App
+
+
+488
+00:24:09,656 --> 00:24:12,746
+that you imported
+were correctly saved
+
+
+489
+00:24:12,786 --> 00:24:14,876
+and automatically
+extracted fields are present.
+
+
+490
+00:24:15,726 --> 00:24:17,486
+This way, you can tell
+that queries based
+
+
+491
+00:24:17,486 --> 00:24:20,506
+on those automatically extracted
+fields return the correct sample
+
+
+492
+00:24:20,506 --> 00:24:21,326
+that you'd expect.
+
+
+493
+00:24:23,096 --> 00:24:26,786
+And lastly, request the raw
+XML data only when you need to.
+
+
+494
+00:24:27,086 --> 00:24:30,196
+Queries that don't request,
+including document data,
+
+
+495
+00:24:30,896 --> 00:24:33,246
+will return the automatically
+extracted fields,
+
+
+496
+00:24:33,246 --> 00:24:35,786
+and this may be all you
+need for you and your users
+
+
+497
+00:24:35,786 --> 00:24:38,506
+to uniquely identify a
+document in HealthKit.
+
+
+498
+00:24:40,076 --> 00:24:43,346
+For more information on
+the HL-7 CDA Standard,
+
+
+499
+00:24:43,346 --> 00:24:44,626
+visit the link on the screen.
+
+
+500
+00:24:49,046 --> 00:24:50,236
+Now, I'd like to switch gears
+
+
+501
+00:24:50,236 --> 00:24:52,416
+and offer some general
+guidance on handling data.
+
+
+502
+00:24:52,416 --> 00:24:58,776
+As you know, HealthKit serves
+as a central repository
+
+
+503
+00:24:58,776 --> 00:25:01,886
+where your app and other
+apps can help contribute
+
+
+504
+00:25:01,886 --> 00:25:03,586
+to a user's record
+of health data.
+
+
+505
+00:25:05,276 --> 00:25:08,106
+Your app in cloud service may
+also have a direct connection
+
+
+506
+00:25:08,106 --> 00:25:09,746
+with another app
+in cloud service,
+
+
+507
+00:25:10,196 --> 00:25:12,526
+and this may require some
+special considerations.
+
+
+508
+00:25:13,266 --> 00:25:16,156
+So there are three main topics
+that I'd like to discuss
+
+
+509
+00:25:16,156 --> 00:25:17,556
+when talking about
+handling data.
+
+
+510
+00:25:18,666 --> 00:25:20,186
+First, syncing data.
+
+
+511
+00:25:21,136 --> 00:25:23,116
+Second, tracking change data.
+
+
+512
+00:25:23,946 --> 00:25:27,336
+And third, migrating data.
+
+
+513
+00:25:27,516 --> 00:25:29,176
+So first, syncing data.
+
+
+514
+00:25:30,246 --> 00:25:32,886
+You should be using
+HKAnchoredObjectQuery in order
+
+
+515
+00:25:32,886 --> 00:25:36,596
+to handle processing both new
+and deleted samples in order
+
+
+516
+00:25:36,596 --> 00:25:37,946
+to keep up to date
+with HealthKit.
+
+
+517
+00:25:37,946 --> 00:25:41,916
+Anchors act as a
+bookmark to keep track
+
+
+518
+00:25:41,916 --> 00:25:44,206
+of the last query operation
+you used to fetch data.
+
+
+519
+00:25:44,846 --> 00:25:46,996
+You could save this anchor
+for the next time you need
+
+
+520
+00:25:46,996 --> 00:25:49,086
+to create a new
+HKAnchoredObjectQuery.
+
+
+521
+00:25:51,586 --> 00:25:53,656
+You'll open one query
+for each sample type
+
+
+522
+00:25:53,656 --> 00:25:54,536
+that you're interested in
+
+
+523
+00:25:55,516 --> 00:25:58,276
+and then pass an optional
+update handler in order
+
+
+524
+00:25:58,276 --> 00:26:01,936
+to continuously process new and
+deleted samples without needing
+
+
+525
+00:26:01,936 --> 00:26:03,806
+to unnecessarily
+requery HealthKit.
+
+
+526
+00:26:05,036 --> 00:26:07,686
+But say for a better
+user experience,
+
+
+527
+00:26:07,936 --> 00:26:08,986
+in order to have fresh UI
+
+
+528
+00:26:08,986 --> 00:26:11,096
+when your application
+is first launched,
+
+
+529
+00:26:11,526 --> 00:26:15,786
+or to keep your cloud data in
+sync, your application needs
+
+
+530
+00:26:15,786 --> 00:26:18,306
+to handle processing new
+and deleted samples even
+
+
+531
+00:26:18,306 --> 00:26:19,416
+when it's currently not running.
+
+
+532
+00:26:20,516 --> 00:26:22,976
+That's where HKObserverQuery
+working
+
+
+533
+00:26:22,976 --> 00:26:25,366
+with HKAnchoredObjectQuery
+comes into play.
+
+
+534
+00:26:25,366 --> 00:26:28,956
+Let's look at an
+example with a diagram.
+
+
+535
+00:26:30,516 --> 00:26:34,026
+So there are four
+main steps in order
+
+
+536
+00:26:34,026 --> 00:26:35,816
+to handle background
+updates split
+
+
+537
+00:26:35,816 --> 00:26:38,976
+into two phases;
+setup and execution.
+
+
+538
+00:26:39,796 --> 00:26:41,956
+In the first step,
+we're going to register
+
+
+539
+00:26:41,956 --> 00:26:43,056
+for background updates.
+
+
+540
+00:26:43,416 --> 00:26:45,186
+You need to do this
+for every sample type
+
+
+541
+00:26:45,186 --> 00:26:46,066
+that you're interested in.
+
+
+542
+00:26:47,106 --> 00:26:50,166
+In the second step, you're
+going to open an ObserverQuery.
+
+
+543
+00:26:51,166 --> 00:26:55,106
+Once set up, the ObserverQuery
+will monitor for both new
+
+
+544
+00:26:55,106 --> 00:26:56,626
+and deleted samples
+in HealthKit.
+
+
+545
+00:26:58,896 --> 00:27:00,666
+When new samples are generated,
+
+
+546
+00:27:00,666 --> 00:27:02,236
+that's when you have
+the third step.
+
+
+547
+00:27:02,786 --> 00:27:04,626
+You'll get a callback
+from the observer query
+
+
+548
+00:27:04,816 --> 00:27:07,466
+and then execute an
+HKAnchoredObjectQuery in order
+
+
+549
+00:27:07,466 --> 00:27:09,456
+to fetch new and
+deleted samples.
+
+
+550
+00:27:09,976 --> 00:27:12,676
+And then in the fourth step,
+
+
+551
+00:27:13,386 --> 00:27:15,886
+you'll call the observer queries
+completion handler in order
+
+
+552
+00:27:15,886 --> 00:27:17,616
+to let HealthKit know
+that you've processed
+
+
+553
+00:27:17,616 --> 00:27:19,076
+and delivered the
+background update.
+
+
+554
+00:27:20,506 --> 00:27:23,426
+You'll then continue to cycle
+between steps three and four
+
+
+555
+00:27:23,426 --> 00:27:25,186
+in order to keep up to
+date with HealthKit.
+
+
+556
+00:27:25,186 --> 00:27:33,806
+Now, let's take a look at this
+example one by one in code.
+
+
+557
+00:27:33,986 --> 00:27:37,256
+So in the first step, we need to
+register for background updates.
+
+
+558
+00:27:37,646 --> 00:27:40,396
+Your application needs to do
+this every time it's launched,
+
+
+559
+00:27:40,396 --> 00:27:41,596
+so we recommend you do it
+
+
+560
+00:27:41,596 --> 00:27:44,186
+in application
+didFinishLaunching WithOptions.
+
+
+561
+00:27:45,676 --> 00:27:48,686
+You'll then grab the step's
+quantity type from HKObjectType
+
+
+562
+00:27:49,416 --> 00:27:52,946
+and then pass that to HK Health
+Store's enableBackgroundDelivery
+
+
+563
+00:27:52,946 --> 00:27:54,596
+for, passing in the steps type
+
+
+564
+00:27:54,596 --> 00:27:56,416
+and the frequency
+you'd like updates.
+
+
+565
+00:27:57,516 --> 00:28:00,516
+Do note that background delivery
+times are not guaranteed.
+
+
+566
+00:28:02,916 --> 00:28:06,296
+Your application needs to pick
+the longest possible frequency
+
+
+567
+00:28:06,296 --> 00:28:07,526
+it can handle in order
+
+
+568
+00:28:07,526 --> 00:28:09,786
+to preserve a user's
+device's battery life.
+
+
+569
+00:28:11,186 --> 00:28:14,046
+Also note that this
+API is iOS specific.
+
+
+570
+00:28:14,516 --> 00:28:17,246
+Background updates are
+not available on watchOS.
+
+
+571
+00:28:17,816 --> 00:28:22,516
+In the second step, we're going
+to pass the step's quantity type
+
+
+572
+00:28:22,546 --> 00:28:25,746
+to create the HKAnchored,
+the HKObserverQuery.
+
+
+573
+00:28:26,976 --> 00:28:29,756
+Here we'll have a
+custom updateSteps method
+
+
+574
+00:28:30,136 --> 00:28:33,026
+that we can use in order
+to know, to fetch new
+
+
+575
+00:28:33,026 --> 00:28:35,636
+and deleted samples when
+HealthKit detects that.
+
+
+576
+00:28:36,296 --> 00:28:38,226
+And then we're going
+to execute the query.
+
+
+577
+00:28:39,046 --> 00:28:39,676
+That's it.
+
+
+578
+00:28:39,676 --> 00:28:42,266
+That completes the setup
+process in order for HealthKit
+
+
+579
+00:28:42,266 --> 00:28:44,526
+to monitor new and deleted
+samples in HealthKit.
+
+
+580
+00:28:45,486 --> 00:28:49,076
+So as I'm walking across stage
+generating health samples,
+
+
+581
+00:28:49,816 --> 00:28:54,416
+step samples, our,
+we're going to dive
+
+
+582
+00:28:54,416 --> 00:28:57,236
+into the update steps method in
+order to know what we need to do
+
+
+583
+00:28:57,236 --> 00:28:59,146
+in order to grab new
+and deleted samples.
+
+
+584
+00:28:59,656 --> 00:29:02,506
+So first, we're going to create
+an HKAnchoredObjectQuery,
+
+
+585
+00:29:03,006 --> 00:29:04,146
+passing in the steps type.
+
+
+586
+00:29:04,536 --> 00:29:07,996
+You'll also have predicate,
+additional fields in order
+
+
+587
+00:29:07,996 --> 00:29:10,776
+to filter the particular
+samples you'd like.
+
+
+588
+00:29:13,256 --> 00:29:16,586
+Then we'll call the handleSteps
+method in order to process new
+
+
+589
+00:29:16,586 --> 00:29:22,586
+and deleted samples and
+then update our anchor
+
+
+590
+00:29:22,586 --> 00:29:25,506
+for the next time we need to
+create an HKAnchoredObjectQuery.
+
+
+591
+00:29:27,196 --> 00:29:29,376
+We then call the
+completionHandler in order
+
+
+592
+00:29:29,376 --> 00:29:32,406
+to know that we've done
+processing fetching new data,
+
+
+593
+00:29:32,406 --> 00:29:36,076
+and then we execute the query.
+
+
+594
+00:29:37,576 --> 00:29:39,246
+Then lastly, in step four,
+
+
+595
+00:29:39,346 --> 00:29:41,476
+we're going to call the
+completionHandler given to us
+
+
+596
+00:29:41,476 --> 00:29:43,986
+from the observer query in order
+
+
+597
+00:29:43,986 --> 00:29:45,896
+to let HealthKit know
+we've both received
+
+
+598
+00:29:45,946 --> 00:29:48,076
+and processed the
+background update.
+
+
+599
+00:29:48,676 --> 00:29:49,516
+And that's it.
+
+
+600
+00:29:49,516 --> 00:29:52,106
+Now your application will
+have a fresh UI on launch
+
+
+601
+00:29:52,266 --> 00:29:58,816
+and keep your cloud data in sync
+following all of these steps.
+
+
+602
+00:29:59,046 --> 00:30:01,186
+Next, let's talk about
+tracking change data.
+
+
+603
+00:30:02,086 --> 00:30:03,936
+You should be using
+UUIDs in order
+
+
+604
+00:30:03,936 --> 00:30:06,056
+to keep tracking of
+unique HKObjects.
+
+
+605
+00:30:09,546 --> 00:30:13,846
+A unique identifier is set
+each time an object is created
+
+
+606
+00:30:13,846 --> 00:30:15,766
+and persists for the
+lifetime of the sample.
+
+
+607
+00:30:17,696 --> 00:30:22,286
+Record UUIDs in your own
+data store or both locally
+
+
+608
+00:30:22,286 --> 00:30:24,186
+on the device and
+remotely in the cloud
+
+
+609
+00:30:24,266 --> 00:30:28,516
+so that way you could tell a
+particular sample is the same.
+
+
+610
+00:30:28,736 --> 00:30:31,326
+Whenever these samples
+are deleted, say,
+
+
+611
+00:30:31,326 --> 00:30:34,766
+a workout from the Health
+App, you should be monitoring
+
+
+612
+00:30:34,766 --> 00:30:36,426
+for these changes to
+make sure that these,
+
+
+613
+00:30:36,656 --> 00:30:39,016
+those same samples are
+also deleted again locally
+
+
+614
+00:30:39,016 --> 00:30:41,686
+on the device and
+remotely in the cloud.
+
+
+615
+00:30:43,586 --> 00:30:47,626
+And ensure that future sync
+operations don't re-add already
+
+
+616
+00:30:47,626 --> 00:30:48,496
+deleted samples.
+
+
+617
+00:30:49,546 --> 00:30:52,546
+Now, there are two
+potential problems that I'd
+
+
+618
+00:30:52,546 --> 00:30:55,106
+like to discuss when
+referring talking
+
+
+619
+00:30:55,106 --> 00:30:56,726
+about how to avoid duplication.
+
+
+620
+00:30:57,486 --> 00:30:59,516
+The first is pre-populating
+data.
+
+
+621
+00:30:59,906 --> 00:31:02,516
+Pre-populating data is,
+I'm sorry, onboarding.
+
+
+622
+00:31:03,096 --> 00:31:05,836
+Pre-populating data is a
+great way during on-boarding
+
+
+623
+00:31:05,836 --> 00:31:08,056
+to save the user time
+by pulling information
+
+
+624
+00:31:08,056 --> 00:31:09,766
+that may already be
+stored in HealthKit.
+
+
+625
+00:31:11,556 --> 00:31:14,846
+Users have the ability to verify
+data that's already in HealthKit
+
+
+626
+00:31:14,916 --> 00:31:16,256
+and change it if necessary.
+
+
+627
+00:31:17,886 --> 00:31:20,676
+However, the problem is
+saving unchanged values.
+
+
+628
+00:31:21,816 --> 00:31:25,746
+Be sure only to save data again
+if this is the user's intent.
+
+
+629
+00:31:28,636 --> 00:31:32,866
+Another additional potential
+problem may be ingesting data
+
+
+630
+00:31:32,926 --> 00:31:34,656
+both from another
+app and HealthKit.
+
+
+631
+00:31:35,916 --> 00:31:37,886
+Remember to only pick one source
+
+
+632
+00:31:37,886 --> 00:31:40,716
+of information that's most
+appropriate to your application.
+
+
+633
+00:31:41,606 --> 00:31:43,266
+HealthKit has a great
+privacy story
+
+
+634
+00:31:43,266 --> 00:31:45,316
+that our users have
+already bought into.
+
+
+635
+00:31:45,316 --> 00:31:50,806
+However, you know what's, what
+source is best for your app.
+
+
+636
+00:31:51,076 --> 00:31:53,876
+Make sure not to save
+another application's data
+
+
+637
+00:31:53,876 --> 00:31:54,826
+on their behalf.
+
+
+638
+00:31:56,276 --> 00:31:59,876
+Writing only your data once
+avoids duplicating data
+
+
+639
+00:31:59,876 --> 00:32:02,676
+by simplifying which
+app's responsibility it is
+
+
+640
+00:32:02,676 --> 00:32:03,186
+to write it.
+
+
+641
+00:32:04,086 --> 00:32:06,376
+There is one particular
+exception for this rule.
+
+
+642
+00:32:06,406 --> 00:32:08,266
+Sometimes duplication
+is intentional.
+
+
+643
+00:32:09,516 --> 00:32:11,936
+For example, if data's
+coming from multiple sources.
+
+
+644
+00:32:12,636 --> 00:32:17,346
+If a data, step data is
+generated both on a user's phone
+
+
+645
+00:32:17,346 --> 00:32:23,106
+and his or her Apple Watch,
+you can use HKStatisticsQuery
+
+
+646
+00:32:23,136 --> 00:32:25,716
+and HKStatisticsCollectionQuery
+in order
+
+
+647
+00:32:25,716 --> 00:32:28,846
+to automatically
+de-duplicate data by the order
+
+
+648
+00:32:28,846 --> 00:32:32,646
+of the preferred data sources
+that exist in the Health App.
+
+
+649
+00:32:32,646 --> 00:32:35,506
+This way, our users get
+a consistent experience
+
+
+650
+00:32:35,726 --> 00:32:38,276
+of the view of their health
+data throughout our ecosystem.
+
+
+651
+00:32:38,346 --> 00:32:42,076
+Now, I want to talk
+about migrating data.
+
+
+652
+00:32:42,646 --> 00:32:45,456
+Let's say that you've launched
+a new Bluetooth thermometer
+
+
+653
+00:32:45,566 --> 00:32:47,496
+and app that writes
+data into HealthKit.
+
+
+654
+00:32:48,326 --> 00:32:50,896
+Your application has been in
+the App Store for a few days,
+
+
+655
+00:32:50,976 --> 00:32:52,686
+but your users discover
+a problem.
+
+
+656
+00:32:53,446 --> 00:32:57,786
+In certain locales, instead of
+saving 98 degrees Fahrenheit,
+
+
+657
+00:32:58,656 --> 00:33:01,316
+you actually save
+98 degrees Celsius.
+
+
+658
+00:33:01,706 --> 00:33:03,066
+That's a bit warm.
+
+
+659
+00:33:04,116 --> 00:33:06,826
+But in this case, we know
+exactly how we can migrate this
+
+
+660
+00:33:06,906 --> 00:33:08,416
+data in order to fix it.
+
+
+661
+00:33:08,866 --> 00:33:14,796
+We first need to find old
+samples, write new samples,
+
+
+662
+00:33:14,846 --> 00:33:17,276
+making sure to update
+UUID stored elsewhere,
+
+
+663
+00:33:17,276 --> 00:33:20,756
+and then delete old samples.
+
+
+664
+00:33:22,856 --> 00:33:25,656
+Now, a few new things
+regarding the flow of data
+
+
+665
+00:33:25,656 --> 00:33:27,386
+between iPhone and Apple Watch.
+
+
+666
+00:33:28,916 --> 00:33:32,036
+Starting in iOS 9.3,
+data originating
+
+
+667
+00:33:32,036 --> 00:33:34,176
+on a user's phone will
+now sync back to all
+
+
+668
+00:33:34,176 --> 00:33:35,316
+of their paired Apple Watches.
+
+
+669
+00:33:35,576 --> 00:33:37,446
+Apple Watch is now a reflection
+
+
+670
+00:33:37,446 --> 00:33:39,366
+of the most recent
+health data stored
+
+
+671
+00:33:39,366 --> 00:33:40,966
+within the HealthKit ecosystem.
+
+
+672
+00:33:41,106 --> 00:33:43,996
+In order to accomplish this,
+
+
+673
+00:33:44,376 --> 00:33:47,456
+samples are now periodically
+pruned based off their end date
+
+
+674
+00:33:47,586 --> 00:33:49,246
+on Apple Watch.
+
+
+675
+00:33:52,496 --> 00:33:54,276
+Make sure to save samples
+
+
+676
+00:33:54,276 --> 00:33:58,246
+after HKHealthStore's earliest
+permitted sample date in order
+
+
+677
+00:33:58,246 --> 00:34:00,256
+to make sure your samples
+are correctly saved
+
+
+678
+00:34:00,706 --> 00:34:03,106
+and synced back to
+a user's device.
+
+
+679
+00:34:05,016 --> 00:34:07,716
+Lastly, sync times
+are not guaranteed.
+
+
+680
+00:34:08,985 --> 00:34:12,096
+You should be saving
+data on either iPhone
+
+
+681
+00:34:12,096 --> 00:34:14,786
+or Apple Watch, not both.
+
+
+682
+00:34:17,416 --> 00:34:20,636
+Now, I'm going to hand it back
+off to Matt, who's going to wrap
+
+
+683
+00:34:20,636 --> 00:34:21,775
+up the rest of our session.
+
+
+684
+00:34:22,216 --> 00:34:24,416
+Thank you, everyone,
+and have a great WWDC.
+
+
+685
+00:34:25,516 --> 00:34:29,906
+[ Applause ]
+
+
+686
+00:34:30,406 --> 00:34:30,926
+>> Thank you, Jeff.
+
+
+687
+00:34:31,386 --> 00:34:35,585
+Before we wrap up, I'd like to
+highlight one awesome additional
+
+
+688
+00:34:35,585 --> 00:34:38,735
+feature that's brand new
+in iOS X and watchOS 3.
+
+
+689
+00:34:40,376 --> 00:34:41,606
+Wheelchair support.
+
+
+690
+00:34:43,136 --> 00:34:46,556
+Accessibility is extremely
+important to use here at Apple.
+
+
+691
+00:34:47,216 --> 00:34:50,585
+All of our and your users
+deserve to enjoy our products
+
+
+692
+00:34:50,585 --> 00:34:52,616
+and experiences as
+much as possible,
+
+
+693
+00:34:52,766 --> 00:34:55,315
+and the great activity
+tracking experience we brought
+
+
+694
+00:34:55,315 --> 00:34:57,056
+to Apple Watch is no exception.
+
+
+695
+00:34:58,466 --> 00:35:02,446
+iOS X and watchOS 3 include
+great new motion-tracking
+
+
+696
+00:35:02,446 --> 00:35:05,276
+features that automatically
+record data important
+
+
+697
+00:35:05,276 --> 00:35:06,146
+to wheelchair users.
+
+
+698
+00:35:06,766 --> 00:35:09,676
+And now you can work with
+and contribute to those types
+
+
+699
+00:35:09,796 --> 00:35:11,296
+when you're interacting
+with HealthKit.
+
+
+700
+00:35:11,766 --> 00:35:16,506
+First, there's a new
+characteristic data type,
+
+
+701
+00:35:16,756 --> 00:35:19,796
+HKWheelchairUse that
+identifies whether the user uses
+
+
+702
+00:35:19,796 --> 00:35:20,346
+a wheelchair.
+
+
+703
+00:35:20,836 --> 00:35:23,856
+The value can be yes,
+no, or indeterminate.
+
+
+704
+00:35:24,326 --> 00:35:27,746
+Next, we have some new
+quantity types specific
+
+
+705
+00:35:27,746 --> 00:35:28,626
+to wheelchair users.
+
+
+706
+00:35:28,776 --> 00:35:31,896
+Those include wheelchair
+distance and push count,
+
+
+707
+00:35:31,896 --> 00:35:33,966
+which you can think
+of like step count.
+
+
+708
+00:35:35,096 --> 00:35:37,826
+Finally, we have some new
+workout types important
+
+
+709
+00:35:37,826 --> 00:35:39,096
+to wheelchair users as well.
+
+
+710
+00:35:39,376 --> 00:35:42,776
+Those include wheelchair walk
+pace and wheelchair run pace.
+
+
+711
+00:35:46,796 --> 00:35:49,166
+When a wheelchair user
+is using Apple Watch,
+
+
+712
+00:35:49,276 --> 00:35:51,686
+the watch automatically
+records wheelchair pushes
+
+
+713
+00:35:51,756 --> 00:35:53,216
+to the new push count data type.
+
+
+714
+00:35:54,206 --> 00:35:57,006
+In addition, the stand
+ring corresponding
+
+
+715
+00:35:57,006 --> 00:36:00,346
+to the stand hours data type
+instead becomes roll hours.
+
+
+716
+00:36:01,636 --> 00:36:04,956
+Be aware that wheelchair
+distance is only automatically
+
+
+717
+00:36:04,956 --> 00:36:08,556
+recorded during a wheelchair
+workout and also be aware
+
+
+718
+00:36:09,096 --> 00:36:12,016
+that a user's wheelchair
+status can change over time.
+
+
+719
+00:36:12,596 --> 00:36:13,676
+This is really important
+
+
+720
+00:36:13,676 --> 00:36:15,446
+if you're querying
+for historical data.
+
+
+721
+00:36:15,856 --> 00:36:18,006
+In this case, you want to
+make sure that you query
+
+
+722
+00:36:18,186 --> 00:36:21,316
+for both wheelchair types
+and non-wheelchair types
+
+
+723
+00:36:21,316 --> 00:36:23,536
+so that you're not potentially
+leaving out a big chunk
+
+
+724
+00:36:23,536 --> 00:36:25,786
+of the user's historical
+information.
+
+
+725
+00:36:26,456 --> 00:36:30,276
+To sum up, we work really
+hard to make sure that all
+
+
+726
+00:36:30,276 --> 00:36:33,056
+of our products and experiences
+are accessible to everyone.
+
+
+727
+00:36:33,466 --> 00:36:34,076
+You should too.
+
+
+728
+00:36:34,756 --> 00:36:37,496
+We strongly encourage you to
+reach this important segment
+
+
+729
+00:36:37,496 --> 00:36:40,116
+of our users by supporting
+and contributing
+
+
+730
+00:36:40,116 --> 00:36:42,956
+to wheelchair data
+types in your apps.
+
+
+731
+00:36:44,716 --> 00:36:48,196
+So we've talked about
+a lot today.
+
+
+732
+00:36:48,516 --> 00:36:49,166
+Let's recap.
+
+
+733
+00:36:50,916 --> 00:36:53,206
+Authorization is
+extremely important
+
+
+734
+00:36:53,206 --> 00:36:54,756
+for protecting users' privacy,
+
+
+735
+00:36:54,996 --> 00:36:58,056
+but getting the user experience
+right is absolutely key.
+
+
+736
+00:36:59,206 --> 00:37:01,726
+Keep authorization in mind when
+you're developing your app,
+
+
+737
+00:37:01,896 --> 00:37:03,386
+and be sure to test it often.
+
+
+738
+00:37:03,866 --> 00:37:08,256
+Next, fit in with Apple's
+health and fitness ecosystem
+
+
+739
+00:37:08,356 --> 00:37:10,896
+by incorporating the Activity
+Rings right into your app
+
+
+740
+00:37:11,056 --> 00:37:14,776
+with the Activity Rings API.
+
+
+741
+00:37:15,026 --> 00:37:16,596
+Whenever you're interacting
+with HealthKit,
+
+
+742
+00:37:16,956 --> 00:37:19,996
+take care to handle all cases
+where data is synchronized,
+
+
+743
+00:37:19,996 --> 00:37:22,756
+deleted, or duplicated
+properly to ensure
+
+
+744
+00:37:22,756 --> 00:37:24,906
+that your users' data
+is always precise
+
+
+745
+00:37:25,246 --> 00:37:28,336
+and always what you'd expect.
+
+
+746
+00:37:28,886 --> 00:37:31,726
+And finally, don't forget to
+take advantage of the great,
+
+
+747
+00:37:31,726 --> 00:37:34,106
+new features we've
+introduced this year in iOS X
+
+
+748
+00:37:34,106 --> 00:37:37,306
+and watchOS 3, especially
+wheelchair support,
+
+
+749
+00:37:37,556 --> 00:37:39,536
+something we think is
+extremely important.
+
+
+750
+00:37:41,656 --> 00:37:44,576
+If you'd like more
+information about any
+
+
+751
+00:37:44,576 --> 00:37:45,876
+of the things we
+talked about today
+
+
+752
+00:37:45,876 --> 00:37:48,116
+or if you have any questions,
+please visit this site.
+
+
+753
+00:37:48,116 --> 00:37:50,236
+We have lots of additional
+resources available.
+
+
+754
+00:37:50,796 --> 00:37:55,126
+And don't forget to check out
+our related sessions as well.
+
+
+755
+00:37:55,896 --> 00:37:58,246
+We also have these great
+sessions from previous years
+
+
+756
+00:37:58,246 --> 00:37:59,906
+if you want to get up
+to speed on HealthKit.
+
+
+757
+00:38:00,526 --> 00:38:02,186
+Thank you for creating
+your great apps
+
+
+758
+00:38:02,186 --> 00:38:04,036
+that help users live
+healthier lives
+
+
+759
+00:38:04,036 --> 00:38:06,476
+and enjoy the rest of your WWDC.
+
+
+760
+00:38:07,508 --> 00:38:09,508
+[ Applause ]
+

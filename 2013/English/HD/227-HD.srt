@@ -1,0 +1,5694 @@
+1
+00:00:00,506 --> 00:00:09,496
+[ Silence ]
+
+
+2
+00:00:09,996 --> 00:00:12,926
+>> Hello and welcome to
+Solutions to Common Date
+
+
+3
+00:00:12,926 --> 00:00:15,326
+and Time Challenges,
+I'm Chris Kane.
+
+
+4
+00:00:16,036 --> 00:00:20,916
+Now, two years ago at WWDC
+2011 I gave a very similar talk
+
+
+5
+00:00:21,356 --> 00:00:25,336
+called Performing Calendrical
+Calculations and I--
+
+
+6
+00:00:25,536 --> 00:00:29,556
+you can go on the develop site
+at apple.com and find the video
+
+
+7
+00:00:29,556 --> 00:00:31,256
+for that and watch that too.
+
+
+8
+00:00:31,406 --> 00:00:35,146
+But I promise for this talk
+I have some all new content.
+
+
+9
+00:00:35,146 --> 00:00:37,006
+So, this talk is not really--
+
+
+10
+00:00:37,096 --> 00:00:40,506
+not just a duplication
+of that talk 2 years ago.
+
+
+11
+00:00:40,506 --> 00:00:43,386
+What I'm going to be
+doing today is I'm going
+
+
+12
+00:00:43,386 --> 00:00:46,636
+to give you a brief introduction
+to the calendar APIs,
+
+
+13
+00:00:47,636 --> 00:00:53,006
+these are the APIs that one
+uses to do calendar operations,
+
+
+14
+00:00:53,796 --> 00:00:55,556
+calendrical calculations
+if you will
+
+
+15
+00:00:55,626 --> 00:00:57,366
+and I'll be explaining that.
+
+
+16
+00:00:57,366 --> 00:01:00,846
+Then the bulk of
+the talk is going
+
+
+17
+00:01:00,846 --> 00:01:03,966
+to be spent covering
+several common tasks
+
+
+18
+00:01:03,966 --> 00:01:07,146
+that we see people doing over
+and over again, and I'm going
+
+
+19
+00:01:07,146 --> 00:01:10,186
+to talk about how I
+would go about, you know,
+
+
+20
+00:01:10,186 --> 00:01:12,066
+doing those kinds of operations.
+
+
+21
+00:01:12,846 --> 00:01:17,036
+Now, my examples are going to
+use some new methods that are
+
+
+22
+00:01:17,136 --> 00:01:24,986
+in Mavericks OS X, Mavericks,
+but not yet in iOS watch
+
+
+23
+00:01:24,986 --> 00:01:29,836
+for a future update in iOS
+for those APIs to appear.
+
+
+24
+00:01:29,996 --> 00:01:34,056
+They're not here in your
+seed for example, iOS seed.
+
+
+25
+00:01:35,476 --> 00:01:38,026
+Finally, I'm going to wrap
+up with just a few words
+
+
+26
+00:01:38,026 --> 00:01:41,686
+about testing calendar
+calculations.
+
+
+27
+00:01:42,656 --> 00:01:46,166
+And then give you some more
+information about where to look
+
+
+28
+00:01:46,816 --> 00:01:50,436
+for additional resources
+and stuff like that.
+
+
+29
+00:01:51,006 --> 00:01:51,956
+So, let's dive in.
+
+
+30
+00:01:52,286 --> 00:01:56,196
+So, when I talk about the
+calendar APIs, I'm referring
+
+
+31
+00:01:56,196 --> 00:02:01,486
+to just these 4 classes here,
+NSDate, NSDateComponets,
+
+
+32
+00:02:01,896 --> 00:02:04,156
+NSCalendar and NSTimeZone.
+
+
+33
+00:02:05,066 --> 00:02:07,256
+Now, if you wanted to present
+information to the user
+
+
+34
+00:02:07,256 --> 00:02:09,205
+on the screen like
+display a date,
+
+
+35
+00:02:09,205 --> 00:02:12,016
+you would use a class
+called NSDate Formatter.
+
+
+36
+00:02:12,016 --> 00:02:14,806
+I'm not going to be talking
+about NSDate formatter
+
+
+37
+00:02:14,806 --> 00:02:18,246
+in this particular talk
+but you can go look about--
+
+
+38
+00:02:18,246 --> 00:02:20,076
+look at the documentation
+
+
+39
+00:02:20,076 --> 00:02:24,906
+for NSDate formatter
+online or an Xcode.
+
+
+40
+00:02:25,046 --> 00:02:26,716
+So, what is an NSDate?
+
+
+41
+00:02:27,556 --> 00:02:30,536
+Well, NSDate is a very
+simple value object
+
+
+42
+00:02:30,846 --> 00:02:35,596
+that has just one property
+which is a floating point number
+
+
+43
+00:02:35,816 --> 00:02:39,146
+of seconds relative
+to our reference date.
+
+
+44
+00:02:39,706 --> 00:02:41,506
+So, basically it
+just got one property
+
+
+45
+00:02:41,566 --> 00:02:45,426
+which is a double floating point
+number, happens to be a double
+
+
+46
+00:02:45,426 --> 00:02:47,846
+in this case and
+that's stores the number
+
+
+47
+00:02:47,846 --> 00:02:53,596
+of seconds either before or
+after our reference date.
+
+
+48
+00:02:54,036 --> 00:02:57,046
+So, at this point I'm going
+to introduce this graphic
+
+
+49
+00:02:57,046 --> 00:02:57,996
+which I'm going
+
+
+50
+00:02:57,996 --> 00:03:01,176
+to use throughout the
+talk, this is our timeline.
+
+
+51
+00:03:01,176 --> 00:03:04,856
+Now, I'm going to add a
+boss here to the timeline,
+
+
+52
+00:03:04,856 --> 00:03:09,506
+this little knob in the middle
+and that's going to refer
+
+
+53
+00:03:09,506 --> 00:03:11,556
+in this particular case
+to our reference date.
+
+
+54
+00:03:12,246 --> 00:03:15,206
+So, we're a little bit after
+our reference date right now
+
+
+55
+00:03:15,656 --> 00:03:16,956
+that the actual value
+
+
+56
+00:03:16,956 --> 00:03:18,936
+of the reference date
+doesn't really matter,
+
+
+57
+00:03:19,526 --> 00:03:23,766
+it's in 2001 for-- in the
+Gregorian calendar as it happens
+
+
+58
+00:03:23,766 --> 00:03:27,316
+so it's a little
+ways in the past
+
+
+59
+00:03:27,556 --> 00:03:29,266
+but so the numbers right now
+
+
+60
+00:03:29,446 --> 00:03:34,226
+that an NSDate their
+storing is a bit--
+
+
+61
+00:03:34,226 --> 00:03:35,716
+the numbers are positive.
+
+
+62
+00:03:36,146 --> 00:03:41,046
+We're about 12 years after 2001
+
+
+63
+00:03:41,146 --> 00:03:43,826
+and so the numbers
+are slightly positive
+
+
+64
+00:03:43,826 --> 00:03:45,826
+but because this is a
+floating point number.
+
+
+65
+00:03:45,826 --> 00:03:49,116
+These numbers cans be very large
+and, you know, go often to the,
+
+
+66
+00:03:49,116 --> 00:03:54,736
+you know, far future and refer
+to dates into the far past.
+
+
+67
+00:03:54,986 --> 00:03:59,786
+They're about, what, 31 million
+seconds or so in every year
+
+
+68
+00:04:00,206 --> 00:04:04,396
+so of course after 12 years
+there must be over, what,
+
+
+69
+00:04:04,666 --> 00:04:09,336
+360 million seconds that
+are being as value seconds,
+
+
+70
+00:04:09,336 --> 00:04:11,956
+that are being stored in
+every NSDate for dates
+
+
+71
+00:04:11,956 --> 00:04:13,266
+that around the current time.
+
+
+72
+00:04:14,296 --> 00:04:19,116
+So, these numbers are very large
+of course and we don't work
+
+
+73
+00:04:19,116 --> 00:04:22,786
+with them numbers like
+360 million seconds,
+
+
+74
+00:04:22,856 --> 00:04:26,406
+that's 2001 as humans and
+I'll be getting to that
+
+
+75
+00:04:26,406 --> 00:04:28,276
+in a second what we do instead.
+
+
+76
+00:04:28,836 --> 00:04:31,386
+Now, in NSDate, I want
+
+
+77
+00:04:31,486 --> 00:04:34,836
+to emphasize represents
+both a time and a date.
+
+
+78
+00:04:35,386 --> 00:04:37,726
+It has the word date
+in there in the name
+
+
+79
+00:04:37,886 --> 00:04:40,316
+but since it is a
+number of seconds
+
+
+80
+00:04:40,726 --> 00:04:45,456
+since the reference date, it
+is both a date and a time.
+
+
+81
+00:04:45,456 --> 00:04:48,546
+It refers to a specific
+moment in time really.
+
+
+82
+00:04:49,166 --> 00:04:54,076
+A typical thing you
+might do with NSDate is
+
+
+83
+00:04:54,076 --> 00:04:58,886
+to get the current date, a date
+object that represents now,
+
+
+84
+00:04:59,216 --> 00:05:02,266
+this very moment when I
+making the method call.
+
+
+85
+00:05:02,756 --> 00:05:04,966
+And I'll be using this
+a bunch in the talk
+
+
+86
+00:05:04,966 --> 00:05:07,296
+so that's why I'm putting
+it up in the slide now.
+
+
+87
+00:05:08,086 --> 00:05:11,336
+To get the current time or
+a date with the current date
+
+
+88
+00:05:11,336 --> 00:05:14,156
+in it you simply call
+the class method Date.
+
+
+89
+00:05:14,156 --> 00:05:17,146
+It's very simple,
+straight forward.
+
+
+90
+00:05:18,236 --> 00:05:20,316
+So, because these
+numbers are very large,
+
+
+91
+00:05:20,316 --> 00:05:22,266
+of course like numbers
+of seconds,
+
+
+92
+00:05:22,266 --> 00:05:24,866
+they are really cumbersome
+for human to deal with.
+
+
+93
+00:05:24,976 --> 00:05:30,336
+And so, we as humans over time
+have developed these notions
+
+
+94
+00:05:30,336 --> 00:05:35,476
+of what we call in this case
+dateComponents that is years
+
+
+95
+00:05:35,476 --> 00:05:38,856
+and months and days and hours
+and minutes and seconds.
+
+
+96
+00:05:38,856 --> 00:05:43,016
+We break time down into either,
+you know, something that relates
+
+
+97
+00:05:43,016 --> 00:05:46,786
+to an astronomical cycle, or
+something artificial like hours
+
+
+98
+00:05:46,786 --> 00:05:51,986
+and minutes and seconds which
+are easier for us to deal with.
+
+
+99
+00:05:52,256 --> 00:05:57,136
+Now, an NSDateComponents is a
+slide says here a simple model
+
+
+100
+00:05:57,136 --> 00:05:59,756
+object with stores these
+kinds of components.
+
+
+101
+00:05:59,806 --> 00:06:03,016
+So, if I have NSDateComponents
+object I can set it
+
+
+102
+00:06:03,016 --> 00:06:05,206
+as month property
+to 6 for example
+
+
+103
+00:06:05,206 --> 00:06:06,796
+or it's day property to 14.
+
+
+104
+00:06:07,756 --> 00:06:09,296
+Now, the other properties like--
+
+
+105
+00:06:09,726 --> 00:06:12,076
+well there's many other
+properties, other properties
+
+
+106
+00:06:12,076 --> 00:06:15,096
+like hours and minutes
+and seconds, or year
+
+
+107
+00:06:15,266 --> 00:06:19,846
+or what the weekday is
+or those kinds of things.
+
+
+108
+00:06:20,126 --> 00:06:23,966
+I've not specified in this
+date components object
+
+
+109
+00:06:24,446 --> 00:06:26,466
+of what happens with those.
+
+
+110
+00:06:26,916 --> 00:06:30,826
+Well, the default value for
+every component is "unspecified"
+
+
+111
+00:06:31,376 --> 00:06:32,636
+with NSDateComponents.
+
+
+112
+00:06:32,636 --> 00:06:37,596
+So, unless a value has been set
+it has this value, special value
+
+
+113
+00:06:37,996 --> 00:06:40,126
+which is basically
+blank has not been set.
+
+
+114
+00:06:40,126 --> 00:06:44,586
+And there's a constant for that
+NSDateComponentsUnspecified.
+
+
+115
+00:06:48,316 --> 00:06:49,896
+NSCalendars where most
+
+
+116
+00:06:49,896 --> 00:06:53,166
+of the calendar calculations
+APIs occur.
+
+
+117
+00:06:54,016 --> 00:06:57,906
+NSCalendar is the object
+that represents various kinds
+
+
+118
+00:06:57,906 --> 00:07:02,756
+of world calendars and knows
+how to do calendar math on them.
+
+
+119
+00:07:03,166 --> 00:07:06,906
+It knows how to take an NSDate
+for example and break it
+
+
+120
+00:07:06,906 --> 00:07:09,786
+down into the components like
+what is the year, what month
+
+
+121
+00:07:09,786 --> 00:07:12,246
+and day within a given calendar.
+
+
+122
+00:07:12,246 --> 00:07:15,516
+And the-- you know, various
+kinds of calendars include
+
+
+123
+00:07:15,516 --> 00:07:17,276
+for example the Gregorian
+calendar.
+
+
+124
+00:07:17,856 --> 00:07:20,376
+That's the calendar I'm mainly
+going to be using in this talk
+
+
+125
+00:07:20,376 --> 00:07:22,236
+for some of my illustrations.
+
+
+126
+00:07:23,036 --> 00:07:27,426
+Here we see a calendar
+showing January 2012.
+
+
+127
+00:07:28,556 --> 00:07:32,646
+But-- and the Gregorian
+calendar is of course the--
+
+
+128
+00:07:32,646 --> 00:07:34,446
+a name for the what--
+
+
+129
+00:07:34,596 --> 00:07:36,936
+some people also call
+the Western Calendar.
+
+
+130
+00:07:36,936 --> 00:07:41,146
+The calendar which is very
+commonly used in commerce
+
+
+131
+00:07:41,146 --> 00:07:45,306
+for example around the world
+even where a local calendar
+
+
+132
+00:07:45,306 --> 00:07:48,686
+like the Hebrew Calendar
+or the Islamic Calendar,
+
+
+133
+00:07:49,036 --> 00:07:52,766
+or the Thai Buddhist
+Calendar is being used instead
+
+
+134
+00:07:53,096 --> 00:07:56,096
+by the local people.
+
+
+135
+00:07:56,826 --> 00:08:01,336
+So, as I say, NSCalendar knows
+how to convert between NSDates,
+
+
+136
+00:08:01,436 --> 00:08:05,936
+these very large numbers
+which are not specific
+
+
+137
+00:08:05,936 --> 00:08:07,286
+to any particular calendar.
+
+
+138
+00:08:07,796 --> 00:08:10,726
+And the components that
+is the human components
+
+
+139
+00:08:11,186 --> 00:08:15,326
+that humans are using with
+the specific calendar systems.
+
+
+140
+00:08:16,716 --> 00:08:21,436
+NSCalendar also contains various
+calendar calculation APIs.
+
+
+141
+00:08:21,436 --> 00:08:23,076
+And we'll be looking
+at some of those today.
+
+
+142
+00:08:23,756 --> 00:08:26,206
+And it has several
+properties as well
+
+
+143
+00:08:26,206 --> 00:08:28,336
+to control the calculation
+parameters.
+
+
+144
+00:08:28,336 --> 00:08:32,566
+For example, what is the
+time zone that I want
+
+
+145
+00:08:32,566 --> 00:08:34,515
+to do the calculations in.
+
+
+146
+00:08:35,515 --> 00:08:42,916
+To-- a common calendar that
+when why use is the what we call
+
+
+147
+00:08:42,916 --> 00:08:44,336
+the autoupdatingCalendar.
+
+
+148
+00:08:44,936 --> 00:08:48,196
+And here I've shown a
+very simple example of how
+
+
+149
+00:08:48,196 --> 00:08:49,166
+to create one of those.
+
+
+150
+00:08:50,176 --> 00:08:55,586
+The user on the system
+hasn't preferred calendar.
+
+
+151
+00:08:55,586 --> 00:08:57,826
+There's a setting for that
+or preference for that.
+
+
+152
+00:08:58,616 --> 00:09:01,496
+If the user changes
+their preferred calendar,
+
+
+153
+00:09:01,716 --> 00:09:03,886
+you may want your
+application to update
+
+
+154
+00:09:04,116 --> 00:09:07,846
+to whatever the new
+users preference is.
+
+
+155
+00:09:08,216 --> 00:09:12,196
+And so, this is-- what this does
+is it returns a calendar object
+
+
+156
+00:09:12,546 --> 00:09:14,756
+which watches for changes
+
+
+157
+00:09:14,756 --> 00:09:18,596
+to the user's calendar
+preference and updates itself.
+
+
+158
+00:09:18,646 --> 00:09:22,656
+So, you can use this and sort
+of fire and forget if you will,
+
+
+159
+00:09:22,656 --> 00:09:27,156
+and not have to worry about
+the user's calendar changing.
+
+
+160
+00:09:27,436 --> 00:09:29,136
+This thing will change itself
+
+
+161
+00:09:29,226 --> 00:09:32,426
+to match whatever the user's
+setting is at any given point.
+
+
+162
+00:09:33,976 --> 00:09:37,996
+So, what are these calendar
+calculations that you can do?
+
+
+163
+00:09:37,996 --> 00:09:39,826
+Well, there's many
+different kinds of things
+
+
+164
+00:09:40,266 --> 00:09:41,746
+that why I'm want
+to do but I'm going
+
+
+165
+00:09:41,746 --> 00:09:43,106
+to give a couple
+of examples here.
+
+
+166
+00:09:43,426 --> 00:09:45,216
+So, here we are the
+timeline again,
+
+
+167
+00:09:45,216 --> 00:09:48,736
+I've marked June
+14th and August 26th.
+
+
+168
+00:09:49,356 --> 00:09:53,096
+And one might ask for example,
+how many weeks are there
+
+
+169
+00:09:53,096 --> 00:09:54,886
+between these two dates?
+
+
+170
+00:09:55,486 --> 00:09:57,346
+Well, I know between-- strictly
+
+
+171
+00:09:57,346 --> 00:09:59,966
+between these two dates
+there are 72 days.
+
+
+172
+00:10:00,526 --> 00:10:04,756
+And since there's seven days
+in a week, that's 10 weeks,
+
+
+173
+00:10:04,806 --> 00:10:07,366
+they're up to 10 weeks
+plus two extra days
+
+
+174
+00:10:07,826 --> 00:10:09,346
+in between these two dates.
+
+
+175
+00:10:10,646 --> 00:10:12,986
+Another kind of calculation
+one might do is
+
+
+176
+00:10:12,986 --> 00:10:14,656
+to ask questions about weeks.
+
+
+177
+00:10:15,126 --> 00:10:16,586
+Now, here I'm going
+to show a graphic
+
+
+178
+00:10:17,416 --> 00:10:22,486
+where I've highlighted
+today, June 14th.
+
+
+179
+00:10:23,686 --> 00:10:26,966
+But one thing you might notice
+is for example if you're used
+
+
+180
+00:10:26,966 --> 00:10:30,926
+to United States Convention
+of starting the calendars
+
+
+181
+00:10:31,216 --> 00:10:33,016
+with Sunday on the far left,
+
+
+182
+00:10:33,016 --> 00:10:34,446
+you might noticed
+this is little odd.
+
+
+183
+00:10:34,846 --> 00:10:36,386
+I've chosen to start
+this calendar
+
+
+184
+00:10:36,386 --> 00:10:37,796
+with Monday is the first day.
+
+
+185
+00:10:38,306 --> 00:10:41,086
+And so, I've just doing
+this to highlight the fact
+
+
+186
+00:10:41,086 --> 00:10:46,236
+that different kinds of locales
+might choose different first
+
+
+187
+00:10:46,236 --> 00:10:48,946
+days in the week or different
+days of the week to be the--
+
+
+188
+00:10:49,086 --> 00:10:50,306
+their first day of the week.
+
+
+189
+00:10:50,736 --> 00:10:53,756
+This is a convention that you
+might see for example more often
+
+
+190
+00:10:53,756 --> 00:10:56,406
+in Europe than here
+in the United States.
+
+
+191
+00:10:57,446 --> 00:11:01,466
+So, one question I
+might to ask is given
+
+
+192
+00:11:01,466 --> 00:11:03,306
+that today is the 14th of June.
+
+
+193
+00:11:03,956 --> 00:11:06,766
+What is the week that
+contains this date?
+
+
+194
+00:11:07,386 --> 00:11:09,106
+Well, here I've highlighted it.
+
+
+195
+00:11:09,426 --> 00:11:11,436
+June 10th was the
+first day of the week
+
+
+196
+00:11:11,676 --> 00:11:14,606
+in this particular
+locale of this calendar.
+
+
+197
+00:11:15,706 --> 00:11:21,906
+And the week extends
+through the 16th.
+
+
+198
+00:11:21,906 --> 00:11:25,046
+NSTimeZone then I
+mentioned time zones already.
+
+
+199
+00:11:25,536 --> 00:11:27,056
+NSTimeZone is our object
+
+
+200
+00:11:27,056 --> 00:11:29,366
+that represents these
+time zone regions.
+
+
+201
+00:11:29,766 --> 00:11:33,116
+A time zone is the
+geo-political region
+
+
+202
+00:11:33,306 --> 00:11:35,846
+like the one I've
+highlighted here with Geneva,
+
+
+203
+00:11:35,846 --> 00:11:38,376
+Switzerland having
+the blue dot over it.
+
+
+204
+00:11:39,346 --> 00:11:41,376
+It's a geo-political
+region of the world
+
+
+205
+00:11:41,846 --> 00:11:46,636
+that has a particular
+offset from Universal Time
+
+
+206
+00:11:47,136 --> 00:11:49,946
+and a particular set
+of rules that determine
+
+
+207
+00:11:49,946 --> 00:11:51,596
+when that offset changes.
+
+
+208
+00:11:52,376 --> 00:11:54,296
+Generally, we call that
+kind of thing for example
+
+
+209
+00:11:54,296 --> 00:11:56,876
+"daylight saving time"
+or "summer time."
+
+
+210
+00:11:57,916 --> 00:12:00,376
+And you see it's a very
+irregular region but, you know,
+
+
+211
+00:12:00,786 --> 00:12:03,376
+I call it geo-political.
+
+
+212
+00:12:03,616 --> 00:12:06,586
+Geo meaning, you know,
+related to the earth
+
+
+213
+00:12:06,786 --> 00:12:11,966
+and it is very much vertical
+band of the earth which has more
+
+
+214
+00:12:11,966 --> 00:12:14,746
+or less the same
+longitudes in it.
+
+
+215
+00:12:15,386 --> 00:12:19,286
+But also that word political
+is important in geo-political
+
+
+216
+00:12:19,566 --> 00:12:24,596
+because each country within
+a given longitude band could
+
+
+217
+00:12:24,866 --> 00:12:29,326
+of course decide on
+its own that it has one
+
+
+218
+00:12:29,326 --> 00:12:32,466
+or another different set of
+rules from other countries
+
+
+219
+00:12:32,906 --> 00:12:34,456
+within the same kind of band.
+
+
+220
+00:12:34,746 --> 00:12:37,406
+And it's NSTimeZone
+that has to keep track
+
+
+221
+00:12:37,516 --> 00:12:40,796
+of all these different countries
+rules about, for example,
+
+
+222
+00:12:41,086 --> 00:12:43,816
+when they go into daylight
+saving time or summer time.
+
+
+223
+00:12:44,346 --> 00:12:46,776
+And when they come back
+out-- back to standard time.
+
+
+224
+00:12:47,926 --> 00:12:52,376
+So, as I say NSTimeZone
+is the object that knows
+
+
+225
+00:12:52,376 --> 00:12:55,656
+about the local offset
+from Universal Time
+
+
+226
+00:12:55,956 --> 00:12:57,486
+and when that changes.
+
+
+227
+00:12:58,026 --> 00:13:00,246
+Now, very similar to NSCalendar,
+
+
+228
+00:13:01,486 --> 00:13:03,486
+you can create an
+NSTimeZone object
+
+
+229
+00:13:03,806 --> 00:13:05,616
+which we call the
+local time zone.
+
+
+230
+00:13:06,496 --> 00:13:10,466
+And this object will represent
+whatever the current time zone
+
+
+231
+00:13:10,466 --> 00:13:13,516
+is that the user has set
+on their computer system.
+
+
+232
+00:13:14,116 --> 00:13:16,096
+Or if the user has, you know,
+
+
+233
+00:13:16,096 --> 00:13:19,546
+requested that the time zone
+changes the user moves around,
+
+
+234
+00:13:19,896 --> 00:13:22,256
+this object will
+update itself based
+
+
+235
+00:13:22,256 --> 00:13:24,406
+on the user's location changes.
+
+
+236
+00:13:25,826 --> 00:13:29,376
+So, let's dive in now to
+this Common Operations
+
+
+237
+00:13:29,496 --> 00:13:30,516
+that I want to talk about.
+
+
+238
+00:13:30,516 --> 00:13:33,746
+And I'm going to begin by
+talking about midnight.
+
+
+239
+00:13:34,906 --> 00:13:38,046
+It's very common for
+people to want to know
+
+
+240
+00:13:38,116 --> 00:13:40,816
+about midnight for
+various reasons.
+
+
+241
+00:13:41,646 --> 00:13:44,566
+But midnight can be
+a little problematic.
+
+
+242
+00:13:44,956 --> 00:13:46,916
+And that's why I have
+midnight in quotes,
+
+
+243
+00:13:46,916 --> 00:13:49,166
+and you'll see why I
+have midnight in quotes
+
+
+244
+00:13:49,586 --> 00:13:52,076
+in a few bullets here.
+
+
+245
+00:13:52,386 --> 00:13:55,206
+Well, first, why do
+people want midnight?
+
+
+246
+00:13:55,626 --> 00:13:58,836
+Well, one common reason is
+that people are using it
+
+
+247
+00:13:59,036 --> 00:14:02,196
+as a default "don't care" time.
+
+
+248
+00:14:02,746 --> 00:14:06,166
+It is-- they may want
+to use an NSDate object
+
+
+249
+00:14:06,616 --> 00:14:07,876
+to represent a date.
+
+
+250
+00:14:08,336 --> 00:14:11,186
+For example, suppose they
+want to use an NSDate object
+
+
+251
+00:14:11,186 --> 00:14:12,776
+to represents somebody's
+birthday.
+
+
+252
+00:14:13,326 --> 00:14:17,976
+But they don't care about
+the time part that of NSDate.
+
+
+253
+00:14:17,976 --> 00:14:20,456
+You know, generally,
+we don't worry
+
+
+254
+00:14:20,456 --> 00:14:23,116
+about what time people are born
+
+
+255
+00:14:23,116 --> 00:14:27,786
+within that day unless you're
+say calculating astrological
+
+
+256
+00:14:27,836 --> 00:14:29,196
+charts or something like that.
+
+
+257
+00:14:30,056 --> 00:14:34,206
+So, they say to themselves
+the programmers says, "Well,
+
+
+258
+00:14:34,206 --> 00:14:35,646
+I want to use an NSDate
+
+
+259
+00:14:35,646 --> 00:14:38,296
+to represent this person's
+birthday, but I don't care
+
+
+260
+00:14:38,296 --> 00:14:41,146
+about what time of day
+it is, so I'm going to--
+
+
+261
+00:14:41,146 --> 00:14:43,626
+I went up the kind of tidy
+about things so I'm going
+
+
+262
+00:14:43,626 --> 00:14:44,526
+to set that to midnight."
+
+
+263
+00:14:45,836 --> 00:14:50,056
+Well, what I would
+suggest is when you need
+
+
+264
+00:14:50,056 --> 00:14:52,006
+to do this, use noon instead.
+
+
+265
+00:14:52,676 --> 00:14:55,946
+Midnight can be problematic as
+I'll described but in a moment.
+
+
+266
+00:14:56,406 --> 00:15:01,066
+So, if you really don't care
+about the time use noon instead.
+
+
+267
+00:15:01,736 --> 00:15:05,166
+The other main reason
+that people want to it
+
+
+268
+00:15:05,166 --> 00:15:08,836
+over midnight is they want
+to know when the day changes.
+
+
+269
+00:15:09,386 --> 00:15:13,716
+So, for example, they may want
+to update the user interface
+
+
+270
+00:15:13,716 --> 00:15:18,216
+of the application when the day
+changes from one day to the next
+
+
+271
+00:15:18,216 --> 00:15:20,126
+which is what midnight is,
+
+
+272
+00:15:20,126 --> 00:15:23,116
+the moment at which
+the next day starts.
+
+
+273
+00:15:24,496 --> 00:15:26,206
+But midnight can be troublesome.
+
+
+274
+00:15:26,946 --> 00:15:33,146
+For example, in Brazil, the
+Brazilian time zone changes
+
+
+275
+00:15:33,426 --> 00:15:37,586
+by jumping forward from
+midnight to 1 a.m. when they go
+
+
+276
+00:15:37,586 --> 00:15:39,346
+into their summer time.
+
+
+277
+00:15:39,846 --> 00:15:43,986
+And then the reverse happens,
+you know, in their fall.
+
+
+278
+00:15:44,376 --> 00:15:47,006
+So, there may not
+exist a midnight.
+
+
+279
+00:15:47,776 --> 00:15:50,686
+When 11:59 and 59
+seconds comes along
+
+
+280
+00:15:50,686 --> 00:15:53,796
+and in Brazil, midnight
+is skipped.
+
+
+281
+00:15:54,046 --> 00:15:57,606
+And the first moment of that
+day is 1 a.m. not midnight.
+
+
+282
+00:15:58,046 --> 00:16:00,816
+So, and then, of course,
+
+
+283
+00:16:00,816 --> 00:16:03,966
+if the reverse happens
+there are two midnights then
+
+
+284
+00:16:03,966 --> 00:16:06,666
+when they go back in
+the standard time.
+
+
+285
+00:16:07,166 --> 00:16:10,216
+So, if you're using
+midnight to mean a special--
+
+
+286
+00:16:10,436 --> 00:16:14,346
+for some special reason, you
+can get in trouble of course
+
+
+287
+00:16:14,346 --> 00:16:15,976
+because there may not exist one.
+
+
+288
+00:16:16,256 --> 00:16:20,776
+Instead I would you
+encourage to think in terms
+
+
+289
+00:16:20,776 --> 00:16:22,346
+of the "start of a day."
+
+
+290
+00:16:22,516 --> 00:16:23,726
+When does the day start?
+
+
+291
+00:16:23,796 --> 00:16:27,556
+What is the range
+of time of a day?
+
+
+292
+00:16:28,476 --> 00:16:31,306
+And so, how do you do--
+go about calculating that?
+
+
+293
+00:16:31,876 --> 00:16:34,316
+Well, this is very
+common operation we found.
+
+
+294
+00:16:34,756 --> 00:16:38,156
+So, we've now added an
+operation to do that.
+
+
+295
+00:16:38,476 --> 00:16:42,546
+So, to calculate today's start
+what I would now do nowadays
+
+
+296
+00:16:43,006 --> 00:16:45,496
+with this new API we've added is
+
+
+297
+00:16:45,496 --> 00:16:47,876
+to call the method
+startOfDayForDate.
+
+
+298
+00:16:48,336 --> 00:16:51,086
+And here I'm passing
+an NSDate date which is
+
+
+299
+00:16:51,086 --> 00:16:55,786
+of course the now date, the date
+representing the current moment.
+
+
+300
+00:16:56,996 --> 00:17:00,876
+For-- and that would give me
+of course today's start date.
+
+
+301
+00:17:01,146 --> 00:17:05,286
+For tomorrow's start date,
+we need to do some more work.
+
+
+302
+00:17:05,646 --> 00:17:07,266
+Now, here in this
+example I'm going
+
+
+303
+00:17:07,266 --> 00:17:09,776
+to be very robust
+about my calculation.
+
+
+304
+00:17:09,976 --> 00:17:14,376
+So, first I'm going
+to create the date
+
+
+305
+00:17:14,376 --> 00:17:17,816
+which is the startOfToday
+and I do that again
+
+
+306
+00:17:17,816 --> 00:17:20,306
+with the same line of code.
+
+
+307
+00:17:20,726 --> 00:17:24,296
+Then I calculate a date
+which is sometime in tomorrow
+
+
+308
+00:17:24,846 --> 00:17:29,396
+by using this method
+dateByAddingUnit and passing
+
+
+309
+00:17:29,396 --> 00:17:32,976
+in the constant
+NSCalendarUnitDay.
+
+
+310
+00:17:33,066 --> 00:17:37,756
+So, I'm going to add
+one day to my start date
+
+
+311
+00:17:37,806 --> 00:17:40,726
+which was the previous line
+here, the start of today.
+
+
+312
+00:17:41,746 --> 00:17:45,826
+And I'm not going to pass in
+any options this particular case
+
+
+313
+00:17:46,686 --> 00:17:49,426
+and I have a date which
+is sometime in tomorrow.
+
+
+314
+00:17:50,786 --> 00:17:55,396
+But, of course, if today's
+start moment, if the--
+
+
+315
+00:17:55,486 --> 00:17:59,466
+first moment of the day was 1
+a.m., well, that's not going
+
+
+316
+00:17:59,466 --> 00:18:03,116
+to be the same moment
+that tomorrow
+
+
+317
+00:18:03,116 --> 00:18:05,316
+because of the daylight
+saving time transition.
+
+
+318
+00:18:05,436 --> 00:18:09,656
+I mean that's not going to
+the same start of the moment,
+
+
+319
+00:18:09,796 --> 00:18:13,406
+start of the day tomorrow.
+
+
+320
+00:18:13,406 --> 00:18:16,656
+So, I have to call
+startOfDateForDay--
+
+
+321
+00:18:17,356 --> 00:18:21,336
+startOfDayForDate,
+excuse me, again once more
+
+
+322
+00:18:21,876 --> 00:18:25,216
+to compute the real
+start moment of tomorrow.
+
+
+323
+00:18:25,456 --> 00:18:29,316
+So, anyway, let's move on.
+
+
+324
+00:18:31,706 --> 00:18:35,136
+So, why does one want
+to compute midnight?
+
+
+325
+00:18:35,136 --> 00:18:37,406
+Well, the second example
+I gave was you want
+
+
+326
+00:18:37,596 --> 00:18:40,206
+to do some reaction to midnight.
+
+
+327
+00:18:40,286 --> 00:18:42,776
+You want to run some code
+when midnight occurs.
+
+
+328
+00:18:43,026 --> 00:18:47,676
+So, we have a new notification
+for that special case
+
+
+329
+00:18:47,676 --> 00:18:49,336
+that is so very common.
+
+
+330
+00:18:50,096 --> 00:18:51,526
+And so, now you can register
+
+
+331
+00:18:51,526 --> 00:18:54,696
+for the
+NSCalendarDayChangeNotification.
+
+
+332
+00:18:55,866 --> 00:19:00,666
+And you'll-- your code will get
+called when the day changes.
+
+
+333
+00:19:00,666 --> 00:19:04,066
+When midnight or, you
+know, the first moment
+
+
+334
+00:19:04,066 --> 00:19:05,476
+of the next day occurs.
+
+
+335
+00:19:06,626 --> 00:19:08,666
+Why would one want to do that?
+
+
+336
+00:19:08,666 --> 00:19:11,206
+Well, maybe, you've
+been awake at midnight
+
+
+337
+00:19:11,206 --> 00:19:15,436
+and had a mail application
+open, and you've seen suddenly
+
+
+338
+00:19:15,436 --> 00:19:20,716
+at midnight it changes all of
+the today strings in the UI
+
+
+339
+00:19:21,056 --> 00:19:24,126
+to yesterday for all
+those mail messages.
+
+
+340
+00:19:25,706 --> 00:19:28,866
+Well, first thing I do to go
+
+
+341
+00:19:28,866 --> 00:19:31,456
+about doing this is
+I use the local--
+
+
+342
+00:19:31,456 --> 00:19:32,916
+our local notification center
+
+
+343
+00:19:32,916 --> 00:19:36,276
+so I call the defaultCenter
+method to get that.
+
+
+344
+00:19:36,616 --> 00:19:40,026
+I use the usual method
+that addObserverForName
+
+
+345
+00:19:40,026 --> 00:19:43,566
+and I pass a name of
+this new string constant
+
+
+346
+00:19:44,526 --> 00:19:46,336
+which represents
+this notification.
+
+
+347
+00:19:46,826 --> 00:19:49,496
+There's no object or queue
+that I'm going to specify
+
+
+348
+00:19:49,496 --> 00:19:50,816
+in this particular example.
+
+
+349
+00:19:50,816 --> 00:19:55,156
+And then I specify the block
+of code that I want to execute
+
+
+350
+00:19:55,646 --> 00:19:57,806
+when this notification occurs.
+
+
+351
+00:19:58,116 --> 00:19:59,506
+So, it's fairly straightly
+forward use
+
+
+352
+00:19:59,716 --> 00:20:01,906
+of NSNotificationCenter
+in this case.
+
+
+353
+00:20:04,546 --> 00:20:07,746
+Now, midnight of course
+is a specific example
+
+
+354
+00:20:07,876 --> 00:20:09,656
+of wanting a specific time
+
+
+355
+00:20:09,656 --> 00:20:13,446
+but sometimes people want
+different specific times
+
+
+356
+00:20:13,656 --> 00:20:14,976
+but within the same day.
+
+
+357
+00:20:15,116 --> 00:20:17,696
+So, how does one go
+about setting a date
+
+
+358
+00:20:18,056 --> 00:20:21,896
+to a specific time
+within that date?
+
+
+359
+00:20:22,036 --> 00:20:25,756
+Well, let's suppose we want
+to calculate 11:30 today,
+
+
+360
+00:20:25,836 --> 00:20:28,786
+11:30 being the time at
+which this talk started.
+
+
+361
+00:20:30,106 --> 00:20:32,816
+Well, let's suppose I
+have a date which is
+
+
+362
+00:20:32,866 --> 00:20:36,196
+at point A there on the graphic.
+
+
+363
+00:20:37,176 --> 00:20:40,686
+So, that would be a date
+which before at a time
+
+
+364
+00:20:41,116 --> 00:20:43,766
+within this date
+which is before 11:30.
+
+
+365
+00:20:44,216 --> 00:20:47,186
+Obviously, I need to compute
+a date which is in the future
+
+
+366
+00:20:47,186 --> 00:20:49,396
+at which pushes the
+date forward in time.
+
+
+367
+00:20:50,016 --> 00:20:53,506
+But if the data object that I
+start with is at say point B,
+
+
+368
+00:20:53,796 --> 00:20:56,646
+I need to pull the
+date back to 11:30.
+
+
+369
+00:20:57,476 --> 00:20:59,636
+So, what do I do?
+
+
+370
+00:20:59,746 --> 00:21:02,766
+Well, right now,
+we're after 11:30
+
+
+371
+00:21:02,766 --> 00:21:04,706
+so we're more like
+at point B here.
+
+
+372
+00:21:05,066 --> 00:21:09,376
+So, to compute 11:30 of
+today I'm going to start
+
+
+373
+00:21:09,376 --> 00:21:13,346
+with the current moment and
+use this new method called
+
+
+374
+00:21:13,346 --> 00:21:18,746
+dateBySettingHour and set that
+to 11, minute set it to 30,
+
+
+375
+00:21:19,256 --> 00:21:22,526
+and second set it
+to zero toDate.
+
+
+376
+00:21:23,556 --> 00:21:27,076
+And again, in this case
+there are no options
+
+
+377
+00:21:27,076 --> 00:21:28,186
+that I'm going to specify.
+
+
+378
+00:21:28,616 --> 00:21:32,026
+And what I get is the
+date object that I started
+
+
+379
+00:21:32,026 --> 00:21:35,386
+with which was the current
+moment has moved either forwards
+
+
+380
+00:21:35,386 --> 00:21:39,136
+or backwards in order to
+set it's time to 11:30.
+
+
+381
+00:21:39,666 --> 00:21:44,826
+Another kind of question
+people like to ask is,
+
+
+382
+00:21:44,826 --> 00:21:46,836
+is this date in today?
+
+
+383
+00:21:48,356 --> 00:21:52,536
+Well, it's a good
+questions and very common.
+
+
+384
+00:21:52,536 --> 00:21:56,076
+So, we added a new method
+for that isDateInToday,
+
+
+385
+00:21:56,076 --> 00:21:57,536
+and this returns a Boolean.
+
+
+386
+00:21:58,176 --> 00:22:01,836
+Now, of course, we didn't
+just add one method here,
+
+
+387
+00:22:01,976 --> 00:22:05,726
+it's also interesting to know
+about yesterday and tomorrow.
+
+
+388
+00:22:06,156 --> 00:22:08,106
+So, we added two
+methods for that as well.
+
+
+389
+00:22:09,386 --> 00:22:12,686
+Now, an interesting thing
+about this particular API is
+
+
+390
+00:22:12,686 --> 00:22:15,956
+that the answer is going
+to change over time,
+
+
+391
+00:22:16,306 --> 00:22:20,696
+time marches forward,
+and so, a date object
+
+
+392
+00:22:20,696 --> 00:22:24,826
+which represents a
+time in today, well,
+
+
+393
+00:22:24,826 --> 00:22:28,706
+tomorrow it won't be a time
+which is in today of course.
+
+
+394
+00:22:29,566 --> 00:22:34,676
+And so, this is an answer which
+is in some sense very transient
+
+
+395
+00:22:34,676 --> 00:22:40,326
+so that's something to keep
+in mind and think about.
+
+
+396
+00:22:40,326 --> 00:22:43,116
+Now, if you want
+to compare dates,
+
+
+397
+00:22:43,916 --> 00:22:46,066
+we have some new API
+for that as well.
+
+
+398
+00:22:47,516 --> 00:22:50,506
+NSDate itself has
+a compare method.
+
+
+399
+00:22:50,846 --> 00:22:55,316
+But since NSDate is simply,
+basically an object wrapper
+
+
+400
+00:22:55,466 --> 00:22:57,116
+around a floating point number.
+
+
+401
+00:22:57,536 --> 00:23:01,586
+The compare method of NSDate
+is very literal when you talk
+
+
+402
+00:23:01,586 --> 00:23:05,286
+about wanting to know is
+equal kind of comparison.
+
+
+403
+00:23:06,036 --> 00:23:08,196
+It's very literal
+[inaudible] comparison.
+
+
+404
+00:23:09,256 --> 00:23:13,866
+But often people want to know
+more like, you know, is this--
+
+
+405
+00:23:13,866 --> 00:23:17,286
+are these two dates, you
+know, within the same day
+
+
+406
+00:23:17,286 --> 00:23:18,456
+or within the same hour?
+
+
+407
+00:23:19,476 --> 00:23:22,496
+Well, asking a question
+like I just asked
+
+
+408
+00:23:22,496 --> 00:23:26,786
+on the previous slides "Is this
+date today" is really just a
+
+
+409
+00:23:26,786 --> 00:23:29,426
+special case of asking
+if two dates,
+
+
+410
+00:23:29,946 --> 00:23:33,636
+a date representing the
+current moment and, you know,
+
+
+411
+00:23:33,836 --> 00:23:36,996
+some other given day
+that you want to compare
+
+
+412
+00:23:36,996 --> 00:23:38,956
+with are on the same day.
+
+
+413
+00:23:39,096 --> 00:23:42,066
+You know, is this
+date in the same day
+
+
+414
+00:23:42,066 --> 00:23:45,346
+as a date representing
+the current moment?
+
+
+415
+00:23:46,236 --> 00:23:48,116
+Well, we have a new
+method for this.
+
+
+416
+00:23:48,796 --> 00:23:52,106
+This is the compared
+date toDate method.
+
+
+417
+00:23:52,106 --> 00:23:54,236
+You pass in the toDates
+of interest.
+
+
+418
+00:23:54,946 --> 00:23:58,566
+And then as the last
+parameter toUnitGranularity,
+
+
+419
+00:23:58,936 --> 00:24:03,646
+you pass in one of the
+NSCalendarConstants for the unit
+
+
+420
+00:24:03,686 --> 00:24:04,636
+that you're interested in.
+
+
+421
+00:24:05,146 --> 00:24:07,266
+So, in this case I'm
+going to ask the question,
+
+
+422
+00:24:07,266 --> 00:24:09,546
+are these two dates
+in the same day?
+
+
+423
+00:24:09,916 --> 00:24:13,566
+But I could ask are these two
+dates in the same month or year
+
+
+424
+00:24:13,936 --> 00:24:16,596
+or minute or what have you.
+
+
+425
+00:24:17,346 --> 00:24:21,506
+Now, and then, of course, if
+the result is NSOrder the same
+
+
+426
+00:24:21,906 --> 00:24:25,756
+that really means that
+they are in the same day.
+
+
+427
+00:24:26,186 --> 00:24:30,406
+Now, it's important to note that
+this is not the same as asking
+
+
+428
+00:24:30,406 --> 00:24:34,956
+if toDates are within some
+amount of one another.
+
+
+429
+00:24:35,706 --> 00:24:39,156
+So, toDates for example
+can be on the same day
+
+
+430
+00:24:39,156 --> 00:24:45,896
+but they can be 23 hours and
+59 minutes, sorry, apart.
+
+
+431
+00:24:46,276 --> 00:24:50,756
+But at the same time, toDates
+can be just one second apart
+
+
+432
+00:24:50,756 --> 00:24:54,066
+but be on two different
+days within,
+
+
+433
+00:24:54,136 --> 00:24:55,306
+you know, some given calendar.
+
+
+434
+00:24:56,186 --> 00:24:59,736
+And so, this is not the same--
+I want to point out as asking
+
+
+435
+00:24:59,736 --> 00:25:05,136
+if toDates are close to one
+another, but rather if they're
+
+
+436
+00:25:05,136 --> 00:25:08,416
+on the same-- within
+the same calendar unit
+
+
+437
+00:25:08,846 --> 00:25:10,956
+within the given calendar
+that you're using.
+
+
+438
+00:25:11,546 --> 00:25:18,626
+Another thing people tend to do
+with NSDate objects is they want
+
+
+439
+00:25:18,626 --> 00:25:21,426
+to treat them as
+timeless entities,
+
+
+440
+00:25:21,426 --> 00:25:23,346
+so I call this "Timeless Dates."
+
+
+441
+00:25:23,916 --> 00:25:27,196
+Just like in my birthday
+example earlier, you don't care
+
+
+442
+00:25:27,196 --> 00:25:30,786
+about the time component, you
+just want to use an NSDate
+
+
+443
+00:25:30,786 --> 00:25:36,676
+to store a date, a year and a
+month and a day essentially.
+
+
+444
+00:25:37,386 --> 00:25:43,006
+But NSDates are here to store
+the number of seconds relative
+
+
+445
+00:25:43,056 --> 00:25:44,106
+to our reference date.
+
+
+446
+00:25:44,576 --> 00:25:49,416
+So, they don't simply store
+values like Era, Year,
+
+
+447
+00:25:49,676 --> 00:25:55,456
+Month and Day which you might
+want to simply store yourself.
+
+
+448
+00:25:57,046 --> 00:25:59,136
+In those cases I
+would suggest using an
+
+
+449
+00:25:59,176 --> 00:26:00,696
+NSDateComponents object.
+
+
+450
+00:26:01,256 --> 00:26:04,736
+An NSDateComponents object as I
+said is very simple model object
+
+
+451
+00:26:04,736 --> 00:26:09,606
+that has separate properties for
+each of the calendar components.
+
+
+452
+00:26:10,056 --> 00:26:12,136
+And so, it's very
+straightforward to use one
+
+
+453
+00:26:12,726 --> 00:26:15,366
+in this way, just to store
+say something like a birthday
+
+
+454
+00:26:15,366 --> 00:26:18,736
+where you just a have a
+year and a month and a day.
+
+
+455
+00:26:19,136 --> 00:26:21,936
+Or, of course, another
+approach would be
+
+
+456
+00:26:22,156 --> 00:26:24,316
+to create your own
+simple model object
+
+
+457
+00:26:24,706 --> 00:26:29,796
+with just three integers say
+or four integers if you want
+
+
+458
+00:26:29,796 --> 00:26:32,116
+to also start the Era.
+
+
+459
+00:26:32,596 --> 00:26:35,896
+And, you know, if you use
+the app property syntax
+
+
+460
+00:26:35,896 --> 00:26:39,046
+in Objective-C the compiler
+will create the setter
+
+
+461
+00:26:39,046 --> 00:26:41,216
+and the getter methods for you.
+
+
+462
+00:26:42,766 --> 00:26:45,266
+Now, you need-- if you do
+this you need to remember
+
+
+463
+00:26:45,266 --> 00:26:49,376
+to include a property in
+this object for the calendar
+
+
+464
+00:26:50,146 --> 00:26:53,756
+that these components
+are relative too.
+
+
+465
+00:26:54,136 --> 00:26:57,566
+You know, a year number, a
+month number, a day number,
+
+
+466
+00:26:57,826 --> 00:26:59,126
+these are just integers.
+
+
+467
+00:26:59,556 --> 00:27:05,346
+They have no meaning outside
+of the context of a calendar.
+
+
+468
+00:27:05,466 --> 00:27:07,656
+You know, what calendar
+is that year in?
+
+
+469
+00:27:08,276 --> 00:27:12,656
+Well, for example, I can be
+talking about the year 1434.
+
+
+470
+00:27:13,956 --> 00:27:15,586
+And if you assume
+that I'm talking
+
+
+471
+00:27:15,586 --> 00:27:18,026
+about the Gregorian calendar,
+you say, "Oh, he was talking
+
+
+472
+00:27:18,026 --> 00:27:21,136
+about a time 600
+years in the past."
+
+
+473
+00:27:22,236 --> 00:27:25,276
+But instead I'm talking
+about the Islamic calendar
+
+
+474
+00:27:25,276 --> 00:27:26,386
+and that's the current year.
+
+
+475
+00:27:27,366 --> 00:27:34,276
+So, you have to have some notion
+of what calendar any given set
+
+
+476
+00:27:34,276 --> 00:27:36,426
+of components are related to.
+
+
+477
+00:27:36,786 --> 00:27:40,536
+So, one approach is to include
+a property for the calendar,
+
+
+478
+00:27:40,536 --> 00:27:44,756
+you use to break a date
+down into those components.
+
+
+479
+00:27:45,386 --> 00:27:51,956
+Or you can define the calendar
+for that class of model object
+
+
+480
+00:27:52,166 --> 00:27:53,696
+to always be a fixed value.
+
+
+481
+00:27:53,696 --> 00:27:56,376
+You can say, "Well, these
+are always Gregorian dates
+
+
+482
+00:27:56,376 --> 00:28:00,806
+or these are always dates in
+the Japanese Imperial calendar."
+
+
+483
+00:28:02,606 --> 00:28:07,836
+But when you do that, remember;
+do not use the user's calendar
+
+
+484
+00:28:08,206 --> 00:28:09,816
+as the fixed calendar.
+
+
+485
+00:28:09,816 --> 00:28:12,356
+The user's calendar
+is not a fixed value.
+
+
+486
+00:28:12,356 --> 00:28:14,096
+The user can change
+that setting.
+
+
+487
+00:28:14,646 --> 00:28:17,356
+And so if you say, Well, if
+you use the user's calendar
+
+
+488
+00:28:17,356 --> 00:28:19,606
+and breakdown a date
+and given a set
+
+
+489
+00:28:19,606 --> 00:28:22,156
+of components are
+store some information
+
+
+490
+00:28:22,156 --> 00:28:25,816
+that the user input
+like the year 1434.
+
+
+491
+00:28:26,706 --> 00:28:28,996
+And then later the user
+changes their calendar.
+
+
+492
+00:28:29,576 --> 00:28:35,326
+Well, now you've lost some
+information because in
+
+
+493
+00:28:35,326 --> 00:28:39,026
+that year 1434 is not
+necessarily the same year,
+
+
+494
+00:28:39,026 --> 00:28:43,756
+you know, it's the same
+real value as would exist
+
+
+495
+00:28:43,756 --> 00:28:46,056
+in the user's new
+preferred calendar.
+
+
+496
+00:28:46,406 --> 00:28:48,306
+So, do not use the
+user's calendar
+
+
+497
+00:28:49,146 --> 00:28:51,606
+as a fixed calendar value.
+
+
+498
+00:28:51,986 --> 00:28:57,256
+Now, the same discussion here
+applies to dateless times.
+
+
+499
+00:28:57,666 --> 00:29:00,936
+Sometimes people use
+NSDate objects or try
+
+
+500
+00:29:00,936 --> 00:29:04,466
+to use NSDate objects
+to represent times
+
+
+501
+00:29:04,466 --> 00:29:06,496
+like 11:30 in the morning.
+
+
+502
+00:29:07,296 --> 00:29:10,826
+And they don't want to-- they
+don't need or want to deal
+
+
+503
+00:29:10,826 --> 00:29:12,736
+with any of the higher
+components
+
+
+504
+00:29:12,736 --> 00:29:13,896
+like year, month and day.
+
+
+505
+00:29:13,896 --> 00:29:16,626
+They want to use NSDate
+for whatever reason
+
+
+506
+00:29:16,626 --> 00:29:20,416
+but they don't need those
+higher level components.
+
+
+507
+00:29:21,756 --> 00:29:23,246
+Well, the same discussion
+applies.
+
+
+508
+00:29:23,246 --> 00:29:26,666
+Use an NSDateComponents object
+instead would be my suggestion
+
+
+509
+00:29:27,056 --> 00:29:29,706
+or create your own
+simple model object.
+
+
+510
+00:29:30,146 --> 00:29:37,536
+Now, the bulk of the talk
+here is as I wrap up is going
+
+
+511
+00:29:37,536 --> 00:29:40,806
+to focus on finding
+the next matching date.
+
+
+512
+00:29:42,106 --> 00:29:48,256
+Many kinds of calendar
+calculations we found can be
+
+
+513
+00:29:48,336 --> 00:29:52,486
+thought of in terms of or
+expressed as the question,
+
+
+514
+00:29:52,966 --> 00:29:54,986
+"What is the next date
+
+
+515
+00:29:55,456 --> 00:29:57,966
+which matches a given
+set of criteria?"
+
+
+516
+00:29:59,266 --> 00:30:01,806
+So, we've added a
+new API for that.
+
+
+517
+00:30:01,806 --> 00:30:04,216
+And this is perhaps
+the most significant
+
+
+518
+00:30:04,646 --> 00:30:08,116
+of the new APIs we've added.
+
+
+519
+00:30:08,496 --> 00:30:12,586
+So, one thing-- one
+question one might ask is
+
+
+520
+00:30:13,136 --> 00:30:14,206
+when is the next 10 a.m.?
+
+
+521
+00:30:14,206 --> 00:30:17,116
+You know, suppose I'm an
+alarm clock application
+
+
+522
+00:30:17,166 --> 00:30:19,876
+and the user says, "Why do
+I want to alarm at 10 a.m.?"
+
+
+523
+00:30:20,606 --> 00:30:22,096
+Well, the alarm clock
+wants to know, well,
+
+
+524
+00:30:22,096 --> 00:30:24,696
+when is the next 10 a.m.
+so they can fire the alarm.
+
+
+525
+00:30:25,886 --> 00:30:28,596
+Or the application might
+want to know, well,
+
+
+526
+00:30:28,596 --> 00:30:29,966
+"When is the next Wednesday?"
+
+
+527
+00:30:30,416 --> 00:30:33,606
+Maybe the user has a meeting on
+Wednesdays so they need to know
+
+
+528
+00:30:33,606 --> 00:30:36,356
+when is the next
+Wednesday or you could ask
+
+
+529
+00:30:36,786 --> 00:30:39,536
+when is the next Wednesday
+at 10 a.m. and so on.
+
+
+530
+00:30:39,536 --> 00:30:42,226
+I mean you can-- it fully
+specifies a set of components
+
+
+531
+00:30:42,226 --> 00:30:46,856
+and I'll get into an
+example of this in a minute.
+
+
+532
+00:30:47,366 --> 00:30:51,156
+And you ask the question, "Well,
+give me the next occurrence
+
+
+533
+00:30:51,156 --> 00:30:53,246
+of this particular time
+that I've specified."
+
+
+534
+00:30:54,336 --> 00:30:57,956
+So, here's one of the methods
+that we've added to do this.
+
+
+535
+00:30:57,956 --> 00:30:59,396
+This is one of the simpler ones.
+
+
+536
+00:31:00,186 --> 00:31:04,676
+The nextDateAfterDate
+method, matchingComponents,
+
+
+537
+00:31:04,926 --> 00:31:10,896
+options method I should say
+takes a date object at which
+
+
+538
+00:31:10,896 --> 00:31:13,506
+to begin searching and
+always finds an answer
+
+
+539
+00:31:13,506 --> 00:31:16,066
+which is strictly
+after that date.
+
+
+540
+00:31:17,306 --> 00:31:22,096
+For the second parameter
+you pass in the components
+
+
+541
+00:31:22,286 --> 00:31:24,156
+which match are to be matched.
+
+
+542
+00:31:24,496 --> 00:31:26,756
+Now, these are the
+literal values.
+
+
+543
+00:31:27,626 --> 00:31:30,116
+This isn't a method
+for doing sort
+
+
+544
+00:31:30,116 --> 00:31:33,196
+of arbitrary Boolean
+calculations of, you know,
+
+
+545
+00:31:33,756 --> 00:31:37,216
+give me the next date where
+the hour is less than 11
+
+
+546
+00:31:37,276 --> 00:31:42,476
+and the weekday is greater than
+Thursday and it's a full moon.
+
+
+547
+00:31:42,696 --> 00:31:45,056
+This is-is not an API for that.
+
+
+548
+00:31:45,676 --> 00:31:47,786
+You pass in the literal
+set of components
+
+
+549
+00:31:47,946 --> 00:31:49,596
+that the date should match.
+
+
+550
+00:31:49,826 --> 00:31:52,116
+But of course it doesn't have to
+be complete set of components.
+
+
+551
+00:31:52,116 --> 00:31:55,006
+You don't have to specify
+every component like year,
+
+
+552
+00:31:55,006 --> 00:31:56,056
+month and day and so on.
+
+
+553
+00:31:56,056 --> 00:31:59,756
+You can just say, "I want,
+you know, the next 11:30 a.m."
+
+
+554
+00:32:00,056 --> 00:32:00,666
+for example.
+
+
+555
+00:32:00,886 --> 00:32:06,066
+And then you pass in as the
+third argument various options.
+
+
+556
+00:32:08,396 --> 00:32:10,516
+So, let's look at this example.
+
+
+557
+00:32:10,646 --> 00:32:14,476
+I want to find the next
+Wednesday at 10 a.m. So,
+
+
+558
+00:32:14,476 --> 00:32:19,046
+I create a blank or empty
+NSDateComponents object
+
+
+559
+00:32:19,946 --> 00:32:22,586
+and I set two properties on it.
+
+
+560
+00:32:22,786 --> 00:32:28,346
+I set the weekday, four happens
+to be the constant for Wednesday
+
+
+561
+00:32:29,006 --> 00:32:31,886
+and I set the hour to
+10 for 10 a.m. Now,
+
+
+562
+00:32:32,276 --> 00:32:34,686
+of course in your
+real application
+
+
+563
+00:32:34,686 --> 00:32:36,466
+and your real program,
+you're not going
+
+
+564
+00:32:36,466 --> 00:32:40,166
+to have numbers right
+there like 4 and 10.
+
+
+565
+00:32:40,166 --> 00:32:43,976
+You're going to have numbers
+or values which you've gotten
+
+
+566
+00:32:43,976 --> 00:32:46,486
+from the user or you've
+gotten from a database,
+
+
+567
+00:32:46,486 --> 00:32:49,236
+or you've gotten over
+the network from--
+
+
+568
+00:32:49,236 --> 00:32:52,066
+some JSON you've parsed or
+whatever it happens to be.
+
+
+569
+00:32:52,396 --> 00:32:54,556
+But for the purposes of
+this particular example
+
+
+570
+00:32:54,556 --> 00:32:56,766
+to keep things a little
+simpler I'm going to ignore
+
+
+571
+00:32:56,766 --> 00:32:58,296
+where these numbers came from
+
+
+572
+00:32:58,716 --> 00:33:02,616
+and just literally expose
+them here on my slides.
+
+
+573
+00:33:03,146 --> 00:33:06,856
+So, then I call the
+method nextDateAfterDate.
+
+
+574
+00:33:06,856 --> 00:33:10,256
+I pass in NSDate date which
+is the current moment.
+
+
+575
+00:33:10,256 --> 00:33:11,686
+I want to start searching now.
+
+
+576
+00:33:12,966 --> 00:33:16,056
+I passed in the dateComponents
+that I just initialized.
+
+
+577
+00:33:16,546 --> 00:33:20,466
+And I passed in some options and
+I'm going to ignore the question
+
+
+578
+00:33:20,466 --> 00:33:23,176
+of options for several
+slides here
+
+
+579
+00:33:23,456 --> 00:33:27,526
+but I promise I will
+get back to those.
+
+
+580
+00:33:27,746 --> 00:33:32,116
+Now, the question
+arises what happens
+
+
+581
+00:33:32,116 --> 00:33:34,426
+to these other components
+that I didn't specify?
+
+
+582
+00:33:34,426 --> 00:33:36,126
+What is the algorithm do?
+
+
+583
+00:33:36,126 --> 00:33:37,966
+You know, I didn't say
+what min that I want
+
+
+584
+00:33:37,966 --> 00:33:40,806
+and I didn't say
+what month I wanted.
+
+
+585
+00:33:41,586 --> 00:33:46,046
+Well, those of course as I
+said towards the beginning
+
+
+586
+00:33:46,256 --> 00:33:48,806
+in an NSDateComponents
+simply have a value
+
+
+587
+00:33:48,836 --> 00:33:50,876
+of NSDateComponents
+and specified.
+
+
+588
+00:33:51,776 --> 00:33:53,736
+Well, that doesn't tell
+us what the algorithm does
+
+
+589
+00:33:53,736 --> 00:33:55,966
+with those values, it tells
+us what the values are.
+
+
+590
+00:33:57,306 --> 00:34:00,696
+For the lower components that
+is the smaller components
+
+
+591
+00:34:00,696 --> 00:34:01,186
+if you will.
+
+
+592
+00:34:02,276 --> 00:34:07,086
+The smaller cycles
+that are unspecified,
+
+
+593
+00:34:07,946 --> 00:34:12,626
+what the algorithm does is
+basically assume the first
+
+
+594
+00:34:12,626 --> 00:34:15,416
+or the lowest value of
+that cycle can take on.
+
+
+595
+00:34:15,835 --> 00:34:19,136
+In the case of minute or second
+the lowest value is zero.
+
+
+596
+00:34:20,255 --> 00:34:23,416
+So, and this of course
+is easy to understand.
+
+
+597
+00:34:23,416 --> 00:34:25,496
+If I'm searching forward in time
+
+
+598
+00:34:25,846 --> 00:34:30,485
+for the next 10 a.m. the first
+moment within any 10 a.m.
+
+
+599
+00:34:30,485 --> 00:34:33,766
+that I'm going to find is the
+moment which has minute zero
+
+
+600
+00:34:33,766 --> 00:34:37,746
+and second zero of course.
+
+
+601
+00:34:38,786 --> 00:34:42,176
+So, what happens for
+the larger components?
+
+
+602
+00:34:42,966 --> 00:34:45,985
+Let's suppose we look at
+the weekOfYear component.
+
+
+603
+00:34:45,985 --> 00:34:50,985
+Well, what we do in this
+algorithm is we match the same
+
+
+604
+00:34:50,985 --> 00:34:55,255
+value that the date that you
+passed in, that after date,
+
+
+605
+00:34:55,626 --> 00:34:57,446
+the data which to
+begin searching.
+
+
+606
+00:34:58,036 --> 00:35:02,846
+We take its value of that
+component and we look for either
+
+
+607
+00:35:02,896 --> 00:35:07,716
+that same value or the next
+occurrence of that value.
+
+
+608
+00:35:08,356 --> 00:35:09,696
+Now, that's a little
+complicated.
+
+
+609
+00:35:09,696 --> 00:35:11,446
+So, let me explain
+with the graphic.
+
+
+610
+00:35:12,776 --> 00:35:16,116
+So, here's our June 14th again.
+
+
+611
+00:35:17,556 --> 00:35:19,486
+And suppose we're searching as--
+
+
+612
+00:35:20,026 --> 00:35:24,846
+in this example for the next
+Wednesday at 10 a.m. Well,
+
+
+613
+00:35:24,846 --> 00:35:27,016
+the largest component
+I specified
+
+
+614
+00:35:27,426 --> 00:35:30,176
+in my question was the
+weekday, Wednesday.
+
+
+615
+00:35:31,226 --> 00:35:33,456
+So, we're going to search
+within the same week
+
+
+616
+00:35:34,056 --> 00:35:38,816
+as today is 'cause I passed
+in today the current moment
+
+
+617
+00:35:39,286 --> 00:35:42,746
+as my start date
+to begin searching.
+
+
+618
+00:35:43,566 --> 00:35:44,566
+And we're going to search
+
+
+619
+00:35:44,566 --> 00:35:47,696
+in this week then
+and the next week.
+
+
+620
+00:35:48,246 --> 00:35:50,976
+So, this is the range of
+time we're going to search.
+
+
+621
+00:35:51,716 --> 00:35:56,116
+So, I ask for weekday as the
+largest component I asked for.
+
+
+622
+00:35:56,716 --> 00:35:59,486
+The larger cycle,
+the next larger cycle
+
+
+623
+00:35:59,486 --> 00:36:00,726
+that is of course the week.
+
+
+624
+00:36:01,106 --> 00:36:05,296
+The weekday cycle around
+repeat one after the other
+
+
+625
+00:36:05,916 --> 00:36:07,486
+within the cycle of week.
+
+
+626
+00:36:08,276 --> 00:36:12,956
+And so, we begin looking in this
+week but after the date I passed
+
+
+627
+00:36:12,956 --> 00:36:16,496
+in which is the current moment
+and we look in the next week.
+
+
+628
+00:36:17,746 --> 00:36:21,466
+Now, of course if the start date
+that I pass in is at the end
+
+
+629
+00:36:21,466 --> 00:36:26,106
+of the year or the end of the
+month or the end of the year
+
+
+630
+00:36:26,106 --> 00:36:30,046
+that next week that
+we're willing to search
+
+
+631
+00:36:30,086 --> 00:36:33,706
+in for an answer might
+be in the next month,
+
+
+632
+00:36:33,706 --> 00:36:35,486
+it might be in the
+next year even.
+
+
+633
+00:36:35,716 --> 00:36:37,786
+So, we have to do the
+same kind of treatment
+
+
+634
+00:36:37,816 --> 00:36:39,516
+for all the larger components.
+
+
+635
+00:36:40,646 --> 00:36:42,966
+Now, this is the default
+behavior of the algorithm.
+
+
+636
+00:36:42,966 --> 00:36:48,166
+We only search in a sense a
+little ways forward in time
+
+
+637
+00:36:48,476 --> 00:36:51,616
+and find you some
+answer for that.
+
+
+638
+00:36:51,616 --> 00:36:59,396
+And this-- I'm going to give an
+example in several slides here
+
+
+639
+00:36:59,396 --> 00:37:01,196
+which will make this
+clear why we do this
+
+
+640
+00:37:01,256 --> 00:37:04,366
+but this the default
+behavior and there's an option
+
+
+641
+00:37:04,366 --> 00:37:05,976
+for changing this
+default behavior.
+
+
+642
+00:37:06,506 --> 00:37:10,636
+Let's go back to an example
+I had early in the talk
+
+
+643
+00:37:10,636 --> 00:37:12,996
+which was Finding
+Tomorrow's "Midnight."
+
+
+644
+00:37:13,186 --> 00:37:16,266
+Now, that took several lines
+of code in the previous example
+
+
+645
+00:37:16,726 --> 00:37:23,116
+but I can rephrase that
+question as one of finding.
+
+
+646
+00:37:23,626 --> 00:37:25,536
+So, I'm going to
+use this new API,
+
+
+647
+00:37:26,556 --> 00:37:29,196
+create an empty NSDateComponents
+object
+
+
+648
+00:37:29,536 --> 00:37:32,546
+and simply specify
+the hour to be zero.
+
+
+649
+00:37:33,776 --> 00:37:36,786
+So, what this is going to do is
+the algorithm is going to begin
+
+
+650
+00:37:36,786 --> 00:37:38,986
+at the date that
+I'm going to give it
+
+
+651
+00:37:39,256 --> 00:37:40,836
+which is the current
+moment here.
+
+
+652
+00:37:42,196 --> 00:37:44,576
+And it's going to search
+forward for the next case
+
+
+653
+00:37:44,576 --> 00:37:47,056
+where a date is-- the date is
+
+
+654
+00:37:47,656 --> 00:37:50,296
+or has maybe I should
+say the hour 0.
+
+
+655
+00:37:51,356 --> 00:37:55,446
+So, I pass in the dateComponents
+and again I pass in some options
+
+
+656
+00:37:55,486 --> 00:37:58,566
+which I'm going to skip
+over for the moment
+
+
+657
+00:37:58,566 --> 00:38:00,836
+but I promise I will
+get back to those.
+
+
+658
+00:38:01,386 --> 00:38:05,306
+Now, it's possible that
+there's no possible results.
+
+
+659
+00:38:05,696 --> 00:38:09,736
+For example, let's suppose
+I initialized the day field
+
+
+660
+00:38:09,736 --> 00:38:11,456
+of my dateComponents to 50.
+
+
+661
+00:38:12,766 --> 00:38:15,326
+Well, there's no calendar
+at least that I'm aware
+
+
+662
+00:38:15,326 --> 00:38:19,296
+of that has a day 50
+in any of its months.
+
+
+663
+00:38:20,206 --> 00:38:22,616
+And so, if I call
+the API then passing
+
+
+664
+00:38:22,616 --> 00:38:25,336
+that in what I'll
+get is you know,
+
+
+665
+00:38:25,726 --> 00:38:29,916
+it's just an unreasonable
+request in one sense to ask
+
+
+666
+00:38:29,916 --> 00:38:33,196
+for the next day which is 50.
+
+
+667
+00:38:34,096 --> 00:38:37,146
+So, what are these options
+that I've been referring to
+
+
+668
+00:38:37,146 --> 00:38:38,446
+but I'm not explaining.
+
+
+669
+00:38:39,996 --> 00:38:41,666
+Well, I talked about
+the default behavior
+
+
+670
+00:38:41,666 --> 00:38:44,506
+where we only search a
+little ways forward in time.
+
+
+671
+00:38:44,506 --> 00:38:46,606
+We only search the
+next occurrence
+
+
+672
+00:38:46,686 --> 00:38:52,606
+of the next larger cycle
+if you will for an answer.
+
+
+673
+00:38:53,286 --> 00:38:55,636
+But if you need us
+to search farther,
+
+
+674
+00:38:55,976 --> 00:38:58,626
+there's this option
+NSCalendarMatchStrictly.
+
+
+675
+00:38:59,556 --> 00:39:03,086
+An example would be suppose you
+wanted to find the next leap day
+
+
+676
+00:39:03,156 --> 00:39:04,376
+in the Gregorian calendar.
+
+
+677
+00:39:04,376 --> 00:39:06,416
+You want to find the
+next February 29th.
+
+
+678
+00:39:07,126 --> 00:39:10,116
+Well, that could be as much
+as four years in the future.
+
+
+679
+00:39:10,606 --> 00:39:13,516
+So, you need us to search
+more than the current year
+
+
+680
+00:39:13,756 --> 00:39:15,566
+and the next year
+for this answer.
+
+
+681
+00:39:15,886 --> 00:39:17,416
+You need to-- you
+might need to search
+
+
+682
+00:39:17,416 --> 00:39:18,716
+up to four years in the future.
+
+
+683
+00:39:19,686 --> 00:39:22,196
+And so, that is the case
+where you would need to pass
+
+
+684
+00:39:22,196 --> 00:39:24,466
+in this option match strictly.
+
+
+685
+00:39:25,156 --> 00:39:31,076
+Another example which I'll get
+to in a minute is what happens
+
+
+686
+00:39:31,076 --> 00:39:33,276
+when a time doesn't exist
+
+
+687
+00:39:33,336 --> 00:39:35,526
+because of a daylight
+savings time transition.
+
+
+688
+00:39:36,046 --> 00:39:39,536
+And again, this option has a
+behavior, there in that kind
+
+
+689
+00:39:39,536 --> 00:39:42,696
+of case and I'll talk
+about that in a second.
+
+
+690
+00:39:42,986 --> 00:39:45,206
+You might also want to
+search backwards in times.
+
+
+691
+00:39:45,206 --> 00:39:46,686
+So, instead of just
+searching forwards
+
+
+692
+00:39:46,686 --> 00:39:49,426
+for the next occurrence
+even though that's common
+
+
+693
+00:39:49,426 --> 00:39:53,826
+for calendar or alarm
+clock kinds of applications
+
+
+694
+00:39:53,826 --> 00:39:57,986
+in that kind of thing but you
+also might want to go backwards
+
+
+695
+00:39:57,986 --> 00:39:59,436
+and so there's an
+option for that.
+
+
+696
+00:40:00,916 --> 00:40:05,796
+Then there are three
+options for what to do,
+
+
+697
+00:40:06,096 --> 00:40:09,616
+what the algorithm should do
+when the time is missing--
+
+
+698
+00:40:09,616 --> 00:40:12,756
+when there is no time
+that matches that.
+
+
+699
+00:40:13,226 --> 00:40:14,206
+Now, I'm going to explain--
+
+
+700
+00:40:14,286 --> 00:40:16,816
+I'm going to dive in to
+this particular example
+
+
+701
+00:40:17,226 --> 00:40:18,346
+in the next several slides.
+
+
+702
+00:40:18,346 --> 00:40:21,126
+So, I'm going to skip over
+these options for the moment.
+
+
+703
+00:40:22,216 --> 00:40:23,956
+If there are multiple matches
+
+
+704
+00:40:24,176 --> 00:40:26,516
+such as there are
+multiple 1:00 AM's
+
+
+705
+00:40:26,566 --> 00:40:30,606
+because Daylight Saving Time
+transition has caused time
+
+
+706
+00:40:30,606 --> 00:40:34,646
+to jump backward and there are
+happen to be two 1:00 AM's.
+
+
+707
+00:40:35,386 --> 00:40:38,876
+Well, there are two
+options for you to tell us
+
+
+708
+00:40:39,026 --> 00:40:43,536
+which of those two options
+or two alternatives you want.
+
+
+709
+00:40:44,956 --> 00:40:48,616
+NSCalendarMatchFirst is the
+default option so you don't need
+
+
+710
+00:40:48,616 --> 00:40:53,476
+to specify that one if you want
+the first 1:00 a.m. for example.
+
+
+711
+00:40:54,956 --> 00:40:58,316
+Now, one of these four
+options is required
+
+
+712
+00:40:58,786 --> 00:41:00,416
+or will raise an exception.
+
+
+713
+00:41:00,846 --> 00:41:06,066
+You either need to ask for
+strict matching or you need
+
+
+714
+00:41:06,066 --> 00:41:08,786
+to pass in one of the options
+that tell us what to do
+
+
+715
+00:41:09,096 --> 00:41:13,556
+when the most desirable
+time is actually missing.
+
+
+716
+00:41:14,636 --> 00:41:17,916
+So, let's look an
+extended example, really,
+
+
+717
+00:41:18,316 --> 00:41:23,716
+where we're looking for the next
+2:30 a.m. In the United States,
+
+
+718
+00:41:23,986 --> 00:41:26,146
+the Daylight Saving
+Time transition
+
+
+719
+00:41:26,696 --> 00:41:30,176
+in the spring skips
+the 2:00 hour.
+
+
+720
+00:41:31,286 --> 00:41:32,556
+And so, what does
+that look like?
+
+
+721
+00:41:32,556 --> 00:41:34,386
+Well, here's our timeline again.
+
+
+722
+00:41:34,916 --> 00:41:39,616
+So, midnight of the Daylight
+Saving Time transition day comes
+
+
+723
+00:41:39,616 --> 00:41:42,596
+along, time passes
+and we have 1:00 a.m.
+
+
+724
+00:41:42,596 --> 00:41:45,846
+And then another hour
+passes and we get
+
+
+725
+00:41:45,846 --> 00:41:48,176
+to what would normally
+be 2:00 a.m.
+
+
+726
+00:41:48,716 --> 00:41:54,946
+But 2:00 a.m. hour is skipped
+and it's totally missing
+
+
+727
+00:41:55,196 --> 00:41:58,226
+and so 3:00 a.m. is
+actually the next time.
+
+
+728
+00:41:58,226 --> 00:42:02,146
+So, one hour after 1:00
+a.m. is actually 3:00 a.m.
+
+
+729
+00:42:02,256 --> 00:42:05,126
+in the United States on
+the date of the transition.
+
+
+730
+00:42:06,086 --> 00:42:09,536
+And then time of course
+continues as normal in 4:00 a.m.
+
+
+731
+00:42:09,536 --> 00:42:11,766
+and 5:00 a.m. come and go.
+
+
+732
+00:42:13,416 --> 00:42:15,706
+Now, if I'm looking for
+2:30 in the morning,
+
+
+733
+00:42:16,746 --> 00:42:20,566
+the best result here
+2:30 is actually missing.
+
+
+734
+00:42:20,566 --> 00:42:22,776
+There is no 2:30
+a.m. on that day.
+
+
+735
+00:42:23,166 --> 00:42:28,486
+Well, if I pass in the
+NSCalendarMatchNextTime option,
+
+
+736
+00:42:29,086 --> 00:42:32,286
+what that means is, you said,
+
+
+737
+00:42:32,286 --> 00:42:34,736
+you want the next
+time which exists.
+
+
+738
+00:42:35,186 --> 00:42:37,546
+And so in this case, the
+next time which exist
+
+
+739
+00:42:37,546 --> 00:42:44,416
+after the most desirable
+time is 3:00 a.m. If instead,
+
+
+740
+00:42:44,416 --> 00:42:47,236
+you pass in the
+NSCalendarMatchNext
+
+
+741
+00:42:48,586 --> 00:42:51,666
+TimePreservingSmallerUnits,
+
+
+742
+00:42:52,486 --> 00:42:55,916
+what we'll get is 3:00
+a.m. out of the algorithm.
+
+
+743
+00:42:56,406 --> 00:43:00,166
+So, what this has
+said is you want us
+
+
+744
+00:43:00,166 --> 00:43:05,326
+to give you the best
+answer within the next hour,
+
+
+745
+00:43:05,916 --> 00:43:09,926
+in this particular case,
+where we give you the minutes
+
+
+746
+00:43:09,926 --> 00:43:13,266
+and the seconds that you
+requested even though we can't
+
+
+747
+00:43:13,266 --> 00:43:15,186
+give you the hour
+that you requested.
+
+
+748
+00:43:15,816 --> 00:43:18,076
+And then of course
+there is the reverse
+
+
+749
+00:43:18,076 --> 00:43:20,796
+which is NSCalendarMatchPrevious
+
+
+750
+00:43:21,106 --> 00:43:22,646
+TimePreservingSmallerUnits.
+
+
+751
+00:43:22,646 --> 00:43:27,936
+And here you get 1:30 instead of
+the most desirable answer 2:30
+
+
+752
+00:43:27,936 --> 00:43:29,996
+which of course as
+I say doesn't exist.
+
+
+753
+00:43:30,526 --> 00:43:33,396
+Now, if you had passed
+
+
+754
+00:43:33,396 --> 00:43:36,206
+in instead the
+NSCalendarMatchStricly option,
+
+
+755
+00:43:36,616 --> 00:43:40,686
+what happens instead is there
+is no 2:30 but you've asked
+
+
+756
+00:43:40,686 --> 00:43:43,786
+for a strict match and so
+the result you get is going
+
+
+757
+00:43:43,786 --> 00:43:44,976
+to be in the next day.
+
+
+758
+00:43:49,766 --> 00:43:53,606
+Well, I have a friend who
+works at the local airport
+
+
+759
+00:43:53,906 --> 00:43:56,336
+and he needs to be
+at work at 3:30
+
+
+760
+00:43:56,336 --> 00:44:00,826
+in the morning before the first
+international flights takeoff
+
+
+761
+00:44:00,826 --> 00:44:02,616
+and before the first
+passengers arrive
+
+
+762
+00:44:02,656 --> 00:44:04,016
+for those international flights.
+
+
+763
+00:44:04,476 --> 00:44:07,956
+And he uses a fairly simple
+alarm clock application
+
+
+764
+00:44:08,886 --> 00:44:12,366
+where he just specifies what
+time he wants his alarm.
+
+
+765
+00:44:12,946 --> 00:44:16,226
+So, he sets his alarm for 2:30
+in the morning and so he is
+
+
+766
+00:44:16,606 --> 00:44:18,656
+of course, you know,
+right in the crosshairs
+
+
+767
+00:44:18,656 --> 00:44:22,166
+for this particular issue
+to occur every spring.
+
+
+768
+00:44:24,726 --> 00:44:26,896
+Well, 2:30 in the
+morning doesn't exist
+
+
+769
+00:44:26,966 --> 00:44:29,916
+on that transition day
+in the United States.
+
+
+770
+00:44:30,606 --> 00:44:33,176
+And so, what happens?
+
+
+771
+00:44:33,246 --> 00:44:35,956
+Well, if the alarm clock
+application were to pass
+
+
+772
+00:44:35,956 --> 00:44:38,796
+in the NSCalendarMatchNextTime
+option.
+
+
+773
+00:44:39,516 --> 00:44:41,576
+The alarm clock is going
+to ring at 3:00 a.m.
+
+
+774
+00:44:42,246 --> 00:44:44,576
+and he'll have 30 minutes
+to get to work instead
+
+
+775
+00:44:44,576 --> 00:44:46,346
+of the usual hour that he needs.
+
+
+776
+00:44:47,526 --> 00:44:49,106
+If instead, it passes
+
+
+777
+00:44:49,106 --> 00:44:52,116
+in the
+NextTimePreservingSmallerUnits
+
+
+778
+00:44:52,896 --> 00:44:58,296
+option, it's going to ring the
+alarm at 3:30 in the morning
+
+
+779
+00:44:58,296 --> 00:45:00,086
+and he'll have no
+warning to get to work.
+
+
+780
+00:45:00,086 --> 00:45:04,776
+On the other hand, if it passes
+in the PreviousTimePreserving
+
+
+781
+00:45:04,776 --> 00:45:09,486
+SmallerUnits option, it's going
+to ring at 1:30 and he's going
+
+
+782
+00:45:09,486 --> 00:45:13,916
+to have an hour or two groups
+of 30 minutes before and after
+
+
+783
+00:45:13,916 --> 00:45:15,666
+that missing gap of time
+
+
+784
+00:45:16,276 --> 00:45:19,426
+so he'll have his usual
+hour to get to work.
+
+
+785
+00:45:19,426 --> 00:45:20,996
+So, that's sound
+like a good option.
+
+
+786
+00:45:22,546 --> 00:45:25,876
+If instead it uses the
+strictly option, he's not going
+
+
+787
+00:45:25,876 --> 00:45:28,476
+to get any alarm
+that rings at all.
+
+
+788
+00:45:28,476 --> 00:45:29,896
+It's going to ring the next day
+
+
+789
+00:45:30,256 --> 00:45:33,276
+because it will continue
+its search and find a 2:30
+
+
+790
+00:45:33,276 --> 00:45:36,636
+in the morning on the next day
+and not ring this day at all.
+
+
+791
+00:45:38,096 --> 00:45:41,256
+So, what my friend really
+wants to specify isn't 2:30
+
+
+792
+00:45:41,736 --> 00:45:43,506
+with his alarm clock
+application.
+
+
+793
+00:45:44,146 --> 00:45:47,146
+He really wants to specify
+one hour before 3:30
+
+
+794
+00:45:47,146 --> 00:45:49,936
+so it'd be much nicer
+if the user interface
+
+
+795
+00:45:49,936 --> 00:45:54,696
+of this alarm clock had two
+controls, one which was a time
+
+
+796
+00:45:54,756 --> 00:45:58,226
+and one which was a relative
+time before that time
+
+
+797
+00:45:58,656 --> 00:46:00,286
+at which you want
+to begin searching.
+
+
+798
+00:46:00,586 --> 00:46:04,306
+Of course even nicer might be
+for the alarm clock application
+
+
+799
+00:46:04,306 --> 00:46:09,136
+to warn him that his desired
+time doesn't actually exist,
+
+
+800
+00:46:09,396 --> 00:46:12,226
+you know, when it's like a
+day before the transition
+
+
+801
+00:46:12,886 --> 00:46:15,226
+and give him an alert
+saying "Hey, you know,
+
+
+802
+00:46:15,666 --> 00:46:18,786
+there's a Daylight Savings Time
+transition coming up, you know,
+
+
+803
+00:46:18,786 --> 00:46:20,176
+you got an issue here."
+
+
+804
+00:46:21,616 --> 00:46:23,386
+Maybe you'd ask him, "What
+do you want me to do?"
+
+
+805
+00:46:23,386 --> 00:46:26,406
+or it just says, "I'm going to
+wake you up at 1:30 instead."
+
+
+806
+00:46:26,966 --> 00:46:30,626
+Another way to look
+at the question
+
+
+807
+00:46:30,626 --> 00:46:33,786
+of what is the best
+option is to look
+
+
+808
+00:46:33,786 --> 00:46:36,756
+at what normally
+happens around this gap.
+
+
+809
+00:46:37,196 --> 00:46:39,826
+So, in the United States,
+they put the transition
+
+
+810
+00:46:39,826 --> 00:46:41,036
+in the middle of the weekend.
+
+
+811
+00:46:41,036 --> 00:46:44,086
+That is early in the morning
+Sundays so it's is right
+
+
+812
+00:46:44,086 --> 00:46:45,026
+in the middle of the weekend.
+
+
+813
+00:46:45,026 --> 00:46:50,076
+And so, what happens if you
+just look at, say, 6:00 a.m. is
+
+
+814
+00:46:50,076 --> 00:46:52,806
+that from Friday 6:00 a.m.
+to Saturday 6:00 a.m.,
+
+
+815
+00:46:52,806 --> 00:46:55,056
+there's an ordinary
+period of 24 hours,
+
+
+816
+00:46:55,406 --> 00:46:58,156
+then from Saturday 6:00
+a.m. to Sunday 6:00 a.m.,
+
+
+817
+00:46:58,316 --> 00:46:59,886
+there's just 23 hours.
+
+
+818
+00:47:00,056 --> 00:47:02,876
+But then again, from
+Sunday 6:00 a.m.
+
+
+819
+00:47:02,926 --> 00:47:05,946
+to Monday 6:00 a.m. there's
+a period of 24 hours.
+
+
+820
+00:47:06,516 --> 00:47:10,926
+So, what happens every year is
+same old cliché joke is try it
+
+
+821
+00:47:10,926 --> 00:47:13,736
+out, "Oh, you're going to have
+one hour less of sleep tonight."
+
+
+822
+00:47:13,736 --> 00:47:15,156
+And that happens, you know,
+
+
+823
+00:47:15,156 --> 00:47:18,696
+Saturday night all the news
+reporters talk about that
+
+
+824
+00:47:18,986 --> 00:47:21,676
+to remind people about the
+Daylight Saving Time change.
+
+
+825
+00:47:21,916 --> 00:47:24,016
+One hour less sleep
+but that occurs
+
+
+826
+00:47:24,016 --> 00:47:25,246
+in the middle of the weekend.
+
+
+827
+00:47:25,586 --> 00:47:30,246
+That's kind of the point why
+the U.S. does that transition
+
+
+828
+00:47:30,246 --> 00:47:31,216
+in the middle of the weekend.
+
+
+829
+00:47:32,236 --> 00:47:35,336
+Well, let's go back and
+shift our timeline again back
+
+
+830
+00:47:35,386 --> 00:47:37,246
+to the 2:30 example.
+
+
+831
+00:47:38,516 --> 00:47:42,426
+So, if I ask for
+NSCalendarMatchNextTime
+
+
+832
+00:47:42,686 --> 00:47:46,956
+to get 3:00 a.m., what will
+happen is a 24 hour period
+
+
+833
+00:47:46,956 --> 00:47:49,966
+occurs from Friday
+to Saturday then a 23
+
+
+834
+00:47:49,966 --> 00:47:54,216
+and a half hour period occurs
+between alarm clock firings
+
+
+835
+00:47:54,636 --> 00:47:57,326
+on Sunday morning
+and Monday morning.
+
+
+836
+00:47:57,326 --> 00:47:58,996
+So, you've kind of split
+the different there.
+
+
+837
+00:47:59,136 --> 00:48:04,426
+On the other hand, if
+you pass in MatchNextTime
+
+
+838
+00:48:04,796 --> 00:48:08,656
+PreservingSmallerUnits,
+you get a 24-hour period
+
+
+839
+00:48:08,656 --> 00:48:11,836
+between alarm clock
+firings on Saturday morning
+
+
+840
+00:48:11,966 --> 00:48:16,296
+and Sunday morning and then
+your short night in a sense
+
+
+841
+00:48:16,556 --> 00:48:19,456
+or a short day is
+between Sunday and Monday.
+
+
+842
+00:48:20,076 --> 00:48:22,226
+And so, it's really Monday
+morning where you end
+
+
+843
+00:48:22,226 --> 00:48:23,846
+up losing that hour of sleep.
+
+
+844
+00:48:25,896 --> 00:48:29,476
+And finally, if you pass
+in the MatchPreviousTime
+
+
+845
+00:48:30,236 --> 00:48:32,736
+PreservingSmallerUnits,
+you get the same kind
+
+
+846
+00:48:32,736 --> 00:48:35,876
+of pattern we saw originally
+where there is a 24-hour period,
+
+
+847
+00:48:36,196 --> 00:48:38,976
+a 23-hour period and
+a 24-hour period.
+
+
+848
+00:48:43,186 --> 00:48:45,556
+If you need to enumerate
+matches,
+
+
+849
+00:48:45,556 --> 00:48:51,396
+that is not just find one mixed
+instance of a match but you want
+
+
+850
+00:48:51,396 --> 00:48:55,876
+to find all times that
+match certain criteria
+
+
+851
+00:48:56,236 --> 00:49:00,446
+and enumerate them all and
+do some work for each match,
+
+
+852
+00:49:01,076 --> 00:49:02,436
+then you should use this method.
+
+
+853
+00:49:03,036 --> 00:49:05,446
+The enumerate dates starting
+
+
+854
+00:49:05,446 --> 00:49:08,526
+after date method takes the
+same kind of parameters,
+
+
+855
+00:49:08,526 --> 00:49:11,466
+the first parameter, the date
+at which to begin searching.
+
+
+856
+00:49:11,876 --> 00:49:16,066
+It takes your date components
+that you want to have matched
+
+
+857
+00:49:16,356 --> 00:49:18,956
+and some options, the
+options I've explained
+
+
+858
+00:49:20,096 --> 00:49:22,136
+and you pass in a block.
+
+
+859
+00:49:22,846 --> 00:49:24,386
+The block takes three
+parameters.
+
+
+860
+00:49:24,386 --> 00:49:27,566
+The first two parameters
+of the block are the date
+
+
+861
+00:49:27,866 --> 00:49:29,226
+that the algorithm found
+
+
+862
+00:49:30,326 --> 00:49:33,806
+and a Boolean telling you
+whether it found an exact match
+
+
+863
+00:49:33,916 --> 00:49:35,006
+or not.
+
+
+864
+00:49:35,006 --> 00:49:38,946
+If the algorithm had to fudge
+the answer based, you know,
+
+
+865
+00:49:38,946 --> 00:49:42,866
+give you a 1:30 or 3:30
+instead of the 2:30 you asked
+
+
+866
+00:49:42,866 --> 00:49:44,436
+for in our previous example.
+
+
+867
+00:49:45,246 --> 00:49:46,686
+This algorithm will tell you
+
+
+868
+00:49:47,116 --> 00:49:49,396
+with that Boolean whether
+it had to that or not.
+
+
+869
+00:49:49,986 --> 00:49:55,166
+Then there's the third parameter
+which is the mechanism you use
+
+
+870
+00:49:55,166 --> 00:49:58,406
+to stop the algorithm
+when you want to stop it.
+
+
+871
+00:49:58,806 --> 00:50:01,756
+So, we've used this in
+other enumerate methods,
+
+
+872
+00:50:01,756 --> 00:50:02,976
+it's the same kind of pattern.
+
+
+873
+00:50:03,666 --> 00:50:06,236
+We pass in a pointer
+to a Boolean
+
+
+874
+00:50:06,736 --> 00:50:09,436
+and when the condition
+arises where you want
+
+
+875
+00:50:09,436 --> 00:50:15,196
+to stop the enumeration, you
+simply set the value pointed to,
+
+
+876
+00:50:15,896 --> 00:50:18,616
+you know, star stop
+in this case to "Yes".
+
+
+877
+00:50:19,116 --> 00:50:22,106
+You don't need to set the
+Boolean to "No" every time
+
+
+878
+00:50:22,106 --> 00:50:24,166
+to keep enumerating, it
+will keep doing that.
+
+
+879
+00:50:24,306 --> 00:50:27,736
+You don't need to
+set it to know ever.
+
+
+880
+00:50:28,056 --> 00:50:30,696
+You just need to set it to
+"Yes" once when you want
+
+
+881
+00:50:30,696 --> 00:50:31,996
+to stop the enumeration.
+
+
+882
+00:50:32,526 --> 00:50:39,246
+So, there were some
+operations that are very common
+
+
+883
+00:50:39,246 --> 00:50:41,236
+and we found lots of
+people want to do a lot.
+
+
+884
+00:50:41,236 --> 00:50:47,276
+Let me talk a little bit here,
+give me few minutes of talk
+
+
+885
+00:50:47,276 --> 00:50:51,766
+about testing these algorithms
+and testing the calculations
+
+
+886
+00:50:51,766 --> 00:50:53,966
+that you're doing
+within your application.
+
+
+887
+00:50:54,506 --> 00:50:56,216
+Well, the first thing
+you need to do is
+
+
+888
+00:50:56,216 --> 00:50:58,856
+of course consider
+the interesting cases.
+
+
+889
+00:51:00,066 --> 00:51:02,016
+Well, what are the
+interesting cases?
+
+
+890
+00:51:02,016 --> 00:51:06,026
+Well, an application today
+might be used worldwide
+
+
+891
+00:51:06,026 --> 00:51:08,626
+and so you need to
+consider different locales
+
+
+892
+00:51:08,626 --> 00:51:13,066
+and different calendars that
+the local users, you know,
+
+
+893
+00:51:13,346 --> 00:51:15,266
+in a given area might be using.
+
+
+894
+00:51:15,956 --> 00:51:18,986
+So, you need to test different
+locales and calendars.
+
+
+895
+00:51:19,086 --> 00:51:23,366
+Of course, these different users
+around the world are existing
+
+
+896
+00:51:23,366 --> 00:51:26,246
+and living in different
+time zones so it's good
+
+
+897
+00:51:26,246 --> 00:51:28,646
+to get some testing within
+different time zones.
+
+
+898
+00:51:29,106 --> 00:51:31,696
+But you also need to
+consider the cycle boundaries,
+
+
+899
+00:51:31,696 --> 00:51:33,286
+where are the interesting cases.
+
+
+900
+00:51:33,746 --> 00:51:36,306
+Well, these various cycles
+of time, for example,
+
+
+901
+00:51:36,306 --> 00:51:39,176
+hours go from, say, 0 to 23
+
+
+902
+00:51:39,456 --> 00:51:43,106
+and then the cycle repeats the
+next day, 0 to 23 and so on.
+
+
+903
+00:51:43,546 --> 00:51:47,476
+So, an example of a cycle
+boundary is the end of a day
+
+
+904
+00:51:47,536 --> 00:51:50,576
+or the beginning of a day
+is the same thing, midnight.
+
+
+905
+00:51:51,896 --> 00:51:54,876
+But you also have interesting
+things that can happen
+
+
+906
+00:51:54,876 --> 00:51:57,506
+at the end of months or at
+the end of years or beginning
+
+
+907
+00:51:57,506 --> 00:51:58,786
+of years, it's the same thing.
+
+
+908
+00:51:59,336 --> 00:52:04,356
+In some cases, some calendars,
+the Era is really important
+
+
+909
+00:52:05,336 --> 00:52:08,646
+to also test for
+and keep in mind.
+
+
+910
+00:52:10,156 --> 00:52:11,776
+What kind of things
+do you look for?
+
+
+911
+00:52:11,776 --> 00:52:13,766
+Well, you look for
+incorrect results.
+
+
+912
+00:52:14,656 --> 00:52:17,966
+It's very obvious but very
+dull answer, right and obvious.
+
+
+913
+00:52:18,256 --> 00:52:19,896
+Well, you look for
+incorrect results.
+
+
+914
+00:52:20,016 --> 00:52:24,256
+Well, the real question here is,
+how do you know that the answers
+
+
+915
+00:52:24,256 --> 00:52:26,906
+that you're seeing, that the
+answers you're getting are the
+
+
+916
+00:52:26,906 --> 00:52:27,986
+correct answers?
+
+
+917
+00:52:29,466 --> 00:52:30,846
+Well, what can you do?
+
+
+918
+00:52:30,846 --> 00:52:33,836
+You have to find some sort
+of authoritative information.
+
+
+919
+00:52:34,176 --> 00:52:37,586
+Like, how do I know that
+it's, you know, a certain year
+
+
+920
+00:52:37,586 --> 00:52:41,376
+within the Hebrew Calendar, I'm
+being told 5,700 and something.
+
+
+921
+00:52:41,486 --> 00:52:43,166
+Well, how do I know
+that's correct?
+
+
+922
+00:52:43,656 --> 00:52:46,416
+Well, you have to find some sort
+of authoritative information.
+
+
+923
+00:52:46,416 --> 00:52:49,716
+Well, there's these old
+fashion things called Almanacs
+
+
+924
+00:52:49,716 --> 00:52:53,106
+which are going to help in
+books and of course nowadays,
+
+
+925
+00:52:53,106 --> 00:52:54,936
+I tend to use the internet a lot
+
+
+926
+00:52:55,496 --> 00:52:57,556
+and so I do a search
+on the internet.
+
+
+927
+00:52:57,776 --> 00:53:00,016
+What is the current
+Islamic Calendar year?
+
+
+928
+00:53:00,256 --> 00:53:00,786
+For example.
+
+
+929
+00:53:01,556 --> 00:53:04,396
+And I don't just look at
+one website of course.
+
+
+930
+00:53:04,496 --> 00:53:07,716
+I look at many websites
+and compare their answer.
+
+
+931
+00:53:08,226 --> 00:53:10,456
+And you can also ask people.
+
+
+932
+00:53:10,556 --> 00:53:14,286
+So, if you have people
+that you know or can ask
+
+
+933
+00:53:14,286 --> 00:53:19,336
+about the answer, you know, you
+can verify it with real people
+
+
+934
+00:53:19,516 --> 00:53:22,326
+and I'll get to that--
+back to that in a second.
+
+
+935
+00:53:23,126 --> 00:53:24,556
+So, how do you test?
+
+
+936
+00:53:25,706 --> 00:53:28,986
+Well, to literally
+test of course,
+
+
+937
+00:53:28,986 --> 00:53:31,266
+you have to turn off the
+time syncing on the device,
+
+
+938
+00:53:31,266 --> 00:53:35,316
+on the computer or on iPhone
+or iPad, what have you.
+
+
+939
+00:53:36,426 --> 00:53:39,166
+Then you, of course, you
+can set the clock manually.
+
+
+940
+00:53:39,926 --> 00:53:42,006
+You can set the time
+zone to different values.
+
+
+941
+00:53:42,006 --> 00:53:44,086
+You can set the calendar
+in locale
+
+
+942
+00:53:44,416 --> 00:53:47,836
+to different values
+manually and, you know,
+
+
+943
+00:53:48,076 --> 00:53:49,676
+try out your application.
+
+
+944
+00:53:51,186 --> 00:53:54,596
+But, perhaps a more
+valuable thing to do is
+
+
+945
+00:53:54,596 --> 00:53:57,836
+to develop some variety
+within your beta tester pool.
+
+
+946
+00:53:58,336 --> 00:54:02,636
+So, if, you know, assuming you
+have some people that you ask
+
+
+947
+00:54:02,716 --> 00:54:08,406
+to beta test your application,
+you can try to collect a group
+
+
+948
+00:54:08,466 --> 00:54:12,186
+of people which live in
+different time zones,
+
+
+949
+00:54:12,186 --> 00:54:15,026
+which live in different
+locales of the world
+
+
+950
+00:54:15,366 --> 00:54:16,326
+and they will naturally
+
+
+951
+00:54:16,326 --> 00:54:19,826
+of course know the right answer
+'cause at worse, they can look
+
+
+952
+00:54:19,826 --> 00:54:23,926
+at a newspaper or ask their
+friend what the day is
+
+
+953
+00:54:23,926 --> 00:54:24,626
+if they don't know.
+
+
+954
+00:54:25,046 --> 00:54:28,346
+But they'll know what the right
+answers are and they'll be able
+
+
+955
+00:54:28,346 --> 00:54:32,996
+to tell you what, you know,
+what you're doing wrong
+
+
+956
+00:54:32,996 --> 00:54:36,316
+when something happens that's
+wrong within their application.
+
+
+957
+00:54:36,776 --> 00:54:39,416
+But another thing you can
+do is direct their testing.
+
+
+958
+00:54:39,416 --> 00:54:42,186
+Tell them, you know,
+what-- if you say, "Well,
+
+
+959
+00:54:42,186 --> 00:54:45,836
+this guy in my beta
+tester pool lives in China.
+
+
+960
+00:54:45,836 --> 00:54:46,736
+I know he lives in China.
+
+
+961
+00:54:47,316 --> 00:54:51,156
+You can ask him specifically,
+"Can you test, you know,
+
+
+962
+00:54:51,226 --> 00:54:52,306
+this or that bit
+
+
+963
+00:54:52,306 --> 00:54:54,516
+of functionality in
+this or that way?"
+
+
+964
+00:54:54,516 --> 00:54:56,146
+So, you can direct
+their testing rather
+
+
+965
+00:54:56,146 --> 00:54:58,536
+than just giving them
+the app and say, "Oh,
+
+
+966
+00:54:58,536 --> 00:55:01,176
+here's a new version,
+go try it out."
+
+
+967
+00:55:01,816 --> 00:55:06,196
+So, I've talked about various
+kinds of common operations
+
+
+968
+00:55:06,196 --> 00:55:09,856
+and we've added some API for
+and there are many new methods
+
+
+969
+00:55:09,856 --> 00:55:11,916
+that we added that I
+didn't talk about today.
+
+
+970
+00:55:11,916 --> 00:55:15,786
+You have to go and look at
+the NSCalendar documentation,
+
+
+971
+00:55:15,786 --> 00:55:19,116
+the NSCalendar.h
+Header to see those.
+
+
+972
+00:55:19,866 --> 00:55:23,316
+If you had some feedback
+on this talk, you can talk
+
+
+973
+00:55:23,316 --> 00:55:25,816
+to our Evangelist Paul Marcos.
+
+
+974
+00:55:26,636 --> 00:55:29,546
+The Date & Time Programming
+Guide is very good.
+
+
+975
+00:55:30,006 --> 00:55:31,666
+I recommend reading that.
+
+
+976
+00:55:32,106 --> 00:55:34,206
+And of course, there's
+the documentation
+
+
+977
+00:55:34,206 --> 00:55:37,316
+for the specific classes that
+I talked about like NSCalendar.
+
+
+978
+00:55:37,546 --> 00:55:40,236
+And of course, the
+Developer Forums, our resource
+
+
+979
+00:55:40,236 --> 00:55:42,356
+for asking questions
+about these things.
+
+
+980
+00:55:42,986 --> 00:55:44,546
+And with that, I thank you.
+
+
+981
+00:55:45,516 --> 00:55:50,500
+[ Applause ]
+

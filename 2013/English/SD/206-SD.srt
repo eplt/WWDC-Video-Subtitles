@@ -1,0 +1,3725 @@
+1
+00:00:00,506 --> 00:00:13,336
+[ Silence ]
+
+
+2
+00:00:13,836 --> 00:00:14,716
+>> Olivier Gutknecht:
+Good afternoon.
+
+
+3
+00:00:15,516 --> 00:00:19,946
+[ Applause ]
+
+
+4
+00:00:20,446 --> 00:00:22,936
+And welcome to this WWDC session
+
+
+5
+00:00:22,936 --> 00:00:25,896
+on getting started
+with UIKit Dynamics.
+
+
+6
+00:00:26,696 --> 00:00:30,606
+We think we have a great new
+addition to UIKit for you today.
+
+
+7
+00:00:31,776 --> 00:00:33,566
+My name is Olivier Gutknecht
+
+
+8
+00:00:34,176 --> 00:00:36,876
+and I'm a frameworks
+engineer in the UIKit team.
+
+
+9
+00:00:37,966 --> 00:00:44,856
+And you might have noticed
+that on iOS 7, content is key.
+
+
+10
+00:00:45,916 --> 00:00:51,886
+And we'd like to offer you new
+ways to have better rendering
+
+
+11
+00:00:52,356 --> 00:00:55,186
+and interactions
+with this content,
+
+
+12
+00:00:56,306 --> 00:00:58,426
+and that is what
+dynamics is about.
+
+
+13
+00:00:58,426 --> 00:01:01,976
+What are we going
+to cover today?
+
+
+14
+00:01:01,976 --> 00:01:06,126
+First, the core concepts in
+architecture of dynamics.
+
+
+15
+00:01:07,166 --> 00:01:11,636
+And dynamics is based
+on a very simple ID,
+
+
+16
+00:01:12,656 --> 00:01:15,216
+combining basic behaviors.
+
+
+17
+00:01:16,416 --> 00:01:18,696
+And we've see how
+you can actually use
+
+
+18
+00:01:18,696 --> 00:01:22,456
+that to integrate
+new rich interactions
+
+
+19
+00:01:23,386 --> 00:01:24,346
+in your applications.
+
+
+20
+00:01:24,706 --> 00:01:31,616
+But first, I'd like to make a
+very quick recap of animation
+
+
+21
+00:01:31,616 --> 00:01:33,606
+and interaction on iOS today.
+
+
+22
+00:01:34,936 --> 00:01:38,166
+Of course, almost everything
+we render and animate
+
+
+23
+00:01:38,166 --> 00:01:40,466
+on iOS is based on
+Core Animation.
+
+
+24
+00:01:41,526 --> 00:01:44,756
+Core Animation is an
+amazing animation framework.
+
+
+25
+00:01:45,476 --> 00:01:48,306
+It has very strong
+and consistent model,
+
+
+26
+00:01:48,506 --> 00:01:51,226
+extremely powerful API.
+
+
+27
+00:01:51,226 --> 00:01:56,016
+And on top of that, in UIKit,
+we built UIView animations.
+
+
+28
+00:01:56,726 --> 00:02:00,616
+Easier to use API, web
+integrated with the UIKit model.
+
+
+29
+00:02:01,526 --> 00:02:05,016
+And we actually include
+that a lot in iOS 7.
+
+
+30
+00:02:05,876 --> 00:02:09,476
+We had it at UIView level
+keyframe animations.
+
+
+31
+00:02:10,476 --> 00:02:15,766
+And we are adding spring
+animations to UIView animations.
+
+
+32
+00:02:17,116 --> 00:02:22,036
+Another great API we have
+in iOS 7 is motion effects.
+
+
+33
+00:02:22,346 --> 00:02:26,706
+A way to animate content
+based on the physical position
+
+
+34
+00:02:26,706 --> 00:02:29,216
+and movement of your device.
+
+
+35
+00:02:29,576 --> 00:02:34,836
+That's how we build this
+power act effect in iOS 7.
+
+
+36
+00:02:34,986 --> 00:02:38,096
+And when you start
+interacting with content,
+
+
+37
+00:02:38,736 --> 00:02:41,236
+one great tool is
+gesture recognizer
+
+
+38
+00:02:41,806 --> 00:02:45,746
+and drive changes
+view moving based
+
+
+39
+00:02:45,806 --> 00:02:48,236
+on gesture recognizer callbacks.
+
+
+40
+00:02:49,616 --> 00:02:57,966
+But, you can also use lower
+level APIs like CADisplayLink
+
+
+41
+00:02:58,546 --> 00:03:03,466
+and animate things at
+screen refresh level.
+
+
+42
+00:03:03,796 --> 00:03:11,116
+And of course, you can actually
+combine all of these techniques.
+
+
+43
+00:03:11,706 --> 00:03:14,286
+So, what is UIKit Dynamics?
+
+
+44
+00:03:15,456 --> 00:03:17,216
+I think somebody said yesterday
+
+
+45
+00:03:17,216 --> 00:03:20,496
+that this definition was
+not exactly crystal clear.
+
+
+46
+00:03:21,116 --> 00:03:27,116
+It is a composable,
+realtime system.
+
+
+47
+00:03:27,696 --> 00:03:32,116
+It's made to be--
+you can subclass it.
+
+
+48
+00:03:32,116 --> 00:03:34,286
+You can combine effects
+together,
+
+
+49
+00:03:34,816 --> 00:03:37,246
+and it's physics-inspired.
+
+
+50
+00:03:37,846 --> 00:03:41,506
+What kind of applications
+can you build with that?
+
+
+51
+00:03:46,866 --> 00:03:49,506
+Well, maybe not.
+
+
+52
+00:03:50,826 --> 00:03:55,226
+Hoever that was probably
+the most creative
+
+
+53
+00:03:55,646 --> 00:03:59,056
+and completely wrong
+use of UISwitch ever.
+
+
+54
+00:04:02,136 --> 00:04:05,936
+No, and why not?
+
+
+55
+00:04:07,656 --> 00:04:09,646
+Because we have much
+better tool for you.
+
+
+56
+00:04:10,406 --> 00:04:14,716
+Sprite Kits, it's a
+great new game framework.
+
+
+57
+00:04:15,226 --> 00:04:18,536
+It's available on iOS and OS X.
+
+
+58
+00:04:19,366 --> 00:04:20,706
+It's a great foundering engine.
+
+
+59
+00:04:21,416 --> 00:04:28,396
+And we actually use the
+same physics engine.
+
+
+60
+00:04:29,026 --> 00:04:33,316
+So then, where can you use
+dynamics in your applications?
+
+
+61
+00:04:33,786 --> 00:04:40,236
+I have a very quick demo
+I'd like to show you.
+
+
+62
+00:04:40,916 --> 00:04:45,126
+This is a very simple
+likable example.
+
+
+63
+00:04:46,096 --> 00:04:49,366
+I can organize my pictures.
+
+
+64
+00:04:49,796 --> 00:04:54,576
+And, as you pay attention,
+when I'm dragging a picture
+
+
+65
+00:04:54,576 --> 00:04:58,236
+by the center, it
+moves as expected.
+
+
+66
+00:04:58,536 --> 00:05:03,126
+But when I drag by the
+corner of this picture,
+
+
+67
+00:05:04,296 --> 00:05:06,906
+it will react the
+way you would expect
+
+
+68
+00:05:06,906 --> 00:05:09,976
+when dragging something
+in a table.
+
+
+69
+00:05:10,086 --> 00:05:15,386
+So we have natural real
+world looking interactions.
+
+
+70
+00:05:15,726 --> 00:05:20,636
+I can select pictures to
+the bottom of the screen.
+
+
+71
+00:05:20,986 --> 00:05:27,676
+I can throw this to
+start organizing things.
+
+
+72
+00:05:28,616 --> 00:05:31,716
+But, maybe we can find
+something easier actually.
+
+
+73
+00:05:32,356 --> 00:05:38,496
+So let's create new albums and
+start organizing these albums.
+
+
+74
+00:05:39,656 --> 00:05:47,206
+OK. That's -- that's
+much better.
+
+
+75
+00:05:47,806 --> 00:05:52,466
+So that's a good
+example of using dynamics
+
+
+76
+00:05:53,616 --> 00:05:55,786
+in a non-game application.
+
+
+77
+00:05:55,896 --> 00:06:00,946
+So of course, that's
+a WWDC demo app.
+
+
+78
+00:06:00,946 --> 00:06:03,176
+How complex is that?
+
+
+79
+00:06:04,536 --> 00:06:06,546
+Actually, not that much.
+
+
+80
+00:06:06,546 --> 00:06:08,596
+You enter your application,
+
+
+81
+00:06:08,976 --> 00:06:11,466
+all implementation
+files and no cheating.
+
+
+82
+00:06:11,466 --> 00:06:14,486
+It's about for 400
+lines of code.
+
+
+83
+00:06:15,056 --> 00:06:19,736
+But what's interesting here
+is I have a lot of code here
+
+
+84
+00:06:19,736 --> 00:06:25,166
+to load these images, have
+this nice picture views.
+
+
+85
+00:06:25,606 --> 00:06:31,676
+The actual interaction code
+is about 80 lines of code.
+
+
+86
+00:06:31,676 --> 00:06:33,486
+So that's really easy.
+
+
+87
+00:06:33,876 --> 00:06:38,106
+And most of it is in
+this cute magnet effect.
+
+
+88
+00:06:39,516 --> 00:06:45,656
+[ Applause ]
+
+
+89
+00:06:46,156 --> 00:06:48,696
+So, let's start exploring
+dynamics.
+
+
+90
+00:06:49,636 --> 00:06:51,836
+But first, why?
+
+
+91
+00:06:53,936 --> 00:06:56,616
+We wanted to provide a way
+
+
+92
+00:06:57,166 --> 00:07:00,556
+to [inaudible] model real
+world inspired interactions.
+
+
+93
+00:07:01,106 --> 00:07:04,856
+And we wanted also
+to provide a way
+
+
+94
+00:07:05,286 --> 00:07:09,146
+to combine quick
+canned animations,
+
+
+95
+00:07:09,186 --> 00:07:12,136
+predefined animation
+and interactions.
+
+
+96
+00:07:13,306 --> 00:07:18,046
+And we wanted to offer you
+something that's really was
+
+
+97
+00:07:18,046 --> 00:07:19,276
+at UI level.
+
+
+98
+00:07:20,126 --> 00:07:25,136
+And there is a good example
+of that, the lock screen.
+
+
+99
+00:07:26,426 --> 00:07:29,176
+In iOS 6, do you
+still remember iOS 6?
+
+
+100
+00:07:30,666 --> 00:07:34,736
+OK. In iOS 6, when you
+tap this camera button,
+
+
+101
+00:07:35,506 --> 00:07:37,956
+you have the small
+bounce animation, right,
+
+
+102
+00:07:38,446 --> 00:07:41,726
+to show there is actually
+a Camera UI behind.
+
+
+103
+00:07:41,726 --> 00:07:47,266
+And then you can drag, so
+that's going up to review it.
+
+
+104
+00:07:47,656 --> 00:07:50,436
+And you can actually end
+that gesture or cancel,
+
+
+105
+00:07:50,986 --> 00:07:52,606
+and the lock screen
+is going fall down.
+
+
+106
+00:07:54,146 --> 00:07:56,196
+What's interesting is, in iOS 6,
+
+
+107
+00:07:56,766 --> 00:07:58,846
+these two modes are
+completely separate.
+
+
+108
+00:07:59,426 --> 00:08:03,316
+There is a predefined animation
+for the tap bounce effect.
+
+
+109
+00:08:04,216 --> 00:08:07,466
+And because it's a
+completely predefine animation,
+
+
+110
+00:08:07,906 --> 00:08:11,536
+you cannot catch with a
+gesture the lock screen
+
+
+111
+00:08:11,576 --> 00:08:13,626
+in flight while it's animating.
+
+
+112
+00:08:14,286 --> 00:08:19,666
+And seen in iOS 6, when you end
+that gesture interactive part,
+
+
+113
+00:08:20,856 --> 00:08:23,986
+the lock screen just animate
+down, it doesn't bounce.
+
+
+114
+00:08:24,776 --> 00:08:27,556
+That's not what we want.
+
+
+115
+00:08:27,556 --> 00:08:30,986
+So in iOS 7, let me show you.
+
+
+116
+00:08:31,046 --> 00:08:33,076
+So that's when I tap
+the camera button.
+
+
+117
+00:08:33,486 --> 00:08:38,046
+I slide up and cancel,
+it bounces.
+
+
+118
+00:08:39,496 --> 00:08:42,236
+I slide up and I'm going
+to [inaudible] the view,
+
+
+119
+00:08:43,686 --> 00:08:46,116
+the bounce is slightly
+different.
+
+
+120
+00:08:46,746 --> 00:08:51,246
+So that's a good example
+
+
+121
+00:08:51,246 --> 00:08:53,916
+of [inaudible] interaction
+you might want
+
+
+122
+00:08:53,916 --> 00:08:55,466
+to add in your application.
+
+
+123
+00:08:55,786 --> 00:09:02,606
+How? When we start to
+thinking about this API,
+
+
+124
+00:09:02,606 --> 00:09:08,786
+an interesting question was,
+where should we add that?
+
+
+125
+00:09:09,526 --> 00:09:16,236
+And one idea was, "Maybe should
+just add new methods to UIView,
+
+
+126
+00:09:16,966 --> 00:09:19,636
+like setMass, applyForce."
+
+
+127
+00:09:20,126 --> 00:09:23,056
+That's interesting,
+
+
+128
+00:09:23,056 --> 00:09:27,816
+but we realize that's not
+what you want to express.
+
+
+129
+00:09:28,346 --> 00:09:32,286
+You want to express
+high level effects.
+
+
+130
+00:09:32,866 --> 00:09:35,236
+You don't want just
+to mess with these use
+
+
+131
+00:09:35,236 --> 00:09:36,516
+and forces and everything.
+
+
+132
+00:09:36,876 --> 00:09:40,696
+You want a high level more
+the clarity of expression
+
+
+133
+00:09:40,696 --> 00:09:42,356
+of these interactions.
+
+
+134
+00:09:43,616 --> 00:09:49,956
+So then, we ask the concept we
+use all over the place in UIKit
+
+
+135
+00:09:50,596 --> 00:09:53,226
+and in all of our
+frameworks' composition.
+
+
+136
+00:09:54,566 --> 00:10:00,436
+And in dynamics, we
+compose Predefined behaviors
+
+
+137
+00:10:00,586 --> 00:10:02,366
+for you own behaviors.
+
+
+138
+00:10:02,896 --> 00:10:08,236
+In this lock screen
+example, the bouncing,
+
+
+139
+00:10:08,666 --> 00:10:10,566
+falling down and
+bouncing effect.
+
+
+140
+00:10:11,766 --> 00:10:13,966
+Why do I really need
+to express that?
+
+
+141
+00:10:14,656 --> 00:10:18,946
+I need gravity towards
+a view falling.
+
+
+142
+00:10:20,116 --> 00:10:25,566
+And I need a collision to
+get this bounce effect.
+
+
+143
+00:10:26,106 --> 00:10:29,676
+So, in dynamics, I would express
+
+
+144
+00:10:29,676 --> 00:10:35,566
+that as one view being popped
+off two primitive behaviors,
+
+
+145
+00:10:35,946 --> 00:10:37,516
+gravity and collision.
+
+
+146
+00:10:38,726 --> 00:10:46,446
+And all these behaviors ran are
+associated in animation context.
+
+
+147
+00:10:47,176 --> 00:10:50,136
+So if we start digging
+in the architecture,
+
+
+148
+00:10:50,956 --> 00:10:55,496
+what we add is first that's
+new class, UI DynamicAnimator
+
+
+149
+00:10:56,816 --> 00:11:01,366
+which provides the context, and
+then you associate behaviors,
+
+
+150
+00:11:01,856 --> 00:11:05,356
+UI DynamicBehavior
+subclasses to this animator.
+
+
+151
+00:11:05,886 --> 00:11:11,656
+And usually then, you associate
+views to these behaviors.
+
+
+152
+00:11:12,676 --> 00:11:19,006
+And one key concept here is,
+usually, you want to view
+
+
+153
+00:11:19,006 --> 00:11:25,336
+to be part of two or more
+behaviors 'cause that's going
+
+
+154
+00:11:25,336 --> 00:11:28,456
+to combine the effect
+of these behaviors.
+
+
+155
+00:11:28,796 --> 00:11:35,066
+The other thing we need is
+what we call Reference View
+
+
+156
+00:11:35,676 --> 00:11:41,046
+which was a way to define
+the global coordinate system,
+
+
+157
+00:11:42,206 --> 00:11:44,256
+in which we would
+run this interaction
+
+
+158
+00:11:44,946 --> 00:11:46,976
+with the only constraint
+
+
+159
+00:11:46,976 --> 00:11:54,206
+that the views we animate
+are actually subviews or part
+
+
+160
+00:11:54,206 --> 00:12:00,466
+of the view hierarchy
+of that reference view.
+
+
+161
+00:12:00,686 --> 00:12:05,716
+So that's-- see in more
+details what we have
+
+
+162
+00:12:05,716 --> 00:12:07,066
+in animators and behaviors.
+
+
+163
+00:12:07,656 --> 00:12:11,486
+UIDynamicAnimator provide
+your overall context
+
+
+164
+00:12:11,486 --> 00:12:16,596
+for your animation and
+defines the coordinate system.
+
+
+165
+00:12:16,916 --> 00:12:20,776
+And we'll see later,
+that's quite interesting.
+
+
+166
+00:12:21,326 --> 00:12:28,246
+And it wraps the underlying
+engine and we know when to start
+
+
+167
+00:12:28,246 --> 00:12:30,266
+and stop that engine for you.
+
+
+168
+00:12:34,036 --> 00:12:36,476
+It also keeps track
+of all the behaviors
+
+
+169
+00:12:36,666 --> 00:12:38,956
+that are currently
+associated with this animator.
+
+
+170
+00:12:40,046 --> 00:12:41,186
+It's really easy to use.
+
+
+171
+00:12:42,306 --> 00:12:44,596
+You just create a
+UIDynamicAnimator
+
+
+172
+00:12:45,376 --> 00:12:51,306
+with the reference view
+and then you just have
+
+
+173
+00:12:53,496 --> 00:12:56,196
+to add behaviors to that.
+
+
+174
+00:12:56,406 --> 00:12:57,086
+Behaviors.
+
+
+175
+00:12:57,116 --> 00:13:00,666
+UIDynamicBehavior is
+something that is going
+
+
+176
+00:13:00,666 --> 00:13:02,886
+to be associated
+with DynamicAnimator.
+
+
+177
+00:13:04,046 --> 00:13:09,166
+It's usually associated with
+a view or a set of views.
+
+
+178
+00:13:10,546 --> 00:13:17,816
+And we try to make behaviors
+as declarative as possible.
+
+
+179
+00:13:18,376 --> 00:13:24,066
+It will describe some
+inference view like
+
+
+180
+00:13:24,486 --> 00:13:26,416
+"That view should be
+impacted by gravity.
+
+
+181
+00:13:27,036 --> 00:13:28,006
+That view should collide."
+
+
+182
+00:13:29,356 --> 00:13:34,766
+And a real interesting thing
+about behaviors is you can add
+
+
+183
+00:13:34,766 --> 00:13:38,766
+and remove behaviors to
+the animator at anytime.
+
+
+184
+00:13:39,806 --> 00:13:43,456
+And we'll see why that's a
+real key concept in dynamics.
+
+
+185
+00:13:43,976 --> 00:13:47,106
+It's made to be composed.
+
+
+186
+00:13:47,666 --> 00:13:52,036
+You can actually group behaviors
+together to define your own,
+
+
+187
+00:13:53,266 --> 00:13:56,046
+also by defining in
+your own subclass.
+
+
+188
+00:13:56,506 --> 00:14:01,316
+And it's really easy to use.
+
+
+189
+00:14:01,316 --> 00:14:02,606
+Usually, you just want
+
+
+190
+00:14:02,606 --> 00:14:06,446
+to allocate-alloc init
+a behavior usually
+
+
+191
+00:14:06,446 --> 00:14:07,266
+with a set of views.
+
+
+192
+00:14:07,856 --> 00:14:11,286
+And you add that
+behavior to the animator.
+
+
+193
+00:14:11,816 --> 00:14:19,736
+And to help you, we
+are providing in UIKit
+
+
+194
+00:14:19,736 --> 00:14:24,046
+in iOS 7 a set of
+Predefined behaviors you can
+
+
+195
+00:14:24,046 --> 00:14:24,726
+combine together.
+
+
+196
+00:14:24,726 --> 00:14:30,826
+All of these behaviors
+have some common traits.
+
+
+197
+00:14:31,566 --> 00:14:34,706
+First, usually, these
+behaviors are configured
+
+
+198
+00:14:34,706 --> 00:14:38,566
+with items you want to animate.
+
+
+199
+00:14:39,776 --> 00:14:46,956
+Most of this, actually you can
+add or remove views at anytime.
+
+
+200
+00:14:47,426 --> 00:14:50,556
+So if I want a view to be no
+longer impacted by gravity,
+
+
+201
+00:14:51,226 --> 00:14:52,826
+I just remove it
+from that behavior.
+
+
+202
+00:14:53,346 --> 00:15:02,196
+You can configure a behavior
+before or after adding it
+
+
+203
+00:15:02,576 --> 00:15:09,066
+to an animator and the influence
+of a behavior stops as soon
+
+
+204
+00:15:09,066 --> 00:15:12,076
+as you remove it from
+the animator itself.
+
+
+205
+00:15:12,076 --> 00:15:15,196
+So what do we have?
+
+
+206
+00:15:16,456 --> 00:15:20,016
+gravity, we talked about that.
+
+
+207
+00:15:20,536 --> 00:15:21,116
+collisions.
+
+
+208
+00:15:22,936 --> 00:15:29,226
+Attachment, a way to
+connect views together.
+
+
+209
+00:15:29,776 --> 00:15:34,696
+We have a high level of behavior
+we call the Snap behavior
+
+
+210
+00:15:34,696 --> 00:15:37,206
+which is a way to
+snap view into place.
+
+
+211
+00:15:37,296 --> 00:15:41,886
+We have a behavior,
+a Push behavior
+
+
+212
+00:15:41,886 --> 00:15:44,856
+to apply forces to views.
+
+
+213
+00:15:45,326 --> 00:15:51,166
+And we have a low level
+behavior which gives you a way
+
+
+214
+00:15:51,576 --> 00:15:56,156
+to twitch some physics
+level properties of views,
+
+
+215
+00:15:57,366 --> 00:16:03,096
+like friction, for
+instance, or density.
+
+
+216
+00:16:04,226 --> 00:16:07,386
+So, let's explore this
+Predefined behavior.
+
+
+217
+00:16:07,936 --> 00:16:09,346
+First one, Gravity behavior.
+
+
+218
+00:16:10,286 --> 00:16:12,896
+So if the only thing I have
+
+
+219
+00:16:13,566 --> 00:16:18,116
+in my animator is a gravity
+behavior with just one view,
+
+
+220
+00:16:18,876 --> 00:16:26,076
+what's going to happen is
+that, which is expected.
+
+
+221
+00:16:26,716 --> 00:16:32,496
+It's defined by a very simple
+gravity vector which is uniform
+
+
+222
+00:16:32,496 --> 00:16:34,906
+and global to the
+entire animator.
+
+
+223
+00:16:34,906 --> 00:16:37,886
+We have four views which
+are part of this behavior.
+
+
+224
+00:16:39,136 --> 00:16:43,616
+And it's controlled by
+x and the y components.
+
+
+225
+00:16:44,516 --> 00:16:46,726
+It's expressed in the
+UIKit coordinate system.
+
+
+226
+00:16:47,636 --> 00:16:50,706
+So, (0,1) which is the default,
+
+
+227
+00:16:50,926 --> 00:16:55,266
+is gravity pointing
+down which is nice.
+
+
+228
+00:16:55,746 --> 00:17:00,856
+And you can add and
+remove items at any time.
+
+
+229
+00:17:01,436 --> 00:17:04,866
+It's quite easy to use.
+
+
+230
+00:17:05,665 --> 00:17:09,546
+You create a Gravity
+behavior with a set of items
+
+
+231
+00:17:09,646 --> 00:17:12,526
+and you just add this
+behavior to your animator.
+
+
+232
+00:17:13,046 --> 00:17:21,336
+Through this one open
+question, though, (0,1),
+
+
+233
+00:17:21,925 --> 00:17:24,036
+which units do we use here?
+
+
+234
+00:17:25,266 --> 00:17:28,425
+Well, there was a well-known
+constant about gravity,
+
+
+235
+00:17:28,906 --> 00:17:34,306
+Earth gravity, 9.80665
+[inaudible].
+
+
+236
+00:17:34,976 --> 00:17:38,466
+Who designed this API?
+
+
+237
+00:17:40,366 --> 00:17:43,386
+UIKit Gravity, much better.
+
+
+238
+00:17:43,386 --> 00:17:47,586
+One thousand points
+per second square.
+
+
+239
+00:17:48,136 --> 00:17:52,506
+It feels like Earth
+gravity, trust me.
+
+
+240
+00:17:52,966 --> 00:17:56,556
+Just easier to use
+points on devices.
+
+
+241
+00:17:58,516 --> 00:18:04,296
+[ Applause ]
+
+
+242
+00:18:04,796 --> 00:18:07,636
+Collision behavior, that is
+a really interesting one.
+
+
+243
+00:18:09,716 --> 00:18:11,336
+You just add a view.
+
+
+244
+00:18:11,676 --> 00:18:13,446
+You can specify a boundary.
+
+
+245
+00:18:14,016 --> 00:18:16,996
+And in this case, I
+actually added gravity
+
+
+246
+00:18:17,036 --> 00:18:22,006
+because without gravity, that
+would not animate, right?
+
+
+247
+00:18:23,136 --> 00:18:29,966
+So, another mode is
+colliding between views.
+
+
+248
+00:18:31,406 --> 00:18:33,786
+And of course, the third way
+
+
+249
+00:18:33,786 --> 00:18:37,866
+to use Collision
+behavior is colliding
+
+
+250
+00:18:37,866 --> 00:18:39,976
+between views and boundaries.
+
+
+251
+00:18:40,046 --> 00:18:48,576
+Views are controlled by a very
+simple property, collision mode.
+
+
+252
+00:18:48,576 --> 00:18:53,886
+UI won't views to collide with
+views, views to only collide
+
+
+253
+00:18:54,096 --> 00:18:56,286
+with boundaries but
+not with other views,
+
+
+254
+00:18:56,846 --> 00:19:00,426
+or a views colliding with
+views and boundaries.
+
+
+255
+00:19:02,936 --> 00:19:07,706
+Like gravity, you can
+add and remove items
+
+
+256
+00:19:07,706 --> 00:19:09,646
+from this behavior at any time.
+
+
+257
+00:19:09,646 --> 00:19:13,606
+So if I actually make a
+bottom green view disappear,
+
+
+258
+00:19:13,606 --> 00:19:18,686
+what's going to happen is we
+will resume the animation.
+
+
+259
+00:19:19,216 --> 00:19:23,556
+And I was talking
+about Composition.
+
+
+260
+00:19:26,216 --> 00:19:31,976
+The real interesting use case
+here is you can define multiple
+
+
+261
+00:19:31,976 --> 00:19:36,226
+Collision behaviors, so you can
+express really easily things
+
+
+262
+00:19:36,226 --> 00:19:40,086
+like I want red views to
+collide with red views,
+
+
+263
+00:19:40,456 --> 00:19:42,036
+green views with green views,
+
+
+264
+00:19:42,526 --> 00:19:45,526
+but not green views
+and red views.
+
+
+265
+00:19:45,936 --> 00:19:53,916
+And a small word of warning
+here, it's not completely free.
+
+
+266
+00:19:54,426 --> 00:19:57,056
+We steer around an
+engine [inaudible],
+
+
+267
+00:19:57,586 --> 00:20:01,466
+so collisions do have a
+cost we have to detect,
+
+
+268
+00:20:01,856 --> 00:20:04,506
+compute when we have collisions.
+
+
+269
+00:20:08,566 --> 00:20:09,216
+Boundaries.
+
+
+270
+00:20:10,036 --> 00:20:11,676
+How do you create this?
+
+
+271
+00:20:12,826 --> 00:20:19,186
+There is a really easy way
+which is having what you want
+
+
+272
+00:20:19,356 --> 00:20:23,686
+which use that reference view
+we were talking about before
+
+
+273
+00:20:24,246 --> 00:20:27,836
+as the default boundary.
+
+
+274
+00:20:28,706 --> 00:20:30,066
+So that's a really
+simple property.
+
+
+275
+00:20:30,596 --> 00:20:33,876
+We have a variant which--
+
+
+276
+00:20:33,916 --> 00:20:39,166
+with which you can
+actually apply in sets.
+
+
+277
+00:20:39,306 --> 00:20:43,986
+And we have another way
+to define boundaries.
+
+
+278
+00:20:43,986 --> 00:20:50,176
+So you can do things like
+that by defining segments
+
+
+279
+00:20:51,226 --> 00:20:56,216
+or even path, UIBezierPath.
+
+
+280
+00:20:56,516 --> 00:21:00,116
+In that case, you have to know
+that we basically approximate
+
+
+281
+00:21:00,246 --> 00:21:03,056
+that with a set off lines.
+
+
+282
+00:21:03,196 --> 00:21:06,026
+But usually, it's OK.
+
+
+283
+00:21:06,416 --> 00:21:11,666
+When you create this, you
+need to pass a notifier
+
+
+284
+00:21:12,626 --> 00:21:15,356
+and we will see why
+in a few minutes.
+
+
+285
+00:21:15,876 --> 00:21:20,856
+And again, you can create
+a multiple behavior,
+
+
+286
+00:21:20,856 --> 00:21:21,856
+multiple boundaries.
+
+
+287
+00:21:23,236 --> 00:21:25,876
+There is one thing
+in these slides.
+
+
+288
+00:21:25,876 --> 00:21:31,136
+I did show you the
+boundaries I was using.
+
+
+289
+00:21:32,026 --> 00:21:39,296
+On device, the only thing
+you see is that view.
+
+
+290
+00:21:40,196 --> 00:21:44,386
+These boundaries are just
+description of my system.
+
+
+291
+00:21:44,906 --> 00:21:47,296
+They don't have an
+existence on screen.
+
+
+292
+00:21:47,816 --> 00:21:53,316
+We have an interesting
+delegate on Collision behavior.
+
+
+293
+00:21:53,836 --> 00:21:59,536
+And you can be notified when
+we actually have a collision.
+
+
+294
+00:21:59,646 --> 00:22:02,196
+So, when a view collides
+with a view,
+
+
+295
+00:22:03,156 --> 00:22:06,476
+you can implement this
+method and you will get
+
+
+296
+00:22:06,736 --> 00:22:14,796
+where that collision took place,
+and same thing for boundaries.
+
+
+297
+00:22:15,476 --> 00:22:19,036
+And this is why we have
+this boundary notifier,
+
+
+298
+00:22:19,426 --> 00:22:23,816
+so you will know which
+wall you collided with.
+
+
+299
+00:22:25,206 --> 00:22:30,386
+And by definition,
+when you get nil,
+
+
+300
+00:22:30,386 --> 00:22:36,296
+it was this reference bounds
+easy way to set up boundaries
+
+
+301
+00:22:37,346 --> 00:22:44,216
+and that is implicit
+bounds we pass nil.
+
+
+302
+00:22:44,436 --> 00:22:47,126
+Next, Attachment behavior.
+
+
+303
+00:22:48,896 --> 00:22:55,256
+This describe a view connected
+to an attachment point
+
+
+304
+00:22:55,626 --> 00:22:59,836
+and it's really easy to use.
+
+
+305
+00:23:00,706 --> 00:23:04,996
+You just pass a view and
+where that one should be
+
+
+306
+00:23:05,206 --> 00:23:08,906
+and that's expressed in the
+reference view coordinate space.
+
+
+307
+00:23:09,256 --> 00:23:13,646
+We have a variant for that
+
+
+308
+00:23:14,196 --> 00:23:17,876
+where you can actually
+connect two views together.
+
+
+309
+00:23:19,416 --> 00:23:29,086
+So in this case, imagine that
+I then push that middle view,
+
+
+310
+00:23:29,916 --> 00:23:32,986
+the system is going to
+react as you would expect.
+
+
+311
+00:23:37,076 --> 00:23:42,716
+You can even specify
+where that connection is.
+
+
+312
+00:23:43,076 --> 00:23:49,476
+You can specify as an offset
+from the center of the view
+
+
+313
+00:23:50,096 --> 00:23:56,596
+where we should attach this view
+or these two views together.
+
+
+314
+00:23:57,796 --> 00:24:02,736
+There is a nice feature
+in UIAttachmentBehavior.
+
+
+315
+00:24:09,036 --> 00:24:14,616
+Springs. You can configure an
+Attachment behavior as a spring.
+
+
+316
+00:24:15,516 --> 00:24:20,076
+[ Applause ]
+
+
+317
+00:24:20,576 --> 00:24:24,296
+Just pass a Frequency and
+Damping and it will act
+
+
+318
+00:24:24,356 --> 00:24:27,046
+as a really easy
+to set up spring.
+
+
+319
+00:24:27,476 --> 00:24:29,466
+Another interesting feature is
+
+
+320
+00:24:30,316 --> 00:24:33,016
+that attachment point
+can be moved.
+
+
+321
+00:24:33,656 --> 00:24:38,616
+So if I move the attachment
+point, the view is going
+
+
+322
+00:24:38,616 --> 00:24:40,816
+to move as you would expect.
+
+
+323
+00:24:43,896 --> 00:24:48,746
+We also have a length
+property that you can change.
+
+
+324
+00:24:49,766 --> 00:24:50,956
+Usually, you don't need
+
+
+325
+00:24:50,956 --> 00:24:55,796
+that because we compute
+the length at init time.
+
+
+326
+00:24:57,186 --> 00:24:59,586
+Sometimes, you need that
+but you have to know
+
+
+327
+00:25:00,126 --> 00:25:06,146
+when you change just in one
+shot, the lengths of something,
+
+
+328
+00:25:06,146 --> 00:25:07,926
+it's not really physically.
+
+
+329
+00:25:07,926 --> 00:25:11,586
+So, it's really not
+a common case.
+
+
+330
+00:25:16,316 --> 00:25:17,296
+Like boundaries,
+
+
+331
+00:25:18,536 --> 00:25:22,136
+these attachments are not
+visible in your application.
+
+
+332
+00:25:22,376 --> 00:25:26,786
+It's just description of how
+your system should react.
+
+
+333
+00:25:28,386 --> 00:25:31,556
+I'd like to show
+your how it feels.
+
+
+334
+00:25:32,516 --> 00:25:45,956
+[ Pause ]
+
+
+335
+00:25:46,456 --> 00:25:51,526
+So in that example,
+I actually added code
+
+
+336
+00:25:52,246 --> 00:25:55,116
+to show you the collision
+boundaries
+
+
+337
+00:25:55,176 --> 00:25:58,396
+and the attachment
+because, without that,
+
+
+338
+00:25:58,396 --> 00:25:59,966
+it would just be a view moving
+
+
+339
+00:25:59,966 --> 00:26:01,766
+in a very strange
+way of the screen.
+
+
+340
+00:26:02,316 --> 00:26:09,096
+So, again, to start with
+a very simple attachment.
+
+
+341
+00:26:09,896 --> 00:26:11,936
+So that's my gesture.
+
+
+342
+00:26:12,556 --> 00:26:13,516
+So it really acts
+
+
+343
+00:26:13,516 --> 00:26:19,156
+like a nonflexible small
+rod connected to this shape.
+
+
+344
+00:26:19,556 --> 00:26:20,916
+There is no gravity, so it's
+
+
+345
+00:26:20,916 --> 00:26:25,796
+like that's green shape
+was just flat on a table,
+
+
+346
+00:26:26,646 --> 00:26:32,386
+so I can push or
+pull that shape.
+
+
+347
+00:26:37,516 --> 00:26:38,196
+All right.
+
+
+348
+00:26:38,666 --> 00:26:48,716
+And, the other mode we have for
+Attachment behavior is Springs.
+
+
+349
+00:26:49,806 --> 00:26:50,676
+So, let's see.
+
+
+350
+00:26:51,296 --> 00:26:55,106
+It's just the same thing.
+
+
+351
+00:26:55,106 --> 00:27:00,696
+I can actually push
+that view or pull it.
+
+
+352
+00:27:01,316 --> 00:27:04,556
+And just because of
+that Spring effect,
+
+
+353
+00:27:05,276 --> 00:27:09,546
+you don't have exactly
+the same animation.
+
+
+354
+00:27:10,516 --> 00:27:18,616
+[ Pause ]
+
+
+355
+00:27:19,116 --> 00:27:22,816
+Snap behavior that's
+a high level,
+
+
+356
+00:27:22,816 --> 00:27:24,806
+really easy to use behavior.
+
+
+357
+00:27:25,396 --> 00:27:29,946
+It just snaps a view at specific
+place on the screen and we try
+
+
+358
+00:27:29,946 --> 00:27:34,546
+to get it back to
+non-rotated state.
+
+
+359
+00:27:35,376 --> 00:27:40,206
+It looks like that.
+
+
+360
+00:27:40,406 --> 00:27:43,246
+Really easy to use.
+
+
+361
+00:27:43,426 --> 00:27:47,206
+Oh, you can actually customize
+also that dumping effect.
+
+
+362
+00:27:47,786 --> 00:27:50,486
+One way to understand
+the Snap behavior is just
+
+
+363
+00:27:50,486 --> 00:27:54,516
+like if we had set
+up four small springs
+
+
+364
+00:27:55,206 --> 00:27:56,926
+at the corner of that view.
+
+
+365
+00:27:57,496 --> 00:28:05,306
+To create a Snap behavior, you
+just pass an item and a point
+
+
+366
+00:28:05,306 --> 00:28:09,876
+in the reference view coordinate
+system, and you just add
+
+
+367
+00:28:11,036 --> 00:28:12,946
+that Snap behavior
+to your animator.
+
+
+368
+00:28:18,016 --> 00:28:22,066
+Push behavior, that's
+a way to apply forces.
+
+
+369
+00:28:26,696 --> 00:28:28,676
+And, you just want to set
+
+
+370
+00:28:28,676 --> 00:28:31,816
+up a Push behavior
+with a set of views.
+
+
+371
+00:28:32,466 --> 00:28:36,426
+And there is this
+mode parameter here.
+
+
+372
+00:28:36,976 --> 00:28:37,746
+What does that mean?
+
+
+373
+00:28:37,746 --> 00:28:41,406
+It means that, in this mode,
+we're going to apply a force
+
+
+374
+00:28:41,406 --> 00:28:45,556
+which is the force will
+still be applied while
+
+
+375
+00:28:45,556 --> 00:28:48,356
+that behavior is
+active in the animator.
+
+
+376
+00:28:48,706 --> 00:28:52,026
+So, which means that for
+this view, the view is going
+
+
+377
+00:28:52,026 --> 00:28:57,676
+to accelerate, right, 'cause
+I keep applying that force.
+
+
+378
+00:28:57,676 --> 00:29:03,416
+It's defined with a very simple
+force vector, xComponent,
+
+
+379
+00:29:03,416 --> 00:29:07,296
+yComponent, or magnitude
+and angle, if you prefer.
+
+
+380
+00:29:07,836 --> 00:29:13,056
+And there is another
+interesting feature here.
+
+
+381
+00:29:13,506 --> 00:29:16,046
+You can actually
+customize where,
+
+
+382
+00:29:16,546 --> 00:29:19,286
+in that view, we
+apply this force.
+
+
+383
+00:29:20,186 --> 00:29:22,836
+So it's an offset
+from the center
+
+
+384
+00:29:22,836 --> 00:29:24,606
+of the view which
+is the default.
+
+
+385
+00:29:25,746 --> 00:29:29,426
+And if you apply a
+force small offset
+
+
+386
+00:29:29,426 --> 00:29:33,216
+from the center is still being
+to push that view but you want
+
+
+387
+00:29:33,216 --> 00:29:39,526
+to get this rotation
+effect at the same time.
+
+
+388
+00:29:39,556 --> 00:29:44,136
+Units, we have a well-known
+unit per force Newton,
+
+
+389
+00:29:44,916 --> 00:29:49,066
+which is defined as the
+amount of force you need
+
+
+390
+00:29:49,206 --> 00:29:54,926
+to accelerate 1 kilogram to
+1 meter per second squared.
+
+
+391
+00:29:55,516 --> 00:29:57,516
+[ Pause ]
+
+
+392
+00:29:58,016 --> 00:30:01,000
+[ Laughter ]
+
+
+393
+00:30:02,176 --> 00:30:03,576
+UIKit Newton.
+
+
+394
+00:30:07,156 --> 00:30:11,126
+Accelerate to 100
+point by 100 point view
+
+
+395
+00:30:11,176 --> 00:30:14,256
+with a default density to
+100 point per second squared.
+
+
+396
+00:30:15,156 --> 00:30:17,046
+Should we give it
+a name on UIKit,
+
+
+397
+00:30:17,046 --> 00:30:17,456
+[inaudible], I don't know.
+
+
+398
+00:30:17,456 --> 00:30:22,496
+You don't-- we don't need a
+name actually 'cause it's really
+
+
+399
+00:30:22,496 --> 00:30:23,056
+in Newton.
+
+
+400
+00:30:23,746 --> 00:30:28,966
+Observe that we are expressing
+it in the UIKit unit system.
+
+
+401
+00:30:31,556 --> 00:30:34,696
+There is an also
+interesting feature
+
+
+402
+00:30:34,696 --> 00:30:40,126
+to UIPushBehavior what we
+call the instantaneous mode,
+
+
+403
+00:30:40,126 --> 00:30:41,046
+immediate mode.
+
+
+404
+00:30:41,646 --> 00:30:44,326
+In that case, instead
+of applying a force,
+
+
+405
+00:30:45,056 --> 00:30:48,016
+we just apply very
+quick impulse,
+
+
+406
+00:30:49,296 --> 00:30:56,406
+which mean that this view, we
+immediately acquire a velocity,
+
+
+407
+00:30:57,356 --> 00:30:58,996
+it's not going to accelerate
+
+
+408
+00:30:58,996 --> 00:31:02,426
+over time it will just
+kick it a little bit.
+
+
+409
+00:31:03,546 --> 00:31:09,076
+And it's going to
+automatically visible itself
+
+
+410
+00:31:09,596 --> 00:31:10,656
+after applying it.
+
+
+411
+00:31:11,616 --> 00:31:13,476
+And if you want to
+reenable that again,
+
+
+412
+00:31:13,476 --> 00:31:15,726
+we have the Active property.
+
+
+413
+00:31:16,626 --> 00:31:19,896
+And you can set that to
+Yes again and you would get
+
+
+414
+00:31:19,896 --> 00:31:21,536
+that [inaudible] force again.
+
+
+415
+00:31:22,166 --> 00:31:27,306
+That's a great way to actually
+implement this tap Camera button
+
+
+416
+00:31:27,476 --> 00:31:28,306
+in the lock screen.
+
+
+417
+00:31:31,256 --> 00:31:32,966
+So we have gravity.
+
+
+418
+00:31:33,846 --> 00:31:35,976
+Push behavior in force mode.
+
+
+419
+00:31:36,036 --> 00:31:40,206
+Push behavior impulse mode.
+
+
+420
+00:31:41,246 --> 00:31:43,326
+One is immediate
+velocity change.
+
+
+421
+00:31:43,326 --> 00:31:45,726
+The other one is
+accelerating the view.
+
+
+422
+00:31:45,936 --> 00:31:50,706
+How could we see how that
+works and understand better?
+
+
+423
+00:31:51,676 --> 00:31:55,896
+Science. We should
+grab some graph paper,
+
+
+424
+00:31:56,696 --> 00:31:59,816
+run some experiments
+and see what happens.
+
+
+425
+00:32:00,526 --> 00:32:01,636
+We're going to do exactly that.
+
+
+426
+00:32:02,516 --> 00:32:11,576
+[ Pause ]
+
+
+427
+00:32:12,076 --> 00:32:18,726
+So, the first setup here is two
+views which we're going to add
+
+
+428
+00:32:19,236 --> 00:32:20,336
+to a Gravity behavior.
+
+
+429
+00:32:20,986 --> 00:32:24,736
+In that case, the
+relative size or density
+
+
+430
+00:32:24,736 --> 00:32:26,466
+of the view will not matter.
+
+
+431
+00:32:27,416 --> 00:32:33,506
+So, these views are just going
+to accelerate the big one
+
+
+432
+00:32:33,506 --> 00:32:35,226
+and the small one
+at the same rate.
+
+
+433
+00:32:35,766 --> 00:32:41,406
+Now, Push behavior
+in continuous mode.
+
+
+434
+00:32:42,236 --> 00:32:46,106
+So we will apply the same
+force to these two views.
+
+
+435
+00:32:46,696 --> 00:32:48,156
+These two views will
+be part actually
+
+
+436
+00:32:48,156 --> 00:32:49,756
+of the same Push behavior.
+
+
+437
+00:32:50,406 --> 00:32:52,186
+One is smaller than
+the other one,
+
+
+438
+00:32:52,186 --> 00:32:53,646
+so it's actually easier to use.
+
+
+439
+00:32:53,646 --> 00:32:55,506
+So it's going to
+accelerate faster.
+
+
+440
+00:32:56,706 --> 00:32:57,986
+Let's verify that.
+
+
+441
+00:32:58,646 --> 00:33:00,916
+Yup, that's correct.
+
+
+442
+00:33:01,306 --> 00:33:08,386
+And the third mode is Push
+behavior in instantaneous mode.
+
+
+443
+00:33:09,046 --> 00:33:12,566
+That's just at a very
+quick impulse these views.
+
+
+444
+00:33:13,436 --> 00:33:19,156
+So, as you see, these do
+acquire a velocity but then
+
+
+445
+00:33:19,156 --> 00:33:20,596
+that velocity doesn't change.
+
+
+446
+00:33:21,016 --> 00:33:22,826
+These views are not
+accelerating.
+
+
+447
+00:33:23,726 --> 00:33:27,546
+So if we run everything again,
+
+
+448
+00:33:28,096 --> 00:33:34,736
+it feels like the last views are
+actually decelerating but not.
+
+
+449
+00:33:34,736 --> 00:33:38,976
+It's just an effect
+of the other view
+
+
+450
+00:33:39,396 --> 00:33:41,136
+which are indeed accelerating.
+
+
+451
+00:33:41,696 --> 00:33:43,456
+So, that's difference
+between Gravity
+
+
+452
+00:33:44,156 --> 00:33:48,496
+and the two modes we
+have for Push behaviors.
+
+
+453
+00:33:51,516 --> 00:34:01,536
+[ Applause ]
+
+
+454
+00:34:02,036 --> 00:34:03,856
+UIDynamicItemBehavior.
+
+
+455
+00:34:05,256 --> 00:34:09,275
+This one is the last
+Predefined behavior we have.
+
+
+456
+00:34:10,356 --> 00:34:13,396
+It's a little bit strange.
+
+
+457
+00:34:13,426 --> 00:34:20,366
+It's more acting as a template
+you can apply to your views.
+
+
+458
+00:34:20,775 --> 00:34:22,636
+With Dynamic Item Behavior,
+
+
+459
+00:34:22,996 --> 00:34:29,056
+you can actually customize
+properties to one or many views.
+
+
+460
+00:34:29,536 --> 00:34:33,416
+And what we have is friction
+
+
+461
+00:34:33,525 --> 00:34:38,396
+when views are sliding
+one on top of the other.
+
+
+462
+00:34:38,396 --> 00:34:42,545
+We have dumpingResistance
+and angularResistance.
+
+
+463
+00:34:43,016 --> 00:34:46,846
+And that's useful
+because without dumping,
+
+
+464
+00:34:48,446 --> 00:34:50,926
+views would just keep moving
+
+
+465
+00:34:51,666 --> 00:34:54,366
+which is usually the feel
+you don't want in a UI,
+
+
+466
+00:34:54,366 --> 00:34:58,046
+so we have a default
+dumping set on views.
+
+
+467
+00:34:58,936 --> 00:35:02,716
+Another interesting
+one is elasticity
+
+
+468
+00:35:02,716 --> 00:35:09,226
+which is the restitution when
+you collide to the bounciness.
+
+
+469
+00:35:10,526 --> 00:35:14,406
+And density which is a
+way to actually set a mass
+
+
+470
+00:35:14,446 --> 00:35:17,206
+or a relative mass
+between views.
+
+
+471
+00:35:17,996 --> 00:35:18,986
+So, we cheat.
+
+
+472
+00:35:19,546 --> 00:35:20,826
+We don't offer you set mass.
+
+
+473
+00:35:21,506 --> 00:35:23,076
+But we do offer you set density.
+
+
+474
+00:35:24,176 --> 00:35:24,996
+Fair enough.
+
+
+475
+00:35:26,066 --> 00:35:28,006
+And the last one is-- whoops.
+
+
+476
+00:35:28,846 --> 00:35:34,476
+So that was-- the right view was
+part of a UIDynamicItemBehavior
+
+
+477
+00:35:35,306 --> 00:35:39,106
+which actually changed
+the elasticity property,
+
+
+478
+00:35:39,106 --> 00:35:41,106
+so it bounce more.
+
+
+479
+00:35:41,496 --> 00:35:47,536
+And we have one last property
+which is interesting for UI
+
+
+480
+00:35:47,846 --> 00:35:50,846
+which is allowsRotation which
+is basically a way to cheat
+
+
+481
+00:35:51,696 --> 00:35:56,446
+with the underlying engine
+and to actually block rotation
+
+
+482
+00:35:56,746 --> 00:35:59,706
+of the items we animate.
+
+
+483
+00:36:01,496 --> 00:36:07,096
+There is another really
+useful low level method
+
+
+484
+00:36:07,096 --> 00:36:12,896
+in UIDynamicItemBehaviors,
+that's a way to immediately set,
+
+
+485
+00:36:13,446 --> 00:36:17,616
+immediately add a given
+velocity to a view.
+
+
+486
+00:36:18,476 --> 00:36:19,696
+And why is that useful?
+
+
+487
+00:36:21,956 --> 00:36:25,996
+Sometimes, your interaction
+with dynamic starts
+
+
+488
+00:36:26,096 --> 00:36:30,786
+after a regular gesture-based
+interaction.
+
+
+489
+00:36:31,816 --> 00:36:35,466
+And in this case, you add
+this seamless transition
+
+
+490
+00:36:36,626 --> 00:36:41,326
+from the gesture-based
+phase to dynamics phase,
+
+
+491
+00:36:42,496 --> 00:36:45,586
+you want to exactly match
+the gesture velocity.
+
+
+492
+00:36:46,706 --> 00:36:50,126
+So you can actually inject in
+the system with this method,
+
+
+493
+00:36:50,716 --> 00:36:53,026
+the gesture velocity itself.
+
+
+494
+00:36:54,346 --> 00:36:55,146
+That's really useful.
+
+
+495
+00:36:55,576 --> 00:36:59,146
+And, 'cause we use
+the UIKit unit system,
+
+
+496
+00:36:59,816 --> 00:37:02,896
+it's expressed in
+points per second.
+
+
+497
+00:37:07,136 --> 00:37:08,366
+Applying Dynamics.
+
+
+498
+00:37:08,906 --> 00:37:13,276
+So when you want to add dynamics
+
+
+499
+00:37:13,616 --> 00:37:15,026
+through repetition,
+what do you need?
+
+
+500
+00:37:16,096 --> 00:37:18,586
+First, you need to know which
+views you want to animate.
+
+
+501
+00:37:18,586 --> 00:37:22,916
+You want to define
+what is this container
+
+
+502
+00:37:23,446 --> 00:37:26,826
+or reference view you would
+create the animator with.
+
+
+503
+00:37:27,446 --> 00:37:32,166
+And then it's really about
+creating the behaviors you need,
+
+
+504
+00:37:33,366 --> 00:37:36,286
+adding views to these behaviors.
+
+
+505
+00:37:36,726 --> 00:37:43,486
+Next thing is configuring
+if needed these behaviors
+
+
+506
+00:37:44,246 --> 00:37:47,206
+and associating these
+behaviors to animators--
+
+
+507
+00:37:48,036 --> 00:37:52,586
+to your animator, and that's it.
+
+
+508
+00:37:53,956 --> 00:38:00,496
+As soon as we have a view in an
+active behavior and we detect
+
+
+509
+00:38:00,496 --> 00:38:04,886
+that the system is not
+at rest, we reanimate.
+
+
+510
+00:38:05,496 --> 00:38:11,126
+The other thing is when we
+detect that the system is
+
+
+511
+00:38:11,446 --> 00:38:13,226
+at rest, we stop animating,
+
+
+512
+00:38:13,226 --> 00:38:15,246
+which means that we
+basically stop the engine,
+
+
+513
+00:38:15,496 --> 00:38:18,296
+we stop the CADisplayLink
+we use on those [inaudible].
+
+
+514
+00:38:18,896 --> 00:38:23,386
+So, a system at rest is
+not consuming CPU at all.
+
+
+515
+00:38:28,966 --> 00:38:31,726
+Well, this is physics.
+
+
+516
+00:38:31,846 --> 00:38:38,156
+So, you can actually
+create with this API setup
+
+
+517
+00:38:39,046 --> 00:38:46,156
+which don't really make
+sense, like if you say
+
+
+518
+00:38:46,156 --> 00:38:49,486
+that this view should
+collide with that boundary
+
+
+519
+00:38:50,356 --> 00:38:54,926
+but if the initial state of that
+view is completely intersecting
+
+
+520
+00:38:55,076 --> 00:39:01,306
+with that boundary, you won't
+really have animations, right?
+
+
+521
+00:39:02,116 --> 00:39:05,036
+And we are going to be
+slightly confused about that.
+
+
+522
+00:39:05,936 --> 00:39:10,386
+And also interesting variant
+with Collision behavior is
+
+
+523
+00:39:10,706 --> 00:39:12,536
+if you try to add
+all these views
+
+
+524
+00:39:12,986 --> 00:39:17,566
+in this very small enclosed
+space, it's not going
+
+
+525
+00:39:17,566 --> 00:39:23,136
+to work 'cause we basically
+can't compute a correct solution
+
+
+526
+00:39:23,136 --> 00:39:23,886
+for that setup.
+
+
+527
+00:39:26,956 --> 00:39:31,296
+And in all-time coverage,
+when you have a view blocked
+
+
+528
+00:39:31,296 --> 00:39:36,146
+by a boundary and you try
+to apply an infinite force,
+
+
+529
+00:39:39,816 --> 00:39:44,506
+this will not break your device.
+
+
+530
+00:39:45,256 --> 00:39:50,746
+So, when I-- what
+I usually suggest
+
+
+531
+00:39:51,336 --> 00:39:53,266
+when you're building
+systems with dynamics is
+
+
+532
+00:39:53,266 --> 00:39:56,316
+to build that step by step.
+
+
+533
+00:39:57,236 --> 00:40:00,396
+Start with one behavior,
+add your views,
+
+
+534
+00:40:01,046 --> 00:40:03,806
+configure that behavior,
+see how that reacts,
+
+
+535
+00:40:03,806 --> 00:40:08,636
+add another behavior, see
+what's changing, see--
+
+
+536
+00:40:08,876 --> 00:40:11,566
+check if the actual
+interactions feels right,
+
+
+537
+00:40:12,016 --> 00:40:15,506
+and then keep adding or
+tweaking your behaviors.
+
+
+538
+00:40:15,506 --> 00:40:21,026
+If you start by constructing
+this incredibly complex set
+
+
+539
+00:40:21,026 --> 00:40:23,326
+of behaviors in the
+configuration
+
+
+540
+00:40:23,326 --> 00:40:25,736
+or the [inaudible], and
+if that doesn't work,
+
+
+541
+00:40:25,736 --> 00:40:27,056
+that's not really easy
+
+
+542
+00:40:27,086 --> 00:40:30,316
+to actually understand
+what's [inaudible].
+
+
+543
+00:40:30,316 --> 00:40:34,716
+So in this case, just remove
+one-by-one your behaviors
+
+
+544
+00:40:34,716 --> 00:40:41,136
+to understand which one was
+actually causing the problem.
+
+
+545
+00:40:41,226 --> 00:40:46,096
+Did I mention that we are
+sometimes cheating with physics?
+
+
+546
+00:40:47,296 --> 00:40:51,126
+This is not a physics-accurate
+simulation tool.
+
+
+547
+00:40:52,166 --> 00:40:56,536
+Do not use that to control
+your Evil Genius Space Station.
+
+
+548
+00:40:57,936 --> 00:41:02,026
+That is your configuration that
+we do not support explicitly.
+
+
+549
+00:41:02,566 --> 00:41:11,036
+And that's really a core
+concept of dynamics.
+
+
+550
+00:41:11,426 --> 00:41:16,206
+But I'd like to show you
+a few additional things.
+
+
+551
+00:41:17,876 --> 00:41:22,996
+The first one is what
+we call Dynamic Items.
+
+
+552
+00:41:23,516 --> 00:41:27,396
+You may not notice that,
+in this presentation,
+
+
+553
+00:41:27,396 --> 00:41:31,646
+I was talking sometimes about
+views, sometimes about items,
+
+
+554
+00:41:31,646 --> 00:41:35,656
+sometimes-- most of these
+methods actually were init
+
+
+555
+00:41:35,656 --> 00:41:36,306
+with items.
+
+
+556
+00:41:37,216 --> 00:41:39,916
+So, views or items?
+
+
+557
+00:41:42,376 --> 00:41:46,506
+UIDynamicItem is
+actually a protocol.
+
+
+558
+00:41:46,566 --> 00:41:53,386
+And what's great about that
+is it describes what we need
+
+
+559
+00:41:54,456 --> 00:41:55,576
+for something associated
+
+
+560
+00:41:55,576 --> 00:42:00,696
+with a Predefined
+behavior to be animated.
+
+
+561
+00:42:01,096 --> 00:42:04,996
+And what UIKit needs
+to animate something
+
+
+562
+00:42:04,996 --> 00:42:08,156
+in dynamics is actually
+pretty basic.
+
+
+563
+00:42:08,156 --> 00:42:13,866
+We need to be able to
+actually move an item.
+
+
+564
+00:42:15,346 --> 00:42:20,116
+We need to know the size of
+this item because we need
+
+
+565
+00:42:20,116 --> 00:42:27,256
+that for correct forces,
+computation, or collisions.
+
+
+566
+00:42:27,766 --> 00:42:32,906
+And an object without a size
+is again not really physics.
+
+
+567
+00:42:32,906 --> 00:42:37,436
+And we need to animate
+a rotation
+
+
+568
+00:42:37,646 --> 00:42:41,196
+because the only thing we
+animate is 2D rotations.
+
+
+569
+00:42:43,336 --> 00:42:48,966
+Guess what, UIView actually
+implement that UIDynamicItem.
+
+
+570
+00:42:48,966 --> 00:42:53,886
+Center, transform,
+bounce, that's all we need.
+
+
+571
+00:42:55,036 --> 00:42:56,736
+But because of that's
+actually a protocol,
+
+
+572
+00:42:57,926 --> 00:42:58,786
+you can implement that.
+
+
+573
+00:42:59,896 --> 00:43:02,156
+You can define your
+own dynamic item.
+
+
+574
+00:43:02,886 --> 00:43:07,796
+Your own classes
+implementing UIDynamicItem,
+
+
+575
+00:43:08,106 --> 00:43:14,766
+and we will just call center
+and transform on this.
+
+
+576
+00:43:14,976 --> 00:43:18,126
+It's actually a really
+simple protocol.
+
+
+577
+00:43:19,156 --> 00:43:22,796
+I can add everything
+on just one slide.
+
+
+578
+00:43:23,416 --> 00:43:26,386
+The thing we need is we need
+
+
+579
+00:43:26,386 --> 00:43:29,196
+to know the initial
+state for an item.
+
+
+580
+00:43:29,286 --> 00:43:30,666
+So we need to know the position.
+
+
+581
+00:43:30,666 --> 00:43:32,286
+We need to know the size.
+
+
+582
+00:43:32,596 --> 00:43:36,186
+We need to know the initial
+rotation only to the rotation.
+
+
+583
+00:43:37,026 --> 00:43:40,346
+And then, when we animate
+on each [inaudible],
+
+
+584
+00:43:40,476 --> 00:43:43,526
+we basically call
+center and transform.
+
+
+585
+00:43:44,676 --> 00:43:48,296
+And that's how we
+animate things.
+
+
+586
+00:43:48,456 --> 00:43:55,706
+Actually, there is another class
+in UIKit when you set a position
+
+
+587
+00:43:56,296 --> 00:44:01,266
+to transform and which has a
+size, and that's not UIView.
+
+
+588
+00:44:05,376 --> 00:44:07,146
+CollectionViewLayoutAttributes.
+
+
+589
+00:44:07,656 --> 00:44:10,736
+You can use dynamics
+which UICollectionView
+
+
+590
+00:44:11,696 --> 00:44:18,076
+and the way it works is
+UICollectionViewLayoutAttributes
+
+
+591
+00:44:18,136 --> 00:44:21,646
+which is what we use when
+you define your own layout
+
+
+592
+00:44:21,966 --> 00:44:27,496
+to describe where a given cell
+is going to add on screen.
+
+
+593
+00:44:28,536 --> 00:44:29,946
+That class we introduced
+
+
+594
+00:44:29,946 --> 00:44:33,866
+in iOS 6 actually
+implements UIDynamicItem.
+
+
+595
+00:44:35,606 --> 00:44:39,476
+And when you want to
+create an animator
+
+
+596
+00:44:39,476 --> 00:44:46,056
+to actually animate parts
+of a layout, you just create
+
+
+597
+00:44:46,056 --> 00:44:49,196
+that with the layout
+itself instead
+
+
+598
+00:44:49,196 --> 00:44:50,606
+of passing a reference view.
+
+
+599
+00:44:51,476 --> 00:44:52,466
+For the layout is going
+
+
+600
+00:44:52,466 --> 00:44:56,576
+to define a size
+CollectionView button size
+
+
+601
+00:44:57,116 --> 00:44:59,666
+and that's all we need.
+
+
+602
+00:45:00,356 --> 00:45:05,506
+And then when you want to
+create your own behaviors,
+
+
+603
+00:45:05,536 --> 00:45:08,406
+instead of passing views,
+
+
+604
+00:45:09,056 --> 00:45:13,306
+just pass your
+UICollectionViewLayoutAttributes
+
+
+605
+00:45:13,356 --> 00:45:14,076
+instances.
+
+
+606
+00:45:15,156 --> 00:45:17,916
+And we're going to animate this.
+
+
+607
+00:45:18,136 --> 00:45:22,436
+And because you passed through
+layout at alloc-init time,
+
+
+608
+00:45:23,046 --> 00:45:26,626
+we will derive the layout
+in validation itself.
+
+
+609
+00:45:27,446 --> 00:45:30,366
+Which also mean that when we
+detect that a system is at rest,
+
+
+610
+00:45:31,316 --> 00:45:33,626
+we want to invalidate
+your CollectionViewLayout.
+
+
+611
+00:45:34,106 --> 00:45:38,156
+So that's Dynamics
+and UICollectionView.
+
+
+612
+00:45:39,516 --> 00:45:47,226
+[ Applause ]
+
+
+613
+00:45:47,726 --> 00:45:51,706
+And, because that's
+the last demo,
+
+
+614
+00:45:51,776 --> 00:45:53,776
+I'm going to do something
+a little bit silly.
+
+
+615
+00:45:54,516 --> 00:46:00,116
+[ Pause ]
+
+
+616
+00:46:00,616 --> 00:46:01,966
+That's a CollectionView.
+
+
+617
+00:46:02,926 --> 00:46:04,496
+Actually, that's a subclass
+
+
+618
+00:46:04,496 --> 00:46:07,546
+of a well-known
+UICollectionViewLayout.
+
+
+619
+00:46:08,066 --> 00:46:11,456
+You might know
+UICollectionViewFlowLayout.
+
+
+620
+00:46:12,246 --> 00:46:15,576
+Well that was just
+a subclass of this.
+
+
+621
+00:46:15,766 --> 00:46:18,576
+And what can you do
+is a CollectionView
+
+
+622
+00:46:19,236 --> 00:46:21,116
+with a data source
+in a CollectionView.
+
+
+623
+00:46:21,946 --> 00:46:24,556
+You can add new elements, right?
+
+
+624
+00:46:24,936 --> 00:46:26,966
+So let's do that .
+
+
+625
+00:46:27,516 --> 00:46:31,516
+[ Pause ]
+
+
+626
+00:46:32,016 --> 00:46:41,000
+[ Applause ]
+
+
+627
+00:46:41,516 --> 00:46:48,136
+[ Pause ]
+
+
+628
+00:46:48,636 --> 00:46:56,426
+To conclude, UIKit Dynamics is
+really an interaction-oriented
+
+
+629
+00:46:56,756 --> 00:46:58,256
+animation system.
+
+
+630
+00:47:00,336 --> 00:47:03,086
+The best way to use dynamics is
+
+
+631
+00:47:03,366 --> 00:47:07,516
+to create this small
+additional effects are going
+
+
+632
+00:47:07,516 --> 00:47:09,866
+to make your application
+more alive
+
+
+633
+00:47:10,316 --> 00:47:11,926
+and have this natural feel.
+
+
+634
+00:47:12,576 --> 00:47:16,376
+And that one good thing
+to keep in mind is
+
+
+635
+00:47:16,416 --> 00:47:22,126
+to notify your key
+elements and animate this.
+
+
+636
+00:47:22,716 --> 00:47:28,516
+Again, it's really about
+focusing on the user experience.
+
+
+637
+00:47:28,516 --> 00:47:30,696
+What can make your
+app even better?
+
+
+638
+00:47:32,146 --> 00:47:35,436
+We have UI Dynamics
+recommendation
+
+
+639
+00:47:35,436 --> 00:47:39,226
+in the UIKit Prerelease Library.
+
+
+640
+00:47:39,776 --> 00:47:46,816
+We have another session about
+UIKit Dynamics and I'm going
+
+
+641
+00:47:46,816 --> 00:47:52,076
+to explore how to create real
+effects by combining behavior
+
+
+642
+00:47:52,076 --> 00:47:55,846
+and creating your own UI
+Dynamic behavior subclass.
+
+
+643
+00:47:56,776 --> 00:48:01,946
+We have some related sessions
+custom transition using
+
+
+644
+00:48:01,946 --> 00:48:02,836
+View Controllers.
+
+
+645
+00:48:03,856 --> 00:48:05,386
+And you can actually
+use dynamics
+
+
+646
+00:48:05,386 --> 00:48:08,766
+with View Controllers transition
+[inaudible] about that.
+
+
+647
+00:48:09,526 --> 00:48:12,636
+And we have-- or
+if you're indeed,
+
+
+648
+00:48:12,636 --> 00:48:16,696
+game oriented two
+sessions about SpriteKits.
+
+
+649
+00:48:17,266 --> 00:48:22,756
+We have a dedicated dynamics lab
+[inaudible], come talk to us,
+
+
+650
+00:48:23,106 --> 00:48:25,686
+and we can't wait to see what
+you're going to do with that.
+
+
+651
+00:48:25,936 --> 00:48:26,346
+Thank you.
+
+
+652
+00:48:26,846 --> 00:48:29,670
+[Applause]
+

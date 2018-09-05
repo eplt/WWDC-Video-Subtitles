@@ -1,0 +1,4538 @@
+1
+00:00:25,461 --> 00:00:27,461
+[Applause]
+
+
+2
+00:00:27,906 --> 00:00:28,206
+>> CHAD WOOLF: Thank you.
+
+
+3
+00:00:31,486 --> 00:00:32,555
+Thank you.
+
+
+4
+00:00:32,555 --> 00:00:33,316
+I'm Chad Woolf.
+
+
+5
+00:00:33,626 --> 00:00:34,536
+>> KRIS MARKEL: I'm Kris Markel.
+
+
+6
+00:00:34,536 --> 00:00:35,026
+>> CHAD WOOLF:
+
+
+7
+00:00:35,026 --> 00:00:37,256
+We are performance tools
+engineers for Apple.
+
+
+8
+00:00:37,696 --> 00:00:39,876
+This is session 412.
+
+
+9
+00:00:39,876 --> 00:00:43,626
+We'll talking about
+profiling in depth.
+
+
+10
+00:00:43,626 --> 00:00:46,476
+This will talk about the time
+profiler in Instruments and how
+
+
+11
+00:00:46,476 --> 00:00:49,146
+to use it to optimize
+your applications.
+
+
+12
+00:00:50,336 --> 00:00:52,946
+Time profiler is place to go
+when you're trying to figure
+
+
+13
+00:00:52,946 --> 00:00:56,106
+out where your application is
+spending the bulk of its time.
+
+
+14
+00:00:56,336 --> 00:00:56,826
+An example.
+
+
+15
+00:00:57,406 --> 00:01:00,076
+It is useful when trying
+
+
+16
+00:01:00,076 --> 00:01:02,736
+to discover what the
+application is doing at runtime.
+
+
+17
+00:01:02,736 --> 00:01:04,465
+You want to see who
+is calling what.
+
+
+18
+00:01:05,996 --> 00:01:08,226
+Our session breaks
+down a bit like this.
+
+
+19
+00:01:08,226 --> 00:01:11,166
+We'll talk a bit about the
+motivation on why we wanted
+
+
+20
+00:01:11,166 --> 00:01:14,156
+to create a session devoted
+to the time profiler only.
+
+
+21
+00:01:15,036 --> 00:01:18,366
+But the session will
+revolve around demonstrations
+
+
+22
+00:01:18,366 --> 00:01:21,226
+and showing you details
+on how it works
+
+
+23
+00:01:21,366 --> 00:01:25,986
+and how your applications
+work below the source level.
+
+
+24
+00:01:27,496 --> 00:01:29,466
+Then we'll give you
+final tips on how
+
+
+25
+00:01:29,466 --> 00:01:31,246
+to use the time profiler
+on your own.
+
+
+26
+00:01:31,246 --> 00:01:34,196
+Quickly about our motivation,
+it comes from the creation
+
+
+27
+00:01:34,196 --> 00:01:35,796
+of Instruments 7 itself.
+
+
+28
+00:01:36,806 --> 00:01:38,786
+With Instrument 7 we wanted
+to go with a new look and feel
+
+
+29
+00:01:38,786 --> 00:01:40,946
+which meant new artwork
+but it also meant
+
+
+30
+00:01:40,946 --> 00:01:44,366
+that for the new feel, we
+wanted it to be more responsive
+
+
+31
+00:01:45,036 --> 00:01:46,566
+and we wanted to feel smoother.
+
+
+32
+00:01:46,726 --> 00:01:48,656
+We'll do performance
+optimizations
+
+
+33
+00:01:48,786 --> 00:01:50,136
+for our UI in general.
+
+
+34
+00:01:51,436 --> 00:01:53,256
+We also wanted to try
+new graphing styles.
+
+
+35
+00:01:53,256 --> 00:01:55,906
+These graphing styles were
+things that we wanted to do
+
+
+36
+00:01:55,906 --> 00:01:57,656
+in the past but didn't
+have the performance
+
+
+37
+00:01:57,656 --> 00:01:59,956
+to in our existing graphic code.
+
+
+38
+00:02:00,306 --> 00:02:04,246
+We knew that we would have
+to focus on the rendering
+
+
+39
+00:02:04,766 --> 00:02:08,076
+which is a pretty difficult
+piece of application.
+
+
+40
+00:02:08,076 --> 00:02:10,996
+Instruments have to deal
+with hundreds of thousands,
+
+
+41
+00:02:10,996 --> 00:02:13,646
+sometimes millions of data
+points and has to try to crunch
+
+
+42
+00:02:13,646 --> 00:02:17,496
+that down into a
+presentation that's both simple
+
+
+43
+00:02:17,496 --> 00:02:18,506
+and easy to understand.
+
+
+44
+00:02:18,806 --> 00:02:22,786
+There is definitely algorithm
+complexities in there.
+
+
+45
+00:02:22,786 --> 00:02:25,796
+What that meant for us, we had
+to rewrite a significant portion
+
+
+46
+00:02:25,796 --> 00:02:29,296
+of our application which is
+the track view which lives
+
+
+47
+00:02:29,296 --> 00:02:31,486
+up at the top of the app.
+
+
+48
+00:02:31,486 --> 00:02:35,336
+Chris and I over winter took our
+design for the new track view
+
+
+49
+00:02:35,946 --> 00:02:38,476
+and we started building it up
+out of a series of prototypes.
+
+
+50
+00:02:38,616 --> 00:02:41,236
+We didn't do the prototyping
+in Instruments itself,
+
+
+51
+00:02:41,236 --> 00:02:43,476
+we broke it out in a separate
+application to keep it simple.
+
+
+52
+00:02:44,196 --> 00:02:47,926
+This is what one of the
+last prototypes looked like.
+
+
+53
+00:02:49,416 --> 00:02:51,866
+Now while we were
+prototyping, a thing we did,
+
+
+54
+00:02:51,866 --> 00:02:53,196
+we set a performance budget.
+
+
+55
+00:02:53,876 --> 00:02:55,316
+As we layered on feature
+
+
+56
+00:02:55,316 --> 00:02:58,886
+after feature we were constantly
+evaluating our performance
+
+
+57
+00:02:58,886 --> 00:03:00,946
+of our code against the budget.
+
+
+58
+00:03:01,816 --> 00:03:04,816
+When we found we were exceeding
+the budget we would use the time
+
+
+59
+00:03:04,816 --> 00:03:06,406
+profiler to figure out where
+
+
+60
+00:03:06,406 --> 00:03:08,246
+in our application
+things were going wrong.
+
+
+61
+00:03:08,246 --> 00:03:12,996
+Sometimes it was an easy
+fix but sometimes it wasn't.
+
+
+62
+00:03:13,726 --> 00:03:14,926
+Since we were prototyping,
+
+
+63
+00:03:15,256 --> 00:03:17,246
+even some of the bigger
+structural changes we had
+
+
+64
+00:03:17,246 --> 00:03:18,476
+to make to get the
+performance back
+
+
+65
+00:03:18,476 --> 00:03:20,106
+on track was still fairly easy.
+
+
+66
+00:03:21,596 --> 00:03:22,856
+When we integrated it back
+
+
+67
+00:03:22,856 --> 00:03:26,116
+into Instruments we use
+the time profiler again
+
+
+68
+00:03:26,206 --> 00:03:28,866
+to find the hot spots in
+our integration points,
+
+
+69
+00:03:28,996 --> 00:03:32,636
+and after a few iterations, we
+had a version of Instruments 7
+
+
+70
+00:03:32,636 --> 00:03:34,286
+which was meeting our
+performance goals.
+
+
+71
+00:03:35,306 --> 00:03:38,086
+We were thrilled with how
+the time profiler got us
+
+
+72
+00:03:38,116 --> 00:03:40,966
+through this winter,
+that when WWDC 2015 came,
+
+
+73
+00:03:40,996 --> 00:03:45,336
+we wanted to create a session
+that talks about time profiler
+
+
+74
+00:03:45,646 --> 00:03:47,516
+and the problems that it's
+really good at solving.
+
+
+75
+00:03:48,636 --> 00:03:51,796
+We wanted to share
+our experience
+
+
+76
+00:03:51,796 --> 00:03:52,906
+when writing the track view.
+
+
+77
+00:03:53,986 --> 00:03:55,246
+What we did this year,
+
+
+78
+00:03:55,246 --> 00:03:58,506
+we created a demonstration
+application on iOS
+
+
+79
+00:03:59,176 --> 00:04:02,626
+that looks similar to the
+first track view prototypes
+
+
+80
+00:04:03,546 --> 00:04:06,636
+and we set performance
+targets for ourselves,
+
+
+81
+00:04:06,636 --> 00:04:10,416
+100,000 data points is
+what we wanted to graph,
+
+
+82
+00:04:11,086 --> 00:04:15,236
+we wanted a perfect 60 frame per
+second for panning and zooming.
+
+
+83
+00:04:16,005 --> 00:04:18,826
+We wanted to make it work on
+a iPad mini 1st generation.
+
+
+84
+00:04:19,495 --> 00:04:21,435
+We picked the iPad
+mini 1st gen --
+
+
+85
+00:04:21,435 --> 00:04:24,376
+you know what I'm
+talking about --
+
+
+86
+00:04:24,376 --> 00:04:27,056
+we knew it would
+work well on all
+
+
+87
+00:04:27,056 --> 00:04:30,776
+of the other platforms
+especially the later platforms.
+
+
+88
+00:04:30,776 --> 00:04:32,436
+Chris will show you
+the application,
+
+
+89
+00:04:32,696 --> 00:04:36,766
+he'll time profile it, and he's
+going to show you the things
+
+
+90
+00:04:36,846 --> 00:04:39,456
+that we found when putting
+this together for you.
+
+
+91
+00:04:41,066 --> 00:04:41,596
+>> KRIS MARKEL: Thank you, Chad.
+
+
+92
+00:04:41,836 --> 00:04:45,276
+Here I have the prototype
+application of an Xcode,
+
+
+93
+00:04:45,596 --> 00:04:48,076
+and I want to call
+out a few things.
+
+
+94
+00:04:48,076 --> 00:04:51,246
+Our initial implementation we
+discovered can't handle even
+
+
+95
+00:04:51,246 --> 00:04:52,806
+close to 100,000 data points.
+
+
+96
+00:04:53,156 --> 00:04:55,946
+Initially we're working with
+10,000 data points to get going.
+
+
+97
+00:04:56,386 --> 00:04:59,766
+Another important point, you
+should do your time profiling
+
+
+98
+00:04:59,766 --> 00:05:02,616
+on release builds, you
+want to take advantage
+
+
+99
+00:05:02,616 --> 00:05:05,906
+of the compiler optimizations
+while you're profiling.
+
+
+100
+00:05:05,906 --> 00:05:09,976
+I'll go ahead, start profiling
+the application and to do
+
+
+101
+00:05:09,976 --> 00:05:12,806
+that I'll, from the product
+menu, choose profile.
+
+
+102
+00:05:13,596 --> 00:05:17,416
+This will build the application,
+install it on the iPad and bring
+
+
+103
+00:05:17,416 --> 00:05:18,966
+up the Instrument template user.
+
+
+104
+00:05:19,576 --> 00:05:22,926
+Here it is, time profiler
+is selected for me.
+
+
+105
+00:05:22,926 --> 00:05:24,066
+I'll click choose.
+
+
+106
+00:05:24,486 --> 00:05:27,216
+Here you will see Instruments
+in our new track view
+
+
+107
+00:05:27,466 --> 00:05:29,296
+and we'll get back
+to that in a minute.
+
+
+108
+00:05:29,366 --> 00:05:31,276
+Right now I'll go ahead
+and start recording,
+
+
+109
+00:05:31,736 --> 00:05:34,796
+click the record button,
+we'll show you the app.
+
+
+110
+00:05:35,536 --> 00:05:39,266
+I want to emphasize what you see
+here, this is not the simulator,
+
+
+111
+00:05:39,266 --> 00:05:43,016
+this is QuickTime mirroring that
+which is already on the app.
+
+
+112
+00:05:43,806 --> 00:05:48,516
+Here's our graph, I'll go ahead
+and scroll, scrolling isn't bad,
+
+
+113
+00:05:48,516 --> 00:05:52,476
+it is not bad, I'll zoom out
+by pinching, it is okay at fist
+
+
+114
+00:05:52,476 --> 00:05:55,436
+and then starts to
+stutter, stutter,
+
+
+115
+00:05:55,806 --> 00:05:57,826
+stutter, that's pretty bad.
+
+
+116
+00:05:58,776 --> 00:06:02,256
+Now, finally, I'm going to
+just scroll back and forth
+
+
+117
+00:06:02,256 --> 00:06:04,106
+with my finger, I'm
+actually moving my finger
+
+
+118
+00:06:04,106 --> 00:06:07,666
+but the display is not updating,
+it is very, very laggy.
+
+
+119
+00:06:08,206 --> 00:06:10,516
+That's very poor performance.
+
+
+120
+00:06:11,226 --> 00:06:12,866
+Let's look at what's going on.
+
+
+121
+00:06:13,126 --> 00:06:14,986
+Let's go back to
+Xcode -- Instruments.
+
+
+122
+00:06:14,986 --> 00:06:16,746
+We'll stop the profiler
+
+
+123
+00:06:16,906 --> 00:06:19,316
+and quickly show you
+the new track view.
+
+
+124
+00:06:19,726 --> 00:06:21,666
+Here we have the CPU usage.
+
+
+125
+00:06:22,066 --> 00:06:24,396
+What this is, this is
+the average CPU usage
+
+
+126
+00:06:24,576 --> 00:06:26,306
+for specific unit of time.
+
+
+127
+00:06:26,616 --> 00:06:28,706
+That time depends on
+your current zoom level.
+
+
+128
+00:06:29,106 --> 00:06:31,466
+You see the different
+parts as I use my app
+
+
+129
+00:06:31,916 --> 00:06:33,406
+where it was spending time.
+
+
+130
+00:06:33,406 --> 00:06:36,766
+This is scrolling, the zooming
+out, this is the scrolling back
+
+
+131
+00:06:36,766 --> 00:06:38,786
+and forth while zoomed out.
+
+
+132
+00:06:38,786 --> 00:06:41,486
+A nice thing about the new track
+view is that I can go ahead
+
+
+133
+00:06:41,486 --> 00:06:46,406
+and use this pinch gesture
+to zoom in on a piece of data
+
+
+134
+00:06:46,406 --> 00:06:47,206
+that I'm interested in.
+
+
+135
+00:06:47,786 --> 00:06:50,866
+If you're not using a Trackpad,
+you can hold down the option key
+
+
+136
+00:06:50,986 --> 00:06:54,476
+and scroll up and down
+to zoom in and out.
+
+
+137
+00:06:54,836 --> 00:06:57,706
+I want to focus on this
+particular piece of data,
+
+
+138
+00:06:57,896 --> 00:06:59,706
+the activity right here.
+
+
+139
+00:07:00,026 --> 00:07:01,716
+I was scrolling here.
+
+
+140
+00:07:01,716 --> 00:07:05,596
+To do that, I'll apply a filter,
+that's just a click and drag
+
+
+141
+00:07:06,276 --> 00:07:11,476
+and it selecting just those
+specific samples so I can focus
+
+
+142
+00:07:11,476 --> 00:07:12,566
+on that particular data.
+
+
+143
+00:07:13,576 --> 00:07:16,386
+I'll create more
+space down here.
+
+
+144
+00:07:17,056 --> 00:07:19,356
+Down here this is
+our detailed view.
+
+
+145
+00:07:19,946 --> 00:07:22,756
+What this is showing
+us is how many --
+
+
+146
+00:07:22,756 --> 00:07:25,976
+the percentage of time
+profiler samples we have inside
+
+
+147
+00:07:25,976 --> 00:07:27,496
+of a particular function
+or method
+
+
+148
+00:07:27,746 --> 00:07:28,846
+and then we have
+the symbol name.
+
+
+149
+00:07:28,846 --> 00:07:31,846
+Here is our percentage
+and here is our symbols.
+
+
+150
+00:07:32,396 --> 00:07:33,926
+Now the first thing
+you usually do
+
+
+151
+00:07:33,926 --> 00:07:37,126
+when you time profile is you
+start to expand these out
+
+
+152
+00:07:37,606 --> 00:07:42,586
+and looking for kind of a --
+comparing the numbers over here
+
+
+153
+00:07:42,586 --> 00:07:45,096
+with specific methods
+over here, function.
+
+
+154
+00:07:45,416 --> 00:07:48,046
+Looking for things that kind
+of stand out as, you know,
+
+
+155
+00:07:48,416 --> 00:07:50,396
+jump out at you as something
+that's worthy of investigating.
+
+
+156
+00:07:50,876 --> 00:07:54,476
+Another option, if we go over
+to the inspector pane and click
+
+
+157
+00:07:54,476 --> 00:07:58,666
+on the extended detail, we
+see the heaviest stack trace.
+
+
+158
+00:07:59,156 --> 00:08:00,246
+This is for the main thread.
+
+
+159
+00:08:00,666 --> 00:08:04,086
+This is where focusing here is
+where I'll get the most bang
+
+
+160
+00:08:04,086 --> 00:08:07,126
+for my buck when doing
+a time profiling trying
+
+
+161
+00:08:07,126 --> 00:08:08,266
+to make performance
+improvements.
+
+
+162
+00:08:08,266 --> 00:08:10,276
+Let's see what's going on.
+
+
+163
+00:08:10,456 --> 00:08:14,486
+The main is calling
+application main, run loop,
+
+
+164
+00:08:14,486 --> 00:08:18,326
+there is core animation
+work happening, some --
+
+
+165
+00:08:18,326 --> 00:08:22,956
+there is nothing
+standing out as something
+
+
+166
+00:08:22,956 --> 00:08:27,566
+that seems out of the ordinary.
+
+
+167
+00:08:28,086 --> 00:08:31,246
+In fact, this is a really common
+occurrence when profiling.
+
+
+168
+00:08:31,356 --> 00:08:33,765
+You look at what the
+application is doing the most,
+
+
+169
+00:08:34,216 --> 00:08:36,916
+well it doesn't look like it
+is doing anything special.
+
+
+170
+00:08:36,916 --> 00:08:38,405
+There is nothing -- no call
+
+
+171
+00:08:38,405 --> 00:08:40,785
+to compute the 40th
+Fibonacci number here
+
+
+172
+00:08:40,785 --> 00:08:41,466
+in here or something.
+
+
+173
+00:08:42,446 --> 00:08:45,496
+However, you know,
+looking at this call stack,
+
+
+174
+00:08:45,496 --> 00:08:48,016
+this stack trace, there is
+something I know what my
+
+
+175
+00:08:48,016 --> 00:08:48,996
+application does.
+
+
+176
+00:08:48,996 --> 00:08:52,056
+It is a simple prototype
+app, what it does,
+
+
+177
+00:08:52,056 --> 00:08:55,706
+it builds a path
+and it draws a path.
+
+
+178
+00:08:55,706 --> 00:08:56,866
+I can actually see in here
+
+
+179
+00:08:56,866 --> 00:08:58,966
+that there is a call,
+a CG context path.
+
+
+180
+00:08:59,246 --> 00:09:02,396
+It is not called by my code
+according to the stack trace.
+
+
+181
+00:09:02,736 --> 00:09:05,096
+It is here, it is taking
+up a fair amount of time.
+
+
+182
+00:09:05,096 --> 00:09:07,056
+I'll go ahead, click on
+that, take a look at that.
+
+
+183
+00:09:07,866 --> 00:09:11,716
+If we look back at our call
+tree I do see something
+
+
+184
+00:09:11,716 --> 00:09:12,286
+interesting here.
+
+
+185
+00:09:12,286 --> 00:09:14,966
+What we have, we have
+the draw path according
+
+
+186
+00:09:14,966 --> 00:09:16,386
+to this call tree is called
+
+
+187
+00:09:16,386 --> 00:09:19,076
+by this draw layer
+method on UI view.
+
+
+188
+00:09:19,426 --> 00:09:24,266
+That's also calling our
+drawRect for the graph view.
+
+
+189
+00:09:24,756 --> 00:09:26,796
+That's taking a fair
+amount of time.
+
+
+190
+00:09:26,796 --> 00:09:30,326
+That's one of the
+things that the app does.
+
+
+191
+00:09:30,326 --> 00:09:34,376
+If I look at the time over here,
+context draw path is taking up,
+
+
+192
+00:09:34,536 --> 00:09:38,816
+you know, 55% of the samples but
+the drawRect, it in very few.
+
+
+193
+00:09:38,816 --> 00:09:42,556
+This is interesting,
+if I double-click
+
+
+194
+00:09:42,626 --> 00:09:45,046
+on the drawRect method it will
+take me to the source code.
+
+
+195
+00:09:45,696 --> 00:09:47,816
+I see, if you look
+to the bottom,
+
+
+196
+00:09:47,866 --> 00:09:51,806
+I actually do call draw path
+from the drawRect method
+
+
+197
+00:09:52,046 --> 00:09:55,126
+but it is not showing
+up in any sample.
+
+
+198
+00:09:55,426 --> 00:09:58,426
+Everything in here
+is an add path.
+
+
+199
+00:09:58,696 --> 00:10:01,356
+This is unusual especially
+
+
+200
+00:10:01,356 --> 00:10:05,106
+since my expectation is my own
+drawRect method would take a
+
+
+201
+00:10:05,106 --> 00:10:05,796
+while to run.
+
+
+202
+00:10:05,796 --> 00:10:08,286
+It is basically half
+of what my app does.
+
+
+203
+00:10:08,696 --> 00:10:10,046
+Looking at this,
+I actually notice
+
+
+204
+00:10:10,046 --> 00:10:12,566
+that while drawRect
+returns a void
+
+
+205
+00:10:12,836 --> 00:10:16,346
+and context draw path is
+the last method called
+
+
+206
+00:10:16,956 --> 00:10:18,856
+and this is probably a case
+
+
+207
+00:10:18,856 --> 00:10:20,526
+of what's called Tail
+Call Elimination.
+
+
+208
+00:10:20,946 --> 00:10:25,276
+To tell us more about Tail
+Call Elimination and how
+
+
+209
+00:10:25,276 --> 00:10:29,766
+to verify that, back to Chad.
+
+
+210
+00:10:30,456 --> 00:10:30,716
+>> CHAD WOOLF: Okay.
+
+
+211
+00:10:30,816 --> 00:10:34,216
+So to explain the situation
+that Kris is seeing we have
+
+
+212
+00:10:34,216 --> 00:10:38,116
+to understand how the time
+profiler sees what's calling
+
+
+213
+00:10:38,116 --> 00:10:39,396
+what inside of your application.
+
+
+214
+00:10:40,046 --> 00:10:41,506
+This is going to get technical,
+
+
+215
+00:10:41,546 --> 00:10:44,216
+I'll walk through
+it step by step.
+
+
+216
+00:10:44,426 --> 00:10:48,196
+On the left, we have the code
+for drawRect and on the right,
+
+
+217
+00:10:48,196 --> 00:10:51,266
+we have what you would imagine
+the stack to look like for
+
+
+218
+00:10:51,266 --> 00:10:54,676
+that thread, right before the
+UIKit calls into the drawRect.
+
+
+219
+00:10:55,146 --> 00:10:57,206
+When that call is made
+
+
+220
+00:10:57,206 --> 00:11:01,036
+to the drawRect it will do what
+most functions and methods do,
+
+
+221
+00:11:01,126 --> 00:11:02,856
+to establish their
+own call frame.
+
+
+222
+00:11:03,866 --> 00:11:07,776
+That starts off by first
+pushing the return address
+
+
+223
+00:11:07,776 --> 00:11:10,186
+from the link register
+and the previous value
+
+
+224
+00:11:10,186 --> 00:11:11,716
+of the frame Pointer
+on the stack.
+
+
+225
+00:11:12,036 --> 00:11:15,276
+Now drawRect knows how
+to return to its caller
+
+
+226
+00:11:15,276 --> 00:11:16,366
+and restore the frame Pointer.
+
+
+227
+00:11:18,086 --> 00:11:19,236
+Now the next thing that happens,
+
+
+228
+00:11:19,286 --> 00:11:21,566
+we take the frame Pointer
+set up to the new base.
+
+
+229
+00:11:23,016 --> 00:11:26,316
+Then drawRect will make
+room for its local variables
+
+
+230
+00:11:26,316 --> 00:11:28,566
+and the compiler scratch
+space and that's --
+
+
+231
+00:11:28,566 --> 00:11:30,196
+now we have a frame
+for drawRect.
+
+
+232
+00:11:30,746 --> 00:11:34,506
+Now the code starts to run
+and we come down to draw path
+
+
+233
+00:11:35,806 --> 00:11:37,506
+and draw path does
+the same thing.
+
+
+234
+00:11:37,536 --> 00:11:39,176
+It pushes the own
+frame on to the stack.
+
+
+235
+00:11:40,396 --> 00:11:43,436
+The way time profiler works,
+it uses a service in the kernel
+
+
+236
+00:11:43,726 --> 00:11:45,726
+that will sample what
+the CPUs are doing
+
+
+237
+00:11:45,806 --> 00:11:47,196
+at about 1000x per second.
+
+
+238
+00:11:48,396 --> 00:11:50,506
+In this case, if
+we take a sample,
+
+
+239
+00:11:50,906 --> 00:11:54,006
+we see that we're running
+inside of context draw path.
+
+
+240
+00:11:54,366 --> 00:11:58,316
+Then the kernal looks at the
+frame Pointer register to see
+
+
+241
+00:11:58,316 --> 00:12:01,496
+where the base of that
+function's frame is
+
+
+242
+00:12:01,806 --> 00:12:03,666
+and find the return
+address of who called it.
+
+
+243
+00:12:04,306 --> 00:12:08,176
+Now we can see that drawRect
+called into draw path.
+
+
+244
+00:12:09,256 --> 00:12:10,446
+If we want to see who called
+
+
+245
+00:12:10,446 --> 00:12:13,776
+into drawRect we can use the
+frame Pointers that were pushed
+
+
+246
+00:12:13,776 --> 00:12:16,596
+on the stack to find
+the base of drawRect
+
+
+247
+00:12:17,226 --> 00:12:19,726
+and then continuously go
+back through the stack
+
+
+248
+00:12:19,726 --> 00:12:20,766
+until we hit the bottom.
+
+
+249
+00:12:21,096 --> 00:12:22,236
+This is a backtrace.
+
+
+250
+00:12:22,886 --> 00:12:24,446
+If we take enough of
+these and put them
+
+
+251
+00:12:24,446 --> 00:12:27,436
+in the call tree view you
+can get a pretty good picture
+
+
+252
+00:12:27,436 --> 00:12:29,176
+of what's going on inside
+of your application.
+
+
+253
+00:12:29,546 --> 00:12:32,166
+I want to point out,
+the frame Pointers
+
+
+254
+00:12:32,306 --> 00:12:34,026
+on the stack are
+absolutely required.
+
+
+255
+00:12:34,536 --> 00:12:38,256
+If you're compiling code
+with fomit-frame-pointer turn
+
+
+256
+00:12:38,256 --> 00:12:40,966
+that off to try to do the
+time type of profiling
+
+
+257
+00:12:40,966 --> 00:12:42,466
+that we're doing here.
+
+
+258
+00:12:43,116 --> 00:12:44,566
+Let's look at the
+optimize cases.
+
+
+259
+00:12:44,566 --> 00:12:47,026
+This is where drawRect
+was compiled
+
+
+260
+00:12:47,026 --> 00:12:48,396
+with compiler optimizations
+enabled.
+
+
+261
+00:12:48,966 --> 00:12:51,166
+Same situation, we
+have a drawRect frame.
+
+
+262
+00:12:51,166 --> 00:12:53,116
+We're about to call
+into draw path.
+
+
+263
+00:12:54,086 --> 00:12:57,586
+You notice when draw path
+returns drawRect is finished.
+
+
+264
+00:12:57,686 --> 00:12:58,766
+Doesn't need to do anything.
+
+
+265
+00:12:59,006 --> 00:13:00,256
+It is going to return.
+
+
+266
+00:13:00,256 --> 00:13:03,056
+The way it returns, it is
+it pops the stack frame,
+
+
+267
+00:13:03,476 --> 00:13:06,076
+restores the previous
+value of the frame Pointer
+
+
+268
+00:13:06,506 --> 00:13:07,786
+and jumps back to the caller.
+
+
+269
+00:13:09,016 --> 00:13:11,176
+The compiler looks at
+this and says well,
+
+
+270
+00:13:11,456 --> 00:13:17,146
+why does draw path need anything
+from drawRect's stack frame.
+
+
+271
+00:13:18,406 --> 00:13:18,806
+It doesn't.
+
+
+272
+00:13:18,806 --> 00:13:20,886
+Furthermore, why come
+in to drawRect --
+
+
+273
+00:13:20,886 --> 00:13:22,426
+back to drawRect at
+all when it is going
+
+
+274
+00:13:22,426 --> 00:13:23,266
+to return to its caller?
+
+
+275
+00:13:23,966 --> 00:13:27,376
+What it does, it rearranges
+the code like this.
+
+
+276
+00:13:27,676 --> 00:13:30,836
+It is going to pop the stack
+frame, restore the frame Pointer
+
+
+277
+00:13:30,886 --> 00:13:34,076
+and make a direct call
+back into draw path meaning
+
+
+278
+00:13:34,416 --> 00:13:36,026
+that we don't need to
+jump back to the caller.
+
+
+279
+00:13:36,986 --> 00:13:39,706
+That's harder to explain
+than it is to see.
+
+
+280
+00:13:39,706 --> 00:13:43,286
+Let's imagine what it would look
+like when running this code.
+
+
+281
+00:13:43,616 --> 00:13:46,046
+We'll pop the stack frame off to
+get rid of the local variables.
+
+
+282
+00:13:47,066 --> 00:13:49,346
+We'll restore the frame
+Pointer to the original value
+
+
+283
+00:13:49,456 --> 00:13:50,856
+and the value of
+the link register.
+
+
+284
+00:13:51,596 --> 00:13:55,676
+Then we'll jump to the beginning
+of the code for draw path.
+
+
+285
+00:13:55,676 --> 00:13:57,916
+Draw path is going to
+push its own frame back
+
+
+286
+00:13:57,916 --> 00:14:00,776
+on to the stack using
+the value that it found
+
+
+287
+00:14:00,776 --> 00:14:02,836
+in the link register
+and the frame Pointer.
+
+
+288
+00:14:03,096 --> 00:14:06,266
+From draw path's perspective
+it was called directly
+
+
+289
+00:14:06,266 --> 00:14:09,066
+from draw layer in
+context from UIKit.
+
+
+290
+00:14:09,996 --> 00:14:11,626
+If we take a time
+sample at this point,
+
+
+291
+00:14:12,136 --> 00:14:13,696
+we'll see the exact same story.
+
+
+292
+00:14:15,036 --> 00:14:16,966
+Even though that's not
+the actual call sequence
+
+
+293
+00:14:16,966 --> 00:14:19,086
+that happened, this is
+what the time profiler saw.
+
+
+294
+00:14:19,546 --> 00:14:22,966
+That's what we ended up
+seeing in our call trees.
+
+
+295
+00:14:23,576 --> 00:14:25,996
+This is called Tail Call
+Elimination, it is common
+
+
+296
+00:14:25,996 --> 00:14:31,046
+in highly optimized code
+and has some benefits.
+
+
+297
+00:14:31,046 --> 00:14:31,966
+It saves stack memory.
+
+
+298
+00:14:32,796 --> 00:14:35,286
+In the process of saving stack
+memory, it keeps the caches hot,
+
+
+299
+00:14:35,286 --> 00:14:39,436
+that reuses the memory,
+the caches and data.
+
+
+300
+00:14:39,436 --> 00:14:42,766
+It has a profound
+effect on recursive code,
+
+
+301
+00:14:42,806 --> 00:14:45,906
+especially tail call recursive
+code, where a function
+
+
+302
+00:14:45,906 --> 00:14:48,346
+or method calls itself as the
+last thing and then returns.
+
+
+303
+00:14:49,226 --> 00:14:53,436
+Without pushing those frames
+a Tail Call Elimination inside
+
+
+304
+00:14:53,436 --> 00:14:56,406
+of a recursive function can
+make the performance as good
+
+
+305
+00:14:56,406 --> 00:15:00,216
+as its iterative version, so
+you don't get the stack growth
+
+
+306
+00:15:00,216 --> 00:15:02,856
+and you get the high
+performance as well.
+
+
+307
+00:15:02,856 --> 00:15:06,276
+This optimization leave on
+with highly recursive code.
+
+
+308
+00:15:06,696 --> 00:15:09,156
+If you want to turn it off
+for the sake of profiling
+
+
+309
+00:15:09,156 --> 00:15:13,536
+to show a cleaner stack trace
+you can turn it off by going
+
+
+310
+00:15:13,536 --> 00:15:15,306
+in the build settings
+of the project
+
+
+311
+00:15:15,786 --> 00:15:17,546
+and setting the compiler flag,
+
+
+312
+00:15:17,726 --> 00:15:20,646
+the CFLAGS to
+FNO-optimize-sibling-calls,
+
+
+313
+00:15:20,856 --> 00:15:22,116
+turning off the optimization,
+
+
+314
+00:15:22,426 --> 00:15:24,736
+and unfortunately the
+performance gains with it,
+
+
+315
+00:15:25,096 --> 00:15:28,876
+but you'll get a better
+result in the time profiler.
+
+
+316
+00:15:28,876 --> 00:15:31,116
+If you choose to live with
+it, and you want to identify
+
+
+317
+00:15:31,296 --> 00:15:34,796
+if a tail call is happening,
+then what you can do,
+
+
+318
+00:15:34,796 --> 00:15:38,626
+you can look at the disassembly
+and call sight of the last call.
+
+
+319
+00:15:39,476 --> 00:15:42,056
+If it is a normal call, it
+is going to use a branch
+
+
+320
+00:15:42,056 --> 00:15:44,716
+and link family of instructions,
+that's the first example there.
+
+
+321
+00:15:45,756 --> 00:15:47,606
+What that does, it jumps
+to the new function
+
+
+322
+00:15:47,606 --> 00:15:50,126
+and saves the return value
+in the link register.
+
+
+323
+00:15:51,316 --> 00:15:54,066
+If it is a tail call case and
+we're going to jump directly
+
+
+324
+00:15:54,066 --> 00:15:59,166
+into the new function, it will
+be a direct branch instruction.
+
+
+325
+00:15:59,236 --> 00:16:00,776
+Without the BL.
+
+
+326
+00:16:00,926 --> 00:16:04,656
+That could be a call instruction
+for a branch and link
+
+
+327
+00:16:04,716 --> 00:16:06,596
+and the branch would
+be a jump instruction,
+
+
+328
+00:16:06,726 --> 00:16:10,576
+if you see that,
+it looks similar.
+
+
+329
+00:16:10,656 --> 00:16:14,816
+Now it is up to Kris if he wants
+to disable the optimization
+
+
+330
+00:16:14,816 --> 00:16:17,456
+and recompile, or he can
+carry on, it is your choice.
+
+
+331
+00:16:18,396 --> 00:16:20,856
+>> KRIS MARKEL: I'll
+look at the disassembly.
+
+
+332
+00:16:20,856 --> 00:16:24,936
+In Instruments, upper right-hand
+corner of the detailed view,
+
+
+333
+00:16:24,936 --> 00:16:28,826
+there's a button, view
+disassembly, if I click that,
+
+
+334
+00:16:28,826 --> 00:16:30,866
+I see the disassembly
+for the method
+
+
+335
+00:16:31,076 --> 00:16:35,006
+and we can confirm the call to
+context add path is a branch
+
+
+336
+00:16:35,006 --> 00:16:37,616
+and link, the call
+to context draw path,
+
+
+337
+00:16:37,716 --> 00:16:39,176
+it is just a simple branch.
+
+
+338
+00:16:39,596 --> 00:16:42,676
+I'm confident that this is a
+case of Tail Call Elimination
+
+
+339
+00:16:43,046 --> 00:16:48,466
+that 55% that I saw on the call
+tree that was not attributed
+
+
+340
+00:16:48,466 --> 00:16:51,346
+to my drawRect should be
+attributed to the drawRect.
+
+
+341
+00:16:51,836 --> 00:16:53,716
+That is good news.
+
+
+342
+00:16:53,826 --> 00:16:57,966
+I know now my drawRect is
+on my heaviest deck frame,
+
+
+343
+00:16:58,026 --> 00:16:59,066
+my heaviest stack trace
+
+
+344
+00:16:59,456 --> 00:17:02,946
+and it is consuming
+55 to 60% of my time.
+
+
+345
+00:17:03,016 --> 00:17:03,656
+This is great.
+
+
+346
+00:17:03,656 --> 00:17:04,715
+I know where to optimize.
+
+
+347
+00:17:04,886 --> 00:17:07,606
+I optimize drawRect,
+I'm good to go.
+
+
+348
+00:17:08,465 --> 00:17:09,695
+Let's look at this drawRect.
+
+
+349
+00:17:11,215 --> 00:17:14,866
+Looking that the drawRect, if
+I had a table I would flip it.
+
+
+350
+00:17:15,685 --> 00:17:17,955
+There is not much
+to optimize here.
+
+
+351
+00:17:18,165 --> 00:17:20,276
+It is hard to think
+of a simpler drawRect
+
+
+352
+00:17:20,736 --> 00:17:21,996
+that actually is functional.
+
+
+353
+00:17:22,175 --> 00:17:28,006
+We have 4 function calls,
+context, you know, CG calls,
+
+
+354
+00:17:28,516 --> 00:17:30,596
+this drawRect really
+does not do much.
+
+
+355
+00:17:30,996 --> 00:17:33,716
+It turns out that this is
+actually a really common
+
+
+356
+00:17:33,716 --> 00:17:36,206
+occurrence when doing profiling.
+
+
+357
+00:17:36,646 --> 00:17:41,776
+You will take a look at
+your hot spots and code,
+
+
+358
+00:17:42,046 --> 00:17:45,796
+there is not much you can
+do in your code directly
+
+
+359
+00:17:46,006 --> 00:17:47,346
+to improve your performance.
+
+
+360
+00:17:48,056 --> 00:17:50,336
+You know, this junction,
+what do you do?
+
+
+361
+00:17:50,336 --> 00:17:55,466
+You know, other than flipping
+tables, crying into your pillow
+
+
+362
+00:17:55,466 --> 00:17:59,186
+at night, what we did was we
+went through, started to look
+
+
+363
+00:17:59,186 --> 00:18:01,916
+at the core graphics
+documentation and other drawing,
+
+
+364
+00:18:01,916 --> 00:18:03,526
+you know, Cocoa drawing
+documentation.
+
+
+365
+00:18:04,496 --> 00:18:07,076
+We came across this
+particular property here.
+
+
+366
+00:18:07,936 --> 00:18:09,576
+This drawsAsynchrously.
+
+
+367
+00:18:10,136 --> 00:18:12,916
+Lo and behold, there was a
+make my code faster button
+
+
+368
+00:18:13,046 --> 00:18:17,116
+that was created by
+an Apple engineer.
+
+
+369
+00:18:19,076 --> 00:18:20,156
+This is excellent.
+
+
+370
+00:18:20,746 --> 00:18:23,146
+Above that, you see I copied
+
+
+371
+00:18:23,146 --> 00:18:25,906
+out of the documentation,
+pasted it in there.
+
+
+372
+00:18:25,906 --> 00:18:27,456
+It says a couple of things
+that are interesting.
+
+
+373
+00:18:27,456 --> 00:18:31,816
+It says, first of all, it may
+improve performance, it may not.
+
+
+374
+00:18:31,816 --> 00:18:32,756
+You should always measure.
+
+
+375
+00:18:32,756 --> 00:18:35,756
+You know, okay, dad.
+
+
+376
+00:18:36,206 --> 00:18:37,126
+Let's measure.
+
+
+377
+00:18:37,306 --> 00:18:39,896
+Let's see if this
+improves in performance.
+
+
+378
+00:18:40,386 --> 00:18:43,196
+This time to start the
+Instruments, I'm just going
+
+
+379
+00:18:43,196 --> 00:18:45,316
+to do command-I for Instruments.
+
+
+380
+00:18:45,316 --> 00:18:46,766
+It will do the same thing.
+
+
+381
+00:18:47,356 --> 00:18:50,536
+It will build the application
+and install on the device,
+
+
+382
+00:18:51,126 --> 00:18:52,306
+bring up the template chooser.
+
+
+383
+00:18:53,256 --> 00:18:54,366
+It takes a moment.
+
+
+384
+00:18:55,816 --> 00:18:56,926
+Two moments.
+
+
+385
+00:18:57,556 --> 00:18:58,946
+Three moments.
+
+
+386
+00:18:59,176 --> 00:19:00,396
+Here we go.
+
+
+387
+00:19:00,396 --> 00:19:02,856
+Another shortcut I like
+to use, if you take a look
+
+
+388
+00:19:02,856 --> 00:19:04,316
+at the choose button down here.
+
+
+389
+00:19:04,956 --> 00:19:07,556
+If I hold down the option
+button it changes to profile.
+
+
+390
+00:19:07,996 --> 00:19:09,856
+What it means, when
+I click this,
+
+
+391
+00:19:10,156 --> 00:19:11,866
+the application is going
+to start recording.
+
+
+392
+00:19:12,186 --> 00:19:13,776
+It saves me a step or two.
+
+
+393
+00:19:14,016 --> 00:19:15,046
+I'll do that now.
+
+
+394
+00:19:15,836 --> 00:19:18,636
+Now the time profiler
+will come up.
+
+
+395
+00:19:19,076 --> 00:19:20,156
+This is measuring the app.
+
+
+396
+00:19:20,616 --> 00:19:22,536
+I'll do some quick
+scrolling back
+
+
+397
+00:19:22,536 --> 00:19:24,296
+and forth, capturing some data.
+
+
+398
+00:19:24,296 --> 00:19:26,606
+I think that's enough.
+
+
+399
+00:19:26,606 --> 00:19:28,296
+Let's go ahead, stop
+the recording.
+
+
+400
+00:19:28,776 --> 00:19:33,046
+I'm going to filter to
+specifically the scrolling data.
+
+
+401
+00:19:33,496 --> 00:19:35,846
+If we go ahead down here
+looking at the detailed view.
+
+
+402
+00:19:36,296 --> 00:19:37,696
+This is promising.
+
+
+403
+00:19:37,946 --> 00:19:40,706
+I'm actually -- you can see,
+there is multiple threads here.
+
+
+404
+00:19:40,866 --> 00:19:42,206
+The threads are doing work.
+
+
+405
+00:19:42,696 --> 00:19:43,756
+That's really good.
+
+
+406
+00:19:43,846 --> 00:19:45,656
+If we go ahead, if
+I hold down option,
+
+
+407
+00:19:45,986 --> 00:19:49,226
+click the disclosure triangle
+I can see what the thread is
+
+
+408
+00:19:49,226 --> 00:19:52,126
+calling, there is
+some dispatch calls,
+
+
+409
+00:19:52,126 --> 00:19:53,546
+some CG calls, that's good.
+
+
+410
+00:19:53,546 --> 00:19:54,636
+That's the drawing code.
+
+
+411
+00:19:55,186 --> 00:19:57,096
+We'll go ahead, check
+the other one to see.
+
+
+412
+00:19:57,826 --> 00:19:59,226
+Hold down the option key.
+
+
+413
+00:19:59,886 --> 00:20:02,206
+Dispatch, CG calls.
+
+
+414
+00:20:02,506 --> 00:20:03,366
+This is good.
+
+
+415
+00:20:03,366 --> 00:20:04,736
+This is looking promising.
+
+
+416
+00:20:05,226 --> 00:20:09,156
+I'm multithreaded, in
+theory my app is faster.
+
+
+417
+00:20:10,036 --> 00:20:13,946
+However, multithreading does
+not necessarily mean faster.
+
+
+418
+00:20:13,946 --> 00:20:17,206
+We should confirm this is
+actually doing anything for us.
+
+
+419
+00:20:18,006 --> 00:20:21,746
+One way to do that, I happen to
+know this device is two CPUs,
+
+
+420
+00:20:22,136 --> 00:20:24,166
+if the CPUs operate in parallel
+
+
+421
+00:20:24,166 --> 00:20:28,746
+at max capacity I should
+see a 200% CPU usage
+
+
+422
+00:20:29,096 --> 00:20:30,326
+in my graph up here.
+
+
+423
+00:20:31,126 --> 00:20:33,666
+I'm not seeing anything
+over 100%, that's a bit
+
+
+424
+00:20:33,666 --> 00:20:36,286
+of a warning sign, it
+doesn't necessarily mean
+
+
+425
+00:20:36,536 --> 00:20:38,646
+that they're not both doing
+work at the same time.
+
+
+426
+00:20:39,046 --> 00:20:40,296
+It means that I need
+to check further.
+
+
+427
+00:20:41,076 --> 00:20:42,016
+How do we check further?
+
+
+428
+00:20:42,676 --> 00:20:45,436
+Instruments has what we call
+strategies, it is different ways
+
+
+429
+00:20:45,436 --> 00:20:47,326
+of partitioning the
+data to look at them.
+
+
+430
+00:20:47,466 --> 00:20:48,406
+There is three of them.
+
+
+431
+00:20:48,836 --> 00:20:51,456
+The first one is the Instrument
+strategies, the default,
+
+
+432
+00:20:51,646 --> 00:20:52,546
+we're looking at it here.
+
+
+433
+00:20:53,396 --> 00:20:55,286
+The second one is
+the CPU strategy,
+
+
+434
+00:20:55,656 --> 00:20:58,916
+it shows the data per
+CPU or CPU relevant data
+
+
+435
+00:20:59,816 --> 00:21:01,656
+and the final one is
+the thread strategy.
+
+
+436
+00:21:01,966 --> 00:21:04,546
+It shows you details on
+what each thread is doing.
+
+
+437
+00:21:05,386 --> 00:21:07,456
+Let's look at the CPU strategy.
+
+
+438
+00:21:07,456 --> 00:21:10,576
+We can see we have
+each of the CPUs,
+
+
+439
+00:21:10,576 --> 00:21:12,626
+we can see how much
+work it is doing.
+
+
+440
+00:21:12,626 --> 00:21:14,816
+At the bottom, we see
+the combined usage.
+
+
+441
+00:21:15,176 --> 00:21:21,986
+A nice thing to do here, when I
+zoom in far enough, the details,
+
+
+442
+00:21:22,046 --> 00:21:24,236
+what the graph shows me,
+it will actually change.
+
+
+443
+00:21:25,016 --> 00:21:28,336
+Rather than show making the
+average usage, it will show
+
+
+444
+00:21:28,336 --> 00:21:30,386
+if the CPU is active or not,
+
+
+445
+00:21:30,386 --> 00:21:32,796
+it will go from average
+usage, to either on or off.
+
+
+446
+00:21:33,386 --> 00:21:36,016
+Now each CPU shows an
+on state or off state,
+
+
+447
+00:21:36,016 --> 00:21:37,146
+whether or not it is working.
+
+
+448
+00:21:37,846 --> 00:21:41,566
+What you notice here, the
+CPUs are never working
+
+
+449
+00:21:41,566 --> 00:21:44,426
+at the same time, there
+is no parallelism here.
+
+
+450
+00:21:44,786 --> 00:21:48,656
+You know, this is not good.
+
+
+451
+00:21:49,276 --> 00:21:53,136
+If we want to feel worse, we
+look at the thread strategy.
+
+
+452
+00:21:54,186 --> 00:21:56,166
+What this is showing
+us, each icon,
+
+
+453
+00:21:56,166 --> 00:22:00,226
+it represents a sample
+the time profiler took,
+
+
+454
+00:22:00,226 --> 00:22:01,376
+you can click on it.
+
+
+455
+00:22:01,376 --> 00:22:02,206
+See the call stack.
+
+
+456
+00:22:02,626 --> 00:22:04,756
+Here this is on a
+background thread
+
+
+457
+00:22:04,756 --> 00:22:08,246
+and you see the core graphics
+calls, here is the main thread,
+
+
+458
+00:22:08,246 --> 00:22:14,666
+you see the main -- the work
+we're doing on the main thread.
+
+
+459
+00:22:15,206 --> 00:22:17,216
+As you see, if I zoom
+in to the right level,
+
+
+460
+00:22:17,216 --> 00:22:18,986
+it is probably here,
+I scroll around,
+
+
+461
+00:22:19,336 --> 00:22:22,426
+you see there is
+not really anywhere
+
+
+462
+00:22:22,426 --> 00:22:24,596
+where two threads are
+working at the same time.
+
+
+463
+00:22:24,816 --> 00:22:27,326
+It is jumping from
+one thread to another.
+
+
+464
+00:22:28,696 --> 00:22:34,356
+So the drawsAsynchronously, this
+has not really done anything
+
+
+465
+00:22:34,356 --> 00:22:38,036
+for us, in theory, it
+may have slowed us down.
+
+
+466
+00:22:38,036 --> 00:22:42,426
+Now not only we doing the same
+drawing work but also managing,
+
+
+467
+00:22:42,426 --> 00:22:45,096
+you know, core graphics system
+managed the threads it is
+
+
+468
+00:22:45,096 --> 00:22:47,926
+working on, that sort of thing.
+
+
+469
+00:22:47,926 --> 00:22:48,756
+That didn't really help.
+
+
+470
+00:22:49,916 --> 00:22:51,726
+I'll turn it off.
+
+
+471
+00:22:51,866 --> 00:22:56,166
+I'll flip another table I guess.
+
+
+472
+00:22:56,246 --> 00:22:59,776
+It is not clear, the
+magic button didn't help.
+
+
+473
+00:23:00,556 --> 00:23:01,696
+What do we do now?
+
+
+474
+00:23:02,396 --> 00:23:04,726
+This is a really
+common occurrence again
+
+
+475
+00:23:04,726 --> 00:23:05,496
+in time profiling.
+
+
+476
+00:23:06,336 --> 00:23:08,756
+You try lots of things,
+most don't work.
+
+
+477
+00:23:09,496 --> 00:23:11,626
+We step back.
+
+
+478
+00:23:11,876 --> 00:23:12,716
+What does the app do?
+
+
+479
+00:23:13,076 --> 00:23:15,136
+It builds a path
+and draws a path.
+
+
+480
+00:23:15,956 --> 00:23:17,446
+We have seen the draw path code.
+
+
+481
+00:23:17,446 --> 00:23:19,666
+Let's think about
+the build path code.
+
+
+482
+00:23:19,936 --> 00:23:23,466
+That's right in here.
+
+
+483
+00:23:24,086 --> 00:23:26,316
+What we wanted to do, we wanted
+
+
+484
+00:23:26,316 --> 00:23:29,116
+to investigate the actual
+path we're building.
+
+
+485
+00:23:29,636 --> 00:23:32,616
+What this code does, it
+loops the data elements,
+
+
+486
+00:23:32,886 --> 00:23:35,036
+creating a path and
+adds a line to that path
+
+
+487
+00:23:35,036 --> 00:23:35,936
+for each data element.
+
+
+488
+00:23:36,236 --> 00:23:39,386
+We want to know how many lines
+we're adding to the path.
+
+
+489
+00:23:39,386 --> 00:23:42,106
+This is something that the
+time profiler can't tell us.
+
+
+490
+00:23:42,416 --> 00:23:44,296
+It can't tell you how long,
+
+
+491
+00:23:44,566 --> 00:23:46,356
+or how many times
+a particular method
+
+
+492
+00:23:46,356 --> 00:23:47,536
+or function has been called.
+
+
+493
+00:23:47,536 --> 00:23:49,936
+It doesn't know the difference
+
+
+494
+00:23:49,936 --> 00:23:52,296
+between a slow function
+that's called a few times
+
+
+495
+00:23:52,296 --> 00:23:54,716
+or a fast function
+that's called a lot.
+
+
+496
+00:23:54,716 --> 00:23:58,386
+In this case we resorted to
+NSLog and we just have a thing,
+
+
+497
+00:23:58,386 --> 00:24:01,346
+every time we add a path
+we increment our counter
+
+
+498
+00:24:01,346 --> 00:24:05,666
+and then we log it when
+we're done with the loop.
+
+
+499
+00:24:05,666 --> 00:24:07,886
+Something important
+to point out, NSLog,
+
+
+500
+00:24:08,416 --> 00:24:10,626
+it is not a very fast function.
+
+
+501
+00:24:11,166 --> 00:24:13,406
+You don't want it in
+high performance code.
+
+
+502
+00:24:13,406 --> 00:24:16,076
+You probably don't want to
+use it for anything other
+
+
+503
+00:24:16,076 --> 00:24:18,816
+than gathering diagnostic
+information or debugging.
+
+
+504
+00:24:19,386 --> 00:24:21,776
+When you're done,
+delete it from the code.
+
+
+505
+00:24:21,776 --> 00:24:24,736
+In this case we just comment
+it out so you can see it.
+
+
+506
+00:24:25,066 --> 00:24:29,636
+What we have found, we're
+adding 10,000 lines to the point
+
+
+507
+00:24:30,206 --> 00:24:32,616
+in cases where we did
+not need to do that.
+
+
+508
+00:24:32,616 --> 00:24:33,866
+In fact, there is no way
+
+
+509
+00:24:33,866 --> 00:24:36,956
+to display 10,000
+lines on this device.
+
+
+510
+00:24:37,096 --> 00:24:39,026
+Especially when you're
+zoomed out far enough
+
+
+511
+00:24:39,026 --> 00:24:41,676
+that all the data fits
+within 100 screen points.
+
+
+512
+00:24:41,716 --> 00:24:44,356
+There is no reason to draw
+10,000 lines in there.
+
+
+513
+00:24:44,356 --> 00:24:47,746
+We need to draw 100 lines.
+
+
+514
+00:24:47,966 --> 00:24:48,946
+It is a lot less work.
+
+
+515
+00:24:49,936 --> 00:24:54,136
+We went ahead, we created an
+implementation that did that.
+
+
+516
+00:24:54,296 --> 00:24:58,306
+If multiple data
+elements, data points are
+
+
+517
+00:24:58,306 --> 00:25:01,386
+within a single screen
+point it just finds the max
+
+
+518
+00:25:01,436 --> 00:25:02,686
+and draws a single line.
+
+
+519
+00:25:03,146 --> 00:25:07,336
+If we're using 100 screen points
+we're creating 100 screen lines.
+
+
+520
+00:25:08,396 --> 00:25:11,386
+We'll go ahead and switch
+to that implementation.
+
+
+521
+00:25:12,306 --> 00:25:14,496
+. . We're feeling
+good about that.
+
+
+522
+00:25:14,576 --> 00:25:18,386
+We'll change the element
+count up to the goal
+
+
+523
+00:25:18,386 --> 00:25:20,616
+of 100,000 rather than 10,000.
+
+
+524
+00:25:21,476 --> 00:25:25,796
+We'll see if that
+helped us at all.
+
+
+525
+00:25:25,796 --> 00:25:29,626
+I'll use command-I to
+start up the Instruments.
+
+
+526
+00:25:30,016 --> 00:25:31,926
+Since Instruments is already
+open, it is just going
+
+
+527
+00:25:31,926 --> 00:25:35,366
+to bring it to the foreground
+and start recording immediately.
+
+
+528
+00:25:35,366 --> 00:25:36,976
+Here we go.
+
+
+529
+00:25:37,076 --> 00:25:38,856
+A new recording.
+
+
+530
+00:25:39,556 --> 00:25:43,236
+We'll go ahead and scroll,
+the scrolling seems fine.
+
+
+531
+00:25:44,486 --> 00:25:45,836
+I'll zoom out.
+
+
+532
+00:25:46,746 --> 00:25:49,216
+Zooming performance
+is much, much better.
+
+
+533
+00:25:49,396 --> 00:25:52,136
+It takes longer because I
+have more data to zoom out.
+
+
+534
+00:25:52,846 --> 00:25:54,056
+It is actually looking
+pretty good.
+
+
+535
+00:25:54,896 --> 00:25:56,686
+I'm going to do the
+swiping back and forth.
+
+
+536
+00:25:56,686 --> 00:25:59,236
+It is tracking my
+finger really well now.
+
+
+537
+00:25:59,726 --> 00:26:02,696
+It is actually keeping up with
+it, doing a fantastic job.
+
+
+538
+00:26:04,046 --> 00:26:07,266
+Hooray! All done!
+
+
+539
+00:26:07,606 --> 00:26:11,036
+Except not quite.
+
+
+540
+00:26:11,036 --> 00:26:12,336
+If we look at the actual amount
+
+
+541
+00:26:12,386 --> 00:26:15,106
+of CPU we're using while
+scrolling back and forth,
+
+
+542
+00:26:15,106 --> 00:26:18,416
+we can see, you know,
+sometimes it is down to 60%,
+
+
+543
+00:26:18,416 --> 00:26:20,186
+it is usually in the 70s or 80s.
+
+
+544
+00:26:21,046 --> 00:26:23,956
+Technically we're meeting
+our performance goals.
+
+
+545
+00:26:24,566 --> 00:26:26,986
+What are we doing --
+what's the next thing to do
+
+
+546
+00:26:26,986 --> 00:26:28,716
+with this app or prototype?
+
+
+547
+00:26:28,716 --> 00:26:30,606
+We'll add additional features.
+
+
+548
+00:26:31,176 --> 00:26:36,266
+We know that we need more
+headroom than what we have here.
+
+
+549
+00:26:36,766 --> 00:26:42,036
+How do we make it faster,
+how do we make the app better
+
+
+550
+00:26:42,036 --> 00:26:44,346
+and meet performance goals?
+
+
+551
+00:26:45,416 --> 00:26:46,936
+We'll focus on this.
+
+
+552
+00:26:47,426 --> 00:26:50,156
+We'll filter to that data.
+
+
+553
+00:26:50,156 --> 00:26:52,576
+I'll give myself a little room.
+
+
+554
+00:26:53,196 --> 00:26:55,266
+In this case, I'm going to
+hold down the option key
+
+
+555
+00:26:56,246 --> 00:26:57,996
+and click main and
+expand this out.
+
+
+556
+00:26:58,076 --> 00:27:02,206
+I can actually go down here
+and I can see this method here.
+
+
+557
+00:27:02,876 --> 00:27:06,566
+You know, now that the drawing
+of the paths is fast enough,
+
+
+558
+00:27:06,566 --> 00:27:09,976
+it is the building of the path
+that becomes the bottleneck.
+
+
+559
+00:27:09,976 --> 00:27:14,716
+I want to focus on this method.
+
+
+560
+00:27:15,046 --> 00:27:17,456
+I will click the focus button.
+
+
+561
+00:27:17,456 --> 00:27:21,736
+That just moves aside
+everything outside of the method
+
+
+562
+00:27:21,736 --> 00:27:29,126
+and normalizes our percentages
+to within this method.
+
+
+563
+00:27:29,126 --> 00:27:33,596
+This method is spending 55% of
+time in the get next element
+
+
+564
+00:27:34,206 --> 00:27:38,876
+and 10, 11% of time
+in objc msgSend.
+
+
+565
+00:27:39,566 --> 00:27:43,306
+Something that I
+know, objc msgSend,
+
+
+566
+00:27:43,306 --> 00:27:45,326
+it is a super fast method.
+
+
+567
+00:27:45,326 --> 00:27:46,746
+It is super optimized.
+
+
+568
+00:27:47,126 --> 00:27:52,726
+But, if I can get that
+10% back, I want it.
+
+
+569
+00:27:52,726 --> 00:27:59,136
+If we look inside of our code
+here we can see it is actually
+
+
+570
+00:27:59,136 --> 00:27:59,686
+very clear.
+
+
+571
+00:27:59,686 --> 00:28:03,396
+Most of our time is spent
+on getting the next element.
+
+
+572
+00:28:04,086 --> 00:28:06,896
+This percentage here, it is a
+bit higher than in the tree view
+
+
+573
+00:28:07,126 --> 00:28:10,436
+because it includes
+the objc msgSend time.
+
+
+574
+00:28:10,436 --> 00:28:14,806
+If I get rid of that and
+make this iterator faster,
+
+
+575
+00:28:15,126 --> 00:28:19,366
+I hopefully can get the
+performance boost that I want.
+
+
+576
+00:28:19,616 --> 00:28:26,406
+To give us ideas on how much
+to do that, it is back to Chad.
+
+
+577
+00:28:26,526 --> 00:28:31,996
+>> CHAD WOOLF: Let's talk
+about objc msgSend a bit.
+
+
+578
+00:28:31,996 --> 00:28:35,286
+It implicitly gets inserted
+
+
+579
+00:28:35,346 --> 00:28:37,966
+by the compiler whenever you
+use the square bracket notation
+
+
+580
+00:28:38,566 --> 00:28:40,136
+or whenever you use
+the dot notation
+
+
+581
+00:28:40,136 --> 00:28:41,836
+to access a property
+on an object.
+
+
+582
+00:28:43,166 --> 00:28:46,016
+Its purpose is to look up
+the method implementation
+
+
+583
+00:28:46,016 --> 00:28:48,646
+for the selector and
+invoke that method.
+
+
+584
+00:28:49,026 --> 00:28:51,586
+That's a long way of saying
+that's how we do dynamic
+
+
+585
+00:28:51,616 --> 00:28:52,806
+dispatch in Objective-C.
+
+
+586
+00:28:54,086 --> 00:28:59,146
+Objc msgSend is extremely fast
+and does not push a stack frame.
+
+
+587
+00:28:59,786 --> 00:29:02,366
+When you look at
+your time profiles,
+
+
+588
+00:29:02,576 --> 00:29:04,306
+you typically won't
+see its effect.
+
+
+589
+00:29:05,426 --> 00:29:08,636
+The times that you do see it
+would be a perfect example
+
+
+590
+00:29:08,636 --> 00:29:11,536
+like we have where we
+see it in our iterator.
+
+
+591
+00:29:11,536 --> 00:29:15,126
+What we're doing, we're
+iterating over 100,000 points
+
+
+592
+00:29:15,126 --> 00:29:19,406
+and calling it the get next
+method with a small method body.
+
+
+593
+00:29:19,406 --> 00:29:21,436
+Just increments a couple
+values and returns a structure.
+
+
+594
+00:29:22,676 --> 00:29:26,266
+What's happening, all
+of that overhead time
+
+
+595
+00:29:26,266 --> 00:29:29,066
+from the Objective-C
+message send is accumulating
+
+
+596
+00:29:29,066 --> 00:29:31,716
+into something that's
+measurable.
+
+
+597
+00:29:31,716 --> 00:29:36,196
+Is there a way to get
+around that overhead?
+
+
+598
+00:29:36,466 --> 00:29:38,866
+Not exactly.
+
+
+599
+00:29:38,866 --> 00:29:41,166
+Objective-C by design
+is a dynamic language,
+
+
+600
+00:29:41,586 --> 00:29:43,856
+you have to make the
+objc msgSend call
+
+
+601
+00:29:44,116 --> 00:29:47,446
+when accessing methods
+for objects and classes.
+
+
+602
+00:29:48,246 --> 00:29:52,046
+It does this every time
+because you can switch
+
+
+603
+00:29:52,046 --> 00:29:53,506
+out method implementations
+at runtime.
+
+
+604
+00:29:54,156 --> 00:29:57,676
+There is no compile time in
+Objective-C saying I want
+
+
+605
+00:29:57,676 --> 00:29:59,516
+to call in this particular
+method body.
+
+
+606
+00:29:59,856 --> 00:30:04,506
+The only exception here, if you
+do what's called method caching,
+
+
+607
+00:30:04,906 --> 00:30:07,306
+where you look up the method
+implementation yourself
+
+
+608
+00:30:07,786 --> 00:30:09,556
+and you call it through
+its function Pointer.
+
+
+609
+00:30:09,806 --> 00:30:13,816
+In general I don't
+recommend that you do that.
+
+
+610
+00:30:13,816 --> 00:30:15,266
+It is fragile as
+you can imagine.
+
+
+611
+00:30:15,766 --> 00:30:18,996
+In general, in my experience
+it hasn't given me the kind
+
+
+612
+00:30:18,996 --> 00:30:21,716
+of performance wins I'm
+expecting because you got
+
+
+613
+00:30:21,856 --> 00:30:23,746
+to think about why we're
+here in the first place.
+
+
+614
+00:30:24,136 --> 00:30:27,026
+The reason we're here, the
+get next element method has
+
+
+615
+00:30:27,026 --> 00:30:28,016
+that small method body.
+
+
+616
+00:30:28,716 --> 00:30:31,586
+Even if you invoke it through
+the function Pointer you still
+
+
+617
+00:30:31,586 --> 00:30:34,256
+have to have to marshal the
+arguments and push the frames
+
+
+618
+00:30:34,256 --> 00:30:35,926
+on to the stack and pop
+them when you're done.
+
+
+619
+00:30:36,806 --> 00:30:38,766
+That's exactly what you saw
+in the previous set of slides,
+
+
+620
+00:30:38,926 --> 00:30:40,286
+that can be a lot of overhead
+
+
+621
+00:30:40,286 --> 00:30:42,126
+with an increment
+and then return.
+
+
+622
+00:30:42,546 --> 00:30:47,826
+I want to make sure I point it
+out that method caching is not
+
+
+623
+00:30:47,826 --> 00:30:50,906
+as fast as inlining, what we
+really want in this case is
+
+
+624
+00:30:50,906 --> 00:30:53,116
+that small method
+body to be inlined.
+
+
+625
+00:30:54,486 --> 00:30:55,886
+How do you that in Objective-C?
+
+
+626
+00:30:57,246 --> 00:30:59,046
+Well, you have alternatives.
+
+
+627
+00:30:59,166 --> 00:31:01,466
+The first one, you
+could have used C
+
+
+628
+00:31:02,406 --> 00:31:04,436
+and you could have
+used structures instead
+
+
+629
+00:31:04,436 --> 00:31:06,856
+of an iterator, you
+could pass a C ray
+
+
+630
+00:31:06,856 --> 00:31:07,986
+into the method for example.
+
+
+631
+00:31:08,416 --> 00:31:13,966
+If you want that OO
+flavor you can use C++.
+
+
+632
+00:31:14,286 --> 00:31:16,156
+The way you use C++
+in Objective-C,
+
+
+633
+00:31:16,156 --> 00:31:18,436
+is you rename the file
+from a .m to a .mm
+
+
+634
+00:31:18,436 --> 00:31:20,726
+and then you can use C++ syntax.
+
+
+635
+00:31:21,446 --> 00:31:23,176
+Because Arc is usually
+on by default,
+
+
+636
+00:31:23,366 --> 00:31:26,296
+then you take Objective-C
+objects and put them
+
+
+637
+00:31:26,296 --> 00:31:29,896
+in STL containers, and put
+them in instance variables
+
+
+638
+00:31:29,896 --> 00:31:32,016
+on your classes and structures.
+
+
+639
+00:31:33,136 --> 00:31:37,226
+This is handy and you get the
+performance benefits of C++
+
+
+640
+00:31:37,306 --> 00:31:40,326
+and I have used it extensively
+in Instruments to get
+
+
+641
+00:31:40,326 --> 00:31:43,126
+as much speed as I could
+out of the track view
+
+
+642
+00:31:43,126 --> 00:31:45,256
+and other critical
+areas of Instruments.
+
+
+643
+00:31:46,026 --> 00:31:49,676
+I know from firsthand experience
+also there is a major downside
+
+
+644
+00:31:49,676 --> 00:31:50,116
+to this.
+
+
+645
+00:31:50,336 --> 00:31:54,146
+That is that you have to know
+ahead of time which parts
+
+
+646
+00:31:54,146 --> 00:31:56,776
+of your code are going
+to benefit from C++
+
+
+647
+00:31:57,306 --> 00:31:59,826
+and which codes will
+benefit from Objective-C?
+
+
+648
+00:32:00,496 --> 00:32:02,966
+Sometimes, until
+you're doing profiling,
+
+
+649
+00:32:03,166 --> 00:32:05,826
+you can make a mistake there
+as we did in the demo case.
+
+
+650
+00:32:06,236 --> 00:32:07,526
+We wrote our iterator
+
+
+651
+00:32:07,646 --> 00:32:10,396
+in Objective-C not
+realizing it would show
+
+
+652
+00:32:10,396 --> 00:32:11,846
+up in our time profiles.
+
+
+653
+00:32:12,896 --> 00:32:17,486
+Is there a better alternative
+than what I just mentioned here?
+
+
+654
+00:32:18,996 --> 00:32:22,586
+There is. You knew
+it was coming.
+
+
+655
+00:32:26,586 --> 00:32:30,846
+Swift is ideal, because unlike
+Objective-C it is only dynamic
+
+
+656
+00:32:30,846 --> 00:32:32,766
+when it notes to be.
+
+
+657
+00:32:32,766 --> 00:32:36,026
+If you make sure that the
+performance critical classes are
+
+
+658
+00:32:36,076 --> 00:32:39,756
+internal and you use
+whole module optimization,
+
+
+659
+00:32:39,866 --> 00:32:43,136
+the compiler or the whole
+tool chain can determine
+
+
+660
+00:32:43,426 --> 00:32:45,186
+when there's only one
+method implementation
+
+
+661
+00:32:45,416 --> 00:32:49,376
+and inlines it right into
+the call site giving you some
+
+
+662
+00:32:49,376 --> 00:32:52,926
+significant wins especially
+on the iterator case.
+
+
+663
+00:32:53,606 --> 00:32:56,716
+Because we're prototyping,
+rewriting the iterator
+
+
+664
+00:32:56,716 --> 00:33:00,426
+in the View Controller
+in Swift is easy.
+
+
+665
+00:33:00,426 --> 00:33:03,206
+Kris has done that.
+
+
+666
+00:33:03,826 --> 00:33:09,636
+>> KRIS MARKEL: I have a Swift
+implementation ready to go,
+
+
+667
+00:33:10,046 --> 00:33:14,886
+this is an easy port of the
+Objective-C implementation
+
+
+668
+00:33:14,886 --> 00:33:19,856
+with a couple of the
+suggestions they made
+
+
+669
+00:33:19,856 --> 00:33:22,276
+in this morning's session
+about improving Swift code,
+
+
+670
+00:33:22,426 --> 00:33:24,816
+specifically turning on
+whole module optimization.
+
+
+671
+00:33:25,496 --> 00:33:27,236
+Let's profile this.
+
+
+672
+00:33:27,236 --> 00:33:28,346
+Command-I.
+
+
+673
+00:33:29,076 --> 00:33:29,756
+It will build.
+
+
+674
+00:33:30,706 --> 00:33:33,466
+Install to the device.
+
+
+675
+00:33:34,086 --> 00:33:36,336
+It should just start profiling.
+
+
+676
+00:33:36,976 --> 00:33:42,206
+Okay. I'm going to bring
+the application forward
+
+
+677
+00:33:42,206 --> 00:33:42,836
+so you can see.
+
+
+678
+00:33:44,136 --> 00:33:45,286
+Here is the scrolling.
+
+
+679
+00:33:45,916 --> 00:33:47,056
+Looking good.
+
+
+680
+00:33:48,286 --> 00:33:49,166
+Zooming out.
+
+
+681
+00:33:49,706 --> 00:33:51,286
+There you go.
+
+
+682
+00:33:51,926 --> 00:33:52,726
+Zooming out.
+
+
+683
+00:33:53,026 --> 00:33:54,206
+Staying nice and fast.
+
+
+684
+00:33:54,366 --> 00:33:57,476
+A lot of data to zoom out of.
+
+
+685
+00:33:57,686 --> 00:34:01,976
+Now, if I go ahead, move back
+and forth, it moves really fast.
+
+
+686
+00:34:02,031 --> 00:34:04,031
+[Applause]
+
+
+687
+00:34:04,046 --> 00:34:07,796
+>> KRIS MARKEL: It is very nice.
+
+
+688
+00:34:07,796 --> 00:34:10,045
+Thanks. Actually we can
+go ahead in here and look
+
+
+689
+00:34:10,045 --> 00:34:11,396
+at what the CPU usage is.
+
+
+690
+00:34:11,826 --> 00:34:15,156
+You know, we've got,
+actually further improvement
+
+
+691
+00:34:15,156 --> 00:34:19,295
+than what we expected, we're
+expecting 5, 6% improvement
+
+
+692
+00:34:19,295 --> 00:34:23,786
+from removing the objc msgSend,
+this is lower and I can actually
+
+
+693
+00:34:23,936 --> 00:34:27,726
+if I turn down this disclosure
+triangle you see the two runs
+
+
+694
+00:34:27,726 --> 00:34:31,556
+next to each other and you see
+the previous run in the lower --
+
+
+695
+00:34:31,966 --> 00:34:37,025
+the current run, it
+is clearly much lower.
+
+
+696
+00:34:37,656 --> 00:34:39,585
+Actually if I go
+ahead, I go in here,
+
+
+697
+00:34:39,585 --> 00:34:44,255
+I look for my build path method
+I have to search for it now, oh,
+
+
+698
+00:34:44,386 --> 00:34:45,666
+that's not how you do a search.
+
+
+699
+00:34:46,106 --> 00:34:50,406
+If I hit command-F, it will
+bring up this dialogue here.
+
+
+700
+00:34:50,406 --> 00:34:58,886
+I can type in build path and
+it shows me my method here.
+
+
+701
+00:34:59,966 --> 00:35:03,666
+If we look at this, you
+see here is my Swift code.
+
+
+702
+00:35:04,216 --> 00:35:07,666
+My get next call
+which is right here,
+
+
+703
+00:35:07,666 --> 00:35:09,746
+it isn't showing
+up in any samples.
+
+
+704
+00:35:09,746 --> 00:35:16,226
+You know, no samples
+landed on this.
+
+
+705
+00:35:16,226 --> 00:35:19,046
+Why? It is because Swift
+was able to inline it,
+
+
+706
+00:35:19,836 --> 00:35:22,436
+whip means that there's
+no function overhead,
+
+
+707
+00:35:22,436 --> 00:35:24,056
+no method call overhead
+whatsoever.
+
+
+708
+00:35:24,486 --> 00:35:28,696
+Because the code for the
+iterator is inline with the rest
+
+
+709
+00:35:28,696 --> 00:35:32,116
+of the code it makes further
+improvements explaining the
+
+
+710
+00:35:32,116 --> 00:35:35,346
+better performance
+than what we hoped
+
+
+711
+00:35:35,346 --> 00:35:39,306
+for by skipping the
+dynamic dispatch.
+
+
+712
+00:35:39,676 --> 00:35:42,036
+Chad, anything else to
+tell these nice people?
+
+
+713
+00:35:42,616 --> 00:35:44,866
+>> CHAD WOOLF: We
+have 5 minutes!
+
+
+714
+00:35:45,506 --> 00:35:47,586
+Of course I do.
+
+
+715
+00:35:47,586 --> 00:35:50,766
+Some tips for you to explore
+Instruments on your own.
+
+
+716
+00:35:51,376 --> 00:35:55,726
+The first one to point out,
+under the recording settings,
+
+
+717
+00:35:56,176 --> 00:35:57,626
+it's called record
+waiting threads.
+
+
+718
+00:35:57,756 --> 00:35:59,286
+I mentioned that the service
+
+
+719
+00:35:59,286 --> 00:36:00,926
+and kernel we use
+samples the active CPUs
+
+
+720
+00:36:00,926 --> 00:36:04,116
+but if you have threads sitting
+around, blocked on a lock
+
+
+721
+00:36:04,116 --> 00:36:07,146
+or waiting for I/O, you
+check this checkbox,
+
+
+722
+00:36:07,476 --> 00:36:09,736
+and the service will sample
+the idle threads as well.
+
+
+723
+00:36:10,366 --> 00:36:12,156
+If you have code
+that's contending
+
+
+724
+00:36:12,156 --> 00:36:14,736
+over a lock you see
+the hot pods show
+
+
+725
+00:36:15,146 --> 00:36:17,726
+up when you enable
+record waiting threads.
+
+
+726
+00:36:18,946 --> 00:36:20,796
+Another thing that
+I find interesting,
+
+
+727
+00:36:21,456 --> 00:36:25,886
+in the display settings,
+in the call tree section,
+
+
+728
+00:36:25,986 --> 00:36:27,396
+it is invert call tree.
+
+
+729
+00:36:28,686 --> 00:36:32,226
+Figuratively what it does, it
+flips the call tree upside down.
+
+
+730
+00:36:32,226 --> 00:36:36,086
+Instead of seeing the leafs at
+the bottom nodes of the tree,
+
+
+731
+00:36:36,186 --> 00:36:37,746
+that's functions that
+don't call into anything,
+
+
+732
+00:36:38,106 --> 00:36:38,976
+they appear at the top.
+
+
+733
+00:36:39,296 --> 00:36:42,286
+If a utility function is
+being called from 5, 6 places,
+
+
+734
+00:36:42,636 --> 00:36:46,606
+you invert that call tree to
+see who is actually calling
+
+
+735
+00:36:46,806 --> 00:36:48,376
+into that particular function.
+
+
+736
+00:36:48,536 --> 00:36:50,016
+It gives you a different
+perspective
+
+
+737
+00:36:50,016 --> 00:36:51,226
+on the data in the call tree.
+
+
+738
+00:36:51,986 --> 00:36:53,856
+When you right click a
+node in the call tree,
+
+
+739
+00:36:54,556 --> 00:36:58,066
+you get a context menu and
+there is interesting stuff
+
+
+740
+00:36:58,066 --> 00:36:58,846
+under there as well.
+
+
+741
+00:36:59,076 --> 00:37:03,116
+One thing that I use from time
+to time is the charge to caller,
+
+
+742
+00:37:03,436 --> 00:37:04,996
+so what you can do, you
+can charge a function
+
+
+743
+00:37:04,996 --> 00:37:06,436
+on method to the caller.
+
+
+744
+00:37:07,036 --> 00:37:10,136
+You can charge an entire Library
+of Framework to the caller.
+
+
+745
+00:37:11,066 --> 00:37:14,546
+There's an option in there
+as well to prune a subtree.
+
+
+746
+00:37:14,736 --> 00:37:16,896
+You don't want to work on a
+specific problem at the time,
+
+
+747
+00:37:16,896 --> 00:37:19,966
+you can prune that out
+of the data and focus
+
+
+748
+00:37:19,966 --> 00:37:23,496
+on what you want to focus on.
+
+
+749
+00:37:23,496 --> 00:37:26,116
+What did we learn?
+
+
+750
+00:37:26,116 --> 00:37:28,616
+Through all of this,
+the first things I want
+
+
+751
+00:37:28,836 --> 00:37:29,576
+to remind you about,
+
+
+752
+00:37:29,906 --> 00:37:32,346
+is to incorporate
+performance targets early.
+
+
+753
+00:37:33,376 --> 00:37:35,496
+If you're doing a big
+performance rewrite
+
+
+754
+00:37:35,496 --> 00:37:38,886
+like we were, start with a
+budget and keep monitoring it
+
+
+755
+00:37:38,886 --> 00:37:41,476
+because once you start layering
+a lot of code on top of that,
+
+
+756
+00:37:41,476 --> 00:37:42,976
+it is harder to change.
+
+
+757
+00:37:44,426 --> 00:37:45,506
+Secondly, always measure.
+
+
+758
+00:37:45,816 --> 00:37:46,076
+Through all
+
+
+759
+00:37:46,076 --> 00:37:48,456
+of our demonstrations we
+were taking time profiles
+
+
+760
+00:37:48,456 --> 00:37:52,136
+with the time profiler, we used
+that data to find the hot spots
+
+
+761
+00:37:52,136 --> 00:37:54,596
+and retuning it,
+by the end we had a
+
+
+762
+00:37:54,596 --> 00:37:56,076
+well-performing application.
+
+
+763
+00:37:56,626 --> 00:38:00,666
+If you go in blind, depends,
+you may be lucky, hit it.
+
+
+764
+00:38:01,086 --> 00:38:03,486
+I would start with a measurement
+and go after that first.
+
+
+765
+00:38:03,976 --> 00:38:07,326
+In the third one, this
+is most important to me,
+
+
+766
+00:38:07,326 --> 00:38:09,036
+I want to encourage
+you to keep digging.
+
+
+767
+00:38:09,796 --> 00:38:11,596
+Some of these performance
+problems you look
+
+
+768
+00:38:11,596 --> 00:38:13,826
+at at first may have
+seemed impassable,
+
+
+769
+00:38:13,826 --> 00:38:16,806
+you say that's happening
+in someone else's code
+
+
+770
+00:38:16,806 --> 00:38:18,356
+or a side effect of the runtime.
+
+
+771
+00:38:19,176 --> 00:38:22,166
+The reason we gave you the
+details on the time profiler,
+
+
+772
+00:38:22,166 --> 00:38:24,936
+the runtimer, what the
+disassembly view looks like,
+
+
+773
+00:38:25,496 --> 00:38:27,826
+is we wanted to show you
+there is a whole world
+
+
+774
+00:38:27,826 --> 00:38:29,186
+out there of more details.
+
+
+775
+00:38:29,456 --> 00:38:33,226
+By using that, you can solve
+the performance problems
+
+
+776
+00:38:33,226 --> 00:38:34,416
+that we were solving today.
+
+
+777
+00:38:34,986 --> 00:38:38,606
+I encourage you to keep
+digging, and with creativity,
+
+
+778
+00:38:38,846 --> 00:38:40,856
+going out there into
+sessions like this,
+
+
+779
+00:38:40,996 --> 00:38:42,866
+I know you guys will
+be able to fix
+
+
+780
+00:38:42,976 --> 00:38:44,516
+and hit the performance
+targets you want.
+
+
+781
+00:38:45,036 --> 00:38:49,386
+That just about does
+it for today.
+
+
+782
+00:38:49,386 --> 00:38:52,606
+Stefan Lesser is our
+dev tools evangelist,
+
+
+783
+00:38:52,606 --> 00:38:54,856
+contact him if you
+have any questions.
+
+
+784
+00:38:55,756 --> 00:39:00,626
+We related sessions, Energy
+debugging issues, turns out that
+
+
+785
+00:39:00,956 --> 00:39:03,676
+if you have efficient code on
+the CPU it uses less energy.
+
+
+786
+00:39:03,676 --> 00:39:05,836
+There was that session
+on Wednesday.
+
+
+787
+00:39:06,396 --> 00:39:09,926
+Also tomorrow, there is
+performance on iOS and Watch OS,
+
+
+788
+00:39:10,296 --> 00:39:13,276
+good news, the time profiler
+can target apps on the watch.
+
+
+789
+00:39:13,346 --> 00:39:13,766
+That's a big boon.
+
+
+790
+00:39:13,766 --> 00:39:15,106
+Tomorrow we'll be in
+labs from 9:00 to 2:00.
+
+
+791
+00:39:15,136 --> 00:39:15,976
+Enjoy the rest of
+your conference.
+
+
+792
+00:39:16,016 --> 00:39:18,000
+[Applause]
+

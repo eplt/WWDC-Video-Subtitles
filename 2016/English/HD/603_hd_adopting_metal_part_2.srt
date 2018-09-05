@@ -1,0 +1,4630 @@
+1
+00:00:07,516 --> 00:00:18,500
+[ Music ]
+
+
+2
+00:00:24,516 --> 00:00:30,326
+[ Applause ]
+
+
+3
+00:00:30,826 --> 00:00:33,046
+>> Hi, everyone,
+and welcome to WWDC.
+
+
+4
+00:00:33,256 --> 00:00:34,766
+I hope you're all
+having a good time so far
+
+
+5
+00:00:34,766 --> 00:00:36,376
+and you've had some nice
+sessions you've seen.
+
+
+6
+00:00:36,376 --> 00:00:38,446
+We've got a great
+week for you guys.
+
+
+7
+00:00:38,446 --> 00:00:39,456
+It's going to be really fun.
+
+
+8
+00:00:39,926 --> 00:00:40,656
+I'm Matt Collins.
+
+
+9
+00:00:40,656 --> 00:00:43,176
+This is my colleague Jared
+Marsau and we're here
+
+
+10
+00:00:43,176 --> 00:00:45,206
+to talk Adopting Metal, Part 2.
+
+
+11
+00:00:45,456 --> 00:00:47,526
+This is Section 603.
+
+
+12
+00:00:48,066 --> 00:00:50,626
+So if you're in the wrong place,
+you get to see some graphics.
+
+
+13
+00:00:53,506 --> 00:00:54,616
+So let's recap.
+
+
+14
+00:00:55,236 --> 00:00:56,676
+We have two Adopting
+Metal Sessions.
+
+
+15
+00:00:56,676 --> 00:00:57,546
+Hopefully you were here
+
+
+16
+00:00:57,546 --> 00:00:59,816
+for Warren's presentation a
+little bit ago, where we talked
+
+
+17
+00:00:59,816 --> 00:01:03,306
+about the fundamental concepts:
+Basic drawing, lighting,
+
+
+18
+00:01:03,416 --> 00:01:04,995
+texturing, good stuff like that.
+
+
+19
+00:01:05,596 --> 00:01:06,776
+And in this presentation
+we're going
+
+
+20
+00:01:06,776 --> 00:01:07,956
+to take it to the next level.
+
+
+21
+00:01:08,186 --> 00:01:09,786
+We're going to draw
+many objects.
+
+
+22
+00:01:09,786 --> 00:01:12,436
+We're going to talk about
+managing dynamic data,
+
+
+23
+00:01:12,436 --> 00:01:15,906
+large amounts of dynamic
+data, GPU-CPU synchronization,
+
+
+24
+00:01:16,436 --> 00:01:19,206
+and we'll cap it off with
+some multithreaded encoding.
+
+
+25
+00:01:20,136 --> 00:01:22,146
+Tomorrow we've got some
+great presentations.
+
+
+26
+00:01:22,916 --> 00:01:24,716
+We'll talk about
+what's new in Metal.
+
+
+27
+00:01:25,096 --> 00:01:28,816
+We'll have the first session,
+tessellation, resource heaps,
+
+
+28
+00:01:28,816 --> 00:01:31,176
+memoryless frame
+buffers, and some stuff
+
+
+29
+00:01:31,176 --> 00:01:32,336
+about our improved tools
+
+
+30
+00:01:32,436 --> 00:01:34,446
+to really help you guys get
+the best out of your apps.
+
+
+31
+00:01:35,106 --> 00:01:37,696
+Part 2, we'll talk about
+function specialization
+
+
+32
+00:01:37,696 --> 00:01:40,926
+and function resource
+read-writes, wide color
+
+
+33
+00:01:40,926 --> 00:01:43,416
+and texture assets,
+and additions
+
+
+34
+00:01:43,416 --> 00:01:44,796
+to Metal performance shaders.
+
+
+35
+00:01:45,526 --> 00:01:47,856
+And if you really
+want to dig in heavy,
+
+
+36
+00:01:47,856 --> 00:01:50,676
+we'll have an awesome talk about
+advanced shader optimization,
+
+
+37
+00:01:51,056 --> 00:01:53,956
+shader performance fundamentals,
+tuning shader code,
+
+
+38
+00:01:54,266 --> 00:01:56,046
+more detailed about
+how the hardware works.
+
+
+39
+00:01:56,076 --> 00:01:56,706
+It'll be great.
+
+
+40
+00:01:56,736 --> 00:01:59,096
+So if you're really interested
+in tuning your shaders
+
+
+41
+00:01:59,096 --> 00:02:01,736
+to make them to best they can
+be, check out that tomorrow.
+
+
+42
+00:02:04,166 --> 00:02:08,056
+So this is Part 2 of Adopting
+Metal and we're going to build
+
+
+43
+00:02:08,056 --> 00:02:09,476
+on what we learned in Part 1.
+
+
+44
+00:02:09,476 --> 00:02:11,486
+We figured out how to
+get up and running.
+
+
+45
+00:02:12,266 --> 00:02:13,946
+So let's take a look at
+the concepts that you need
+
+
+46
+00:02:14,076 --> 00:02:16,466
+to get the most out of Metal
+in a real-world situation.
+
+
+47
+00:02:17,336 --> 00:02:20,546
+We've got a demo that will draw
+a ton of stuff in a simple scene
+
+
+48
+00:02:20,726 --> 00:02:23,846
+and we'll use that demo for
+context during today's session
+
+
+49
+00:02:23,846 --> 00:02:26,006
+as we discuss and learn
+a couple lessons from it.
+
+
+50
+00:02:27,156 --> 00:02:30,056
+We'll talk about the ideal
+organization flow of your data,
+
+
+51
+00:02:30,056 --> 00:02:33,076
+how to manage large chunks of
+dynamic data, the importance
+
+
+52
+00:02:33,076 --> 00:02:36,456
+of synchronization between
+the CPU and the GPU, and,
+
+
+53
+00:02:36,456 --> 00:02:38,866
+like I said before, some
+multithreaded encoding.
+
+
+54
+00:02:38,906 --> 00:02:41,566
+So hopefully you're familiar
+with the fundamentals of Metal
+
+
+55
+00:02:41,566 --> 00:02:42,976
+because we won't be
+going over them again.
+
+
+56
+00:02:43,046 --> 00:02:46,226
+So we expect that you understand
+how to create a Metal queue,
+
+
+57
+00:02:46,446 --> 00:02:50,336
+a Metal command buffer, how to
+encode commands, and we'll build
+
+
+58
+00:02:50,336 --> 00:02:51,556
+on that to go forward.
+
+
+59
+00:02:52,886 --> 00:02:55,166
+So let's start with
+the demo itself
+
+
+60
+00:02:55,906 --> 00:02:56,986
+and see what we're
+aiming towards.
+
+
+61
+00:02:58,606 --> 00:03:01,116
+So right now we've
+got 10,000 cubes
+
+
+62
+00:03:01,576 --> 00:03:04,316
+and they're all spinning
+around, loading in space.
+
+
+63
+00:03:04,316 --> 00:03:05,576
+It's an interesting scene.
+
+
+64
+00:03:06,696 --> 00:03:08,706
+Metal allows us to issue
+a ton of draw calls
+
+
+65
+00:03:08,706 --> 00:03:09,906
+with very low overhead.
+
+
+66
+00:03:10,236 --> 00:03:13,296
+So here we have 10,000
+cubes and 10,000 draw calls.
+
+
+67
+00:03:14,066 --> 00:03:15,996
+You can see on the bottom
+there's a little shadow.
+
+
+68
+00:03:15,996 --> 00:03:18,376
+We're using a shadow map,
+playing on the bottom,
+
+
+69
+00:03:18,426 --> 00:03:21,056
+some nice anti-aliased lines
+give you some depth cues,
+
+
+70
+00:03:21,696 --> 00:03:24,356
+and of course all of our cubes.
+
+
+71
+00:03:25,276 --> 00:03:27,486
+So what goes into
+rendering a scene like this?
+
+
+72
+00:03:27,486 --> 00:03:29,856
+As you can see, we've got
+a lot of objects and each
+
+
+73
+00:03:29,856 --> 00:03:33,036
+of these objects has its own
+associated piece of unique data.
+
+
+74
+00:03:33,416 --> 00:03:36,506
+We need the position,
+rotation, and color.
+
+
+75
+00:03:37,106 --> 00:03:38,356
+And this has to update
+every frame
+
+
+76
+00:03:38,356 --> 00:03:39,386
+because we're animating them.
+
+
+77
+00:03:39,486 --> 00:03:42,026
+So this is a bunch of data
+that we're constantly changing,
+
+
+78
+00:03:42,576 --> 00:03:44,956
+constantly have to reinform
+the GPU what we're drawing.
+
+
+79
+00:03:46,156 --> 00:03:49,806
+We can also draw a few more
+objects, maybe a little more.
+
+
+80
+00:03:50,956 --> 00:03:52,786
+You can spin it around
+a little bit and see
+
+
+81
+00:03:52,786 --> 00:03:54,296
+that we're actually
+floating in space.
+
+
+82
+00:03:54,296 --> 00:04:00,456
+So we have a draw call for cube
+and a bunch of data for cube
+
+
+83
+00:04:00,656 --> 00:04:02,566
+and we have to think about
+the best way to think
+
+
+84
+00:04:02,566 --> 00:04:04,346
+about this data,
+how to manage it,
+
+
+85
+00:04:04,716 --> 00:04:07,976
+and how to communicate
+it to the GPU.
+
+
+86
+00:04:08,236 --> 00:04:09,116
+So let's dive right in.
+
+
+87
+00:04:09,116 --> 00:04:09,976
+Thanks, Jared.
+
+
+88
+00:04:14,716 --> 00:04:17,315
+Managing Dynamic Data:
+This is a huge chunk
+
+
+89
+00:04:17,315 --> 00:04:18,726
+of data that's changing
+every frame.
+
+
+90
+00:04:18,966 --> 00:04:21,136
+And as you can imagine in
+a modern app like a game,
+
+
+91
+00:04:21,516 --> 00:04:22,956
+you also have a bunch of data
+
+
+92
+00:04:22,956 --> 00:04:24,426
+that every frame
+needs to be updated.
+
+
+93
+00:04:25,386 --> 00:04:27,346
+So our draw basically
+looks like this.
+
+
+94
+00:04:27,656 --> 00:04:29,376
+We want to go through all
+the objects we're interested
+
+
+95
+00:04:29,376 --> 00:04:30,766
+in drawing and update them.
+
+
+96
+00:04:31,756 --> 00:04:34,356
+Then we want to encode
+draw calls for every object
+
+
+97
+00:04:34,956 --> 00:04:36,856
+and then we have to submit
+all these GPU commands.
+
+
+98
+00:04:37,666 --> 00:04:38,916
+We have a lot of objects.
+
+
+99
+00:04:39,136 --> 00:04:40,856
+We started at 10,000
+and we were cranking it
+
+
+100
+00:04:40,856 --> 00:04:43,316
+up to up to 100, 200,000.
+
+
+101
+00:04:44,086 --> 00:04:47,046
+Each of these objects has its
+own set of data and we have
+
+
+102
+00:04:47,046 --> 00:04:48,746
+to figure out the best
+way to update this.
+
+
+103
+00:04:49,146 --> 00:04:53,196
+Now in the past, you might've
+done something like this.
+
+
+104
+00:04:54,226 --> 00:04:56,796
+You push updated data to
+the GPU, maybe uniforms
+
+
+105
+00:04:56,796 --> 00:04:59,626
+or something, you bind
+a shader, some buffers,
+
+
+106
+00:04:59,806 --> 00:05:01,106
+some textures, and you draw.
+
+
+107
+00:05:01,886 --> 00:05:03,496
+And you push some more data up.
+
+
+108
+00:05:03,696 --> 00:05:05,416
+You bind shader,
+buffers, textures.
+
+
+109
+00:05:05,416 --> 00:05:06,456
+You draw your next object.
+
+
+110
+00:05:07,016 --> 00:05:09,846
+In our scene we repeat
+this 10,000, 20,000 times,
+
+
+111
+00:05:09,846 --> 00:05:12,346
+but we really want to get away
+from this sort of paradigm
+
+
+112
+00:05:12,446 --> 00:05:13,356
+and try something new.
+
+
+113
+00:05:15,696 --> 00:05:17,996
+What if we could just
+load all our data upfront
+
+
+114
+00:05:18,536 --> 00:05:20,866
+and have every command that
+we issue reference the data
+
+
+115
+00:05:20,866 --> 00:05:21,646
+that was already there.
+
+
+116
+00:05:22,636 --> 00:05:24,886
+The GPU is a massively
+powerful processer
+
+
+117
+00:05:24,956 --> 00:05:26,066
+and it does not like to wait.
+
+
+118
+00:05:27,086 --> 00:05:30,326
+So if all our data in already in
+place, we can just point the GPU
+
+
+119
+00:05:30,326 --> 00:05:32,406
+to it and it will go
+happily crunch away
+
+
+120
+00:05:32,526 --> 00:05:34,486
+and do all our rendering for us.
+
+
+121
+00:05:36,266 --> 00:05:40,016
+And each draw call we make then
+references the appropriate data
+
+
+122
+00:05:40,016 --> 00:05:40,756
+that's already there.
+
+
+123
+00:05:41,786 --> 00:05:43,546
+In our sample, it's
+very straightforward.
+
+
+124
+00:05:43,726 --> 00:05:46,046
+We have one draw that
+references one chunk of data.
+
+
+125
+00:05:46,546 --> 00:05:48,506
+So the first draw call
+references the first chunk
+
+
+126
+00:05:48,506 --> 00:05:51,706
+of data, the second, the
+second chunk, and so on.
+
+
+127
+00:05:51,706 --> 00:05:53,736
+But it doesn't have
+to be that way
+
+
+128
+00:05:53,966 --> 00:05:55,596
+and we can actually reuse data.
+
+
+129
+00:05:56,386 --> 00:05:58,786
+We have some data, like at
+the front here, frame data,
+
+
+130
+00:05:59,706 --> 00:06:01,236
+that we can reference
+from all our draw calls
+
+
+131
+00:06:02,066 --> 00:06:04,286
+or we could have a draw call
+that references two pieces
+
+
+132
+00:06:04,286 --> 00:06:05,306
+of data in different places.
+
+
+133
+00:06:05,706 --> 00:06:07,416
+If you're familiar
+with instancing,
+
+
+134
+00:06:07,416 --> 00:06:08,616
+it's a very similar idea.
+
+
+135
+00:06:09,166 --> 00:06:12,026
+All your data will be in place
+before you start rendering.
+
+
+136
+00:06:12,556 --> 00:06:16,396
+So how do we do this in Metal?
+
+
+137
+00:06:16,696 --> 00:06:20,676
+In our application, we create
+one single Metal buffer
+
+
+138
+00:06:20,966 --> 00:06:22,176
+and this is our constant buffer.
+
+
+139
+00:06:22,636 --> 00:06:24,836
+It holds all the data that
+we need to render our frame.
+
+
+140
+00:06:25,146 --> 00:06:28,816
+We want to create this upfront,
+outside of the rendering loop,
+
+
+141
+00:06:28,816 --> 00:06:30,286
+and reuse it every time we draw.
+
+
+142
+00:06:31,046 --> 00:06:32,306
+We don't duplicate any data.
+
+
+143
+00:06:32,866 --> 00:06:35,406
+Again, any draw call can
+reference any piece of data,
+
+
+144
+00:06:36,006 --> 00:06:37,256
+so there's no need
+for duplication.
+
+
+145
+00:06:38,486 --> 00:06:41,126
+Each draw call will reference
+an offset into the buffer.
+
+
+146
+00:06:41,126 --> 00:06:43,006
+It'll do a little bit
+of tracking to know
+
+
+147
+00:06:43,006 --> 00:06:44,806
+which draw represents
+which offset.
+
+
+148
+00:06:45,306 --> 00:06:47,386
+And then you'll just
+draw with everything
+
+
+149
+00:06:47,386 --> 00:06:48,436
+and everything will be in place.
+
+
+150
+00:06:49,136 --> 00:06:53,016
+Let's take a look at
+the code for this.
+
+
+151
+00:06:53,216 --> 00:06:54,026
+Here's the code from the app.
+
+
+152
+00:06:54,806 --> 00:06:56,776
+You can think of us as
+having two sets of data.
+
+
+153
+00:06:56,776 --> 00:06:59,206
+Like I mentioned before,
+there's a set of frame data
+
+
+154
+00:06:59,206 --> 00:07:04,346
+that will update here
+and there's a set of data
+
+
+155
+00:07:04,346 --> 00:07:05,756
+that will change per object.
+
+
+156
+00:07:06,246 --> 00:07:08,506
+This is the unique rotation
+position, et cetera.
+
+
+157
+00:07:09,146 --> 00:07:11,646
+So we need to put both
+sets of data in place.
+
+
+158
+00:07:16,516 --> 00:07:18,706
+Now what do I mean
+by per-frame data?
+
+
+159
+00:07:19,396 --> 00:07:20,846
+Well this is data
+that is consistent
+
+
+160
+00:07:20,846 --> 00:07:22,306
+across every draw call we make.
+
+
+161
+00:07:23,306 --> 00:07:26,446
+For example, in our sample we
+have a ViewProjection matrix.
+
+
+162
+00:07:26,496 --> 00:07:29,096
+It's a 4 by 4 matrix,
+very straightforward,
+
+
+163
+00:07:29,096 --> 00:07:30,326
+if you're familiar
+with graphics.
+
+
+164
+00:07:30,326 --> 00:07:32,736
+It represents the camera
+transform and the projection.
+
+
+165
+00:07:33,446 --> 00:07:35,206
+This is not going to
+change throughout our frame,
+
+
+166
+00:07:35,306 --> 00:07:36,676
+so we only need one copy of it.
+
+
+167
+00:07:37,496 --> 00:07:39,866
+And we'd like to reuse
+data as much as we can
+
+
+168
+00:07:40,906 --> 00:07:44,366
+so we can create one copy
+and put it into our buffer.
+
+
+169
+00:07:44,366 --> 00:07:46,946
+Let's start filling this out.
+
+
+170
+00:07:47,196 --> 00:07:50,046
+So here, we have
+our constant buffer,
+
+
+171
+00:07:50,046 --> 00:07:51,676
+which is just a Metal
+buffer we've created.
+
+
+172
+00:07:52,076 --> 00:07:54,526
+And with the Contents function,
+we have a pointer to it.
+
+
+173
+00:07:58,546 --> 00:08:01,426
+Our app has a helper function,
+which is GetFrameData,
+
+
+174
+00:08:01,516 --> 00:08:04,046
+and this returns that main pass
+structure I just showed you
+
+
+175
+00:08:04,476 --> 00:08:05,906
+that has the view
+transform in it,
+
+
+176
+00:08:06,126 --> 00:08:07,496
+the ViewProjection transform.
+
+
+177
+00:08:07,496 --> 00:08:07,956
+Excuse me.
+
+
+178
+00:08:08,416 --> 00:08:11,266
+And then we simply just
+copy this into the start
+
+
+179
+00:08:11,266 --> 00:08:13,706
+of our buffer and
+then we're in place.
+
+
+180
+00:08:15,086 --> 00:08:16,416
+So our buffer will
+look like this.
+
+
+181
+00:08:16,536 --> 00:08:19,176
+We'll have a MainPass with the
+appropriate data for our frame
+
+
+182
+00:08:20,056 --> 00:08:22,246
+and we'll put it at the start
+of our giant constant buffer.
+
+
+183
+00:08:23,546 --> 00:08:25,656
+So now we have all this
+empty space afterwards.
+
+
+184
+00:08:25,986 --> 00:08:29,486
+And like we saw, we need to
+do 10,000, 20,000 draw calls,
+
+
+185
+00:08:29,826 --> 00:08:31,926
+so we need to start filling this
+out with a ton of information.
+
+
+186
+00:08:32,436 --> 00:08:36,976
+So then we have a set
+of per-object data
+
+
+187
+00:08:37,556 --> 00:08:40,086
+and this is the unique data we
+need to draw a single object.
+
+
+188
+00:08:40,905 --> 00:08:43,626
+In our case, we have a single
+LocalToWorld transform,
+
+
+189
+00:08:43,626 --> 00:08:46,136
+which is the concatenation of
+the position and the rotation
+
+
+190
+00:08:46,686 --> 00:08:47,426
+and we have the color.
+
+
+191
+00:08:47,426 --> 00:08:51,336
+So this is the set of data
+we need per draw call.
+
+
+192
+00:08:56,086 --> 00:08:58,606
+So we'll walk through every
+object we want to render.
+
+
+193
+00:08:59,596 --> 00:09:01,306
+We'll keep track of the
+offset into the buffer.
+
+
+194
+00:09:02,306 --> 00:09:04,196
+We have our updateData
+utility function,
+
+
+195
+00:09:04,196 --> 00:09:06,416
+which will do our little
+update for our rotation,
+
+
+196
+00:09:06,486 --> 00:09:07,866
+and then we'll update
+the offset.
+
+
+197
+00:09:07,866 --> 00:09:09,736
+This will pack our data tightly
+
+
+198
+00:09:09,736 --> 00:09:11,086
+and we'll fill it
+out as we go through.
+
+
+199
+00:09:11,786 --> 00:09:14,326
+Let's take a closer look at
+what updateData looks like.
+
+
+200
+00:09:14,856 --> 00:09:17,156
+It's quite simple.
+
+
+201
+00:09:19,036 --> 00:09:22,256
+Now, animation is kind of out
+of the scope of this talk,
+
+
+202
+00:09:23,016 --> 00:09:24,546
+so I have a little helper
+function here that's
+
+
+203
+00:09:24,546 --> 00:09:26,266
+updateAnimation with
+a deltaTime.
+
+
+204
+00:09:26,866 --> 00:09:28,986
+This could be whatever you
+want in your own application
+
+
+205
+00:09:28,986 --> 00:09:31,056
+and indeed you should but
+depending on what sort
+
+
+206
+00:09:31,056 --> 00:09:31,866
+of animation you need.
+
+
+207
+00:09:32,396 --> 00:09:35,886
+But it my case it returns
+an objectData object
+
+
+208
+00:09:36,346 --> 00:09:38,366
+which has the LocalToWorld
+transform and the color.
+
+
+209
+00:09:39,456 --> 00:09:42,976
+And just as I did before, I
+copy it into my constant buffer.
+
+
+210
+00:09:48,446 --> 00:09:49,756
+So here's what that looks like.
+
+
+211
+00:09:50,436 --> 00:09:55,856
+I've got my frame data in place.
+
+
+212
+00:09:56,036 --> 00:10:01,446
+I have my other data, another
+piece, and another piece.
+
+
+213
+00:10:02,646 --> 00:10:05,346
+So all our data is in place
+and we're ready for rendering.
+
+
+214
+00:10:05,996 --> 00:10:06,976
+But are we missing anything?
+
+
+215
+00:10:10,376 --> 00:10:12,766
+Turns out that we are and I want
+to bring your attention to this.
+
+
+216
+00:10:13,286 --> 00:10:14,496
+We have one constant buffer.
+
+
+217
+00:10:14,786 --> 00:10:17,386
+I mentioned I created one Metal
+buffer and I was reusing it.
+
+
+218
+00:10:17,876 --> 00:10:19,686
+Now there's a problem with this.
+
+
+219
+00:10:19,806 --> 00:10:23,726
+The CPU and the GPU are actually
+two unique parallel processors.
+
+
+220
+00:10:24,096 --> 00:10:26,256
+They can read and write the
+same memory at the same time.
+
+
+221
+00:10:27,156 --> 00:10:29,726
+So what happens when you have
+something reading to a piece
+
+
+222
+00:10:29,726 --> 00:10:31,966
+of memory while something
+else is writing to it?
+
+
+223
+00:10:35,216 --> 00:10:35,976
+Resource contention.
+
+
+224
+00:10:38,706 --> 00:10:40,286
+So it looks a little like this.
+
+
+225
+00:10:40,936 --> 00:10:43,846
+The CPU prepares a frame
+and writes it to a buffer.
+
+
+226
+00:10:45,496 --> 00:10:50,406
+The GPU starts working on this
+and reads from the buffer.
+
+
+227
+00:10:51,426 --> 00:10:53,076
+The CPU doesn't know
+anything about this,
+
+
+228
+00:10:53,436 --> 00:10:55,326
+so it decides I'm going
+to prepare the next frame
+
+
+229
+00:10:55,416 --> 00:10:57,066
+and it starts overwriting
+the same data.
+
+
+230
+00:10:59,286 --> 00:11:01,056
+And now our results
+are undefined.
+
+
+231
+00:11:01,116 --> 00:11:03,556
+We don't actually know what
+we're reading to, reading from,
+
+
+232
+00:11:03,556 --> 00:11:05,596
+or writing to or what
+the data state will be.
+
+
+233
+00:11:08,486 --> 00:11:10,276
+So it's important
+to realize in Metal,
+
+
+234
+00:11:10,276 --> 00:11:11,946
+this is not handled
+for you implicitly.
+
+
+235
+00:11:12,516 --> 00:11:14,366
+The CPU and GPU can
+write the same data
+
+
+236
+00:11:14,366 --> 00:11:16,486
+at the same time
+however they'd like.
+
+
+237
+00:11:16,986 --> 00:11:18,756
+You must synchronize
+access yourself.
+
+
+238
+00:11:19,596 --> 00:11:21,876
+It's just like writing CPU
+code that's multithreaded.
+
+
+239
+00:11:22,646 --> 00:11:24,706
+You have to ensure you're
+not stomping yourself.
+
+
+240
+00:11:28,306 --> 00:11:31,616
+And that brings us to
+CPU-GPU synchronization.
+
+
+241
+00:11:32,206 --> 00:11:33,016
+Let's start simple.
+
+
+242
+00:11:34,856 --> 00:11:38,056
+The easiest way to do this
+would to just be to wait
+
+
+243
+00:11:38,206 --> 00:11:40,076
+after you've submitted
+commands to the GPU.
+
+
+244
+00:11:41,016 --> 00:11:42,976
+Your CPU draw function
+does all of its work,
+
+
+245
+00:11:43,106 --> 00:11:45,176
+submits the commands,
+and then just sits there
+
+
+246
+00:11:45,176 --> 00:11:47,386
+until it's ensured the
+GPU is done working.
+
+
+247
+00:11:48,746 --> 00:11:50,596
+That way we know we
+won't ever override it
+
+
+248
+00:11:50,596 --> 00:11:52,766
+because the GPU will be
+idle by the time we try
+
+
+249
+00:11:52,766 --> 00:11:53,796
+to generate our next frame.
+
+
+250
+00:11:55,066 --> 00:11:56,856
+This won't be fast
+but it's safe.
+
+
+251
+00:11:57,306 --> 00:11:59,416
+So we need some sort of
+mechanism for the GPU
+
+
+252
+00:11:59,416 --> 00:12:04,156
+to let us know, hey, I'm done
+with this, go do your thing.
+
+
+253
+00:12:04,376 --> 00:12:06,296
+Metal provides this in
+the form of callbacks.
+
+
+254
+00:12:06,896 --> 00:12:08,666
+We call them handlers
+and there are two of them
+
+
+255
+00:12:08,666 --> 00:12:11,756
+that are interesting,
+addScheduledHandler
+
+
+256
+00:12:12,206 --> 00:12:15,346
+and that executes when a command
+buffer has been scheduled
+
+
+257
+00:12:15,346 --> 00:12:16,636
+to run on the GPU.
+
+
+258
+00:12:17,176 --> 00:12:20,956
+And for us, an even more
+interesting one is the
+
+
+259
+00:12:20,956 --> 00:12:23,706
+completion handler
+and this is called
+
+
+260
+00:12:23,706 --> 00:12:26,056
+when the GPU has finished
+executing a command buffer.
+
+
+261
+00:12:26,496 --> 00:12:29,476
+The command buffer is completely
+retired and we're ensured
+
+
+262
+00:12:29,476 --> 00:12:31,986
+at this point it's safe to
+modify whatever resources
+
+
+263
+00:12:31,986 --> 00:12:32,856
+that we were using there.
+
+
+264
+00:12:33,356 --> 00:12:34,856
+So this is perfect.
+
+
+265
+00:12:34,976 --> 00:12:37,406
+We just need some way to
+signal ourselves that, hey,
+
+
+266
+00:12:37,406 --> 00:12:38,946
+we're done, we can go forward.
+
+
+267
+00:12:39,326 --> 00:12:44,486
+Now how many of you are familiar
+with the concept of a semaphore?
+
+
+268
+00:12:45,266 --> 00:12:47,736
+Anyone? Pretty good.
+
+
+269
+00:12:48,806 --> 00:12:50,086
+Quick background on semaphores.
+
+
+270
+00:12:50,086 --> 00:12:52,296
+They are synchronization
+primitive and they're used
+
+
+271
+00:12:52,296 --> 00:12:54,196
+to control access to
+a limited resource
+
+
+272
+00:12:54,436 --> 00:12:55,966
+and that fits us perfectly here.
+
+
+273
+00:12:56,506 --> 00:12:59,976
+We have one constant buffer
+and that's a limited resource,
+
+
+274
+00:12:59,976 --> 00:13:01,336
+so we'll have a semaphore
+
+
+275
+00:13:01,336 --> 00:13:03,046
+and we'll create it
+with a value of 1.
+
+
+276
+00:13:03,446 --> 00:13:05,796
+The count on a semaphore
+represents how many resources
+
+
+277
+00:13:05,796 --> 00:13:06,506
+we're trying to protect.
+
+
+278
+00:13:08,286 --> 00:13:09,696
+So we'll create our semaphore.
+
+
+279
+00:13:09,696 --> 00:13:10,536
+And again, this is something
+
+
+280
+00:13:10,536 --> 00:13:12,326
+that should be created
+outside of your render loop.
+
+
+281
+00:13:13,286 --> 00:13:14,726
+And the first thing
+we do once we start
+
+
+282
+00:13:14,726 --> 00:13:17,546
+to draw is we wait
+on the semaphore.
+
+
+283
+00:13:19,006 --> 00:13:21,176
+Now in Apple semaphore,
+we call it waiting.
+
+
+284
+00:13:21,256 --> 00:13:22,436
+Some people call this taking.
+
+
+285
+00:13:22,476 --> 00:13:23,346
+Some people call it downing.
+
+
+286
+00:13:23,346 --> 00:13:24,146
+It doesn't really matter.
+
+
+287
+00:13:24,836 --> 00:13:27,546
+The idea is that you wait
+on it and our timeout we set
+
+
+288
+00:13:27,546 --> 00:13:28,346
+to distant future,
+
+
+289
+00:13:28,796 --> 00:13:30,416
+which effectively means
+we'll wait forever.
+
+
+290
+00:13:30,636 --> 00:13:32,716
+Our thread will go to sleep
+if there's nothing available
+
+
+291
+00:13:32,856 --> 00:13:34,506
+and wait for something to do.
+
+
+292
+00:13:36,176 --> 00:13:37,136
+When we're done,
+
+
+293
+00:13:37,796 --> 00:13:39,936
+in our completion handler we
+will signal the semaphore.
+
+
+294
+00:13:40,956 --> 00:13:43,816
+That'll tell us that it's safe
+to modify the resources again.
+
+
+295
+00:13:44,036 --> 00:13:47,376
+We're completely done with
+it and we can go forward.
+
+
+296
+00:13:47,836 --> 00:13:52,536
+So this is sort of a naive
+approach to synchronization
+
+
+297
+00:13:52,536 --> 00:13:55,026
+but it looks a little like this.
+
+
+298
+00:13:55,316 --> 00:13:56,766
+Frame 0 we'll write
+into the buffer.
+
+
+299
+00:13:57,316 --> 00:14:00,906
+And on the GPU, we'll
+read from the buffer.
+
+
+300
+00:14:01,126 --> 00:14:02,066
+The CPU will wait.
+
+
+301
+00:14:02,686 --> 00:14:04,756
+When the GPU is done
+processing Fame 0,
+
+
+302
+00:14:05,196 --> 00:14:08,626
+it will send the completion
+handler and frame 1 will work
+
+
+303
+00:14:09,716 --> 00:14:11,446
+and create another
+frame on the CPU.
+
+
+304
+00:14:11,966 --> 00:14:14,816
+And that will process
+on the GPU and so on.
+
+
+305
+00:14:16,016 --> 00:14:18,076
+So this works but,
+as you can see here,
+
+
+306
+00:14:18,076 --> 00:14:20,596
+we have all these
+waits and both the CPU
+
+
+307
+00:14:20,596 --> 00:14:22,426
+and GPU are actually
+idle half the time.
+
+
+308
+00:14:22,696 --> 00:14:24,946
+It doesn't seem like a good
+use of our computing resources.
+
+
+309
+00:14:27,256 --> 00:14:30,586
+What we'd like to do is overlap
+the CPU and the GPU work.
+
+
+310
+00:14:31,316 --> 00:14:33,226
+That way we can actually
+leverage the parallelism that's
+
+
+311
+00:14:33,226 --> 00:14:35,546
+inherent in this
+system, but we still need
+
+
+312
+00:14:35,546 --> 00:14:37,116
+to somehow avoid
+stomping our data.
+
+
+313
+00:14:39,986 --> 00:14:42,336
+So we'd like our ideal
+workload to look like this.
+
+
+314
+00:14:43,956 --> 00:14:47,196
+Frame 0 would be prepared on
+the CPU, pushed to the GPU.
+
+
+315
+00:14:47,626 --> 00:14:50,136
+While the GPU is processing
+it, the CPU then gets
+
+
+316
+00:14:50,136 --> 00:14:54,466
+to work creating frame
+1 and so on, and again.
+
+
+317
+00:14:56,256 --> 00:14:58,696
+So one thing to keep
+in mind here is
+
+
+318
+00:14:58,696 --> 00:15:01,476
+that the CPU is actually getting
+a little ahead of the GPU.
+
+
+319
+00:15:01,686 --> 00:15:03,866
+If you notice where
+frame 2 is on the CPU,
+
+
+320
+00:15:05,266 --> 00:15:07,676
+frame 0 is the only thing
+that's done on the GPU.
+
+
+321
+00:15:07,676 --> 00:15:09,366
+So we're a little bit ahead
+and I want you to keep
+
+
+322
+00:15:09,366 --> 00:15:11,026
+that in mind for a little later.
+
+
+323
+00:15:12,476 --> 00:15:13,776
+But first let's talk
+about our solution
+
+
+324
+00:15:13,776 --> 00:15:15,356
+in the demo and what we do here.
+
+
+325
+00:15:16,686 --> 00:15:19,796
+We'd like to overlap our CPU and
+GPU but we know we can't do it
+
+
+326
+00:15:19,796 --> 00:15:21,586
+with one constant buffer
+without waiting a lot.
+
+
+327
+00:15:22,046 --> 00:15:24,456
+So our solution is to
+create a pool of buffers.
+
+
+328
+00:15:24,996 --> 00:15:30,036
+So when we create a frame,
+we write into one buffer
+
+
+329
+00:15:30,036 --> 00:15:32,276
+and then our CPU proceeds
+
+
+330
+00:15:32,276 --> 00:15:35,066
+to create the next frame while
+writing into another buffer.
+
+
+331
+00:15:36,296 --> 00:15:38,646
+While it's doing this, the GPU
+is free to read from the buffer
+
+
+332
+00:15:38,646 --> 00:15:40,106
+that was produced before.
+
+
+333
+00:15:40,656 --> 00:15:43,476
+Now we don't have an
+infinite number of buffers
+
+
+334
+00:15:43,476 --> 00:15:44,786
+because we don't
+have infinite memory.
+
+
+335
+00:15:45,116 --> 00:15:46,376
+So our pool has to have a limit.
+
+
+336
+00:15:47,026 --> 00:15:48,516
+On our application,
+we've chosen three.
+
+
+337
+00:15:49,356 --> 00:15:51,156
+This is something that you
+need to decide for yourself.
+
+
+338
+00:15:51,156 --> 00:15:53,856
+We can't tell you what to
+do because there are a lot
+
+
+339
+00:15:53,856 --> 00:15:55,996
+of things that go into
+the latency consideration,
+
+
+340
+00:15:56,286 --> 00:15:57,596
+how much memory you want to use.
+
+
+341
+00:15:58,196 --> 00:16:00,826
+So we recommend you experiment
+with your app what fits for you.
+
+
+342
+00:16:01,846 --> 00:16:03,536
+For this example,
+we've chosen three.
+
+
+343
+00:16:05,696 --> 00:16:08,666
+So here, you can see
+we've exhausted our pool.
+
+
+344
+00:16:08,666 --> 00:16:10,236
+We have three frames
+that have been prepared
+
+
+345
+00:16:10,236 --> 00:16:11,746
+but only one is finished
+on the GPU.
+
+
+346
+00:16:12,046 --> 00:16:15,406
+So we need to wait a little bit.
+
+
+347
+00:16:15,606 --> 00:16:18,526
+But by now, frame 0 is done,
+so we can reuse the buffer
+
+
+348
+00:16:18,526 --> 00:16:20,676
+from the pool and so on.
+
+
+349
+00:16:28,026 --> 00:16:29,426
+So let's look at this in code.
+
+
+350
+00:16:30,436 --> 00:16:32,406
+Here's synchronizing
+access to constant buffers.
+
+
+351
+00:16:32,796 --> 00:16:35,006
+We've already got a
+semaphore and they're great
+
+
+352
+00:16:35,006 --> 00:16:37,096
+for controlling access
+to limited resources.
+
+
+353
+00:16:37,146 --> 00:16:38,406
+In this case our limit is three
+
+
+354
+00:16:38,856 --> 00:16:40,106
+but it can be whatever
+you'd like.
+
+
+355
+00:16:41,296 --> 00:16:43,526
+So here we create our
+semaphore with our count.
+
+
+356
+00:16:44,306 --> 00:16:46,296
+And instead of creating
+one constant buffer,
+
+
+357
+00:16:46,686 --> 00:16:50,196
+we now create an array of them.
+
+
+358
+00:16:50,346 --> 00:16:54,846
+And lastly, we need an index
+and we'll use this index
+
+
+359
+00:16:54,846 --> 00:16:56,926
+to represent the currently
+available constant buffer
+
+
+360
+00:16:56,926 --> 00:16:57,856
+for us to use.
+
+
+361
+00:16:58,326 --> 00:17:00,336
+We can walk through the
+array and wrap around
+
+
+362
+00:17:00,526 --> 00:17:03,036
+and the semaphore will control
+our access and protect us.
+
+
+363
+00:17:06,856 --> 00:17:09,596
+So in our draw function,
+we'll immediately wait
+
+
+364
+00:17:09,596 --> 00:17:11,996
+on the semaphore, and if
+there's nothing available,
+
+
+365
+00:17:11,996 --> 00:17:12,726
+we'll go to sleep.
+
+
+366
+00:17:14,086 --> 00:17:16,496
+Once we've taken the semaphore
+and proceeded, we know it's safe
+
+
+367
+00:17:16,496 --> 00:17:19,276
+for us to grab the
+current constant buffer.
+
+
+368
+00:17:19,276 --> 00:17:21,266
+In our index, current
+constant buffer is tracking
+
+
+369
+00:17:21,266 --> 00:17:22,036
+which one's available.
+
+
+370
+00:17:23,406 --> 00:17:26,205
+Then we fill out our frame as
+normal, encode all our commands,
+
+
+371
+00:17:26,546 --> 00:17:29,126
+do all our updates, add
+the completion handler,
+
+
+372
+00:17:29,746 --> 00:17:32,346
+and then we'll signal the
+semaphore, saying, hey,
+
+
+373
+00:17:32,346 --> 00:17:33,186
+we're done with this frame.
+
+
+374
+00:17:33,536 --> 00:17:34,256
+You can go forward.
+
+
+375
+00:17:34,996 --> 00:17:38,146
+And the last thing we need
+to do is update the index.
+
+
+376
+00:17:39,216 --> 00:17:39,916
+We'll add one.
+
+
+377
+00:17:39,966 --> 00:17:41,416
+We'll use modulo to wrap around.
+
+
+378
+00:17:42,106 --> 00:17:43,346
+And don't worry, we
+don't have to worry
+
+
+379
+00:17:43,346 --> 00:17:44,396
+about overwriting ourselves
+
+
+380
+00:17:44,396 --> 00:17:48,546
+because the semaphore
+will protect us.
+
+
+381
+00:17:48,796 --> 00:17:50,386
+So constant buffers in the demo.
+
+
+382
+00:17:51,076 --> 00:17:52,646
+The demo has an array
+of three buffers
+
+
+383
+00:17:53,336 --> 00:17:55,506
+and I've seen some
+applications track buffers
+
+
+384
+00:17:55,506 --> 00:17:57,286
+by marking them as,
+oh, this is being read
+
+
+385
+00:17:57,286 --> 00:17:59,626
+from in frame number
+7, this is written
+
+
+386
+00:17:59,626 --> 00:18:00,636
+to you in frame number 5.
+
+
+387
+00:18:00,636 --> 00:18:03,116
+But with this model you don't
+actually have to do that.
+
+
+388
+00:18:03,346 --> 00:18:05,696
+The semaphore takes care of all
+the synchronization for you.
+
+
+389
+00:18:07,016 --> 00:18:09,126
+And if you can take the
+semaphore, you're guaranteed
+
+
+390
+00:18:09,126 --> 00:18:10,956
+that the last frame that
+was using that was done,
+
+
+391
+00:18:11,166 --> 00:18:12,276
+otherwise you'd still be asleep.
+
+
+392
+00:18:14,406 --> 00:18:17,616
+So now all our data is in
+place and it's protected.
+
+
+393
+00:18:17,946 --> 00:18:22,086
+And we'd like to start
+issuing a bunch of draw calls
+
+
+394
+00:18:22,246 --> 00:18:23,306
+to get some stuff on the screen.
+
+
+395
+00:18:26,806 --> 00:18:29,446
+So here's the basic
+rendering loop for our demo.
+
+
+396
+00:18:29,986 --> 00:18:33,476
+We have two passes: One
+pass that draws a shadow map
+
+
+397
+00:18:33,916 --> 00:18:36,596
+and one pass that reads the
+shadow map, and we've decided
+
+
+398
+00:18:36,596 --> 00:18:38,636
+to split these into two
+separate command buffers.
+
+
+399
+00:18:39,266 --> 00:18:40,396
+There's a good reason for this.
+
+
+400
+00:18:40,866 --> 00:18:42,816
+It lets us have two
+encoding functions
+
+
+401
+00:18:43,136 --> 00:18:44,446
+that are independent and unique.
+
+
+402
+00:18:45,056 --> 00:18:46,156
+They don't depend on each other.
+
+
+403
+00:18:46,786 --> 00:18:47,906
+You encode the shadow pass.
+
+
+404
+00:18:47,906 --> 00:18:50,466
+You pass that to command
+buffer and the constant buffer
+
+
+405
+00:18:50,466 --> 00:18:53,096
+that you've already filled out
+and it encodes all the commands
+
+
+406
+00:18:53,096 --> 00:18:54,446
+to render the shadow map.
+
+
+407
+00:18:55,216 --> 00:18:56,766
+And then you have a
+separate encoding function
+
+
+408
+00:18:56,766 --> 00:18:57,956
+that encodes the main pass.
+
+
+409
+00:18:58,366 --> 00:19:00,916
+You pass it to mainCommandBuffer
+and the other data you need
+
+
+410
+00:19:00,916 --> 00:19:02,476
+and it encodes all
+those other commands.
+
+
+411
+00:19:03,126 --> 00:19:05,826
+When the encoding is all
+done, you call commit
+
+
+412
+00:19:06,246 --> 00:19:08,756
+on your two command
+buffers, push them off,
+
+
+413
+00:19:08,996 --> 00:19:10,316
+and then you've got your frame.
+
+
+414
+00:19:13,866 --> 00:19:16,496
+So what goes into actually
+encoding drawing one
+
+
+415
+00:19:16,496 --> 00:19:17,216
+of our cubes?
+
+
+416
+00:19:17,756 --> 00:19:20,506
+We need a bunch of data and
+not just the rotation data.
+
+
+417
+00:19:21,296 --> 00:19:23,006
+We need some geometric
+data for the cubes,
+
+
+418
+00:19:23,456 --> 00:19:26,006
+which is quite simple, you know,
+think about a cube is what,
+
+
+419
+00:19:26,006 --> 00:19:27,836
+eight vertices, maybe
+an index buffer.
+
+
+420
+00:19:28,466 --> 00:19:31,526
+And in our sample, we don't
+really have complex materials
+
+
+421
+00:19:31,526 --> 00:19:33,946
+or anything, just some very
+simple Lambert shading.
+
+
+422
+00:19:34,416 --> 00:19:36,696
+So we could reuse that
+pipeline state object
+
+
+423
+00:19:36,816 --> 00:19:37,956
+across all of our cubes.
+
+
+424
+00:19:38,526 --> 00:19:40,666
+We mentioned the
+per-frame data earlier.
+
+
+425
+00:19:40,666 --> 00:19:41,796
+We need one copy of that.
+
+
+426
+00:19:42,256 --> 00:19:42,996
+So we'll update it.
+
+
+427
+00:19:43,116 --> 00:19:44,006
+Stick it in place.
+
+
+428
+00:19:44,466 --> 00:19:46,576
+And then of course we
+need the per-object data,
+
+
+429
+00:19:47,096 --> 00:19:49,196
+that LocalToWorld and
+the color information
+
+
+430
+00:19:49,196 --> 00:19:49,946
+that we're animating.
+
+
+431
+00:19:50,126 --> 00:19:54,016
+So when we issue our draw calls,
+
+
+432
+00:19:54,386 --> 00:19:56,556
+we want to make sure we
+reference the correct data.
+
+
+433
+00:19:57,336 --> 00:19:59,326
+So our encoder will
+produce commands,
+
+
+434
+00:19:59,446 --> 00:20:00,656
+put them into our
+command buffer,
+
+
+435
+00:20:01,186 --> 00:20:04,986
+draw call 0 will reference both
+the frame data and the object
+
+
+436
+00:20:04,986 --> 00:20:05,756
+that we're interested in.
+
+
+437
+00:20:06,876 --> 00:20:09,416
+Draw call 1, similarly, will
+reference the frame data
+
+
+438
+00:20:10,386 --> 00:20:13,906
+and the object 1 data and so on.
+
+
+439
+00:20:14,196 --> 00:20:15,366
+This way everything's in place.
+
+
+440
+00:20:15,366 --> 00:20:18,416
+We issue our calls and the
+GPU will start crunching away.
+
+
+441
+00:20:20,556 --> 00:20:22,526
+Now we have a ton of
+draw calls to issue.
+
+
+442
+00:20:22,526 --> 00:20:25,466
+You know, in our demo,
+it was minimal, 10,000,
+
+
+443
+00:20:26,276 --> 00:20:28,526
+and we want to issue these
+as efficiently as possible.
+
+
+444
+00:20:28,766 --> 00:20:31,256
+So we'd like to avoid
+doing redundant work.
+
+
+445
+00:20:31,716 --> 00:20:33,516
+We don't want to reset
+everything every draw.
+
+
+446
+00:20:33,926 --> 00:20:37,086
+Anything that's shared,
+geometry, pipeline states,
+
+
+447
+00:20:37,446 --> 00:20:40,066
+we'd like to set that once
+and leave that in place.
+
+
+448
+00:20:40,936 --> 00:20:42,776
+So avoid redundant state updates
+
+
+449
+00:20:42,976 --> 00:20:45,116
+and avoid redundant
+argument table updates.
+
+
+450
+00:20:46,116 --> 00:20:48,456
+It's also worth keeping
+in mind that the vertex
+
+
+451
+00:20:48,456 --> 00:20:51,136
+and fragment stage argument
+tables are completely separate.
+
+
+452
+00:20:52,036 --> 00:20:54,446
+You can bind a buffer to
+the vertex stage and not
+
+
+453
+00:20:54,446 --> 00:20:55,906
+to the fragment stage
+or vice-versa.
+
+
+454
+00:20:56,526 --> 00:20:58,336
+But if you have to bind
+everything to both stages,
+
+
+455
+00:20:58,336 --> 00:21:01,226
+this can potentially double
+the calls you call the
+
+
+456
+00:21:01,226 --> 00:21:02,916
+setVertexBuffer,
+setFragmentBuffer.
+
+
+457
+00:21:03,626 --> 00:21:06,496
+This is one reason we didn't use
+set vertex bytes in our example.
+
+
+458
+00:21:07,286 --> 00:21:10,406
+You can imagine we have
+50,000 objects and we had
+
+
+459
+00:21:10,406 --> 00:21:14,036
+to make a copy of all that data
+twice, once for the vertex stage
+
+
+460
+00:21:14,036 --> 00:21:15,166
+and once for the fragment stage.
+
+
+461
+00:21:15,446 --> 00:21:16,716
+That would quickly
+get really big.
+
+
+462
+00:21:17,606 --> 00:21:19,536
+But if we kept it all in one
+buffer and just referenced it,
+
+
+463
+00:21:19,886 --> 00:21:21,066
+we wouldn't have to
+worry about that.
+
+
+464
+00:21:21,706 --> 00:21:23,556
+And the last guideline
+I want to point
+
+
+465
+00:21:23,556 --> 00:21:25,786
+out is using a new function,
+
+
+466
+00:21:26,836 --> 00:21:30,036
+setVertexBufferOffset/
+setFragmentBufferOffset.
+
+
+467
+00:21:31,066 --> 00:21:34,276
+This merely changes the pointer
+into one of your buffers.
+
+
+468
+00:21:36,556 --> 00:21:38,396
+So you can see here
+when you call these,
+
+
+469
+00:21:38,786 --> 00:21:40,926
+they actually don't take a
+reference to a Metal buffer.
+
+
+470
+00:21:41,396 --> 00:21:44,376
+They take an offset
+and an index.
+
+
+471
+00:21:45,116 --> 00:21:47,086
+This is because you must
+have already set the buffer
+
+
+472
+00:21:47,086 --> 00:21:49,996
+to that specific point and
+this just changes the pointer
+
+
+473
+00:21:49,996 --> 00:21:52,206
+within it and that's
+perfect for what we want.
+
+
+474
+00:21:52,736 --> 00:21:55,156
+We have one constant buffer and
+we're just walking through it.
+
+
+475
+00:21:55,736 --> 00:21:57,316
+So we can set it
+once in the beginning
+
+
+476
+00:21:57,746 --> 00:22:00,916
+and then every time we draw,
+we call setVertexBufferOffset
+
+
+477
+00:22:01,426 --> 00:22:02,866
+and just point the
+next draw call
+
+
+478
+00:22:02,866 --> 00:22:04,336
+to the current spot
+in our buffer.
+
+
+479
+00:22:04,826 --> 00:22:06,376
+It looks a little
+something like this.
+
+
+480
+00:22:07,296 --> 00:22:08,636
+We bind this constant buffer
+
+
+481
+00:22:09,286 --> 00:22:11,196
+and then we call
+setVertexBufferOffset
+
+
+482
+00:22:12,296 --> 00:22:12,976
+with this offset.
+
+
+483
+00:22:14,376 --> 00:22:16,806
+Then we call it again
+striding it forward
+
+
+484
+00:22:18,046 --> 00:22:19,546
+and again striding it forward.
+
+
+485
+00:22:20,186 --> 00:22:22,716
+We're not changing the buffer
+that we've set to this index.
+
+
+486
+00:22:22,876 --> 00:22:24,856
+We're just changing the
+offset within that buffer.
+
+
+487
+00:22:27,856 --> 00:22:29,376
+With these guidelines in mind,
+
+
+488
+00:22:29,736 --> 00:22:31,496
+our encoding is actually
+pretty simple.
+
+
+489
+00:22:33,416 --> 00:22:35,216
+We have a bunch of data
+we can set up front.
+
+
+490
+00:22:35,646 --> 00:22:37,406
+The per-frame constants
+is pretty obvious
+
+
+491
+00:22:37,466 --> 00:22:38,926
+because we know we're
+not going to change it.
+
+
+492
+00:22:39,136 --> 00:22:41,246
+So we'll set that.
+
+
+493
+00:22:41,376 --> 00:22:43,966
+We'll set the constant buffer
+once because we know it has
+
+
+494
+00:22:43,966 --> 00:22:47,086
+to be in place for us to use the
+setVertexBufferOffset function.
+
+
+495
+00:22:47,166 --> 00:22:51,616
+We'll set the geometry
+buffer and the pipeline state
+
+
+496
+00:22:51,736 --> 00:22:53,636
+because we know they're shared
+across all of our cubes.
+
+
+497
+00:22:55,376 --> 00:22:57,046
+Then finally we can
+start looping
+
+
+498
+00:22:57,046 --> 00:22:58,476
+through all the objects
+we want to draw.
+
+
+499
+00:22:58,796 --> 00:23:01,936
+We'll set the offset
+into the constant buffer
+
+
+500
+00:23:01,936 --> 00:23:02,766
+for our current draw.
+
+
+501
+00:23:03,276 --> 00:23:06,386
+And then we'll actually
+issue the draw.
+
+
+502
+00:23:11,076 --> 00:23:13,946
+And here's the code from the
+encode main pass function
+
+
+503
+00:23:14,236 --> 00:23:14,786
+in the sample.
+
+
+504
+00:23:16,176 --> 00:23:18,316
+We'll start off by
+setting the vertex buffer
+
+
+505
+00:23:18,316 --> 00:23:20,826
+that is our geometry and
+the render pipeline state,
+
+
+506
+00:23:21,196 --> 00:23:22,766
+which is our
+litShadowedPipeline.
+
+
+507
+00:23:23,256 --> 00:23:26,256
+We'll set the constant buffer
+
+
+508
+00:23:26,306 --> 00:23:28,276
+so we can use
+setVertexBufferOffset later.
+
+
+509
+00:23:28,556 --> 00:23:30,916
+In this case we're setting
+it to both the vertex
+
+
+510
+00:23:30,916 --> 00:23:32,016
+and the fragment stages.
+
+
+511
+00:23:32,606 --> 00:23:38,196
+And then we'll set
+the per-frame data.
+
+
+512
+00:23:38,366 --> 00:23:40,276
+Now you'll notice here that
+I've set the constant buffer
+
+
+513
+00:23:40,276 --> 00:23:43,236
+to two separate indices
+with different offsets.
+
+
+514
+00:23:43,336 --> 00:23:45,246
+And Metal allows you to do
+this as much as you want.
+
+
+515
+00:23:45,836 --> 00:23:48,376
+You could set the same
+constant buffer to every index
+
+
+516
+00:23:48,566 --> 00:23:51,036
+at a different offset if you'd
+like, completely up to you.
+
+
+517
+00:23:53,616 --> 00:23:55,296
+And then we dive
+right into our loop.
+
+
+518
+00:23:56,416 --> 00:23:58,526
+We need to track the
+offset because we know
+
+
+519
+00:23:58,526 --> 00:23:59,876
+that we're not starting
+right at the beginning
+
+
+520
+00:23:59,876 --> 00:24:00,716
+of our constant buffer.
+
+
+521
+00:24:00,716 --> 00:24:01,946
+There's some frame
+data in there.
+
+
+522
+00:24:02,556 --> 00:24:04,786
+So the offset will be pushed
+back past the frame data.
+
+
+523
+00:24:06,436 --> 00:24:08,536
+Then we'll call
+setVertexBufferOffset
+
+
+524
+00:24:08,536 --> 00:24:11,716
+and setFragmentBufferOffset
+to point this draw
+
+
+525
+00:24:11,716 --> 00:24:15,306
+to the correct data that
+we want to draw with.
+
+
+526
+00:24:15,416 --> 00:24:16,466
+We'll issue the draw call
+
+
+527
+00:24:16,466 --> 00:24:20,756
+and then we'll set the offset
+again just striding one object
+
+
+528
+00:24:20,756 --> 00:24:21,956
+data struct at a time.
+
+
+529
+00:24:24,796 --> 00:24:26,156
+So our draws are in place.
+
+
+530
+00:24:27,146 --> 00:24:28,376
+This is still very linear.
+
+
+531
+00:24:28,586 --> 00:24:30,076
+And I promised you
+some multithreading
+
+
+532
+00:24:30,606 --> 00:24:33,026
+and Warren mentioned that, hey,
+you can actually encode a bunch
+
+
+533
+00:24:33,026 --> 00:24:34,096
+of stuff in parallel in Metal.
+
+
+534
+00:24:34,816 --> 00:24:35,876
+So how would you do this?
+
+
+535
+00:24:36,116 --> 00:24:39,006
+An ideal frame might
+look like this.
+
+
+536
+00:24:39,006 --> 00:24:41,876
+Our render threat is chugging
+along and it realizes, hey,
+
+
+537
+00:24:41,876 --> 00:24:43,376
+I need to render a
+shadow map and I need
+
+
+538
+00:24:43,376 --> 00:24:44,396
+to render a main pass.
+
+
+539
+00:24:44,806 --> 00:24:46,496
+It'd be great if I could
+code this in parallel.
+
+
+540
+00:24:46,886 --> 00:24:48,426
+I've got multiple CPUs.
+
+
+541
+00:24:48,756 --> 00:24:51,916
+So what if I dispatch this
+work out, encoded some stuff,
+
+
+542
+00:24:53,196 --> 00:24:54,736
+then I rejoin back
+to the render thread
+
+
+543
+00:24:54,736 --> 00:24:57,316
+and the render thread
+pushed this over to the GPU
+
+
+544
+00:24:57,316 --> 00:24:58,296
+to do a bunch of work.
+
+
+545
+00:24:58,936 --> 00:24:59,526
+This would look great.
+
+
+546
+00:25:03,286 --> 00:25:05,426
+How many of you have used GCD?
+
+
+547
+00:25:06,756 --> 00:25:09,066
+This is a great fit for
+Grand Central Dispatch.
+
+
+548
+00:25:09,146 --> 00:25:10,036
+If you're not familiar,
+
+
+549
+00:25:10,036 --> 00:25:12,566
+Grand Central Dispatch is
+Apple's multiprocessing API.
+
+
+550
+00:25:13,246 --> 00:25:15,116
+This is an API that
+lets you create queues
+
+
+551
+00:25:15,576 --> 00:25:17,666
+and these queues manage
+computing resources
+
+
+552
+00:25:17,796 --> 00:25:18,876
+on your machine.
+
+
+553
+00:25:19,616 --> 00:25:21,126
+There are two types of
+queues you can create.
+
+
+554
+00:25:21,576 --> 00:25:22,536
+There's a serial queue.
+
+
+555
+00:25:22,536 --> 00:25:25,886
+When you dispatch work through a
+serial queue, you're guaranteed
+
+
+556
+00:25:25,886 --> 00:25:27,506
+that all that work
+will happen in order.
+
+
+557
+00:25:27,926 --> 00:25:31,756
+But what's more interesting
+for us is the concurrent queue.
+
+
+558
+00:25:32,836 --> 00:25:35,806
+When you dispatch work to the
+concurrent queue, GCD will look
+
+
+559
+00:25:35,806 --> 00:25:37,466
+at your system and
+figure out the best way
+
+
+560
+00:25:37,466 --> 00:25:38,456
+to schedule this for you.
+
+
+561
+00:25:39,496 --> 00:25:40,266
+And that's perfect.
+
+
+562
+00:25:40,266 --> 00:25:42,196
+We have two jobs we
+need to do in parallel.
+
+
+563
+00:25:42,786 --> 00:25:45,696
+So if we created this one queue
+and just pushed the work to it,
+
+
+564
+00:25:46,196 --> 00:25:47,116
+it would do that for us.
+
+
+565
+00:25:48,166 --> 00:25:51,006
+This is another object you
+want to create once and reuse.
+
+
+566
+00:25:51,316 --> 00:25:53,606
+So here's some code to create
+a concurrent dispatch queue.
+
+
+567
+00:25:54,156 --> 00:25:55,626
+You should always a
+label on your queues.
+
+
+568
+00:25:55,856 --> 00:25:57,836
+I've used the very
+creative label queue here
+
+
+569
+00:25:58,556 --> 00:25:59,806
+but you might want to
+call it something else.
+
+
+570
+00:26:03,406 --> 00:26:05,406
+So we made some modifications
+to the code.
+
+
+571
+00:26:06,556 --> 00:26:08,326
+We still create the command
+buffers at the start.
+
+
+572
+00:26:09,526 --> 00:26:13,296
+But since we were smart enough
+to use two command buffers
+
+
+573
+00:26:13,656 --> 00:26:15,176
+and separate our
+encoding functions
+
+
+574
+00:26:15,176 --> 00:26:17,686
+into two unique things,
+there isn't much else for us
+
+
+575
+00:26:17,686 --> 00:26:19,486
+to do other than
+dispatch the work.
+
+
+576
+00:26:20,446 --> 00:26:23,606
+So dispatchQueue.async
+is the main call you use
+
+
+577
+00:26:23,606 --> 00:26:25,446
+to dispatch work
+to a queue in GCD.
+
+
+578
+00:26:25,816 --> 00:26:27,056
+This is an asynchronous call.
+
+
+579
+00:26:27,456 --> 00:26:30,226
+It'll push the work on and
+your thread will keep going.
+
+
+580
+00:26:31,426 --> 00:26:34,156
+So here we dispatch
+the shadow pass
+
+
+581
+00:26:34,646 --> 00:26:39,186
+and then we dispatch
+the main pass.
+
+
+582
+00:26:39,186 --> 00:26:40,766
+We'll want to commit
+this work somehow
+
+
+583
+00:26:41,526 --> 00:26:44,406
+so we call dispatch barrier
+sync and this makes sure
+
+
+584
+00:26:44,406 --> 00:26:46,956
+that all the work is done by
+the time we get to this point.
+
+
+585
+00:26:47,446 --> 00:26:51,936
+And then finally we've rejoined
+and we can commit our work.
+
+
+586
+00:26:52,556 --> 00:26:54,126
+Now the ordering
+is important here.
+
+
+587
+00:26:54,806 --> 00:26:57,326
+The shadow map has to be done
+by the time we reference it.
+
+
+588
+00:26:57,926 --> 00:27:00,036
+So we have to commit the
+shadow command buffer first
+
+
+589
+00:27:00,236 --> 00:27:01,816
+and then the main
+command buffer later.
+
+
+590
+00:27:04,616 --> 00:27:06,396
+There's something else
+I want to bring up here.
+
+
+591
+00:27:07,386 --> 00:27:09,446
+How many of you are familiar
+with the concept of a closure?
+
+
+592
+00:27:11,896 --> 00:27:15,376
+Great. How many of you
+have ever had an issue
+
+
+593
+00:27:15,376 --> 00:27:16,826
+where closures captures self
+
+
+594
+00:27:16,826 --> 00:27:18,596
+and you thought you were
+referencing something else?
+
+
+595
+00:27:19,226 --> 00:27:21,136
+You can be honest.
+
+
+596
+00:27:21,136 --> 00:27:21,976
+It's happened to all of us.
+
+
+597
+00:27:22,036 --> 00:27:24,006
+I just wanted to call this out.
+
+
+598
+00:27:24,396 --> 00:27:25,756
+Closures capture self.
+
+
+599
+00:27:25,886 --> 00:27:28,596
+So if you're referencing a
+member variable or an iVar
+
+
+600
+00:27:28,596 --> 00:27:31,936
+within them and you're not
+explicitly saying self.iVar,
+
+
+601
+00:27:32,246 --> 00:27:34,386
+it's still actually going
+to reference that variable.
+
+
+602
+00:27:35,146 --> 00:27:37,466
+So if you want to
+make sure you're going
+
+
+603
+00:27:37,466 --> 00:27:40,136
+to reference the correct
+data, it's a good idea
+
+
+604
+00:27:40,136 --> 00:27:42,646
+to capture it outside and
+I'll show you what I mean
+
+
+605
+00:27:42,646 --> 00:27:43,186
+in a second.
+
+
+606
+00:27:45,386 --> 00:27:47,556
+These two things don't
+do the same thing.
+
+
+607
+00:27:48,516 --> 00:27:50,606
+So in the first one where
+I encode the shadow pass,
+
+
+608
+00:27:50,606 --> 00:27:53,436
+you can see the constant buffer
+I'm grabbing is dependent
+
+
+609
+00:27:53,436 --> 00:27:55,186
+on self.constantBufferSlot.
+
+
+610
+00:27:55,186 --> 00:27:58,566
+I don't actually know what that
+will be at the time it executes.
+
+
+611
+00:27:59,036 --> 00:28:00,746
+This is really asynchronous
+programming.
+
+
+612
+00:28:00,746 --> 00:28:03,966
+So by the time my dispatch
+is actually running,
+
+
+613
+00:28:04,346 --> 00:28:05,636
+this could've changed
+behind my back.
+
+
+614
+00:28:06,276 --> 00:28:07,976
+It may be right but
+it may not be.
+
+
+615
+00:28:08,026 --> 00:28:09,516
+I can't guarantee it.
+
+
+616
+00:28:12,926 --> 00:28:15,066
+So keep that in mind and
+don't do it that way.
+
+
+617
+00:28:16,026 --> 00:28:17,796
+Instead, we'd like to
+capture a reference
+
+
+618
+00:28:17,796 --> 00:28:19,496
+to the constant buffer
+we're interested in.
+
+
+619
+00:28:20,186 --> 00:28:21,916
+So here we just say
+let constant buffer
+
+
+620
+00:28:22,366 --> 00:28:23,516
+and grab it out of the array.
+
+
+621
+00:28:24,676 --> 00:28:26,286
+But then when we
+issue our dispatch,
+
+
+622
+00:28:27,016 --> 00:28:29,256
+we reference the specific one
+that we've already grabbed.
+
+
+623
+00:28:29,606 --> 00:28:31,976
+That makes sure we know exactly
+what data we're reading from.
+
+
+624
+00:28:37,246 --> 00:28:38,946
+So this is some multithreading
+fun.
+
+
+625
+00:28:39,376 --> 00:28:42,766
+The actual code in the
+sample looks like this.
+
+
+626
+00:28:42,956 --> 00:28:44,136
+We capture the constant buffer.
+
+
+627
+00:28:44,666 --> 00:28:50,226
+And when we use it, we make sure
+we're using the correct one,
+
+
+628
+00:28:50,346 --> 00:28:51,716
+the one that we've
+captured already,
+
+
+629
+00:28:52,416 --> 00:28:54,236
+to know that we're using
+this frame's constant buffer.
+
+
+630
+00:28:54,236 --> 00:28:57,356
+Now I had mentioned
+the ordering earlier
+
+
+631
+00:28:57,466 --> 00:28:58,486
+and how this was important.
+
+
+632
+00:28:59,686 --> 00:29:03,526
+When you create a command buffer
+and you commit it, the ordering
+
+
+633
+00:29:03,526 --> 00:29:07,076
+that this executes on
+your GPU is implied
+
+
+634
+00:29:07,076 --> 00:29:08,116
+by the order you commit it in.
+
+
+635
+00:29:08,436 --> 00:29:10,376
+So if I commit the shadow
+command buffer first
+
+
+636
+00:29:10,616 --> 00:29:13,276
+and the main command buffer
+second, I'm guaranteed
+
+
+637
+00:29:13,276 --> 00:29:16,086
+that the shadow one will happen
+first on the GPU followed
+
+
+638
+00:29:16,086 --> 00:29:17,026
+by the main command buffer.
+
+
+639
+00:29:17,776 --> 00:29:18,646
+Sometimes we refer to this
+
+
+640
+00:29:18,646 --> 00:29:20,186
+as implicit command
+buffer ordering.
+
+
+641
+00:29:22,196 --> 00:29:25,796
+But you can be a little
+more explicit about it.
+
+
+642
+00:29:25,796 --> 00:29:27,416
+Metal provides an
+enqueue function
+
+
+643
+00:29:27,736 --> 00:29:29,296
+that enforces command
+buffer ordering.
+
+
+644
+00:29:29,886 --> 00:29:32,686
+If you have a set of command
+buffers, you can enqueue them
+
+
+645
+00:29:33,106 --> 00:29:34,496
+and you're guaranteed
+that they will execute
+
+
+646
+00:29:34,496 --> 00:29:36,576
+in that order regardless
+of how you commit them
+
+
+647
+00:29:36,606 --> 00:29:37,486
+or when you commit them.
+
+
+648
+00:29:38,596 --> 00:29:40,586
+This is something really
+cool because it allows you
+
+
+649
+00:29:40,586 --> 00:29:43,336
+to commit command buffers from
+multiple threads, in any order,
+
+
+650
+00:29:43,336 --> 00:29:45,226
+and you don't have
+to worry about it.
+
+
+651
+00:29:45,566 --> 00:29:48,266
+The runtime will ensure you're
+executing in the correct order.
+
+
+652
+00:29:49,536 --> 00:29:51,616
+So let's see how to
+apply this to our code.
+
+
+653
+00:29:52,326 --> 00:29:53,986
+A couple new additions here.
+
+
+654
+00:29:54,596 --> 00:29:56,136
+Now when we create
+our command buffers,
+
+
+655
+00:29:56,136 --> 00:29:57,766
+we immediately enqueue
+them in the order.
+
+
+656
+00:29:58,306 --> 00:29:59,976
+Again, the order
+matters, so we still have
+
+
+657
+00:29:59,976 --> 00:30:01,816
+to enqueue shadowCommandBuffer
+first
+
+
+658
+00:30:02,436 --> 00:30:03,826
+and then mainCommandBuffer
+second.
+
+
+659
+00:30:05,236 --> 00:30:08,416
+But now when we dispatch,
+we can actually commit
+
+
+660
+00:30:08,416 --> 00:30:09,606
+from within our other thread.
+
+
+661
+00:30:10,256 --> 00:30:13,586
+Again, the runtime is going
+to ensure the ordering.
+
+
+662
+00:30:13,956 --> 00:30:15,476
+So we don't actually
+have to worry about it.
+
+
+663
+00:30:16,266 --> 00:30:18,996
+This actually lets us remove
+that barrier we had before
+
+
+664
+00:30:19,326 --> 00:30:20,716
+because we have no
+need to rejoin
+
+
+665
+00:30:20,716 --> 00:30:22,036
+and commit the command buffers.
+
+
+666
+00:30:22,116 --> 00:30:26,336
+They're already committed
+for us.
+
+
+667
+00:30:26,536 --> 00:30:27,836
+But I seem to have
+skipped over all
+
+
+668
+00:30:27,836 --> 00:30:30,086
+that synchronization stuff
+I talked about a second ago
+
+
+669
+00:30:30,446 --> 00:30:32,286
+and we still need it
+because we're still going
+
+
+670
+00:30:32,286 --> 00:30:34,136
+to be overriding ourselves
+if we don't have it.
+
+
+671
+00:30:34,816 --> 00:30:37,526
+So can we apply these same
+synchronization lessons
+
+
+672
+00:30:37,886 --> 00:30:39,786
+to this sort of multithreaded
+world?
+
+
+673
+00:30:40,296 --> 00:30:45,036
+It turns out we can and it's
+actually quite straightforward.
+
+
+674
+00:30:46,236 --> 00:30:47,576
+We bring back our
+friendly semaphore
+
+
+675
+00:30:47,716 --> 00:30:49,206
+and our array of
+constant buffers.
+
+
+676
+00:30:49,296 --> 00:30:51,586
+And again, don't forget to grab
+the correct one that you want.
+
+
+677
+00:30:51,906 --> 00:30:55,126
+At the start, we'll wait
+on the semaphore and sleep
+
+
+678
+00:30:55,126 --> 00:30:56,046
+if nothing's available.
+
+
+679
+00:30:57,406 --> 00:31:03,206
+We've enforced our ordering with
+enqueue and we push it through.
+
+
+680
+00:31:03,416 --> 00:31:04,186
+Now we know
+
+
+681
+00:31:04,186 --> 00:31:06,266
+that mainCommandBuffer is
+the final command buffer
+
+
+682
+00:31:06,266 --> 00:31:06,796
+in our frame.
+
+
+683
+00:31:07,296 --> 00:31:09,996
+And we know that we want to
+signal that our frame is done.
+
+
+684
+00:31:11,146 --> 00:31:14,456
+So we should add our completion
+handler to the mainCommandBuffer
+
+
+685
+00:31:14,566 --> 00:31:16,616
+and you could do this
+from within the dispatch.
+
+
+686
+00:31:18,316 --> 00:31:20,696
+So the mainCommandBuffer is
+the final command buffer.
+
+
+687
+00:31:20,946 --> 00:31:23,516
+We add the completion handler
+to it, to signal our semaphore,
+
+
+688
+00:31:24,086 --> 00:31:25,656
+and we commit it from
+within the dispatch,
+
+
+689
+00:31:25,746 --> 00:31:26,656
+just like we did before.
+
+
+690
+00:31:27,826 --> 00:31:30,976
+Now you may notice here that
+I'm referencing self.semaphore
+
+
+691
+00:31:31,306 --> 00:31:33,436
+and a second ago I just told
+you to watch out for that.
+
+
+692
+00:31:33,956 --> 00:31:34,686
+So what's going on?
+
+
+693
+00:31:35,536 --> 00:31:38,586
+Well it turns out a semaphore
+is a synchronization primitive
+
+
+694
+00:31:39,166 --> 00:31:41,506
+and we do actually want to
+be looking at the same one
+
+
+695
+00:31:41,506 --> 00:31:42,646
+as all of our other threads.
+
+
+696
+00:31:43,436 --> 00:31:45,166
+So we want the value
+of the semaphore
+
+
+697
+00:31:45,166 --> 00:31:46,756
+at the time the thread
+is executing.
+
+
+698
+00:31:47,556 --> 00:31:50,716
+So in this case, we
+actually want self.semaphore,
+
+
+699
+00:31:50,996 --> 00:31:52,416
+something to keep aware of.
+
+
+700
+00:31:55,956 --> 00:31:58,516
+And here's the recipe
+for our rendering.
+
+
+701
+00:31:59,196 --> 00:32:00,736
+At the start of our
+render function,
+
+
+702
+00:32:01,046 --> 00:32:02,056
+we wait on the semaphore.
+
+
+703
+00:32:03,366 --> 00:32:05,086
+We select the current
+constant buffer.
+
+
+704
+00:32:06,406 --> 00:32:08,586
+We write the data into
+our constant buffer
+
+
+705
+00:32:08,586 --> 00:32:10,616
+that represents all
+of our objects.
+
+
+706
+00:32:11,576 --> 00:32:13,646
+We encode the commands
+into command buffers.
+
+
+707
+00:32:13,796 --> 00:32:15,046
+We can do the single-threaded,
+
+
+708
+00:32:15,346 --> 00:32:16,836
+multithreaded, however
+you'd like.
+
+
+709
+00:32:17,746 --> 00:32:20,566
+We add a completion handler
+onto our final command buffer
+
+
+710
+00:32:20,916 --> 00:32:23,736
+and we use it to signal the
+semaphore to let us know
+
+
+711
+00:32:23,736 --> 00:32:26,256
+when we're done and we
+commit our command buffers.
+
+
+712
+00:32:26,726 --> 00:32:28,776
+And the GPU takes all this
+
+
+713
+00:32:28,776 --> 00:32:30,916
+and starts chugging
+away at our frame.
+
+
+714
+00:32:32,706 --> 00:32:34,976
+So let's look at the demo
+again and see what this got us.
+
+
+715
+00:32:38,286 --> 00:32:40,436
+So here you can see
+in the top left,
+
+
+716
+00:32:40,436 --> 00:32:42,026
+this is single-threaded
+encode mode
+
+
+717
+00:32:42,356 --> 00:32:44,776
+and you can see how many
+draws we're issuing, 10,000.
+
+
+718
+00:32:45,656 --> 00:32:48,416
+And the top right, you can
+see the time it takes us
+
+
+719
+00:32:48,416 --> 00:32:49,226
+to encode a frame.
+
+
+720
+00:32:50,096 --> 00:32:54,476
+So here we've got 5 milliseconds
+and we can crank the number
+
+
+721
+00:32:54,476 --> 00:32:57,226
+of draws up and see that
+it starts costing more
+
+
+722
+00:32:57,226 --> 00:32:58,776
+and more as we draw things.
+
+
+723
+00:32:59,486 --> 00:33:01,346
+Now this is single-threaded
+mode.
+
+
+724
+00:33:01,606 --> 00:33:04,746
+And when you think about it,
+we're drawing a shadow map,
+
+
+725
+00:33:04,816 --> 00:33:08,996
+which means we have to issue
+40,000 draws in the shadow map,
+
+
+726
+00:33:09,306 --> 00:33:11,126
+and then we're drawing the
+main pass, which means we have
+
+
+727
+00:33:11,126 --> 00:33:14,266
+to issue another 40,000
+draws to reference that.
+
+
+728
+00:33:15,426 --> 00:33:17,096
+But again, we can
+do this in parallel,
+
+
+729
+00:33:17,566 --> 00:33:19,366
+so we've added a parallel
+mode to this demo.
+
+
+730
+00:33:19,926 --> 00:33:23,976
+And you can see how it's
+faster to go through.
+
+
+731
+00:33:25,596 --> 00:33:27,496
+Now take a look at
+everything that's going on.
+
+
+732
+00:33:27,976 --> 00:33:29,976
+You can fly around a little bit.
+
+
+733
+00:33:36,296 --> 00:33:40,546
+So here we have 40,000
+cubes, unique, independent.
+
+
+734
+00:33:40,726 --> 00:33:41,816
+They're all being updated.
+
+
+735
+00:33:42,686 --> 00:33:46,156
+We're using GCD to encode a
+bunch of stuff in parallel.
+
+
+736
+00:33:47,326 --> 00:33:49,616
+We have two command buffers:
+One to generate the shadow map
+
+
+737
+00:33:49,616 --> 00:33:52,616
+on the ground and one to render
+all of the cubes in color.
+
+
+738
+00:33:53,986 --> 00:33:56,356
+The lighting is quite
+simple, Lambert shadowing,
+
+
+739
+00:33:56,356 --> 00:33:58,496
+which is basically
+what Warren talked
+
+
+740
+00:33:58,496 --> 00:33:59,896
+about earlier, the N.L lighting.
+
+
+741
+00:34:02,686 --> 00:34:03,736
+And that's our demo.
+
+
+742
+00:34:03,736 --> 00:34:05,446
+This will be available
+as sample code
+
+
+743
+00:34:05,446 --> 00:34:06,646
+for you guys to take a look at.
+
+
+744
+00:34:07,086 --> 00:34:09,466
+Hopefully you can rip it
+apart, take some of the ideas
+
+
+745
+00:34:09,466 --> 00:34:11,565
+and the thoughts in it and
+apply them to your own code.
+
+
+746
+00:34:11,966 --> 00:34:13,866
+So what did we talk about today?
+
+
+747
+00:34:15,235 --> 00:34:17,505
+When you walked in
+here, hopefully you came
+
+
+748
+00:34:17,505 --> 00:34:19,525
+to Warren's session earlier
+and maybe you knew a little bit
+
+
+749
+00:34:19,525 --> 00:34:22,085
+about graphics or had done
+some programming before,
+
+
+750
+00:34:22,456 --> 00:34:25,036
+but we took you through
+everything in Metal.
+
+
+751
+00:34:25,646 --> 00:34:28,436
+The conceptual overview
+of Metal, the reasoning
+
+
+752
+00:34:28,436 --> 00:34:32,266
+around it is to use an API
+that is close to the hardware
+
+
+753
+00:34:32,396 --> 00:34:33,426
+and close to the driver.
+
+
+754
+00:34:35,036 --> 00:34:37,525
+We learned about the Metal
+device, which is the root object
+
+
+755
+00:34:37,525 --> 00:34:39,206
+in Metal that everything
+comes from.
+
+
+756
+00:34:40,755 --> 00:34:42,786
+We talked a bit about
+loading data into Metal
+
+
+757
+00:34:42,786 --> 00:34:45,636
+and the different resource
+types and how you use them,
+
+
+758
+00:34:46,706 --> 00:34:49,545
+the Metal shading language,
+which is the C++ variant you use
+
+
+759
+00:34:49,545 --> 00:34:50,916
+to write programs on the GPU.
+
+
+760
+00:34:51,016 --> 00:34:54,346
+We talked about building
+pipeline states,
+
+
+761
+00:34:54,466 --> 00:34:58,486
+prevalidated objects that
+contain your two functions,
+
+
+762
+00:34:58,676 --> 00:35:00,746
+vertex and fragment
+or a compute function,
+
+
+763
+00:35:01,216 --> 00:35:03,466
+and a bunch of other
+baked-in, prevalidated state
+
+
+764
+00:35:03,466 --> 00:35:04,636
+to save you time at runtime.
+
+
+765
+00:35:06,026 --> 00:35:07,846
+Then we went into
+issuing GPU commands,
+
+
+766
+00:35:07,926 --> 00:35:11,066
+creating a Metal queue, creating
+command buffers off that queue,
+
+
+767
+00:35:11,736 --> 00:35:13,896
+and creating encoders to
+fill the command buffer in,
+
+
+768
+00:35:13,896 --> 00:35:17,446
+and then issuing that work and
+sending it over to the GPU.
+
+
+769
+00:35:17,926 --> 00:35:20,226
+We walked you through
+animation and texturing
+
+
+770
+00:35:20,996 --> 00:35:24,096
+and using set vertex bytes
+to send small bits of data
+
+
+771
+00:35:24,096 --> 00:35:25,216
+to do your animation in.
+
+
+772
+00:35:26,716 --> 00:35:28,656
+Then when the small bits
+of data weren't enough,
+
+
+773
+00:35:28,856 --> 00:35:31,246
+we talked about managing
+large chunks of dynamic data
+
+
+774
+00:35:31,546 --> 00:35:33,856
+and using one big constant
+buffer and referencing it
+
+
+775
+00:35:33,856 --> 00:35:37,976
+in multiple places to get some
+data reuse out of the system.
+
+
+776
+00:35:38,916 --> 00:35:41,816
+We talked about CPU-GPU
+synchronization, the importance
+
+
+777
+00:35:41,816 --> 00:35:45,236
+of making sure your CPU and your
+GPU aren't overriding each other
+
+
+778
+00:35:45,806 --> 00:35:46,636
+and playing nicely.
+
+
+779
+00:35:46,916 --> 00:35:49,666
+And then lastly, we
+talked a little bit
+
+
+780
+00:35:49,666 --> 00:35:53,066
+about multithreaded encoding,
+how you can use GCD with Metal
+
+
+781
+00:35:53,066 --> 00:35:55,226
+to encode multiple
+command buffers
+
+
+782
+00:35:55,306 --> 00:35:57,026
+on your queues at the same time.
+
+
+783
+00:35:57,546 --> 00:36:00,166
+And that's adopting Metal.
+
+
+784
+00:36:00,946 --> 00:36:03,186
+Hopefully you enjoyed the talk
+and you can apply some of these
+
+
+785
+00:36:03,186 --> 00:36:04,786
+to your apps and make
+your apps even better
+
+
+786
+00:36:04,786 --> 00:36:05,596
+than they already are.
+
+
+787
+00:36:06,306 --> 00:36:08,776
+If you'd like some more
+information, you can check
+
+
+788
+00:36:08,776 --> 00:36:14,246
+out this website,
+developer.apple.com/wwdc/603.
+
+
+789
+00:36:15,556 --> 00:36:17,336
+We have a few more
+sessions tomorrow
+
+
+790
+00:36:17,336 --> 00:36:18,576
+that I recommend
+you go check out.
+
+
+791
+00:36:18,576 --> 00:36:20,916
+At 11:00 o'clock, we
+have What's New in Metal,
+
+
+792
+00:36:20,916 --> 00:36:23,546
+Part 1 and then a
+little later at 1:40,
+
+
+793
+00:36:23,546 --> 00:36:24,936
+we have What's New
+in Metal, Part 2.
+
+
+794
+00:36:24,936 --> 00:36:27,186
+That'll tell us everything
+that's new in the world
+
+
+795
+00:36:27,186 --> 00:36:28,896
+of Metal, awesome
+stuff you can add
+
+
+796
+00:36:28,896 --> 00:36:30,396
+to your applications
+to make them better.
+
+
+797
+00:36:30,496 --> 00:36:33,986
+And then for you hardcore
+shader heads out there,
+
+
+798
+00:36:34,256 --> 00:36:37,176
+we have Advanced Metal
+Shader Optimization at 3:00.
+
+
+799
+00:36:37,596 --> 00:36:38,876
+So if you want to know
+how to get the best
+
+
+800
+00:36:38,876 --> 00:36:41,066
+out of your shaders, I recommend
+you go check out that talk.
+
+
+801
+00:36:41,066 --> 00:36:41,696
+It's really great.
+
+
+802
+00:36:42,906 --> 00:36:44,156
+Thanks for coming
+to hear us talk.
+
+
+803
+00:36:44,496 --> 00:36:45,646
+Welcome to WWDC.
+
+
+804
+00:36:45,646 --> 00:36:47,096
+Have a good rest of the week.
+
+
+805
+00:36:47,916 --> 00:36:48,486e
+Thanks again.
+

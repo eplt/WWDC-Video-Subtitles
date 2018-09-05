@@ -1,0 +1,5419 @@
+1
+00:00:00,506 --> 00:00:09,556
+[ Silence ]
+
+
+2
+00:00:10,056 --> 00:00:10,996
+>> Jerry Cottingham:
+Good Morning.
+
+
+3
+00:00:12,286 --> 00:00:17,006
+I'm Jerry Cottingham, I'm an
+engineer on the Core OS IO team
+
+
+4
+00:00:17,006 --> 00:00:17,876
+and today we're going to talk
+
+
+5
+00:00:17,876 --> 00:00:19,686
+about what's new in
+Kext Development.
+
+
+6
+00:00:22,336 --> 00:00:24,466
+So in my part of the
+session, I'm going to talk
+
+
+7
+00:00:24,466 --> 00:00:27,596
+about Kext Development
+overview, give you a little bit
+
+
+8
+00:00:27,596 --> 00:00:29,526
+of overview of the
+Kext development.
+
+
+9
+00:00:30,136 --> 00:00:32,946
+The Developer ID program,
+why that's important for you
+
+
+10
+00:00:33,646 --> 00:00:36,236
+and your attention please, I'm
+going to call out some things
+
+
+11
+00:00:36,236 --> 00:00:40,336
+that are in OS X 10.9 that
+you need to be aware about.
+
+
+12
+00:00:42,526 --> 00:00:44,376
+We're assuming that
+the target audience
+
+
+13
+00:00:44,376 --> 00:00:47,646
+for this is somebody that's
+already developing a kext,
+
+
+14
+00:00:48,206 --> 00:00:52,596
+you think you're about
+to develop a kext.
+
+
+15
+00:00:52,596 --> 00:00:55,956
+And if you're here, you know the
+top three reasons why you need
+
+
+16
+00:00:55,956 --> 00:00:58,206
+to avoid writing a kext
+if at all possible.
+
+
+17
+00:00:58,656 --> 00:01:02,046
+So if you're thinking about
+it then here's a couple things
+
+
+18
+00:01:02,046 --> 00:01:02,836
+that you need to think
+
+
+19
+00:01:02,836 --> 00:01:05,846
+about before you get
+into writing a kext.
+
+
+20
+00:01:06,566 --> 00:01:09,106
+Kexts require wired
+memory, so all the memory
+
+
+21
+00:01:09,106 --> 00:01:11,476
+that your kext consumes
+is not available
+
+
+22
+00:01:11,476 --> 00:01:15,126
+for the rest of the system.
+
+
+23
+00:01:15,256 --> 00:01:16,616
+Mistakes are often fatal,
+
+
+24
+00:01:16,616 --> 00:01:20,046
+so if you run it writing an
+application, you make a mistake,
+
+
+25
+00:01:20,046 --> 00:01:21,256
+you crash the application.
+
+
+26
+00:01:21,966 --> 00:01:24,976
+You're writing a kext, you
+make a mistake and you crash,
+
+
+27
+00:01:25,086 --> 00:01:27,186
+you're crashing the whole
+system so you affect everybody.
+
+
+28
+00:01:28,876 --> 00:01:29,906
+Debugging is harder.
+
+
+29
+00:01:29,906 --> 00:01:35,016
+So today, if you're developing
+an application with Xcode,
+
+
+30
+00:01:35,016 --> 00:01:37,516
+debugging is very
+simple, very, very simple.
+
+
+31
+00:01:38,346 --> 00:01:40,836
+If you're debugging a kext,
+you need two machines,
+
+
+32
+00:01:40,836 --> 00:01:41,896
+you need to setup the machine,
+
+
+33
+00:01:41,896 --> 00:01:43,216
+you need to configure
+it correctly.
+
+
+34
+00:01:43,216 --> 00:01:46,436
+The problems that you're dealing
+with are often much harder
+
+
+35
+00:01:46,486 --> 00:01:49,036
+to figure out, so
+debugging is much harder.
+
+
+36
+00:01:50,876 --> 00:01:54,376
+So, if you're still not deterred
+and you still really think
+
+
+37
+00:01:54,376 --> 00:01:55,666
+that you need to develop a kext,
+
+
+38
+00:01:56,186 --> 00:01:59,756
+then if you must there's
+two things that you need
+
+
+39
+00:01:59,756 --> 00:02:04,666
+to read before you even start
+writing your first line of code.
+
+
+40
+00:02:05,226 --> 00:02:07,496
+The Kernel Extension
+Programing Topics
+
+
+41
+00:02:08,395 --> 00:02:12,266
+and the Kernel Programing
+Guide, so make sure you read
+
+
+42
+00:02:12,266 --> 00:02:15,236
+through those, and if you
+still need to develop a kext,
+
+
+43
+00:02:15,816 --> 00:02:18,806
+make sure you talk to us to
+see if there's any other way.
+
+
+44
+00:02:19,736 --> 00:02:23,976
+And, if you're going
+to write a kext,
+
+
+45
+00:02:23,976 --> 00:02:25,576
+you're mantra should always be,
+
+
+46
+00:02:25,776 --> 00:02:28,156
+"With great power comes
+great responsibility."
+
+
+47
+00:02:28,156 --> 00:02:35,266
+Now let's quickly go
+over a little overview
+
+
+48
+00:02:35,266 --> 00:02:37,586
+of what kext development
+is all about.
+
+
+49
+00:02:38,146 --> 00:02:41,286
+So a kext is just a bundle
+that extends the kernel.
+
+
+50
+00:02:42,436 --> 00:02:44,446
+Kext stands for:
+Kernel Extension,
+
+
+51
+00:02:44,986 --> 00:02:48,676
+and it's only available
+for OS X.
+
+
+52
+00:02:48,676 --> 00:02:51,746
+So if you're trying
+to write a kext
+
+
+53
+00:02:51,746 --> 00:02:53,096
+for iOS, we don't allow that.
+
+
+54
+00:02:53,096 --> 00:02:57,476
+And a kext is structured
+just like any other CFBundle.
+
+
+55
+00:03:00,196 --> 00:03:03,156
+Do you see the binary
+down in the OS folder?
+
+
+56
+00:03:03,156 --> 00:03:06,846
+So here the Apple sample PCI
+kext, you're going to see this
+
+
+57
+00:03:06,846 --> 00:03:11,466
+through all three of our talks
+today about kext development.
+
+
+58
+00:03:12,276 --> 00:03:15,356
+You'll see that the executable
+is down in the OS folder.
+
+
+59
+00:03:16,576 --> 00:03:22,096
+The Info.plist describes all
+the properties of your kext
+
+
+60
+00:03:22,096 --> 00:03:24,306
+and I'm going to call out
+two here that we're going
+
+
+61
+00:03:24,306 --> 00:03:26,316
+to discuss later today.
+
+
+62
+00:03:27,086 --> 00:03:31,896
+The CFBundleIdentifier, so
+that identifies your kext
+
+
+63
+00:03:32,346 --> 00:03:35,276
+in the whole kext name space,
+so that's a unique identifier
+
+
+64
+00:03:35,776 --> 00:03:37,516
+across the whole system.
+
+
+65
+00:03:38,336 --> 00:03:43,696
+CFBundleVersion, so that allows
+the kext management system
+
+
+66
+00:03:43,696 --> 00:03:45,356
+to figure out which
+of your kexts,
+
+
+67
+00:03:45,356 --> 00:03:48,866
+if it has the same
+bundle ID to load.
+
+
+68
+00:03:49,226 --> 00:03:52,086
+Now this becomes very
+important and today when we talk
+
+
+69
+00:03:52,086 --> 00:03:53,736
+about some of the other
+things that we're changing,
+
+
+70
+00:03:53,996 --> 00:03:57,266
+that you are bumping that
+version number as you go along.
+
+
+71
+00:03:59,766 --> 00:04:03,756
+Okay, so you're part of the
+kernel and part of that means
+
+
+72
+00:04:03,756 --> 00:04:06,766
+that you have to buy
+into extra protection.
+
+
+73
+00:04:07,256 --> 00:04:11,996
+So, we require specific
+File and Folder permissions.
+
+
+74
+00:04:12,976 --> 00:04:16,196
+Kexts must be owned by root
+and the group must be wheel.
+
+
+75
+00:04:18,466 --> 00:04:23,566
+Must only be writable by
+root, and permissions are deep
+
+
+76
+00:04:23,566 --> 00:04:27,726
+so this little folder here on
+the right shows you if you did
+
+
+77
+00:04:27,776 --> 00:04:31,166
+like an 'ls -alR' all
+permissions all the way
+
+
+78
+00:04:31,166 --> 00:04:32,506
+through would look like that.
+
+
+79
+00:04:33,036 --> 00:04:35,796
+If you get any of
+those incorrect,
+
+
+80
+00:04:36,236 --> 00:04:37,326
+your kext will not load.
+
+
+81
+00:04:37,876 --> 00:04:44,596
+And you can use kextutil
+-tn which is test no load
+
+
+82
+00:04:44,886 --> 00:04:48,836
+to verify your kext as
+you're developing it.
+
+
+83
+00:04:48,836 --> 00:04:55,186
+Okay new in OS X 10.9, we
+are now code signing kexts
+
+
+84
+00:04:55,446 --> 00:04:57,816
+and checking the
+signature of your kext.
+
+
+85
+00:04:58,276 --> 00:05:04,096
+In OS 10.9 all kext
+signatures are verified.
+
+
+86
+00:05:06,486 --> 00:05:09,806
+Unsigned or invalid
+signatures are not fatal
+
+
+87
+00:05:09,896 --> 00:05:11,446
+with just one exception
+and I'll talk
+
+
+88
+00:05:11,446 --> 00:05:13,546
+about that exception
+in just a little bit.
+
+
+89
+00:05:15,616 --> 00:05:21,616
+So if you sign a kext in
+10.9 and try to run it
+
+
+90
+00:05:21,906 --> 00:05:26,476
+on earlier versions, newer
+than 10.8, it will not load,
+
+
+91
+00:05:26,476 --> 00:05:29,746
+there was some code signing
+machinery changes in there
+
+
+92
+00:05:29,746 --> 00:05:32,206
+that will not allow those to
+load, so just keep that in mind.
+
+
+93
+00:05:34,126 --> 00:05:37,266
+Valid code signatures will
+eventually be mandatory
+
+
+94
+00:05:37,266 --> 00:05:38,586
+on all kexts.
+
+
+95
+00:05:38,866 --> 00:05:42,006
+So now in 10.9, there's
+only one place its mandatory
+
+
+96
+00:05:42,306 --> 00:05:46,656
+and I'll talk about that, but
+be prepared, be proactive.
+
+
+97
+00:05:46,656 --> 00:05:50,316
+Let's get your kexts signed and
+you'll be ready for the future.
+
+
+98
+00:05:50,936 --> 00:05:54,246
+And again, kextutil -tn is good
+
+
+99
+00:05:54,246 --> 00:05:56,236
+for testing your
+code signatures.
+
+
+100
+00:05:56,236 --> 00:05:59,166
+Now I have to mention in the
+seed that you have today,
+
+
+101
+00:05:59,666 --> 00:06:02,436
+I didn't quite get around
+to getting that working,
+
+
+102
+00:06:02,436 --> 00:06:06,146
+so it's fixed in the next
+seed they will actually test,
+
+
+103
+00:06:06,146 --> 00:06:09,266
+so you can just try a kext
+load to verify your signature.
+
+
+104
+00:06:11,066 --> 00:06:13,786
+Okay so now I want to talk
+a little about kext loading.
+
+
+105
+00:06:13,786 --> 00:06:16,266
+So there's three types of loads
+here I want to talk about.
+
+
+106
+00:06:16,266 --> 00:06:20,916
+Autoload. So autoload is
+basically your IOKit KEXT
+
+
+107
+00:06:21,366 --> 00:06:24,286
+when it matches hardware that's
+attached to your machine,
+
+
+108
+00:06:24,556 --> 00:06:27,256
+the kext machinery goes
+through, matches the best driver
+
+
+109
+00:06:27,256 --> 00:06:29,176
+for that, and loads it for you.
+
+
+110
+00:06:30,076 --> 00:06:33,266
+Now, where we find
+those kexts now is
+
+
+111
+00:06:33,266 --> 00:06:36,966
+in /System/Library/Extensions.
+
+
+112
+00:06:36,966 --> 00:06:39,826
+So on-demand loading
+of kexts, so you can do
+
+
+113
+00:06:39,826 --> 00:06:43,326
+that by an explicit path,
+so here we're using kextload
+
+
+114
+00:06:43,326 --> 00:06:45,866
+with our Apple sample PCI kext.
+
+
+115
+00:06:46,116 --> 00:06:48,156
+So I just give it
+a specific path.
+
+
+116
+00:06:48,556 --> 00:06:51,316
+You can also use your
+CFBundleIdentifier.
+
+
+117
+00:06:51,576 --> 00:06:57,126
+So here is kextload -b with a
+big, long bundle ID that we have
+
+
+118
+00:06:57,126 --> 00:07:01,246
+for our sample kext, and again,
+if you supply nothing else
+
+
+119
+00:07:01,246 --> 00:07:04,336
+to kextload, we'll go
+search for that bundle ID
+
+
+120
+00:07:04,336 --> 00:07:06,136
+in System/Library/Extensions.
+
+
+121
+00:07:06,536 --> 00:07:11,176
+And the other place that
+your kext gets loaded is
+
+
+122
+00:07:11,176 --> 00:07:12,326
+from the kernel cache.
+
+
+123
+00:07:12,636 --> 00:07:16,696
+So the kernel cache is built to
+speed up the boot of the system
+
+
+124
+00:07:17,056 --> 00:07:19,686
+and in there is anything
+that is required for booting,
+
+
+125
+00:07:19,686 --> 00:07:21,806
+for rooting, anything that needs
+
+
+126
+00:07:21,806 --> 00:07:25,046
+to be loaded early can be
+put in the kernel cache.
+
+
+127
+00:07:25,376 --> 00:07:28,946
+And again, when we
+build that, by default,
+
+
+128
+00:07:28,946 --> 00:07:32,866
+we'll look for those kexts out
+of System/Library/Extensions.
+
+
+129
+00:07:33,856 --> 00:07:34,926
+So you see a pattern there
+
+
+130
+00:07:34,926 --> 00:07:37,516
+that /System/Library/Extensions
+is very important
+
+
+131
+00:07:37,516 --> 00:07:40,326
+for us finding kexts
+automatically.
+
+
+132
+00:07:42,136 --> 00:07:47,186
+Okay now in 10.9, autoload,
+on-demand load by bundle ID
+
+
+133
+00:07:47,516 --> 00:07:50,606
+and kernel cache builds
+will look not only
+
+
+134
+00:07:50,606 --> 00:07:54,296
+in /System/Library/Extensions,
+but also /Library/Extensions.
+
+
+135
+00:07:55,006 --> 00:07:57,616
+So, and again, if you touch,
+
+
+136
+00:07:57,616 --> 00:08:00,996
+the /System/Library/Extensions
+we will automatically rebuild
+
+
+137
+00:08:00,996 --> 00:08:01,456
+the kernel cache.
+
+
+138
+00:08:01,456 --> 00:08:04,426
+/Library/Extensions is the
+same thing except, again,
+
+
+139
+00:08:04,426 --> 00:08:05,466
+the seed that you have,
+
+
+140
+00:08:06,836 --> 00:08:08,766
+that will not work
+until the next seed.
+
+
+141
+00:08:08,766 --> 00:08:11,076
+We have a fix that
+I just put in.
+
+
+142
+00:08:12,226 --> 00:08:15,576
+Okay, and you must sign
+your kext if you're going
+
+
+143
+00:08:15,576 --> 00:08:17,836
+to deploy them in
+/Library/Extensions.
+
+
+144
+00:08:17,986 --> 00:08:20,076
+So this is the exception I
+was talking about earlier.
+
+
+145
+00:08:20,526 --> 00:08:27,076
+So, if it's not signed, we
+will not load it from there.
+
+
+146
+00:08:27,276 --> 00:08:29,596
+Okay. So we've done
+some research to find
+
+
+147
+00:08:29,596 --> 00:08:33,476
+out where your kext is
+already installed recently.
+
+
+148
+00:08:33,476 --> 00:08:35,936
+Of course,
+/System/Library/Extensions
+
+
+149
+00:08:35,936 --> 00:08:38,966
+and those are needed for
+autoload or autosearch.
+
+
+150
+00:08:39,655 --> 00:08:43,186
+/Library/Application
+Support, that's a fine place,
+
+
+151
+00:08:43,186 --> 00:08:44,306
+and that's where you guys are.
+
+
+152
+00:08:44,306 --> 00:08:46,976
+/System/Library/Extensions/File
+Systems,
+
+
+153
+00:08:46,976 --> 00:08:49,686
+that's where mainly our
+file system kexts are.
+
+
+154
+00:08:50,546 --> 00:08:54,016
+/Library/File Systems are
+your File System kexts.
+
+
+155
+00:08:54,886 --> 00:09:00,596
+Library startup items, in
+the application folder,
+
+
+156
+00:09:00,636 --> 00:09:04,406
+inside your app bundles,
+that's a perfectly good place
+
+
+157
+00:09:04,406 --> 00:09:07,146
+for your kexts and
+/Library/Extensions.
+
+
+158
+00:09:07,316 --> 00:09:10,036
+Again, it did not support
+autosearch or autoload.
+
+
+159
+00:09:10,576 --> 00:09:17,436
+In OS 10.9, same setup, these
+are all perfectly fine places
+
+
+160
+00:09:17,436 --> 00:09:20,166
+and now we have the
+autoload and autosearch
+
+
+161
+00:09:20,166 --> 00:09:23,416
+in /Library/Extensions and,
+again, the caveat there is
+
+
+162
+00:09:23,416 --> 00:09:27,186
+that they must be signed.
+
+
+163
+00:09:27,386 --> 00:09:30,926
+Okay where we want
+your kexts installed.
+
+
+164
+00:09:31,826 --> 00:09:35,966
+So the autoload kext that
+required rooting, booting,
+
+
+165
+00:09:36,136 --> 00:09:39,106
+early, you know, early
+load from the kernel cache
+
+
+166
+00:09:39,536 --> 00:09:43,326
+and autosearching of
+kexts, again, we want those
+
+
+167
+00:09:43,326 --> 00:09:45,576
+in /Library/Extensions
+and they must be signed.
+
+
+168
+00:09:46,086 --> 00:09:50,566
+/System/Library/Extensions
+for compatibility.
+
+
+169
+00:09:50,566 --> 00:09:53,296
+So if you have shipping kexts
+out there, which you already do,
+
+
+170
+00:09:53,616 --> 00:09:56,516
+it's fine to leave those in
+/System/Library/Extensions.
+
+
+171
+00:09:56,566 --> 00:09:58,656
+As you revise and start
+signing your kexts,
+
+
+172
+00:09:58,846 --> 00:10:00,576
+move them to
+/Library/Extensions,
+
+
+173
+00:10:01,146 --> 00:10:05,866
+and anything on 10.8 and
+earlier, the unsigned kexts,
+
+
+174
+00:10:06,096 --> 00:10:08,516
+leave them in
+/System/Library/Extensions,
+
+
+175
+00:10:09,246 --> 00:10:11,396
+that's fine, all other
+kexts though, any other kext
+
+
+176
+00:10:11,396 --> 00:10:12,886
+that doesn't need
+to be autoloaded
+
+
+177
+00:10:13,226 --> 00:10:16,076
+or automatically
+found by the system.
+
+
+178
+00:10:16,576 --> 00:10:20,406
+Signed kexts can go into
+/Library/Extensions,
+
+
+179
+00:10:20,406 --> 00:10:23,916
+so just because we autosearch
+and autoload from there,
+
+
+180
+00:10:24,236 --> 00:10:26,886
+if you sign your kext, it's
+still fine to put it in there.
+
+
+181
+00:10:26,886 --> 00:10:28,886
+Even if you don't
+need to be autoloaded.
+
+
+182
+00:10:31,036 --> 00:10:32,886
+Do not install anywhere
+in /System.
+
+
+183
+00:10:34,116 --> 00:10:36,876
+So in the future, we are
+going to tighten down access
+
+
+184
+00:10:37,046 --> 00:10:41,216
+to the system hierarchy,
+the whole hierarchy
+
+
+185
+00:10:41,216 --> 00:10:44,526
+down from /System and
+everything in there.
+
+
+186
+00:10:45,496 --> 00:10:49,606
+So, be proactive and stay out of
+there because changes are coming
+
+
+187
+00:10:49,606 --> 00:10:53,306
+that will require
+that you not be there.
+
+
+188
+00:10:54,086 --> 00:10:56,986
+So all the other common
+locations that I talked about,
+
+
+189
+00:10:56,986 --> 00:11:01,506
+applications in your application
+bundle, all those are fine.
+
+
+190
+00:11:01,706 --> 00:11:07,446
+So, you may need to have
+two kexts for compatibility
+
+
+191
+00:11:07,556 --> 00:11:09,926
+and in a little bit we'll
+show you actually how
+
+
+192
+00:11:09,926 --> 00:11:11,246
+to build those kexts, sign them,
+
+
+193
+00:11:11,246 --> 00:11:14,686
+and deploy them across
+multiple OS's.
+
+
+194
+00:11:16,366 --> 00:11:20,396
+Okay. So, we're talking
+about signing your kexts,
+
+
+195
+00:11:20,396 --> 00:11:21,496
+so how do you go about that?
+
+
+196
+00:11:21,856 --> 00:11:25,446
+The Developer ID
+Program is your mechanism
+
+
+197
+00:11:25,446 --> 00:11:26,746
+to get your kext signed.
+
+
+198
+00:11:26,746 --> 00:11:27,626
+So what is this?
+
+
+199
+00:11:28,226 --> 00:11:29,936
+Its part of the Mac
+Development Program,
+
+
+200
+00:11:30,016 --> 00:11:32,306
+which you're probably
+already a member of.
+
+
+201
+00:11:32,886 --> 00:11:34,796
+It allows distribution
+
+
+202
+00:11:34,796 --> 00:11:37,616
+of applications outside
+of the Mac App Store.
+
+
+203
+00:11:38,306 --> 00:11:40,896
+So a kext is not
+going to be delivered
+
+
+204
+00:11:40,896 --> 00:11:41,976
+through the Mac App Store,
+
+
+205
+00:11:41,976 --> 00:11:44,606
+so this is actually a
+great place for you guys.
+
+
+206
+00:11:45,456 --> 00:11:48,276
+And then you get a special
+Developer ID Certificate
+
+
+207
+00:11:48,576 --> 00:11:54,406
+for signing your applications
+and now in OS 10.9 you're going
+
+
+208
+00:11:54,406 --> 00:11:58,166
+to get a new certificate for
+signing applications and kexts.
+
+
+209
+00:11:58,616 --> 00:12:04,176
+So how do you go about getting
+this Developer ID Certificate?
+
+
+210
+00:12:05,406 --> 00:12:06,106
+Very simple.
+
+
+211
+00:12:06,466 --> 00:12:09,086
+So you go up to
+developer.apple.com,
+
+
+212
+00:12:10,386 --> 00:12:13,496
+Resources/Developer ID,
+you click on the link
+
+
+213
+00:12:13,496 --> 00:12:15,996
+to request a Developer
+ID Certificate,
+
+
+214
+00:12:18,086 --> 00:12:22,096
+you fill out the form, and then
+once the form is approved you'll
+
+
+215
+00:12:22,096 --> 00:12:24,486
+go back to the Member Center
+
+
+216
+00:12:24,896 --> 00:12:28,546
+and in
+Certificate/Identifier/Profiles
+
+
+217
+00:12:29,246 --> 00:12:31,466
+you will see this.
+
+
+218
+00:12:32,386 --> 00:12:33,896
+This should be active
+right now, by the way,
+
+
+219
+00:12:33,896 --> 00:12:35,016
+so you should be able to go up
+
+
+220
+00:12:35,046 --> 00:12:37,176
+and get your certificate
+right now,
+
+
+221
+00:12:37,356 --> 00:12:39,376
+so click on the Developer
+ID Application
+
+
+222
+00:12:39,376 --> 00:12:43,126
+and kernel extensions,
+and you're ready to go.
+
+
+223
+00:12:43,836 --> 00:12:45,866
+So for more information
+you can go back
+
+
+224
+00:12:45,866 --> 00:12:49,376
+up to developer.apple.com
+and then, also,
+
+
+225
+00:12:49,376 --> 00:12:54,906
+Session 702 from last
+year's WWDC, Perry talked
+
+
+226
+00:12:54,906 --> 00:12:57,416
+about Gatekeeper and
+Developer ID, so he talked
+
+
+227
+00:12:57,416 --> 00:12:59,386
+about the Developer
+ID Program last year
+
+
+228
+00:12:59,926 --> 00:13:01,676
+in context for applications.
+
+
+229
+00:13:02,376 --> 00:13:06,106
+All that stuff he talked about
+in that session, he gives a lot
+
+
+230
+00:13:06,106 --> 00:13:07,486
+of information about
+code signing,
+
+
+231
+00:13:07,486 --> 00:13:09,146
+is applicable to you guys too.
+
+
+232
+00:13:09,416 --> 00:13:12,316
+So go back and look at
+that, there's a great deal
+
+
+233
+00:13:12,316 --> 00:13:14,046
+of information there for you.
+
+
+234
+00:13:15,266 --> 00:13:22,036
+Okay. So in the seed that
+you have now, in 10.9,
+
+
+235
+00:13:22,636 --> 00:13:24,546
+I want to call out some
+things that are going
+
+
+236
+00:13:24,546 --> 00:13:27,116
+to affect you and our customers.
+
+
+237
+00:13:27,736 --> 00:13:31,146
+The first thing, as I said
+before, /Library/Extensions,
+
+
+238
+00:13:31,246 --> 00:13:33,676
+kexts in /Library/Extensions
+will not load
+
+
+239
+00:13:33,986 --> 00:13:37,226
+if they're unsigned or if
+the signature's invalid.
+
+
+240
+00:13:39,136 --> 00:13:43,716
+So what this means is that
+the user will see this no load
+
+
+241
+00:13:44,176 --> 00:13:45,526
+alert dialogue.
+
+
+242
+00:13:46,676 --> 00:13:51,276
+Basically, it says the kext is
+not going to load and the part
+
+
+243
+00:13:51,276 --> 00:13:53,416
+that affects you is that
+very last line in there
+
+
+244
+00:13:53,416 --> 00:13:57,266
+that says contact the Developer
+to get updated software.
+
+
+245
+00:13:59,296 --> 00:14:02,616
+There's a second alert
+that will come out.
+
+
+246
+00:14:03,166 --> 00:14:07,666
+Anything that is a kext outside
+of /Library/Extensions will load
+
+
+247
+00:14:08,046 --> 00:14:13,046
+if it's unsigned or if it has
+a signature validation problem,
+
+
+248
+00:14:14,856 --> 00:14:17,016
+but the user will
+see another alert.
+
+
+249
+00:14:17,186 --> 00:14:20,506
+In that particular case, it
+will say that yes we're going
+
+
+250
+00:14:20,506 --> 00:14:23,856
+to load it, but please
+contact the vendor
+
+
+251
+00:14:23,856 --> 00:14:30,716
+to get an updated
+version on this.
+
+
+252
+00:14:30,926 --> 00:14:34,986
+Also, what you guys will see as
+you develop your kext and some
+
+
+253
+00:14:34,986 --> 00:14:36,686
+of your customers might
+contact you and say, "Hey,
+
+
+254
+00:14:36,686 --> 00:14:41,476
+I saw this thing in the System
+Log," so there's some warnings
+
+
+255
+00:14:41,476 --> 00:14:43,686
+and error messages, so
+the warnings would be
+
+
+256
+00:14:44,046 --> 00:14:47,036
+if it's actually going to load
+the kext, but it has some kind
+
+
+257
+00:14:47,036 --> 00:14:51,476
+of problem in verification,
+and the error messages are
+
+
+258
+00:14:51,476 --> 00:14:52,456
+when you get that alert
+
+
+259
+00:14:52,456 --> 00:14:56,036
+that says I'm not going
+to load it at all.
+
+
+260
+00:14:56,096 --> 00:15:00,146
+So the most common code
+signature error codes
+
+
+261
+00:15:00,146 --> 00:15:04,086
+that you're going to
+see is the -67030,
+
+
+262
+00:15:04,236 --> 00:15:07,416
+which means that something in
+the bundle has been modified.
+
+
+263
+00:15:07,946 --> 00:15:12,126
+Something that, the kext
+signature is no longer valid,
+
+
+264
+00:15:12,126 --> 00:15:16,146
+so if somebody went in and
+messed with your Info.plist,
+
+
+265
+00:15:16,606 --> 00:15:17,876
+then you're going
+to get this error.
+
+
+266
+00:15:19,146 --> 00:15:25,156
+The other one is -67062, which
+is the kext is not code signed,
+
+
+267
+00:15:25,156 --> 00:15:27,926
+which means there's no
+signature at all on this kext.
+
+
+268
+00:15:30,346 --> 00:15:34,216
+So there's all kinds of error
+codes in the security framework
+
+
+269
+00:15:34,216 --> 00:15:37,796
+and you can go to the
+cs.h and see all those.
+
+
+270
+00:15:38,796 --> 00:15:43,956
+So here's an example of when I
+took the Apple sample PCI.kext,
+
+
+271
+00:15:44,686 --> 00:15:50,676
+built it, had it signed, then
+I went into the Info.plist file
+
+
+272
+00:15:50,676 --> 00:15:52,926
+and changed just
+a line in there,
+
+
+273
+00:15:53,786 --> 00:15:55,246
+and then I tried
+to load the kext.
+
+
+274
+00:15:55,246 --> 00:15:58,356
+And so this is exactly
+what you're going to see
+
+
+275
+00:15:58,356 --> 00:15:59,396
+in that particular case.
+
+
+276
+00:15:59,516 --> 00:16:03,106
+So this is an example of
+a modified Info.plist,
+
+
+277
+00:16:03,396 --> 00:16:04,776
+invalidates the signature,
+
+
+278
+00:16:04,776 --> 00:16:08,306
+and this is the message
+that you'll get.
+
+
+279
+00:16:08,496 --> 00:16:14,896
+Okay, in summary, sign your
+kext with your Developer ID,
+
+
+280
+00:16:14,896 --> 00:16:16,106
+it's very simple and easy,
+
+
+281
+00:16:17,406 --> 00:16:19,646
+get out of
+/System/Library/Extensions
+
+
+282
+00:16:19,866 --> 00:16:25,536
+as quickly as possible, in fact,
+all of /System, and if you think
+
+
+283
+00:16:25,536 --> 00:16:29,116
+that you need to be in /System
+for some reason anywhere down in
+
+
+284
+00:16:29,116 --> 00:16:31,996
+that hierarchy anywhere, please
+talk to us and let us know
+
+
+285
+00:16:31,996 --> 00:16:34,306
+so we can provide
+alternatives to that.
+
+
+286
+00:16:34,816 --> 00:16:41,006
+And get your kexts into
+/Library/Extensions.
+
+
+287
+00:16:41,006 --> 00:16:42,756
+Okay, now Dean Reece
+is going to come up
+
+
+288
+00:16:42,986 --> 00:16:45,396
+and actually show you how to
+build your kext, get it signed,
+
+
+289
+00:16:45,396 --> 00:16:47,936
+and deployed across
+many versions of the OS.
+
+
+290
+00:16:47,936 --> 00:16:49,226
+[ Applause ]
+
+
+291
+00:16:49,226 --> 00:16:49,426
+>> Dean Reece:Hi.
+
+
+292
+00:16:54,656 --> 00:16:56,276
+Thanks for joining us today.
+
+
+293
+00:16:56,476 --> 00:16:59,146
+My name is Dean Reece and
+I manage the IOKit Team
+
+
+294
+00:16:59,146 --> 00:17:01,486
+in Core OS, and I'm
+just going to run
+
+
+295
+00:17:01,486 --> 00:17:04,366
+through a couple examples
+real quick.Let's get started
+
+
+296
+00:17:05,215 --> 00:17:08,506
+with the most basic
+project here just to kind
+
+
+297
+00:17:08,506 --> 00:17:10,415
+of set a base to start from.
+
+
+298
+00:17:10,836 --> 00:17:13,526
+We're going to build a kext that
+follows the new signing rules
+
+
+299
+00:17:13,526 --> 00:17:15,455
+and installation
+paths and only loads
+
+
+300
+00:17:15,455 --> 00:17:23,906
+on OS X 10.9.So you're going to
+need to use at least OS X 10.8.3
+
+
+301
+00:17:23,906 --> 00:17:26,606
+as your minimum build
+for the build machine
+
+
+302
+00:17:26,945 --> 00:17:29,036
+and this is necessary to
+get correct code signing.
+
+
+303
+00:17:29,036 --> 00:17:32,616
+It was a change to the security
+framework that's available
+
+
+304
+00:17:32,676 --> 00:17:34,976
+in that build and
+later OS releases.
+
+
+305
+00:17:36,106 --> 00:17:39,306
+You're also going to need
+to use Xcode 4.6 or later,
+
+
+306
+00:17:39,436 --> 00:17:41,836
+and for these examples
+I'm showing you Xcode 5
+
+
+307
+00:17:41,916 --> 00:17:42,636
+which is preferred.
+
+
+308
+00:17:43,256 --> 00:17:46,186
+And as Jerry described,
+you're going to need
+
+
+309
+00:17:46,186 --> 00:17:48,626
+that Developer ID
+Certificate that allows you
+
+
+310
+00:17:48,626 --> 00:17:51,876
+to sign kernel extensions,
+and you're going to install
+
+
+311
+00:17:51,876 --> 00:17:56,026
+that on your keychain so
+Xcode can get to it.Okay,
+
+
+312
+00:17:56,026 --> 00:17:59,266
+so you create a new Xcode
+project and there's two flavors
+
+
+313
+00:17:59,266 --> 00:18:02,766
+of kernel extensions: The
+"Generic Kernel Extension",
+
+
+314
+00:18:02,766 --> 00:18:05,366
+which is typically used for File
+Systems and network plug-ins.
+
+
+315
+00:18:05,786 --> 00:18:07,816
+An "IOKit Driver",
+which is typically used
+
+
+316
+00:18:07,816 --> 00:18:12,626
+for autoload hardware
+drivers.And you'll go
+
+
+317
+00:18:12,626 --> 00:18:15,156
+through the normal creation
+process so we'll give it a name,
+
+
+318
+00:18:15,156 --> 00:18:19,966
+a unique bundle identifier,
+and you have a project ready
+
+
+319
+00:18:19,966 --> 00:18:22,066
+to start putting code into.So,
+
+
+320
+00:18:22,306 --> 00:18:24,716
+we're going to set a
+few properties and most
+
+
+321
+00:18:24,716 --> 00:18:26,566
+of these are going to default
+this way, but a couple won't
+
+
+322
+00:18:26,566 --> 00:18:30,306
+so we'll walk through those
+very quickly.Make sure
+
+
+323
+00:18:30,306 --> 00:18:32,506
+"Architectures" is set to
+"Standard Architectures".
+
+
+324
+00:18:32,506 --> 00:18:39,026
+You only need to building for
+64-bit Intel on OS X 10.9.
+
+
+325
+00:18:39,396 --> 00:18:40,936
+And also make sure
+the "Base SDK" is set
+
+
+326
+00:18:40,936 --> 00:18:48,296
+to "Latest OS X (OS X
+10.9)".Under Code Signing,
+
+
+327
+00:18:48,296 --> 00:18:51,086
+this is new for kernel
+extensions, so you're going
+
+
+328
+00:18:51,086 --> 00:18:52,936
+to want to change the
+"Code Signing Identity"
+
+
+329
+00:18:53,006 --> 00:18:54,426
+to your Developer ID Certificate
+
+
+330
+00:18:54,596 --> 00:18:55,916
+that you've installed
+on your keychain.
+
+
+331
+00:18:55,916 --> 00:18:58,456
+You can set it to this setting
+
+
+332
+00:18:58,456 --> 00:19:00,196
+which would match
+any Developer ID.
+
+
+333
+00:19:00,196 --> 00:19:03,056
+If you have multiple
+Developer ID Certificates,
+
+
+334
+00:19:03,126 --> 00:19:05,916
+then you might have to pick the
+specific one that is authorized
+
+
+335
+00:19:05,916 --> 00:19:11,456
+for signing kernel extensions.In
+the deployment section,
+
+
+336
+00:19:11,826 --> 00:19:13,336
+another change here,
+you're going
+
+
+337
+00:19:13,336 --> 00:19:14,946
+to have change the
+installation directory.
+
+
+338
+00:19:14,946 --> 00:19:17,416
+It will default to
+/System/Library/Extensions,
+
+
+339
+00:19:17,416 --> 00:19:18,796
+and of course as we said,
+
+
+340
+00:19:18,796 --> 00:19:21,576
+that is now /Library/Extensions
+for OS X 10.9.
+
+
+341
+00:19:22,126 --> 00:19:29,336
+And the deployment target should
+match.We're not going to go
+
+
+342
+00:19:29,936 --> 00:19:32,226
+into the actual coding
+of the kernel extension,
+
+
+343
+00:19:32,226 --> 00:19:33,816
+that's outside the
+scope of this talk,
+
+
+344
+00:19:33,816 --> 00:19:35,306
+but there's a few quick
+reminders that I wanted
+
+
+345
+00:19:35,306 --> 00:19:38,106
+to give you.When you're
+developing a kernel extension,
+
+
+346
+00:19:38,296 --> 00:19:40,446
+you may only use
+headers that you find
+
+
+347
+00:19:40,446 --> 00:19:41,546
+in the Kernel.framework.
+
+
+348
+00:19:41,956 --> 00:19:44,866
+The Kernel.framework is intended
+for use by kernel extensions
+
+
+349
+00:19:45,456 --> 00:19:48,216
+and conversely, it cannot
+be used by applications.
+
+
+350
+00:19:48,576 --> 00:19:51,036
+So all the other frameworks
+are for applications,
+
+
+351
+00:19:51,746 --> 00:19:56,996
+Kernel.framework is for kexts.If
+you're writing an autoload kext
+
+
+352
+00:19:56,996 --> 00:20:00,406
+or IOKit kext and you
+happen to subclass OSObject
+
+
+353
+00:20:00,406 --> 00:20:02,336
+or any class that's
+derived from it,
+
+
+354
+00:20:02,336 --> 00:20:05,996
+which all the IOKit classes are,
+then you must use the OSDeclare
+
+
+355
+00:20:05,996 --> 00:20:08,366
+and OSDefine macros
+that you'll find
+
+
+356
+00:20:08,366 --> 00:20:10,446
+in the OSMetaClass.h header.
+
+
+357
+00:20:10,916 --> 00:20:13,176
+This is important for
+our binary compatibility.
+
+
+358
+00:20:14,186 --> 00:20:18,126
+This includes additional symbols
+that our run-time system picks
+
+
+359
+00:20:18,126 --> 00:20:20,366
+up and uses so that we
+can patch up your kext
+
+
+360
+00:20:20,366 --> 00:20:21,666
+and make it binary compatible
+
+
+361
+00:20:22,056 --> 00:20:23,496
+with whatever OS
+you're loading it on.
+
+
+362
+00:20:23,916 --> 00:20:28,686
+So, for example, if you build a
+kernel extension using the OS X
+
+
+363
+00:20:28,686 --> 00:20:32,596
+10.8 SDK and you fail
+to use these macros,
+
+
+364
+00:20:33,166 --> 00:20:36,456
+that kext will only ever load
+on OS X 10.8; it won't load
+
+
+365
+00:20:36,456 --> 00:20:43,456
+on OS X 10.9, you'll get symbol
+errors.And the last thing,
+
+
+366
+00:20:43,676 --> 00:20:47,456
+is you need to not strip those
+binary compatibility symbols
+
+
+367
+00:20:47,456 --> 00:20:48,956
+out of the binary.
+
+
+368
+00:20:48,956 --> 00:20:50,796
+You can use "strip -S -x".
+
+
+369
+00:20:50,976 --> 00:20:54,656
+That's safe for stripping
+a kernel extension binary,
+
+
+370
+00:20:55,116 --> 00:20:57,696
+but anything more restrictive
+might rip out those symbols
+
+
+371
+00:20:57,696 --> 00:21:05,176
+that we need.The project we
+just described builds one kext.
+
+
+372
+00:21:05,906 --> 00:21:10,086
+It will load on OS X 10.9
+with no errors or warnings
+
+
+373
+00:21:11,016 --> 00:21:12,966
+and you're going to
+debug it using lldb.
+
+
+374
+00:21:12,966 --> 00:21:16,666
+In a few minutes Brian's going
+to join us and describe how
+
+
+375
+00:21:16,666 --> 00:21:20,586
+to do that, but you'll need
+to be running OS X 10.9
+
+
+376
+00:21:20,586 --> 00:21:24,346
+on both the target system
+and your host system
+
+
+377
+00:21:24,346 --> 00:21:29,716
+for that lldb connection.And
+of course after you package it,
+
+
+378
+00:21:29,986 --> 00:21:33,196
+part of your Q.A. process
+should be to verify
+
+
+379
+00:21:33,196 --> 00:21:35,426
+that it is installing
+in Library/Extensions.
+
+
+380
+00:21:35,546 --> 00:21:37,756
+I think that might
+have come up once
+
+
+381
+00:21:37,846 --> 00:21:43,526
+or twice.Now let's expand
+this project a little bit
+
+
+382
+00:21:43,576 --> 00:21:46,136
+and we're going to add
+support for OS X 10.8.
+
+
+383
+00:21:47,186 --> 00:21:49,186
+To do that, we're going
+to create a new target,
+
+
+384
+00:21:50,066 --> 00:21:52,686
+and we'll have visit those
+same settings that we talked
+
+
+385
+00:21:52,686 --> 00:21:56,416
+about before.But
+before we do that,
+
+
+386
+00:21:56,536 --> 00:21:59,296
+we're going to check
+our version numbers.
+
+
+387
+00:21:59,796 --> 00:22:01,826
+Now, this is very
+important; this calls back
+
+
+388
+00:22:01,826 --> 00:22:03,186
+to what Jerry told you earlier.
+
+
+389
+00:22:03,186 --> 00:22:06,776
+If you have multiple copies
+of your kexts installed
+
+
+390
+00:22:06,776 --> 00:22:09,326
+on the system, and the system
+encounters both of them,
+
+
+391
+00:22:09,326 --> 00:22:13,266
+it's going to pick the one with
+the highest version number.
+
+
+392
+00:22:13,266 --> 00:22:15,396
+Because of the way that
+this project is going
+
+
+393
+00:22:15,396 --> 00:22:18,356
+to install its kexts,
+we're going to say
+
+
+394
+00:22:18,356 --> 00:22:21,866
+that the target intended for
+Mavericks, for OS X 10.9,
+
+
+395
+00:22:22,256 --> 00:22:23,846
+will have a higher
+version number.
+
+
+396
+00:22:24,396 --> 00:22:27,216
+And that the one intended
+
+
+397
+00:22:27,216 --> 00:22:30,006
+for OS X 10.8 will have
+the lower version number.
+
+
+398
+00:22:31,046 --> 00:22:36,326
+The reason this works is
+because the newer kext is going
+
+
+399
+00:22:36,326 --> 00:22:38,226
+to be installed in
+/Library/Extensions,
+
+
+400
+00:22:38,336 --> 00:22:41,146
+and older OS's don't look there
+so they won't see it by default,
+
+
+401
+00:22:41,726 --> 00:22:43,056
+they won't know about
+the newer version
+
+
+402
+00:22:43,056 --> 00:22:43,796
+and they'll just ignore it.
+
+
+403
+00:22:45,176 --> 00:22:49,566
+Whereas Mavericks will see
+the newer one and load it
+
+
+404
+00:22:51,496 --> 00:22:53,576
+by preference.Okay, so let's go
+
+
+405
+00:22:53,576 --> 00:22:55,366
+and visit those same
+build settings we talked
+
+
+406
+00:22:55,366 --> 00:22:56,356
+about last time through.
+
+
+407
+00:22:57,056 --> 00:23:01,136
+Your new OS X 10.8
+target is going
+
+
+408
+00:23:01,136 --> 00:23:04,126
+to have the same
+architecture setting,
+
+
+409
+00:23:04,126 --> 00:23:05,746
+again you only need
+64-bit Intel there,
+
+
+410
+00:23:06,066 --> 00:23:09,886
+but your "Base SDK" will be
+"OS X 10.8" in this case.And
+
+
+411
+00:23:10,776 --> 00:23:12,486
+of course "Code Signing
+Identity" will default
+
+
+412
+00:23:12,486 --> 00:23:14,986
+to "Don't Code Sign", but you
+should verify that is the case,
+
+
+413
+00:23:15,036 --> 00:23:19,426
+because you don't
+want it signed.And the
+
+
+414
+00:23:19,666 --> 00:23:22,326
+"Installation Directory"
+in this case will need
+
+
+415
+00:23:22,326 --> 00:23:27,376
+to be
+/System/Library/Extensions,
+
+
+416
+00:23:27,376 --> 00:23:29,516
+and the "OS X Deployment
+Target" needs
+
+
+417
+00:23:31,876 --> 00:23:33,566
+to match the SDK.This
+project now builds two
+
+
+418
+00:23:33,566 --> 00:23:34,476
+kernel extensions.
+
+
+419
+00:23:35,186 --> 00:23:36,876
+The signed one is
+exactly the same
+
+
+420
+00:23:36,876 --> 00:23:38,376
+as the one we built
+in the first example.
+
+
+421
+00:23:38,956 --> 00:23:41,896
+And the unsigned kext
+that is being built
+
+
+422
+00:23:41,896 --> 00:23:45,896
+by the new target will load
+on OS X 10.8.Now you're going
+
+
+423
+00:23:45,896 --> 00:23:49,026
+to use gdb to debug that one.
+
+
+424
+00:23:49,026 --> 00:23:52,246
+That's the divide
+between 10.8 and 10.9:
+
+
+425
+00:23:52,596 --> 00:23:54,456
+10.8 and earlier is gdb,
+
+
+426
+00:23:54,806 --> 00:23:58,206
+10.9 and later is lldb.And
+you're going to verify
+
+
+427
+00:23:58,206 --> 00:23:59,136
+that that did, in fact,
+
+
+428
+00:23:59,136 --> 00:23:59,306
+go
+
+
+429
+00:23:59,306 --> 00:24:05,026
+to
+/System/Library/Extensions.Since
+
+
+430
+00:24:05,026 --> 00:24:06,986
+you'll be installing
+two kernel extensions,
+
+
+431
+00:24:07,256 --> 00:24:12,086
+it might be a good idea if you
+were to look at the target OS
+
+
+432
+00:24:12,086 --> 00:24:15,366
+in your install scripts, see
+what OS you're installing into
+
+
+433
+00:24:15,366 --> 00:24:17,986
+and avoid installing the legacy
+kext if you're installing
+
+
+434
+00:24:17,986 --> 00:24:21,666
+onto a Maverick system, because
+it will never need it.And
+
+
+435
+00:24:21,666 --> 00:24:24,586
+another warning I'll throw
+out here is in the future
+
+
+436
+00:24:24,586 --> 00:24:27,326
+as we start to lock
+down the /System folder,
+
+
+437
+00:24:27,676 --> 00:24:29,216
+you might actually
+get write errors.
+
+
+438
+00:24:29,306 --> 00:24:31,136
+So when you try to
+install a kernel extension
+
+
+439
+00:24:31,136 --> 00:24:35,236
+into the /System folder,
+the write itself may fail.
+
+
+440
+00:24:35,336 --> 00:24:37,676
+Your installer script needs
+to be smart enough to know
+
+
+441
+00:24:37,676 --> 00:24:40,826
+if it tries to write something
+there, as long as the one
+
+
+442
+00:24:40,826 --> 00:24:41,296
+that went
+
+
+443
+00:24:41,296 --> 00:24:43,286
+into /Library/Extensions
+made it okay,
+
+
+444
+00:24:43,286 --> 00:24:50,566
+that's good enough.Alright.So
+let's expand one more OS
+
+
+445
+00:24:50,566 --> 00:24:51,176
+release back.
+
+
+446
+00:24:51,176 --> 00:24:52,156
+In this case we're going
+
+
+447
+00:24:52,156 --> 00:24:56,256
+to modify the project we
+just created for OS X 10.7,
+
+
+448
+00:24:56,656 --> 00:25:01,306
+but one difference is we're
+going to use Xcode 4.6.
+
+
+449
+00:25:01,586 --> 00:25:03,956
+You can't use Xcode 5 for this
+
+
+450
+00:25:03,956 --> 00:25:13,636
+because Xcode 5 doesn't
+have the 10.7 SDK.As before,
+
+
+451
+00:25:13,636 --> 00:25:15,426
+you're still going to
+need that certificate
+
+
+452
+00:25:15,426 --> 00:25:22,336
+for signing the Maverick's
+kext.We're going to start
+
+
+453
+00:25:22,336 --> 00:25:25,296
+with the same project as
+last time, but we're going
+
+
+454
+00:25:25,296 --> 00:25:28,806
+to show the screenshots
+in the older Xcode.
+
+
+455
+00:25:29,596 --> 00:25:31,246
+So the second target is going
+
+
+456
+00:25:31,246 --> 00:25:33,626
+to have slightly different
+settings, particularly
+
+
+457
+00:25:33,626 --> 00:25:36,316
+to target OS X 10.7, we have
+
+
+458
+00:25:36,316 --> 00:25:38,236
+to add the 32-bit Intel
+architecture for that,
+
+
+459
+00:25:38,616 --> 00:25:39,606
+for full compatibility.
+
+
+460
+00:25:40,316 --> 00:25:42,136
+And the resulting kext
+from that target will load
+
+
+461
+00:25:42,136 --> 00:25:48,656
+on both OS X 10.7 and
+10.8.As before, you're going
+
+
+462
+00:25:48,656 --> 00:25:50,946
+to make sure that the
+module identifier,
+
+
+463
+00:25:51,186 --> 00:25:52,976
+the CFBundleIdentifier
+that Jerry talked about,
+
+
+464
+00:25:52,976 --> 00:25:54,386
+is the same for both targets.
+
+
+465
+00:25:55,416 --> 00:25:58,686
+And you're going to make
+sure that the legacy kext,
+
+
+466
+00:25:58,686 --> 00:26:01,946
+the one that's installing
+in the old path,
+
+
+467
+00:26:01,946 --> 00:26:09,436
+/System/Library/Extensions,
+
+
+468
+00:26:09,436 --> 00:26:11,146
+has the older version
+number.Let's go and look
+
+
+469
+00:26:11,146 --> 00:26:12,116
+at these build settings.
+
+
+470
+00:26:12,636 --> 00:26:14,976
+Again, "Architectures",
+you need to make sure
+
+
+471
+00:26:14,976 --> 00:26:16,106
+that its standard for this SDK.
+
+
+472
+00:26:16,106 --> 00:26:19,976
+So the "Base SDK" is
+going to be "OS X 10.7"
+
+
+473
+00:26:20,096 --> 00:26:22,456
+and the "Architecture"
+is going to be both 32
+
+
+474
+00:26:22,456 --> 00:26:28,116
+and 64-bit Intel.And as
+before, this target needs
+
+
+475
+00:26:28,116 --> 00:26:33,466
+to not sign the kext.In
+deployment, again,
+
+
+476
+00:26:33,466 --> 00:26:35,906
+/System/Library/Extensions
+is where it has to go
+
+
+477
+00:26:35,906 --> 00:26:38,766
+for OS X 10.7 and
+10.8 to see it.
+
+
+478
+00:26:39,616 --> 00:26:43,506
+And the "OS X Deployment
+Target" needs to match the SDK
+
+
+479
+00:26:45,126 --> 00:26:47,756
+as before.This project
+will also build two kexts.
+
+
+480
+00:26:48,176 --> 00:26:50,716
+The signed kext is
+unchanged, it's exactly
+
+
+481
+00:26:50,716 --> 00:26:52,276
+as the previous two examples.
+
+
+482
+00:26:53,196 --> 00:26:57,316
+But the unsigned kext should
+actually load on both 10.7,
+
+
+483
+00:26:57,316 --> 00:27:01,416
+all flavors of 10.7 and all
+flavors of 10.8, and you will,
+
+
+484
+00:27:01,416 --> 00:27:05,326
+again, use gdb to debug that.
+
+
+485
+00:27:06,156 --> 00:27:08,196
+Oh yeah, and as before,
+you're going to want
+
+
+486
+00:27:08,196 --> 00:27:10,196
+to install only the
+kexts that are necessary.
+
+
+487
+00:27:10,196 --> 00:27:12,586
+If you're installing to
+a 10.7 or 10.8 system,
+
+
+488
+00:27:12,766 --> 00:27:14,776
+you'll install both kexts,
+but if you're installing
+
+
+489
+00:27:14,776 --> 00:27:17,206
+into an OS X 10.9
+system, you only need
+
+
+490
+00:27:17,206 --> 00:27:21,806
+to install the signed
+kext.What happens if you want
+
+
+491
+00:27:22,126 --> 00:27:25,576
+to target releases even
+further back than 10.7?
+
+
+492
+00:27:26,056 --> 00:27:27,246
+It is possible.
+
+
+493
+00:27:27,246 --> 00:27:29,266
+You can't do it from a
+single Xcode project,
+
+
+494
+00:27:29,266 --> 00:27:32,346
+because there is no single Xcode
+that spans that many releases.
+
+
+495
+00:27:32,456 --> 00:27:36,346
+So probably the best
+approach for you is
+
+
+496
+00:27:36,346 --> 00:27:38,456
+to take your existing
+kernel extension project
+
+
+497
+00:27:38,456 --> 00:27:43,806
+that already runs on OS's
+up through 10.8 and just use
+
+
+498
+00:27:43,806 --> 00:27:45,456
+that kext as the unsigned
+kext that you install
+
+
+499
+00:27:45,456 --> 00:27:47,796
+in /System/Library/Extensions.
+
+
+500
+00:27:48,466 --> 00:27:52,616
+And then use the
+simple OS X 10.9 project
+
+
+501
+00:27:52,726 --> 00:27:56,206
+that I described first, and
+just import the source code
+
+
+502
+00:27:56,326 --> 00:27:58,256
+and build a second kext that
+way and that will install
+
+
+503
+00:27:58,256 --> 00:28:01,086
+in /Library/Extensions.So
+effectively you're kind
+
+
+504
+00:28:01,086 --> 00:28:04,766
+of building a line in the
+sand between Mavericks
+
+
+505
+00:28:04,766 --> 00:28:06,256
+and older operating systems
+
+
+506
+00:28:06,256 --> 00:28:08,756
+that didn't use signed kernel
+extensions, and so it's kind
+
+
+507
+00:28:08,756 --> 00:28:12,336
+of a clean break in the
+new kext project and focus
+
+
+508
+00:28:12,336 --> 00:28:14,056
+on Mavericks and the future.
+
+
+509
+00:28:17,516 --> 00:28:21,316
+So, when you're building for
+older OS's, I couldn't go
+
+
+510
+00:28:21,316 --> 00:28:23,386
+into all the different
+permutations, it really depends
+
+
+511
+00:28:23,386 --> 00:28:27,916
+on what OS's you're targeting,
+what families you are using
+
+
+512
+00:28:27,916 --> 00:28:29,166
+within IOKit and so on as
+
+
+513
+00:28:29,206 --> 00:28:31,806
+to exactly what compatibility
+you would have.
+
+
+514
+00:28:32,406 --> 00:28:34,716
+But you need to follow
+the compatibility guidance
+
+
+515
+00:28:34,716 --> 00:28:36,876
+that we've released for
+previous operating systems
+
+
+516
+00:28:36,876 --> 00:28:39,446
+when targeting those, and
+again, you're kind of separating
+
+
+517
+00:28:39,446 --> 00:28:42,546
+out the 10.9 kext anyway.
+
+
+518
+00:28:42,546 --> 00:28:45,276
+So, the compatibility
+guidance we've given you
+
+
+519
+00:28:45,276 --> 00:28:46,386
+in the past still applies
+
+
+520
+00:28:46,386 --> 00:28:53,996
+for the legacy kext.And
+always install only the kexts
+
+
+521
+00:28:54,146 --> 00:28:57,956
+that are particularly
+necessary for the target system
+
+
+522
+00:28:58,286 --> 00:29:01,836
+and also make sure that you're
+robust against write failures
+
+
+523
+00:29:01,836 --> 00:29:02,686
+to the /System folder
+
+
+524
+00:29:02,686 --> 00:29:08,586
+for future.So this is your handy
+pocket guide for compatibility.
+
+
+525
+00:29:09,186 --> 00:29:13,916
+The first column here
+says, OS X 10.7 and beyond.
+
+
+526
+00:29:14,546 --> 00:29:16,626
+Those are all the various
+settings you're going to need
+
+
+527
+00:29:16,626 --> 00:29:17,506
+and each column further
+
+
+528
+00:29:17,506 --> 00:29:20,716
+to the right takes it
+further 1 OS release.
+
+
+529
+00:29:21,446 --> 00:29:25,686
+This is mostly for the at-home
+audience that can freeze frame
+
+
+530
+00:29:25,686 --> 00:29:28,706
+on this and very quickly
+get all those build settings
+
+
+531
+00:29:28,746 --> 00:29:32,126
+that they need.All
+right, and with that,
+
+
+532
+00:29:32,126 --> 00:29:34,186
+I would like to turn the stage
+
+
+533
+00:29:34,186 --> 00:29:37,086
+over to Brian Bechtel
+who's going to talk to you
+
+
+534
+00:29:37,086 --> 00:29:38,766
+about lldb.Thanks
+for your attention.
+
+
+535
+00:29:39,266 --> 00:29:43,116
+[ Applause ]
+
+
+536
+00:29:43,616 --> 00:29:44,356
+>> Brian Bechtel:
+Hello everybody.
+
+
+537
+00:29:44,686 --> 00:29:45,606
+I'm Brian Bechtel.
+
+
+538
+00:29:45,856 --> 00:29:48,166
+I work in Core OS
+doing Panic Triage.
+
+
+539
+00:29:48,166 --> 00:29:50,486
+I look at panics
+all day and we have,
+
+
+540
+00:29:51,256 --> 00:29:52,406
+I know it's a wonderful
+job [laughter].
+
+
+541
+00:29:54,086 --> 00:29:56,506
+We have a saying in our group.
+
+
+542
+00:29:58,006 --> 00:30:02,686
+[Laughter] And it really is true
+that after about 10,000 panics,
+
+
+543
+00:30:02,686 --> 00:30:06,196
+there pretty straightforward.
+
+
+544
+00:30:06,406 --> 00:30:10,626
+In Mac OS X 10.9 we have
+a new debugger, lldb.
+
+
+545
+00:30:10,626 --> 00:30:15,846
+It is a very powerful, very
+fast, very nice debugger.
+
+
+546
+00:30:16,516 --> 00:30:17,536
+It is slightly different.
+
+
+547
+00:30:17,536 --> 00:30:19,316
+I'll be talking about
+some of those differences.
+
+
+548
+00:30:19,936 --> 00:30:23,826
+The big things we get out of
+lldb are tighter integration
+
+
+549
+00:30:23,826 --> 00:30:26,606
+with llvm and the rest of
+the development tool chain.
+
+
+550
+00:30:27,416 --> 00:30:30,006
+We have a much, much
+faster debugger.
+
+
+551
+00:30:30,006 --> 00:30:31,486
+I will be demoing that later.
+
+
+552
+00:30:32,006 --> 00:30:35,006
+And we're supporting
+it very actively
+
+
+553
+00:30:35,006 --> 00:30:40,046
+and we're very much listening
+to developer reports of issues
+
+
+554
+00:30:40,096 --> 00:30:42,266
+and fixing them, which
+is a very good thing.
+
+
+555
+00:30:44,206 --> 00:30:47,616
+lldb includes Python as
+its scripting language.
+
+
+556
+00:30:47,616 --> 00:30:50,096
+That means you can do almost
+anything that you can do
+
+
+557
+00:30:50,096 --> 00:30:53,216
+in Python inside lldb, it
+gives you way more power
+
+
+558
+00:30:53,526 --> 00:30:55,726
+than the old macro
+language in gdb.
+
+
+559
+00:30:56,706 --> 00:31:01,916
+There is a gdb to lldb command
+map up on the llvm.org website,
+
+
+560
+00:31:01,996 --> 00:31:04,536
+which helps you make
+this transition,
+
+
+561
+00:31:04,956 --> 00:31:07,486
+but much of the commands
+are exactly the same
+
+
+562
+00:31:07,486 --> 00:31:09,356
+for the things you typically do.
+
+
+563
+00:31:10,096 --> 00:31:15,016
+lldb is the debugger for
+Mac OS X 10.9 and beyond.
+
+
+564
+00:31:15,646 --> 00:31:16,646
+gdb is dead.
+
+
+565
+00:31:18,526 --> 00:31:20,516
+[Laughter] gdb is
+gone in Xcode 5.0.
+
+
+566
+00:31:20,926 --> 00:31:22,646
+There is no gdb binary there.
+
+
+567
+00:31:22,876 --> 00:31:27,086
+There is no kgmacros file in the
+kernel debug kit for Mavericks.
+
+
+568
+00:31:27,676 --> 00:31:29,966
+We have no plans to fix
+any remaining issues.
+
+
+569
+00:31:31,406 --> 00:31:34,816
+It is still the debugger
+of choice for Snow Leopard,
+
+
+570
+00:31:35,056 --> 00:31:38,706
+the cats basically, if you
+have a cat, gdb is your friend.
+
+
+571
+00:31:39,046 --> 00:31:43,436
+If you have a giant wave or
+some other California feature,
+
+
+572
+00:31:43,846 --> 00:31:44,866
+lldb is your friend.
+
+
+573
+00:31:44,866 --> 00:31:52,066
+This is a demo of how fast gdb
+is, versus how fast lldb is.
+
+
+574
+00:31:52,516 --> 00:31:54,196
+I'm just going to
+issue one command
+
+
+575
+00:31:54,196 --> 00:32:00,206
+in the debugger while connected
+via gdb to a 10.8 system
+
+
+576
+00:32:00,596 --> 00:32:03,216
+and lldb to a 10.9 system.
+
+
+577
+00:32:03,996 --> 00:32:06,966
+I've set up two terminal
+windows here,
+
+
+578
+00:32:06,966 --> 00:32:09,256
+the light brown one
+is running gdb
+
+
+579
+00:32:09,556 --> 00:32:12,076
+and the white one
+is running lldb.
+
+
+580
+00:32:12,076 --> 00:32:15,956
+I'm even going to let gdb
+start first so you're going
+
+
+581
+00:32:15,956 --> 00:32:18,676
+to see a cursor there
+that touches that window,
+
+
+582
+00:32:18,976 --> 00:32:21,536
+I hit Return, then go down
+and hit the other window.
+
+
+583
+00:32:22,126 --> 00:32:24,576
+And what you see
+is lldb is much,
+
+
+584
+00:32:24,576 --> 00:32:27,946
+much faster at just
+printing the zone list.
+
+
+585
+00:32:29,716 --> 00:32:33,166
+Every other command in lldb has
+this kind of speed improvement.
+
+
+586
+00:32:33,616 --> 00:32:36,636
+It's really quite, quite
+noticeable, and wonderful
+
+
+587
+00:32:36,636 --> 00:32:40,136
+if you're doing 10,000 panics.
+
+
+588
+00:32:41,406 --> 00:32:44,326
+[Laughter] All of the standard
+kgmacros are still there,
+
+
+589
+00:32:44,326 --> 00:32:48,486
+I said there's no kgmacros file,
+but the kgmacros themselves,
+
+
+590
+00:32:48,576 --> 00:32:53,836
+reimplemented in Python, are
+in the mach kernel.dSYM file
+
+
+591
+00:32:53,836 --> 00:32:55,576
+in a directory, which
+I'll discuss later.
+
+
+592
+00:32:56,126 --> 00:32:58,356
+These are all the
+standard macros that we use
+
+
+593
+00:32:58,356 --> 00:33:02,156
+when we're debugging to just get
+the generic information we need
+
+
+594
+00:33:02,156 --> 00:33:04,346
+for a panic.
+
+
+595
+00:33:04,616 --> 00:33:06,466
+They're still there, there
+are some minor changes
+
+
+596
+00:33:06,466 --> 00:33:10,306
+in the output format, but
+everything works great.
+
+
+597
+00:33:11,776 --> 00:33:14,126
+For adding kext symbols,
+on startup,
+
+
+598
+00:33:14,126 --> 00:33:17,456
+lldb will automatically
+scan for kexts installed
+
+
+599
+00:33:17,456 --> 00:33:22,676
+in System/Library/Extensions,
+the new Library/Extensions,
+
+
+600
+00:33:23,206 --> 00:33:26,176
+and in the directory
+/Volumes/Kernel/DebugKit
+
+
+601
+00:33:26,176 --> 00:33:29,786
+because that's the kext
+symbols that we give you in all
+
+
+602
+00:33:29,786 --> 00:33:32,206
+of the symbols for IOKit kexts.
+
+
+603
+00:33:33,096 --> 00:33:37,666
+You can specify additional
+locations in the .lldbinit file
+
+
+604
+00:33:37,666 --> 00:33:40,156
+in your home directory.
+
+
+605
+00:33:40,156 --> 00:33:41,716
+There's the command line for it.
+
+
+606
+00:33:42,276 --> 00:33:44,056
+And of course while
+you're debugging,
+
+
+607
+00:33:44,126 --> 00:33:47,166
+you can add kext symbols
+using the addkext macro.
+
+
+608
+00:33:47,446 --> 00:33:52,576
+I'll have some examples
+of that later.
+
+
+609
+00:33:53,976 --> 00:33:56,456
+Every time you change something
+you'll have little gotchas,
+
+
+610
+00:33:56,456 --> 00:33:58,246
+these are some of
+the ones that hit me
+
+
+611
+00:33:58,246 --> 00:34:01,046
+that I thought you guys
+would like to know.
+
+
+612
+00:34:01,416 --> 00:34:06,416
+lldb likes to pretend it
+doesn't know how to do addition.
+
+
+613
+00:34:07,326 --> 00:34:08,666
+Backtick is your friend.
+
+
+614
+00:34:08,906 --> 00:34:11,735
+Backtick, if you get a, if
+you try to display something
+
+
+615
+00:34:12,016 --> 00:34:13,946
+and it says, "I don't know
+what that is that you're trying
+
+
+616
+00:34:13,946 --> 00:34:16,176
+to display," put the
+expression in backticks.
+
+
+617
+00:34:16,656 --> 00:34:20,366
+It sometimes fixes that.
+
+
+618
+00:34:20,366 --> 00:34:24,396
+gdb was very, very sloppy
+about describing a structure
+
+
+619
+00:34:24,396 --> 00:34:28,136
+or a pointer to a structure
+or fields in a structure.
+
+
+620
+00:34:28,186 --> 00:34:30,255
+lldb is very pedantic about that
+
+
+621
+00:34:30,286 --> 00:34:33,596
+because it gets very pedantic
+information from llvm.
+
+
+622
+00:34:33,596 --> 00:34:37,946
+So if you're saying this is
+a pointer to a structure,
+
+
+623
+00:34:38,466 --> 00:34:40,786
+you have to say it's a
+pointer to a structure,
+
+
+624
+00:34:40,786 --> 00:34:45,076
+it'll painfully warn you that
+you probably meant to say that
+
+
+625
+00:34:45,076 --> 00:34:47,726
+and let you reenter
+your command.
+
+
+626
+00:34:48,696 --> 00:34:51,235
+And you may need to cast a
+variable very explicitly.
+
+
+627
+00:34:51,235 --> 00:34:55,436
+We've had issues where you
+know that this class is called,
+
+
+628
+00:34:55,656 --> 00:35:00,436
+"MyClass," and you say, "Print
+MyClass," and instead it says,
+
+
+629
+00:35:00,436 --> 00:35:03,456
+"I don't know what MyClass is,"
+but if you say, "Class/MyClass,"
+
+
+630
+00:35:03,456 --> 00:35:06,496
+or "Struct/MyStruct," it'll
+say, "Yeah sure I can do that."
+
+
+631
+00:35:07,886 --> 00:35:10,216
+Anything you encounter like
+that, we want to hear about it,
+
+
+632
+00:35:10,286 --> 00:35:12,866
+so please go to
+bugreporter.apple.com,
+
+
+633
+00:35:13,216 --> 00:35:16,036
+file any issues you're
+having, we really want
+
+
+634
+00:35:16,036 --> 00:35:18,256
+to hear those things, they're
+going to the engineers,
+
+
+635
+00:35:18,566 --> 00:35:22,076
+they will repair them or
+at least have a reason why.
+
+
+636
+00:35:22,926 --> 00:35:26,396
+So one of the great things
+
+
+637
+00:35:26,396 --> 00:35:28,556
+in lldb is the mixed
+mode disassembly.
+
+
+638
+00:35:28,556 --> 00:35:30,396
+A lot of times when
+you're trying to figure
+
+
+639
+00:35:30,396 --> 00:35:33,746
+out what happened, it's
+difficult to translate
+
+
+640
+00:35:33,746 --> 00:35:37,526
+in your head what is
+going on in the assembly
+
+
+641
+00:35:37,526 --> 00:35:39,346
+versus what the compiler did.
+
+
+642
+00:35:40,416 --> 00:35:44,416
+The disassemble -m option
+gives you mixed mode
+
+
+643
+00:35:44,826 --> 00:35:47,176
+of whatever you're asking for.
+
+
+644
+00:35:47,176 --> 00:35:50,166
+You can say, for instance,
+"disassemble -f -m,"
+
+
+645
+00:35:50,366 --> 00:35:53,726
+which will disassemble
+the entire current frame
+
+
+646
+00:35:53,726 --> 00:35:56,616
+with both source and assembly,
+
+
+647
+00:35:56,826 --> 00:35:58,816
+intermixed so you can
+see where everything is.
+
+
+648
+00:35:59,306 --> 00:36:01,246
+If you just want to see the
+current line that you're stopped
+
+
+649
+00:36:01,246 --> 00:36:03,796
+on you can say, "disassemble
+-l -m
+
+
+650
+00:36:04,426 --> 00:36:06,716
+or you can give it
+a start and address.
+
+
+651
+00:36:07,016 --> 00:36:11,966
+And you can abbreviate that,
+the minimum command abbreviation
+
+
+652
+00:36:11,966 --> 00:36:14,446
+for disassemble is di.
+
+
+653
+00:36:14,446 --> 00:36:16,166
+So you can say di -f -m.
+
+
+654
+00:36:17,306 --> 00:36:19,846
+Here's an example of
+mixed mode disassembly.
+
+
+655
+00:36:19,896 --> 00:36:22,996
+The stupidest, simplest
+example I could come up with.
+
+
+656
+00:36:23,436 --> 00:36:26,556
+There's a routine in the
+kernel called, fseventsf-write,
+
+
+657
+00:36:27,206 --> 00:36:31,216
+which just returns
+EIO, an error.
+
+
+658
+00:36:31,866 --> 00:36:36,856
+So this is the example of
+that routine disassembled
+
+
+659
+00:36:36,856 --> 00:36:39,366
+with mixed disassembly.
+
+
+660
+00:36:40,146 --> 00:36:42,766
+Here you see the
+prologue of the routine.
+
+
+661
+00:36:44,076 --> 00:36:47,846
+EIO turns out to be the value
+of 5, so here it's moving 5
+
+
+662
+00:36:47,846 --> 00:36:49,136
+into the return register.
+
+
+663
+00:36:50,156 --> 00:36:52,456
+And here you see the epilogue.
+
+
+664
+00:36:53,436 --> 00:36:55,906
+So in a much more
+complex example,
+
+
+665
+00:36:55,906 --> 00:36:57,236
+this is really, really helpful.
+
+
+666
+00:36:57,596 --> 00:37:07,036
+Here, you could probably figure
+that out in a day or two.
+
+
+667
+00:37:07,036 --> 00:37:07,103
+[Laughter]
+
+
+668
+00:37:07,103 --> 00:37:07,170
+[ Silence ]
+
+
+669
+00:37:07,170 --> 00:37:09,756
+The kgmacros now take
+an additional argument,
+
+
+670
+00:37:09,756 --> 00:37:11,306
+or series of arguments.
+
+
+671
+00:37:11,616 --> 00:37:13,516
+You can now redirect output
+
+
+672
+00:37:13,516 --> 00:37:16,576
+from a macro directly
+to a file with -o.
+
+
+673
+00:37:17,396 --> 00:37:21,536
+If you get a macro that
+has a lot of output
+
+
+674
+00:37:21,536 --> 00:37:22,926
+and you don't want
+all that output,
+
+
+675
+00:37:22,926 --> 00:37:26,206
+you can grep inside
+the output with -s
+
+
+676
+00:37:26,936 --> 00:37:30,126
+and you can add additional
+verbosity to the macros
+
+
+677
+00:37:30,126 --> 00:37:35,306
+to see additional details
+about the macro with -v and it,
+
+
+678
+00:37:35,306 --> 00:37:41,996
+it is cumulative so you can
+say -v -v -v, you can be anal
+
+
+679
+00:37:41,996 --> 00:37:43,376
+and see how far out you can go.
+
+
+680
+00:37:44,366 --> 00:37:45,696
+So here's an example,
+
+
+681
+00:37:45,696 --> 00:37:47,806
+if you want to find
+the load information
+
+
+682
+00:37:47,806 --> 00:37:52,696
+for just our sample PCI kext,
+you can say, 'showallkmods,"
+
+
+683
+00:37:52,696 --> 00:37:55,696
+which shows all of
+the kext information,
+
+
+684
+00:37:56,056 --> 00:38:01,036
+and then say -s AppleSamplePCI
+to just get the information
+
+
+685
+00:38:01,036 --> 00:38:03,966
+on one line rather than have to
+scroll through a lot of lines.
+
+
+686
+00:38:06,286 --> 00:38:11,586
+For security purposes, we do
+not automatically load the lldb
+
+
+687
+00:38:11,586 --> 00:38:14,006
+macros in lldb by default.
+
+
+688
+00:38:14,836 --> 00:38:15,976
+The reason we do this is
+
+
+689
+00:38:15,976 --> 00:38:17,676
+if you're doing application
+debugging
+
+
+690
+00:38:17,676 --> 00:38:19,406
+or you have a malicious kext,
+
+
+691
+00:38:19,826 --> 00:38:23,686
+and they've put some bad lldb
+macros in a hidden symbol file
+
+
+692
+00:38:23,686 --> 00:38:26,226
+or something, bad
+things could happen.
+
+
+693
+00:38:26,466 --> 00:38:28,176
+You know? It's the
+internet nowadays.
+
+
+694
+00:38:28,966 --> 00:38:31,926
+So to overcome this because
+you trust your development
+
+
+695
+00:38:31,926 --> 00:38:33,226
+environment and your setup,
+
+
+696
+00:38:33,496 --> 00:38:36,216
+you can add that
+particular setting line
+
+
+697
+00:38:36,216 --> 00:38:39,786
+to your .lldbinit file and then
+it will automatically load the
+
+
+698
+00:38:39,786 --> 00:38:41,306
+script from the symbol files.
+
+
+699
+00:38:41,896 --> 00:38:46,336
+You can also create custom
+Python and put it in the,
+
+
+700
+00:38:47,506 --> 00:38:48,896
+in the dSYM file
+
+
+701
+00:38:48,896 --> 00:38:51,666
+in the Contents/Resources/Python
+directory,
+
+
+702
+00:38:52,216 --> 00:38:54,406
+and then that will be
+automatically loaded assuming
+
+
+703
+00:38:54,406 --> 00:38:56,766
+that you have your
+settings set correctly.
+
+
+704
+00:38:59,316 --> 00:39:01,876
+For faster loading, a lot
+of times you only want
+
+
+705
+00:39:01,876 --> 00:39:03,946
+to see your particular
+kexts, you don't care
+
+
+706
+00:39:03,946 --> 00:39:05,396
+about Apple's kexts,
+you don't care
+
+
+707
+00:39:05,396 --> 00:39:06,586
+about all those other things.
+
+
+708
+00:39:07,666 --> 00:39:11,306
+Add this line before you
+do the connection or put
+
+
+709
+00:39:11,306 --> 00:39:13,346
+that in your .lldbinit file
+
+
+710
+00:39:13,766 --> 00:39:15,366
+and it won't load
+all the other things
+
+
+711
+00:39:15,366 --> 00:39:18,516
+and you just come right
+back up to Ready To Go.
+
+
+712
+00:39:18,566 --> 00:39:21,436
+And then at that point if you
+want to automatically load,
+
+
+713
+00:39:21,436 --> 00:39:25,506
+or manually load symbols for
+your kext, you can use any
+
+
+714
+00:39:25,506 --> 00:39:28,536
+of these four examples
+of the addkext command.
+
+
+715
+00:39:28,926 --> 00:39:32,166
+You can either pass it
+the UUID, pass it the name
+
+
+716
+00:39:32,166 --> 00:39:34,856
+and if the name is found
+in one of the places
+
+
+717
+00:39:34,856 --> 00:39:37,396
+that lldb searches,
+it will load it.
+
+
+718
+00:39:37,786 --> 00:39:40,166
+You can give it an
+explicit path, an address,
+
+
+719
+00:39:40,576 --> 00:39:43,596
+or you can say, "Hey, I changed
+my mind I want them all loaded,"
+
+
+720
+00:39:43,986 --> 00:39:45,716
+that will take a lot
+longer than it would
+
+
+721
+00:39:45,716 --> 00:39:52,496
+if you'd just let lldb
+do it at the beginning.
+
+
+722
+00:39:52,496 --> 00:39:54,886
+nvram is needed, I'm
+going to now be talking
+
+
+723
+00:39:54,886 --> 00:39:56,106
+about two machine debugging.
+
+
+724
+00:39:56,746 --> 00:40:00,546
+We use nvram to enable
+debugging at all.
+
+
+725
+00:40:01,056 --> 00:40:03,376
+If you have no debug
+boot argument set,
+
+
+726
+00:40:03,646 --> 00:40:05,596
+your system will
+reboot on panic,
+
+
+727
+00:40:05,686 --> 00:40:08,156
+that's a new behavior
+starting in 10.8.
+
+
+728
+00:40:09,146 --> 00:40:13,596
+If you set boot-args using the
+nvram command line tool as root
+
+
+729
+00:40:14,036 --> 00:40:17,376
+and reboot to let those settings
+take effect, you can change
+
+
+730
+00:40:17,376 --> 00:40:19,546
+that behavior so
+you'll halt at panic
+
+
+731
+00:40:19,936 --> 00:40:22,206
+and let you connect
+from another machine.
+
+
+732
+00:40:23,556 --> 00:40:30,326
+So in the old days, back when
+we had just iMac's or something,
+
+
+733
+00:40:30,756 --> 00:40:32,816
+we had built-in Ethernet
+and built-in FireWire.
+
+
+734
+00:40:33,166 --> 00:40:37,066
+Nowadays, probably most of you
+out there, have a MacBook Air
+
+
+735
+00:40:37,066 --> 00:40:41,556
+or something that no longer has
+built-in Ethernet nor built-in
+
+
+736
+00:40:41,556 --> 00:40:44,826
+FireWire, so we've added
+new ways to connect.
+
+
+737
+00:40:44,916 --> 00:40:48,866
+You can now connect for two
+machine debugging using a
+
+
+738
+00:40:48,866 --> 00:40:51,846
+Thunderbolt Ethernet
+Adaptor, using a Thunderbolt
+
+
+739
+00:40:51,846 --> 00:40:55,946
+to FireWire Adaptor, using
+an Apple Thunderbolt display
+
+
+740
+00:40:55,946 --> 00:40:59,216
+in either Ethernet or FireWire
+on the back of that monitor.
+
+
+741
+00:40:59,806 --> 00:41:03,616
+We do not support wireless and
+we do not support USB Ethernet,
+
+
+742
+00:41:04,016 --> 00:41:06,336
+so you're going to have to get
+one of those other connections.
+
+
+743
+00:41:08,986 --> 00:41:13,626
+When you connect, two-machine
+debugging assumes a network port
+
+
+744
+00:41:13,626 --> 00:41:18,886
+of en0, that's the old
+behavior from the original iMac,
+
+
+745
+00:41:18,886 --> 00:41:21,166
+MacBook Pro, Mac Pro, whatever.
+
+
+746
+00:41:21,816 --> 00:41:26,056
+If your network port isn't
+that, you have to add,
+
+
+747
+00:41:26,056 --> 00:41:27,556
+as part of your boot arguments,
+
+
+748
+00:41:27,936 --> 00:41:30,906
+kdp-match-name=,
+and then some value.
+
+
+749
+00:41:31,816 --> 00:41:34,246
+That some value will
+depend on your connection.
+
+
+750
+00:41:34,626 --> 00:41:37,366
+For a network connection,
+ifconfig, will tell you
+
+
+751
+00:41:37,366 --> 00:41:38,826
+which port you should use.
+
+
+752
+00:41:39,216 --> 00:41:40,486
+So if you have a Thunderbolt
+
+
+753
+00:41:40,486 --> 00:41:43,796
+to Ethernet connector
+you would use ifconfig
+
+
+754
+00:41:43,796 --> 00:41:48,826
+to find the connection and
+then kdp-match-name=en whatever
+
+
+755
+00:41:48,826 --> 00:41:49,716
+that number is.
+
+
+756
+00:41:50,316 --> 00:41:51,816
+Here's an example of that.
+
+
+757
+00:41:51,816 --> 00:41:56,136
+This is the output from the
+ifconfig command just cut
+
+
+758
+00:41:56,136 --> 00:41:57,726
+down to a single port.
+
+
+759
+00:41:58,996 --> 00:42:02,576
+I'm looking for a port with an
+inet value that makes sense.
+
+
+760
+00:42:02,896 --> 00:42:07,136
+So, for instance, here
+at the conference,
+
+
+761
+00:42:07,466 --> 00:42:11,066
+we're running off the
+10.0 net or 10.1 net,
+
+
+762
+00:42:11,146 --> 00:42:12,366
+I'm not sure which one.
+
+
+763
+00:42:12,996 --> 00:42:15,856
+I look for a connection
+that's 10.
+
+
+764
+00:42:15,856 --> 00:42:19,346
+whatever, the en1
+tells me that the port
+
+
+765
+00:42:19,396 --> 00:42:23,106
+that I will be using
+in kdp-match-name=.
+
+
+766
+00:42:24,796 --> 00:42:30,396
+So for built-in debugging on
+a machine like a MacBook Pro
+
+
+767
+00:42:30,396 --> 00:42:34,106
+with built-in Ethernet, you
+would just set your boot args
+
+
+768
+00:42:34,216 --> 00:42:43,066
+as this: debug=0x144, the
+100-bit means don't put
+
+
+769
+00:42:43,066 --> 00:42:46,556
+up the graphic panic
+screen, just halt.
+
+
+770
+00:42:47,116 --> 00:42:50,836
+The 4-bit means let me
+connect to the machine,
+
+
+771
+00:42:51,386 --> 00:42:54,896
+and the 40-bit means
+let me connect
+
+
+772
+00:42:54,896 --> 00:42:56,946
+over a different
+subnet if necessary.
+
+
+773
+00:42:57,286 --> 00:43:00,716
+So you can simplify this to
+104 instead if you wanted.
+
+
+774
+00:43:02,216 --> 00:43:05,086
+For Thunderbolt to
+Ethernet, you'll notice
+
+
+775
+00:43:05,086 --> 00:43:09,416
+that same command line
+has added kdp-match-name=
+
+
+776
+00:43:09,416 --> 00:43:10,906
+and then an en value.
+
+
+777
+00:43:11,586 --> 00:43:14,646
+And for Thunderbolt Display,
+you would do the same thing.
+
+
+778
+00:43:15,086 --> 00:43:17,466
+I'm giving examples
+here with en2 and en4,
+
+
+779
+00:43:17,466 --> 00:43:22,066
+but you actually need the
+output from ifconfig to figure
+
+
+780
+00:43:22,066 --> 00:43:26,736
+out what the proper en value
+is, and you would put that in.
+
+
+781
+00:43:27,086 --> 00:43:30,566
+Many times this value may
+coincidentally be there,
+
+
+782
+00:43:30,566 --> 00:43:34,306
+and it may be the right value,
+but you have to use ifconfig,
+
+
+783
+00:43:34,346 --> 00:43:36,586
+you can't just trust a
+slide at a conference.
+
+
+784
+00:43:39,546 --> 00:43:41,166
+[Laughing] If you're
+using native FireWire,
+
+
+785
+00:43:42,036 --> 00:43:44,946
+you set kdp-match-name
+to FireWire.
+
+
+786
+00:43:46,116 --> 00:43:49,346
+If you're using Thunderbolt
+FireWire Connector
+
+
+787
+00:43:49,436 --> 00:43:51,686
+or Apple Thunderbolt
+Display to FireWire,
+
+
+788
+00:43:52,226 --> 00:43:57,416
+you have to add an additional
+command, which is fwkdp=8000hex.
+
+
+789
+00:43:57,976 --> 00:44:02,156
+That tells the Thunderbolt
+System not to turn off power
+
+
+790
+00:44:02,156 --> 00:44:05,376
+to the FireWire chip, which
+would be rather inconvenient
+
+
+791
+00:44:05,376 --> 00:44:06,426
+when you're trying to connect.
+
+
+792
+00:44:07,706 --> 00:44:09,306
+And as always, you
+need to reboot
+
+
+793
+00:44:09,306 --> 00:44:10,816
+to let the settings take effect.
+
+
+794
+00:44:11,426 --> 00:44:15,296
+So for FireWire debugging
+it's very simple,
+
+
+795
+00:44:15,296 --> 00:44:17,206
+you open up two terminal
+windows.
+
+
+796
+00:44:17,576 --> 00:44:20,346
+In one terminal window,
+you enter fwkdp,
+
+
+797
+00:44:20,346 --> 00:44:24,596
+in the other terminal
+window you invoke lldb,
+
+
+798
+00:44:25,026 --> 00:44:27,846
+and then connect
+to the local host.
+
+
+799
+00:44:27,846 --> 00:44:31,796
+The fwkdp is a redirecting
+program that makes it look
+
+
+800
+00:44:31,796 --> 00:44:34,176
+as if your local
+machine is panicked,
+
+
+801
+00:44:34,546 --> 00:44:38,396
+but it actually redirects the
+commands out the FireWire port
+
+
+802
+00:44:38,766 --> 00:44:40,166
+to the panicked machine.
+
+
+803
+00:44:44,036 --> 00:44:46,796
+It's important to note
+I used xcrun there.
+
+
+804
+00:44:46,796 --> 00:44:48,486
+xcrun guarantees
+that you're going
+
+
+805
+00:44:48,486 --> 00:44:52,006
+to be running the lldb
+that's in your current Xcode.
+
+
+806
+00:44:52,476 --> 00:44:55,766
+You want that because who knows
+what horrible thing you've got
+
+
+807
+00:44:56,006 --> 00:44:59,166
+installed in /usr/bin
+or /usr/local/bin
+
+
+808
+00:44:59,606 --> 00:45:01,376
+that might accidentally
+be grabbed.
+
+
+809
+00:45:01,716 --> 00:45:06,626
+If you use xcrun lldb it will
+always find the proper lldb
+
+
+810
+00:45:06,626 --> 00:45:07,686
+for your Xcode.
+
+
+811
+00:45:08,756 --> 00:45:12,066
+And I'm giving a couple examples
+of how you connect to a machine.
+
+
+812
+00:45:12,066 --> 00:45:13,256
+If you're connecting live,
+
+
+813
+00:45:13,626 --> 00:45:16,276
+you can either give a
+name or an IP address.
+
+
+814
+00:45:17,056 --> 00:45:19,686
+You can use a Bonjour name
+although there is a warning
+
+
+815
+00:45:19,686 --> 00:45:24,926
+that with Bonjour you may have
+a reassignment of an address
+
+
+816
+00:45:25,376 --> 00:45:27,736
+as you're going along,
+so that's a little shaky.
+
+
+817
+00:45:27,736 --> 00:45:30,786
+I tend to either use a
+fully-qualified domain name
+
+
+818
+00:45:30,786 --> 00:45:33,046
+or a dotted IP address.
+
+
+819
+00:45:33,676 --> 00:45:37,466
+And if you're reading a coredump
+file, the command is "file --
+
+
+820
+00:45:37,906 --> 00:45:42,736
+c" and then a path to the file.
+
+
+821
+00:45:43,876 --> 00:45:47,346
+In fact, talking about
+coredumps, I'm going to talk
+
+
+822
+00:45:47,346 --> 00:45:51,626
+about several things that
+we've changed recently
+
+
+823
+00:45:51,626 --> 00:45:53,086
+that are helpful for you.
+
+
+824
+00:45:53,086 --> 00:45:57,756
+The first thing that you'll
+notice is we've changed how you
+
+
+825
+00:45:57,756 --> 00:46:00,366
+do a NMI in Mac OS X 10.9.
+
+
+826
+00:46:01,056 --> 00:46:04,756
+With boot-args set
+so that the 0x4 bit
+
+
+827
+00:46:04,756 --> 00:46:10,766
+or the DB-NMI bit is
+set, in 10.8 or earlier,
+
+
+828
+00:46:10,846 --> 00:46:12,306
+you'd just hit the Power key.
+
+
+829
+00:46:12,876 --> 00:46:15,236
+Anybody who's done
+kernel debugging
+
+
+830
+00:46:15,236 --> 00:46:17,556
+and hit the Power key will
+discover that the Power key
+
+
+831
+00:46:17,556 --> 00:46:21,616
+on a MacBook Air is directly
+next to the Delete key.
+
+
+832
+00:46:22,226 --> 00:46:24,816
+And then you curse and
+reboot your machine
+
+
+833
+00:46:24,816 --> 00:46:27,196
+because you didn't have
+it setup for debugging.
+
+
+834
+00:46:27,656 --> 00:46:30,286
+So we changed that in Mavericks.
+
+
+835
+00:46:30,506 --> 00:46:34,126
+Now it is Left and Right
+command keys and the Power key.
+
+
+836
+00:46:34,876 --> 00:46:37,486
+This will make your
+day-to-day life a lot easier.
+
+
+837
+00:46:38,706 --> 00:46:41,036
+If you really like the old
+behavior, you can revert to that
+
+
+838
+00:46:41,326 --> 00:46:43,516
+by OR'ing [phonetic]
+in the hex 8000-bit,
+
+
+839
+00:46:43,996 --> 00:46:49,396
+so instead of debug=0x144,
+you'd say debug=8144.
+
+
+840
+00:46:50,776 --> 00:46:54,536
+You can automatically
+save coredumps.
+
+
+841
+00:46:54,586 --> 00:46:58,436
+This works far back in the
+system, but I'm documenting it
+
+
+842
+00:46:58,436 --> 00:46:59,666
+to make sure everybody has it
+
+
+843
+00:46:59,666 --> 00:47:01,936
+because it's a pretty
+easy process.
+
+
+844
+00:47:02,746 --> 00:47:05,636
+As root on a host machine,
+the machine where you're going
+
+
+845
+00:47:05,636 --> 00:47:07,456
+to save the coredump, you need
+
+
+846
+00:47:07,456 --> 00:47:09,526
+to create a directory
+called PanicDumps,
+
+
+847
+00:47:10,436 --> 00:47:17,456
+change it to permissions, and
+then launch the kdump.plist,
+
+
+848
+00:47:17,456 --> 00:47:20,826
+which will load a demon that
+will sit there waiting to see
+
+
+849
+00:47:20,826 --> 00:47:23,206
+if anybody wants to send
+it a coredump to save.
+
+
+850
+00:47:24,006 --> 00:47:26,836
+On the client machine, on the
+machine that you want to panic
+
+
+851
+00:47:26,836 --> 00:47:30,736
+and save a core from, you
+can set your boot-args
+
+
+852
+00:47:31,056 --> 00:47:39,116
+where debug is 0xd44 panicd ip=
+
+
+853
+00:47:39,386 --> 00:47:42,776
+and then the dotted IP
+address of the host machine.
+
+
+854
+00:47:43,126 --> 00:47:46,166
+It has to be a dotted IP
+address because at the time
+
+
+855
+00:47:46,166 --> 00:47:48,386
+of a panic we can't
+do DNS resolution.
+
+
+856
+00:47:48,996 --> 00:47:55,016
+We've added some new
+protection boot-args,
+
+
+857
+00:47:55,076 --> 00:47:58,676
+which will help you track
+down buffer overruns,
+
+
+858
+00:47:58,676 --> 00:48:02,336
+use after free errors,
+mismatched frees, you know,
+
+
+859
+00:48:02,536 --> 00:48:05,056
+freeing from a zone that you
+didn't actually allocate from,
+
+
+860
+00:48:05,546 --> 00:48:07,346
+and some timing-induced races.
+
+
+861
+00:48:08,056 --> 00:48:14,826
+-zc, the allocate code inside
+the kernel for zone allocations,
+
+
+862
+00:48:15,246 --> 00:48:17,366
+checks the free-list
+pointers of all the zones
+
+
+863
+00:48:17,366 --> 00:48:20,496
+for correctness every
+time you do an allocation.
+
+
+864
+00:48:20,496 --> 00:48:25,776
+-zp, the free routine,
+will overwrite freed memory
+
+
+865
+00:48:25,776 --> 00:48:27,226
+with deadbeefdeadbeef.
+
+
+866
+00:48:27,716 --> 00:48:31,856
+That will catch any attempt to
+execute or access freed data.
+
+
+867
+00:48:31,856 --> 00:48:36,856
+And here's an example of how
+you would set that: debug=144,
+
+
+868
+00:48:36,856 --> 00:48:41,376
+for the two-machine debugging,
+-zp -zc, and of course reboot
+
+
+869
+00:48:41,426 --> 00:48:44,486
+to let it take effect.
+
+
+870
+00:48:44,666 --> 00:48:47,486
+We also have a guard mode
+kernel zone allocator.
+
+
+871
+00:48:47,616 --> 00:48:51,916
+This will let you target
+any zone with a certain size
+
+
+872
+00:48:51,916 --> 00:48:55,736
+or any zone above a certain
+size, below a certain size,
+
+
+873
+00:48:55,736 --> 00:48:57,216
+or in a range of sizes.
+
+
+874
+00:48:57,926 --> 00:49:02,436
+You set, specify one of
+gzalloc-size, gzalloc-min,
+
+
+875
+00:49:02,776 --> 00:49:07,556
+gzalloc-max, or min and
+max, and then gzalloc-wp.
+
+
+876
+00:49:07,556 --> 00:49:11,816
+And that will write-protect
+the allocations rather
+
+
+877
+00:49:11,816 --> 00:49:14,456
+than unmapping them.
+
+
+878
+00:49:14,896 --> 00:49:17,716
+So the allocation
+will still be around,
+
+
+879
+00:49:18,116 --> 00:49:21,176
+but it will be write-protected.
+
+
+880
+00:49:21,716 --> 00:49:29,026
+Zp and zc aren't very much
+of an impact on performance,
+
+
+881
+00:49:29,026 --> 00:49:30,966
+I wouldn't do your
+benchmarking with them set.
+
+
+882
+00:49:31,456 --> 00:49:34,346
+But they don't really
+take up too much memory
+
+
+883
+00:49:34,346 --> 00:49:36,386
+and they don't really
+take up too much time
+
+
+884
+00:49:36,726 --> 00:49:38,146
+in the allocation and free.
+
+
+885
+00:49:38,986 --> 00:49:43,956
+The gzalloc-wp, gzalloc-size
+stuff, every allocation is going
+
+
+886
+00:49:43,956 --> 00:49:47,176
+to be put on its own 4k page
+with an additional guard page,
+
+
+887
+00:49:48,086 --> 00:49:49,756
+measurably slower,
+you'll notice it
+
+
+888
+00:49:49,756 --> 00:49:52,456
+when you're using the machine,
+but it catches all kinds
+
+
+889
+00:49:52,456 --> 00:49:55,816
+of bugs, it's a very
+valuable tool.
+
+
+890
+00:49:56,686 --> 00:49:59,236
+Another point I wanted
+to make is that starting
+
+
+891
+00:49:59,236 --> 00:50:03,746
+in Mac OS X 10.8,
+we changed graphics
+
+
+892
+00:50:03,746 --> 00:50:05,356
+to support multiple buffers.
+
+
+893
+00:50:05,776 --> 00:50:08,696
+We draw the console output
+tool buffer in instead
+
+
+894
+00:50:08,696 --> 00:50:09,996
+of directly to the screen.
+
+
+895
+00:50:10,486 --> 00:50:12,596
+This was an enhancement
+needed in order
+
+
+896
+00:50:12,596 --> 00:50:15,426
+to support the retina
+display Macs, but it applies
+
+
+897
+00:50:15,426 --> 00:50:16,726
+across all the machines.
+
+
+898
+00:50:17,136 --> 00:50:20,206
+Unfortunately, that means you
+have unreliable console output
+
+
+899
+00:50:20,206 --> 00:50:22,016
+to the screen if you panic.
+
+
+900
+00:50:22,386 --> 00:50:26,066
+So if you have your boot-args
+set to display text instead
+
+
+901
+00:50:26,066 --> 00:50:29,066
+of a panic screen, you
+may not see that text,
+
+
+902
+00:50:29,066 --> 00:50:30,076
+it will appear to hang.
+
+
+903
+00:50:30,076 --> 00:50:32,016
+The only way to tell
+is to attempt
+
+
+904
+00:50:32,016 --> 00:50:33,156
+to connect to the machine.
+
+
+905
+00:50:35,076 --> 00:50:38,116
+For more information
+about all of this,
+
+
+906
+00:50:38,116 --> 00:50:41,386
+we have documentation
+online, we have a contact here
+
+
+907
+00:50:41,386 --> 00:50:42,896
+from the evangelist group,
+
+
+908
+00:50:43,346 --> 00:50:47,796
+and the developer forums
+are actually get pretty good
+
+
+909
+00:50:47,796 --> 00:50:50,046
+coverage from people
+inside of Apple.
+
+
+910
+00:50:51,036 --> 00:50:53,706
+I recommend understanding
+and debugging kernel panics.
+
+
+911
+00:50:53,966 --> 00:50:56,586
+The Kernel Core Dumps,
+I specified all
+
+
+912
+00:50:56,586 --> 00:50:59,316
+of the stuff you need from
+Kernel Core Dumps on one slide.
+
+
+913
+00:50:59,576 --> 00:51:00,866
+So, it's not very difficult.
+
+
+914
+00:51:01,236 --> 00:51:03,666
+And there's a new revision
+
+
+915
+00:51:03,666 --> 00:51:05,836
+to the generating a
+non-maskable interrupt,
+
+
+916
+00:51:06,216 --> 00:51:09,106
+which is in the Mavericks
+section
+
+
+917
+00:51:09,106 --> 00:51:13,696
+of the developer website,
+the original version
+
+
+918
+00:51:13,696 --> 00:51:15,226
+of that is referenced here.
+
+
+919
+00:51:15,226 --> 00:51:19,876
+We have some related
+sessions later this week,
+
+
+920
+00:51:19,946 --> 00:51:23,466
+on Friday in the Pacific
+Heights Conference Room,
+
+
+921
+00:51:23,466 --> 00:51:27,496
+they'll be an Advanced Debugging
+with LLDB, I recommend you go.
+
+
+922
+00:51:28,256 --> 00:51:31,636
+So in summary, sign
+your kexts in 10.9.
+
+
+923
+00:51:31,936 --> 00:51:33,336
+We've had two people
+tell you that,
+
+
+924
+00:51:33,336 --> 00:51:35,166
+it's the wave of the future.
+
+
+925
+00:51:35,936 --> 00:51:37,566
+lldb is actually pretty cool.
+
+
+926
+00:51:37,726 --> 00:51:38,276
+I like it.
+
+
+927
+00:51:38,276 --> 00:51:41,616
+I prefer it over gdb
+now that I'm used to it.
+
+
+928
+00:51:41,806 --> 00:51:44,856
+Like any new technology,
+it takes a bit to get used,
+
+
+929
+00:51:44,946 --> 00:51:47,686
+but it's very powerful
+and very nice.
+
+
+930
+00:51:48,606 --> 00:51:51,056
+We have new ways of
+debugging for machines
+
+
+931
+00:51:51,276 --> 00:51:53,916
+that do not have built-in
+FireWire or built-in Ethernet,
+
+
+932
+00:51:54,386 --> 00:51:56,836
+and we have new boot-args
+that help you track down bugs.
+
+
+933
+00:51:58,896 --> 00:52:00,766
+There you go.
+
+
+934
+00:52:01,266 --> 00:52:22,480
+[ Applause ]
+

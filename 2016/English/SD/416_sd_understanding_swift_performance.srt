@@ -1,0 +1,6891 @@
+1
+00:00:07,516 --> 00:00:18,500
+[ Music ]
+
+
+2
+00:00:25,016 --> 00:00:26,236
+[ Applause ]
+
+
+3
+00:00:26,236 --> 00:00:29,136
+>> Hello and welcome to
+Understand Swift Performance.
+
+
+4
+00:00:29,416 --> 00:00:33,476
+I'm Kyle. Arnold and I are so
+excited to be here today to talk
+
+
+5
+00:00:33,476 --> 00:00:34,536
+to you guys about Swift.
+
+
+6
+00:00:35,536 --> 00:00:38,086
+As developers, Swift
+offers us a broad
+
+
+7
+00:00:38,086 --> 00:00:40,026
+and powerful design
+space to explore.
+
+
+8
+00:00:40,566 --> 00:00:43,076
+Swift has a variety
+of first class types
+
+
+9
+00:00:43,326 --> 00:00:46,086
+and various mechanisms for
+code reuse and dynamism.
+
+
+10
+00:00:46,996 --> 00:00:49,286
+All of these language
+features can be combined
+
+
+11
+00:00:49,376 --> 00:00:51,256
+in interesting, emergent ways.
+
+
+12
+00:00:51,576 --> 00:00:55,086
+So, how do we go about
+narrowing this design space
+
+
+13
+00:00:55,476 --> 00:00:56,946
+and picking the right
+tool for the job?
+
+
+14
+00:00:57,816 --> 00:00:59,776
+Well, first and foremost,
+you want to take
+
+
+15
+00:00:59,776 --> 00:01:01,956
+into account the
+modeling implications
+
+
+16
+00:01:02,156 --> 00:01:04,616
+of Swift's different
+abstraction mechanisms.
+
+
+17
+00:01:04,965 --> 00:01:07,516
+Are value or reference
+semantics more appropriate?
+
+
+18
+00:01:08,326 --> 00:01:11,966
+How dynamic do you need
+this abstraction to be?
+
+
+19
+00:01:12,396 --> 00:01:14,926
+Well, Arnold and I also
+want to empower you today
+
+
+20
+00:01:15,146 --> 00:01:17,266
+to use performance to
+narrow the design space.
+
+
+21
+00:01:17,706 --> 00:01:20,356
+In my experience, taking
+performance implications
+
+
+22
+00:01:20,356 --> 00:01:24,176
+into account often helps guide
+me to a more idiomatic solution.
+
+
+23
+00:01:24,666 --> 00:01:27,736
+So, we're going to be focusing
+primarily on performance.
+
+
+24
+00:01:28,036 --> 00:01:29,316
+We'll touch a bit on modeling.
+
+
+25
+00:01:29,796 --> 00:01:31,416
+But we had some great
+talks last year
+
+
+26
+00:01:31,416 --> 00:01:34,286
+and we have another great talk
+this year on powerful techniques
+
+
+27
+00:01:34,286 --> 00:01:35,706
+for modeling your
+program in Swift.
+
+
+28
+00:01:36,166 --> 00:01:37,736
+If you want to get the
+most out of this talk,
+
+
+29
+00:01:37,976 --> 00:01:40,456
+I strongly recommend watching
+at least one of these talks.
+
+
+30
+00:01:41,396 --> 00:01:41,716
+All right.
+
+
+31
+00:01:42,356 --> 00:01:44,806
+So, we want to use performance
+to narrow the design space.
+
+
+32
+00:01:45,376 --> 00:01:48,306
+Well, the best way to understand
+the performance implications
+
+
+33
+00:01:48,306 --> 00:01:50,516
+of Swift's abstraction
+mechanisms is
+
+
+34
+00:01:50,516 --> 00:01:52,516
+to understand their
+underlying implementation.
+
+
+35
+00:01:52,856 --> 00:01:54,086
+So, that's what we're
+going to do today.
+
+
+36
+00:01:54,386 --> 00:01:55,976
+We're going to begin
+
+
+37
+00:01:55,976 --> 00:01:58,586
+by identifying the different
+dimensions you want to take
+
+
+38
+00:01:58,586 --> 00:02:01,196
+into account when evaluating
+your different abstraction
+
+
+39
+00:02:01,196 --> 00:02:02,146
+mechanism options.
+
+
+40
+00:02:02,296 --> 00:02:03,876
+For each of these,
+we're going to trace
+
+
+41
+00:02:03,876 --> 00:02:06,316
+through some code using
+structs and classes
+
+
+42
+00:02:06,576 --> 00:02:09,116
+to deepen our mental model
+for the overhead involved.
+
+
+43
+00:02:09,226 --> 00:02:10,226
+And then we're going to look
+
+
+44
+00:02:10,226 --> 00:02:12,026
+at how we can apply what
+we've learned to clean up
+
+
+45
+00:02:12,136 --> 00:02:13,556
+and speed up some Swift code.
+
+
+46
+00:02:14,516 --> 00:02:15,716
+In the second half of this talk,
+
+
+47
+00:02:15,716 --> 00:02:17,616
+we're going to evaluate
+the performance
+
+
+48
+00:02:17,616 --> 00:02:19,176
+of protocol oriented
+programming.
+
+
+49
+00:02:19,576 --> 00:02:21,166
+We're going to look
+at the implementation
+
+
+50
+00:02:21,166 --> 00:02:24,456
+of advanced Swift features
+like protocols and generics
+
+
+51
+00:02:24,686 --> 00:02:26,936
+to get a better understanding
+of their modeling
+
+
+52
+00:02:26,936 --> 00:02:28,306
+and performance implications.
+
+
+53
+00:02:29,066 --> 00:02:31,116
+Quick disclaimer: We're
+going to be looking
+
+
+54
+00:02:31,116 --> 00:02:34,706
+at memory representations and
+generated code representations
+
+
+55
+00:02:34,776 --> 00:02:36,976
+of what Swift compiles and
+executes on your behalf.
+
+
+56
+00:02:37,686 --> 00:02:40,226
+These are inevitably going to
+be simplifications, but Arnold
+
+
+57
+00:02:40,226 --> 00:02:41,786
+and I think we've struck
+a really good balance
+
+
+58
+00:02:42,026 --> 00:02:44,256
+between seeing simplicity
+and accuracy.
+
+
+59
+00:02:44,446 --> 00:02:45,906
+And this is a really
+good mental model
+
+
+60
+00:02:46,066 --> 00:02:47,166
+to reason about your code with.
+
+
+61
+00:02:48,126 --> 00:02:48,796
+All right.
+
+
+62
+00:02:49,116 --> 00:02:51,936
+Let's get started by identifying
+the different dimensions
+
+
+63
+00:02:51,936 --> 00:02:52,606
+of performance.
+
+
+64
+00:02:53,496 --> 00:02:55,736
+So, when you're building
+an abstraction
+
+
+65
+00:02:55,736 --> 00:02:57,336
+and choosing an abstraction
+mechanism,
+
+
+66
+00:02:57,656 --> 00:03:00,276
+you should be asking
+yourself, "Is my instance going
+
+
+67
+00:03:00,276 --> 00:03:02,696
+to be allocated on
+the stack or the heap?
+
+
+68
+00:03:03,436 --> 00:03:05,026
+When I pass this
+instance around,
+
+
+69
+00:03:05,526 --> 00:03:08,056
+how much reference counting
+overhead am I going to incur?
+
+
+70
+00:03:08,786 --> 00:03:10,646
+When I call a method
+on this instance,
+
+
+71
+00:03:10,856 --> 00:03:13,526
+is it going to be statically
+or dynamically dispatched?"
+
+
+72
+00:03:14,196 --> 00:03:17,016
+If we want to write fast Swift
+code, we're going to need
+
+
+73
+00:03:17,016 --> 00:03:19,516
+to avoid paying for
+dynamism and runtime
+
+
+74
+00:03:19,516 --> 00:03:21,176
+that we're not taking
+advantage of.
+
+
+75
+00:03:22,966 --> 00:03:26,406
+And we're going to need to
+learn when and how we can trade
+
+
+76
+00:03:26,406 --> 00:03:27,816
+between these different
+dimensions
+
+
+77
+00:03:28,216 --> 00:03:29,206
+for better performance.
+
+
+78
+00:03:30,066 --> 00:03:30,356
+All right.
+
+
+79
+00:03:30,716 --> 00:03:32,746
+We're going to go through
+each of these dimensions one
+
+
+80
+00:03:32,746 --> 00:03:34,496
+at a time beginning
+with allocation.
+
+
+81
+00:03:36,226 --> 00:03:38,016
+Swift automatically allocates
+
+
+82
+00:03:38,016 --> 00:03:39,546
+and deallocates memory
+on your behalf.
+
+
+83
+00:03:39,896 --> 00:03:41,506
+Some of that memory it
+allocates on the stack.
+
+
+84
+00:03:42,666 --> 00:03:44,436
+The stack is a really
+simple data structure.
+
+
+85
+00:03:44,726 --> 00:03:46,246
+You can push onto
+the end of the stack
+
+
+86
+00:03:46,276 --> 00:03:48,386
+and you can pop off
+the end of the stack.
+
+
+87
+00:03:48,686 --> 00:03:51,236
+Because you can only ever add or
+remove to the end of the stack,
+
+
+88
+00:03:51,506 --> 00:03:54,766
+we can implement the stack --
+or implement push and pop just
+
+
+89
+00:03:54,766 --> 00:03:58,246
+by keeping a pointer to
+the end of the stack.
+
+
+90
+00:03:58,246 --> 00:04:00,896
+And this means, when we call
+into a function -- or, rather --
+
+
+91
+00:04:01,136 --> 00:04:01,876
+that pointer at the end
+
+
+92
+00:04:01,876 --> 00:04:03,606
+of the stack is called
+the stack pointer.
+
+
+93
+00:04:03,946 --> 00:04:06,216
+And when we call into a
+function, we can allocate
+
+
+94
+00:04:06,216 --> 00:04:08,316
+that memory that we need just
+
+
+95
+00:04:08,316 --> 00:04:11,556
+by trivially decrementing the
+stack pointer to make space.
+
+
+96
+00:04:11,876 --> 00:04:14,096
+And when we've finished
+executing our function,
+
+
+97
+00:04:14,296 --> 00:04:16,815
+we can trivially
+deallocate that memory just
+
+
+98
+00:04:16,815 --> 00:04:18,846
+by incrementing the
+stack pointer back up to
+
+
+99
+00:04:18,875 --> 00:04:20,685
+where it was before we
+called this function.
+
+
+100
+00:04:21,255 --> 00:04:23,916
+Now, if you're not that familiar
+with the stack or stack pointer,
+
+
+101
+00:04:24,246 --> 00:04:25,366
+what I want you to take away
+
+
+102
+00:04:25,366 --> 00:04:28,086
+from this slide is just how
+fast stack allocation is.
+
+
+103
+00:04:28,416 --> 00:04:30,606
+It's literally the cost
+of assigning an integer.
+
+
+104
+00:04:32,016 --> 00:04:35,086
+So, this is in contrast to the
+heap, which is more dynamic,
+
+
+105
+00:04:35,426 --> 00:04:36,726
+but less efficient
+than the stack.
+
+
+106
+00:04:37,196 --> 00:04:40,216
+The heap lets you do things the
+stack can't like allocate memory
+
+
+107
+00:04:40,216 --> 00:04:41,376
+with a dynamic lifetime.
+
+
+108
+00:04:42,326 --> 00:04:44,376
+But that requires a more
+advanced data structure.
+
+
+109
+00:04:44,376 --> 00:04:46,196
+So, if you're going to
+allocate memory on the heap,
+
+
+110
+00:04:46,526 --> 00:04:48,896
+you actually have to search
+the heap data structure
+
+
+111
+00:04:48,896 --> 00:04:51,246
+to find an unused block
+of the appropriate size.
+
+
+112
+00:04:51,636 --> 00:04:53,496
+And then when you're done
+with it, to deallocate it,
+
+
+113
+00:04:53,786 --> 00:04:56,236
+you have to reinsert
+that memory back
+
+
+114
+00:04:56,236 --> 00:04:57,436
+into the appropriate position.
+
+
+115
+00:04:58,286 --> 00:04:59,936
+So, clearly, there's
+more involved here
+
+
+116
+00:04:59,936 --> 00:05:02,846
+than just assigning an integer
+like we had with the stack.
+
+
+117
+00:05:02,916 --> 00:05:04,706
+But these aren't even
+necessarily the main costs
+
+
+118
+00:05:04,706 --> 00:05:05,936
+involved with heap allocation.
+
+
+119
+00:05:06,566 --> 00:05:09,056
+Because multiple threads can be
+allocating memory on the heap
+
+
+120
+00:05:09,176 --> 00:05:10,816
+at the same time, the heap needs
+
+
+121
+00:05:10,816 --> 00:05:13,116
+to protect its integrity
+using locking
+
+
+122
+00:05:13,116 --> 00:05:14,826
+or other synchronization
+mechanisms.
+
+
+123
+00:05:15,256 --> 00:05:16,486
+This is a pretty large cost.
+
+
+124
+00:05:17,106 --> 00:05:19,706
+If you're not paying attention
+today to when and where
+
+
+125
+00:05:19,706 --> 00:05:21,876
+in your program you're
+allocating memory on the heap,
+
+
+126
+00:05:22,176 --> 00:05:23,646
+just by being a little
+more deliberate,
+
+
+127
+00:05:23,646 --> 00:05:25,846
+you can likely dramatically
+improve your performance.
+
+
+128
+00:05:26,616 --> 00:05:27,456
+All right.
+
+
+129
+00:05:27,666 --> 00:05:28,716
+Let's trace through some code
+
+
+130
+00:05:28,916 --> 00:05:30,636
+and see what Swift is
+doing on our behalf.
+
+
+131
+00:05:31,206 --> 00:05:34,306
+Here we have a point struct
+with an x and y stored property.
+
+
+132
+00:05:34,726 --> 00:05:36,966
+It also has the draw
+method on it.
+
+
+133
+00:05:37,006 --> 00:05:40,476
+We're going to construct the
+point at (0, 0), assign point1
+
+
+134
+00:05:40,476 --> 00:05:43,286
+to point2 making a copy,
+and assign a value of five
+
+
+135
+00:05:43,286 --> 00:05:45,236
+to point2.x. Then, we're going
+
+
+136
+00:05:45,296 --> 00:05:47,546
+to use our point1
+and use our point2.
+
+
+137
+00:05:48,016 --> 00:05:49,006
+So, let's trace through this.
+
+
+138
+00:05:49,636 --> 00:05:51,516
+As we enter this function,
+
+
+139
+00:05:52,066 --> 00:05:55,586
+before we even begin executing
+any code, we've allocated space
+
+
+140
+00:05:55,586 --> 00:05:57,636
+on the stack for
+our point1 instance
+
+
+141
+00:05:57,686 --> 00:05:58,836
+and our point2 instance.
+
+
+142
+00:05:59,116 --> 00:06:00,556
+And because point is a struct,
+
+
+143
+00:06:00,856 --> 00:06:04,216
+the x and y properties are
+stored in line on the stack.
+
+
+144
+00:06:04,896 --> 00:06:07,676
+So, when we go to construct our
+point with an x of 0 and a y
+
+
+145
+00:06:07,676 --> 00:06:09,646
+of 0, all we're doing
+is initializing
+
+
+146
+00:06:09,646 --> 00:06:12,026
+that memory we've already
+allocated on the stack.
+
+
+147
+00:06:12,616 --> 00:06:15,916
+When we assign point1 to
+point2, we're just making a copy
+
+
+148
+00:06:16,136 --> 00:06:19,836
+of that point and initializing
+the point2 memory, again,
+
+
+149
+00:06:19,836 --> 00:06:21,206
+that we'd already
+allocated on the stack.
+
+
+150
+00:06:21,926 --> 00:06:24,996
+Note that point1 and point2
+are independent instances.
+
+
+151
+00:06:25,366 --> 00:06:27,696
+That means, when we go
+and assign a value of five
+
+
+152
+00:06:27,696 --> 00:06:32,056
+to point2.x, point2.x is
+five, but point1.x is still 0.
+
+
+153
+00:06:32,376 --> 00:06:34,006
+This is known as
+value semantics.
+
+
+154
+00:06:34,576 --> 00:06:37,286
+Then we'll go ahead and
+use point1, use point2,
+
+
+155
+00:06:37,286 --> 00:06:39,336
+and we're done executing
+our function.
+
+
+156
+00:06:39,896 --> 00:06:42,876
+So, we can trivially deallocate
+that memory for point1
+
+
+157
+00:06:42,876 --> 00:06:46,716
+and point2 just by incrementing
+that stack pointer back up to
+
+
+158
+00:06:46,716 --> 00:06:48,426
+where we were when we
+entered our function.
+
+
+159
+00:06:49,456 --> 00:06:52,676
+Let's contrast this to the same
+exact code, but using a point
+
+
+160
+00:06:52,676 --> 00:06:55,106
+which is a class
+instead of a struct.
+
+
+161
+00:06:56,256 --> 00:06:56,936
+All right.
+
+
+162
+00:06:57,496 --> 00:06:59,186
+So, when we enter this
+function, just like before,
+
+
+163
+00:06:59,186 --> 00:07:00,486
+we're allocating
+memory on the stack.
+
+
+164
+00:07:01,086 --> 00:07:04,166
+But instead of for the actual
+storage of the properties
+
+
+165
+00:07:04,166 --> 00:07:05,776
+on point, we're going
+to allocate memory
+
+
+166
+00:07:05,776 --> 00:07:07,746
+for references to
+point1 and point2.
+
+
+167
+00:07:08,696 --> 00:07:10,836
+References to memory we're going
+to be allocated on the heap.
+
+
+168
+00:07:11,246 --> 00:07:14,366
+So, when we construct our
+point at (0, 0), Swift is going
+
+
+169
+00:07:14,366 --> 00:07:16,426
+to lock the heap and
+search that data structure
+
+
+170
+00:07:16,426 --> 00:07:18,476
+for an unused block of memory
+of the appropriate size.
+
+
+171
+00:07:19,066 --> 00:07:22,016
+Then, once we have it, we can
+initialize that memory with an x
+
+
+172
+00:07:22,016 --> 00:07:25,186
+of 0, a y of 0, and we can
+initialize our point1 reference
+
+
+173
+00:07:25,466 --> 00:07:28,616
+with the memory address to
+that memory on the heap.
+
+
+174
+00:07:29,246 --> 00:07:32,256
+Note, when we allocate it on the
+heap, Swift actually allocated
+
+
+175
+00:07:32,256 --> 00:07:35,206
+for our class point
+four words of storage.
+
+
+176
+00:07:35,536 --> 00:07:38,286
+This is in contrast to
+the two words it allocated
+
+
+177
+00:07:38,286 --> 00:07:39,296
+when our point was a struct.
+
+
+178
+00:07:39,726 --> 00:07:41,276
+This is because now
+the point is a class,
+
+
+179
+00:07:41,376 --> 00:07:43,666
+in addition to these
+stored for x and y,
+
+
+180
+00:07:44,046 --> 00:07:45,916
+we're allocating two more
+words that Swift is going
+
+
+181
+00:07:45,916 --> 00:07:46,896
+to manage on our behalf.
+
+
+182
+00:07:47,196 --> 00:07:50,796
+Those are denoted with these
+blue boxes in the heap diagram.
+
+
+183
+00:07:51,566 --> 00:07:53,726
+When we assign point1 to
+point two, we're not going
+
+
+184
+00:07:53,726 --> 00:07:55,316
+to copy the contents of point --
+
+
+185
+00:07:55,316 --> 00:07:56,616
+like we did when
+point1 was a struct.
+
+
+186
+00:07:56,876 --> 00:07:58,246
+Instead, we're going
+to copy the reference.
+
+
+187
+00:07:58,546 --> 00:08:00,756
+So, point1 and point2
+are actually referring
+
+
+188
+00:08:00,756 --> 00:08:02,996
+to the same exact instance
+of point on the heap.
+
+
+189
+00:08:03,596 --> 00:08:06,446
+That means when we go and assign
+a value of five to point2.x,
+
+
+190
+00:08:06,836 --> 00:08:09,436
+both point1.x and
+point2.x have a value five.
+
+
+191
+00:08:09,936 --> 00:08:12,236
+This is known as reference
+semantics and can lead
+
+
+192
+00:08:12,236 --> 00:08:13,596
+to unintended sharing of state.
+
+
+193
+00:08:13,596 --> 00:08:16,346
+Then, we're going to
+use point1, use point2,
+
+
+194
+00:08:16,346 --> 00:08:18,816
+and then Swift is going
+to deallocate this memory
+
+
+195
+00:08:18,816 --> 00:08:21,636
+on our behalf locking the heap
+and retraining that unused block
+
+
+196
+00:08:21,636 --> 00:08:22,616
+to the appropriate position.
+
+
+197
+00:08:22,676 --> 00:08:24,166
+And then we can pop the stack.
+
+
+198
+00:08:25,246 --> 00:08:25,816
+All right.
+
+
+199
+00:08:26,016 --> 00:08:26,926
+So, what did we just see?
+
+
+200
+00:08:27,546 --> 00:08:30,006
+We saw that classes are
+more expensive to construct
+
+
+201
+00:08:30,066 --> 00:08:33,186
+than structs because classes
+require a heap allocation.
+
+
+202
+00:08:34,566 --> 00:08:37,256
+Because classes are
+allocated on the heap
+
+
+203
+00:08:37,256 --> 00:08:38,535
+and have reference semantics,
+
+
+204
+00:08:39,015 --> 00:08:42,086
+classes have some
+powerful characteristics
+
+
+205
+00:08:42,086 --> 00:08:43,905
+like identity and
+indirect storage.
+
+
+206
+00:08:44,356 --> 00:08:46,786
+But, if we don't need those
+characteristics for abstraction,
+
+
+207
+00:08:47,196 --> 00:08:48,916
+we're going to better
+-- if we use a struct.
+
+
+208
+00:08:51,086 --> 00:08:55,326
+And structs aren't prone
+to the unintended sharing
+
+
+209
+00:08:55,326 --> 00:08:56,596
+of state like classes are.
+
+
+210
+00:08:57,176 --> 00:08:58,216
+So, let's see how we can apply
+
+
+211
+00:08:58,216 --> 00:09:00,566
+that to improve the
+performance of some Swift code.
+
+
+212
+00:09:00,996 --> 00:09:01,946
+Here's an example
+
+
+213
+00:09:02,226 --> 00:09:05,006
+from a messaging application
+I've been working on.
+
+
+214
+00:09:05,286 --> 00:09:08,216
+So, [laughing] basically
+this is from the view layer.
+
+
+215
+00:09:08,586 --> 00:09:11,316
+And my users send a
+text message and behind
+
+
+216
+00:09:11,316 --> 00:09:14,216
+that text message I want to
+draw a pretty balloon image.
+
+
+217
+00:09:14,536 --> 00:09:17,206
+My makeBalloon function is
+what generates this image
+
+
+218
+00:09:17,316 --> 00:09:19,006
+and it supports a
+configuration of different --
+
+
+219
+00:09:19,006 --> 00:09:21,776
+or the whole configuration
+space of different balloons.
+
+
+220
+00:09:22,036 --> 00:09:25,276
+For example, this balloon
+we see is blue color
+
+
+221
+00:09:25,276 --> 00:09:26,906
+with a right orientation
+and a tail.
+
+
+222
+00:09:27,516 --> 00:09:29,776
+We also support, for
+example, a gray balloon
+
+
+223
+00:09:30,026 --> 00:09:31,816
+with a left orientation
+and a bubble tail.
+
+
+224
+00:09:33,346 --> 00:09:35,896
+Now, the makeBalloon function
+needs to be really fast
+
+
+225
+00:09:35,896 --> 00:09:38,296
+because I call it frequently
+during allocation launch
+
+
+226
+00:09:38,546 --> 00:09:39,646
+and during user scrolling.
+
+
+227
+00:09:39,806 --> 00:09:41,236
+And so I've added
+this caching layer.
+
+
+228
+00:09:41,376 --> 00:09:43,926
+So, for any given
+configuration, I never have
+
+
+229
+00:09:44,046 --> 00:09:47,006
+to generate this balloon
+image more than once.
+
+
+230
+00:09:47,006 --> 00:09:48,726
+If I've done it once, I can
+just get it out of the cache.
+
+
+231
+00:09:49,476 --> 00:09:52,316
+The way I've done this is
+by serializing my color,
+
+
+232
+00:09:52,316 --> 00:09:55,406
+orientation, and tail into
+a key, which is a string.
+
+
+233
+00:09:55,756 --> 00:09:58,216
+Now, there's a couple
+things not to like here.
+
+
+234
+00:09:59,256 --> 00:10:02,156
+String isn't particularly
+a strong type for this key.
+
+
+235
+00:10:02,626 --> 00:10:05,376
+I'm using it to represent
+this configuration space,
+
+
+236
+00:10:05,376 --> 00:10:08,426
+but I could just as easily put
+the name of my dog in that key.
+
+
+237
+00:10:08,556 --> 00:10:09,796
+So, not a lot of safety there.
+
+
+238
+00:10:10,246 --> 00:10:12,436
+Also, String can
+represent so many things
+
+
+239
+00:10:12,686 --> 00:10:14,526
+because it actually
+stores the contents
+
+
+240
+00:10:14,526 --> 00:10:16,376
+of its characters
+indirectly on the heap.
+
+
+241
+00:10:16,726 --> 00:10:18,096
+So, that means every
+time we're calling
+
+
+242
+00:10:18,096 --> 00:10:20,856
+into this makeBalloon function,
+even if we have a cache hit,
+
+
+243
+00:10:21,166 --> 00:10:22,526
+we're incurring a
+heap allocation.
+
+
+244
+00:10:23,746 --> 00:10:24,646
+Let's see if we can do better.
+
+
+245
+00:10:25,316 --> 00:10:28,136
+Well, in Swift we can represent
+this configuration space
+
+
+246
+00:10:28,196 --> 00:10:31,396
+of color, orientation, and
+tail just using a struct.
+
+
+247
+00:10:32,156 --> 00:10:33,306
+This is a much safer way
+
+
+248
+00:10:33,306 --> 00:10:35,516
+to represent this configuration
+space than a String.
+
+
+249
+00:10:35,926 --> 00:10:38,086
+And because structs are
+first class types in Swift,
+
+
+250
+00:10:38,486 --> 00:10:40,566
+they can be used as the
+key in our dictionary.
+
+
+251
+00:10:41,676 --> 00:10:43,706
+Now, when we call the
+makeBalloon function,
+
+
+252
+00:10:44,066 --> 00:10:46,646
+if we have a cache hit,
+there's no allocation overhead
+
+
+253
+00:10:46,966 --> 00:10:48,606
+because constructing a struct
+
+
+254
+00:10:48,606 --> 00:10:51,996
+like this attributes one doesn't
+require any heap allocation.
+
+
+255
+00:10:51,996 --> 00:10:54,246
+It can be allocated
+on the stack.
+
+
+256
+00:10:54,246 --> 00:10:56,886
+So, this is a lot safer and
+it's going to be a lot faster.
+
+
+257
+00:10:57,846 --> 00:10:59,766
+Let's move on to
+our next dimension
+
+
+258
+00:10:59,766 --> 00:11:02,316
+of performance, reference
+counting.
+
+
+259
+00:11:03,576 --> 00:11:05,866
+So, I glossed over a
+detail when we were talking
+
+
+260
+00:11:05,866 --> 00:11:06,836
+about heap allocation.
+
+
+261
+00:11:07,356 --> 00:11:09,086
+How does Swift know
+when it's safe
+
+
+262
+00:11:09,086 --> 00:11:13,016
+to deallocate memory it
+allocated on the heap?
+
+
+263
+00:11:13,426 --> 00:11:16,496
+Well, the answer is Swift keeps
+a count of the total number
+
+
+264
+00:11:16,496 --> 00:11:18,826
+of references to any
+instance on the heap.
+
+
+265
+00:11:18,826 --> 00:11:20,456
+And it keeps it on
+the instance itself.
+
+
+266
+00:11:20,756 --> 00:11:22,686
+When you add a reference
+or remove a reference,
+
+
+267
+00:11:22,936 --> 00:11:25,316
+that reference count is
+incremented or decremented.
+
+
+268
+00:11:25,726 --> 00:11:29,116
+When that count hits zero,
+Swift knows no one is pointing
+
+
+269
+00:11:29,116 --> 00:11:31,546
+to this instance on the
+heap anymore and it's safe
+
+
+270
+00:11:31,546 --> 00:11:32,546
+to deallocate that memory.
+
+
+271
+00:11:33,326 --> 00:11:34,816
+The key thing to keep in mind
+
+
+272
+00:11:34,816 --> 00:11:37,306
+with reference counting is this
+is a really frequent operation
+
+
+273
+00:11:37,526 --> 00:11:39,956
+and there's actually more
+to it than just incrementing
+
+
+274
+00:11:39,956 --> 00:11:41,086
+and decrementing an integer.
+
+
+275
+00:11:41,416 --> 00:11:43,866
+First, there's a couple
+levels of indirection involved
+
+
+276
+00:11:43,866 --> 00:11:47,966
+to just go and execute the
+increment and decrement.
+
+
+277
+00:11:48,366 --> 00:11:50,726
+But, more importantly, just
+like with heap allocation,
+
+
+278
+00:11:51,116 --> 00:11:53,956
+there is thread safety to
+take into consideration
+
+
+279
+00:11:54,316 --> 00:11:57,416
+because references can be added
+or removed to any heap instance
+
+
+280
+00:11:57,416 --> 00:11:59,656
+on multiple threads at the
+same time, we actually have
+
+
+281
+00:11:59,656 --> 00:12:02,086
+to atomically increment and
+decrement the reference count.
+
+
+282
+00:12:02,566 --> 00:12:03,696
+And because of the frequency
+
+
+283
+00:12:03,696 --> 00:12:04,856
+of reference counting
+operations,
+
+
+284
+00:12:05,136 --> 00:12:06,056
+this cost can add up.
+
+
+285
+00:12:07,606 --> 00:12:11,566
+So, let's go back to our point
+class and our program and look
+
+
+286
+00:12:11,566 --> 00:12:14,806
+at what Swift is actually
+doing on our behalf.
+
+
+287
+00:12:14,966 --> 00:12:17,486
+So, here now we have,
+in comparison,
+
+
+288
+00:12:17,626 --> 00:12:19,206
+some generated pseudocode.
+
+
+289
+00:12:19,636 --> 00:12:22,636
+We see our point has gained an
+additional property, refCount.
+
+
+290
+00:12:23,246 --> 00:12:26,766
+And we see that Swift has added
+a couple calls to retain --
+
+
+291
+00:12:26,866 --> 00:12:28,856
+or a call to retain and a
+couple calls to release.
+
+
+292
+00:12:29,276 --> 00:12:31,636
+Retain is going to atomically
+increment our reference count
+
+
+293
+00:12:31,636 --> 00:12:32,346
+and release is going
+
+
+294
+00:12:32,346 --> 00:12:33,906
+to atomically decrement
+our reference count.
+
+
+295
+00:12:34,336 --> 00:12:36,406
+In this way Swift will
+be able to keep track
+
+
+296
+00:12:36,406 --> 00:12:39,806
+of how many references are
+alive to our point on the heap.
+
+
+297
+00:12:39,806 --> 00:12:41,786
+All right.
+
+
+298
+00:12:41,786 --> 00:12:43,106
+And if we trace through
+this quickly,
+
+
+299
+00:12:43,496 --> 00:12:45,766
+we can see that after
+constructing our point
+
+
+300
+00:12:45,886 --> 00:12:48,256
+on the heap, it's initialized
+with a reference count of one
+
+
+301
+00:12:48,506 --> 00:12:51,216
+because we have one live
+reference to that point.
+
+
+302
+00:12:51,796 --> 00:12:55,756
+As we go through our program
+and we assign point1 to point2,
+
+
+303
+00:12:55,756 --> 00:12:59,136
+we now have two references
+and so Swift has added a call
+
+
+304
+00:12:59,136 --> 00:13:01,316
+to atomically increment
+the reference count
+
+
+305
+00:13:01,576 --> 00:13:02,566
+of our point instance.
+
+
+306
+00:13:02,946 --> 00:13:07,846
+As we keep executing, once
+we've finished using point1,
+
+
+307
+00:13:07,986 --> 00:13:09,116
+Swift has added a call
+
+
+308
+00:13:09,116 --> 00:13:10,886
+to atomically decrement
+the reference count
+
+
+309
+00:13:11,076 --> 00:13:13,576
+because point1 is no longer
+really a living reference
+
+
+310
+00:13:13,576 --> 00:13:14,516
+as far as it's concerned.
+
+
+311
+00:13:15,176 --> 00:13:16,936
+Similarly, once we're
+done using point2,
+
+
+312
+00:13:16,936 --> 00:13:19,076
+Swift has added another
+atomic decrement
+
+
+313
+00:13:19,076 --> 00:13:19,746
+of the reference count.
+
+
+314
+00:13:20,046 --> 00:13:22,726
+At this point, there's no more
+references that are making use
+
+
+315
+00:13:22,726 --> 00:13:24,736
+of our point instance and
+so Swift knows it's safe
+
+
+316
+00:13:25,036 --> 00:13:28,000
+to lock the heap and return
+that block of memory to it.
+
+
+317
+00:13:31,256 --> 00:13:32,506
+So, what about structs?
+
+
+318
+00:13:33,256 --> 00:13:35,186
+Is there any reference
+counting involved with structs?
+
+
+319
+00:13:35,716 --> 00:13:38,166
+Well, when we constructed
+our point struct,
+
+
+320
+00:13:38,166 --> 00:13:39,586
+there was no heap
+allocation involved.
+
+
+321
+00:13:40,346 --> 00:13:42,406
+When we copied, there was
+no heap allocation involved.
+
+
+322
+00:13:42,616 --> 00:13:44,206
+There were no references
+involved in any of this.
+
+
+323
+00:13:44,666 --> 00:13:47,336
+So, there's no reference
+counting overhead
+
+
+324
+00:13:47,616 --> 00:13:48,546
+for our point struct.
+
+
+325
+00:13:49,146 --> 00:13:52,536
+What about a more
+complicated struct, though?
+
+
+326
+00:13:53,196 --> 00:13:55,746
+Here we have a label struct
+which contains text which is
+
+
+327
+00:13:55,746 --> 00:13:58,176
+of type String and
+font of type UIFont.
+
+
+328
+00:13:58,626 --> 00:14:01,296
+String, as we heard earlier,
+actually stores its --
+
+
+329
+00:14:01,296 --> 00:14:03,076
+the contents of its
+characters on the heap.
+
+
+330
+00:14:03,426 --> 00:14:04,746
+So, that needs to be
+reference counted.
+
+
+331
+00:14:05,156 --> 00:14:06,706
+And font is a class.
+
+
+332
+00:14:06,706 --> 00:14:08,276
+And so that also needs
+to be reference counted.
+
+
+333
+00:14:08,856 --> 00:14:10,346
+If we look at our
+memory representation,
+
+
+334
+00:14:10,666 --> 00:14:12,066
+labels got two references.
+
+
+335
+00:14:12,286 --> 00:14:13,566
+And when we make a copy of it,
+
+
+336
+00:14:13,716 --> 00:14:15,406
+we're actually adding
+two more references,
+
+
+337
+00:14:15,546 --> 00:14:18,296
+another one to the text storage
+and another one to the font.
+
+
+338
+00:14:18,886 --> 00:14:20,346
+The way Swift tracks this --
+
+
+339
+00:14:20,416 --> 00:14:22,566
+these heap allocations
+is by adding calls
+
+
+340
+00:14:22,626 --> 00:14:23,516
+to retain and release.
+
+
+341
+00:14:24,436 --> 00:14:26,406
+So, here we see the
+label is actually going
+
+
+342
+00:14:26,406 --> 00:14:28,306
+to be incurring twice the
+reference counting overhead
+
+
+343
+00:14:28,616 --> 00:14:30,976
+that a class would have.
+
+
+344
+00:14:31,536 --> 00:14:32,166
+All right.
+
+
+345
+00:14:32,166 --> 00:14:36,386
+So, in summary, because classes
+are allocated on the heap,
+
+
+346
+00:14:36,386 --> 00:14:38,756
+Swift has to manage the lifetime
+of that heap allocation.
+
+
+347
+00:14:39,056 --> 00:14:41,806
+It does so with reference
+counting.
+
+
+348
+00:14:42,076 --> 00:14:44,276
+This is nontrivial because
+reference counting operations
+
+
+349
+00:14:44,276 --> 00:14:46,686
+are relatively frequently
+and because of the atomicity
+
+
+350
+00:14:46,686 --> 00:14:47,626
+of the reference counting.
+
+
+351
+00:14:48,406 --> 00:14:50,426
+This is just one more
+resent to use structs.
+
+
+352
+00:14:51,806 --> 00:14:54,556
+But if structs contain
+references, they're going
+
+
+353
+00:14:54,556 --> 00:14:56,486
+to be paying reference
+counting overhead as well.
+
+
+354
+00:14:56,486 --> 00:14:57,446
+In fact, structs are going
+
+
+355
+00:14:57,446 --> 00:14:59,366
+to be paying reference
+counting overhead proportional
+
+
+356
+00:14:59,366 --> 00:15:01,076
+to the number of
+references that they contain.
+
+
+357
+00:15:01,596 --> 00:15:03,976
+So, if they have more than
+one reference, they're going
+
+
+358
+00:15:04,196 --> 00:15:07,726
+to retain more reference
+counting overhead than a class.
+
+
+359
+00:15:07,726 --> 00:15:11,666
+Let's see how we chain apply
+this to another example coming
+
+
+360
+00:15:11,736 --> 00:15:13,726
+from my theoretical
+messaging application.
+
+
+361
+00:15:14,466 --> 00:15:17,346
+So, my users weren't satisfied
+with just sending text messages.
+
+
+362
+00:15:17,396 --> 00:15:18,916
+They also wanted
+to send attachments
+
+
+363
+00:15:19,136 --> 00:15:20,286
+like images to each other.
+
+
+364
+00:15:20,436 --> 00:15:22,696
+And so I have this
+struct attachment,
+
+
+365
+00:15:22,696 --> 00:15:24,386
+which is a model object
+in my application.
+
+
+366
+00:15:24,796 --> 00:15:28,566
+It's got a fileURL property,
+which stores the path of my data
+
+
+367
+00:15:28,566 --> 00:15:29,996
+on disk for this attachment.
+
+
+368
+00:15:30,196 --> 00:15:33,646
+It has a uuid, which is a unique
+randomly generated identifier
+
+
+369
+00:15:33,906 --> 00:15:36,946
+so that we can recognize this
+attachment on client and server
+
+
+370
+00:15:36,946 --> 00:15:37,906
+and different client devices.
+
+
+371
+00:15:38,376 --> 00:15:41,756
+It's got a mimeType, which
+stores the type of data
+
+
+372
+00:15:41,756 --> 00:15:44,176
+that this attachment represents
+like JPG or PNG or GIF.
+
+
+373
+00:15:44,176 --> 00:15:47,466
+Probably the only
+nontrivial code
+
+
+374
+00:15:47,466 --> 00:15:50,206
+in this example is the failable
+initializer, which checks
+
+
+375
+00:15:50,436 --> 00:15:52,746
+if the mimeType is one
+of my supported mimeTypes
+
+
+376
+00:15:52,746 --> 00:15:54,906
+for this application because
+I don't support all mimeTypes.
+
+
+377
+00:15:55,006 --> 00:15:57,986
+And if it's not supported, we're
+going to abort out of this.
+
+
+378
+00:15:58,036 --> 00:15:58,796
+Otherwise, we're going
+
+
+379
+00:15:58,796 --> 00:16:03,376
+to initialize our fileURL,
+uuid, and mimeType.
+
+
+380
+00:16:03,486 --> 00:16:05,476
+So, we noticed a lot of
+reference counting overhead
+
+
+381
+00:16:05,926 --> 00:16:08,696
+and if we actually look at
+our memory representation
+
+
+382
+00:16:08,696 --> 00:16:10,586
+of this struct, all 3
+
+
+383
+00:16:10,586 --> 00:16:12,496
+of our properties are incurring
+reference counting overhead
+
+
+384
+00:16:12,496 --> 00:16:14,376
+when you pass them around
+because there are references
+
+
+385
+00:16:14,486 --> 00:16:17,246
+to heap allocations underlying
+each of these structs.
+
+
+386
+00:16:18,246 --> 00:16:18,996
+We can do better.
+
+
+387
+00:16:20,036 --> 00:16:21,926
+First, just like we saw before,
+
+
+388
+00:16:22,726 --> 00:16:24,916
+uuid is a really
+well defined concept.
+
+
+389
+00:16:25,116 --> 00:16:29,586
+It's a 128 bit randomly
+generated identifier.
+
+
+390
+00:16:30,156 --> 00:16:31,496
+And we don't want
+to just allow you
+
+
+391
+00:16:31,496 --> 00:16:33,426
+to put anything in
+the uuid field.
+
+
+392
+00:16:33,556 --> 00:16:35,096
+And, as a String,
+you really can.
+
+
+393
+00:16:35,686 --> 00:16:40,016
+Well, Foundation this year
+added a new value type and so --
+
+
+394
+00:16:40,016 --> 00:16:43,986
+for uuid, which is really great
+because it stores those 128 bits
+
+
+395
+00:16:44,316 --> 00:16:45,866
+in line directly in the struct.
+
+
+396
+00:16:46,296 --> 00:16:47,516
+And so let's use that.
+
+
+397
+00:16:48,256 --> 00:16:50,366
+What this is going to do is
+it's going to eliminate any
+
+
+398
+00:16:50,366 --> 00:16:51,916
+of the reference counting
+overhead we're paying
+
+
+399
+00:16:51,916 --> 00:16:53,596
+for that uuid field, the
+one that was a String.
+
+
+400
+00:16:53,596 --> 00:16:55,776
+And we've got much
+more tight safety
+
+
+401
+00:16:55,946 --> 00:16:57,286
+because I can't just
+put anything in here.
+
+
+402
+00:16:57,286 --> 00:16:58,526
+I can only put a uuid.
+
+
+403
+00:16:59,046 --> 00:16:59,776
+That's fantastic.
+
+
+404
+00:17:00,336 --> 00:17:02,856
+Let's take a look at
+mimeType and let's look
+
+
+405
+00:17:02,856 --> 00:17:04,695
+at how I've implemented
+this isMimeType check.
+
+
+406
+00:17:05,126 --> 00:17:07,526
+I'm actually only
+supporting a closed set
+
+
+407
+00:17:07,526 --> 00:17:10,945
+of mimeTypes today,
+JPG, PNG, GIF.
+
+
+408
+00:17:12,026 --> 00:17:14,256
+And, you know, Swift has a
+great abstraction mechanism
+
+
+409
+00:17:14,256 --> 00:17:16,586
+for representing a
+fixed set of things.
+
+
+410
+00:17:16,756 --> 00:17:17,715
+And that's an enumeration.
+
+
+411
+00:17:18,266 --> 00:17:19,685
+So, I'm going to take
+that switch statement,
+
+
+412
+00:17:19,945 --> 00:17:21,546
+put it inside a failable
+initializer
+
+
+413
+00:17:21,796 --> 00:17:24,445
+and map those mimeTypes
+to an appropriate --
+
+
+414
+00:17:24,445 --> 00:17:26,296
+to the appropriate
+case in my enum.
+
+
+415
+00:17:26,665 --> 00:17:29,336
+So, now I've got more type
+safety with this mimeType enum
+
+
+416
+00:17:29,336 --> 00:17:32,486
+and I've also got more
+performance because I don't need
+
+
+417
+00:17:32,486 --> 00:17:35,026
+to be storing these different
+cases indirectly on the heap.
+
+
+418
+00:17:35,236 --> 00:17:37,936
+Swift actually has a really
+compact and convenient way
+
+
+419
+00:17:37,936 --> 00:17:39,116
+for writing this exact code,
+
+
+420
+00:17:39,486 --> 00:17:42,226
+which is using enum that's
+backed by a raw String value.
+
+
+421
+00:17:42,516 --> 00:17:46,136
+And so this is effectively the
+exact same code except it's even
+
+
+422
+00:17:46,136 --> 00:17:48,686
+more powerful, has the same
+performance characteristics,
+
+
+423
+00:17:48,726 --> 00:17:50,006
+but it's way more
+convenient to write.
+
+
+424
+00:17:50,436 --> 00:17:52,086
+So, if we looked at our
+attachment struct now,
+
+
+425
+00:17:52,606 --> 00:17:53,716
+it's way more type safe.
+
+
+426
+00:17:53,756 --> 00:17:55,856
+We've got a strongly typed
+uuid and mimeType field
+
+
+427
+00:17:56,196 --> 00:17:58,826
+and we're not paying nearly as
+much reference counting overhead
+
+
+428
+00:17:58,856 --> 00:18:00,946
+because uuid and
+mimeType don't need
+
+
+429
+00:18:00,986 --> 00:18:02,686
+to be reference counted
+or heap allocated.
+
+
+430
+00:18:03,886 --> 00:18:04,656
+All right.
+
+
+431
+00:18:04,656 --> 00:18:06,586
+Let's move on to
+our final dimension
+
+
+432
+00:18:06,586 --> 00:18:08,556
+of performance, method dispatch.
+
+
+433
+00:18:09,746 --> 00:18:11,716
+When you call a method
+at runtime,
+
+
+434
+00:18:12,126 --> 00:18:14,156
+Swift needs to execute the
+correct implementation.
+
+
+435
+00:18:15,246 --> 00:18:17,696
+If it can determine the
+implementation to execute
+
+
+436
+00:18:17,806 --> 00:18:20,176
+at compile time, that's
+known as a static dispatch.
+
+
+437
+00:18:20,276 --> 00:18:22,306
+And at runtime, we're just going
+to be able to jump directly
+
+
+438
+00:18:22,306 --> 00:18:23,396
+to the correct implementation.
+
+
+439
+00:18:23,596 --> 00:18:26,966
+And this is really cool because
+the compiler actually going
+
+
+440
+00:18:27,186 --> 00:18:28,716
+to be able to have visibility
+
+
+441
+00:18:28,916 --> 00:18:31,006
+into which implementations
+are going to be executed.
+
+
+442
+00:18:31,206 --> 00:18:32,486
+And so it's going to be able
+
+
+443
+00:18:32,486 --> 00:18:35,286
+to optimize this code pretty
+aggressively including things
+
+
+444
+00:18:35,286 --> 00:18:35,846
+like inlining.
+
+
+445
+00:18:36,766 --> 00:18:38,826
+This is in contrast
+to a dynamic dispatch.
+
+
+446
+00:18:39,896 --> 00:18:41,546
+Dynamic dispatch isn't going --
+
+
+447
+00:18:41,546 --> 00:18:42,716
+we're not going to be able
+
+
+448
+00:18:42,716 --> 00:18:44,276
+to determine a compile
+time directly
+
+
+449
+00:18:44,276 --> 00:18:45,536
+which implementation to go to.
+
+
+450
+00:18:45,586 --> 00:18:47,636
+And so at runtime, we're
+actually going to look
+
+
+451
+00:18:47,636 --> 00:18:50,526
+up the implementation
+and then jump to it.
+
+
+452
+00:18:50,746 --> 00:18:52,996
+So, on its own, a
+dynamic dispatch is not
+
+
+453
+00:18:52,996 --> 00:18:54,936
+that much more expensive
+than a static dispatch.
+
+
+454
+00:18:54,936 --> 00:18:56,206
+There's just one
+level of indirection.
+
+
+455
+00:18:56,556 --> 00:18:59,056
+None of this thread
+synchronization overhead
+
+
+456
+00:18:59,056 --> 00:19:02,006
+like we had with reference
+counting and heap allocation.
+
+
+457
+00:19:02,506 --> 00:19:06,056
+But this dynamic dispatch blocks
+the visibility of the compiler
+
+
+458
+00:19:06,186 --> 00:19:09,236
+and so while the compiler
+could do all these really cool
+
+
+459
+00:19:09,236 --> 00:19:12,236
+optimizations for our static
+dispatches, a dynamic dispatch,
+
+
+460
+00:19:12,236 --> 00:19:15,986
+the compiler is not going to
+be able to reason through it.
+
+
+461
+00:19:16,146 --> 00:19:17,136
+So, I mentioned inlining.
+
+
+462
+00:19:17,556 --> 00:19:18,436
+What is inlining?
+
+
+463
+00:19:19,056 --> 00:19:22,416
+Well, let's return to our
+familiar struct point.
+
+
+464
+00:19:23,346 --> 00:19:25,446
+It's got an x and y and
+it's got a draw method.
+
+
+465
+00:19:25,696 --> 00:19:27,616
+I've also added this
+drawAPoint method.
+
+
+466
+00:19:28,236 --> 00:19:31,256
+The drawAPoint method takes in a
+point and just calls draw on it.
+
+
+467
+00:19:31,746 --> 00:19:32,266
+Really fancy.
+
+
+468
+00:19:32,266 --> 00:19:35,046
+And then the body of my program
+constructs a point at (0,
+
+
+469
+00:19:35,046 --> 00:19:37,196
+0) and passes that
+point to drawAPoint.
+
+
+470
+00:19:37,616 --> 00:19:38,876
+Well, the drawAPoint function
+
+
+471
+00:19:39,166 --> 00:19:42,856
+and the point.draw method are
+both statically dispatched.
+
+
+472
+00:19:43,386 --> 00:19:47,626
+What this means is that
+the compiler knows exactly
+
+
+473
+00:19:47,626 --> 00:19:49,356
+which implementations
+are going to be executed
+
+
+474
+00:19:49,356 --> 00:19:52,826
+and so it's actually going to
+take our drawAPoint dispatch
+
+
+475
+00:19:52,946 --> 00:19:54,076
+and it's just going to replace
+
+
+476
+00:19:54,116 --> 00:19:56,666
+that with the implementation
+of drawAPoint.
+
+
+477
+00:19:57,476 --> 00:19:59,686
+And then it's going to take
+our point.draw method and,
+
+
+478
+00:20:00,036 --> 00:20:02,196
+because that's a static
+dispatch, it can replace
+
+
+479
+00:20:02,236 --> 00:20:05,266
+that with the actual
+implementation of point.draw.
+
+
+480
+00:20:05,556 --> 00:20:07,836
+So, when we go and execute
+this code at runtime,
+
+
+481
+00:20:07,836 --> 00:20:09,746
+we're going to be able to
+just construct our point,
+
+
+482
+00:20:10,326 --> 00:20:13,406
+run the implementation,
+and we're done.
+
+
+483
+00:20:13,746 --> 00:20:15,516
+We didn't need those two --
+
+
+484
+00:20:15,636 --> 00:20:17,936
+the overhead of those
+two static dispatches
+
+
+485
+00:20:17,936 --> 00:20:19,186
+and the associated setting
+
+
+486
+00:20:19,186 --> 00:20:20,706
+up of the call stack
+and tearing it down.
+
+
+487
+00:20:21,136 --> 00:20:22,056
+So, this is really cool.
+
+
+488
+00:20:22,216 --> 00:20:24,606
+And this gets to why
+static dispatches
+
+
+489
+00:20:24,606 --> 00:20:27,406
+and how static dispatches are
+faster than dynamic dispatches.
+
+
+490
+00:20:29,046 --> 00:20:30,916
+Whereas like a single
+static dispatch compared
+
+
+491
+00:20:30,916 --> 00:20:33,056
+to a single dynamic dispatch,
+there isn't that much
+
+
+492
+00:20:33,056 --> 00:20:35,716
+of a difference, but a whole
+chain of static dispatches,
+
+
+493
+00:20:35,916 --> 00:20:37,216
+the compiler is going
+to have visibility
+
+
+494
+00:20:37,216 --> 00:20:38,266
+through that whole chain.
+
+
+495
+00:20:38,626 --> 00:20:40,816
+Whereas the chain of
+dynamic dispatches is going
+
+
+496
+00:20:40,816 --> 00:20:43,376
+to be blocked at every
+single step from reasoning
+
+
+497
+00:20:43,416 --> 00:20:44,716
+at a higher level without it.
+
+
+498
+00:20:44,716 --> 00:20:46,656
+And so the compiler is going
+to be able to collapse a chain
+
+
+499
+00:20:46,656 --> 00:20:48,536
+of static method dispatches just
+
+
+500
+00:20:48,536 --> 00:20:49,906
+like into a single
+implementation
+
+
+501
+00:20:50,106 --> 00:20:52,366
+with no call stack overhead.
+
+
+502
+00:20:52,866 --> 00:20:54,206
+So, that's really cool.
+
+
+503
+00:20:54,496 --> 00:20:55,626
+So, why do we have
+this dynamic --
+
+
+504
+00:20:55,626 --> 00:20:57,316
+this dynamic dispatch
+thing at all?
+
+
+505
+00:20:57,946 --> 00:21:00,966
+Well, one of the reasons is it
+enables really powerful things
+
+
+506
+00:21:01,296 --> 00:21:02,726
+like polymorphism.
+
+
+507
+00:21:03,096 --> 00:21:05,666
+If we look at a traditional
+object oriented program here
+
+
+508
+00:21:05,666 --> 00:21:07,816
+with a drawable abstract
+superclass,
+
+
+509
+00:21:08,446 --> 00:21:11,776
+I could define a point
+subclass and a line subclass
+
+
+510
+00:21:12,066 --> 00:21:14,296
+that override draw with their
+own custom implementation.
+
+
+511
+00:21:14,296 --> 00:21:17,476
+And then I have a program
+that can polymorphically --
+
+
+512
+00:21:17,906 --> 00:21:20,446
+can create an array
+of drawables.
+
+
+513
+00:21:20,676 --> 00:21:21,566
+Might contain lines.
+
+
+514
+00:21:21,566 --> 00:21:22,396
+Might contain points.
+
+
+515
+00:21:22,466 --> 00:21:23,826
+And it can call draw
+on each of them.
+
+
+516
+00:21:25,016 --> 00:21:26,356
+So, how does this work?
+
+
+517
+00:21:26,886 --> 00:21:30,626
+Well, because point --
+because drawable, point,
+
+
+518
+00:21:30,626 --> 00:21:33,766
+and line are all classes, we can
+create an array of these things
+
+
+519
+00:21:33,946 --> 00:21:35,806
+and they're all the same size
+because we're storing them
+
+
+520
+00:21:35,806 --> 00:21:36,926
+by reference in the array.
+
+
+521
+00:21:37,676 --> 00:21:40,246
+And then when we go
+through each of them,
+
+
+522
+00:21:40,486 --> 00:21:44,096
+we're going to call
+draw on them.
+
+
+523
+00:21:44,186 --> 00:21:47,356
+So, we can understand -- or
+hopefully we have some intuition
+
+
+524
+00:21:47,646 --> 00:21:51,256
+about why the compiler can't
+determine at compile time
+
+
+525
+00:21:51,256 --> 00:21:53,046
+which is the correct
+implementation to execute.
+
+
+526
+00:21:53,346 --> 00:21:57,026
+Because this d.draw, it could
+be a point, it could be a line.
+
+
+527
+00:21:57,346 --> 00:21:58,366
+They are different code paths.
+
+
+528
+00:21:58,636 --> 00:22:00,166
+So, how does it determine
+which one to call?
+
+
+529
+00:22:00,696 --> 00:22:03,716
+Well, the compiler adds
+another field to classes
+
+
+530
+00:22:03,836 --> 00:22:06,986
+which is a pointer to the
+type information of that class
+
+
+531
+00:22:07,046 --> 00:22:08,226
+and it's stored in
+static memory.
+
+
+532
+00:22:08,776 --> 00:22:10,846
+And so when we go and call draw,
+
+
+533
+00:22:11,026 --> 00:22:12,346
+what the compiler
+actually generates
+
+
+534
+00:22:12,346 --> 00:22:14,656
+on our behalf is a
+lookup through the type
+
+
+535
+00:22:15,006 --> 00:22:17,576
+to something called the
+virtual method table on the type
+
+
+536
+00:22:17,576 --> 00:22:19,346
+and static memory,
+which contains a pointer
+
+
+537
+00:22:19,346 --> 00:22:21,286
+to the correct implementation
+to execute.
+
+
+538
+00:22:21,596 --> 00:22:24,696
+And so if we change this d.draw
+to what the compiler is doing
+
+
+539
+00:22:24,696 --> 00:22:27,036
+on our behalf, we see
+it's actually looking
+
+
+540
+00:22:27,036 --> 00:22:28,466
+up through the virtual
+method table
+
+
+541
+00:22:28,466 --> 00:22:30,716
+to find the correct draw
+implementation to execute.
+
+
+542
+00:22:30,856 --> 00:22:32,726
+And then it passes
+the actual instance
+
+
+543
+00:22:32,926 --> 00:22:34,216
+as the implicit self-parameter.
+
+
+544
+00:22:36,896 --> 00:22:37,976
+All right.
+
+
+545
+00:22:38,076 --> 00:22:38,746
+So, what have we seen here?
+
+
+546
+00:22:40,366 --> 00:22:43,156
+Well, classes by default
+dynamically dispatch
+
+
+547
+00:22:43,156 --> 00:22:43,796
+their methods.
+
+
+548
+00:22:44,476 --> 00:22:46,526
+This doesn't make a big
+difference on its own,
+
+
+549
+00:22:46,786 --> 00:22:49,016
+but when it comes to method
+chaining and other things,
+
+
+550
+00:22:49,056 --> 00:22:52,396
+it can prevent optimizations
+
+
+551
+00:22:52,396 --> 00:22:54,216
+like inlining and
+that can add up.
+
+
+552
+00:22:54,426 --> 00:22:57,336
+Not all classes, though,
+require dynamic dispatch.
+
+
+553
+00:22:57,596 --> 00:22:59,986
+If you never intend for
+a class to be subclassed,
+
+
+554
+00:23:00,466 --> 00:23:03,896
+you can mark it as final to
+convey to your follow teammates
+
+
+555
+00:23:03,936 --> 00:23:06,566
+and to your future self that
+that was your intention.
+
+
+556
+00:23:07,096 --> 00:23:08,796
+The compiler will pick
+up on this and it's going
+
+
+557
+00:23:08,796 --> 00:23:10,366
+to statically dispatch
+those methods.
+
+
+558
+00:23:10,966 --> 00:23:13,756
+Furthermore, if the
+compiler can reason and prove
+
+
+559
+00:23:13,986 --> 00:23:15,746
+that you're never going
+to be subclassing a class
+
+
+560
+00:23:15,746 --> 00:23:16,506
+in your application,
+
+
+561
+00:23:16,696 --> 00:23:19,196
+it'll opportunistically turn
+those dynamic dispatches
+
+
+562
+00:23:19,306 --> 00:23:20,946
+into static dispatches
+on your behalf.
+
+
+563
+00:23:21,166 --> 00:23:23,716
+If you want to hear about
+more about how this is done,
+
+
+564
+00:23:24,016 --> 00:23:25,596
+check out this great
+talk from last year
+
+
+565
+00:23:25,596 --> 00:23:27,000
+on optimizing Swift performance.
+
+
+566
+00:23:29,336 --> 00:23:29,976
+All right.
+
+
+567
+00:23:29,976 --> 00:23:32,756
+So, where does that leave us?
+
+
+568
+00:23:33,086 --> 00:23:35,046
+What I want you to take
+away from this first half
+
+
+569
+00:23:35,046 --> 00:23:37,486
+of the talk is these
+questions to ask yourself.
+
+
+570
+00:23:37,956 --> 00:23:39,786
+Whenever you're reading
+and writing Swift code,
+
+
+571
+00:23:40,556 --> 00:23:42,056
+you should be looking
+at it and thinking,
+
+
+572
+00:23:42,336 --> 00:23:43,606
+"Is this instance
+going to be allocated
+
+
+573
+00:23:43,606 --> 00:23:44,406
+on the stack or the heap?
+
+
+574
+00:23:45,586 --> 00:23:46,936
+When I pass this
+instance around,
+
+
+575
+00:23:47,156 --> 00:23:49,206
+how much reference containing
+overhead I'm going to incur?
+
+
+576
+00:23:49,906 --> 00:23:51,386
+When I call a method
+on this instance,
+
+
+577
+00:23:51,386 --> 00:23:53,846
+is it going to be statically
+or dynamically dispatched?"
+
+
+578
+00:23:54,346 --> 00:23:56,246
+If we're paying for
+dynamism we don't need,
+
+
+579
+00:23:56,246 --> 00:23:57,896
+it's going to hurt
+our performance.
+
+
+580
+00:23:58,696 --> 00:24:01,496
+And if you're new to
+Swift or you're working
+
+
+581
+00:24:01,496 --> 00:24:03,456
+in a code base that's been
+ported from objective C
+
+
+582
+00:24:03,506 --> 00:24:06,546
+over to Swift, you can likely
+take more advantage of structs
+
+
+583
+00:24:06,616 --> 00:24:07,766
+than you currently are today.
+
+
+584
+00:24:08,356 --> 00:24:12,026
+Like we've seen with my examples
+here why I use structs instead
+
+
+585
+00:24:12,026 --> 00:24:12,596
+of strings.
+
+
+586
+00:24:14,736 --> 00:24:17,356
+One question, though,
+is, "How does one go
+
+
+587
+00:24:17,356 --> 00:24:19,326
+about writing polymorphic
+code with structs?"
+
+
+588
+00:24:19,656 --> 00:24:20,656
+We haven't seen that yet.
+
+
+589
+00:24:21,436 --> 00:24:23,306
+Well, the answer is protocol
+oriented programming.
+
+
+590
+00:24:23,546 --> 00:24:24,596
+And to tell you all about it,
+
+
+591
+00:24:24,596 --> 00:24:26,656
+I'd like to invite
+Arnold up to the stage.
+
+
+592
+00:24:28,516 --> 00:24:32,146
+[ Applause ]
+
+
+593
+00:24:32,646 --> 00:24:32,936
+Go get it.
+
+
+594
+00:24:32,936 --> 00:24:33,526
+>> Thank you, Kyle.
+
+
+595
+00:24:34,656 --> 00:24:36,186
+Hello. I'm Arnold.
+
+
+596
+00:24:36,996 --> 00:24:40,196
+Come and join me on a journey
+through the implementation
+
+
+597
+00:24:40,196 --> 00:24:43,526
+of protocol types and
+generic code starting
+
+
+598
+00:24:43,526 --> 00:24:44,406
+with protocol types.
+
+
+599
+00:24:44,406 --> 00:24:47,476
+We will look at how variables
+of protocol type are stored
+
+
+600
+00:24:47,476 --> 00:24:49,696
+and copied and how
+method dispatch works.
+
+
+601
+00:24:50,526 --> 00:24:52,176
+Let's come back
+
+
+602
+00:24:52,416 --> 00:24:55,526
+to our application this
+time implemented using
+
+
+603
+00:24:55,526 --> 00:24:56,336
+protocol types.
+
+
+604
+00:24:57,336 --> 00:24:59,656
+Instead of a drawable
+abstract base class,
+
+
+605
+00:25:00,146 --> 00:25:04,116
+we now have protocol drawable
+that declares the draw method.
+
+
+606
+00:25:05,176 --> 00:25:07,886
+And we have value
+type struct Point
+
+
+607
+00:25:08,466 --> 00:25:11,046
+and struct Line conformed
+to the protocol.
+
+
+608
+00:25:12,526 --> 00:25:15,956
+Note, we could have also had
+a class SharedLine conformed
+
+
+609
+00:25:15,956 --> 00:25:16,586
+to the protocol.
+
+
+610
+00:25:17,096 --> 00:25:20,496
+However, we decided because
+of the unintended sharing
+
+
+611
+00:25:20,786 --> 00:25:23,916
+that reference semantics that
+comes with classes brings
+
+
+612
+00:25:23,916 --> 00:25:25,446
+with it to not to do that.
+
+
+613
+00:25:25,576 --> 00:25:27,000
+So, let's drop it.
+
+
+614
+00:25:30,186 --> 00:25:31,986
+Our program was still
+polymorphic.
+
+
+615
+00:25:32,516 --> 00:25:38,836
+We could store both values of
+types Point and of type Line
+
+
+616
+00:25:39,356 --> 00:25:41,616
+in our array of drawable
+protocol type.
+
+
+617
+00:25:42,146 --> 00:25:45,146
+However, compared to before,
+one thing was different.
+
+
+618
+00:25:47,076 --> 00:25:49,426
+Note that our value
+type struct Line
+
+
+619
+00:25:49,716 --> 00:25:53,656
+and struct Point don't share a
+common inheritance relationship
+
+
+620
+00:25:55,216 --> 00:25:57,686
+necessary to do V-Table
+dispatch, the mechanism
+
+
+621
+00:25:57,686 --> 00:25:58,876
+that Kyle just showed us.
+
+
+622
+00:25:59,416 --> 00:26:03,036
+So, how does Swift dispatch
+to the correct method?
+
+
+623
+00:26:03,736 --> 00:26:06,006
+While it's going over
+the array in this case.
+
+
+624
+00:26:07,386 --> 00:26:11,476
+The answer to this question is a
+table based mechanism called the
+
+
+625
+00:26:11,476 --> 00:26:12,536
+Protocol Witness Table.
+
+
+626
+00:26:13,506 --> 00:26:15,886
+There's one of those
+tables per type
+
+
+627
+00:26:16,446 --> 00:26:19,116
+that implements the
+protocol in your application.
+
+
+628
+00:26:20,376 --> 00:26:23,326
+And the entries in
+that table link
+
+
+629
+00:26:23,876 --> 00:26:28,076
+to an implementation
+in the type.
+
+
+630
+00:26:28,076 --> 00:26:30,706
+OK. So, now we know how
+to find that method.
+
+
+631
+00:26:31,526 --> 00:26:35,376
+But there's still a question,
+"How do we get from the element
+
+
+632
+00:26:35,376 --> 00:26:37,126
+in the array to the table?"
+
+
+633
+00:26:38,256 --> 00:26:39,376
+And there's another question.
+
+
+634
+00:26:40,516 --> 00:26:43,916
+Note that we now have
+value types Line and Point.
+
+
+635
+00:26:44,706 --> 00:26:47,246
+Our Line needs four words.
+
+
+636
+00:26:48,586 --> 00:26:50,036
+Point needs two words.
+
+
+637
+00:26:50,606 --> 00:26:52,086
+They don't have the same size.
+
+
+638
+00:26:52,756 --> 00:26:56,206
+But our array wants to
+store its elements uniformly
+
+
+639
+00:26:56,516 --> 00:26:58,136
+at fixed offsets in the array.
+
+
+640
+00:26:58,136 --> 00:26:59,000
+So, how does that work?
+
+
+641
+00:27:02,046 --> 00:27:03,156
+The answer to this question is
+
+
+642
+00:27:03,156 --> 00:27:07,016
+that Swift uses a special
+storage layout called the
+
+
+643
+00:27:07,016 --> 00:27:08,146
+Existential Container.
+
+
+644
+00:27:08,766 --> 00:27:10,636
+Now, what's in there?
+
+
+645
+00:27:11,196 --> 00:27:17,086
+The first three words in that
+existential container are
+
+
+646
+00:27:17,086 --> 00:27:18,856
+reserved for the valueBuffer.
+
+
+647
+00:27:20,606 --> 00:27:24,446
+Small types like our Point,
+which only needs two words,
+
+
+648
+00:27:24,636 --> 00:27:25,956
+fit into this valueBuffer.
+
+
+649
+00:27:26,726 --> 00:27:28,316
+Now, you might say,
+"Wait a second.
+
+
+650
+00:27:28,776 --> 00:27:29,876
+What about our Line?
+
+
+651
+00:27:30,396 --> 00:27:31,476
+It needs four words.
+
+
+652
+00:27:31,756 --> 00:27:32,656
+Where do we put that?"
+
+
+653
+00:27:33,756 --> 00:27:37,166
+Well, in this case Swift
+allocates memory on the heap
+
+
+654
+00:27:38,106 --> 00:27:41,566
+and stores the value there and
+stores a pointer to that memory
+
+
+655
+00:27:43,016 --> 00:27:45,546
+in the existential container.
+
+
+656
+00:27:46,516 --> 00:27:48,736
+Now, you saw that
+there was a difference
+
+
+657
+00:27:48,736 --> 00:27:49,866
+between Line and Point.
+
+
+658
+00:27:50,216 --> 00:27:52,226
+So, somehow the existential
+container needs
+
+
+659
+00:27:52,226 --> 00:27:53,466
+to manage this difference.
+
+
+660
+00:27:53,926 --> 00:27:54,806
+So, how does it do that?
+
+
+661
+00:27:56,576 --> 00:28:00,806
+Hmmm. The answer to this, again,
+is a table based mechanism.
+
+
+662
+00:28:01,356 --> 00:28:03,826
+In this case, we call it
+the Value Witness Table.
+
+
+663
+00:28:05,196 --> 00:28:09,526
+The Value Witness Table manages
+the lifetime of our value
+
+
+664
+00:28:10,246 --> 00:28:12,826
+and there is one of those
+tables per type in your program.
+
+
+665
+00:28:13,796 --> 00:28:17,346
+Now, let's take a look at the
+lifetime of a local variable
+
+
+666
+00:28:17,346 --> 00:28:19,426
+to see how this table operates.
+
+
+667
+00:28:20,366 --> 00:28:22,856
+So, at the beginning of the
+lifetime of our local variable
+
+
+668
+00:28:22,856 --> 00:28:26,836
+of protocol type, Swift calls
+the allocate function inside
+
+
+669
+00:28:26,836 --> 00:28:27,466
+of that table.
+
+
+670
+00:28:28,606 --> 00:28:31,236
+This function, because we
+now have a -- in this case --
+
+
+671
+00:28:31,236 --> 00:28:34,046
+a Line Value Witness Table,
+we'll allocate the memory
+
+
+672
+00:28:34,046 --> 00:28:36,526
+on the heap and store a
+pointer to that memory inside
+
+
+673
+00:28:36,526 --> 00:28:38,366
+of the valueBuffer of the
+existential container.
+
+
+674
+00:28:39,886 --> 00:28:43,936
+Next, Swift needs to copy
+the value from the source
+
+
+675
+00:28:43,936 --> 00:28:46,356
+of the assignment that
+initializes our local variable
+
+
+676
+00:28:46,776 --> 00:28:48,816
+into the existential container.
+
+
+677
+00:28:49,286 --> 00:28:53,126
+Again, we have a Line
+here and so the copy entry
+
+
+678
+00:28:53,126 --> 00:28:56,426
+of our value witness table will
+do the correct thing and copy it
+
+
+679
+00:28:56,706 --> 00:28:59,966
+into the valueBuffer
+allocated in the heap.
+
+
+680
+00:29:00,956 --> 00:29:05,636
+OK. Program continues and we
+are at the end of the lifetime
+
+
+681
+00:29:05,636 --> 00:29:06,546
+of our local variable.
+
+
+682
+00:29:06,546 --> 00:29:09,476
+And so Swift calls
+the destruct entry
+
+
+683
+00:29:09,476 --> 00:29:10,436
+in the value witness table,
+
+
+684
+00:29:10,796 --> 00:29:14,446
+which will decrement any
+reference counts for values
+
+
+685
+00:29:14,506 --> 00:29:16,026
+that might be contained
+in our type.
+
+
+686
+00:29:16,946 --> 00:29:19,686
+Line doesn't have any so
+nothing is necessary here.
+
+
+687
+00:29:20,116 --> 00:29:21,216
+And then at the very end,
+
+
+688
+00:29:21,586 --> 00:29:24,346
+Swift calls the deallocate
+function in that table.
+
+
+689
+00:29:24,616 --> 00:29:26,776
+Again, we have a value
+witness table for Line
+
+
+690
+00:29:26,776 --> 00:29:29,086
+so this will deallocate
+the memory allocated
+
+
+691
+00:29:29,086 --> 00:29:31,136
+on the heap for our value.
+
+
+692
+00:29:32,456 --> 00:29:34,696
+OK. So, we've seen the mechanics
+
+
+693
+00:29:35,006 --> 00:29:37,056
+of how Swift can
+generically deal
+
+
+694
+00:29:37,326 --> 00:29:38,686
+with different kind of values.
+
+
+695
+00:29:38,996 --> 00:29:41,346
+But somehow it still needs to
+get to those tables, right?
+
+
+696
+00:29:42,886 --> 00:29:44,886
+Well, the answer is obvious.
+
+
+697
+00:29:45,476 --> 00:29:48,226
+The next entry in the value
+witness table is a reference.
+
+
+698
+00:29:48,776 --> 00:29:50,996
+In the existential
+container is a reference
+
+
+699
+00:29:51,296 --> 00:29:52,326
+to the value witness table.
+
+
+700
+00:29:53,656 --> 00:29:56,896
+And, finally, how do we get
+to our protocol witness table?
+
+
+701
+00:29:56,976 --> 00:30:00,816
+Well, it is, again, referenced
+in the existential container.
+
+
+702
+00:30:02,076 --> 00:30:03,396
+So, we've seen the mechanics
+
+
+703
+00:30:03,796 --> 00:30:10,466
+of how Swift manages
+values of protocol type.
+
+
+704
+00:30:10,966 --> 00:30:13,936
+Let's take a look at an example
+
+
+705
+00:30:13,936 --> 00:30:15,696
+to see the existential
+container in action.
+
+
+706
+00:30:18,226 --> 00:30:22,786
+So, in this example
+we have a function
+
+
+707
+00:30:22,786 --> 00:30:25,646
+that takes a protocol
+type parameter local
+
+
+708
+00:30:26,636 --> 00:30:28,576
+and executes the
+draw method on it.
+
+
+709
+00:30:28,576 --> 00:30:31,526
+And then our program
+creates a local variable
+
+
+710
+00:30:32,116 --> 00:30:36,716
+of drawable protocol type and
+initializes it with a point.
+
+
+711
+00:30:37,596 --> 00:30:40,046
+And passes this local
+variable off
+
+
+712
+00:30:40,396 --> 00:30:43,156
+to a drawACopy function
+call as its argument.
+
+
+713
+00:30:44,716 --> 00:30:46,926
+In order to illustrate the code
+
+
+714
+00:30:46,926 --> 00:30:48,896
+that the Swift compiler
+generates for us,
+
+
+715
+00:30:49,646 --> 00:30:53,666
+I will use Swift as a
+pseudocode notation underneath
+
+
+716
+00:30:53,666 --> 00:30:54,286
+this example.
+
+
+717
+00:30:54,656 --> 00:30:57,816
+And so for the existential
+container, I have a struct
+
+
+718
+00:30:58,386 --> 00:31:03,736
+that has three words storage
+for valueBuffer and a reference
+
+
+719
+00:31:03,736 --> 00:31:05,556
+to the value witness and
+protocol witness table.
+
+
+720
+00:31:06,156 --> 00:31:10,146
+When the drawACopy
+function call executes,
+
+
+721
+00:31:10,876 --> 00:31:16,326
+it receives the argument and
+passes it off to the function.
+
+
+722
+00:31:17,216 --> 00:31:18,876
+In the generated code we see
+
+
+723
+00:31:19,186 --> 00:31:21,356
+that Swift passes the
+existential container
+
+
+724
+00:31:21,356 --> 00:31:24,000
+of the argument to
+that function.
+
+
+725
+00:31:27,116 --> 00:31:28,846
+When the function
+starts executing,
+
+
+726
+00:31:29,076 --> 00:31:32,556
+it creates a local
+variable for that parameter
+
+
+727
+00:31:33,936 --> 00:31:35,176
+and assigns the argument to it.
+
+
+728
+00:31:36,376 --> 00:31:41,106
+And so in the generated code,
+
+
+729
+00:31:41,106 --> 00:31:43,716
+Swift will allocate an
+existential container
+
+
+730
+00:31:43,996 --> 00:31:46,046
+on the heap.
+
+
+731
+00:31:46,166 --> 00:31:48,386
+Next it will read the
+value witness table
+
+
+732
+00:31:48,616 --> 00:31:49,876
+and the protocol witness table
+
+
+733
+00:31:50,346 --> 00:31:52,696
+from the argument
+existential container
+
+
+734
+00:31:53,636 --> 00:31:57,286
+and initializes the fields in
+the local existential container.
+
+
+735
+00:31:57,796 --> 00:32:02,276
+Next, it will call a
+value witness function
+
+
+736
+00:32:02,606 --> 00:32:05,696
+to allocate a buffer if
+necessary and copy the value.
+
+
+737
+00:32:06,566 --> 00:32:08,776
+In this example we
+passed a point
+
+
+738
+00:32:09,296 --> 00:32:12,006
+so no dynamic heap
+allocation is necessary.
+
+
+739
+00:32:12,966 --> 00:32:16,246
+This function just copies
+the value from the argument
+
+
+740
+00:32:17,196 --> 00:32:19,916
+into the local existential
+container's valueBuffer.
+
+
+741
+00:32:20,856 --> 00:32:23,876
+However, had we passed
+a line instead,
+
+
+742
+00:32:24,346 --> 00:32:28,000
+this function would allocate the
+buffer and copy the value there.
+
+
+743
+00:32:31,216 --> 00:32:34,106
+Next, the draw method
+executes and Swift looks
+
+
+744
+00:32:34,106 --> 00:32:37,386
+up the protocol witness
+table from the field
+
+
+745
+00:32:37,386 --> 00:32:40,486
+in the existential container,
+looks up the draw method
+
+
+746
+00:32:40,486 --> 00:32:43,736
+in the fixed offset in
+that table and jumps
+
+
+747
+00:32:43,736 --> 00:32:44,586
+to the implementation.
+
+
+748
+00:32:45,386 --> 00:32:46,126
+But wait a second.
+
+
+749
+00:32:47,896 --> 00:32:49,946
+There's another value
+witness call, projectBuffer.
+
+
+750
+00:32:50,746 --> 00:32:53,186
+Why is that there?
+
+
+751
+00:32:53,396 --> 00:32:55,696
+Well, the draw method
+expects the address
+
+
+752
+00:32:55,696 --> 00:32:57,566
+of our value as its input.
+
+
+753
+00:32:58,096 --> 00:33:01,626
+And note that depending
+
+
+754
+00:33:01,626 --> 00:33:04,476
+on whether our value is
+a small value which fits
+
+
+755
+00:33:04,476 --> 00:33:06,926
+into the inline buffer, this
+address is the beginning
+
+
+756
+00:33:07,186 --> 00:33:11,876
+of our existential container,
+or if we have a large value
+
+
+757
+00:33:11,876 --> 00:33:14,046
+that does not fit into
+the inline valueBuffer,
+
+
+758
+00:33:14,396 --> 00:33:17,096
+the address is the beginning
+
+
+759
+00:33:17,316 --> 00:33:19,126
+of the memory allocated
+on the heap for us.
+
+
+760
+00:33:20,146 --> 00:33:24,386
+So, this value witness function
+abstracts away this difference
+
+
+761
+00:33:24,386 --> 00:33:26,726
+depending on the type.
+
+
+762
+00:33:26,936 --> 00:33:30,766
+A draw method executes,
+finishes, and now we are
+
+
+763
+00:33:30,766 --> 00:33:33,836
+at the end of our function which
+means our local variable created
+
+
+764
+00:33:33,836 --> 00:33:36,076
+for the parameter
+goes out of scope.
+
+
+765
+00:33:37,146 --> 00:33:40,246
+And so Swift calls a
+value witness function
+
+
+766
+00:33:40,246 --> 00:33:41,286
+to destruct the value,
+
+
+767
+00:33:41,776 --> 00:33:43,526
+which will decrement
+any reference counts
+
+
+768
+00:33:43,786 --> 00:33:47,266
+if there are references in the
+value and deallocate a buffer
+
+
+769
+00:33:47,266 --> 00:33:48,886
+if a buffer was allocated.
+
+
+770
+00:33:50,096 --> 00:33:56,136
+Our function finishes executing
+and our stack is removed,
+
+
+771
+00:33:56,336 --> 00:33:59,456
+which removes the local
+existential container created
+
+
+772
+00:33:59,456 --> 00:34:00,906
+on the stack for us.
+
+
+773
+00:34:01,956 --> 00:34:05,006
+OK. That was a lot of work.
+
+
+774
+00:34:06,136 --> 00:34:09,616
+Right? There is one thing
+I want you to take away
+
+
+775
+00:34:09,616 --> 00:34:15,085
+from this is this work is what
+enables combining value types
+
+
+776
+00:34:15,085 --> 00:34:19,376
+such as struct Line and struct
+Point together with protocols
+
+
+777
+00:34:19,686 --> 00:34:22,466
+to get dynamic behavior,
+dynamic polymorphism.
+
+
+778
+00:34:22,466 --> 00:34:26,186
+We can store a Line and
+a Point in our array
+
+
+779
+00:34:26,216 --> 00:34:29,966
+of drawable protocol type.
+
+
+780
+00:34:31,036 --> 00:34:34,476
+If you need this dynamism,
+this is a good price to pay
+
+
+781
+00:34:35,466 --> 00:34:39,856
+and compares to using
+classes like in the example
+
+
+782
+00:34:39,856 --> 00:34:42,775
+that Kyle showed us
+because classes also go
+
+
+783
+00:34:42,775 --> 00:34:45,456
+through a V-Table and they
+have the additional overhead
+
+
+784
+00:34:46,085 --> 00:34:49,295
+of reference counting.
+
+
+785
+00:34:51,025 --> 00:34:55,616
+OK. So, we've seen how
+local variables are copied
+
+
+786
+00:34:55,996 --> 00:35:00,976
+and how method dispatch works
+for values of protocol type.
+
+
+787
+00:35:01,046 --> 00:35:02,146
+Let's look at stored properties.
+
+
+788
+00:35:03,816 --> 00:35:06,766
+So, in this example,
+we have a pair
+
+
+789
+00:35:07,206 --> 00:35:10,516
+that contains two stored
+properties, first and second,
+
+
+790
+00:35:11,596 --> 00:35:14,166
+of protocol -- drawable
+protocol type.
+
+
+791
+00:35:14,976 --> 00:35:18,546
+How does Swift store those
+two stored properties?
+
+
+792
+00:35:19,406 --> 00:35:23,226
+Hmm. Well, inline of
+the enclosing struct.
+
+
+793
+00:35:24,226 --> 00:35:27,866
+So, if we look at --
+when we allocate a pair,
+
+
+794
+00:35:28,166 --> 00:35:31,596
+Swift will store the two
+existential containers necessary
+
+
+795
+00:35:31,996 --> 00:35:35,386
+for the storage of that pair
+inline of the enclosing struct.
+
+
+796
+00:35:35,386 --> 00:35:39,636
+Our program then goes
+and initializes this pair
+
+
+797
+00:35:39,636 --> 00:35:42,276
+of the Line and the Point
+and so, as we've seen before,
+
+
+798
+00:35:42,736 --> 00:35:44,966
+for our Line, we will
+allocate a buffer on the heap.
+
+
+799
+00:35:45,356 --> 00:35:48,436
+Point fits into the inline
+valueBuffer and can be stored
+
+
+800
+00:35:48,936 --> 00:35:50,896
+in the -- inline in the
+existential container.
+
+
+801
+00:35:51,446 --> 00:35:55,906
+Now, this representation allows
+storing a differently typed
+
+
+802
+00:35:55,906 --> 00:35:58,266
+value later in the program.
+
+
+803
+00:35:58,616 --> 00:36:01,486
+So, the program goes and stores
+a Line to the second element.
+
+
+804
+00:36:01,746 --> 00:36:04,546
+This works, but we have
+two heap allocations now.
+
+
+805
+00:36:05,596 --> 00:36:07,326
+OK. Two heap allocations.
+
+
+806
+00:36:07,786 --> 00:36:10,996
+Well, let's look at a
+different program to illustrate
+
+
+807
+00:36:10,996 --> 00:36:12,336
+that cost of heap allocation.
+
+
+808
+00:36:14,046 --> 00:36:18,396
+So, again, we create a
+Line and we create a pair
+
+
+809
+00:36:18,396 --> 00:36:20,546
+and initialize this
+pair with the Line.
+
+
+810
+00:36:21,106 --> 00:36:23,906
+So, we have one, two
+heap allocations.
+
+
+811
+00:36:24,006 --> 00:36:27,086
+And then we create a
+copy of that pair again,
+
+
+812
+00:36:27,696 --> 00:36:29,426
+two existential containers
+on the stack
+
+
+813
+00:36:29,526 --> 00:36:30,896
+and then two heap allocations.
+
+
+814
+00:36:31,506 --> 00:36:35,186
+Now, you might say, "Kyle
+just told us heap allocations
+
+
+815
+00:36:35,186 --> 00:36:35,806
+are expensive.
+
+
+816
+00:36:36,116 --> 00:36:37,836
+Four heap allocations?
+
+
+817
+00:36:38,236 --> 00:36:42,596
+Hmm." Can we do anything
+about this?
+
+
+818
+00:36:42,836 --> 00:36:49,026
+Well, remember our
+existential container has place
+
+
+819
+00:36:49,026 --> 00:36:52,896
+for three words and
+references would fit into the --
+
+
+820
+00:36:52,896 --> 00:36:55,516
+into those three words because a
+reference is basically one word.
+
+
+821
+00:36:56,496 --> 00:37:03,086
+So, if we implemented our Line
+instead with a class, the --
+
+
+822
+00:37:03,086 --> 00:37:05,606
+and class is a reference
+semantics so they're stored
+
+
+823
+00:37:06,056 --> 00:37:09,226
+by reference -- this reference
+would fit into the valueBuffer.
+
+
+824
+00:37:09,796 --> 00:37:17,346
+And when we copy the first
+reference to the second field
+
+
+825
+00:37:17,346 --> 00:37:20,916
+in our pair, only the
+reference is copied and we --
+
+
+826
+00:37:20,916 --> 00:37:24,276
+the only price we pay is then
+extra reference count increment.
+
+
+827
+00:37:25,716 --> 00:37:26,986
+Now, you might say,
+"Wait a second.
+
+
+828
+00:37:27,396 --> 00:37:30,986
+Haven't we just heard about
+unintended sharing of state
+
+
+829
+00:37:31,906 --> 00:37:33,686
+that reference semantics
+brings with it."
+
+
+830
+00:37:34,316 --> 00:37:41,446
+So, if we store to the x1
+field through the second field
+
+
+831
+00:37:41,446 --> 00:37:44,526
+in our pair, the first field
+can observe the change.
+
+
+832
+00:37:45,296 --> 00:37:47,376
+And that's not what
+we want to have.
+
+
+833
+00:37:47,676 --> 00:37:48,756
+We want value semantics.
+
+
+834
+00:37:48,756 --> 00:37:50,046
+Right? Hmmm.
+
+
+835
+00:37:50,516 --> 00:37:52,946
+What can we do about this?
+
+
+836
+00:37:53,156 --> 00:37:56,496
+Well, there's a technique
+called copy and write
+
+
+837
+00:37:57,406 --> 00:37:59,056
+that allows us to
+work around this.
+
+
+838
+00:38:00,216 --> 00:38:04,466
+So, before we write
+to our class,
+
+
+839
+00:38:04,636 --> 00:38:05,746
+we check its reference count.
+
+
+840
+00:38:07,036 --> 00:38:08,686
+We've heard that
+when there's more
+
+
+841
+00:38:08,686 --> 00:38:11,416
+than one reference outstanding
+to the same instants,
+
+
+842
+00:38:11,826 --> 00:38:14,236
+the reference count will
+be greater than one, two,
+
+
+843
+00:38:14,236 --> 00:38:15,376
+or three, or four, or five.
+
+
+844
+00:38:15,936 --> 00:38:20,086
+And so if this is the case,
+before we write to our instance,
+
+
+845
+00:38:20,316 --> 00:38:23,356
+we copy the instance and
+then write to that copy.
+
+
+846
+00:38:23,546 --> 00:38:26,626
+This will decouple the state.
+
+
+847
+00:38:26,826 --> 00:38:31,000
+OK. Let's take a look at how
+we can do this for our Line.
+
+
+848
+00:38:34,786 --> 00:38:38,076
+Instead of directly implementing
+the storage inside of our Line,
+
+
+849
+00:38:38,656 --> 00:38:40,586
+we create a class
+called LineStorage
+
+
+850
+00:38:40,986 --> 00:38:42,936
+that has all the fields
+of our Line struct.
+
+
+851
+00:38:43,646 --> 00:38:47,066
+And then our Line struct
+references this storage.
+
+
+852
+00:38:48,006 --> 00:38:50,036
+And whenever we want
+to read a value,
+
+
+853
+00:38:50,346 --> 00:38:53,886
+we just read the value
+inside of that storage.
+
+
+854
+00:38:54,846 --> 00:38:57,796
+However, when we come to
+modify, mutate our value,
+
+
+855
+00:38:58,356 --> 00:38:59,806
+we first check the
+reference count.
+
+
+856
+00:39:00,176 --> 00:39:01,216
+Is it greater than one?
+
+
+857
+00:39:01,886 --> 00:39:04,666
+This is what the
+isUniquelyReferenced call
+
+
+858
+00:39:04,666 --> 00:39:05,786
+here achieves.
+
+
+859
+00:39:05,786 --> 00:39:07,996
+The only thing it does is
+check the reference count.
+
+
+860
+00:39:08,336 --> 00:39:10,576
+Is it greater or equal to one?
+
+
+861
+00:39:12,116 --> 00:39:13,716
+And if the reference
+count is greater to one --
+
+
+862
+00:39:14,816 --> 00:39:17,176
+greater than one
+-- we create a copy
+
+
+863
+00:39:17,176 --> 00:39:20,166
+of our Line storage
+and mutate that.
+
+
+864
+00:39:21,156 --> 00:39:27,236
+OK. So, we've seen how we can
+combine a struct and a class
+
+
+865
+00:39:28,476 --> 00:39:30,806
+to get indirect storage
+using copy and write.
+
+
+866
+00:39:30,806 --> 00:39:32,086
+Let's come back to our example
+
+
+867
+00:39:32,326 --> 00:39:37,526
+to see what happens here this
+time using indirect storage.
+
+
+868
+00:39:38,506 --> 00:39:39,926
+So, again, we create a Line.
+
+
+869
+00:39:40,696 --> 00:39:43,466
+This will create a line
+storage object on the heap.
+
+
+870
+00:39:43,876 --> 00:39:46,586
+And then we use that line
+to initialize our pair.
+
+
+871
+00:39:47,006 --> 00:39:52,000
+This time only the references
+to the line storage are copied.
+
+
+872
+00:39:54,456 --> 00:39:57,000
+When we come to copy our Line --
+
+
+873
+00:40:00,116 --> 00:40:01,896
+Again, only the references
+are copied
+
+
+874
+00:40:02,546 --> 00:40:03,846
+and the reference
+count is incremented.
+
+
+875
+00:40:03,916 --> 00:40:06,656
+This is a lot cheaper
+than heap allocation.
+
+
+876
+00:40:07,166 --> 00:40:08,000
+It's a good trade off to make.
+
+
+877
+00:40:15,686 --> 00:40:20,736
+OK. So, we've seen how variables
+of protocol type are copied
+
+
+878
+00:40:20,976 --> 00:40:23,806
+and stored and how
+method dispatch works.
+
+
+879
+00:40:24,226 --> 00:40:27,166
+Let's take a look what
+that means for performance.
+
+
+880
+00:40:28,536 --> 00:40:31,416
+If we have protocol types
+that contain small values
+
+
+881
+00:40:31,686 --> 00:40:33,566
+that can fit into the
+inline valueBuffer
+
+
+882
+00:40:33,766 --> 00:40:36,946
+of the existential container,
+there is no heap allocation.
+
+
+883
+00:40:38,386 --> 00:40:40,626
+If our struct does not
+contain any references,
+
+
+884
+00:40:40,836 --> 00:40:42,046
+there's also no reference
+counting.
+
+
+885
+00:40:42,266 --> 00:40:43,756
+So, this is really fast code.
+
+
+886
+00:40:44,626 --> 00:40:46,956
+However, because
+of the indirection
+
+
+887
+00:40:47,906 --> 00:40:51,326
+through value witness and
+protocol witness table,
+
+
+888
+00:40:51,826 --> 00:40:58,286
+we get the full power of
+dynamic dispatch, which allows
+
+
+889
+00:40:58,286 --> 00:41:01,000
+for dynamically polymorph
+behavior.
+
+
+890
+00:41:03,456 --> 00:41:04,786
+Compare this with large values.
+
+
+891
+00:41:04,786 --> 00:41:07,696
+Large values incur heap
+allocations whenever we
+
+
+892
+00:41:07,846 --> 00:41:12,306
+initialize or assign
+variables of protocol type.
+
+
+893
+00:41:12,516 --> 00:41:13,776
+Potentially reference counting
+
+
+894
+00:41:14,126 --> 00:41:17,000
+if our large value
+struct contain references.
+
+
+895
+00:41:19,456 --> 00:41:21,246
+However, I showed
+you a technique,
+
+
+896
+00:41:21,446 --> 00:41:24,666
+namely using indirect
+storage with copy and write,
+
+
+897
+00:41:24,986 --> 00:41:29,000
+that you can use to trade the
+expensive heap allocation.
+
+
+898
+00:41:32,086 --> 00:41:33,546
+For cheaper reference counting.
+
+
+899
+00:41:35,676 --> 00:41:40,846
+Note that this compares
+favorably to using classes.
+
+
+900
+00:41:41,506 --> 00:41:45,716
+Classes also incur
+reference counting.
+
+
+901
+00:41:46,166 --> 00:41:48,246
+And allocation on
+initialization.
+
+
+902
+00:41:48,826 --> 00:41:53,836
+It's a good trade off to make.
+
+
+903
+00:41:53,836 --> 00:41:58,116
+OK. So, we went back
+-- so, to summarize,
+
+
+904
+00:41:58,116 --> 00:42:02,456
+protocol types provide a
+dynamic form of polymorphism.
+
+
+905
+00:42:03,126 --> 00:42:06,726
+We can use value types
+together with protocols
+
+
+906
+00:42:07,416 --> 00:42:11,306
+and can store our
+Lines and Points inside
+
+
+907
+00:42:11,306 --> 00:42:12,466
+of an array of protocol type.
+
+
+908
+00:42:13,456 --> 00:42:16,356
+This is achieved by
+the use of protocol
+
+
+909
+00:42:16,356 --> 00:42:18,906
+and value witness tables
+and existential container.
+
+
+910
+00:42:20,016 --> 00:42:24,046
+Copying of large values
+incurs heap allocation.
+
+
+911
+00:42:24,046 --> 00:42:25,986
+However, I showed you a
+technique how you can work
+
+
+912
+00:42:25,986 --> 00:42:28,656
+around this by implementing
+your structs
+
+
+913
+00:42:28,656 --> 00:42:30,266
+with indirect storage
+and copy and write.
+
+
+914
+00:42:32,366 --> 00:42:35,056
+OK. Let's come back
+to our application
+
+
+915
+00:42:35,056 --> 00:42:36,146
+and take a look again.
+
+
+916
+00:42:36,896 --> 00:42:38,906
+So, in our application
+we had to draw a copy --
+
+
+917
+00:42:39,016 --> 00:42:42,776
+a function that took a
+parameter of protocol type.
+
+
+918
+00:42:44,056 --> 00:42:45,266
+However, the way that we use
+
+
+919
+00:42:45,266 --> 00:42:48,606
+that is we would always
+use it on a concrete type.
+
+
+920
+00:42:49,586 --> 00:42:50,816
+Here we used it on a Line.
+
+
+921
+00:42:51,496 --> 00:42:54,596
+Later in our program we
+would use it on a Point.
+
+
+922
+00:42:55,976 --> 00:42:56,886
+And we thought, "Hmm.
+
+
+923
+00:42:57,456 --> 00:43:00,256
+Could we use generic code here?"
+
+
+924
+00:43:01,306 --> 00:43:02,266
+Well, yes, we can.
+
+
+925
+00:43:02,986 --> 00:43:03,816
+So, let's take a look.
+
+
+926
+00:43:04,286 --> 00:43:08,306
+During this last part of the
+talk, I'll look at how variables
+
+
+927
+00:43:08,606 --> 00:43:10,516
+of generic type are
+stored and copied
+
+
+928
+00:43:10,796 --> 00:43:12,256
+and how method dispatch
+works with them.
+
+
+929
+00:43:12,896 --> 00:43:13,456
+So, coming back
+
+
+930
+00:43:13,456 --> 00:43:17,446
+to our application this time
+implemented using generic code.
+
+
+931
+00:43:17,546 --> 00:43:20,456
+DrawACopy method now takes a
+generic parameter constraint
+
+
+932
+00:43:20,456 --> 00:43:24,000
+to be Drawable and the rest
+of our program stays the same.
+
+
+933
+00:43:26,216 --> 00:43:31,626
+So, what is different when I
+compare this to protocol types?
+
+
+934
+00:43:33,976 --> 00:43:36,606
+Generic code supports
+a more static form
+
+
+935
+00:43:36,606 --> 00:43:39,276
+of polymorphism also known
+as parametric polymorphism.
+
+
+936
+00:43:39,776 --> 00:43:41,396
+One type per call context.
+
+
+937
+00:43:42,336 --> 00:43:43,246
+What do I mean by that?
+
+
+938
+00:43:43,246 --> 00:43:45,176
+Well, let's take a
+look at this example.
+
+
+939
+00:43:45,756 --> 00:43:50,526
+We have the function foo, which
+takes a generic parameter,
+
+
+940
+00:43:50,586 --> 00:43:51,806
+T constraint to be drawable,
+
+
+941
+00:43:52,676 --> 00:43:55,166
+and it passes this parameter
+off to the function bar.
+
+
+942
+00:43:56,256 --> 00:43:58,556
+This function, again, takes
+a generic parameter T.
+
+
+943
+00:43:59,066 --> 00:44:00,916
+And then our program
+creates a point
+
+
+944
+00:44:01,316 --> 00:44:03,206
+and passes this point
+to the function foo.
+
+
+945
+00:44:04,316 --> 00:44:06,006
+When this function executes,
+
+
+946
+00:44:07,556 --> 00:44:15,386
+Swift will bind the generic
+type T to the type used
+
+
+947
+00:44:15,386 --> 00:44:17,856
+at this call side, which
+is in this case, the Point.
+
+
+948
+00:44:18,426 --> 00:44:24,096
+When the function foo executes
+with this binding and it gets
+
+
+949
+00:44:24,096 --> 00:44:27,076
+to the function call
+of bar, this --
+
+
+950
+00:44:27,316 --> 00:44:29,506
+the local variable has the type
+
+
+951
+00:44:29,506 --> 00:44:31,056
+that was just found,
+namely Point.
+
+
+952
+00:44:31,536 --> 00:44:34,586
+And so, again, the
+generic parameter T
+
+
+953
+00:44:34,586 --> 00:44:37,746
+in this call context is
+bound through the type Point.
+
+
+954
+00:44:38,316 --> 00:44:40,106
+As we can see, the
+type is substituted
+
+
+955
+00:44:40,106 --> 00:44:41,956
+down the call chain
+along the parameters.
+
+
+956
+00:44:42,126 --> 00:44:47,216
+This is what we mean by a more
+static form of polymorphism
+
+
+957
+00:44:47,216 --> 00:44:48,516
+or parametric polymorphism.
+
+
+958
+00:44:48,746 --> 00:44:49,436
+So, let's take a look
+
+
+959
+00:44:49,436 --> 00:44:53,286
+of how Swift implements
+this under the hood.
+
+
+960
+00:44:53,706 --> 00:44:56,496
+Again, coming back to
+our drawACopy function.
+
+
+961
+00:44:58,646 --> 00:45:05,146
+In this example,
+we pass a point.
+
+
+962
+00:45:05,146 --> 00:45:06,876
+Like when we used
+protocol types,
+
+
+963
+00:45:06,876 --> 00:45:08,536
+there is one shared
+implementation.
+
+
+964
+00:45:09,076 --> 00:45:13,316
+And this shared implementation,
+if I would show you the code
+
+
+965
+00:45:13,316 --> 00:45:14,936
+like I did before
+for protocol types,
+
+
+966
+00:45:15,326 --> 00:45:16,846
+the code would look
+pretty similar.
+
+
+967
+00:45:17,456 --> 00:45:20,636
+It would use protocol
+and value witness table
+
+
+968
+00:45:20,636 --> 00:45:23,396
+to generically perform
+the operations inside
+
+
+969
+00:45:23,396 --> 00:45:24,016
+of that function.
+
+
+970
+00:45:26,276 --> 00:45:29,756
+However, because we have
+one type per call context,
+
+
+971
+00:45:30,086 --> 00:45:32,366
+Swift does not use an
+existential container here.
+
+
+972
+00:45:34,616 --> 00:45:38,726
+Instead, it can pass both
+the value witness table
+
+
+973
+00:45:38,816 --> 00:45:40,746
+and the protocol witness
+table of the Point --
+
+
+974
+00:45:40,746 --> 00:45:43,476
+of the type used
+at this call-site
+
+
+975
+00:45:43,766 --> 00:45:45,496
+as additional arguments
+to the function.
+
+
+976
+00:45:45,636 --> 00:45:49,206
+So, in this case, we see
+that the value witness table
+
+
+977
+00:45:49,206 --> 00:45:50,496
+for Point and Line is passed.
+
+
+978
+00:45:51,296 --> 00:45:53,676
+And then during execution
+of that function,
+
+
+979
+00:45:53,676 --> 00:45:57,756
+when we create a local
+variable for the parameter,
+
+
+980
+00:45:58,906 --> 00:46:01,216
+Swift will use the
+value witness table
+
+
+981
+00:46:01,496 --> 00:46:04,476
+to allocate potentially any
+necessary buffers on the heap
+
+
+982
+00:46:04,886 --> 00:46:07,746
+and execute the copy
+from the source
+
+
+983
+00:46:07,746 --> 00:46:10,036
+of the assignment
+to the destination.
+
+
+984
+00:46:10,656 --> 00:46:14,276
+And similar when it
+executes the draw method
+
+
+985
+00:46:14,276 --> 00:46:17,556
+on the local parameter, it will
+use the protocol witness table
+
+
+986
+00:46:17,556 --> 00:46:21,456
+passed, look up the draw method
+of the fixed offset in the table
+
+
+987
+00:46:21,456 --> 00:46:23,000
+and jump to the implementation.
+
+
+988
+00:46:26,046 --> 00:46:28,686
+Now, I just told you there is
+no existential container here.
+
+
+989
+00:46:29,656 --> 00:46:33,306
+So, how does Swift allocate
+the memory necessary
+
+
+990
+00:46:33,306 --> 00:46:36,196
+for the local parameter --
+
+
+991
+00:46:36,506 --> 00:46:38,466
+for the local variable
+created for this parameter?
+
+
+992
+00:46:39,926 --> 00:46:43,976
+Well, it allocates a
+valueBuffer on the stack.
+
+
+993
+00:46:44,166 --> 00:46:46,446
+Again, this valueBuffer
+is three words.
+
+
+994
+00:46:47,106 --> 00:46:50,316
+Small values like a Point
+fit into the valueBuffer.
+
+
+995
+00:46:51,766 --> 00:46:56,816
+Large values like our Line
+are, again, stored on the heap
+
+
+996
+00:46:57,216 --> 00:46:59,296
+and we store a pointer
+to that memory inside
+
+
+997
+00:46:59,296 --> 00:47:01,176
+of the local existential
+container.
+
+
+998
+00:47:04,426 --> 00:47:06,256
+And all of this is
+managed for the use
+
+
+999
+00:47:06,256 --> 00:47:07,296
+of the value witness table.
+
+
+1000
+00:47:07,986 --> 00:47:11,336
+Now, you might ask,
+"Is this any faster?
+
+
+1001
+00:47:11,336 --> 00:47:12,076
+Is this any better?
+
+
+1002
+00:47:12,656 --> 00:47:17,246
+Could I not -- have not just
+used protocol types here?"
+
+
+1003
+00:47:18,176 --> 00:47:20,056
+Well, this static form
+
+
+1004
+00:47:20,056 --> 00:47:24,336
+of polymorphism enables the
+compiler optimization called
+
+
+1005
+00:47:24,336 --> 00:47:25,716
+specialization of generics.
+
+
+1006
+00:47:25,966 --> 00:47:26,646
+Let's take a look.
+
+
+1007
+00:47:27,536 --> 00:47:29,566
+So, again, here is
+our function drawACopy
+
+
+1008
+00:47:29,566 --> 00:47:33,796
+that takes a generic
+parameter and we pass a Point
+
+
+1009
+00:47:33,876 --> 00:47:35,576
+to that function
+call the method.
+
+
+1010
+00:47:35,976 --> 00:47:39,056
+And we have static polymorphism
+
+
+1011
+00:47:39,056 --> 00:47:41,306
+so there is one type
+at the call-site.
+
+
+1012
+00:47:41,666 --> 00:47:46,406
+Swift uses that type to
+substitute the generic parameter
+
+
+1013
+00:47:46,646 --> 00:47:49,946
+in the function and create
+a version of that function
+
+
+1014
+00:47:50,396 --> 00:47:51,786
+that is specific to that type.
+
+
+1015
+00:47:52,786 --> 00:47:55,146
+So, here we have a drawACopy
+of a Point function now
+
+
+1016
+00:47:55,746 --> 00:47:58,586
+that takes a parameter
+that is of type Point
+
+
+1017
+00:47:59,076 --> 00:48:03,026
+and the code inside of
+that function is, again,
+
+
+1018
+00:48:03,026 --> 00:48:04,786
+specific to that type.
+
+
+1019
+00:48:05,656 --> 00:48:09,666
+And, as Kyle showed us, this
+can be really fast code.
+
+
+1020
+00:48:10,476 --> 00:48:14,356
+Swift will create a
+version per type used
+
+
+1021
+00:48:14,356 --> 00:48:16,096
+at a call-site in your program.
+
+
+1022
+00:48:16,096 --> 00:48:19,606
+So, if we call the drawACopy
+function on a Line in the Point,
+
+
+1023
+00:48:19,756 --> 00:48:23,626
+it will specialize and create
+two versions of that function.
+
+
+1024
+00:48:24,336 --> 00:48:25,586
+Now, you might say,
+"Wait a second.
+
+
+1025
+00:48:26,006 --> 00:48:28,656
+This has the potential to
+increase code size by a lot.
+
+
+1026
+00:48:28,716 --> 00:48:33,036
+Right?" But because the
+static typing information
+
+
+1027
+00:48:33,036 --> 00:48:36,586
+that is not available
+enables aggressive compiler
+
+
+1028
+00:48:36,586 --> 00:48:40,436
+optimization, Swift can actually
+potentially reduce the code
+
+
+1029
+00:48:40,436 --> 00:48:40,896
+size here.
+
+
+1030
+00:48:41,306 --> 00:48:43,346
+So, for example, it will
+inline the drawACopy
+
+
+1031
+00:48:43,346 --> 00:48:44,766
+of a Point method -- function.
+
+
+1032
+00:48:45,506 --> 00:48:46,976
+And then further
+optimize the code
+
+
+1033
+00:48:46,976 --> 00:48:49,036
+because it now has
+a lot more context.
+
+
+1034
+00:48:49,796 --> 00:48:53,436
+And so that function
+call can basically reduce
+
+
+1035
+00:48:53,436 --> 00:48:55,746
+to this one line and,
+as Kyle showed us,
+
+
+1036
+00:48:55,746 --> 00:49:00,156
+this can be even further reduced
+to the implementation of draw.
+
+
+1037
+00:49:01,216 --> 00:49:02,316
+Now that the drawACopy
+
+
+1038
+00:49:02,316 --> 00:49:04,586
+of a Point method is
+no longer referenced,
+
+
+1039
+00:49:04,856 --> 00:49:06,856
+the compiler will also remove it
+
+
+1040
+00:49:06,856 --> 00:49:09,396
+and perform similar optimization
+for the Line example.
+
+
+1041
+00:49:09,796 --> 00:49:11,336
+So, it's not necessarily
+the case
+
+
+1042
+00:49:11,336 --> 00:49:15,176
+that this compiler optimization
+will increase code size.
+
+
+1043
+00:49:15,776 --> 00:49:16,356
+Can happen.
+
+
+1044
+00:49:16,546 --> 00:49:19,000
+Not necessarily the case.
+
+
+1045
+00:49:21,076 --> 00:49:23,346
+OK. So, we've seen how
+specialization works,
+
+
+1046
+00:49:23,726 --> 00:49:28,606
+but one question to ask
+is, "When does it happen?"
+
+
+1047
+00:49:28,766 --> 00:49:31,496
+Well, let's take a look
+at a very small example.
+
+
+1048
+00:49:31,496 --> 00:49:35,556
+So, we define a Point and
+then create a local variable
+
+
+1049
+00:49:35,556 --> 00:49:36,066
+of that type.
+
+
+1050
+00:49:36,146 --> 00:49:39,376
+Point -- initialize it to a
+Point and then pass that Point
+
+
+1051
+00:49:39,726 --> 00:49:43,476
+as a -- for argument to
+the drawACopy function.
+
+
+1052
+00:49:44,256 --> 00:49:47,366
+Now, in order to specialize this
+code, Swift needs to be able
+
+
+1053
+00:49:47,366 --> 00:49:49,996
+to infer the type
+at this call-site.
+
+
+1054
+00:49:50,336 --> 00:49:53,746
+It can do that because it can
+look at that local variable,
+
+
+1055
+00:49:54,386 --> 00:49:56,036
+walk back to its initialization,
+
+
+1056
+00:49:56,036 --> 00:49:59,000
+and see that it has been
+initialized to a Point.
+
+
+1057
+00:50:01,816 --> 00:50:03,826
+Swift also needs to
+have the definition
+
+
+1058
+00:50:04,196 --> 00:50:06,966
+of both the type used
+during the specialization
+
+
+1059
+00:50:07,346 --> 00:50:10,796
+and the function -- the generic
+function itself available.
+
+
+1060
+00:50:10,796 --> 00:50:11,966
+Again, this is the case here.
+
+
+1061
+00:50:12,356 --> 00:50:13,596
+It's all defined in one file.
+
+
+1062
+00:50:15,896 --> 00:50:19,186
+This is a place where whole
+module optimization can greatly
+
+
+1063
+00:50:19,186 --> 00:50:21,516
+improve the optimization
+opportunity.
+
+
+1064
+00:50:22,406 --> 00:50:25,000
+Let's take a look why that is.
+
+
+1065
+00:50:26,266 --> 00:50:29,236
+So, let's say I've
+moved the definition
+
+
+1066
+00:50:29,236 --> 00:50:31,326
+of my Point into
+a separate file.
+
+
+1067
+00:50:32,516 --> 00:50:34,766
+Now, if we compile those
+two files separately,
+
+
+1068
+00:50:35,366 --> 00:50:40,796
+when I come to compile the
+file UsePoint, the definition
+
+
+1069
+00:50:41,036 --> 00:50:42,606
+of my Point is no
+longer available
+
+
+1070
+00:50:42,606 --> 00:50:44,186
+because the compiler
+has compiled those two
+
+
+1071
+00:50:44,186 --> 00:50:44,846
+files separately.
+
+
+1072
+00:50:45,686 --> 00:50:47,636
+However, with whole
+module optimization,
+
+
+1073
+00:50:48,966 --> 00:50:52,386
+the compiler will compile both
+files together as one unit
+
+
+1074
+00:50:52,996 --> 00:50:57,346
+and will have insight into the
+definition of the Point file
+
+
+1075
+00:50:58,136 --> 00:50:59,966
+and optimization can take place.
+
+
+1076
+00:51:00,806 --> 00:51:04,936
+Because this so greatly improves
+the optimization opportunity,
+
+
+1077
+00:51:04,936 --> 00:51:07,326
+we have now enabled a
+whole module optimization
+
+
+1078
+00:51:07,326 --> 00:51:08,000
+for default in Xcode 8.
+
+
+1079
+00:51:15,096 --> 00:51:17,646
+OK. Let's come back
+to our program.
+
+
+1080
+00:51:18,606 --> 00:51:24,266
+So, in our program we had this
+pair of Drawable protocol type.
+
+
+1081
+00:51:24,756 --> 00:51:29,386
+And, again, we noticed
+something about how we used it.
+
+
+1082
+00:51:31,166 --> 00:51:34,236
+Whenever we wanted to create
+a pair, we actually wanted
+
+
+1083
+00:51:34,236 --> 00:51:35,896
+to create a pair
+of the same type,
+
+
+1084
+00:51:36,246 --> 00:51:41,000
+say a pair of Lines
+or a pair of Point.
+
+
+1085
+00:51:43,606 --> 00:51:48,036
+Now, remember that the storage
+representation of a pair
+
+
+1086
+00:51:48,036 --> 00:51:50,000
+of Lines would cost
+two heap allocations.
+
+
+1087
+00:51:53,046 --> 00:51:54,746
+When we looked at this program,
+
+
+1088
+00:51:54,746 --> 00:51:59,366
+we realized that we could
+use a generic type here.
+
+
+1089
+00:52:00,736 --> 00:52:05,236
+So, if we define our pair to
+be generic and then the first
+
+
+1090
+00:52:05,236 --> 00:52:08,116
+and second property of that
+generic type have this generic
+
+
+1091
+00:52:08,116 --> 00:52:10,776
+type, then the compiler
+could actually enforce
+
+
+1092
+00:52:11,556 --> 00:52:15,076
+that we only ever create
+a pair of the same type.
+
+
+1093
+00:52:15,966 --> 00:52:20,996
+Furthermore, we can't store a
+Point to a pair of Lines later
+
+
+1094
+00:52:20,996 --> 00:52:21,726
+in the program either.
+
+
+1095
+00:52:22,266 --> 00:52:26,496
+So, this is what we
+wanted, but is this --
+
+
+1096
+00:52:26,496 --> 00:52:29,966
+the representation of that any
+better or worse for performance?
+
+
+1097
+00:52:29,966 --> 00:52:31,000
+Let's take a look.
+
+
+1098
+00:52:34,186 --> 00:52:35,456
+So, here we have our pair.
+
+
+1099
+00:52:35,456 --> 00:52:38,706
+This time the store
+properties are of generic type.
+
+
+1100
+00:52:39,766 --> 00:52:43,000
+Remember that I said that the
+type cannot change at runtime.
+
+
+1101
+00:52:46,046 --> 00:52:49,476
+What that means for
+the generated code is
+
+
+1102
+00:52:49,476 --> 00:52:52,466
+that Swift can allocate
+the storage inline
+
+
+1103
+00:52:52,466 --> 00:52:53,416
+of the enclosing type.
+
+
+1104
+00:52:53,966 --> 00:52:56,546
+So, when we create
+a pair of Lines,
+
+
+1105
+00:52:57,946 --> 00:53:01,026
+the memory for the Line will
+actually be allocated inline
+
+
+1106
+00:53:01,026 --> 00:53:02,006
+of the enclosing pair.
+
+
+1107
+00:53:03,016 --> 00:53:04,916
+No extra heap allocation
+is necessary.
+
+
+1108
+00:53:05,406 --> 00:53:07,000
+That's pretty cool.
+
+
+1109
+00:53:10,046 --> 00:53:15,236
+However, as I said, you cannot
+store a differently typed value
+
+
+1110
+00:53:15,236 --> 00:53:16,756
+later to that stored property.
+
+
+1111
+00:53:17,136 --> 00:53:18,000
+But this is what we wanted.
+
+
+1112
+00:53:23,216 --> 00:53:27,046
+OK. So, we've seen how
+unspecialized code works using
+
+
+1113
+00:53:27,046 --> 00:53:28,866
+the value witness and the
+protocol witness table
+
+
+1114
+00:53:29,416 --> 00:53:34,396
+and how the compiler can
+specialize code creating
+
+
+1115
+00:53:34,466 --> 00:53:37,626
+type-specific versions
+of the generic function.
+
+
+1116
+00:53:38,596 --> 00:53:40,236
+Let's take a look
+at the performance
+
+
+1117
+00:53:40,726 --> 00:53:42,236
+of this first looking
+
+
+1118
+00:53:42,236 --> 00:53:46,846
+at specialized generic
+code containing structs.
+
+
+1119
+00:53:47,366 --> 00:53:49,696
+In this case, we have
+performance characteristics
+
+
+1120
+00:53:49,956 --> 00:53:52,936
+identical to using struct
+types because, as we just saw,
+
+
+1121
+00:53:53,416 --> 00:53:55,106
+the generated code
+is essentially
+
+
+1122
+00:53:55,106 --> 00:53:58,566
+as if you had written this
+function in terms of a struct.
+
+
+1123
+00:53:58,936 --> 00:54:02,076
+No heap allocation is
+necessary when we copy values
+
+
+1124
+00:54:02,366 --> 00:54:04,016
+of struct type around.
+
+
+1125
+00:54:05,126 --> 00:54:06,106
+No reference counting
+
+
+1126
+00:54:06,796 --> 00:54:08,876
+if our struct didn't
+contain any references.
+
+
+1127
+00:54:10,386 --> 00:54:12,216
+And we have static
+method dispatch
+
+
+1128
+00:54:12,576 --> 00:54:15,026
+which enables further
+compiler optimization
+
+
+1129
+00:54:15,026 --> 00:54:21,626
+and reduces your runtime
+-- execution time.
+
+
+1130
+00:54:21,916 --> 00:54:26,136
+Comparing this with class
+types, if we use class types,
+
+
+1131
+00:54:26,806 --> 00:54:31,366
+we get similar characteristics
+to classes so heap allocation
+
+
+1132
+00:54:31,366 --> 00:54:33,586
+and creating the
+instance, reference counting
+
+
+1133
+00:54:33,586 --> 00:54:35,646
+for passing the value around,
+
+
+1134
+00:54:35,956 --> 00:54:39,106
+and dynamic dispatch
+through the V-Table.
+
+
+1135
+00:54:39,156 --> 00:54:42,506
+Now, let's look at unspecialized
+generic code containing
+
+
+1136
+00:54:42,506 --> 00:54:43,326
+small values.
+
+
+1137
+00:54:43,976 --> 00:54:46,506
+There's no heap allocation
+necessary for local variables,
+
+
+1138
+00:54:46,506 --> 00:54:49,126
+as we've seen, because
+small values fit
+
+
+1139
+00:54:49,126 --> 00:54:52,546
+into the valueBuffer
+allocated in the stack.
+
+
+1140
+00:54:53,256 --> 00:54:54,676
+There's no reference counting
+
+
+1141
+00:54:54,956 --> 00:54:56,726
+if the value didn't
+contain any references.
+
+
+1142
+00:54:57,866 --> 00:55:01,066
+However, we get to
+share one implementation
+
+
+1143
+00:55:01,986 --> 00:55:05,356
+across all potential
+call-sites through the use
+
+
+1144
+00:55:05,416 --> 00:55:08,000
+of the witness table
+-- witness tables.
+
+
+1145
+00:55:13,806 --> 00:55:18,836
+OK. So, we've seen during this
+talk today how the performance
+
+
+1146
+00:55:18,836 --> 00:55:20,926
+characteristics of struct
+and classes looks like
+
+
+1147
+00:55:21,626 --> 00:55:25,916
+and how generic code works
+and how protocol types work.
+
+
+1148
+00:55:26,896 --> 00:55:28,746
+What -- what can we
+take away from this?
+
+
+1149
+00:55:30,516 --> 00:55:32,406
+Oh. Hmm. There you go.
+
+
+1150
+00:55:32,406 --> 00:55:34,436
+I forgot the punchline.
+
+
+1151
+00:55:34,646 --> 00:55:39,626
+So, if we are using large
+values and generic code,
+
+
+1152
+00:55:40,066 --> 00:55:41,546
+we are incurring
+heap allocation.
+
+
+1153
+00:55:41,546 --> 00:55:43,296
+But I showed you that
+technique before, namely,
+
+
+1154
+00:55:43,296 --> 00:55:47,066
+using indirect storage
+as a workaround.
+
+
+1155
+00:55:47,656 --> 00:55:50,226
+If the large value
+contained references,
+
+
+1156
+00:55:50,596 --> 00:55:54,726
+then there's reference counting
+and, again, we get the power
+
+
+1157
+00:55:54,726 --> 00:55:57,926
+of dynamic dispatch, which
+means we can share one generic
+
+
+1158
+00:55:57,926 --> 00:56:01,000
+implementation across our code.
+
+
+1159
+00:56:04,046 --> 00:56:04,236
+All right.
+
+
+1160
+00:56:04,666 --> 00:56:08,386
+So, let's come to
+the takeaway finally.
+
+
+1161
+00:56:09,816 --> 00:56:12,006
+Choose a fitting
+abstraction for your --
+
+
+1162
+00:56:12,006 --> 00:56:14,046
+for the entities
+in your application
+
+
+1163
+00:56:14,456 --> 00:56:17,706
+with the least dynamic
+runtime type requirements.
+
+
+1164
+00:56:18,936 --> 00:56:23,036
+This will enable static type
+checking, compiler can make sure
+
+
+1165
+00:56:23,036 --> 00:56:28,016
+that your program is correct at
+compile time, and, in addition,
+
+
+1166
+00:56:28,396 --> 00:56:29,956
+the compiler has
+more information
+
+
+1167
+00:56:29,956 --> 00:56:33,256
+to optimize your code so
+you'll get faster code.
+
+
+1168
+00:56:33,606 --> 00:56:35,256
+So, if you can express
+the entities
+
+
+1169
+00:56:35,256 --> 00:56:39,476
+in your program using value
+types such as structs and enums,
+
+
+1170
+00:56:40,016 --> 00:56:42,456
+you'll get value
+semantics, which is great,
+
+
+1171
+00:56:42,636 --> 00:56:44,116
+no unintended sharing of state,
+
+
+1172
+00:56:45,076 --> 00:56:47,466
+and you'll get highly
+optimizable code.
+
+
+1173
+00:56:49,636 --> 00:56:52,286
+If you need to use classes
+because you need, for example,
+
+
+1174
+00:56:52,286 --> 00:56:55,496
+an entity or you're working with
+an object oriented framework,
+
+
+1175
+00:56:56,366 --> 00:56:58,876
+Kyle showed us some techniques
+how to reduce the cost
+
+
+1176
+00:56:58,876 --> 00:57:00,000
+of reference counting.
+
+
+1177
+00:57:03,046 --> 00:57:06,806
+If parts of your program can be
+expressed using a more static
+
+
+1178
+00:57:07,026 --> 00:57:09,886
+form of polymorphism, you
+can combine generic code
+
+
+1179
+00:57:11,246 --> 00:57:15,036
+with value types and,
+again, get really fast code,
+
+
+1180
+00:57:15,496 --> 00:57:18,056
+but share the implementation
+for that code.
+
+
+1181
+00:57:18,696 --> 00:57:23,126
+And if you need dynamic
+polymorphism such as
+
+
+1182
+00:57:23,176 --> 00:57:26,026
+in our array of drawable
+protocol type example,
+
+
+1183
+00:57:27,046 --> 00:57:31,656
+you can combine protocol types
+with value types and get --
+
+
+1184
+00:57:31,656 --> 00:57:36,486
+get a code that is comparably
+fast to using classes,
+
+
+1185
+00:57:37,026 --> 00:57:40,416
+but you still can stay
+within value semantics.
+
+
+1186
+00:57:40,906 --> 00:57:45,606
+And if you run into
+issues with heap allocation
+
+
+1187
+00:57:46,116 --> 00:57:49,626
+because you're copying large
+values inside of protocol types
+
+
+1188
+00:57:49,916 --> 00:57:53,276
+or generic types, I showed
+you that technique, namely,
+
+
+1189
+00:57:53,276 --> 00:57:55,206
+using indirect storage with copy
+
+
+1190
+00:57:55,206 --> 00:57:58,626
+and write how to
+work around this.
+
+
+1191
+00:57:58,836 --> 00:58:03,226
+OK. So, here's some related
+sessions about modeling
+
+
+1192
+00:58:03,846 --> 00:58:04,966
+and about performance.
+
+
+1193
+00:58:05,146 --> 00:58:07,856
+And I especially want to call
+out the talk this afternoon
+
+
+1194
+00:58:08,166 --> 00:58:10,096
+about Protocol and Value
+Oriented Programming
+
+
+1195
+00:58:10,096 --> 00:58:11,426
+in your UIKit Apps.
+
+
+1196
+00:58:11,626 --> 00:58:11,966
+Thank you.
+
+
+1197
+00:58:12,508 --> 00:58:14,508
+[ Applause ]
+

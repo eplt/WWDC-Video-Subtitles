@@ -1,0 +1,4131 @@
+1
+00:00:07,516 --> 00:00:18,500
+[ Music ]
+
+
+2
+00:00:29,516 --> 00:00:36,046
+[ Applause ]
+
+
+3
+00:00:36,546 --> 00:00:37,556
+>> Good afternoon, everyone.
+
+
+4
+00:00:39,026 --> 00:00:39,946
+My name is Zoltan.
+
+
+5
+00:00:40,686 --> 00:00:42,996
+Later my colleague, Eric,
+will join me on stage.
+
+
+6
+00:00:44,486 --> 00:00:47,986
+We're both engineers
+with the Xcode team.
+
+
+7
+00:00:49,596 --> 00:00:52,066
+Software development
+these days is a lot
+
+
+8
+00:00:52,066 --> 00:00:53,316
+like conducting an orchestra.
+
+
+9
+00:00:54,546 --> 00:00:58,726
+You and I maintain suites
+of tests, and when one
+
+
+10
+00:00:58,726 --> 00:01:00,446
+of them is not performing well,
+
+
+11
+00:01:01,086 --> 00:01:05,166
+we need to quickly understand
+the issue and correct it.
+
+
+12
+00:01:05,766 --> 00:01:10,626
+Okay. Maybe you're a
+testing maestro with hundreds
+
+
+13
+00:01:10,626 --> 00:01:13,456
+of thousands of tests.
+
+
+14
+00:01:13,606 --> 00:01:16,906
+Well, Xcode has tools
+and techniques
+
+
+15
+00:01:17,016 --> 00:01:19,586
+to conduct even the
+largest test suite,
+
+
+16
+00:01:20,606 --> 00:01:24,016
+and today we're going
+to show you how.
+
+
+17
+00:01:24,966 --> 00:01:26,786
+First, we're going to
+introduce some concepts
+
+
+18
+00:01:26,786 --> 00:01:30,786
+that haven't been addressed in
+previous sessions, and then,
+
+
+19
+00:01:32,146 --> 00:01:34,566
+we'll introduce some
+new features in Xcode,
+
+
+20
+00:01:35,216 --> 00:01:41,586
+in Xcode Server, in particular,
+
+
+21
+00:01:41,906 --> 00:01:43,506
+the configurable
+integration user.
+
+
+22
+00:01:44,116 --> 00:01:48,246
+And then, we'll conclude with
+some new features in xcodebuild.
+
+
+23
+00:01:48,986 --> 00:01:49,956
+Let's get started.
+
+
+24
+00:01:58,216 --> 00:02:01,286
+So, as a brief recap of testing,
+you can think of testing
+
+
+25
+00:02:01,286 --> 00:02:02,746
+as these four characters.
+
+
+26
+00:02:04,026 --> 00:02:05,546
+There's XC test.
+
+
+27
+00:02:07,496 --> 00:02:09,946
+That's the framework
+for your tests
+
+
+28
+00:02:11,376 --> 00:02:13,856
+for both Objective-C
+and for Swift.
+
+
+29
+00:02:14,946 --> 00:02:18,936
+And your tests are compiled
+to bundles before they're run.
+
+
+30
+00:02:21,436 --> 00:02:25,426
+Xcode, that's the IDE
+for authoring your tests,
+
+
+31
+00:02:26,076 --> 00:02:30,016
+and you can also run individual
+test while you're developing.
+
+
+32
+00:02:33,056 --> 00:02:36,016
+Xcode is also where
+you review reports
+
+
+33
+00:02:36,216 --> 00:02:39,276
+from both local test runs
+and from Xcode Server.
+
+
+34
+00:02:41,126 --> 00:02:42,816
+And talking about Xcode Server,
+
+
+35
+00:02:43,876 --> 00:02:46,366
+that's the continuous
+integration solution
+
+
+36
+00:02:46,366 --> 00:02:47,256
+for your tests.
+
+
+37
+00:02:48,666 --> 00:02:51,336
+You set up bots to
+periodically run your tests,
+
+
+38
+00:02:52,126 --> 00:02:55,136
+and Xcode Server will
+generate reports for you.
+
+
+39
+00:02:55,956 --> 00:02:59,046
+And if something goes
+wrong, it'll notify you.
+
+
+40
+00:02:59,966 --> 00:03:02,776
+There's a great way to keep
+track of your project over time.
+
+
+41
+00:03:06,316 --> 00:03:09,186
+So, Xcode Server is built
+on top of xcodebuild,
+
+
+42
+00:03:10,646 --> 00:03:13,846
+and you can use xcodebuild
+on the command line, too.
+
+
+43
+00:03:14,246 --> 00:03:17,896
+You can run tests and see
+results in the console.
+
+
+44
+00:03:21,376 --> 00:03:25,366
+Xcodebuild is the
+building block for custom,
+
+
+45
+00:03:25,366 --> 00:03:27,666
+continuous integration
+systems, as we'll see later.
+
+
+46
+00:03:29,876 --> 00:03:32,166
+So, you can learn more
+about these four characters
+
+
+47
+00:03:32,166 --> 00:03:33,406
+in our previous sessions.
+
+
+48
+00:03:34,226 --> 00:03:37,416
+But, today, we want to
+look at some concepts
+
+
+49
+00:03:37,416 --> 00:03:38,796
+that we haven't covered before.
+
+
+50
+00:03:39,476 --> 00:03:41,476
+We want to take you
+behind the scenes
+
+
+51
+00:03:41,906 --> 00:03:44,466
+and show you exactly how
+your tests are running.
+
+
+52
+00:03:46,166 --> 00:03:49,426
+And to do that, it helps
+to think of a timeline.
+
+
+53
+00:03:50,066 --> 00:03:55,186
+After your tests are
+compiled, they must be hosted.
+
+
+54
+00:03:56,206 --> 00:03:59,196
+That gets the test
+started in the first place.
+
+
+55
+00:04:00,556 --> 00:04:02,006
+And then, once the
+tests are running,
+
+
+56
+00:04:02,586 --> 00:04:04,606
+you can see detailed progress
+
+
+57
+00:04:05,086 --> 00:04:08,506
+in your tests using a
+technique known as observation.
+
+
+58
+00:04:08,936 --> 00:04:10,786
+So, we're going to look
+at these two concepts,
+
+
+59
+00:04:10,786 --> 00:04:12,056
+hosting and observation.
+
+
+60
+00:04:13,346 --> 00:04:14,656
+Let's look at hosting first.
+
+
+61
+00:04:16,096 --> 00:04:18,636
+So, the hosting story,
+it's different depending
+
+
+62
+00:04:18,636 --> 00:04:21,946
+on whether you have
+unit tests or UI tests.
+
+
+63
+00:04:23,476 --> 00:04:28,066
+So, for unit tests, your test
+bundle is loaded directly
+
+
+64
+00:04:28,066 --> 00:04:29,196
+into your application.
+
+
+65
+00:04:29,856 --> 00:04:33,126
+And, in this case, we
+call your application the
+
+
+66
+00:04:33,206 --> 00:04:34,176
+host application.
+
+
+67
+00:04:35,996 --> 00:04:40,396
+But for your UI tests, your test
+bundle is going to get loaded
+
+
+68
+00:04:40,396 --> 00:04:44,946
+into a UI test runner which is
+separate from your application.
+
+
+69
+00:04:46,156 --> 00:04:48,656
+And in this case, we
+refer to your application
+
+
+70
+00:04:48,656 --> 00:04:50,086
+as the target application.
+
+
+71
+00:04:50,816 --> 00:04:53,116
+Now, this has some implications.
+
+
+72
+00:04:56,356 --> 00:04:59,606
+For your unit tests, you
+will have direct access
+
+
+73
+00:04:59,606 --> 00:05:03,826
+to your applications
+data structures and API,
+
+
+74
+00:05:04,076 --> 00:05:07,846
+but for your UI tests, you have
+
+
+75
+00:05:07,906 --> 00:05:12,196
+to access your application using
+accessibility and send events
+
+
+76
+00:05:12,406 --> 00:05:15,906
+and see your application as a
+user would from the outside.
+
+
+77
+00:05:19,916 --> 00:05:23,156
+For your unit tests, all
+your tests are going to run
+
+
+78
+00:05:23,896 --> 00:05:26,246
+in the same launch of
+the host application.
+
+
+79
+00:05:26,736 --> 00:05:28,656
+So, you should be
+careful to clean
+
+
+80
+00:05:28,656 --> 00:05:30,956
+up between test invocations.
+
+
+81
+00:05:31,366 --> 00:05:36,746
+But for your UI tests,
+your tests can terminate
+
+
+82
+00:05:36,746 --> 00:05:38,296
+and relaunch the application.
+
+
+83
+00:05:38,806 --> 00:05:39,816
+So, that's great if you want
+
+
+84
+00:05:39,816 --> 00:05:43,326
+to test how your
+application starts up.
+
+
+85
+00:05:45,726 --> 00:05:47,006
+Okay. That's hosting.
+
+
+86
+00:05:47,616 --> 00:05:49,846
+That's how your test gets
+started in the first place,
+
+
+87
+00:05:50,386 --> 00:05:53,136
+and once your tests are running,
+
+
+88
+00:05:53,846 --> 00:05:56,046
+then you can use a
+technique known as observation
+
+
+89
+00:05:56,046 --> 00:05:58,716
+to see detailed progress
+in your tests.
+
+
+90
+00:05:59,796 --> 00:06:01,796
+So, let's zoom in
+on that timeline.
+
+
+91
+00:06:04,196 --> 00:06:07,846
+Here you can see two test cases,
+one running after the other.
+
+
+92
+00:06:08,336 --> 00:06:11,196
+And these test cases
+belong to a test suite.
+
+
+93
+00:06:12,596 --> 00:06:15,756
+Test suite corresponds to a
+test class you've written.
+
+
+94
+00:06:17,196 --> 00:06:20,116
+And you'll have multiple test
+suites in your test bundle.
+
+
+95
+00:06:22,306 --> 00:06:23,616
+And maybe you're interested
+
+
+96
+00:06:23,616 --> 00:06:26,686
+in doing some setup work
+before any of these tests run.
+
+
+97
+00:06:27,406 --> 00:06:29,256
+Or perhaps doing
+some tear down work
+
+
+98
+00:06:29,626 --> 00:06:31,106
+after all the tests
+have finished.
+
+
+99
+00:06:31,796 --> 00:06:33,436
+Or maybe you're interested
+
+
+100
+00:06:33,436 --> 00:06:35,916
+in doing some custom
+logging while the tests run.
+
+
+101
+00:06:38,416 --> 00:06:42,256
+Well, you can do that with the
+XCTestObservation Protocol.
+
+
+102
+00:06:43,186 --> 00:06:45,696
+You write an object that
+conforms to this protocol,
+
+
+103
+00:06:46,096 --> 00:06:49,216
+and after registering it with
+a shared observation center,
+
+
+104
+00:06:50,416 --> 00:06:52,346
+your object will
+receive call backs.
+
+
+105
+00:06:53,806 --> 00:06:56,566
+So, for instance, before
+any of the tests start,
+
+
+106
+00:06:56,776 --> 00:07:00,266
+you'll get this BundleWillStart
+call back.
+
+
+107
+00:07:00,346 --> 00:07:03,286
+And then, before
+the suite starts,
+
+
+108
+00:07:03,676 --> 00:07:07,386
+you'll get a SuiteWillStart
+call back.
+
+
+109
+00:07:08,416 --> 00:07:10,986
+Then, for every test
+case that runs,
+
+
+110
+00:07:11,616 --> 00:07:16,176
+you'll get this
+testCaseWillStart call back
+
+
+111
+00:07:16,176 --> 00:07:19,866
+and testCaseDidFinish call back.
+
+
+112
+00:07:21,556 --> 00:07:22,896
+If something goes awry,
+
+
+113
+00:07:23,506 --> 00:07:26,966
+you'll get this testCaseDidFail
+call back.
+
+
+114
+00:07:27,866 --> 00:07:30,346
+And then, as the
+tests are wrapping up,
+
+
+115
+00:07:31,156 --> 00:07:33,276
+you'll get this
+testSuiteDidFinish call back,
+
+
+116
+00:07:34,096 --> 00:07:36,366
+and your final chance
+to do any work is
+
+
+117
+00:07:36,366 --> 00:07:40,466
+in this testBundleWillFinish
+call back.
+
+
+118
+00:07:43,576 --> 00:07:45,036
+So, here's an example.
+
+
+119
+00:07:46,346 --> 00:07:49,006
+This object conforms to
+XCTestObservation Protocol.
+
+
+120
+00:07:49,826 --> 00:07:52,376
+In the object initializer,
+I'm going to register
+
+
+121
+00:07:52,376 --> 00:07:54,046
+with a shared observation
+center.
+
+
+122
+00:07:55,016 --> 00:07:57,546
+Then, as the tests progress,
+
+
+123
+00:07:57,896 --> 00:08:00,356
+I'm going to log
+events, such as this one.
+
+
+124
+00:08:01,976 --> 00:08:08,176
+When things go wrong with the
+test, I'm going to log this.
+
+
+125
+00:08:08,396 --> 00:08:13,456
+And then, once the show is
+over, I'll log that, too.
+
+
+126
+00:08:13,696 --> 00:08:17,026
+So, an ideal place to
+set up this observer is
+
+
+127
+00:08:17,026 --> 00:08:19,596
+in your test bundles info.plist.
+
+
+128
+00:08:19,966 --> 00:08:23,906
+So, you do that using
+Xcode's info.plist editor.
+
+
+129
+00:08:24,496 --> 00:08:27,486
+You add this NS principal
+class entry,
+
+
+130
+00:08:28,066 --> 00:08:34,596
+and this is a test specific
+instantiation for your observer.
+
+
+131
+00:08:35,846 --> 00:08:38,635
+It's independent of the
+class load initializer.
+
+
+132
+00:08:42,496 --> 00:08:45,256
+Okay. That's hosting
+and observation.
+
+
+133
+00:08:45,796 --> 00:08:48,696
+They're useful concepts to help
+understand exactly how your
+
+
+134
+00:08:48,696 --> 00:08:50,316
+tests are running
+behind the scenes
+
+
+135
+00:08:50,316 --> 00:08:55,436
+and to help you diagnose
+issues with your tests.
+
+
+136
+00:08:55,676 --> 00:08:57,286
+Let's look at some new
+features in Xcode 8.
+
+
+137
+00:08:59,976 --> 00:09:03,126
+Crashes are a frequent
+source of failures in tests,
+
+
+138
+00:09:04,036 --> 00:09:07,826
+and the crashes can be in
+both your host application
+
+
+139
+00:09:08,146 --> 00:09:09,726
+and the target application.
+
+
+140
+00:09:11,546 --> 00:09:15,566
+So, normally, Xcode will
+relaunch your host application
+
+
+141
+00:09:15,566 --> 00:09:16,896
+to complete your test suite.
+
+
+142
+00:09:17,676 --> 00:09:21,996
+But it's up to you to gather
+the diagnostics necessary
+
+
+143
+00:09:21,996 --> 00:09:25,456
+to resolve the crash.
+
+
+144
+00:09:25,636 --> 00:09:29,566
+I'm please to say that
+this year, Xcode is going
+
+
+145
+00:09:29,566 --> 00:09:30,986
+to help with this issue.
+
+
+146
+00:09:31,526 --> 00:09:34,766
+We will now gather the crash
+logs for you in the test report.
+
+
+147
+00:09:35,866 --> 00:09:41,456
+So, this is both for UI
+and unit tests, for local
+
+
+148
+00:09:41,456 --> 00:09:44,486
+and server runs of your tests.
+
+
+149
+00:09:44,486 --> 00:09:47,896
+The crash logs will be
+collected in the test report.
+
+
+150
+00:09:48,426 --> 00:09:50,866
+And you can see the
+textual representation
+
+
+151
+00:09:50,866 --> 00:09:55,666
+of the crash there, or you
+can choose to see the crash
+
+
+152
+00:09:55,666 --> 00:09:57,306
+in the context of your source.
+
+
+153
+00:09:57,366 --> 00:09:59,766
+And I'd like to show
+you that now.
+
+
+154
+00:10:02,316 --> 00:10:03,606
+Eric and I have been
+moonlighting.
+
+
+155
+00:10:04,606 --> 00:10:07,736
+We've been working on a tvOS
+application in our spare time.
+
+
+156
+00:10:08,226 --> 00:10:09,446
+So, I'll run the application
+
+
+157
+00:10:09,446 --> 00:10:10,976
+by control clicking
+on the Run button.
+
+
+158
+00:10:18,176 --> 00:10:21,226
+It's an application
+defined nearby concerts
+
+
+159
+00:10:21,226 --> 00:10:24,116
+with some strangely
+test related band names.
+
+
+160
+00:10:25,056 --> 00:10:27,596
+I can move in the
+simulator using the keys
+
+
+161
+00:10:27,596 --> 00:10:30,376
+on the keyboard here.
+
+
+162
+00:10:31,766 --> 00:10:34,086
+So, we're adding a new
+feature to this application
+
+
+163
+00:10:34,536 --> 00:10:37,506
+to support users who have
+location services disabled.
+
+
+164
+00:10:37,926 --> 00:10:40,876
+Let me show you what it's
+like for those users.
+
+
+165
+00:10:45,046 --> 00:10:51,556
+I'll go to the settings
+menu, and in privacy,
+
+
+166
+00:10:52,516 --> 00:10:53,976
+I'll disable location services.
+
+
+167
+00:11:00,046 --> 00:11:05,436
+So, now, back in Xcode, we've
+added a new ViewController
+
+
+168
+00:11:05,436 --> 00:11:06,846
+to support those users.
+
+
+169
+00:11:07,566 --> 00:11:08,966
+They can enter in a zip code.
+
+
+170
+00:11:10,586 --> 00:11:14,676
+Let me just add one more
+test for this ViewController.
+
+
+171
+00:11:21,346 --> 00:11:24,316
+So, I want these tests to
+run in a scheme on their own.
+
+
+172
+00:11:26,246 --> 00:11:28,256
+So, I'm going to go
+to the scheme menu,
+
+
+173
+00:11:28,756 --> 00:11:30,926
+and I'll duplicate
+this existing scheme.
+
+
+174
+00:11:36,336 --> 00:11:37,576
+I'll call this something
+meaningful.
+
+
+175
+00:11:42,236 --> 00:11:44,686
+And, in the settings
+for the test action,
+
+
+176
+00:11:45,256 --> 00:11:47,236
+I'm going to disable
+the debugger.
+
+
+177
+00:11:48,136 --> 00:11:51,126
+So, that's a technique to
+avoid interrupting the tests.
+
+
+178
+00:11:52,186 --> 00:11:55,126
+It allows all the tests
+to run to completion
+
+
+179
+00:11:55,126 --> 00:11:57,476
+without breaking
+into the debugger.
+
+
+180
+00:11:58,066 --> 00:12:00,736
+And it's similar to how your
+tests run on Xcode Server.
+
+
+181
+00:12:00,736 --> 00:12:05,206
+So, I'll disable tests
+that are not related
+
+
+182
+00:12:05,206 --> 00:12:06,446
+to location services.
+
+
+183
+00:12:08,896 --> 00:12:10,266
+I'll share the scheme.
+
+
+184
+00:12:14,096 --> 00:12:15,976
+And then, I'll run the
+test with Command U.
+
+
+185
+00:12:33,056 --> 00:12:35,446
+So, here's a new
+ViewController for users
+
+
+186
+00:12:35,446 --> 00:12:37,266
+who have location
+services disabled.
+
+
+187
+00:12:38,306 --> 00:12:42,166
+They can choose to
+enter a zip code.
+
+
+188
+00:12:42,376 --> 00:12:44,816
+So, right now, the tests
+are entering a zip code,
+
+
+189
+00:12:52,076 --> 00:12:55,136
+and that's an unexpected crash.
+
+
+190
+00:12:56,126 --> 00:12:59,256
+So, right now, Xcode has
+gathered the crash log,
+
+
+191
+00:12:59,526 --> 00:13:01,516
+and it's reported
+the test failure.
+
+
+192
+00:13:01,516 --> 00:13:05,026
+And, let's have a look at that.
+
+
+193
+00:13:05,026 --> 00:13:08,166
+So, here's the failed
+test, and I can click
+
+
+194
+00:13:08,166 --> 00:13:10,596
+to jump to the test report.
+
+
+195
+00:13:12,276 --> 00:13:14,706
+I'll disclose the
+test transcript.
+
+
+196
+00:13:16,086 --> 00:13:19,296
+Here's the events as the tests
+were entering in the zip code,
+
+
+197
+00:13:19,906 --> 00:13:22,096
+and here at the bottom
+is the crash.
+
+
+198
+00:13:24,136 --> 00:13:26,866
+Now, I can click to see
+the textual representation
+
+
+199
+00:13:26,866 --> 00:13:30,026
+of this crash, but in this case,
+I want to show you the crash
+
+
+200
+00:13:30,026 --> 00:13:31,716
+in the context of the source.
+
+
+201
+00:13:32,206 --> 00:13:33,726
+So, I'll click on
+this arrow here.
+
+
+202
+00:13:35,176 --> 00:13:39,596
+So, here's the exact line
+that the crash occurred on.
+
+
+203
+00:13:39,686 --> 00:13:43,166
+And you can see in the
+top left, the stack frames
+
+
+204
+00:13:43,166 --> 00:13:44,436
+in the debug navigator.
+
+
+205
+00:13:47,016 --> 00:13:51,286
+Now, I can see the crash
+in the context of my source
+
+
+206
+00:13:51,286 --> 00:13:52,396
+and diagnose the issue.
+
+
+207
+00:13:53,796 --> 00:13:55,336
+So, I happen to know
+that I'm referring
+
+
+208
+00:13:55,336 --> 00:13:56,886
+to the wrong ViewController
+here.
+
+
+209
+00:13:57,356 --> 00:14:00,496
+Instead of parent, this should
+be presenting ViewController.
+
+
+210
+00:14:01,936 --> 00:14:05,916
+So, I'll make that change,
+and now, I'll rerun the test
+
+
+211
+00:14:05,916 --> 00:14:09,976
+by going to the test navigator
+and clicking on this icon here.
+
+
+212
+00:14:16,396 --> 00:14:18,626
+So, earlier, I showed
+you the test report
+
+
+213
+00:14:18,626 --> 00:14:22,916
+for a local test run, but that
+report would look exactly the
+
+
+214
+00:14:22,916 --> 00:14:24,496
+same if it came from
+Xcode Server.
+
+
+215
+00:14:28,586 --> 00:14:29,976
+So, now the tests are
+reentering a zip code.
+
+
+216
+00:14:41,046 --> 00:14:43,296
+Great. So, these
+tests have passed.
+
+
+217
+00:14:43,496 --> 00:14:47,986
+We would now check in this
+tests and build confidence
+
+
+218
+00:14:47,986 --> 00:14:51,166
+that we're supporting users who
+have location services disabled.
+
+
+219
+00:14:52,316 --> 00:14:54,296
+But, for now, let's
+go back to slides.
+
+
+220
+00:14:56,616 --> 00:15:01,676
+So, you've seen how Xcode will
+now gather crash logs for you
+
+
+221
+00:15:02,026 --> 00:15:03,966
+and capture them
+in the test report.
+
+
+222
+00:15:05,446 --> 00:15:07,576
+And you can choose to see
+the textual representation
+
+
+223
+00:15:07,576 --> 00:15:12,856
+of those crashes, or
+you can see the crashes
+
+
+224
+00:15:12,856 --> 00:15:14,556
+in the context of your source.
+
+
+225
+00:15:15,076 --> 00:15:17,606
+So, that's a great way
+to diagnose the issue
+
+
+226
+00:15:18,126 --> 00:15:23,966
+and to make the fix right in
+the context of your source.
+
+
+227
+00:15:24,206 --> 00:15:26,466
+So, we have some new
+features in Xcode Server,
+
+
+228
+00:15:27,546 --> 00:15:30,396
+and to show you more,
+please welcome my colleague,
+
+
+229
+00:15:30,786 --> 00:15:31,956
+Eric Dudiak, on stage.
+
+
+230
+00:15:32,516 --> 00:15:37,036
+[ Applause ]
+
+
+231
+00:15:37,536 --> 00:15:38,206
+>> Good afternoon.
+
+
+232
+00:15:38,246 --> 00:15:40,556
+I'm Eric Dudiak, and I'm
+going to talk to you a bit
+
+
+233
+00:15:40,556 --> 00:15:44,626
+about Xcode Server and what
+we have new in Xcode 8.
+
+
+234
+00:15:45,246 --> 00:15:46,826
+So, let's go over a
+little bit of an overview
+
+
+235
+00:15:46,826 --> 00:15:48,126
+of what we're going
+to talk about today
+
+
+236
+00:15:48,576 --> 00:15:50,136
+in Xcode 8 with Xcode Server.
+
+
+237
+00:15:50,966 --> 00:15:52,646
+So, we have custom
+environment variables
+
+
+238
+00:15:52,646 --> 00:15:54,306
+that you can now
+set per integration.
+
+
+239
+00:15:55,706 --> 00:15:57,716
+We have advanced
+trigger editing workflow
+
+
+240
+00:15:57,716 --> 00:16:01,726
+that we've improved in Xcode 8.
+
+
+241
+00:16:03,166 --> 00:16:06,066
+We also have some enhancements
+to issue tracking and blame
+
+
+242
+00:16:06,066 --> 00:16:07,796
+to make sure you get
+notified of issues
+
+
+243
+00:16:07,796 --> 00:16:09,746
+as they come up on your bot.
+
+
+244
+00:16:10,426 --> 00:16:13,416
+And we'll see how that plays
+with upgrade integrations,
+
+
+245
+00:16:13,416 --> 00:16:14,646
+a new feature we have for you.
+
+
+246
+00:16:14,646 --> 00:16:16,806
+And finally, we'll talk
+
+
+247
+00:16:16,806 --> 00:16:18,636
+about the configurable
+integration user
+
+
+248
+00:16:18,736 --> 00:16:20,066
+which is new in Xcode
+8, as well.
+
+
+249
+00:16:20,066 --> 00:16:22,856
+So, let's jump right
+in, and let's talk
+
+
+250
+00:16:22,856 --> 00:16:24,196
+about custom environment
+variables.
+
+
+251
+00:16:24,656 --> 00:16:25,826
+Now, this is a little
+bit of a cheat.
+
+
+252
+00:16:25,826 --> 00:16:29,076
+It's actually new in Xcode
+7.3, and it allows you
+
+
+253
+00:16:29,076 --> 00:16:31,456
+to configure the exact
+environment that's passed
+
+
+254
+00:16:31,456 --> 00:16:32,746
+to xcodebuild on your bot.
+
+
+255
+00:16:33,046 --> 00:16:34,966
+And it controls how your
+integrations are run there,
+
+
+256
+00:16:34,966 --> 00:16:37,446
+so you can configure any number
+of settings that you might need
+
+
+257
+00:16:37,446 --> 00:16:39,746
+for your bot to run on
+your server different
+
+
+258
+00:16:39,746 --> 00:16:40,656
+than you might have locally.
+
+
+259
+00:16:41,966 --> 00:16:44,136
+This is a great way to customize
+how your server runs your
+
+
+260
+00:16:44,136 --> 00:16:46,426
+integrations, and it's a great
+way to do that without having
+
+
+261
+00:16:46,426 --> 00:16:50,056
+to create a lot of extra
+schemes in your project.
+
+
+262
+00:16:50,686 --> 00:16:52,286
+Now, on to what's
+actually new in Xcode 8.
+
+
+263
+00:16:53,226 --> 00:16:56,186
+So, we've significantly improved
+the trigger editing experience.
+
+
+264
+00:16:56,316 --> 00:16:59,366
+So, we have two types of
+triggers, scripts and emails.
+
+
+265
+00:16:59,956 --> 00:17:01,726
+First, let's talk a little
+bit about trigger scripts.
+
+
+266
+00:17:01,896 --> 00:17:03,506
+These run either
+before your integration
+
+
+267
+00:17:03,906 --> 00:17:06,366
+or after your integration, and
+they're normal shell scripts.
+
+
+268
+00:17:06,915 --> 00:17:09,326
+So, we've improved the editor
+by giving you a lot more space
+
+
+269
+00:17:09,376 --> 00:17:12,486
+to see the scripts, and you
+can actually see exactly what's
+
+
+270
+00:17:12,866 --> 00:17:15,126
+in them, so you have a lot
+more visibility into that.
+
+
+271
+00:17:16,056 --> 00:17:18,866
+Along those lines, we also
+now let you name triggers.
+
+
+272
+00:17:18,866 --> 00:17:20,056
+This is great if
+you work on a team.
+
+
+273
+00:17:20,056 --> 00:17:23,806
+Your other teammates can see
+exactly what each trigger is
+
+
+274
+00:17:23,806 --> 00:17:26,556
+supposed to be doing, and if you
+have particularly long running
+
+
+275
+00:17:26,556 --> 00:17:28,586
+scripts that are part of
+your integration triggers,
+
+
+276
+00:17:29,086 --> 00:17:31,246
+you will see that
+called out in the status
+
+
+277
+00:17:31,246 --> 00:17:32,176
+as Xcode's integrating.
+
+
+278
+00:17:32,176 --> 00:17:34,236
+So, when you see a project
+integrating into status UI,
+
+
+279
+00:17:34,236 --> 00:17:36,266
+you can actually see which
+script it's currently running.
+
+
+280
+00:17:37,556 --> 00:17:39,976
+Finally, if you have a script
+that you come up with later
+
+
+281
+00:17:39,976 --> 00:17:42,276
+that you actually really wish
+was running before all your
+
+
+282
+00:17:42,276 --> 00:17:46,136
+other scripts, you can now
+reorder triggers in this UI.
+
+
+283
+00:17:46,386 --> 00:17:49,606
+Simply add a new script
+trigger, drag it to the top,
+
+
+284
+00:17:49,606 --> 00:17:53,446
+and it will become the
+first to run on your bot.
+
+
+285
+00:17:53,656 --> 00:17:54,416
+Now, let's talk a little bit
+
+
+286
+00:17:54,416 --> 00:17:56,356
+about the other type
+of trigger we have.
+
+
+287
+00:17:56,356 --> 00:17:57,696
+We have email notifications.
+
+
+288
+00:17:58,066 --> 00:17:59,326
+Historically, in Xcode Server,
+
+
+289
+00:17:59,326 --> 00:18:02,856
+this was always a one
+email per integration setup
+
+
+290
+00:18:02,856 --> 00:18:04,696
+which can leave you
+with a lot of spam.
+
+
+291
+00:18:05,166 --> 00:18:08,156
+So, in order to help you and
+reduce the amount of email
+
+
+292
+00:18:08,156 --> 00:18:10,946
+in your inbox, we've split
+these types of triggers
+
+
+293
+00:18:10,946 --> 00:18:12,496
+up into two different types.
+
+
+294
+00:18:12,876 --> 00:18:15,566
+We still have the report
+triggers or report emails
+
+
+295
+00:18:15,566 --> 00:18:17,466
+that come out every time
+you run an integration.
+
+
+296
+00:18:17,886 --> 00:18:20,026
+Of alternatively, you
+can now schedule them
+
+
+297
+00:18:20,446 --> 00:18:23,646
+to run just once every
+day or once every week.
+
+
+298
+00:18:24,116 --> 00:18:25,756
+This way, no matter how
+often your bot runs,
+
+
+299
+00:18:25,756 --> 00:18:27,706
+your email isn't flooded,
+
+
+300
+00:18:28,106 --> 00:18:29,836
+or your inbox isn't flooded
+with a lot of emails.
+
+
+301
+00:18:29,836 --> 00:18:31,726
+And we think this is great
+for managers who want to check
+
+
+302
+00:18:31,726 --> 00:18:33,736
+up on the health of
+a bot continuously
+
+
+303
+00:18:34,086 --> 00:18:37,096
+but don't want all their inbox
+to be filled with emails.
+
+
+304
+00:18:39,296 --> 00:18:40,426
+Additionally, we also, now,
+
+
+305
+00:18:40,426 --> 00:18:42,206
+let you configure certain
+fields on the email.
+
+
+306
+00:18:42,206 --> 00:18:44,546
+So, you can configure
+your cc field as well
+
+
+307
+00:18:44,546 --> 00:18:45,756
+as your reply to fields.
+
+
+308
+00:18:46,506 --> 00:18:48,866
+This lets you have a lot more
+control over exactly the types
+
+
+309
+00:18:48,866 --> 00:18:50,466
+of emails you're sending out.
+
+
+310
+00:18:51,626 --> 00:18:53,506
+Now, I hinted a little bit
+earlier that we actually, now,
+
+
+311
+00:18:53,506 --> 00:18:55,086
+have two different
+types of email triggers.
+
+
+312
+00:18:55,086 --> 00:18:56,536
+The other is issues.
+
+
+313
+00:18:56,976 --> 00:18:58,036
+So, new issues come up.
+
+
+314
+00:18:58,036 --> 00:19:02,416
+We will now send you an email
+to the people of interest
+
+
+315
+00:19:02,416 --> 00:19:03,576
+for that particular issue.
+
+
+316
+00:19:03,696 --> 00:19:05,236
+We'll go over a little
+bit of that in a minute.
+
+
+317
+00:19:05,916 --> 00:19:09,246
+But, if you do have more
+committers that are part
+
+
+318
+00:19:09,246 --> 00:19:10,226
+of the code that
+you're integrating
+
+
+319
+00:19:10,226 --> 00:19:11,616
+than you necessarily
+want to email,
+
+
+320
+00:19:12,356 --> 00:19:14,016
+we do let you filter
+recipients right here
+
+
+321
+00:19:14,016 --> 00:19:15,936
+to make sure you're emailing
+just the people you want to be.
+
+
+322
+00:19:17,386 --> 00:19:18,896
+So, if we take a look at that.
+
+
+323
+00:19:20,386 --> 00:19:22,516
+If you have multiple
+repositories, you can choose
+
+
+324
+00:19:23,006 --> 00:19:24,326
+to only send emails
+to committers
+
+
+325
+00:19:24,326 --> 00:19:27,406
+from certain repositories,
+or if you know exactly
+
+
+326
+00:19:27,406 --> 00:19:29,636
+which domains all the
+email addresses will be
+
+
+327
+00:19:29,636 --> 00:19:31,106
+from that you want
+to send emails to,
+
+
+328
+00:19:31,456 --> 00:19:35,196
+you can add those right here.
+
+
+329
+00:19:36,046 --> 00:19:38,286
+So, let's take a minute and
+talk a little bit about issues
+
+
+330
+00:19:38,846 --> 00:19:40,256
+or build issues anyways.
+
+
+331
+00:19:41,196 --> 00:19:44,656
+And, nobody is perfect and
+writes perfect code every time.
+
+
+332
+00:19:44,656 --> 00:19:46,436
+That's the whole reason we
+have continuous integration.
+
+
+333
+00:19:46,436 --> 00:19:47,846
+That's why we have unit tests.
+
+
+334
+00:19:48,436 --> 00:19:50,146
+We have unit tests
+because we know
+
+
+335
+00:19:50,146 --> 00:19:51,386
+that they will inevitably fail.
+
+
+336
+00:19:51,386 --> 00:19:53,196
+That's why we write
+them in the first place.
+
+
+337
+00:19:54,106 --> 00:19:56,946
+We also, occasionally, commit
+code that just doesn't build,
+
+
+338
+00:19:56,946 --> 00:19:59,256
+and some of us don't
+check it before we commit,
+
+
+339
+00:19:59,256 --> 00:20:01,586
+and that's exactly
+the kind of thing
+
+
+340
+00:20:01,856 --> 00:20:03,776
+that continuous integration
+is great at catching.
+
+
+341
+00:20:04,206 --> 00:20:07,496
+And, in these types of cases,
+Xcode will send you an email
+
+
+342
+00:20:07,496 --> 00:20:09,096
+and notify you that
+you broke your build.
+
+
+343
+00:20:09,986 --> 00:20:12,076
+But those aren't the only
+issues that can come up.
+
+
+344
+00:20:13,156 --> 00:20:15,216
+Sometimes, even if you write
+absolutely perfect code,
+
+
+345
+00:20:15,216 --> 00:20:16,546
+things can change around you.
+
+
+346
+00:20:17,626 --> 00:20:20,256
+That can be when you install a
+new Xcode, you get a whole bunch
+
+
+347
+00:20:20,256 --> 00:20:21,086
+of other new features, too.
+
+
+348
+00:20:21,086 --> 00:20:23,716
+You get new SDKs that might
+have new deprecations.
+
+
+349
+00:20:24,466 --> 00:20:26,566
+You might get new issues
+from language improvements.
+
+
+350
+00:20:27,086 --> 00:20:29,376
+And, we like to make
+sure that every Xcode
+
+
+351
+00:20:29,376 --> 00:20:31,606
+that we ship is smarter than
+the Xcode we shipped before.
+
+
+352
+00:20:31,606 --> 00:20:34,716
+So, you might see issues
+that we didn't find before
+
+
+353
+00:20:34,716 --> 00:20:36,486
+that have always been
+there that Xcode now tracks
+
+
+354
+00:20:36,486 --> 00:20:37,816
+such as static analysis issues.
+
+
+355
+00:20:40,876 --> 00:20:41,956
+So, the important
+thing when you see one
+
+
+356
+00:20:41,956 --> 00:20:42,946
+of these emails is
+we really want
+
+
+357
+00:20:42,946 --> 00:20:44,886
+to make sure it's
+actionable, and let you know
+
+
+358
+00:20:44,886 --> 00:20:47,316
+that you're receiving this
+email, for the issue emails,
+
+
+359
+00:20:47,316 --> 00:20:49,076
+when it is because
+something happened
+
+
+360
+00:20:49,076 --> 00:20:50,216
+that you can do something about.
+
+
+361
+00:20:51,116 --> 00:20:53,636
+So, the first type is if
+you introduced an issue.
+
+
+362
+00:20:54,146 --> 00:20:55,156
+And that's because you broke it.
+
+
+363
+00:20:55,386 --> 00:20:58,586
+So, this will call you out,
+as you see right in the email.
+
+
+364
+00:20:58,586 --> 00:20:59,506
+You'll see an email like this
+
+
+365
+00:20:59,506 --> 00:21:00,776
+that says you introduced
+an issue.
+
+
+366
+00:21:01,796 --> 00:21:03,706
+And we know this because
+the issue showed up on
+
+
+367
+00:21:03,706 --> 00:21:06,066
+or near a line that you
+just recently modified.
+
+
+368
+00:21:07,486 --> 00:21:09,776
+We also might know if,
+between the two integrations
+
+
+369
+00:21:09,776 --> 00:21:11,886
+where the issue showed up, you
+were the only person committing.
+
+
+370
+00:21:11,886 --> 00:21:15,466
+In that case, that's
+pretty much a fair guess
+
+
+371
+00:21:15,466 --> 00:21:17,126
+that it's you that broke it.
+
+
+372
+00:21:17,886 --> 00:21:19,616
+Now, that's not always the case.
+
+
+373
+00:21:19,616 --> 00:21:22,016
+Take, for example, a
+application that's built
+
+
+374
+00:21:22,016 --> 00:21:22,996
+on top of a framework.
+
+
+375
+00:21:23,356 --> 00:21:26,416
+A change in the framework
+might cause breakage
+
+
+376
+00:21:26,416 --> 00:21:28,836
+in the application
+without anyone committing
+
+
+377
+00:21:28,836 --> 00:21:29,656
+to the application.
+
+
+378
+00:21:30,216 --> 00:21:31,846
+So, in this case, you'll see
+an email a little bit more
+
+
+379
+00:21:31,846 --> 00:21:36,056
+like this, and it'll be a little
+bit less condemning of your work
+
+
+380
+00:21:36,056 --> 00:21:37,356
+and will simply say
+that you might be able
+
+
+381
+00:21:37,356 --> 00:21:39,426
+to help fix an issue on the bot.
+
+
+382
+00:21:40,446 --> 00:21:43,306
+And we know this because you
+commit frequently to the area
+
+
+383
+00:21:43,306 --> 00:21:44,116
+where the issue showed up.
+
+
+384
+00:21:44,116 --> 00:21:46,556
+So, we, essentially, assign
+ownership to various areas.
+
+
+385
+00:21:47,076 --> 00:21:50,496
+And, keep in mind, that this
+is a bit fuzzier matching
+
+
+386
+00:21:50,496 --> 00:21:52,246
+than when we're directly
+blaming someone.
+
+
+387
+00:21:52,766 --> 00:21:55,306
+So, expect this email to go out
+to a bit of a wider audience.
+
+
+388
+00:21:55,306 --> 00:21:57,226
+It casts a very wide net
+when trying to figure
+
+
+389
+00:21:57,226 --> 00:21:58,976
+out who might be of interest
+for a particular issue.
+
+
+390
+00:22:03,306 --> 00:22:05,706
+Now, that's great for issues
+that come up in your code,
+
+
+391
+00:22:05,706 --> 00:22:07,256
+but sometimes, you can
+actually get issues that come
+
+
+392
+00:22:07,256 --> 00:22:09,136
+up regardless of code changes.
+
+
+393
+00:22:09,136 --> 00:22:11,756
+One of the easiest ways
+to see that is actually
+
+
+394
+00:22:11,756 --> 00:22:12,916
+by reconfiguring your bot.
+
+
+395
+00:22:13,746 --> 00:22:18,616
+So, Xcode 8 or Xcode Server in
+Xcode 8 will now track changes
+
+
+396
+00:22:18,616 --> 00:22:20,966
+to your bot configuration
+and actually call those out.
+
+
+397
+00:22:21,946 --> 00:22:24,546
+Whenever possible, we will
+attribute any new issues
+
+
+398
+00:22:24,546 --> 00:22:26,746
+that come up to changes
+in the configuration,
+
+
+399
+00:22:26,746 --> 00:22:29,786
+such as if you enable testing
+or enable static analysis.
+
+
+400
+00:22:30,366 --> 00:22:32,426
+Those types of issues may have
+been in your code forever,
+
+
+401
+00:22:32,426 --> 00:22:34,816
+but we can actually attribute
+them specifically to changes
+
+
+402
+00:22:34,816 --> 00:22:36,796
+in the configuration
+of the bot rather
+
+
+403
+00:22:36,796 --> 00:22:37,766
+than a change in your code.
+
+
+404
+00:22:39,156 --> 00:22:41,326
+We also make sure to include
+this information in emails
+
+
+405
+00:22:41,326 --> 00:22:43,306
+for the next integration,
+so that when you do see one
+
+
+406
+00:22:43,306 --> 00:22:45,476
+of these emails, you know that
+some of these changes might be
+
+
+407
+00:22:45,476 --> 00:22:47,456
+because you're picking up
+a configuration change.
+
+
+408
+00:22:50,516 --> 00:22:52,106
+Let's go back to something
+we were talking about earlier
+
+
+409
+00:22:52,106 --> 00:22:53,906
+of installing a new
+Xcode and getting a bunch
+
+
+410
+00:22:53,906 --> 00:22:55,456
+of new features in the process.
+
+
+411
+00:22:56,216 --> 00:22:58,826
+Well, when that happens,
+Xcode Server
+
+
+412
+00:22:58,826 --> 00:23:02,036
+on Xcode 8 will actually
+reintegrate your entire project,
+
+
+413
+00:23:02,576 --> 00:23:04,106
+and we call this an
+upgrade integration.
+
+
+414
+00:23:05,296 --> 00:23:07,756
+We take the exact same revision
+of the previous integration
+
+
+415
+00:23:07,756 --> 00:23:10,756
+of all your repositories and
+simply rerun all your tests,
+
+
+416
+00:23:10,756 --> 00:23:12,926
+rebuild everything, rerun
+the static analyzer,
+
+
+417
+00:23:13,516 --> 00:23:15,886
+and when this happens, we
+know that the issues that come
+
+
+418
+00:23:15,886 --> 00:23:19,686
+up in your project at this
+point, any new issues,
+
+
+419
+00:23:19,686 --> 00:23:21,206
+are specifically
+because of the upgrade
+
+
+420
+00:23:21,206 --> 00:23:23,056
+since we took the exact
+same commits as before.
+
+
+421
+00:23:24,066 --> 00:23:26,256
+This saves you a ton of time
+trying to track down changes
+
+
+422
+00:23:26,256 --> 00:23:27,896
+in your source code
+that just aren't there
+
+
+423
+00:23:27,896 --> 00:23:32,946
+because the issues came up
+from changes around your code.
+
+
+424
+00:23:33,046 --> 00:23:35,276
+So, that's some of the new
+features and issues and blame,
+
+
+425
+00:23:35,276 --> 00:23:37,446
+but I want to talk a little bit
+about my favorite new feature
+
+
+426
+00:23:37,446 --> 00:23:40,136
+in Xcode Server and
+Xcode 8 which is our new,
+
+
+427
+00:23:40,136 --> 00:23:41,816
+configurable integration user.
+
+
+428
+00:23:42,996 --> 00:23:44,536
+So, we now give you full control
+
+
+429
+00:23:44,536 --> 00:23:47,086
+of the macOS user that's
+running your integrations.
+
+
+430
+00:23:47,536 --> 00:23:49,516
+And this gives you a lot
+of improved visibility
+
+
+431
+00:23:49,626 --> 00:23:51,316
+into how your integrations
+are being run,
+
+
+432
+00:23:51,976 --> 00:23:53,076
+and more to the point,
+it allows you
+
+
+433
+00:23:53,076 --> 00:23:55,436
+to configure exactly how
+your integrations run.
+
+
+434
+00:23:55,946 --> 00:23:59,416
+Historically, in Xcode Server,
+there's a hidden macOS user
+
+
+435
+00:23:59,416 --> 00:24:01,666
+that was running all of your
+integrations in the background.
+
+
+436
+00:24:02,076 --> 00:24:03,496
+You wouldn't have
+access to the password,
+
+
+437
+00:24:03,496 --> 00:24:05,186
+and you wouldn't be
+able to log in as them.
+
+
+438
+00:24:05,976 --> 00:24:08,516
+This meant that you were
+basically getting a stock user
+
+
+439
+00:24:08,516 --> 00:24:10,366
+no matter what, and you
+couldn't make any changes.
+
+
+440
+00:24:11,596 --> 00:24:13,966
+Now, you'll own and
+manage this user yourself.
+
+
+441
+00:24:13,966 --> 00:24:15,206
+You will be given the password.
+
+
+442
+00:24:15,976 --> 00:24:18,586
+This user will be a
+completely normal macOS user.
+
+
+443
+00:24:18,586 --> 00:24:20,036
+It'll be any user on the system.
+
+
+444
+00:24:20,036 --> 00:24:21,586
+Can be anyone you want.
+
+
+445
+00:24:21,586 --> 00:24:22,786
+We suggest a new user.
+
+
+446
+00:24:23,896 --> 00:24:25,836
+But it will available
+at login window,
+
+
+447
+00:24:25,836 --> 00:24:27,166
+and it's fast user switching.
+
+
+448
+00:24:27,166 --> 00:24:28,866
+So, you can log in to that user.
+
+
+449
+00:24:30,136 --> 00:24:31,816
+You will notice you're
+running as that user
+
+
+450
+00:24:32,156 --> 00:24:35,226
+through a menu extra that
+shows the Xcode Server
+
+
+451
+00:24:35,436 --> 00:24:36,396
+integration icon.
+
+
+452
+00:24:37,046 --> 00:24:37,996
+We'll see that in just a minute.
+
+
+453
+00:24:38,316 --> 00:24:39,886
+Let's go over how you
+would set up this user.
+
+
+454
+00:24:39,886 --> 00:24:42,936
+So, here I've opened the server
+app to the Xcode service pane,
+
+
+455
+00:24:43,256 --> 00:24:45,586
+and in order to enable
+the Xcode Server,
+
+
+456
+00:24:46,026 --> 00:24:47,326
+I need to go ahead
+and choose an Xcode.
+
+
+457
+00:24:47,516 --> 00:24:50,306
+So, I'll choose a new Xcode
+8 that I have installed,
+
+
+458
+00:24:50,706 --> 00:24:53,466
+and I'll be presented with
+this dialog, asking me to set
+
+
+459
+00:24:53,466 --> 00:24:56,066
+up which integration user I
+want to use, and I'm going
+
+
+460
+00:24:56,066 --> 00:24:57,506
+to go ahead and create
+a new user just
+
+
+461
+00:24:57,506 --> 00:24:58,386
+for running integrations.
+
+
+462
+00:24:59,056 --> 00:25:00,516
+I'll go ahead and give it a name
+
+
+463
+00:25:00,516 --> 00:25:02,526
+and a password, normal
+user stuff.
+
+
+464
+00:25:02,966 --> 00:25:04,496
+And I'm going to leave
+it as a basic user.
+
+
+465
+00:25:04,606 --> 00:25:09,326
+And when I push "create user,"
+Xcode's going to go ahead
+
+
+466
+00:25:09,326 --> 00:25:10,256
+and do a little bit of work
+
+
+467
+00:25:10,256 --> 00:25:12,526
+in the background while
+it gets everything ready
+
+
+468
+00:25:12,526 --> 00:25:15,956
+to run integrations, and once
+that user's mostly set up,
+
+
+469
+00:25:16,146 --> 00:25:17,816
+we're going to be
+asked to login as them.
+
+
+470
+00:25:18,536 --> 00:25:20,366
+Now, we are asked to log in
+as them because we're going
+
+
+471
+00:25:20,366 --> 00:25:22,946
+to go ahead and run a little
+bit of the setup assistant.
+
+
+472
+00:25:22,946 --> 00:25:25,426
+Remember, it is a real,
+normal macOS user.
+
+
+473
+00:25:26,246 --> 00:25:27,596
+So I can log in, I can sign
+
+
+474
+00:25:27,596 --> 00:25:29,656
+into a test iCloud
+account, for example.
+
+
+475
+00:25:29,926 --> 00:25:33,076
+I can stage any data that I want
+to have for my integrations.
+
+
+476
+00:25:33,216 --> 00:25:34,066
+Anything like that.
+
+
+477
+00:25:34,476 --> 00:25:35,966
+When Xcode's ready
+to run integrations,
+
+
+478
+00:25:35,966 --> 00:25:37,716
+you will see a notification
+like the one you see
+
+
+479
+00:25:37,716 --> 00:25:40,546
+in the top right here, and in
+the top right in the menu bar,
+
+
+480
+00:25:40,546 --> 00:25:42,976
+you'll notice that there is
+a little hammer indicating
+
+
+481
+00:25:43,306 --> 00:25:46,506
+that this is the Xcode
+Server integration user.
+
+
+482
+00:25:47,166 --> 00:25:51,226
+With that all done, I can
+go ahead and switch back,
+
+
+483
+00:25:52,886 --> 00:25:55,346
+and I'll be back in server app,
+and I'll have the indication
+
+
+484
+00:25:55,346 --> 00:25:58,306
+that the user is ready
+to go, logged in,
+
+
+485
+00:25:58,306 --> 00:25:59,946
+and integrations
+can begin running.
+
+
+486
+00:26:00,806 --> 00:26:02,246
+So, now, we've seen how
+to set up that user.
+
+
+487
+00:26:02,246 --> 00:26:04,676
+Let's take a look at some of
+the things that we can do now
+
+
+488
+00:26:04,676 --> 00:26:06,496
+that we have access to
+the integration user.
+
+
+489
+00:26:06,986 --> 00:26:08,476
+And for that, let's go
+to the demo machine.
+
+
+490
+00:26:08,626 --> 00:26:09,036
+All right.
+
+
+491
+00:26:09,036 --> 00:26:10,926
+Here we have that same
+project we saw earlier,
+
+
+492
+00:26:11,956 --> 00:26:14,316
+and we saw an issue
+where it was crashing
+
+
+493
+00:26:15,326 --> 00:26:16,896
+because it didn't have
+access to location.
+
+
+494
+00:26:16,896 --> 00:26:18,806
+And we had to go in
+manually to the simulator
+
+
+495
+00:26:19,096 --> 00:26:21,156
+and turn off location
+access to test it locally.
+
+
+496
+00:26:21,616 --> 00:26:22,986
+But, as we're developing
+our application,
+
+
+497
+00:26:22,986 --> 00:26:24,036
+we might not want to do that.
+
+
+498
+00:26:24,036 --> 00:26:25,856
+We probably want to leave
+location services turned
+
+
+499
+00:26:25,856 --> 00:26:28,236
+on on our Apple TVs
+and on our simulators,
+
+
+500
+00:26:28,236 --> 00:26:30,546
+so that we're running,
+more or less, the way most
+
+
+501
+00:26:30,546 --> 00:26:32,616
+of our users will see it and
+how we want to see the app.
+
+
+502
+00:26:33,486 --> 00:26:35,736
+But, now that we've fixed
+the issue we saw earlier,
+
+
+503
+00:26:35,736 --> 00:26:37,066
+we definitely don't want
+it to come up again,
+
+
+504
+00:26:37,066 --> 00:26:38,896
+and we want to be
+notified if it does.
+
+
+505
+00:26:39,606 --> 00:26:41,386
+So, it just so happens that
+this machine I'm actually
+
+
+506
+00:26:41,386 --> 00:26:43,486
+on right now, happens
+to be my server machine.
+
+
+507
+00:26:43,486 --> 00:26:45,396
+So, I don't have to go
+anywhere to go to my server.
+
+
+508
+00:26:45,396 --> 00:26:47,946
+I can actually just go to
+the fast user switching menu,
+
+
+509
+00:26:48,196 --> 00:26:50,996
+and I see that have a
+configurable, continue,
+
+
+510
+00:26:50,996 --> 00:26:54,936
+integration user
+called Xcode Server.
+
+
+511
+00:26:55,006 --> 00:26:57,076
+And I'm just going to
+go ahead and select that
+
+
+512
+00:26:57,516 --> 00:27:01,456
+and enter my super-secret
+password that's only four
+
+
+513
+00:27:03,156 --> 00:27:05,456
+characters long.
+
+
+514
+00:27:05,676 --> 00:27:06,956
+And we will log in as this user.
+
+
+515
+00:27:07,236 --> 00:27:09,306
+So, I've gone ahead and
+changed the desktop background
+
+
+516
+00:27:09,306 --> 00:27:10,916
+so that I know that it's
+the build service user.
+
+
+517
+00:27:11,746 --> 00:27:15,316
+And, here we see the hammer
+icon of Xcode that indicates
+
+
+518
+00:27:15,316 --> 00:27:16,526
+that this is Xcode Server.
+
+
+519
+00:27:16,556 --> 00:27:18,336
+We see it's on and
+waiting for integrations.
+
+
+520
+00:27:18,906 --> 00:27:19,756
+So, it's all configured,
+
+
+521
+00:27:20,476 --> 00:27:22,446
+but I want to go ahead
+and go into Xcode.
+
+
+522
+00:27:22,446 --> 00:27:25,566
+So, I can actually configure any
+settings I want in Xcode locally
+
+
+523
+00:27:25,566 --> 00:27:28,176
+on this user, and they will be
+picked up in my integrations.
+
+
+524
+00:27:28,176 --> 00:27:30,456
+So, I'm going to use
+a neat little trick.
+
+
+525
+00:27:30,456 --> 00:27:33,756
+If I go to the devices
+menu, I see all the devices
+
+
+526
+00:27:33,756 --> 00:27:36,156
+and simulators that are plugged
+into this particular machine.
+
+
+527
+00:27:36,656 --> 00:27:38,856
+Now, being generous at
+Apple, we give you one
+
+
+528
+00:27:38,856 --> 00:27:41,626
+of every device we've ever
+made, but if that's not enough
+
+
+529
+00:27:41,626 --> 00:27:44,766
+for you, for absolutely free,
+you can get more simulators just
+
+
+530
+00:27:44,766 --> 00:27:45,966
+by clicking this
+Plus [+] button.
+
+
+531
+00:27:46,886 --> 00:27:49,586
+Now, the Apple TV 1080p
+simulator's the built in one
+
+
+532
+00:27:49,586 --> 00:27:51,196
+that I got when I
+installed Xcode.
+
+
+533
+00:27:51,566 --> 00:27:54,246
+I've gone ahead and created
+another one called Apple TV no
+
+
+534
+00:27:54,246 --> 00:27:56,796
+location, and I've
+actually got it booted here.
+
+
+535
+00:27:57,046 --> 00:28:00,406
+And if I go in, I can double
+check, and it is, indeed,
+
+
+536
+00:28:01,996 --> 00:28:04,006
+has location services
+turned off.
+
+
+537
+00:28:04,596 --> 00:28:07,606
+So, I go to settings,
+general, privacy.
+
+
+538
+00:28:08,156 --> 00:28:09,386
+Location services is turned off.
+
+
+539
+00:28:09,496 --> 00:28:11,206
+So, this simulator is
+all configured for use,
+
+
+540
+00:28:11,236 --> 00:28:12,686
+and my other one's still usable
+
+
+541
+00:28:12,686 --> 00:28:14,586
+for when I want location
+services turned on.
+
+
+542
+00:28:15,536 --> 00:28:18,286
+Now, let's do a quick
+switch back,
+
+
+543
+00:28:19,466 --> 00:28:21,316
+and just log back
+into my normal user.
+
+
+544
+00:28:21,316 --> 00:28:22,806
+Normally, I'd be
+walking across the room
+
+
+545
+00:28:22,806 --> 00:28:24,946
+to my actual work machine,
+so this is a little faster.
+
+
+546
+00:28:26,006 --> 00:28:27,626
+And here we see all
+the UI tests.
+
+
+547
+00:28:27,626 --> 00:28:30,136
+Now, I already have a bot that's
+integrating this normally,
+
+
+548
+00:28:30,136 --> 00:28:31,776
+but I want to go
+ahead and create a bot
+
+
+549
+00:28:31,776 --> 00:28:33,596
+that will integrate
+just the case
+
+
+550
+00:28:33,596 --> 00:28:34,916
+where we don't have
+location data.
+
+
+551
+00:28:35,156 --> 00:28:37,016
+So, I'm going to go
+product, create bot,
+
+
+552
+00:28:37,106 --> 00:28:40,206
+and use the Harmony no
+location scheme on this server.
+
+
+553
+00:28:40,626 --> 00:28:43,046
+Going to go ahead and
+give it location, sorry,
+
+
+554
+00:28:43,046 --> 00:28:46,336
+access to my repository so
+it can check out the project.
+
+
+555
+00:28:46,796 --> 00:28:49,276
+I'm going to disable
+the archive action
+
+
+556
+00:28:49,276 --> 00:28:50,816
+because this will be the
+same as my normal bot.
+
+
+557
+00:28:50,816 --> 00:28:52,736
+So, I don't care about that,
+but I do want to run tests.
+
+
+558
+00:28:53,246 --> 00:28:54,926
+And, let's leave
+static analysis on.
+
+
+559
+00:28:56,126 --> 00:28:57,886
+And I want to be notified
+as soon as I break this,
+
+
+560
+00:28:58,006 --> 00:29:00,646
+but probably once a
+day is good enough.
+
+
+561
+00:29:00,736 --> 00:29:03,726
+So, I'll know within 24 hours
+if we ever break this again,
+
+
+562
+00:29:03,726 --> 00:29:05,346
+our UI test will catch
+it on our server.
+
+
+563
+00:29:06,076 --> 00:29:08,896
+So, we'll just run it every
+day at 1:00 AM, and here I get
+
+
+564
+00:29:08,896 --> 00:29:09,916
+to select the devices.
+
+
+565
+00:29:10,386 --> 00:29:14,086
+By default, every integration
+runs on all devices of that OS.
+
+
+566
+00:29:14,086 --> 00:29:15,886
+So, this is a tvOS
+project, so it'll run
+
+
+567
+00:29:15,886 --> 00:29:17,886
+on all tvOS devices
+and simulators.
+
+
+568
+00:29:18,566 --> 00:29:21,656
+Instead, let's do specific TV
+devices, and I'm just going
+
+
+569
+00:29:21,656 --> 00:29:23,116
+to select the Apple
+TV no location.
+
+
+570
+00:29:23,486 --> 00:29:26,546
+This is that environment
+variable view we talked
+
+
+571
+00:29:26,546 --> 00:29:27,106
+about earlier.
+
+
+572
+00:29:27,276 --> 00:29:28,976
+I don't have any
+environment variables I need.
+
+
+573
+00:29:29,086 --> 00:29:31,136
+I'm going to go ahead and
+make sure that I get emailed
+
+
+574
+00:29:31,136 --> 00:29:33,206
+when a new issue comes up
+in this particular case,
+
+
+575
+00:29:33,366 --> 00:29:36,986
+and go ahead and create the bot.
+
+
+576
+00:29:37,616 --> 00:29:39,396
+So, that is going to go ahead
+and kick off an integration
+
+
+577
+00:29:39,396 --> 00:29:40,536
+which we see running here.
+
+
+578
+00:29:40,536 --> 00:29:41,756
+It's checking out building.
+
+
+579
+00:29:42,246 --> 00:29:44,166
+We've already seen the
+UI test run a little bit,
+
+
+580
+00:29:44,166 --> 00:29:45,966
+so let's actually
+look at an integration
+
+
+581
+00:29:45,966 --> 00:29:47,846
+that I prebaked a
+little bit earlier.
+
+
+582
+00:29:48,246 --> 00:29:49,066
+And if we go to the test,
+
+
+583
+00:29:49,066 --> 00:29:51,816
+we can see that it did run all
+our tests including this zip
+
+
+584
+00:29:51,846 --> 00:29:52,426
+code test.
+
+
+585
+00:29:53,166 --> 00:29:55,166
+And we can see, if I look at
+some of the screenshots from it,
+
+
+586
+00:29:55,166 --> 00:29:57,466
+it is, indeed, running without
+location because it's opening
+
+
+587
+00:29:57,466 --> 00:30:01,766
+that ViewController
+that we saw earlier.
+
+
+588
+00:30:02,436 --> 00:30:03,566
+So, we saw how you were able
+
+
+589
+00:30:03,566 --> 00:30:05,586
+to get significantly
+improved visibility
+
+
+590
+00:30:05,586 --> 00:30:06,796
+into how your user runs.
+
+
+591
+00:30:06,796 --> 00:30:10,946
+You can log in as them and see
+everything that's happening.
+
+
+592
+00:30:11,086 --> 00:30:12,986
+We saw how you could
+customize different settings
+
+
+593
+00:30:12,986 --> 00:30:16,486
+such as simulators to run
+exactly the operations
+
+
+594
+00:30:16,486 --> 00:30:17,846
+that you want to run
+on your integrations.
+
+
+595
+00:30:18,706 --> 00:30:20,706
+We saw this was a
+completely normal macOS user
+
+
+596
+00:30:20,706 --> 00:30:22,796
+that I was able to switch
+to in fast user switching
+
+
+597
+00:30:22,886 --> 00:30:24,106
+and that I had the password to.
+
+
+598
+00:30:24,956 --> 00:30:26,326
+And, we got to see
+that menu extra
+
+
+599
+00:30:26,326 --> 00:30:28,446
+that shows you a little bit
+of your integration status
+
+
+600
+00:30:28,546 --> 00:30:31,656
+in that integration user.
+
+
+601
+00:30:33,326 --> 00:30:34,896
+Now, with this great new
+power comes a little bit
+
+
+602
+00:30:34,896 --> 00:30:37,116
+of responsibility, and so
+we have some best practices
+
+
+603
+00:30:37,116 --> 00:30:37,446
+for you.
+
+
+604
+00:30:37,946 --> 00:30:40,166
+First, we highly recommend
+you dedicate a new user.
+
+
+605
+00:30:40,236 --> 00:30:42,776
+You want this to be as similar
+to your customer's experience
+
+
+606
+00:30:42,776 --> 00:30:44,606
+as possible, so you don't
+want all your settings
+
+
+607
+00:30:45,146 --> 00:30:47,516
+to be causing impact
+on your bots.
+
+
+608
+00:30:48,816 --> 00:30:51,126
+We also recommend you avoid
+administrator accounts.
+
+
+609
+00:30:51,236 --> 00:30:53,346
+Keep in mind that anyone
+who can create or edit bots
+
+
+610
+00:30:53,346 --> 00:30:55,206
+on your serve will have
+access to this account
+
+
+611
+00:30:55,206 --> 00:30:57,036
+through triggers, so
+this goes the same
+
+
+612
+00:30:57,036 --> 00:30:58,616
+for any private or
+customer data.
+
+
+613
+00:30:58,746 --> 00:31:00,486
+Try to avoid storing
+that in this user.
+
+
+614
+00:31:02,296 --> 00:31:04,726
+If you want to stay logged in
+as this user in the background,
+
+
+615
+00:31:04,836 --> 00:31:05,926
+use fast user switching.
+
+
+616
+00:31:05,926 --> 00:31:07,266
+Integrations can continue to run
+
+
+617
+00:31:07,266 --> 00:31:08,846
+in the background just
+as they always have.
+
+
+618
+00:31:10,086 --> 00:31:12,006
+However, if you do want
+to run the integrations
+
+
+619
+00:31:12,006 --> 00:31:13,006
+as the front most user,
+
+
+620
+00:31:13,006 --> 00:31:14,786
+make sure that you
+turn off screen lock.
+
+
+621
+00:31:14,786 --> 00:31:16,616
+Just like iOS screen
+lock blocks testing,
+
+
+622
+00:31:16,736 --> 00:31:17,886
+so does macOS screen lock.
+
+
+623
+00:31:19,286 --> 00:31:20,686
+And finally, make
+sure to customize this
+
+
+624
+00:31:20,686 --> 00:31:21,896
+for whatever needs you have.
+
+
+625
+00:31:22,316 --> 00:31:24,496
+That includes, as we saw
+earlier, any simulators.
+
+
+626
+00:31:24,576 --> 00:31:26,496
+If you have any specific
+networking configuration
+
+
+627
+00:31:26,496 --> 00:31:27,716
+that you need for
+your integrations,
+
+
+628
+00:31:28,636 --> 00:31:32,196
+any stage user data or settings
+that you want for UI tests,
+
+
+629
+00:31:32,306 --> 00:31:33,416
+go ahead and configure those.
+
+
+630
+00:31:34,526 --> 00:31:36,266
+And finally, if you have
+any advanced provisioning,
+
+
+631
+00:31:36,266 --> 00:31:38,656
+such as if your administrator
+gives you a provisioning
+
+
+632
+00:31:38,656 --> 00:31:40,816
+profile, however you
+would configure on Xcode,
+
+
+633
+00:31:40,816 --> 00:31:41,646
+you can actually configure
+
+
+634
+00:31:41,646 --> 00:31:44,686
+that in your configurable
+integrations user, now,
+
+
+635
+00:31:44,686 --> 00:31:47,076
+and make sure that code
+signing will work for you.
+
+
+636
+00:31:47,686 --> 00:31:49,846
+So, with that, I'm going to
+bring Zoltan back to talk
+
+
+637
+00:31:49,846 --> 00:31:52,836
+about some new features
+in xcodebuild.
+
+
+638
+00:31:53,516 --> 00:32:00,516dle
+[ Applause ]
+
+
+639
+00:31:53,516 --> 00:32:00,516
+[ Applause ]
+
+
+640
+00:32:01,016 --> 00:32:01,566
+>> Thank you, Eric.
+
+
+641
+00:32:03,896 --> 00:32:07,936
+So, you've seen new features
+in Xcode and Xcode Server,
+
+
+642
+00:32:08,606 --> 00:32:10,866
+and now we have new features
+to show you in xcodebuild.
+
+
+643
+00:32:12,816 --> 00:32:15,136
+xcodebuild has the test action
+
+
+644
+00:32:15,136 --> 00:32:18,696
+for custom continuous
+integration systems.
+
+
+645
+00:32:19,706 --> 00:32:22,076
+You give it a workspace, a
+scheme, and a destination,
+
+
+646
+00:32:22,596 --> 00:32:25,426
+and xcodebuild will
+dutifully build your sources.
+
+
+647
+00:32:26,136 --> 00:32:30,026
+It will install built products
+onto devices as needed.
+
+
+648
+00:32:31,516 --> 00:32:34,466
+It will run your tests,
+and then report results
+
+
+649
+00:32:34,466 --> 00:32:35,766
+to you on the command line.
+
+
+650
+00:32:37,796 --> 00:32:41,866
+So, this year, we're introducing
+two new options for this action.
+
+
+651
+00:32:42,796 --> 00:32:44,646
+With the only testing option,
+
+
+652
+00:32:44,676 --> 00:32:47,906
+you can effectively
+constrain the set of tests
+
+
+653
+00:32:48,416 --> 00:32:49,656
+that the action will run.
+
+
+654
+00:32:49,656 --> 00:32:57,666
+So, you can specify TestCases or
+TestSuites or TestBundles to run
+
+
+655
+00:32:57,666 --> 00:33:00,306
+to the exclusion of other tests.
+
+
+656
+00:33:02,226 --> 00:33:04,426
+And you can also use
+the skip-testing option
+
+
+657
+00:33:04,726 --> 00:33:08,286
+to specify TestCases to exclude
+
+
+658
+00:33:08,286 --> 00:33:10,466
+from the tests while
+running everything else.
+
+
+659
+00:33:10,986 --> 00:33:14,266
+And the big news this year is
+
+
+660
+00:33:14,266 --> 00:33:17,056
+that we're introducing two
+new actions to xcodebuild.
+
+
+661
+00:33:17,566 --> 00:33:21,576
+So, we're effectively splitting
+the test action in two.
+
+
+662
+00:33:22,526 --> 00:33:26,916
+These actions are already
+available in the Xcode IDE,
+
+
+663
+00:33:28,046 --> 00:33:29,846
+but we're going to bring
+them to xcodebuild, now.
+
+
+664
+00:33:30,626 --> 00:33:32,306
+And so, we'll look
+at each in turn.
+
+
+665
+00:33:34,776 --> 00:33:38,176
+Build for testing is just
+the building portions
+
+
+666
+00:33:38,256 --> 00:33:39,286
+of the test action.
+
+
+667
+00:33:40,636 --> 00:33:44,266
+So, you give it a workspace,
+a scheme, and a destination
+
+
+668
+00:33:44,266 --> 00:33:48,026
+as before, and it will
+build your sources,
+
+
+669
+00:33:48,816 --> 00:33:50,766
+perhaps making certain
+symbols visible,
+
+
+670
+00:33:51,796 --> 00:33:54,676
+and then it will output the
+built products to derive data.
+
+
+671
+00:33:55,976 --> 00:33:58,396
+It also produces
+this xctestrun file.
+
+
+672
+00:33:58,736 --> 00:33:59,916
+It's a kind of manifest
+
+
+673
+00:33:59,916 --> 00:34:01,626
+for everything your
+test needs to run.
+
+
+674
+00:34:02,396 --> 00:34:04,306
+We'll come back to
+that in a minute.
+
+
+675
+00:34:06,206 --> 00:34:10,315
+Test without building then, is
+the second part to the story.
+
+
+676
+00:34:11,525 --> 00:34:13,116
+You give it a workspace,
+a scheme,
+
+
+677
+00:34:13,116 --> 00:34:14,676
+and a destination, as before.
+
+
+678
+00:34:15,826 --> 00:34:20,166
+And, xcodebuild will find the
+build products in derived data.
+
+
+679
+00:34:20,235 --> 00:34:23,085
+It will install those
+onto devices as needed,
+
+
+680
+00:34:23,716 --> 00:34:26,976
+and then run your tests and
+report results just as before.
+
+
+681
+00:34:34,045 --> 00:34:36,666
+But the cool thing
+is, you no longer need
+
+
+682
+00:34:36,666 --> 00:34:38,056
+to provide a workspace.
+
+
+683
+00:34:39,496 --> 00:34:43,545
+Instead, you can just
+provide this xctestrun file,
+
+
+684
+00:34:44,016 --> 00:34:47,196
+and Xcode will run your
+tests from binaries alone.
+
+
+685
+00:34:48,525 --> 00:34:51,186
+So, it will ingest
+the xctestrun file.
+
+
+686
+00:34:51,186 --> 00:34:54,266
+It will find binary products
+relative to that file,
+
+
+687
+00:34:54,976 --> 00:34:57,856
+and then it will run the
+tests and report results
+
+
+688
+00:34:58,706 --> 00:35:00,166
+in exactly the same
+way as before
+
+
+689
+00:35:00,166 --> 00:35:02,896
+but without having any
+access to your sources.
+
+
+690
+00:35:04,356 --> 00:35:05,576
+So, this is ideal
+
+
+691
+00:35:05,576 --> 00:35:07,516
+for distributed testing
+environments.
+
+
+692
+00:35:08,436 --> 00:35:12,186
+You would build your tests
+on machines up to optimized
+
+
+693
+00:35:12,186 --> 00:35:16,396
+for building, and then
+move those built products
+
+
+694
+00:35:16,396 --> 00:35:19,036
+onto machines optimized
+for testing.
+
+
+695
+00:35:19,256 --> 00:35:24,366
+And then, in parallel, you
+can gather the test reports.
+
+
+696
+00:35:27,046 --> 00:35:29,726
+So, this is all made possible
+by the xctestrun file,
+
+
+697
+00:35:30,246 --> 00:35:34,386
+that manifest for your tests
+that specifies which tests
+
+
+698
+00:35:34,386 --> 00:35:37,076
+to run and which to skip
+and which test machines.
+
+
+699
+00:35:38,436 --> 00:35:40,036
+It provides environment
+variables
+
+
+700
+00:35:40,036 --> 00:35:42,266
+and command line
+arguments to your tests,
+
+
+701
+00:35:43,256 --> 00:35:44,676
+and you can read
+more about the format
+
+
+702
+00:35:44,676 --> 00:35:49,856
+in our man pages
+using this command.
+
+
+703
+00:35:50,516 --> 00:35:56,736
+[ Applause ]
+
+
+704
+00:35:57,236 --> 00:35:59,906
+So, we covered a
+lot of ground today.
+
+
+705
+00:36:00,046 --> 00:36:03,856
+We first reviewed testing in
+terms of these four characters,
+
+
+706
+00:36:04,286 --> 00:36:08,796
+and then we looked at some
+new concepts in Xcode.
+
+
+707
+00:36:09,686 --> 00:36:12,626
+They were great for diagnosing
+issues with your tests,
+
+
+708
+00:36:13,126 --> 00:36:16,456
+and then we introduced
+new features in Xcode,
+
+
+709
+00:36:17,116 --> 00:36:19,536
+in Xcode Server,
+and in xcodebuild.
+
+
+710
+00:36:22,516 --> 00:36:25,436
+I hope these insights and
+these new features help you
+
+
+711
+00:36:25,436 --> 00:36:28,226
+to develop test suites which
+perform well, and, after all,
+
+
+712
+00:36:28,936 --> 00:36:31,786
+that will help you
+deliver great applications.
+
+
+713
+00:36:32,306 --> 00:36:36,586
+You can read more about
+this session at this URL.
+
+
+714
+00:36:37,766 --> 00:36:37,976
+Thank you.
+
+
+715
+00:36:38,508 --> 00:36:40,508
+[ Applause ]
+

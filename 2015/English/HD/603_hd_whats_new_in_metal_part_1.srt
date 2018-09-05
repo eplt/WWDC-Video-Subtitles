@@ -1,0 +1,3598 @@
+1
+00:00:29,036 --> 00:00:31,036
+[Applause]
+
+
+2
+00:00:31,056 --> 00:00:31,776
+>> RAV DHIRAJ: Good afternoon.
+
+
+3
+00:00:31,776 --> 00:00:33,876
+Welcome to WWDC 2015.
+
+
+4
+00:00:34,516 --> 00:00:39,556
+[Applause]
+
+
+5
+00:00:40,056 --> 00:00:40,656
+>> RAV DHIRAJ: And the first
+
+
+6
+00:00:40,656 --> 00:00:42,766
+of two What's New
+in Metal sessions.
+
+
+7
+00:00:44,096 --> 00:00:47,036
+So we have a lot of Metal
+content to cover this week
+
+
+8
+00:00:47,226 --> 00:00:48,546
+across three sessions.
+
+
+9
+00:00:48,546 --> 00:00:51,946
+In fact, we've added so
+much new stuff to the API,
+
+
+10
+00:00:51,976 --> 00:00:54,366
+that we've decided to
+break the What's New
+
+
+11
+00:00:54,366 --> 00:00:56,456
+in Metal session into two parts.
+
+
+12
+00:00:57,046 --> 00:01:01,926
+So today, I'll be focusing on
+providing a high-level review
+
+
+13
+00:01:02,206 --> 00:01:05,325
+of the Metal ecosystem
+over the last 12 months.
+
+
+14
+00:01:06,466 --> 00:01:09,596
+Developers like you have
+already created some tremendous
+
+
+15
+00:01:09,596 --> 00:01:10,906
+applications using Metal.
+
+
+16
+00:01:11,456 --> 00:01:14,536
+I'll then talk about
+some of the new features
+
+
+17
+00:01:14,846 --> 00:01:17,466
+that we're introducing
+this year, and we'll end
+
+
+18
+00:01:17,466 --> 00:01:21,036
+with a specific example of
+how Metal integrates well
+
+
+19
+00:01:21,196 --> 00:01:22,346
+with the rest of the system
+
+
+20
+00:01:22,736 --> 00:01:25,356
+by describing a technology
+called app thinning.
+
+
+21
+00:01:25,936 --> 00:01:31,566
+In the second what's new in
+Metal session, Dan Omachi
+
+
+22
+00:01:31,566 --> 00:01:34,346
+and Anna Tikhonova
+will provide details
+
+
+23
+00:01:34,656 --> 00:01:37,776
+on a great new support
+library that we're introducing
+
+
+24
+00:01:37,776 --> 00:01:41,546
+in Metal this year or two great
+new support libraries rather,
+
+
+25
+00:01:42,506 --> 00:01:46,566
+MetalKit which provides
+convenience APIs that allow you
+
+
+26
+00:01:46,566 --> 00:01:48,566
+to create a great
+Metal application,
+
+
+27
+00:01:49,626 --> 00:01:54,116
+and Metal Performance Shaders
+our highly optimized library
+
+
+28
+00:01:54,116 --> 00:01:57,876
+of shaders that you can call
+directly from your application.
+
+
+29
+00:01:58,476 --> 00:02:04,556
+And finally in the last
+session, Phil Bennett will dive
+
+
+30
+00:02:04,896 --> 00:02:07,196
+into great techniques for
+taking advantage of --
+
+
+31
+00:02:07,526 --> 00:02:10,106
+for extracting the best
+possible performance
+
+
+32
+00:02:10,336 --> 00:02:11,686
+out of your Metal applications.
+
+
+33
+00:02:13,006 --> 00:02:18,836
+We'll be introducing our
+new GPU System Trace tool
+
+
+34
+00:02:19,066 --> 00:02:25,146
+in this session, so be
+sure to check it out.
+
+
+35
+00:02:25,876 --> 00:02:29,706
+We introduced Metal at
+WWDC last year for iOS 8.
+
+
+36
+00:02:30,456 --> 00:02:35,476
+Our goal was a ground-up
+reimplementation of our graphics
+
+
+37
+00:02:35,676 --> 00:02:39,656
+and compute APIs to give you
+the best possible performance
+
+
+38
+00:02:39,816 --> 00:02:41,386
+on the GPUs in our platform.
+
+
+39
+00:02:42,386 --> 00:02:46,276
+So we achieved this by getting
+much of the software between you
+
+
+40
+00:02:46,466 --> 00:02:48,386
+and the GPU out of your way.
+
+
+41
+00:02:51,396 --> 00:02:55,356
+To better illustrate this
+let's look back at an example
+
+
+42
+00:02:55,356 --> 00:02:59,606
+that we showed last year at WWDC
+that describes the work done
+
+
+43
+00:02:59,606 --> 00:03:02,896
+by the GPU and The
+CPU per frame.
+
+
+44
+00:03:04,236 --> 00:03:07,736
+In this example the top bar
+represents the time spent
+
+
+45
+00:03:07,736 --> 00:03:12,116
+by the CPU and the bottom
+bar represents the GPU time.
+
+
+46
+00:03:13,226 --> 00:03:15,876
+So as you can see, we're
+currently CPU bound
+
+
+47
+00:03:16,246 --> 00:03:19,756
+and the GPU is idle
+for part of the frame.
+
+
+48
+00:03:21,336 --> 00:03:22,526
+So with Metal we're able
+
+
+49
+00:03:22,526 --> 00:03:26,356
+to dramatically reduce
+the GPU API overhead
+
+
+50
+00:03:26,726 --> 00:03:32,516
+and effectively make the GPU the
+bottleneck in the great frame.
+
+
+51
+00:03:32,726 --> 00:03:35,556
+So the great thing is that this
+allows you to take advantage
+
+
+52
+00:03:35,606 --> 00:03:39,626
+of this additional CPU idle
+time to make your game better.
+
+
+53
+00:03:41,086 --> 00:03:43,706
+You can add more physics
+or AI for example,
+
+
+54
+00:03:45,056 --> 00:03:47,166
+or you can issue more draw calls
+
+
+55
+00:03:47,546 --> 00:03:49,536
+to increase the complexity
+of your scene.
+
+
+56
+00:03:50,106 --> 00:03:53,386
+But we didn't just stop there.
+
+
+57
+00:03:54,296 --> 00:03:57,506
+Metal also allows you to
+move expensive operations
+
+
+58
+00:03:57,976 --> 00:04:02,386
+like shader compilation and
+state validation from draw time
+
+
+59
+00:04:02,756 --> 00:04:07,106
+which happens many thousands of
+times per frame, to load time
+
+
+60
+00:04:07,216 --> 00:04:11,306
+which happens very infrequently,
+and even better in some cases
+
+
+61
+00:04:11,306 --> 00:04:16,326
+to build time, when your users
+don't see any impact at all.
+
+
+62
+00:04:18,776 --> 00:04:24,876
+Additionally, with iOS 8 we
+not only introduced compute
+
+
+63
+00:04:24,876 --> 00:04:28,126
+or exposed compute for the
+first time on our iOS devices,
+
+
+64
+00:04:28,126 --> 00:04:33,806
+but we also provided you with a
+cohesive interoperability story
+
+
+65
+00:04:34,096 --> 00:04:37,696
+between the graphics and
+compute APIs allowing
+
+
+66
+00:04:37,696 --> 00:04:41,686
+to you efficiently interleave
+render and compute operations
+
+
+67
+00:04:41,846 --> 00:04:43,416
+on Metal capable devices.
+
+
+68
+00:04:44,156 --> 00:04:51,256
+And finally, with Metal,
+your application is able
+
+
+69
+00:04:51,326 --> 00:04:53,786
+to make efficient
+use of multithreading
+
+
+70
+00:04:54,086 --> 00:04:57,306
+without the API getting
+in your way, allowing you
+
+
+71
+00:04:57,366 --> 00:04:59,466
+to encode for multiple threads.
+
+
+72
+00:05:00,186 --> 00:05:03,536
+And the results have
+been stunning.
+
+
+73
+00:05:04,596 --> 00:05:10,706
+So last year we showed
+you Epic's Zen Garden demo
+
+
+74
+00:05:10,936 --> 00:05:13,926
+where they used Metal to
+achieve ten times the number
+
+
+75
+00:05:13,926 --> 00:05:17,236
+of draw calls in the scene.
+
+
+76
+00:05:17,466 --> 00:05:20,876
+We also showed you EA's Plants
+Versus Zombies technology demo
+
+
+77
+00:05:21,406 --> 00:05:25,016
+where they used Metal to bring
+their console rendering engine
+
+
+78
+00:05:25,456 --> 00:05:26,896
+to the iOS platform.
+
+
+79
+00:05:28,326 --> 00:05:31,016
+Now this set a high bar for
+the development community.
+
+
+80
+00:05:31,756 --> 00:05:34,566
+And over the last year
+we've witnessed the release
+
+
+81
+00:05:34,566 --> 00:05:36,466
+of some truly astounding titles
+
+
+82
+00:05:36,946 --> 00:05:40,196
+that have taken great
+advantage of the Metal API.
+
+
+83
+00:05:40,976 --> 00:05:45,336
+Titles like the MOBA Vainglory
+by Super Evil Mega Corp
+
+
+84
+00:05:46,506 --> 00:05:51,496
+that used Metal to achieve 60
+frames per second in their game.
+
+
+85
+00:05:51,706 --> 00:05:55,506
+Disney's Infinity: Toy
+Box 2, Metal enabled them
+
+
+86
+00:05:55,576 --> 00:05:57,936
+to bring their console,
+graphics,
+
+
+87
+00:05:58,276 --> 00:06:02,446
+and game play experience to iOS.
+
+
+88
+00:06:02,616 --> 00:06:07,246
+Gameloft Asphalt 8, they were
+able to improve their gameplay
+
+
+89
+00:06:07,396 --> 00:06:10,316
+by using Metal to render
+three times the number
+
+
+90
+00:06:10,346 --> 00:06:11,766
+of opponents in the game.
+
+
+91
+00:06:12,346 --> 00:06:15,616
+But it's not just about games.
+
+
+92
+00:06:16,856 --> 00:06:18,676
+With the new version
+of Pixelmator
+
+
+93
+00:06:19,626 --> 00:06:21,956
+for the iPhone they're
+using Metal
+
+
+94
+00:06:22,226 --> 00:06:23,906
+to accelerate image processing
+
+
+95
+00:06:24,016 --> 00:06:26,596
+in their powerful
+new distort tools.
+
+
+96
+00:06:27,096 --> 00:06:32,966
+In fact, the response has been
+overwhelming, with a number
+
+
+97
+00:06:32,966 --> 00:06:36,326
+of key content and game
+developers now adopting Metal
+
+
+98
+00:06:36,516 --> 00:06:38,196
+on OS X.
+
+
+99
+00:06:39,046 --> 00:06:42,486
+And much of this content has
+been enabled by our commitment
+
+
+100
+00:06:42,946 --> 00:06:46,656
+to bring the leading
+game console engines
+
+
+101
+00:06:46,656 --> 00:06:48,546
+to the iOS platform.
+
+
+102
+00:06:49,236 --> 00:06:52,546
+This includes Unity,
+Epic's Unreal Engine 4,
+
+
+103
+00:06:53,086 --> 00:06:56,756
+and EA's Frostbite
+mobile engine.
+
+
+104
+00:06:59,936 --> 00:07:04,256
+Last year we also showed you how
+Metal fits in the big picture
+
+
+105
+00:07:04,256 --> 00:07:07,196
+of how your application
+accesses the GPU.
+
+
+106
+00:07:07,886 --> 00:07:10,986
+On the one side we
+have our high-level 2D
+
+
+107
+00:07:10,986 --> 00:07:13,466
+and 3D scene graphs APIs
+
+
+108
+00:07:13,836 --> 00:07:17,886
+that give you incredible
+functionality and convenience.
+
+
+109
+00:07:18,156 --> 00:07:20,096
+And on the other
+side with Metal,
+
+
+110
+00:07:20,566 --> 00:07:23,206
+we provided a direct
+access path to the GPU.
+
+
+111
+00:07:23,886 --> 00:07:27,466
+So this gives you an amazing
+range to do what's right
+
+
+112
+00:07:27,466 --> 00:07:31,146
+for your application, and
+if you choose to use one
+
+
+113
+00:07:31,146 --> 00:07:34,316
+of the higher level
+APIs, the great thing is
+
+
+114
+00:07:34,316 --> 00:07:36,956
+that we can make
+improvements under the covers
+
+
+115
+00:07:37,406 --> 00:07:38,866
+and you can benefit from them
+
+
+116
+00:07:39,276 --> 00:07:43,536
+without us changing a
+single line of code.
+
+
+117
+00:07:43,996 --> 00:07:46,046
+Well this year, we're
+happy to announce
+
+
+118
+00:07:46,046 --> 00:07:49,786
+that we've done just that,
+and we're bringing the power
+
+
+119
+00:07:49,786 --> 00:07:52,916
+and efficiency of Metal to
+the system-wide technologies.
+
+
+120
+00:07:53,756 --> 00:07:55,346
+We really believe
+that this is going
+
+
+121
+00:07:55,346 --> 00:07:57,856
+to improve the user
+experience on our platforms.
+
+
+122
+00:07:58,526 --> 00:08:05,306
+This is also a great year
+for Metal capable devices.
+
+
+123
+00:08:06,216 --> 00:08:09,066
+The iPhone 5s and the iPad
+Air were the headliners
+
+
+124
+00:08:09,066 --> 00:08:14,556
+at WWDC last year, and with the
+introduction of the iPhone 6,
+
+
+125
+00:08:15,106 --> 00:08:17,726
+the 6+, and the iPad Air 2,
+
+
+126
+00:08:17,926 --> 00:08:20,596
+we now have an incredible
+install base
+
+
+127
+00:08:20,596 --> 00:08:22,106
+of Metal capable devices.
+
+
+128
+00:08:22,686 --> 00:08:24,736
+But of course we
+didn't just stop there.
+
+
+129
+00:08:25,366 --> 00:08:27,576
+We're happy to announce
+
+
+130
+00:08:27,836 --> 00:08:34,456
+that we're bringing Metal
+to the OS X platform.
+
+
+131
+00:08:34,456 --> 00:08:36,135
+We have broad support for Metal
+
+
+132
+00:08:36,436 --> 00:08:38,756
+across all our shipping
+configurations.
+
+
+133
+00:08:39,116 --> 00:08:44,006
+In fact, Metal is supported on
+all Macs introduced since 2012.
+
+
+134
+00:08:45,066 --> 00:08:46,806
+This of course means
+that we have support
+
+
+135
+00:08:46,866 --> 00:08:51,516
+for all three GPU venders:
+Intel, AMD, and Nvidia.
+
+
+136
+00:08:52,126 --> 00:08:57,676
+And the other big news is that
+we're bringing all the tools
+
+
+137
+00:08:57,676 --> 00:09:00,176
+that you're familiar
+with using on iOS
+
+
+138
+00:09:00,486 --> 00:09:02,126
+to the Mac platform as well.
+
+
+139
+00:09:02,826 --> 00:09:06,736
+This includes the Frame
+Debugger, the Shader Profiler,
+
+
+140
+00:09:07,096 --> 00:09:09,296
+and all our API analysis tools.
+
+
+141
+00:09:09,896 --> 00:09:12,146
+This is huge.
+
+
+142
+00:09:12,856 --> 00:09:15,916
+We understand the challenges
+of debugging complex graphics
+
+
+143
+00:09:15,986 --> 00:09:17,386
+and compute applications,
+
+
+144
+00:09:17,876 --> 00:09:19,936
+and think that these
+will be invaluable
+
+
+145
+00:09:19,936 --> 00:09:21,816
+in your development
+efforts on OS X.
+
+
+146
+00:09:21,816 --> 00:09:26,636
+And of course, all of this is
+available in the seed build
+
+
+147
+00:09:26,636 --> 00:09:29,546
+of OS X El Capitan that
+you can download today.
+
+
+148
+00:09:31,916 --> 00:09:36,286
+So Metal on OS X is the same
+API you're familiar with using
+
+
+149
+00:09:36,716 --> 00:09:39,566
+on iOS with a few key additions.
+
+
+150
+00:09:40,826 --> 00:09:45,626
+With new APIs to support device
+selection, discrete memory,
+
+
+151
+00:09:45,966 --> 00:09:49,936
+and new texture formats, Metal
+makes it incredibly easy for you
+
+
+152
+00:09:49,936 --> 00:09:55,136
+to bring your iOS
+applications to OS X.
+
+
+153
+00:09:55,366 --> 00:09:56,666
+And here are a few examples
+
+
+154
+00:09:56,666 --> 00:09:58,656
+of developers who've
+done exactly that.
+
+
+155
+00:09:59,426 --> 00:10:03,036
+So you heard in the keynote that
+we've been working with Epic
+
+
+156
+00:10:03,446 --> 00:10:06,646
+to bring their iOS
+Metal development code
+
+
+157
+00:10:07,016 --> 00:10:08,546
+to a Unreal Engine on the Mac.
+
+
+158
+00:10:09,896 --> 00:10:14,186
+Well, Epic used Metal and
+their deferred renderer
+
+
+159
+00:10:14,416 --> 00:10:17,516
+to create this amazing
+stylized look in Fortnite.
+
+
+160
+00:10:19,416 --> 00:10:23,866
+Additionally folks at Unity
+brought up their engine
+
+
+161
+00:10:24,336 --> 00:10:26,746
+and demonstrated their
+Viking Village demo
+
+
+162
+00:10:26,986 --> 00:10:28,336
+in only a few weeks.
+
+
+163
+00:10:28,916 --> 00:10:32,516
+It's really great to see this
+content on OS X on Metal.
+
+
+164
+00:10:32,986 --> 00:10:36,276
+And we've been working
+with a number
+
+
+165
+00:10:36,276 --> 00:10:40,256
+of additional Mac developers to
+enable them to access the power
+
+
+166
+00:10:40,256 --> 00:10:41,656
+of the GPU through Metal.
+
+
+167
+00:10:44,796 --> 00:10:46,576
+So you also heard in the keynote
+
+
+168
+00:10:46,706 --> 00:10:49,396
+about digital content
+creation applications.
+
+
+169
+00:10:50,606 --> 00:10:54,276
+Developers like Adobe, they're
+using Metal to access the GPU
+
+
+170
+00:10:54,346 --> 00:10:56,146
+to accelerate image processing.
+
+
+171
+00:10:56,756 --> 00:11:01,496
+The guys at The Foundry
+have also been using Metal
+
+
+172
+00:11:01,546 --> 00:11:05,196
+to accelerate their 3D
+modeling application MODO.
+
+
+173
+00:11:05,826 --> 00:11:10,966
+And here today to talk about
+their experience adopting Metal
+
+
+174
+00:11:10,966 --> 00:11:13,726
+in OS X is Jack Greasley
+from the The Foundry.
+
+
+175
+00:11:14,031 --> 00:11:16,031
+[Applause]
+
+
+176
+00:11:16,046 --> 00:11:16,426
+Welcome Jack.
+
+
+177
+00:11:16,986 --> 00:11:17,386
+>> JACK GREASLEY: Thank you Rav.
+
+
+178
+00:11:21,186 --> 00:11:22,816
+Hi. I'm Jack Greasley.
+
+
+179
+00:11:22,816 --> 00:11:24,996
+I'm head of new technology
+at The Foundry.
+
+
+180
+00:11:25,976 --> 00:11:29,426
+And at The Foundry we create
+tools for digital artists.
+
+
+181
+00:11:30,536 --> 00:11:34,746
+Our software is used around
+the world in games, movies, TV,
+
+
+182
+00:11:34,746 --> 00:11:38,106
+and film, including some
+photo real Peruvian bears,
+
+
+183
+00:11:39,686 --> 00:11:40,736
+mutant monster hunters.
+
+
+184
+00:11:41,976 --> 00:11:43,306
+But it's not just
+about the virtual.
+
+
+185
+00:11:44,086 --> 00:11:47,106
+Some of our design customers
+like Adidas actually make things
+
+
+186
+00:11:48,376 --> 00:11:50,106
+and if you ask a
+designer they'll tell you
+
+
+187
+00:11:50,726 --> 00:11:56,216
+that any product is a result of
+thousands of little experiments.
+
+
+188
+00:11:56,216 --> 00:11:57,436
+We understand this process
+
+
+189
+00:11:57,436 --> 00:12:02,306
+and we create our tools
+specifically to support it.
+
+
+190
+00:12:02,576 --> 00:12:06,746
+MODO is our premier 3D modeling
+animation and rendering system.
+
+
+191
+00:12:06,916 --> 00:12:09,906
+It is used to make games,
+films, product design,
+
+
+192
+00:12:10,326 --> 00:12:11,336
+lots of different things.
+
+
+193
+00:12:12,366 --> 00:12:15,536
+Our users create stunning
+imagery and animations
+
+
+194
+00:12:15,536 --> 00:12:17,096
+for things both real
+and imaginary.
+
+
+195
+00:12:17,746 --> 00:12:22,416
+In our latest version
+of MODO 9.01,
+
+
+196
+00:12:22,506 --> 00:12:24,416
+we revamped out GPU renderer,
+
+
+197
+00:12:25,896 --> 00:12:28,866
+the aim was to provide a
+fluid interactive experience
+
+
+198
+00:12:29,516 --> 00:12:31,576
+with a highest possible
+quality to designers.
+
+
+199
+00:12:32,676 --> 00:12:35,956
+The benefit of this is that if
+your viewport is realtime you
+
+
+200
+00:12:35,956 --> 00:12:37,996
+can make tens of decisions
+in the time it would take
+
+
+201
+00:12:37,996 --> 00:12:39,156
+to do a single software render.
+
+
+202
+00:12:39,816 --> 00:12:45,066
+We had already done some
+early work with Metal in iOS,
+
+
+203
+00:12:45,996 --> 00:12:48,216
+but a couple of months ago
+we got a great opportunity
+
+
+204
+00:12:48,216 --> 00:12:50,746
+to start working
+with Metal on OS X.
+
+
+205
+00:12:51,576 --> 00:12:53,776
+So we put together a small
+team and set them a challenge,
+
+
+206
+00:12:54,396 --> 00:12:56,196
+we gave them four
+weeks to see how much
+
+
+207
+00:12:56,196 --> 00:12:58,546
+of the new MODO viewport
+they could bring over
+
+
+208
+00:12:58,546 --> 00:12:59,576
+and get running on Metal.
+
+
+209
+00:13:00,566 --> 00:13:03,116
+And we almost immediately
+got some stunning results.
+
+
+210
+00:13:04,386 --> 00:13:09,086
+Although it's only
+a small triangle,
+
+
+211
+00:13:09,086 --> 00:13:11,246
+it actually represents
+a huge milestone for us.
+
+
+212
+00:13:11,986 --> 00:13:13,476
+Once we did that, we
+were able to very,
+
+
+213
+00:13:13,476 --> 00:13:14,836
+very quickly make progress.
+
+
+214
+00:13:15,356 --> 00:13:17,826
+And our plan of attack was to
+really work from the bottom up,
+
+
+215
+00:13:18,336 --> 00:13:19,786
+and to start bringing
+the functionality
+
+
+216
+00:13:19,786 --> 00:13:21,466
+from our new viewport
+over onto Metal.
+
+
+217
+00:13:22,096 --> 00:13:26,726
+So here on day one we
+started with the environment.
+
+
+218
+00:13:26,726 --> 00:13:28,946
+We added a few more triangles.
+
+
+219
+00:13:28,946 --> 00:13:33,756
+A little bit of shading started
+
+
+220
+00:13:33,756 --> 00:13:39,646
+to make this look a little
+bit more like a real car.
+
+
+221
+00:13:39,646 --> 00:13:40,716
+Putting in the soft shadows
+
+
+222
+00:13:40,716 --> 00:13:43,416
+and specular highlights really
+added a little bit of bling,
+
+
+223
+00:13:43,526 --> 00:13:44,516
+and everybody loves shiny.
+
+
+224
+00:13:45,136 --> 00:13:48,456
+And so here we are,
+four weeks later,
+
+
+225
+00:13:48,646 --> 00:13:49,936
+and you remember
+that single triangle?
+
+
+226
+00:13:49,936 --> 00:13:52,056
+We got some incredible results.
+
+
+227
+00:13:52,836 --> 00:13:59,316
+Putting this all back into Metal
+gave us a fully functional view
+
+
+228
+00:13:59,316 --> 00:14:03,606
+port running inside of MODO
+on Metal in just four weeks.
+
+
+229
+00:14:04,206 --> 00:14:06,356
+One of the great things for us,
+
+
+230
+00:14:06,536 --> 00:14:09,716
+is this gives us a standardized
+renderer across iOS and OS X,
+
+
+231
+00:14:11,266 --> 00:14:14,586
+we created a WYSIWYG workflow
+between the two platforms.
+
+
+232
+00:14:16,736 --> 00:14:18,296
+So, what did we learn?
+
+
+233
+00:14:19,356 --> 00:14:21,316
+The first thing we learned is
+that working with Metal is fun.
+
+
+234
+00:14:22,096 --> 00:14:23,916
+I've spent 20 years
+working with OpenGL,
+
+
+235
+00:14:23,916 --> 00:14:27,216
+and I can tell you having a
+nice lean easy to use API is
+
+
+236
+00:14:27,216 --> 00:14:28,276
+like a breath of fresh air.
+
+
+237
+00:14:30,196 --> 00:14:33,256
+Secondly, the debugging
+and optimization tools
+
+
+238
+00:14:33,256 --> 00:14:35,046
+in Metal are absolutely
+fantastic.
+
+
+239
+00:14:35,726 --> 00:14:38,306
+As I have said, if you have
+done debugging on GPUs,
+
+
+240
+00:14:38,306 --> 00:14:39,996
+you know why this is important.
+
+
+241
+00:14:41,456 --> 00:14:43,216
+Metal can also be really fast.
+
+
+242
+00:14:43,726 --> 00:14:46,066
+In some of our tests, we
+got three times speed-up,
+
+
+243
+00:14:46,346 --> 00:14:49,236
+and that's using exactly the
+same data on the same GPU.
+
+
+244
+00:14:49,806 --> 00:14:53,426
+Going forward we have some big
+plans from our new viewport
+
+
+245
+00:14:53,486 --> 00:14:55,846
+and we're actually looking
+to integrate it into all
+
+
+246
+00:14:55,846 --> 00:14:57,086
+of our tools across The Foundry,
+
+
+247
+00:14:57,666 --> 00:14:59,226
+so hopefully we'll be
+seeing the Metal cropping
+
+
+248
+00:14:59,226 --> 00:15:00,986
+up in interesting
+places very, very soon.
+
+
+249
+00:15:01,946 --> 00:15:04,246
+So I'm going to hand you back
+to Rav, and thank you very much.
+
+
+250
+00:15:05,516 --> 00:15:11,206
+[Applause]
+
+
+251
+00:15:11,706 --> 00:15:12,206
+>> RAV DHIRAJ: Thank you Jack.
+
+
+252
+00:15:12,386 --> 00:15:13,346
+That was fantastic.
+
+
+253
+00:15:14,056 --> 00:15:19,776
+Okay, so I'd like to now
+talk about the new features
+
+
+254
+00:15:19,776 --> 00:15:23,706
+that we're introducing in
+iOS 9 and OS X El Capitan.
+
+
+255
+00:15:23,706 --> 00:15:26,806
+And there is a lot of them.
+
+
+256
+00:15:28,266 --> 00:15:29,396
+This is a just a selection
+
+
+257
+00:15:29,396 --> 00:15:31,096
+of the features we've
+added this year.
+
+
+258
+00:15:32,046 --> 00:15:34,716
+Now I don't have time to talk
+about every single one of these,
+
+
+259
+00:15:35,096 --> 00:15:36,846
+so I'm going to focus
+on a subset,
+
+
+260
+00:15:37,446 --> 00:15:41,096
+including GPU family sets,
+our new memory model,
+
+
+261
+00:15:41,576 --> 00:15:44,886
+texture barriers, our
+expanded texturing support.
+
+
+262
+00:15:44,886 --> 00:15:48,366
+Of course, as I mentioned
+before, you can learn more
+
+
+263
+00:15:48,366 --> 00:15:51,546
+about MetalKit, Metal
+Performance Shaders,
+
+
+264
+00:15:52,036 --> 00:15:54,116
+and our new Metal
+System Trace tool
+
+
+265
+00:15:54,476 --> 00:15:56,036
+in the sessions later this week.
+
+
+266
+00:15:57,586 --> 00:15:59,416
+So let's dive right into them.
+
+
+267
+00:16:00,206 --> 00:16:03,936
+I would like to start with the
+GPU, our Metal feature sets.
+
+
+268
+00:16:04,736 --> 00:16:08,386
+Metal defines collections of
+features that are specific
+
+
+269
+00:16:08,506 --> 00:16:10,696
+to generations of GPU hardware.
+
+
+270
+00:16:11,316 --> 00:16:14,116
+Metal calls these GPU families.
+
+
+271
+00:16:14,926 --> 00:16:21,026
+So a GPU feature set is defined
+by the platform, iOS, or OS X,
+
+
+272
+00:16:22,016 --> 00:16:24,026
+the Family Name,
+which is specific
+
+
+273
+00:16:24,026 --> 00:16:28,176
+to a hardware generation,
+and a version that allows us
+
+
+274
+00:16:28,246 --> 00:16:30,376
+to augment the feature
+set over time.
+
+
+275
+00:16:31,756 --> 00:16:34,206
+It's really trivial to
+query the feature set,
+
+
+276
+00:16:35,116 --> 00:16:38,836
+simply call supportFeatureSet on
+your Metal device to determine
+
+
+277
+00:16:38,836 --> 00:16:40,766
+if that GPU family is supported.
+
+
+278
+00:16:41,326 --> 00:16:46,046
+So here is our iOS
+feature set matrix.
+
+
+279
+00:16:47,296 --> 00:16:49,756
+Now you'll notice
+that we have support
+
+
+280
+00:16:49,756 --> 00:16:53,736
+for two major GPU families and
+versioning to differentiate
+
+
+281
+00:16:53,736 --> 00:16:57,586
+between our iOS 8 and
+our iOS 9 features.
+
+
+282
+00:16:57,586 --> 00:17:04,996
+On OS X the GPUFamily1 v1
+feature set represents the
+
+
+283
+00:17:04,996 --> 00:17:08,435
+features that we're going to
+be shipping in OS X El Capitan.
+
+
+284
+00:17:09,076 --> 00:17:11,965
+This defines the base for
+a Metal capable device
+
+
+285
+00:17:11,965 --> 00:17:12,976
+on the desktop platform.
+
+
+286
+00:17:12,976 --> 00:17:17,705
+Now I would like to talk
+
+
+287
+00:17:17,925 --> 00:17:21,386
+about two new shader constant
+updates APIs that we're adding.
+
+
+288
+00:17:21,386 --> 00:17:23,556
+First a little bit
+of background.
+
+
+289
+00:17:24,496 --> 00:17:26,175
+So for every draw
+that you encode
+
+
+290
+00:17:26,175 --> 00:17:29,076
+into command buffer there's
+some constant data you need
+
+
+291
+00:17:29,076 --> 00:17:29,956
+to send to the shader.
+
+
+292
+00:17:30,726 --> 00:17:32,856
+Now it will be incredibly
+inefficient for you
+
+
+293
+00:17:32,856 --> 00:17:35,276
+to have a separate
+constant buffer per draw
+
+
+294
+00:17:35,686 --> 00:17:38,996
+so generally most Metal
+applications allocate a single
+
+
+295
+00:17:38,996 --> 00:17:41,596
+constant buffer that
+they have per frame.
+
+
+296
+00:17:42,806 --> 00:17:45,636
+They then append the
+constant data into the buffer
+
+
+297
+00:17:45,876 --> 00:17:47,256
+as they encode their draws.
+
+
+298
+00:17:48,476 --> 00:17:49,646
+So what does the code look like?
+
+
+299
+00:17:51,046 --> 00:17:52,276
+Well, first we have some setup
+
+
+300
+00:17:52,276 --> 00:17:53,716
+for the constant
+buffer and the data.
+
+
+301
+00:17:54,666 --> 00:17:58,996
+Then just like in that
+diagram, within your draw loop,
+
+
+302
+00:17:59,326 --> 00:18:01,056
+you send in the new
+constant data
+
+
+303
+00:18:01,056 --> 00:18:03,606
+or you pen the new constant
+data into your constant buffer.
+
+
+304
+00:18:04,726 --> 00:18:08,416
+Now it's worth noting that the
+setVertexBuffer call here is
+
+
+305
+00:18:08,486 --> 00:18:10,156
+actually doing two things.
+
+
+306
+00:18:11,806 --> 00:18:13,236
+It's setting the
+constant buffer,
+
+
+307
+00:18:14,166 --> 00:18:16,136
+and it is updating
+the offset in it.
+
+
+308
+00:18:16,886 --> 00:18:20,746
+Now, of these two
+operations, it's that call
+
+
+309
+00:18:20,746 --> 00:18:23,486
+to set the constant buffer
+that's the most expensive.
+
+
+310
+00:18:24,306 --> 00:18:26,286
+So Metal now has
+APIs that allows you
+
+
+311
+00:18:26,286 --> 00:18:30,346
+to separate these two operations
+and move that expensive call
+
+
+312
+00:18:30,556 --> 00:18:33,226
+to set the constant buffer,
+or the vertex buffer,
+
+
+313
+00:18:33,226 --> 00:18:34,606
+outside of your draw loop.
+
+
+314
+00:18:35,886 --> 00:18:38,526
+If you have thousands
+of draw calls per frame,
+
+
+315
+00:18:38,886 --> 00:18:40,366
+this can be a significant
+savings.
+
+
+316
+00:18:41,046 --> 00:18:45,436
+But if you only have a small
+amount of constant data,
+
+
+317
+00:18:45,736 --> 00:18:47,466
+it might be more
+efficient for Metal
+
+
+318
+00:18:47,466 --> 00:18:49,386
+to manage the constant
+buffer for you.
+
+
+319
+00:18:50,436 --> 00:18:53,116
+So Metal now has the
+setVertexBytes API,
+
+
+320
+00:18:53,116 --> 00:18:58,606
+you can use this to append new
+constants at every draw call.
+
+
+321
+00:18:58,736 --> 00:19:03,426
+Actually there is one more
+thing I want to say about that.
+
+
+322
+00:19:04,126 --> 00:19:07,716
+So that API is great if you only
+have a small number of constants
+
+
+323
+00:19:07,716 --> 00:19:10,226
+as I said, and that's tens
+of bytes of constants.
+
+
+324
+00:19:10,826 --> 00:19:14,316
+If you have larger constant
+sets you really want
+
+
+325
+00:19:14,316 --> 00:19:17,016
+to use on of the other APIs.
+
+
+326
+00:19:17,596 --> 00:19:19,656
+There's a good chance that
+it'll be way more performant.
+
+
+327
+00:19:20,296 --> 00:19:24,236
+All right let me talk about
+the new memory model now.
+
+
+328
+00:19:25,556 --> 00:19:28,456
+So, our goal with the
+new memory model was
+
+
+329
+00:19:28,456 --> 00:19:31,446
+to support both unified
+and discrete memory systems
+
+
+330
+00:19:31,446 --> 00:19:33,356
+without you having
+to make much change.
+
+
+331
+00:19:33,966 --> 00:19:35,926
+Now Metal supports
+discrete memory now,
+
+
+332
+00:19:36,196 --> 00:19:40,256
+and that's high speed
+memory that the GPU
+
+
+333
+00:19:40,256 --> 00:19:42,156
+on some desktops have access to.
+
+
+334
+00:19:42,686 --> 00:19:45,436
+So the way we've
+achieved this is
+
+
+335
+00:19:45,476 --> 00:19:50,116
+by introducing new storage
+modes that allow you to specify
+
+
+336
+00:19:50,526 --> 00:19:53,416
+where the resource
+will reside in memory.
+
+
+337
+00:19:54,346 --> 00:19:58,386
+So the modes are shared,
+private, and managed.
+
+
+338
+00:19:58,386 --> 00:20:01,486
+So I'll talk about
+each of these in turn
+
+
+339
+00:20:01,576 --> 00:20:02,776
+over the next few slides.
+
+
+340
+00:20:03,506 --> 00:20:07,206
+Let's start by talking about
+the shared storage mode.
+
+
+341
+00:20:07,926 --> 00:20:09,056
+So this is the mode that's
+
+
+342
+00:20:09,526 --> 00:20:11,866
+in the existing implementation
+of iOS 8.
+
+
+343
+00:20:12,696 --> 00:20:15,806
+So in a unified memory
+system, the memory that you use
+
+
+344
+00:20:15,806 --> 00:20:18,066
+to store a buffer or a texture,
+
+
+345
+00:20:18,336 --> 00:20:20,956
+is shared between
+the CPU and the GPU.
+
+
+346
+00:20:22,296 --> 00:20:24,306
+There's only one
+copy of the memory
+
+
+347
+00:20:24,756 --> 00:20:27,726
+and the memory is coherent
+at command buffer boundaries.
+
+
+348
+00:20:28,186 --> 00:20:29,896
+So this means that you
+have to just be done
+
+
+349
+00:20:29,896 --> 00:20:33,006
+with the GPU before
+accessing it with the CPU.
+
+
+350
+00:20:33,856 --> 00:20:35,816
+This makes it very easy to use.
+
+
+351
+00:20:36,346 --> 00:20:43,256
+But now new in iOS 9 and in OS X
+El Capitan we're introducing the
+
+
+352
+00:20:43,716 --> 00:20:44,936
+private storage mode.
+
+
+353
+00:20:45,706 --> 00:20:49,386
+So private memory can only
+be accessed by the GPU
+
+
+354
+00:20:49,736 --> 00:20:52,176
+through render, compute,
+or blit operations.
+
+
+355
+00:20:53,236 --> 00:20:55,896
+The advantage of private
+memory is performance.
+
+
+356
+00:20:56,676 --> 00:20:59,786
+Metal can store the data in
+a way that's more optimal
+
+
+357
+00:20:59,786 --> 00:21:04,276
+for the GPU to access, by
+using frame buffer compression
+
+
+358
+00:21:04,276 --> 00:21:04,926
+for example.
+
+
+359
+00:21:07,436 --> 00:21:10,776
+Private storage mode
+also works really well
+
+
+360
+00:21:10,776 --> 00:21:14,106
+with discrete memory systems,
+and you can put your resources
+
+
+361
+00:21:14,346 --> 00:21:19,996
+into the memory that the GPU
+has the fastest access to.
+
+
+362
+00:21:20,496 --> 00:21:22,366
+And now new in OS X, only,
+
+
+363
+00:21:22,436 --> 00:21:25,266
+we're introducing the
+managed storage mode.
+
+
+364
+00:21:25,606 --> 00:21:27,976
+With managed memory the
+resource has storage
+
+
+365
+00:21:27,976 --> 00:21:31,716
+in both the discrete memory
+and the system memory,
+
+
+366
+00:21:32,306 --> 00:21:35,296
+and Metal manages the coherency
+between those two copies.
+
+
+367
+00:21:35,296 --> 00:21:40,246
+Now this gives you the
+convenience and flexibility
+
+
+368
+00:21:40,296 --> 00:21:44,086
+of the shared storage mode, and
+in most cases, the performance
+
+
+369
+00:21:44,136 --> 00:21:45,656
+of the private storage mode.
+
+
+370
+00:21:46,156 --> 00:21:53,586
+And if you have a desktop system
+with a unified memory system,
+
+
+371
+00:21:53,586 --> 00:21:54,666
+you don't have to worry
+
+
+372
+00:21:54,666 --> 00:21:56,926
+about managed having
+any extra overhead.
+
+
+373
+00:21:57,256 --> 00:22:00,186
+There's only one copy of the
+resource that Metal maintains.
+
+
+374
+00:22:00,866 --> 00:22:06,116
+So there are a couple
+other considerations
+
+
+375
+00:22:06,396 --> 00:22:09,336
+with managed resources if
+you're going to modify the data
+
+
+376
+00:22:09,336 --> 00:22:10,876
+with a CPU or the GPU.
+
+
+377
+00:22:11,666 --> 00:22:15,466
+So first, if you modifying
+the data with a CPU you have
+
+
+378
+00:22:15,746 --> 00:22:19,016
+to let Metal know by calling
+the buffer didModifyRange
+
+
+379
+00:22:19,456 --> 00:22:22,146
+or the texture replaceRegion
+APIs.
+
+
+380
+00:22:23,596 --> 00:22:25,856
+Likewise, if you want
+to read the data back,
+
+
+381
+00:22:26,136 --> 00:22:29,126
+you'll need to call the
+synchronizeResource API.
+
+
+382
+00:22:29,996 --> 00:22:33,066
+It's also worth noting that you
+need to wait for the operation
+
+
+383
+00:22:33,066 --> 00:22:35,196
+to be complete before you
+actually read the data
+
+
+384
+00:22:35,196 --> 00:22:36,056
+with the CPU.
+
+
+385
+00:22:39,436 --> 00:22:42,836
+So let's look back at that
+shader constant update example I
+
+
+386
+00:22:42,836 --> 00:22:43,586
+showed earlier.
+
+
+387
+00:22:44,066 --> 00:22:47,406
+So this example is
+currently using shared memory.
+
+
+388
+00:22:48,026 --> 00:22:52,706
+So in a discrete memory system,
+you ideally want the constants
+
+
+389
+00:22:52,756 --> 00:22:54,676
+to be in discrete memory.
+
+
+390
+00:22:55,266 --> 00:22:57,796
+Now you could possibly do
+this with a private buffer,
+
+
+391
+00:22:58,256 --> 00:23:00,806
+but you'd have to manage
+the transfer to that buffer.
+
+
+392
+00:23:01,706 --> 00:23:05,036
+It's actually a lot simpler
+to use managed buffers,
+
+
+393
+00:23:05,266 --> 00:23:06,566
+it makes it really easy.
+
+
+394
+00:23:06,906 --> 00:23:08,696
+There is only two
+things you need to do.
+
+
+395
+00:23:09,466 --> 00:23:13,056
+First, you have to specify
+the managed storage mode
+
+
+396
+00:23:13,146 --> 00:23:16,586
+when you create the
+constant buffer, and then,
+
+
+397
+00:23:16,936 --> 00:23:20,216
+you have to call
+didModifyRange to tell Metal
+
+
+398
+00:23:20,216 --> 00:23:23,206
+that you've now updated
+the constants with the CPU.
+
+
+399
+00:23:23,676 --> 00:23:24,536
+And that's it.
+
+
+400
+00:23:24,536 --> 00:23:29,666
+The rest of the code
+remains exactly the same.
+
+
+401
+00:23:29,886 --> 00:23:31,916
+It's worth noting that
+buffers are shared
+
+
+402
+00:23:31,916 --> 00:23:33,956
+by default on all platforms.
+
+
+403
+00:23:35,306 --> 00:23:38,866
+On iOS, textures are
+shared by default as well,
+
+
+404
+00:23:39,406 --> 00:23:43,146
+but on OS X we chose to
+make the default mode
+
+
+405
+00:23:43,146 --> 00:23:45,626
+for textures managed,
+because it allows you
+
+
+406
+00:23:45,626 --> 00:23:49,116
+to write portable code without
+sacrificing performance.
+
+
+407
+00:23:49,666 --> 00:23:53,986
+But there are some cases
+where you don't want
+
+
+408
+00:23:53,986 --> 00:23:55,396
+to use a managed texture.
+
+
+409
+00:23:55,886 --> 00:23:56,616
+This is one of them.
+
+
+410
+00:23:57,286 --> 00:24:00,006
+When you have a frame buffer
+or a renderable texture,
+
+
+411
+00:24:00,306 --> 00:24:02,466
+then you want to use
+the private storage mode
+
+
+412
+00:24:02,686 --> 00:24:03,936
+to get the best performance.
+
+
+413
+00:24:04,516 --> 00:24:05,856
+This is particularly important
+
+
+414
+00:24:05,856 --> 00:24:08,416
+if the GPU is the only
+one accessing the data.
+
+
+415
+00:24:09,006 --> 00:24:13,096
+And that's our new
+memory model in Metal.
+
+
+416
+00:24:13,356 --> 00:24:15,846
+I'd like to talk about
+two new features in Metal
+
+
+417
+00:24:15,846 --> 00:24:19,276
+that are specific to OS X that
+I think you'll really like.
+
+
+418
+00:24:20,266 --> 00:24:21,946
+The first is layered rendering.
+
+
+419
+00:24:21,946 --> 00:24:26,976
+So the intent of this API is
+for you to be able to render
+
+
+420
+00:24:26,976 --> 00:24:29,046
+to a specific layer of a texture
+
+
+421
+00:24:29,226 --> 00:24:31,796
+for every triangle
+that you draw.
+
+
+422
+00:24:32,166 --> 00:24:35,486
+So this could be the
+slice of an array texture,
+
+
+423
+00:24:35,846 --> 00:24:40,196
+the plane of a 3D texture, or
+the face of a cube texture.
+
+
+424
+00:24:41,926 --> 00:24:46,356
+So on a per triangle basis,
+you can specify which layer
+
+
+425
+00:24:46,356 --> 00:24:49,176
+to render into by simply
+specifying the array index
+
+
+426
+00:24:49,386 --> 00:24:50,386
+in your vertex shader.
+
+
+427
+00:24:51,696 --> 00:24:55,156
+The game Fortnite used this
+very technique to render
+
+
+428
+00:24:55,156 --> 00:24:57,846
+into the faces of
+a cube map for some
+
+
+429
+00:24:57,846 --> 00:24:59,046
+of their environmental lighting.
+
+
+430
+00:24:59,506 --> 00:25:02,136
+So we think you'll find
+this equally useful.
+
+
+431
+00:25:04,916 --> 00:25:06,906
+The second feature
+that's specific
+
+
+432
+00:25:06,906 --> 00:25:10,506
+to OS X is texture barriers.
+
+
+433
+00:25:11,816 --> 00:25:14,986
+So by default GPUs tend
+to overlap the execution
+
+
+434
+00:25:14,986 --> 00:25:18,636
+of their draw calls, and you
+can't reliably use the output
+
+
+435
+00:25:18,636 --> 00:25:21,796
+of one draw call in a subsequent
+one, without some form
+
+
+436
+00:25:21,796 --> 00:25:23,396
+of explicit synchronization.
+
+
+437
+00:25:24,466 --> 00:25:28,286
+Metal now has an API that
+allows you to insert a barrier
+
+
+438
+00:25:28,286 --> 00:25:29,526
+between these draw calls.
+
+
+439
+00:25:30,086 --> 00:25:32,876
+So this is critical
+
+
+440
+00:25:32,876 --> 00:25:36,796
+for implementing efficient
+programmable blending on OS X.
+
+
+441
+00:25:38,276 --> 00:25:40,486
+The API is really easy to use.
+
+
+442
+00:25:40,876 --> 00:25:44,366
+Simply insert the barrier
+between the draw operations
+
+
+443
+00:25:44,366 --> 00:25:45,486
+that you want to synchronize.
+
+
+444
+00:25:46,156 --> 00:25:51,446
+And last, but certainly
+not least, I want to talk
+
+
+445
+00:25:51,446 --> 00:25:54,836
+about our expanded texturing
+support in Metal this year.
+
+
+446
+00:25:56,346 --> 00:26:01,506
+By default the max
+limits for all textures
+
+
+447
+00:26:01,506 --> 00:26:04,076
+in iOS have been
+increased to 8k.
+
+
+448
+00:26:04,666 --> 00:26:07,496
+We've also added cube
+array support on OS X,
+
+
+449
+00:26:08,196 --> 00:26:10,946
+and bumped up the
+quality of anti-aliasing
+
+
+450
+00:26:10,946 --> 00:26:14,666
+across the board in
+all our platforms.
+
+
+451
+00:26:14,666 --> 00:26:18,036
+We've also significantly
+flushed out the pixel formats
+
+
+452
+00:26:18,066 --> 00:26:21,986
+that you can write to, or
+read from, a compute shader.
+
+
+453
+00:26:25,516 --> 00:26:28,436
+Also new is a texture
+usage property.
+
+
+454
+00:26:29,456 --> 00:26:31,606
+So this allows you
+to tag textures
+
+
+455
+00:26:32,066 --> 00:26:36,156
+to tell Metal how you plan on
+using them, and Metal will try
+
+
+456
+00:26:36,156 --> 00:26:37,766
+to optimize for that usage.
+
+
+457
+00:26:38,716 --> 00:26:41,726
+So for example, if you
+have a renderable texture,
+
+
+458
+00:26:42,016 --> 00:26:45,986
+you want to set the renderTarget
+and shaderRead flags.
+
+
+459
+00:26:47,116 --> 00:26:49,946
+And this will tell Metal that
+you plan on both rendering
+
+
+460
+00:26:49,946 --> 00:26:52,946
+to that texture, and
+then sampling from it.
+
+
+461
+00:26:54,076 --> 00:26:57,676
+By default, the usage is unknown
+
+
+462
+00:26:58,006 --> 00:27:00,216
+and Metal won't make any
+assumptions about how
+
+
+463
+00:27:00,216 --> 00:27:02,206
+that texture is used,
+allowing Metal
+
+
+464
+00:27:02,206 --> 00:27:06,706
+to use it anywhere
+in the system.
+
+
+465
+00:27:07,156 --> 00:27:10,486
+Unlike iOS, the desktop
+GPUs prefer
+
+
+466
+00:27:10,486 --> 00:27:12,736
+to have a single
+depth stencil texture,
+
+
+467
+00:27:13,956 --> 00:27:17,426
+so we've added two new
+combined depth stencil formats.
+
+
+468
+00:27:18,266 --> 00:27:21,466
+The 32-8 format is supported
+
+
+469
+00:27:21,466 --> 00:27:25,036
+on all our hardware,
+both iOS and OS X.
+
+
+470
+00:27:25,856 --> 00:27:29,166
+The 24-8 format, however,
+is only supported on some.
+
+
+471
+00:27:29,816 --> 00:27:31,646
+So if it means your
+precision requirements,
+
+
+472
+00:27:31,906 --> 00:27:33,236
+you'll have to check
+if it is available.
+
+
+473
+00:27:33,406 --> 00:27:40,216
+So let's talk about
+texture compression.
+
+
+474
+00:27:41,206 --> 00:27:44,106
+So the type of compression
+format you use depends
+
+
+475
+00:27:44,106 --> 00:27:46,516
+on the device you're
+targeting and the type
+
+
+476
+00:27:46,516 --> 00:27:47,776
+of data you're encoding.
+
+
+477
+00:27:48,676 --> 00:27:53,196
+On iOS we support a number of
+these formats including PVRTC,
+
+
+478
+00:27:53,906 --> 00:28:00,456
+ETC2, and EAC, and
+new for GPUFamily2,
+
+
+479
+00:28:00,526 --> 00:28:02,846
+we're also supporting ASTC.
+
+
+480
+00:28:04,196 --> 00:28:09,536
+So ASTC has a very high quality
+compression, better than PVRTC
+
+
+481
+00:28:09,696 --> 00:28:12,936
+and ETC at the same
+equivalent size.
+
+
+482
+00:28:14,156 --> 00:28:17,246
+It also allows you to encode
+a number of different formats
+
+
+483
+00:28:17,826 --> 00:28:21,436
+from photographic
+content, height maps,
+
+
+484
+00:28:21,856 --> 00:28:23,176
+normal maps, and many more.
+
+
+485
+00:28:23,836 --> 00:28:29,136
+It also provides a very
+fine-grinned control
+
+
+486
+00:28:29,136 --> 00:28:30,536
+between size and quality,
+
+
+487
+00:28:30,786 --> 00:28:33,456
+offering between 1
+and 8 bits per pixel.
+
+
+488
+00:28:34,026 --> 00:28:37,946
+And at the low end, this is half
+the storage required for PVRTC.
+
+
+489
+00:28:38,796 --> 00:28:44,296
+And finally, as I previously
+noted, this is only available
+
+
+490
+00:28:44,296 --> 00:28:46,306
+on GPUFamily2 capable devices,
+
+
+491
+00:28:46,776 --> 00:28:48,506
+so you'll have to
+look out for that.
+
+
+492
+00:28:52,016 --> 00:28:55,946
+Finally, in OS X we're
+introducing all the native
+
+
+493
+00:28:56,056 --> 00:28:59,726
+texture compression formats
+that the desktop GPUs support.
+
+
+494
+00:29:01,066 --> 00:29:04,326
+Now, these BCn formats should
+all be familiar to you.
+
+
+495
+00:29:04,986 --> 00:29:08,196
+If you've worked on a desktop
+platform or game console before,
+
+
+496
+00:29:08,566 --> 00:29:11,876
+you likely have assets that
+are already in this format.
+
+
+497
+00:29:12,396 --> 00:29:15,386
+And that's our expanded
+texturing support
+
+
+498
+00:29:16,016 --> 00:29:18,316
+and the features that
+I'm going to cover today.
+
+
+499
+00:29:18,926 --> 00:29:22,836
+So I'd like to change
+topics and talk
+
+
+500
+00:29:22,836 --> 00:29:25,386
+about a new technology
+called app thinning.
+
+
+501
+00:29:25,756 --> 00:29:27,476
+You might have heard
+about it in the last talk.
+
+
+502
+00:29:28,856 --> 00:29:32,576
+So this is not specifically a
+Metal feature, but it does rely
+
+
+503
+00:29:32,576 --> 00:29:36,726
+on the GPU families I discussed
+earlier in the session.
+
+
+504
+00:29:37,946 --> 00:29:42,116
+First, to set context, the
+typical game development
+
+
+505
+00:29:42,146 --> 00:29:44,266
+and deployment flow
+for a developer
+
+
+506
+00:29:44,266 --> 00:29:46,346
+on our platform looks
+something like this.
+
+
+507
+00:29:47,996 --> 00:29:49,486
+You generally have
+an art pipeline
+
+
+508
+00:29:49,486 --> 00:29:51,576
+that generates some assets.
+
+
+509
+00:29:52,296 --> 00:29:56,306
+The assets are built via Xcode
+or your custom tools pipeline
+
+
+510
+00:29:56,676 --> 00:30:01,276
+into a binary and then that
+binary is sent up somewhere
+
+
+511
+00:30:01,276 --> 00:30:05,026
+to the App Store,
+and that specific
+
+
+512
+00:30:05,026 --> 00:30:07,576
+or that very same
+binary is deployed
+
+
+513
+00:30:07,786 --> 00:30:09,906
+to the devices of
+all your users.
+
+
+514
+00:30:10,546 --> 00:30:11,486
+So this works great.
+
+
+515
+00:30:12,636 --> 00:30:15,306
+But as soon as you start
+having assets that are specific
+
+
+516
+00:30:15,306 --> 00:30:17,076
+to the capability of a device,
+
+
+517
+00:30:17,136 --> 00:30:19,616
+you start running
+into some issues.
+
+
+518
+00:30:22,916 --> 00:30:26,716
+For example, if you have
+assets that are specific
+
+
+519
+00:30:26,716 --> 00:30:30,966
+to Metal devices, and assets
+specific to legacy devices,
+
+
+520
+00:30:32,476 --> 00:30:35,006
+you currently have to
+download both versions
+
+
+521
+00:30:35,096 --> 00:30:36,906
+to all your users' devices.
+
+
+522
+00:30:37,566 --> 00:30:40,666
+So obviously this is not ideal.
+
+
+523
+00:30:41,336 --> 00:30:46,366
+App thinning let's you solve
+this problem by allowing you
+
+
+524
+00:30:46,366 --> 00:30:48,996
+to tag assets by capability
+
+
+525
+00:30:49,296 --> 00:30:52,746
+and then only the
+asset that's needed
+
+
+526
+00:30:52,836 --> 00:30:55,536
+for the device is actually
+downloaded to the device.
+
+
+527
+00:30:57,226 --> 00:30:58,076
+So how do we do this?
+
+
+528
+00:30:59,336 --> 00:31:05,856
+Well, app thinning allows
+you to define capability
+
+
+529
+00:31:05,856 --> 00:31:10,986
+across two axis, GPUFamily
+version and device memory size.
+
+
+530
+00:31:11,526 --> 00:31:14,166
+Now this creates a matrix
+that you can then use
+
+
+531
+00:31:14,166 --> 00:31:15,996
+to target specific devices.
+
+
+532
+00:31:19,436 --> 00:31:24,256
+So let's look at a
+typical normal map example.
+
+
+533
+00:31:24,256 --> 00:31:26,976
+Ideally you want to store
+the normal maps compressed,
+
+
+534
+00:31:27,566 --> 00:31:29,536
+and EAC is a great
+format for that.
+
+
+535
+00:31:30,776 --> 00:31:33,926
+But since some legacy devices
+don't support compressed
+
+
+536
+00:31:33,966 --> 00:31:37,006
+textures or EAC in
+particular, you probably want
+
+
+537
+00:31:37,006 --> 00:31:39,706
+to have an uncompressed
+version of the asset as well.
+
+
+538
+00:31:40,326 --> 00:31:44,346
+So app thinning allows
+you to tag these assets
+
+
+539
+00:31:44,746 --> 00:31:49,636
+and only download the compressed
+one to the Metal capable device,
+
+
+540
+00:31:49,636 --> 00:31:53,146
+and the uncompressed
+version to the legacy device.
+
+
+541
+00:31:53,936 --> 00:31:56,226
+But app thinning is actually
+a lot more capable than this.
+
+
+542
+00:31:56,556 --> 00:31:57,866
+So let's extend our example.
+
+
+543
+00:31:58,596 --> 00:32:00,796
+And that's support
+for more devices.
+
+
+544
+00:32:00,996 --> 00:32:03,436
+So in this particular case we're
+going to create five assets.
+
+
+545
+00:32:04,426 --> 00:32:07,916
+We'll start with a high
+resolution ASTC version
+
+
+546
+00:32:08,486 --> 00:32:11,276
+for our most capable 2GB device.
+
+
+547
+00:32:11,276 --> 00:32:14,226
+And then we'll include a
+slightly lower resolution
+
+
+548
+00:32:14,226 --> 00:32:17,226
+for the 1GB version
+of that device.
+
+
+549
+00:32:17,776 --> 00:32:20,906
+And since some Metal capable
+devices don't support ASTC,
+
+
+550
+00:32:20,966 --> 00:32:23,716
+we'll include the
+EAC version as well.
+
+
+551
+00:32:23,716 --> 00:32:27,046
+And then, for your
+legacy devices,
+
+
+552
+00:32:27,246 --> 00:32:29,696
+we have the uncompressed
+version of the asset.
+
+
+553
+00:32:30,086 --> 00:32:32,636
+And we can extend this
+example even further
+
+
+554
+00:32:33,156 --> 00:32:35,726
+by including a lower
+resolution version
+
+
+555
+00:32:35,816 --> 00:32:39,366
+of that uncompressed asset
+for our least capable device,
+
+
+556
+00:32:39,456 --> 00:32:41,746
+the 512MB configuration.
+
+
+557
+00:32:41,746 --> 00:32:45,336
+So you probably don't
+want to create five assets
+
+
+558
+00:32:45,336 --> 00:32:47,596
+of everything, but the point
+I'm trying to make here is
+
+
+559
+00:32:47,636 --> 00:32:50,326
+that you have tremendous
+amount of flexibility
+
+
+560
+00:32:50,696 --> 00:32:52,636
+to target specific devices
+
+
+561
+00:32:52,636 --> 00:32:55,376
+and create the best experience
+possible for your users.
+
+
+562
+00:32:55,946 --> 00:33:01,106
+So Xcode integrates a great
+new UI that allows you
+
+
+563
+00:33:01,106 --> 00:33:02,716
+to tag assets in this way.
+
+
+564
+00:33:04,226 --> 00:33:06,946
+The first thing you need to
+do, is define the capabilities
+
+
+565
+00:33:07,066 --> 00:33:08,916
+of the devices that
+you'd like to target.
+
+
+566
+00:33:09,426 --> 00:33:13,626
+That creates that little
+matrix, and then all you have
+
+
+567
+00:33:13,656 --> 00:33:18,386
+to do is drop in the assets that
+match the relevant intersection
+
+
+568
+00:33:18,386 --> 00:33:21,056
+of GPUFamily and
+device memory size
+
+
+569
+00:33:21,056 --> 00:33:22,206
+that you're trying to target.
+
+
+570
+00:33:23,426 --> 00:33:24,966
+It's that simple.
+
+
+571
+00:33:25,526 --> 00:33:27,856
+But of course, we realize
+
+
+572
+00:33:27,856 --> 00:33:31,406
+that not all developers have
+tools pipelines that exist
+
+
+573
+00:33:31,406 --> 00:33:34,066
+in Xcode, so we have you
+covered there as well.
+
+
+574
+00:33:34,886 --> 00:33:37,706
+We're supporting with app
+thinning the JSON file format
+
+
+575
+00:33:38,006 --> 00:33:41,396
+that lets you specify
+your asset catalogues.
+
+
+576
+00:33:42,486 --> 00:33:46,566
+So just like in Xcode, you have
+to specify the GPUFamily version
+
+
+577
+00:33:47,166 --> 00:33:50,316
+and the device size
+for each asset you want
+
+
+578
+00:33:50,316 --> 00:33:51,376
+to include in your catalog.
+
+
+579
+00:33:54,756 --> 00:33:57,416
+So once you have your
+asset catalogs defined,
+
+
+580
+00:33:58,176 --> 00:34:02,136
+how do you retrieve
+the data at runtime?
+
+
+581
+00:34:02,136 --> 00:34:04,576
+The answer is the
+NSDataAsset class,
+
+
+582
+00:34:05,226 --> 00:34:08,755
+it provides the resource
+matched to the capabilities
+
+
+583
+00:34:08,755 --> 00:34:10,446
+of the device that
+you're running on.
+
+
+584
+00:34:11,846 --> 00:34:14,746
+Using the NSDataAsset
+is really easy.
+
+
+585
+00:34:16,196 --> 00:34:21,436
+Simply allocate an NSDataAsset
+object using the name
+
+
+586
+00:34:21,436 --> 00:34:23,416
+that you assigned in
+your asset catalog,
+
+
+587
+00:34:23,505 --> 00:34:25,065
+and then use it in your data.
+
+
+588
+00:34:25,065 --> 00:34:29,146
+So let's tie this
+altogether using the diagram
+
+
+589
+00:34:29,146 --> 00:34:31,565
+that I originally showed
+and the normal map example.
+
+
+590
+00:34:31,636 --> 00:34:35,886
+So in this case, your
+artist will create a bunch
+
+
+591
+00:34:35,886 --> 00:34:38,275
+of normal maps, some
+compressed, some uncompressed
+
+
+592
+00:34:38,275 --> 00:34:39,656
+to target the devices
+you'd like.
+
+
+593
+00:34:40,246 --> 00:34:44,636
+This gets built via Xcode or
+your custom tools pipeline
+
+
+594
+00:34:44,636 --> 00:34:47,496
+into your binary, big massive
+binary with lots of assets
+
+
+595
+00:34:47,496 --> 00:34:50,036
+in it, gets uploaded
+to the App Store,
+
+
+596
+00:34:51,076 --> 00:34:55,016
+and then the great thing is
+only the normal map required
+
+
+597
+00:34:55,016 --> 00:34:57,556
+by your user, is
+downloaded to their device.
+
+
+598
+00:35:04,116 --> 00:35:05,736
+And that's app thinning.
+
+
+599
+00:35:06,916 --> 00:35:10,846
+We think that this is going
+to change the way you create
+
+
+600
+00:35:10,846 --> 00:35:14,056
+and deploy content on
+Metal capable devices.
+
+
+601
+00:35:14,766 --> 00:35:20,186
+So that was a whirlwind
+tour of the Metal ecosystem
+
+
+602
+00:35:20,186 --> 00:35:21,656
+over the last 12 months.
+
+
+603
+00:35:22,706 --> 00:35:25,666
+We've seen developers like
+you create amazing content
+
+
+604
+00:35:25,666 --> 00:35:26,216
+using Metal.
+
+
+605
+00:35:27,186 --> 00:35:29,606
+We have brought Metal to OS X.
+
+
+606
+00:35:29,606 --> 00:35:33,126
+We've also brought all our
+great Metal GPU tools to OS X.
+
+
+607
+00:35:34,786 --> 00:35:36,526
+We've introduced some
+powerful new APIs
+
+
+608
+00:35:36,526 --> 00:35:38,596
+that we think you're
+going to love.
+
+
+609
+00:35:39,896 --> 00:35:42,856
+Finally, we also talked about
+how Metal integrates well
+
+
+610
+00:35:42,856 --> 00:35:45,256
+with a system, by talking
+about app thinning.
+
+
+611
+00:35:46,706 --> 00:35:48,626
+All in all, it's
+been a great year,
+
+
+612
+00:35:49,026 --> 00:35:51,216
+and we're really looking forward
+to seeing what you're going
+
+
+613
+00:35:51,216 --> 00:35:56,616
+to be able to build with
+Metal over the next one.
+
+
+614
+00:35:56,826 --> 00:36:01,956
+So please visit our online
+documentation, and you'd also
+
+
+615
+00:36:01,956 --> 00:36:03,376
+like to go to our
+support forums,
+
+
+616
+00:36:03,616 --> 00:36:06,716
+and if those don't answer your
+questions, you're of course free
+
+
+617
+00:36:06,716 --> 00:36:09,056
+to reach out to Allan
+Schaffer our Game
+
+
+618
+00:36:09,056 --> 00:36:10,326
+Technologies Evangelist.
+
+
+619
+00:36:11,976 --> 00:36:16,576
+We have two more sessions this
+week, What's New in Metal,
+
+
+620
+00:36:16,626 --> 00:36:18,346
+Part 2 on Thursday morning,
+
+
+621
+00:36:18,906 --> 00:36:21,736
+and Metal Performance
+Optimization Techniques,
+
+
+622
+00:36:22,126 --> 00:36:23,056
+which is on Friday.
+
+
+623
+00:36:23,486 --> 00:36:24,816
+Please be sure to visit those.
+
+
+624
+00:36:25,686 --> 00:36:26,426
+Thank you very much.
+
+
+625
+00:36:27,516 --> 00:36:30,500
+[Applause]
+

@@ -1,0 +1,5461 @@
+1
+00:00:07,516 --> 00:00:18,500
+[ Music ]
+
+
+2
+00:00:25,516 --> 00:00:31,546
+[ Applause ]
+
+
+3
+00:00:32,046 --> 00:00:32,716
+>> So, hello everyone.
+
+
+4
+00:00:33,026 --> 00:00:35,416
+My name is Fiona and this
+is my colleague Alex.
+
+
+5
+00:00:36,146 --> 00:00:40,776
+And I work on the iOS GPU
+complier team and our job is
+
+
+6
+00:00:40,776 --> 00:00:43,356
+to make your shaders run
+on the latest iOS devices,
+
+
+7
+00:00:43,436 --> 00:00:46,176
+and to make them run as
+efficiently as possible.
+
+
+8
+00:00:46,636 --> 00:00:49,056
+And I'm here to talk
+about our presentations,
+
+
+9
+00:00:49,166 --> 00:00:52,136
+Advanced Metal Shader
+Optimization, that is Forging
+
+
+10
+00:00:52,136 --> 00:00:53,666
+and Polishing your
+Metal shaders.
+
+
+11
+00:00:54,006 --> 00:00:56,286
+Our compiler is based on LVM.
+
+
+12
+00:00:56,906 --> 00:00:58,546
+And we work with the
+Open Source committee
+
+
+13
+00:00:58,546 --> 00:01:01,636
+to make LVM more suitable
+for use on GPUs by everyone.
+
+
+14
+00:01:03,806 --> 00:01:06,006
+Here's a quick overview of
+the other Metal session,
+
+
+15
+00:01:06,006 --> 00:01:06,856
+in case you missed them,
+
+
+16
+00:01:06,856 --> 00:01:08,966
+and don't worry you can
+watch the recordings online.
+
+
+17
+00:01:09,416 --> 00:01:11,736
+Yesterday we had part one
+and two of adopting Metal
+
+
+18
+00:01:12,326 --> 00:01:14,556
+and earlier today we had part
+one and two of what's new
+
+
+19
+00:01:14,616 --> 00:01:16,516
+in Metal, because there's quite
+a lot that's new in Metal.
+
+
+20
+00:01:17,326 --> 00:01:18,946
+And of course here's
+the last one,
+
+
+21
+00:01:19,586 --> 00:01:20,786
+the one you're watching
+right now.
+
+
+22
+00:01:22,206 --> 00:01:24,646
+So in this presentation we're
+going to be going over a number
+
+
+23
+00:01:24,646 --> 00:01:26,956
+of things you can do to
+work with the compiler
+
+
+24
+00:01:27,266 --> 00:01:28,696
+to make your code faster.
+
+
+25
+00:01:29,566 --> 00:01:32,606
+And some of this stuff is
+going to be specific to A8
+
+
+26
+00:01:32,606 --> 00:01:35,046
+and later GPUs including
+some information
+
+
+27
+00:01:35,046 --> 00:01:36,636
+that has never been
+made public before.
+
+
+28
+00:01:36,816 --> 00:01:39,176
+And some of it will
+also be more general.
+
+
+29
+00:01:39,466 --> 00:01:42,306
+And we'll be noting that with
+the A8 icon you can see there
+
+
+30
+00:01:42,506 --> 00:01:44,996
+for slides that are
+more A8 specific.
+
+
+31
+00:01:46,056 --> 00:01:50,006
+And additionally, we'll be
+noting some potential pitfalls.
+
+
+32
+00:01:50,496 --> 00:01:53,036
+That is things that may not
+come up as often as the kind
+
+
+33
+00:01:53,036 --> 00:01:55,466
+of micro optimizations
+you're used to looking for,
+
+
+34
+00:01:55,826 --> 00:01:58,026
+but if you run into these,
+you're likely to lose
+
+
+35
+00:01:58,026 --> 00:02:01,486
+so much performance, nothing is
+going to matter by comparison.
+
+
+36
+00:02:01,776 --> 00:02:04,226
+So it's always worth making
+sure you don't run into those.
+
+
+37
+00:02:04,566 --> 00:02:05,386
+And those will be marked
+
+
+38
+00:02:05,386 --> 00:02:07,036
+with the triangle icon,
+as you can see there.
+
+
+39
+00:02:08,205 --> 00:02:10,586
+Before we go on, this
+is not the first step.
+
+
+40
+00:02:10,996 --> 00:02:12,136
+This is the last step.
+
+
+41
+00:02:12,886 --> 00:02:15,446
+There's no point to doing
+low-level shader optimization
+
+
+42
+00:02:15,446 --> 00:02:17,756
+until you've done the
+high-level optimizations before,
+
+
+43
+00:02:17,896 --> 00:02:19,466
+like watching the
+other Metal talks
+
+
+44
+00:02:19,466 --> 00:02:21,766
+from optimizing your
+draw calls, the structure
+
+
+45
+00:02:21,836 --> 00:02:22,976
+of your engine and so forth.
+
+
+46
+00:02:23,656 --> 00:02:26,226
+Optimizing your later shader
+should be roughly the last thing
+
+
+47
+00:02:26,226 --> 00:02:28,036
+you do.
+
+
+48
+00:02:28,036 --> 00:02:30,356
+And, this presentation
+is primarily
+
+
+49
+00:02:30,436 --> 00:02:31,936
+for experienced shader authors.
+
+
+50
+00:02:32,506 --> 00:02:34,766
+Perhaps you've worked on Metal
+a whole lot and you're looking
+
+
+51
+00:02:34,766 --> 00:02:37,686
+to get more into optimizing your
+shaders, or perhaps your new
+
+
+52
+00:02:37,686 --> 00:02:40,286
+to Metal, but you've done a
+lot of shader optimization
+
+
+53
+00:02:40,286 --> 00:02:42,346
+on other platforms and
+you'd like to know how
+
+
+54
+00:02:42,346 --> 00:02:44,276
+to optimize better
+for A8 and later GPUs,
+
+
+55
+00:02:44,276 --> 00:02:46,606
+this is the presentation
+for you.
+
+
+56
+00:02:48,396 --> 00:02:50,886
+So you may have seen this
+pipeline if you watched any
+
+
+57
+00:02:50,886 --> 00:02:51,916
+of the previous Metal talks.
+
+
+58
+00:02:52,426 --> 00:02:54,436
+And we will be focusing
+of course
+
+
+59
+00:02:54,496 --> 00:02:56,456
+on the programmable
+stages of this pipeline,
+
+
+60
+00:02:56,456 --> 00:02:58,316
+as you can see there,
+the shader course.
+
+
+61
+00:02:59,336 --> 00:03:00,596
+So first, Alex is going to go
+
+
+62
+00:03:00,596 --> 00:03:02,506
+over some shader
+performance fundamentals
+
+
+63
+00:03:02,506 --> 00:03:03,536
+and higher level issues.
+
+
+64
+00:03:03,916 --> 00:03:06,846
+After which, I'll return
+for some low-level,
+
+
+65
+00:03:06,846 --> 00:03:09,096
+down and dirty shader
+optimizations.
+
+
+66
+00:03:12,516 --> 00:03:17,546
+[ Applause ]
+
+
+67
+00:03:18,046 --> 00:03:18,456
+>> Thanks, Fiona.
+
+
+68
+00:03:18,456 --> 00:03:19,956
+Let me start by explaining
+the idea
+
+
+69
+00:03:19,956 --> 00:03:21,256
+of shader performance
+fundamentals.
+
+
+70
+00:03:21,776 --> 00:03:22,986
+These are the things that
+you want to make sure
+
+
+71
+00:03:22,986 --> 00:03:24,616
+that you have right
+before you start digging
+
+
+72
+00:03:24,616 --> 00:03:26,116
+into source level optimizations.
+
+
+73
+00:03:26,546 --> 00:03:27,776
+Usually the impact of the kind
+
+
+74
+00:03:27,776 --> 00:03:29,716
+of changes you'll
+make here can dwarf
+
+
+75
+00:03:29,716 --> 00:03:32,176
+or potentially hide other
+more targeted changes
+
+
+76
+00:03:32,176 --> 00:03:32,966
+that you make elsewhere.
+
+
+77
+00:03:33,336 --> 00:03:34,936
+So I'm going to talk
+about four of these today.
+
+
+78
+00:03:34,936 --> 00:03:36,716
+Address space selection
+for buffer arguments,
+
+
+79
+00:03:37,226 --> 00:03:39,056
+buffer preloading, dealing
+
+
+80
+00:03:39,056 --> 00:03:40,436
+with fragment function
+resource writes,
+
+
+81
+00:03:40,436 --> 00:03:42,276
+and how to optimize
+your computer kernels.
+
+
+82
+00:03:42,276 --> 00:03:45,676
+So, let's start with
+addresses spaces.
+
+
+83
+00:03:46,246 --> 00:03:48,886
+So since this functionality
+doesn't exist
+
+
+84
+00:03:48,886 --> 00:03:50,596
+in all shading languages,
+I'll give a quick primer.
+
+
+85
+00:03:50,866 --> 00:03:53,816
+So, GPUs have multiple paths
+for getting date from memory.
+
+
+86
+00:03:53,816 --> 00:03:56,936
+And these paths are optimized
+for different use cases,
+
+
+87
+00:03:57,086 --> 00:03:59,846
+and they have different
+performance characteristics.
+
+
+88
+00:04:00,706 --> 00:04:03,806
+In Metal, we expose control
+over which path is used
+
+
+89
+00:04:03,956 --> 00:04:06,926
+to the developer by requiring
+that they qualify all buffers,
+
+
+90
+00:04:07,356 --> 00:04:09,386
+arguments and pointers
+in the shading language
+
+
+91
+00:04:09,386 --> 00:04:11,096
+with which address
+space they want to use.
+
+
+92
+00:04:11,766 --> 00:04:14,726
+So a couple of the address
+spaces specifically apply
+
+
+93
+00:04:14,726 --> 00:04:16,786
+to getting information
+from memory.
+
+
+94
+00:04:17,055 --> 00:04:20,416
+The first of which is
+the device address space.
+
+
+95
+00:04:21,086 --> 00:04:23,296
+This is an address space with
+relatively few restrictions.
+
+
+96
+00:04:23,296 --> 00:04:25,016
+You can read and write data
+through this address space,
+
+
+97
+00:04:25,016 --> 00:04:28,076
+you can pass as much data as
+you want, and the buffer offsets
+
+
+98
+00:04:28,076 --> 00:04:30,756
+that you specify at the API
+level have relatively flexible
+
+
+99
+00:04:30,756 --> 00:04:31,486
+alignment requirements.
+
+
+100
+00:04:32,156 --> 00:04:35,866
+On the other end of things, you
+have the constant address space.
+
+
+101
+00:04:36,086 --> 00:04:38,246
+As the name implies, this is
+a read only address space,
+
+
+102
+00:04:38,246 --> 00:04:39,856
+but there are a couple of
+additional restrictions.
+
+
+103
+00:04:40,316 --> 00:04:42,136
+There are limits on how
+much data you can pass
+
+
+104
+00:04:42,256 --> 00:04:44,426
+through this address space, and
+additionally the buffer offsets
+
+
+105
+00:04:44,426 --> 00:04:46,966
+that you specify at the API
+level have more stringent
+
+
+106
+00:04:46,966 --> 00:04:47,716
+alignment requirements.
+
+
+107
+00:04:48,296 --> 00:04:51,016
+However, this is the address
+space that's optimized for cases
+
+
+108
+00:04:51,016 --> 00:04:52,036
+with a lot of data reuse.
+
+
+109
+00:04:52,036 --> 00:04:53,016
+So you want to take advantage
+
+
+110
+00:04:53,016 --> 00:04:54,766
+of this address space
+whenever it makes sense.
+
+
+111
+00:04:55,786 --> 00:04:58,336
+Figuring out whether or not the
+constant address space makes
+
+
+112
+00:04:58,336 --> 00:05:00,116
+sense for your buffer
+argument is typically a matter
+
+
+113
+00:05:00,116 --> 00:05:01,846
+of asking yourself
+two questions.
+
+
+114
+00:05:02,636 --> 00:05:05,176
+The first question is, do I
+know how much data I have.
+
+
+115
+00:05:05,176 --> 00:05:07,786
+And if you have a potentially
+variable amount of data,
+
+
+116
+00:05:07,786 --> 00:05:08,946
+this is usually a
+sign that you need
+
+
+117
+00:05:08,946 --> 00:05:10,716
+to be using the device
+address space.
+
+
+118
+00:05:11,466 --> 00:05:14,656
+Additionally, you want to
+look at how much each item
+
+
+119
+00:05:15,056 --> 00:05:16,526
+in your buffer is being read.
+
+
+120
+00:05:16,576 --> 00:05:20,606
+And if these items can
+potentially be read many times,
+
+
+121
+00:05:21,046 --> 00:05:22,756
+this is usually a sign
+that you want to put them
+
+
+122
+00:05:22,756 --> 00:05:23,866
+into the constant address space.
+
+
+123
+00:05:24,536 --> 00:05:27,016
+So let's put this into practice
+with a couple of examples
+
+
+124
+00:05:27,016 --> 00:05:28,726
+from some vertex shaders.
+
+
+125
+00:05:29,496 --> 00:05:31,886
+First, you have regular,
+old vertex data.
+
+
+126
+00:05:32,396 --> 00:05:36,376
+So as you can see, each vertex
+has its own piece of data.
+
+
+127
+00:05:36,706 --> 00:05:39,046
+And each vertex is the only one
+that reads that piece of data.
+
+
+128
+00:05:39,046 --> 00:05:40,536
+So there's essentially
+no reuse here.
+
+
+129
+00:05:40,536 --> 00:05:42,646
+This is the kind of thing
+that really needs to be
+
+
+130
+00:05:42,646 --> 00:05:45,396
+in the device address space.
+
+
+131
+00:05:46,816 --> 00:05:51,626
+Next, you have projection
+matrices, another matrices.
+
+
+132
+00:05:51,926 --> 00:05:55,426
+Now, typically what you have
+here is that you have one
+
+
+133
+00:05:55,426 --> 00:05:59,926
+of these objects, and they're
+read by every single vertex.
+
+
+134
+00:06:00,686 --> 00:06:03,206
+So with this kind of complete
+data reuse, you really want this
+
+
+135
+00:06:03,206 --> 00:06:04,636
+to be in the constant
+address space.
+
+
+136
+00:06:04,826 --> 00:06:09,036
+Let's mix things up a little bit
+
+
+137
+00:06:09,036 --> 00:06:11,276
+and take a look at
+standing matrices.
+
+
+138
+00:06:11,276 --> 00:06:14,816
+So hopefully in this case
+you have some maximum number
+
+
+139
+00:06:14,816 --> 00:06:15,836
+of bones that you're handling.
+
+
+140
+00:06:16,706 --> 00:06:20,186
+But if you look at each
+bone that matrix may be read
+
+
+141
+00:06:20,186 --> 00:06:21,956
+by every vertex that
+references that bone,
+
+
+142
+00:06:21,956 --> 00:06:25,046
+and that also is a potential
+for a large amount of reuse.
+
+
+143
+00:06:25,046 --> 00:06:26,086
+And so this really ought to be
+
+
+144
+00:06:26,086 --> 00:06:29,116
+on the constant address
+space as well.
+
+
+145
+00:06:29,316 --> 00:06:31,176
+Finally, let's look
+at per instance data.
+
+
+146
+00:06:31,756 --> 00:06:35,266
+As you can see all vertices
+
+
+147
+00:06:35,266 --> 00:06:37,756
+in the instance will read
+this particular piece of data,
+
+
+148
+00:06:38,396 --> 00:06:40,916
+but on the other hand you have
+a potentially variable number
+
+
+149
+00:06:40,916 --> 00:06:42,396
+of instances, so this
+actually needs to be
+
+
+150
+00:06:42,396 --> 00:06:44,226
+in the device address
+space as well.
+
+
+151
+00:06:45,616 --> 00:06:48,356
+For an example of why address
+space selection matters
+
+
+152
+00:06:48,356 --> 00:06:49,406
+for performance, let's move
+
+
+153
+00:06:49,406 --> 00:06:51,206
+on to our next topic,
+buffer preloading.
+
+
+154
+00:06:52,746 --> 00:06:55,226
+So Fiona will spend some
+time talking about how
+
+
+155
+00:06:55,226 --> 00:06:57,396
+to actually optimize loads and
+stores within your shaders,
+
+
+156
+00:06:57,396 --> 00:06:59,856
+but for many cases the best
+thing that you can do is
+
+
+157
+00:06:59,856 --> 00:07:02,186
+to actually off load this
+work to dedicated hardware.
+
+
+158
+00:07:02,676 --> 00:07:04,906
+So we can do this
+for you in two cases,
+
+
+159
+00:07:05,456 --> 00:07:06,856
+context buffers and
+vertex buffers.
+
+
+160
+00:07:07,616 --> 00:07:11,086
+But this relies on knowing
+things about the access patterns
+
+
+161
+00:07:11,086 --> 00:07:13,936
+in your shaders and what address
+space you've placed them into.
+
+
+162
+00:07:14,866 --> 00:07:17,056
+So let's start with
+constant buffer preloading.
+
+
+163
+00:07:17,426 --> 00:07:20,136
+So the idea here is
+that rather than loading
+
+
+164
+00:07:20,136 --> 00:07:21,156
+through the constant
+address space,
+
+
+165
+00:07:21,156 --> 00:07:23,016
+what we can actually do is
+take your data and put it
+
+
+166
+00:07:23,016 --> 00:07:25,456
+into special constant
+registers that are even faster
+
+
+167
+00:07:25,456 --> 00:07:26,536
+for the ALU to access.
+
+
+168
+00:07:27,286 --> 00:07:28,116
+So we can do this as long
+
+
+169
+00:07:28,116 --> 00:07:29,826
+as we know exactly
+what data will be read.
+
+
+170
+00:07:30,726 --> 00:07:32,776
+If your offsets are
+known a compile time,
+
+
+171
+00:07:32,776 --> 00:07:33,786
+this is straightforward.
+
+
+172
+00:07:34,036 --> 00:07:34,936
+But if your offsets aren't known
+
+
+173
+00:07:34,936 --> 00:07:37,976
+until run time then we need a
+little bit of extra information
+
+
+174
+00:07:37,976 --> 00:07:39,416
+about how much data
+that you're reading.
+
+
+175
+00:07:39,986 --> 00:07:42,346
+So indicating this
+
+
+176
+00:07:42,346 --> 00:07:44,876
+to the compiler is usually
+a matter of two steps.
+
+
+177
+00:07:45,016 --> 00:07:46,476
+First, you need to make
+sure that this data is
+
+
+178
+00:07:46,476 --> 00:07:47,676
+in the constant address space.
+
+
+179
+00:07:48,696 --> 00:07:50,256
+And additionally
+you need to indicate
+
+
+180
+00:07:50,256 --> 00:07:51,696
+that your accesses are
+statically bounded.
+
+
+181
+00:07:53,296 --> 00:07:55,436
+The best way to do this
+is to pass your arguments
+
+
+182
+00:07:55,696 --> 00:07:57,726
+by reference rather than
+pointer where possible.
+
+
+183
+00:07:58,056 --> 00:08:00,676
+If you're passing only a
+single item or a single struct,
+
+
+184
+00:08:00,676 --> 00:08:02,396
+this is straightforward, you
+can just change your pointers
+
+
+185
+00:08:02,396 --> 00:08:05,106
+to references and change
+your accesses accordingly.
+
+
+186
+00:08:05,296 --> 00:08:07,976
+This is a little different
+if you're passing an array
+
+
+187
+00:08:07,976 --> 00:08:09,006
+that you know is bounded.
+
+
+188
+00:08:09,666 --> 00:08:12,656
+So what you do in this case is
+you can embed that size array
+
+
+189
+00:08:12,656 --> 00:08:14,946
+and pass that struct
+by reference rather
+
+
+190
+00:08:14,946 --> 00:08:16,176
+than passing the
+original pointer.
+
+
+191
+00:08:16,936 --> 00:08:18,966
+So we can put this into
+practice with an example
+
+
+192
+00:08:19,536 --> 00:08:21,426
+at a forward lighting
+fragment shader.
+
+
+193
+00:08:21,776 --> 00:08:23,176
+So as you can see in sort
+
+
+194
+00:08:23,176 --> 00:08:26,246
+of the original version what we
+have are a bunch of arguments
+
+
+195
+00:08:26,246 --> 00:08:27,756
+that are passed as
+regular device pointers.
+
+
+196
+00:08:27,756 --> 00:08:29,806
+And this doesn't expose the
+information that we want.
+
+
+197
+00:08:30,616 --> 00:08:31,586
+So we can do better than this.
+
+
+198
+00:08:32,306 --> 00:08:33,676
+Instead if we note the number
+
+
+199
+00:08:33,676 --> 00:08:36,946
+of lights is bonded what we can
+do is we can put the light data
+
+
+200
+00:08:36,946 --> 00:08:39,056
+and the count together into
+a single struct like this.
+
+
+201
+00:08:40,356 --> 00:08:43,116
+And we can pass that struct
+in the constant address space
+
+
+202
+00:08:43,116 --> 00:08:43,986
+as a reference like this.
+
+
+203
+00:08:44,616 --> 00:08:46,526
+And so that gets us
+constant buffer preloading.
+
+
+204
+00:08:48,366 --> 00:08:49,346
+Let's look at another example
+
+
+205
+00:08:49,346 --> 00:08:51,086
+of how this can affect
+you in practice.
+
+
+206
+00:08:52,156 --> 00:08:55,206
+So, there are many ways to
+implement a deferred render,
+
+
+207
+00:08:55,206 --> 00:08:57,786
+but what we find is that the
+actually implementation choices
+
+
+208
+00:08:57,786 --> 00:09:00,036
+that you make can have a big
+impact on the performance
+
+
+209
+00:09:00,036 --> 00:09:01,236
+that you achieve in practice.
+
+
+210
+00:09:01,696 --> 00:09:05,496
+One pattern that's common
+now is to use a single shader
+
+
+211
+00:09:05,496 --> 00:09:07,456
+to accumulate the
+results of all lights.
+
+
+212
+00:09:08,456 --> 00:09:10,776
+And what you can see form the
+declaration of this function,
+
+
+213
+00:09:10,776 --> 00:09:13,436
+is that it can potentially read
+any or all lights in the scene
+
+
+214
+00:09:13,436 --> 00:09:15,306
+and that means that your
+input size is unbounded.
+
+
+215
+00:09:15,306 --> 00:09:20,026
+Now, on the other hand if you're
+able to structure your rendering
+
+
+216
+00:09:20,026 --> 00:09:21,246
+such that each light is handled
+
+
+217
+00:09:21,246 --> 00:09:24,006
+in its own draw call
+then what happens is
+
+
+218
+00:09:24,006 --> 00:09:27,206
+that each light only needs
+to read that light's data
+
+
+219
+00:09:27,206 --> 00:09:29,506
+and it's shader and that
+means that you can pass it
+
+
+220
+00:09:29,536 --> 00:09:31,666
+in the constant address space
+
+
+221
+00:09:32,026 --> 00:09:33,476
+and take advantage
+of buffer preloading.
+
+
+222
+00:09:34,336 --> 00:09:36,546
+In practice we see
+that on A8 later GPUs
+
+
+223
+00:09:36,546 --> 00:09:38,176
+that this is a significant
+performance win.
+
+
+224
+00:09:38,176 --> 00:09:42,416
+Now let's talk about
+vertex buffer preloading.
+
+
+225
+00:09:42,776 --> 00:09:44,386
+The idea of vertex
+buffer preloading is
+
+
+226
+00:09:44,386 --> 00:09:46,656
+to reuse the same dedicated
+hardware that we would use
+
+
+227
+00:09:46,656 --> 00:09:47,936
+for a fix function
+vertex fetching.
+
+
+228
+00:09:48,226 --> 00:09:51,666
+And we can do this for regular
+buffer loads as long as the way
+
+
+229
+00:09:51,666 --> 00:09:53,216
+that you access your
+buffer looks just
+
+
+230
+00:09:53,216 --> 00:09:54,456
+like fix function
+vertex fetching.
+
+
+231
+00:09:54,876 --> 00:09:55,896
+So what that means
+is that you need
+
+
+232
+00:09:55,896 --> 00:09:58,976
+to be indexing using the
+vertex or instance ID.
+
+
+233
+00:09:59,046 --> 00:10:01,316
+Now we can handle a couple
+additional modifications
+
+
+234
+00:10:01,316 --> 00:10:04,216
+to the vertex or instance IDs
+such as applying a deviser
+
+
+235
+00:10:04,216 --> 00:10:06,916
+and that's with or
+without any base vertex
+
+
+236
+00:10:06,916 --> 00:10:09,216
+or instance offsets you might
+have applied at the API level.
+
+
+237
+00:10:09,876 --> 00:10:12,206
+Of course the easiest way to
+take advantage of this is just
+
+
+238
+00:10:12,206 --> 00:10:15,116
+to use the Metal vertex
+descriptor functionality
+
+
+239
+00:10:15,116 --> 00:10:15,926
+wherever possible.
+
+
+240
+00:10:15,926 --> 00:10:18,156
+But if you are writing
+your own indexing code,
+
+
+241
+00:10:18,826 --> 00:10:20,496
+we strongly suggest that
+you layout your data
+
+
+242
+00:10:20,496 --> 00:10:23,126
+so that vertexes fetch linearly
+to simplify buffer indexing.
+
+
+243
+00:10:23,366 --> 00:10:26,196
+Note that this doesn't preclude
+you from doing fancier things,
+
+
+244
+00:10:26,196 --> 00:10:28,996
+like if you were rendering quads
+and you want to pass one value
+
+
+245
+00:10:29,446 --> 00:10:33,256
+to all vertices in the quad,
+you can still do things
+
+
+246
+00:10:33,256 --> 00:10:35,526
+like indexing by vertex
+ID divided by four
+
+
+247
+00:10:35,526 --> 00:10:36,926
+because this just
+looks like a divider.
+
+
+248
+00:10:38,106 --> 00:10:42,086
+So now let's move on to a couple
+shader stage specific concerns.
+
+
+249
+00:10:42,686 --> 00:10:47,016
+In iOS 10 we introduced the
+ability to do resource writes
+
+
+250
+00:10:47,016 --> 00:10:48,436
+from within your
+fragment functions.
+
+
+251
+00:10:48,626 --> 00:10:50,186
+And this has interesting
+implications
+
+
+252
+00:10:50,186 --> 00:10:51,156
+for hidden surface removal.
+
+
+253
+00:10:52,246 --> 00:10:54,446
+So prior to this you might have
+been accustomed to the behavior
+
+
+254
+00:10:54,446 --> 00:10:57,386
+that a fragment wouldn't
+need to be shaded as long
+
+
+255
+00:10:57,386 --> 00:10:59,286
+as an opaque fragment
+came in and occluded it.
+
+
+256
+00:10:59,956 --> 00:11:02,176
+So this is no longer
+true specifically
+
+
+257
+00:11:02,176 --> 00:11:03,926
+if your fragment function
+is doing resource writes,
+
+
+258
+00:11:03,926 --> 00:11:05,656
+because those resource
+writes still need to happen.
+
+
+259
+00:11:06,836 --> 00:11:09,046
+So instead your behavior
+really only depends
+
+
+260
+00:11:09,346 --> 00:11:10,346
+on what's come before.
+
+
+261
+00:11:10,346 --> 00:11:12,956
+And specifically what
+happens depends on whether
+
+
+262
+00:11:12,956 --> 00:11:14,776
+or not you've enabled
+early fragment tests
+
+
+263
+00:11:14,776 --> 00:11:15,686
+on your fragment function.
+
+
+264
+00:11:16,116 --> 00:11:19,236
+If you have enabled
+early fragment tests,
+
+
+265
+00:11:19,916 --> 00:11:21,296
+once it's rasterized as long
+
+
+266
+00:11:21,296 --> 00:11:23,666
+as it also passes the early
+depth and stencil tests.
+
+
+267
+00:11:24,066 --> 00:11:26,366
+If you haven't specified
+early fragment tests,
+
+
+268
+00:11:26,496 --> 00:11:28,146
+then your fragment
+will be shaded
+
+
+269
+00:11:28,146 --> 00:11:29,306
+as long as it's rasterized.
+
+
+270
+00:11:30,136 --> 00:11:32,276
+So from a perspective of
+minimizing your shading,
+
+
+271
+00:11:32,276 --> 00:11:34,376
+what you want to do is
+use early fragment tests
+
+
+272
+00:11:34,376 --> 00:11:35,116
+wherever possible.
+
+
+273
+00:11:35,116 --> 00:11:36,466
+But there are a couple
+additional things
+
+
+274
+00:11:36,466 --> 00:11:38,536
+that you can do to improve
+the rejection that you get.
+
+
+275
+00:11:39,676 --> 00:11:41,796
+And most of these boil
+down to draw order.
+
+
+276
+00:11:41,836 --> 00:11:44,406
+You want to draw these objects,
+
+
+277
+00:11:44,466 --> 00:11:47,046
+the objects where the fragment
+functions do resource writes
+
+
+278
+00:11:47,376 --> 00:11:48,516
+after opaque objects.
+
+
+279
+00:11:48,716 --> 00:11:50,586
+And if you're using these
+objects to update your depth
+
+
+280
+00:11:50,586 --> 00:11:52,536
+and stencil buffers,
+we strongly suggest
+
+
+281
+00:11:52,536 --> 00:11:54,766
+that you sort these
+buffer from front to back.
+
+
+282
+00:11:55,646 --> 00:11:57,816
+Note that this guidance
+should sound fairly familiar
+
+
+283
+00:11:57,816 --> 00:11:59,506
+if you've been dealing
+with fragment functions
+
+
+284
+00:11:59,506 --> 00:12:01,676
+that do discard or modify
+your depth per pixel.
+
+
+285
+00:12:01,676 --> 00:12:05,536
+Now let's talk about
+compute kernels.
+
+
+286
+00:12:05,736 --> 00:12:08,546
+Since the defining
+characters of a compute kernels
+
+
+287
+00:12:08,546 --> 00:12:10,366
+that you can structure your
+computation however you want.
+
+
+288
+00:12:11,036 --> 00:12:14,736
+Let's talk about what factors
+influence how you do this
+
+
+289
+00:12:14,796 --> 00:12:16,386
+on iOS.
+
+
+290
+00:12:17,076 --> 00:12:19,226
+First we have computer
+thread launch overhead.
+
+
+291
+00:12:20,576 --> 00:12:24,856
+So on A8 and later GPUs
+there's a certain amount of time
+
+
+292
+00:12:24,856 --> 00:12:27,486
+that it takes to launch a
+group of compute threads.
+
+
+293
+00:12:27,586 --> 00:12:28,836
+So if you don't do enough work
+
+
+294
+00:12:28,836 --> 00:12:31,376
+from within a single compute
+thread you can potentially,
+
+
+295
+00:12:31,376 --> 00:12:33,036
+it leaves the hardware
+underutilized
+
+
+296
+00:12:33,036 --> 00:12:34,266
+and leave performance
+on the table.
+
+
+297
+00:12:36,046 --> 00:12:38,716
+And a good way to deal with
+this and actually a good pattern
+
+
+298
+00:12:38,716 --> 00:12:41,116
+for writing computer
+kernels on iOS in general is
+
+
+299
+00:12:41,116 --> 00:12:43,466
+to actually process multiple
+conceptual work items
+
+
+300
+00:12:43,466 --> 00:12:44,666
+in a single compute threat.
+
+
+301
+00:12:45,166 --> 00:12:48,276
+And in particular a pattern
+that we find works well is
+
+
+302
+00:12:48,276 --> 00:12:50,416
+to reuse values not
+by passing them
+
+
+303
+00:12:50,416 --> 00:12:53,586
+through thread group memory, but
+rather by reusing values loaded
+
+
+304
+00:12:53,586 --> 00:12:57,106
+for one work item when you're
+processing the next work item
+
+
+305
+00:12:57,296 --> 00:12:58,426
+in the same compute thread.
+
+
+306
+00:12:58,426 --> 00:13:00,916
+And it's best to illustrate
+this with an example.
+
+
+307
+00:13:01,696 --> 00:13:04,226
+So this is a syllable
+filter kernel, this is sort
+
+
+308
+00:13:04,226 --> 00:13:06,226
+of the most straightforward
+version of it, as you see,
+
+
+309
+00:13:06,226 --> 00:13:07,966
+it reads as a three-
+[inaudible] region of its source
+
+
+310
+00:13:08,366 --> 00:13:10,576
+and produces one output pixel.
+
+
+311
+00:13:11,146 --> 00:13:15,696
+So if instead we
+apply the pattern
+
+
+312
+00:13:15,696 --> 00:13:17,416
+of processing multiple
+work items
+
+
+313
+00:13:17,876 --> 00:13:18,876
+in a single compute thread,
+
+
+314
+00:13:18,876 --> 00:13:20,476
+we get something
+that looks like this.
+
+
+315
+00:13:21,086 --> 00:13:24,536
+Notice now that we're striding
+by two pixels at a time.
+
+
+316
+00:13:24,916 --> 00:13:27,126
+So processing the first pixel
+looks much as it did before.
+
+
+317
+00:13:27,126 --> 00:13:28,556
+We read the 3 by 3 region.
+
+
+318
+00:13:29,046 --> 00:13:31,246
+We apply the filter and
+we write up the value.
+
+
+319
+00:13:31,786 --> 00:13:34,716
+But now let's look at
+how pixel 2 is handled.
+
+
+320
+00:13:35,006 --> 00:13:38,516
+So stents are striding by
+two pixels at a time we need
+
+
+321
+00:13:38,516 --> 00:13:40,426
+to make sure that there is
+a second pixel to process.
+
+
+322
+00:13:41,486 --> 00:13:42,546
+And now we read its data.
+
+
+323
+00:13:43,386 --> 00:13:45,536
+Note here that a 2 by 3 region
+
+
+324
+00:13:45,536 --> 00:13:47,576
+of what this pixel
+wants was already loaded
+
+
+325
+00:13:47,576 --> 00:13:48,416
+by the previous pixel.
+
+
+326
+00:13:48,416 --> 00:13:49,376
+So we don't need
+to load it again,
+
+
+327
+00:13:49,376 --> 00:13:50,776
+we can reuse those old values.
+
+
+328
+00:13:51,016 --> 00:13:52,396
+All we need to load now is the 1
+
+
+329
+00:13:52,396 --> 00:13:54,646
+by 3 region that's
+new to this pixel.
+
+
+330
+00:13:55,786 --> 00:13:58,166
+After which, we can apply
+the filter and we're done.
+
+
+331
+00:13:58,916 --> 00:14:02,496
+Note that as a result we're
+not doing 12 texture reads,
+
+
+332
+00:14:02,496 --> 00:14:05,276
+instead of the old 9, but
+we're producing 2 pixels.
+
+
+333
+00:14:05,276 --> 00:14:07,816
+So this is a significant
+reduction in the amount
+
+
+334
+00:14:07,816 --> 00:14:09,126
+of texture reads per pixel.
+
+
+335
+00:14:09,866 --> 00:14:13,466
+Of course this pattern doesn't
+work for all compute use cases.
+
+
+336
+00:14:14,026 --> 00:14:16,086
+Sometimes you do still
+need to pass data
+
+
+337
+00:14:16,086 --> 00:14:16,856
+through thread group memory.
+
+
+338
+00:14:17,456 --> 00:14:20,396
+And in that case, when you're
+synchronizing between threads
+
+
+339
+00:14:20,396 --> 00:14:24,286
+in a thread group, an important
+thing to keep in mind is
+
+
+340
+00:14:24,286 --> 00:14:26,906
+that you want to use the barrier
+with the smallest possible scope
+
+
+341
+00:14:26,906 --> 00:14:28,476
+for the threads that
+you need to synchronize.
+
+
+342
+00:14:29,326 --> 00:14:33,436
+In particular, if your thread
+group fits within a single SIMD,
+
+
+343
+00:14:34,116 --> 00:14:35,966
+the regular thread
+group barrier function
+
+
+344
+00:14:35,966 --> 00:14:37,156
+in Metal is unnecessary.
+
+
+345
+00:14:37,626 --> 00:14:41,346
+What you can use instead is the
+new SIMD group barrier function
+
+
+346
+00:14:41,346 --> 00:14:42,536
+introduced in iOS 10.
+
+
+347
+00:14:43,476 --> 00:14:47,076
+And what we find is actually
+the targeting your thread group
+
+
+348
+00:14:47,076 --> 00:14:48,336
+to fit within a single SIMD
+
+
+349
+00:14:48,336 --> 00:14:52,426
+and using SIMD group barrier
+is often faster than trying
+
+
+350
+00:14:52,426 --> 00:14:54,406
+to use a larger thread
+group in order to squeeze
+
+
+351
+00:14:54,406 --> 00:14:55,266
+that additional reuse,
+
+
+352
+00:14:55,266 --> 00:14:57,146
+but having to use thread
+group barrier as a result.
+
+
+353
+00:14:57,706 --> 00:15:01,136
+So that wraps things up
+for me, in conclusion,
+
+
+354
+00:15:01,946 --> 00:15:04,596
+make sure you're using the
+appropriate address space
+
+
+355
+00:15:04,596 --> 00:15:06,106
+for each of your buffer
+arguments according
+
+
+356
+00:15:06,106 --> 00:15:07,386
+to the guidelines
+that we described.
+
+
+357
+00:15:08,546 --> 00:15:09,916
+Structure your data
+and rendering
+
+
+358
+00:15:09,916 --> 00:15:11,696
+to take maximal advantage
+of constant
+
+
+359
+00:15:11,696 --> 00:15:12,996
+and vertex buffer preloading.
+
+
+360
+00:15:14,526 --> 00:15:16,426
+Make sure you're using early
+fragment tests to reject
+
+
+361
+00:15:16,426 --> 00:15:18,576
+as many fragments as possible
+
+
+362
+00:15:18,646 --> 00:15:19,796
+when you're doing
+resource writes.
+
+
+363
+00:15:20,336 --> 00:15:23,096
+Put enough work in
+each compute thread
+
+
+364
+00:15:23,096 --> 00:15:24,386
+so you're not being limited
+
+
+365
+00:15:24,386 --> 00:15:26,506
+by your compute thread
+launch overhead.
+
+
+366
+00:15:27,056 --> 00:15:29,336
+And use the smallest barrier
+for the job when you need
+
+
+367
+00:15:29,336 --> 00:15:31,126
+to synchronize between
+threads in a thread group.
+
+
+368
+00:15:31,446 --> 00:15:33,926
+And with that I'd like to pass
+it back to Fiona to dive deeper
+
+
+369
+00:15:33,926 --> 00:15:34,796
+into tuning shader code.
+
+
+370
+00:15:35,516 --> 00:15:40,956
+[ Applause ]
+
+
+371
+00:15:41,456 --> 00:15:42,006
+>> Thank you, Alex.
+
+
+372
+00:15:43,306 --> 00:15:46,476
+So, before jumping into the
+specifics here, I want to go
+
+
+373
+00:15:46,476 --> 00:15:48,686
+over some general
+characteristics of GPUs
+
+
+374
+00:15:48,686 --> 00:15:50,846
+and the bottlenecks
+you can encounter.
+
+
+375
+00:15:50,846 --> 00:15:52,336
+And all of you may be
+familiar with this,
+
+
+376
+00:15:52,536 --> 00:15:54,146
+but I figure I should
+just do a quick review.
+
+
+377
+00:15:54,836 --> 00:15:58,596
+So with GPUs typically you
+have a set of resources.
+
+
+378
+00:15:58,696 --> 00:16:01,116
+And it's fairly common for
+a shader to be bottlenecked
+
+
+379
+00:16:01,116 --> 00:16:02,336
+by one of those resources.
+
+
+380
+00:16:02,596 --> 00:16:04,186
+And so for example if
+you're bottlenecked
+
+
+381
+00:16:04,186 --> 00:16:06,406
+by memory bandwidth,
+improving other things
+
+
+382
+00:16:06,406 --> 00:16:08,836
+in your shader will often
+not give any apparent
+
+
+383
+00:16:08,886 --> 00:16:09,966
+performance improvement.
+
+
+384
+00:16:10,616 --> 00:16:13,036
+And while it is important to
+identify these bottlenecks
+
+
+385
+00:16:13,036 --> 00:16:15,846
+and focus on them to
+improve performance,
+
+
+386
+00:16:16,356 --> 00:16:18,796
+there is actually still
+benefit to improving things
+
+
+387
+00:16:18,796 --> 00:16:19,826
+that aren't bottlenecks.
+
+
+388
+00:16:19,826 --> 00:16:22,336
+For example, in that example
+if you are bottlenecked
+
+
+389
+00:16:22,336 --> 00:16:25,356
+at memory usage, but then
+you improve your arithmetic
+
+
+390
+00:16:25,356 --> 00:16:28,866
+to be more efficient, you
+will still save power even
+
+
+391
+00:16:28,866 --> 00:16:30,566
+if you are not improving
+your frame rate.
+
+
+392
+00:16:30,726 --> 00:16:32,046
+And of course being on mobile,
+
+
+393
+00:16:32,346 --> 00:16:34,016
+saving power is always
+important.
+
+
+394
+00:16:34,286 --> 00:16:35,996
+So it's not something to ignore,
+
+
+395
+00:16:36,106 --> 00:16:38,536
+just because your frame rate
+doesn't go up in that case.
+
+
+396
+00:16:38,696 --> 00:16:41,256
+So there's four typical
+bottlenecks to keep
+
+
+397
+00:16:41,256 --> 00:16:43,506
+in mind in shaders here.
+
+
+398
+00:16:43,656 --> 00:16:45,596
+The first is fairly
+straightforward, ALU bandwidth.
+
+
+399
+00:16:45,846 --> 00:16:47,696
+The amount of math
+that the GPU can do.
+
+
+400
+00:16:48,626 --> 00:16:50,936
+The second is memory bandwidth,
+again, fairly straightforward,
+
+
+401
+00:16:50,966 --> 00:16:53,746
+the amount of data that the GPU
+can load from system memory.
+
+
+402
+00:16:54,116 --> 00:16:55,846
+The other two are
+little more subtle.
+
+
+403
+00:16:55,846 --> 00:16:57,716
+The first one is
+memory issue rate.
+
+
+404
+00:16:58,076 --> 00:17:00,466
+Which represents the
+number of memory operations
+
+
+405
+00:17:00,466 --> 00:17:01,486
+that can be performed.
+
+
+406
+00:17:01,946 --> 00:17:04,026
+And this can come up in the case
+
+
+407
+00:17:04,066 --> 00:17:06,086
+where you have smaller
+memory operations,
+
+
+408
+00:17:06,086 --> 00:17:08,346
+or you're using a lot of thread
+group memory and so forth.
+
+
+409
+00:17:09,096 --> 00:17:11,236
+And the last one, which I'll
+go into detail a bit more
+
+
+410
+00:17:11,236 --> 00:17:13,816
+about later is latency
+occupancy register usage.
+
+
+411
+00:17:13,816 --> 00:17:15,146
+You may have heard about that,
+
+
+412
+00:17:15,226 --> 00:17:17,236
+but I will save that
+until the end.
+
+
+413
+00:17:18,616 --> 00:17:20,656
+So to try to alleviate
+some of these bottlenecks,
+
+
+414
+00:17:20,656 --> 00:17:23,116
+and improve overall shader
+performance and efficiency,
+
+
+415
+00:17:23,455 --> 00:17:25,136
+we're going to look
+at four categories
+
+
+416
+00:17:25,165 --> 00:17:26,766
+of optimization opportunity
+here.
+
+
+417
+00:17:27,665 --> 00:17:28,996
+And the first one is data types.
+
+
+418
+00:17:29,076 --> 00:17:31,376
+And the first thing to consider
+
+
+419
+00:17:31,376 --> 00:17:34,366
+when optimizing your shader
+is choosing your data types.
+
+
+420
+00:17:34,846 --> 00:17:36,726
+And the most important
+thing to remember
+
+
+421
+00:17:36,726 --> 00:17:38,726
+when you're choosing
+data types is that A8
+
+
+422
+00:17:38,726 --> 00:17:42,206
+and later GPUs have
+16-bit register units,
+
+
+423
+00:17:42,856 --> 00:17:45,846
+which means that for example if
+you're using a 32-bit data type,
+
+
+424
+00:17:45,916 --> 00:17:49,226
+that's twice the register
+space, twice the bandwidth,
+
+
+425
+00:17:49,756 --> 00:17:51,916
+potentially twice the
+power and so-forth,
+
+
+426
+00:17:52,316 --> 00:17:53,826
+it's just twice as much stuff.
+
+
+427
+00:17:54,626 --> 00:17:57,116
+So, accordingly you
+will save registers,
+
+
+428
+00:17:57,116 --> 00:18:00,026
+you will get faster performance,
+you'll get lower power
+
+
+429
+00:18:00,266 --> 00:18:01,706
+by using smaller data types.
+
+
+430
+00:18:02,006 --> 00:18:04,496
+Use half and short for
+arithmetic wherever you can.
+
+
+431
+00:18:05,276 --> 00:18:07,226
+Energy wise, half is
+cheaper than float.
+
+
+432
+00:18:07,766 --> 00:18:09,526
+And float is cheaper
+than integer,
+
+
+433
+00:18:09,886 --> 00:18:12,676
+but even among integers,
+smaller integers are cheaper
+
+
+434
+00:18:12,676 --> 00:18:13,296
+than bigger ones.
+
+
+435
+00:18:13,866 --> 00:18:17,136
+And the most effective thing
+you can do to save registers is
+
+
+436
+00:18:17,136 --> 00:18:20,816
+to use half for texture reads
+and interpolates because most
+
+
+437
+00:18:20,816 --> 00:18:23,036
+of the time you really do
+not need float for these.
+
+
+438
+00:18:23,446 --> 00:18:26,166
+And note I do not mean
+your texture formats.
+
+
+439
+00:18:26,226 --> 00:18:29,006
+I mean the data types you're
+using to store the results
+
+
+440
+00:18:29,006 --> 00:18:30,806
+of a texture sample
+or an interpolate.
+
+
+441
+00:18:32,116 --> 00:18:36,656
+And one aspect of A8 in later
+GPUs that is fairly convenient
+
+
+442
+00:18:37,146 --> 00:18:39,346
+and makes using smaller
+data types easier
+
+
+443
+00:18:39,346 --> 00:18:40,656
+than on some other GPUs is
+
+
+444
+00:18:40,986 --> 00:18:43,986
+that data type conversions
+are typically free,
+
+
+445
+00:18:44,166 --> 00:18:48,226
+even between float and half,
+which means that you don't have
+
+
+446
+00:18:48,256 --> 00:18:51,336
+to worry, oh am I introducing
+too many conversions in this
+
+
+447
+00:18:51,336 --> 00:18:53,006
+by trying to use half here?
+
+
+448
+00:18:53,266 --> 00:18:54,496
+Is this going to cost too much?
+
+
+449
+00:18:54,496 --> 00:18:55,286
+Is it worth it or not?
+
+
+450
+00:18:55,746 --> 00:18:58,266
+No it's probably fast because
+the conversions are free,
+
+
+451
+00:18:58,626 --> 00:19:00,576
+so you can use half wherever
+you want and not worry
+
+
+452
+00:19:00,576 --> 00:19:01,626
+about that part of it.
+
+
+453
+00:19:01,766 --> 00:19:03,526
+The one thing to keep
+in mind here though is
+
+
+454
+00:19:03,586 --> 00:19:05,356
+that half-precision numerics
+
+
+455
+00:19:05,356 --> 00:19:08,106
+and limitations are
+different from float.
+
+
+456
+00:19:08,996 --> 00:19:11,496
+And a common bug
+that can come up here
+
+
+457
+00:19:11,496 --> 00:19:16,386
+for example is people will
+write 65,535 as a half,
+
+
+458
+00:19:17,506 --> 00:19:19,766
+but that is actually infinity.
+
+
+459
+00:19:20,236 --> 00:19:22,666
+Because that's bigger
+than the maximum half.
+
+
+460
+00:19:22,666 --> 00:19:25,116
+And so by being aware of
+what these limitations are,
+
+
+461
+00:19:25,116 --> 00:19:27,146
+you'll better be able to
+know where you perhaps should
+
+
+462
+00:19:27,146 --> 00:19:28,486
+and shouldn't use half.
+
+
+463
+00:19:28,486 --> 00:19:31,116
+And less likely to encounter
+unexpected bugs in your shaders.
+
+
+464
+00:19:32,076 --> 00:19:34,216
+So one example application
+
+
+465
+00:19:34,216 --> 00:19:38,766
+for using smaller integer
+data types is thread IDs.
+
+
+466
+00:19:39,356 --> 00:19:41,976
+And as those of you who worked
+on computer kernels will know,
+
+
+467
+00:19:41,976 --> 00:19:44,506
+thread IDs are used
+all over your programs.
+
+
+468
+00:19:45,076 --> 00:19:47,916
+And so making them smaller
+can significantly increase the
+
+
+469
+00:19:47,966 --> 00:19:51,796
+performance of arithmetic, and
+can save registers and so forth.
+
+
+470
+00:19:52,696 --> 00:19:57,076
+And so local thread IDs, there's
+no reason to ever use uint
+
+
+471
+00:19:57,176 --> 00:19:58,616
+for them as in this case,
+
+
+472
+00:19:58,936 --> 00:20:01,436
+because local thread IDs can't
+have that many thread IDs.
+
+
+473
+00:20:02,076 --> 00:20:04,836
+For global thread IDs, usually
+you can get away with a ushort
+
+
+474
+00:20:05,316 --> 00:20:06,946
+because most of the
+time you don't have
+
+
+475
+00:20:06,946 --> 00:20:08,316
+that many global tread IDs.
+
+
+476
+00:20:08,316 --> 00:20:09,646
+Of course it depends
+on your program.
+
+
+477
+00:20:10,056 --> 00:20:13,786
+But in most cases, you won't
+go over 2 to the 16 minus 1,
+
+
+478
+00:20:14,276 --> 00:20:15,526
+so it is said you can do this.
+
+
+479
+00:20:16,186 --> 00:20:19,426
+And this is going to be lower
+power, it's going to be faster
+
+
+480
+00:20:19,426 --> 00:20:22,326
+because all of the arithmetic
+involving your thread ID is now
+
+
+481
+00:20:22,326 --> 00:20:23,296
+going to be faster.
+
+
+482
+00:20:23,576 --> 00:20:28,076
+So I highly recommend
+this wherever possible.
+
+
+483
+00:20:28,636 --> 00:20:31,696
+Additionally, keep in mind
+that in C like languages,
+
+
+484
+00:20:31,696 --> 00:20:33,856
+which of course includes
+Metal, the precision
+
+
+485
+00:20:33,856 --> 00:20:37,126
+of an operation is defined by
+the larger of the input types.
+
+
+486
+00:20:37,886 --> 00:20:39,946
+For example, if you're
+multiplying a float by a half,
+
+
+487
+00:20:40,276 --> 00:20:43,566
+that's a float operation not a
+half operation, it's promoted.
+
+
+488
+00:20:44,156 --> 00:20:47,456
+So accordingly, make sure
+not to use float literals
+
+
+489
+00:20:47,456 --> 00:20:51,386
+when not necessary, because
+that will turn here what appears
+
+
+490
+00:20:51,436 --> 00:20:53,786
+to be a half operation, it
+takes a half and returns a half,
+
+
+491
+00:20:54,256 --> 00:20:55,546
+into a float operation.
+
+
+492
+00:20:55,586 --> 00:20:57,126
+Because by the language
+semantics,
+
+
+493
+00:20:57,126 --> 00:20:59,886
+that's actually a float
+operation since at least one
+
+
+494
+00:20:59,886 --> 00:21:01,056
+of the inputs is float.
+
+
+495
+00:21:01,856 --> 00:21:03,776
+And so you probably
+want to do this.
+
+
+496
+00:21:04,636 --> 00:21:06,516
+This will actually
+be a half operation.
+
+
+497
+00:21:06,516 --> 00:21:08,116
+This will actually be faster.
+
+
+498
+00:21:08,696 --> 00:21:10,206
+This is probably what you mean.
+
+
+499
+00:21:10,556 --> 00:21:11,586
+So be careful not
+
+
+500
+00:21:11,586 --> 00:21:14,066
+to inadvertently introduce
+float precision arithmetic
+
+
+501
+00:21:14,066 --> 00:21:19,216
+into your code when
+that's not what you meant.
+
+
+502
+00:21:19,216 --> 00:21:21,836
+And while I did mention that
+smaller data types are better,
+
+
+503
+00:21:21,836 --> 00:21:24,556
+there's one exception to
+this rule and that is char.
+
+
+504
+00:21:25,156 --> 00:21:27,606
+Remember as I said that
+native data type size on A8
+
+
+505
+00:21:27,606 --> 00:21:30,686
+and later GPUs is
+16-bit, not 8-bit.
+
+
+506
+00:21:31,466 --> 00:21:34,806
+And so char is not going to
+save you any space or power
+
+
+507
+00:21:34,806 --> 00:21:35,606
+or anything like that
+
+
+508
+00:21:35,606 --> 00:21:38,126
+and furthermore there's no
+native 8-bit arithmetic.
+
+
+509
+00:21:38,506 --> 00:21:40,006
+So it sort of has
+to be emulated.
+
+
+510
+00:21:40,246 --> 00:21:43,296
+It's not overly expensive if you
+need it, feel free to use it.
+
+
+511
+00:21:43,616 --> 00:21:45,616
+But it may result in
+extra instructions.
+
+
+512
+00:21:45,836 --> 00:21:48,746
+So don't unnecessarily
+shrink things to char
+
+
+513
+00:21:48,746 --> 00:21:53,706
+that don't actually need it.
+
+
+514
+00:21:53,966 --> 00:21:57,216
+So next we have arithmetic
+optimizations,
+
+
+515
+00:21:57,436 --> 00:21:58,826
+and pretty much everything
+
+
+516
+00:21:58,826 --> 00:22:00,946
+in this category
+affects ALU bandwidth.
+
+
+517
+00:22:01,416 --> 00:22:05,106
+The first thing you can do
+is always use Metal built-ins
+
+
+518
+00:22:05,106 --> 00:22:05,856
+whenever possible.
+
+
+519
+00:22:06,336 --> 00:22:07,846
+They're optimized
+implementations
+
+
+520
+00:22:07,846 --> 00:22:09,016
+for a variety of functions.
+
+
+521
+00:22:09,206 --> 00:22:11,006
+They're already optimized
+for the hardware.
+
+
+522
+00:22:11,316 --> 00:22:13,426
+It's generally better than
+implementing them yourself.
+
+
+523
+00:22:14,426 --> 00:22:18,076
+And in particular,
+there are some of these
+
+
+524
+00:22:18,156 --> 00:22:20,256
+that are usually
+free in practice.
+
+
+525
+00:22:21,446 --> 00:22:24,416
+And this is because GPUs
+typically have modifiers.
+
+
+526
+00:22:24,526 --> 00:22:27,176
+Operations that can be
+performed for free on the input
+
+
+527
+00:22:27,176 --> 00:22:28,406
+and output of instructions.
+
+
+528
+00:22:28,956 --> 00:22:31,876
+And for A8 and later GPUs
+these typically include negate,
+
+
+529
+00:22:32,246 --> 00:22:35,176
+absolute value, and
+saturate as you can see here,
+
+
+530
+00:22:35,176 --> 00:22:36,686
+these three operations in green.
+
+
+531
+00:22:37,076 --> 00:22:41,666
+So, there's no point to trying
+to "be clever" and speed
+
+
+532
+00:22:41,666 --> 00:22:44,046
+up your code by avoiding
+those, because again,
+
+
+533
+00:22:44,046 --> 00:22:45,386
+they're almost always free.
+
+
+534
+00:22:45,716 --> 00:22:48,426
+And because they're free,
+you can't do better than fee.
+
+
+535
+00:22:48,426 --> 00:22:50,306
+There's no way to
+optimize better than free.
+
+
+536
+00:22:50,956 --> 00:22:54,486
+A8 and later GPUs, like a lot
+
+
+537
+00:22:54,486 --> 00:22:56,556
+of others nowadays,
+are scalar machines.
+
+
+538
+00:22:57,226 --> 00:22:59,586
+And while shaders are
+typically written with vectors,
+
+
+539
+00:22:59,636 --> 00:23:02,386
+the compiler is going to split
+them all apart internally.
+
+
+540
+00:23:02,866 --> 00:23:05,256
+Of course, there's no downside
+to writing vector code,
+
+
+541
+00:23:05,906 --> 00:23:08,996
+I mean often it's clearer,
+often it's more maintainable,
+
+
+542
+00:23:09,026 --> 00:23:12,496
+often it fits what you're trying
+to do, but it's also no better
+
+
+543
+00:23:12,496 --> 00:23:15,076
+than writing scaler code
+from a compiler perspective
+
+
+544
+00:23:15,076 --> 00:23:15,936
+and the code you're
+going to get.
+
+
+545
+00:23:16,546 --> 00:23:19,456
+So there's no point in
+trying to vectorize code
+
+
+546
+00:23:19,456 --> 00:23:23,126
+that doesn't really fit a vector
+format, because it's just going
+
+
+547
+00:23:23,126 --> 00:23:24,776
+to end up the same
+thing in the end,
+
+
+548
+00:23:24,866 --> 00:23:27,066
+and you're kind of
+wasting your time.
+
+
+549
+00:23:27,326 --> 00:23:29,216
+However, as a side
+note, which I'll go
+
+
+550
+00:23:29,216 --> 00:23:32,146
+into more detail a lot later,
+in later A8 and later GPUs,
+
+
+551
+00:23:32,146 --> 00:23:35,186
+do have vector load in store
+even though they do not have
+
+
+552
+00:23:35,186 --> 00:23:36,156
+vector arithmetic.
+
+
+553
+00:23:36,596 --> 00:23:38,926
+So this only applies
+to arithmetic here.
+
+
+554
+00:23:41,006 --> 00:23:43,626
+Instruction Level Parallelism
+is something that some
+
+
+555
+00:23:43,626 --> 00:23:45,326
+of you may have used
+optimizing for,
+
+
+556
+00:23:45,326 --> 00:23:47,336
+especially if you've
+done work on CPUs.
+
+
+557
+00:23:47,866 --> 00:23:51,896
+But on A8 and later GPUs this
+is generally not a good thing
+
+
+558
+00:23:51,896 --> 00:23:54,176
+to try to optimize for
+because it typically works
+
+
+559
+00:23:54,176 --> 00:23:55,266
+against registry usage,
+
+
+560
+00:23:55,266 --> 00:23:57,376
+and registry usage
+typically matters more.
+
+
+561
+00:23:57,966 --> 00:24:01,096
+So a common pattern you may
+have seen is a kind of loop
+
+
+562
+00:24:01,096 --> 00:24:03,406
+where you have multiple
+accumulators in order
+
+
+563
+00:24:03,406 --> 00:24:07,016
+to better deal with
+latency on a CPU.
+
+
+564
+00:24:07,816 --> 00:24:11,376
+But on A8 and later GPUs this
+is probably counterproductive.
+
+
+565
+00:24:11,776 --> 00:24:13,906
+You'd be better off just
+using one accumulator.
+
+
+566
+00:24:14,156 --> 00:24:16,606
+Of course this applies to
+much more complex examples
+
+
+567
+00:24:16,656 --> 00:24:18,686
+than the artificial
+simple ones here.
+
+
+568
+00:24:19,256 --> 00:24:21,986
+Just write what you mean, don't
+try to restructure your code
+
+
+569
+00:24:21,986 --> 00:24:23,346
+to get more ILP out of it.
+
+
+570
+00:24:23,346 --> 00:24:26,166
+It's probably not going to
+help you at best, and at worst,
+
+
+571
+00:24:26,166 --> 00:24:28,906
+you just might get worse code.
+
+
+572
+00:24:29,686 --> 00:24:33,306
+So one fairly nice feature
+of A8 and later GPUs is
+
+
+573
+00:24:33,386 --> 00:24:35,916
+that they have very
+fast select instructions
+
+
+574
+00:24:35,916 --> 00:24:37,746
+that is the ternary operator.
+
+
+575
+00:24:38,476 --> 00:24:40,966
+And historically it's
+been fairly common
+
+
+576
+00:24:40,966 --> 00:24:43,536
+to use clever tricks,
+like this to try
+
+
+577
+00:24:43,536 --> 00:24:46,536
+to perform select
+operations in ternaries
+
+
+578
+00:24:46,916 --> 00:24:49,066
+to avoid those branches
+or whatever.
+
+
+579
+00:24:49,596 --> 00:24:52,986
+But on modern GPUs this is
+usually counterproductive,
+
+
+580
+00:24:52,986 --> 00:24:56,846
+and especially on A8 later GPUs
+because the compiler can't see
+
+
+581
+00:24:56,846 --> 00:24:57,786
+through this cleverness.
+
+
+582
+00:24:57,786 --> 00:25:00,116
+It's not going to figure
+out what you actually mean.
+
+
+583
+00:25:00,646 --> 00:25:02,776
+And really, this is really ugly.
+
+
+584
+00:25:03,586 --> 00:25:04,756
+You could just have
+written this.
+
+
+585
+00:25:04,756 --> 00:25:07,596
+And this is going to be faster,
+shorter, and it's actually going
+
+
+586
+00:25:07,596 --> 00:25:08,246
+to show what you mean.
+
+
+587
+00:25:08,966 --> 00:25:12,776
+Like before, being overly clever
+will often obfuscate what you're
+
+
+588
+00:25:12,776 --> 00:25:14,656
+trying to do and
+confuse the compiler.
+
+
+589
+00:25:16,846 --> 00:25:18,676
+Now, this is a potential
+major pitfall,
+
+
+590
+00:25:18,676 --> 00:25:20,116
+hopefully this won't
+come up too much.
+
+
+591
+00:25:21,066 --> 00:25:26,106
+On modern GPUs most of them
+do not have integer division
+
+
+592
+00:25:26,106 --> 00:25:28,796
+or modulus instructions,
+integer not float.
+
+
+593
+00:25:29,616 --> 00:25:33,876
+So avoid divisional
+modulus by denominators
+
+
+594
+00:25:33,906 --> 00:25:36,666
+that are not literal
+or function consonants,
+
+
+595
+00:25:36,746 --> 00:25:38,876
+the new feature mentioned in
+some of the earlier talks.
+
+
+596
+00:25:39,556 --> 00:25:43,036
+So in this example, what we
+have over here, this first one
+
+
+597
+00:25:43,036 --> 00:25:45,426
+where the denominator
+is a variable,
+
+
+598
+00:25:45,736 --> 00:25:47,756
+that will be very, very slow.
+
+
+599
+00:25:47,756 --> 00:25:49,356
+Think hundreds of clock seconds.
+
+
+600
+00:25:50,346 --> 00:25:52,506
+But these other two examples,
+those will be very fast.
+
+
+601
+00:25:52,736 --> 00:25:53,256
+Those are fine.
+
+
+602
+00:25:53,626 --> 00:25:56,926
+So don't feel like you
+have to avoid that.
+
+
+603
+00:25:57,616 --> 00:25:59,976
+So, finally the topic
+of fast-math.
+
+
+604
+00:26:00,996 --> 00:26:04,166
+So in Metal, fast-math
+is on by default.
+
+
+605
+00:26:04,416 --> 00:26:07,286
+And this is because compiler
+fast-math optimizations are
+
+
+606
+00:26:07,576 --> 00:26:09,616
+critical to performance
+Metal shaders.
+
+
+607
+00:26:10,046 --> 00:26:13,156
+They can give off in 50%
+performance gain or more
+
+
+608
+00:26:13,396 --> 00:26:14,946
+over having fast-math off.
+
+
+609
+00:26:14,946 --> 00:26:16,466
+So it's no wonder
+it's on be default.
+
+
+610
+00:26:17,236 --> 00:26:20,226
+And so what exactly do
+we do in fast-math mode?
+
+
+611
+00:26:20,846 --> 00:26:22,396
+Well, the first is that some
+
+
+612
+00:26:22,546 --> 00:26:25,206
+of the Metal built-in functions
+have different precision
+
+
+613
+00:26:25,206 --> 00:26:27,646
+guarantees between
+fast-math and non fast-math.
+
+
+614
+00:26:27,646 --> 00:26:30,146
+And so in some of them they will
+have slightly lower precision
+
+
+615
+00:26:30,436 --> 00:26:33,236
+in fast-math mode to
+get better performance.
+
+
+616
+00:26:34,576 --> 00:26:37,626
+The compiler may increase
+the intermediate precision
+
+
+617
+00:26:37,626 --> 00:26:39,886
+of your operations like
+by forming a fuse multiple
+
+
+618
+00:26:39,886 --> 00:26:40,686
+add instructions.
+
+
+619
+00:26:41,306 --> 00:26:44,206
+It will not decrease the
+intermediate precision.
+
+
+620
+00:26:44,696 --> 00:26:48,086
+So for example if you write a
+float operation you will get an
+
+
+621
+00:26:48,086 --> 00:26:50,296
+operation that is at
+least a float operation.
+
+
+622
+00:26:50,376 --> 00:26:51,566
+Not a math operation.
+
+
+623
+00:26:52,096 --> 00:26:54,386
+So if you want to write half
+operations you better write
+
+
+624
+00:26:54,466 --> 00:26:56,576
+that, the compiler will
+not do that for you,
+
+
+625
+00:26:56,576 --> 00:26:57,556
+because it's not allowed to.
+
+
+626
+00:26:57,626 --> 00:27:00,456
+It can't your precision
+like that.
+
+
+627
+00:27:00,976 --> 00:27:03,896
+We do ignore strict if not
+a number, infinity steal,
+
+
+628
+00:27:03,896 --> 00:27:06,686
+and sign zero semantics,
+which is fairly important,
+
+
+629
+00:27:06,686 --> 00:27:08,986
+because without that
+you can't actually prove
+
+
+630
+00:27:08,986 --> 00:27:10,926
+that x times zero
+is equal to zero.
+
+
+631
+00:27:11,906 --> 00:27:16,246
+But we will not introduce a new
+not at new NaNs, not a number
+
+
+632
+00:27:16,666 --> 00:27:20,466
+because in practice
+that's a really nice way
+
+
+633
+00:27:20,466 --> 00:27:22,496
+to annoy developers,
+and break their code
+
+
+634
+00:27:22,496 --> 00:27:25,256
+and we don't want to do that.
+
+
+635
+00:27:25,256 --> 00:27:28,576
+And the compiler will perform
+arithmetic re-association,
+
+
+636
+00:27:28,846 --> 00:27:30,676
+but it will not do
+arithmetic distribution.
+
+
+637
+00:27:30,676 --> 00:27:34,046
+And really this just comes
+down to what doesn't break code
+
+
+638
+00:27:34,046 --> 00:27:36,356
+and makes it faster versus
+what does break code.
+
+
+639
+00:27:36,526 --> 00:27:38,406
+And we don't want to break code.
+
+
+640
+00:27:39,476 --> 00:27:44,006
+So if you absolutely cannot use
+fast-math for whatever reason,
+
+
+641
+00:27:44,446 --> 00:27:47,116
+there are some ways to recover
+some of that performance.
+
+
+642
+00:27:48,156 --> 00:27:51,866
+Metal has a fused multiply-add
+built in which you can see here.
+
+
+643
+00:27:52,286 --> 00:27:54,266
+Which allows you to
+directly request a fused
+
+
+644
+00:27:54,266 --> 00:27:55,496
+multiply-add instructions.
+
+
+645
+00:27:55,806 --> 00:27:57,146
+And of course if
+fast-math is off,
+
+
+646
+00:27:57,146 --> 00:27:59,336
+the compiler is not even
+allowed to make those,
+
+
+647
+00:27:59,386 --> 00:28:02,866
+it cannot change one bit of
+your rounding, it is prohibited.
+
+
+648
+00:28:03,366 --> 00:28:05,886
+So if you want to use
+fused multiply-add
+
+
+649
+00:28:05,886 --> 00:28:07,296
+and fast-math is
+off, you're going
+
+
+650
+00:28:07,296 --> 00:28:08,406
+to have to use the built-in.
+
+
+651
+00:28:08,526 --> 00:28:11,086
+And that will regain
+some of the performance,
+
+
+652
+00:28:11,476 --> 00:28:14,896
+not all of it, but
+at least some.
+
+
+653
+00:28:15,136 --> 00:28:17,386
+So, on our third
+topic, control flow.
+
+
+654
+00:28:18,456 --> 00:28:21,116
+Predicated GP control flow
+is not a new topic and some
+
+
+655
+00:28:21,116 --> 00:28:22,856
+of you may already
+be familiar with it.
+
+
+656
+00:28:22,896 --> 00:28:24,826
+But here's a quick review
+of what it means for you.
+
+
+657
+00:28:25,606 --> 00:28:28,046
+Control flow that is
+uniform across the SIMD,
+
+
+658
+00:28:28,046 --> 00:28:30,016
+that is every thread is
+doing the same thing,
+
+
+659
+00:28:30,496 --> 00:28:31,326
+is generally fast.
+
+
+660
+00:28:31,856 --> 00:28:35,056
+And this is true even if
+the compiler can't see that.
+
+
+661
+00:28:35,566 --> 00:28:39,776
+So if your program doesn't
+appear uniform, but just happens
+
+
+662
+00:28:39,826 --> 00:28:44,786
+to be uniform when it runs,
+that's still just as fast.
+
+
+663
+00:28:44,786 --> 00:28:46,936
+And similarly, the
+opposite of this divergence,
+
+
+664
+00:28:46,936 --> 00:28:50,476
+different lanes doing different
+things, well in that case,
+
+
+665
+00:28:50,476 --> 00:28:52,346
+it potentially may
+have to run all
+
+
+666
+00:28:52,346 --> 00:28:55,476
+of the different paths
+simultaneously unlike a CPU
+
+
+667
+00:28:55,476 --> 00:28:57,746
+which only takes
+one path at a time.
+
+
+668
+00:28:58,386 --> 00:29:01,876
+And as a result it does more
+work, which of course means
+
+
+669
+00:29:01,906 --> 00:29:04,126
+that inefficient control
+flow can affect any
+
+
+670
+00:29:04,126 --> 00:29:06,696
+of the bottlenecks, because it
+just outright means the GPU is
+
+
+671
+00:29:06,756 --> 00:29:09,396
+doing more stuff, whatever
+that stuff happens to be.
+
+
+672
+00:29:11,246 --> 00:29:16,176
+So, the one suggestion I'll make
+on the topic of control flow is
+
+
+673
+00:29:16,176 --> 00:29:18,376
+to avoid switch fall-throughs.
+
+
+674
+00:29:18,666 --> 00:29:20,786
+And these are fairly
+common in CPU code.
+
+
+675
+00:29:21,096 --> 00:29:24,006
+But on GPUs they can potentially
+be somewhat inefficient,
+
+
+676
+00:29:24,266 --> 00:29:28,446
+because the compiler has to do
+fairly nasty transformations
+
+
+677
+00:29:28,446 --> 00:29:30,806
+to make them fit within the
+control flow model of GPUs.
+
+
+678
+00:29:30,806 --> 00:29:34,006
+And often this will involve
+duplicating code and all sort
+
+
+679
+00:29:34,006 --> 00:29:36,636
+of nasty things you probably
+would rather not be happening.
+
+
+680
+00:29:37,216 --> 00:29:39,966
+So if you can find a nice way to
+avoid these switch fall-throughs
+
+
+681
+00:29:39,966 --> 00:29:41,636
+in your code, you'll
+probably be better off.
+
+
+682
+00:29:42,526 --> 00:29:45,076
+So now we're on to
+our final topic.
+
+
+683
+00:29:45,366 --> 00:29:46,166
+Memory access.
+
+
+684
+00:29:46,446 --> 00:29:48,296
+And we'll start with
+the biggest pitfall
+
+
+685
+00:29:48,526 --> 00:29:50,156
+that people most
+commonly run into
+
+
+686
+00:29:50,156 --> 00:29:54,946
+and that is dynamically indexed
+non-constant stack arrays.
+
+
+687
+00:29:55,116 --> 00:29:56,516
+Now that's quite a mouthful,
+
+
+688
+00:29:56,516 --> 00:29:59,506
+but a lot of you probably
+are familiar with code
+
+
+689
+00:29:59,506 --> 00:30:00,466
+that looks vaguely like this.
+
+
+690
+00:30:01,046 --> 00:30:04,626
+You have an array that consist
+of values that are defined
+
+
+691
+00:30:04,626 --> 00:30:08,226
+in runtime and vary between each
+thread or each function call.
+
+
+692
+00:30:08,226 --> 00:30:10,986
+And you index it to the
+array with another value
+
+
+693
+00:30:10,986 --> 00:30:12,076
+that is also a variable.
+
+
+694
+00:30:12,416 --> 00:30:15,026
+That is a dynamically indexed
+non-constant stack array.
+
+
+695
+00:30:15,846 --> 00:30:18,436
+Now before we go on, I'm
+not going to ask you to take
+
+
+696
+00:30:18,436 --> 00:30:20,966
+for grabs at the idea that
+stacks are slow on GPUs.
+
+
+697
+00:30:20,966 --> 00:30:22,456
+I'm going to explain why.
+
+
+698
+00:30:23,306 --> 00:30:26,446
+So, on CPUs typically you
+have like a couple threads,
+
+
+699
+00:30:26,546 --> 00:30:29,506
+maybe a dozen threads, and you
+have megabytes of cache split
+
+
+700
+00:30:29,546 --> 00:30:30,276
+between those threads.
+
+
+701
+00:30:30,396 --> 00:30:33,126
+So every thread can have
+hundreds of kilobytes
+
+
+702
+00:30:33,126 --> 00:30:35,366
+of stack space before they
+get really slow and have
+
+
+703
+00:30:35,406 --> 00:30:36,506
+to head off to main memory.
+
+
+704
+00:30:37,336 --> 00:30:40,956
+On a GPU you often have tens of
+thousands of threads running.
+
+
+705
+00:30:41,016 --> 00:30:43,976
+And they're all sharing
+a much smaller cache too.
+
+
+706
+00:30:44,256 --> 00:30:46,356
+So when it comes down to
+it each thread has very,
+
+
+707
+00:30:46,356 --> 00:30:48,436
+very little space
+for data for a stack.
+
+
+708
+00:30:49,206 --> 00:30:52,176
+It's just not meant for that,
+it's not efficient and so
+
+
+709
+00:30:52,176 --> 00:30:54,966
+as a general rule,
+for most GPU programs,
+
+
+710
+00:30:54,966 --> 00:30:57,276
+if you're using the
+stack, you've already lost.
+
+
+711
+00:30:57,326 --> 00:31:00,786
+It's so slow that almost
+anything else would have
+
+
+712
+00:31:00,786 --> 00:31:01,156
+been better.
+
+
+713
+00:31:02,696 --> 00:31:06,856
+And an example for a real
+world app is at the start
+
+
+714
+00:31:06,856 --> 00:31:09,586
+of the program it needed
+to select one of two float
+
+
+715
+00:31:09,586 --> 00:31:12,376
+for vectors, so it
+used a 32-byte array,
+
+
+716
+00:31:12,376 --> 00:31:14,836
+an array of two float
+fours and tried to select
+
+
+717
+00:31:14,916 --> 00:31:16,336
+between them using
+this stack array.
+
+
+718
+00:31:16,336 --> 00:31:18,996
+And that caused a
+30% performance loss
+
+
+719
+00:31:18,996 --> 00:31:21,076
+in this program even though it's
+only done once at the start.
+
+
+720
+00:31:21,546 --> 00:31:24,036
+It can be pretty significant.
+
+
+721
+00:31:24,716 --> 00:31:27,516
+And of course every time we
+improve the compiler we are
+
+
+722
+00:31:27,516 --> 00:31:30,936
+going to try harder and harder
+to avoid, do anything we can
+
+
+723
+00:31:31,546 --> 00:31:34,706
+to avoid generating these stack
+access because it is that bad.
+
+
+724
+00:31:35,806 --> 00:31:38,186
+Now I'll show you two
+examples here that are okay.
+
+
+725
+00:31:39,636 --> 00:31:42,876
+This other one, you can
+see those are constants,
+
+
+726
+00:31:42,976 --> 00:31:43,666
+not variables.
+
+
+727
+00:31:44,026 --> 00:31:46,706
+It's not a non-constant
+stack array and that's fine
+
+
+728
+00:31:47,266 --> 00:31:50,706
+because the values don't vary
+per threads, they don't need
+
+
+729
+00:31:50,706 --> 00:31:51,856
+to be duplicated per thread.
+
+
+730
+00:31:52,426 --> 00:31:54,506
+So that's okay.
+
+
+731
+00:31:54,856 --> 00:31:56,406
+And this one is also okay.
+
+
+732
+00:31:56,616 --> 00:31:57,136
+Wait, why?
+
+
+733
+00:31:57,136 --> 00:31:59,486
+It's still a dynamically indexed
+non-constant stack array.
+
+
+734
+00:32:00,116 --> 00:32:02,646
+But it's only done dynamically
+indexed because of this loop.
+
+
+735
+00:32:03,266 --> 00:32:06,116
+And the compiler is going
+to unroll that loop.
+
+
+736
+00:32:06,476 --> 00:32:09,526
+In fact, your compiler
+aggressively unrolls any loop
+
+
+737
+00:32:09,526 --> 00:32:12,426
+that is accessing the stack to
+try to make it stop doing that.
+
+
+738
+00:32:13,256 --> 00:32:15,836
+So in this case after it's
+unrolled it will no longer be
+
+
+739
+00:32:15,836 --> 00:32:17,326
+dynamically indexed,
+so it will be fast.
+
+
+740
+00:32:17,326 --> 00:32:18,796
+And this is worth mentioning,
+
+
+741
+00:32:18,796 --> 00:32:20,706
+because this is a fairly
+common pattern in a lot
+
+
+742
+00:32:20,706 --> 00:32:23,336
+of graphics code and I don't
+want to scare you into not doing
+
+
+743
+00:32:23,336 --> 00:32:24,676
+that when it's probably fine.
+
+
+744
+00:32:25,516 --> 00:32:27,986
+So now that we've gone
+over the topic of how
+
+
+745
+00:32:27,986 --> 00:32:30,236
+to not do certain types
+of loads and stores,
+
+
+746
+00:32:30,536 --> 00:32:32,426
+let's go on to making
+the loads and stores
+
+
+747
+00:32:32,426 --> 00:32:34,556
+that we do actually fast.
+
+
+748
+00:32:35,416 --> 00:32:38,066
+Now while A8 and later
+GPUs use scalar arithmetic,
+
+
+749
+00:32:38,066 --> 00:32:41,236
+as I went over earlier, they
+do have vector memory units.
+
+
+750
+00:32:42,006 --> 00:32:45,546
+And one big vector loading
+source of course faster
+
+
+751
+00:32:45,546 --> 00:32:48,746
+than multiple smaller ones
+that sum up to the same size.
+
+
+752
+00:32:49,616 --> 00:32:52,266
+And this typically effects the
+memory issue rate bottleneck
+
+
+753
+00:32:52,326 --> 00:32:53,266
+because if you're running
+
+
+754
+00:32:53,266 --> 00:32:55,186
+through a loads,
+that's fewer loads.
+
+
+755
+00:32:56,266 --> 00:33:00,136
+And, so as of iOS 10, one of
+our new compiler optimizations,
+
+
+756
+00:33:00,136 --> 00:33:03,186
+is we will try to vectorize
+some loads and stores that go
+
+
+757
+00:33:03,186 --> 00:33:05,396
+to neighboring memory
+locations wherever we can,
+
+
+758
+00:33:05,626 --> 00:33:07,766
+because again it can give
+good performance improvements.
+
+
+759
+00:33:08,956 --> 00:33:12,656
+But nevertheless, this is one
+of the cases where working
+
+
+760
+00:33:12,656 --> 00:33:14,286
+with the compiler
+can be very helpful,
+
+
+761
+00:33:14,536 --> 00:33:15,436
+and I'll give an example.
+
+
+762
+00:33:16,436 --> 00:33:18,336
+So as you can see here,
+here's a simple loop
+
+
+763
+00:33:18,436 --> 00:33:21,016
+that does some arithmetic and
+reads in an array of structures,
+
+
+764
+00:33:21,876 --> 00:33:25,066
+but on each iteration,
+it reads just two loads.
+
+
+765
+00:33:25,506 --> 00:33:27,696
+Now we would want that
+to be one if we could,
+
+
+766
+00:33:27,696 --> 00:33:29,856
+because one is better than two.
+
+
+767
+00:33:29,856 --> 00:33:32,096
+And the compiler wants that too.
+
+
+768
+00:33:32,096 --> 00:33:34,976
+It wants to try to vectorize
+this but it can't, because A
+
+
+769
+00:33:34,976 --> 00:33:36,886
+and C aren't next to
+each other in memory
+
+
+770
+00:33:36,886 --> 00:33:37,896
+so there's nothing it can do.
+
+
+771
+00:33:37,896 --> 00:33:39,976
+The compiler's not allowed
+to rearrange your structs,
+
+
+772
+00:33:40,256 --> 00:33:41,156
+so we've got two loads.
+
+
+773
+00:33:42,186 --> 00:33:43,436
+There's two solutions to this.
+
+
+774
+00:33:44,036 --> 00:33:46,536
+Number one, of course,
+just make it a float to,
+
+
+775
+00:33:46,536 --> 00:33:47,966
+now it's a vector
+load, you're done.
+
+
+776
+00:33:48,696 --> 00:33:49,996
+One load, a set of
+two, we're all good.
+
+
+777
+00:33:51,176 --> 00:33:54,946
+Also, as of iOS 10, this
+should also be equally fast,
+
+
+778
+00:33:55,276 --> 00:33:56,986
+because here, we've
+reordered our struct
+
+
+779
+00:33:56,986 --> 00:33:58,486
+to put the values
+next to each other,
+
+
+780
+00:33:58,836 --> 00:34:00,936
+so the compiler can
+now vectorize the loads
+
+
+781
+00:34:00,936 --> 00:34:01,936
+when it's doing it.
+
+
+782
+00:34:02,256 --> 00:34:05,286
+And this is an example again
+of working with the compiler,
+
+
+783
+00:34:05,636 --> 00:34:08,616
+you've allowed the compiler to
+do something it couldn't before,
+
+
+784
+00:34:08,726 --> 00:34:11,295
+because you understand
+what's going on.
+
+
+785
+00:34:11,295 --> 00:34:13,766
+You understand how the
+patterns need to be
+
+
+786
+00:34:13,766 --> 00:34:15,246
+to make the compiler happy
+
+
+787
+00:34:15,516 --> 00:34:18,916
+and make it able to
+do a [inaudible].
+
+
+788
+00:34:19,835 --> 00:34:23,216
+So, another thing to keep in
+mind with loads and stores is
+
+
+789
+00:34:23,216 --> 00:34:26,235
+that A8 and later GPUs
+have dedicated hardware
+
+
+790
+00:34:26,235 --> 00:34:31,735
+for device memory addressing,
+but this hardware has limits.
+
+
+791
+00:34:32,406 --> 00:34:35,065
+The offset for accessing
+device memory must fit
+
+
+792
+00:34:35,065 --> 00:34:36,406
+within a signed integer.
+
+
+793
+00:34:36,876 --> 00:34:39,335
+Smaller types like short
+and ushort are also okay,
+
+
+794
+00:34:39,335 --> 00:34:40,916
+in fact they're highly
+encouraged,
+
+
+795
+00:34:41,416 --> 00:34:43,545
+because those do also fit
+within a signed integer.
+
+
+796
+00:34:44,366 --> 00:34:47,786
+However, of course uint does
+not because it can have values
+
+
+797
+00:34:47,786 --> 00:34:49,076
+out of range of signed integer.
+
+
+798
+00:34:49,696 --> 00:34:54,076
+And so if the compiler
+runs into a situation
+
+
+799
+00:34:54,076 --> 00:34:56,716
+where the offset is a
+uint and it cannot prove
+
+
+800
+00:34:56,775 --> 00:34:58,896
+that it will safely fit
+within a signed integer,
+
+
+801
+00:34:59,266 --> 00:35:01,596
+it has to manually
+calculate the address,
+
+
+802
+00:35:02,156 --> 00:35:04,086
+rather than letting the
+dedicated hardware do it.
+
+
+803
+00:35:04,366 --> 00:35:05,656
+And that can waste power,
+
+
+804
+00:35:05,786 --> 00:35:08,886
+it can waste ALU
+performance and so forth.
+
+
+805
+00:35:09,006 --> 00:35:10,066
+It's not good.
+
+
+806
+00:35:10,626 --> 00:35:15,396
+So, change your offset to
+int, now the problem's solved.
+
+
+807
+00:35:15,396 --> 00:35:16,426
+And of course taking advantage
+
+
+808
+00:35:16,426 --> 00:35:18,606
+to this will typically
+save you ALU bandwidth.
+
+
+809
+00:35:21,496 --> 00:35:23,626
+So now on to our final
+topic that I sort of glossed
+
+
+810
+00:35:23,626 --> 00:35:25,476
+over earlier, latency
+and occupancy.
+
+
+811
+00:35:26,266 --> 00:35:28,496
+So one of the core
+design tenants
+
+
+812
+00:35:28,496 --> 00:35:30,316
+of modern GPUs is
+they hide latency
+
+
+813
+00:35:30,316 --> 00:35:32,146
+by using large scale
+multithreading.
+
+
+814
+00:35:32,646 --> 00:35:34,866
+So when they're waiting for
+something slow to finish,
+
+
+815
+00:35:34,866 --> 00:35:36,856
+like a texture read,
+they just go
+
+
+816
+00:35:36,856 --> 00:35:37,896
+and run another thread instead
+
+
+817
+00:35:37,896 --> 00:35:39,336
+of sitting there doing
+nothing while waiting.
+
+
+818
+00:35:39,336 --> 00:35:40,536
+And this is fairly important
+
+
+819
+00:35:40,536 --> 00:35:43,426
+because texture reads typically
+take a couple hundred cycles
+
+
+820
+00:35:43,426 --> 00:35:44,656
+to complete on average.
+
+
+821
+00:35:47,306 --> 00:35:49,536
+And so the more latency
+you have in a shader,
+
+
+822
+00:35:49,536 --> 00:35:52,066
+the more threads you need
+to hide that latency,
+
+
+823
+00:35:52,606 --> 00:35:53,776
+and how many threads
+can you have?
+
+
+824
+00:35:54,236 --> 00:35:56,526
+Well it's limited by the fact
+that you have a fixed set
+
+
+825
+00:35:56,526 --> 00:35:58,116
+of resources that are shared
+
+
+826
+00:35:58,116 --> 00:35:59,696
+between threads in
+a thread group.
+
+
+827
+00:36:00,016 --> 00:36:02,706
+So clearly depending on
+how much each thread uses,
+
+
+828
+00:36:02,706 --> 00:36:04,596
+you have a limitation on
+the number of threads.
+
+
+829
+00:36:04,846 --> 00:36:07,006
+And the two things that
+are split are the number
+
+
+830
+00:36:07,006 --> 00:36:08,766
+of registers and
+thread group memory.
+
+
+831
+00:36:09,316 --> 00:36:11,136
+So if you use more
+registers per thread,
+
+
+832
+00:36:11,306 --> 00:36:12,606
+now you can't have
+as many threads.
+
+
+833
+00:36:12,716 --> 00:36:13,126
+Simple enough.
+
+
+834
+00:36:13,606 --> 00:36:17,626
+And if you use more thread group
+memory per thread, again you run
+
+
+835
+00:36:17,626 --> 00:36:18,646
+into the same problem,
+
+
+836
+00:36:18,806 --> 00:36:20,936
+more thread your memory per
+thread means to your threads.
+
+
+837
+00:36:21,726 --> 00:36:25,316
+And you can actually check out
+the occupancy of your shader
+
+
+838
+00:36:25,636 --> 00:36:29,416
+by using MTLComputePipeLineState
+incurring
+
+
+839
+00:36:29,416 --> 00:36:31,306
+maxTotalThreadsPerThreadgroup,
+
+
+840
+00:36:31,646 --> 00:36:33,826
+which will tell you what
+the actual occupancy
+
+
+841
+00:36:33,826 --> 00:36:36,776
+of your shader is based
+on the register usage
+
+
+842
+00:36:36,846 --> 00:36:39,486
+and the thread group
+memory usage.
+
+
+843
+00:36:40,006 --> 00:36:42,346
+And so when we say a
+shader is latency limited,
+
+
+844
+00:36:42,626 --> 00:36:44,426
+it means you have
+too few threads
+
+
+845
+00:36:44,496 --> 00:36:45,806
+to hide the latency of a shader.
+
+
+846
+00:36:45,806 --> 00:36:47,436
+And there's two things
+you can do there,
+
+
+847
+00:36:47,696 --> 00:36:49,616
+you can either reduce the
+latency of your shader,
+
+
+848
+00:36:50,016 --> 00:36:52,296
+your save registers
+or whatever else it is
+
+
+849
+00:36:52,476 --> 00:36:54,546
+that is preventing you
+from having more threads.
+
+
+850
+00:36:57,066 --> 00:37:02,236
+So, since it's kind of
+hard to go over latency
+
+
+851
+00:37:02,236 --> 00:37:03,856
+in a very large complex shader.
+
+
+852
+00:37:04,246 --> 00:37:06,356
+I'll go over a little bit
+of a pseudocode example
+
+
+853
+00:37:06,356 --> 00:37:08,516
+that will hopefully give you
+a big of an intuition of how
+
+
+854
+00:37:08,516 --> 00:37:10,496
+to think about latency
+and how to sort
+
+
+855
+00:37:10,496 --> 00:37:12,926
+of mentally model
+in your shaders.
+
+
+856
+00:37:14,166 --> 00:37:16,666
+So, here's an example
+of a REAL dependency.
+
+
+857
+00:37:17,066 --> 00:37:19,686
+We have a texture sample,
+and then we use the operative
+
+
+858
+00:37:19,686 --> 00:37:21,786
+of that texture sample
+to run an if statement
+
+
+859
+00:37:21,786 --> 00:37:24,306
+and then we do another texture
+sample inside that x statement.
+
+
+860
+00:37:24,986 --> 00:37:26,056
+We have to wait twice.
+
+
+861
+00:37:26,056 --> 00:37:28,706
+Because we have to wait once
+before doing the if statement.
+
+
+862
+00:37:29,016 --> 00:37:31,566
+And we have to wait again
+before using the value
+
+
+863
+00:37:31,566 --> 00:37:32,836
+from the second texture sample.
+
+
+864
+00:37:32,836 --> 00:37:36,566
+So that's two serial
+texture accesses
+
+
+865
+00:37:37,026 --> 00:37:38,716
+for a total of twice
+the latency.
+
+
+866
+00:37:40,326 --> 00:37:42,416
+Now here's an example
+of a false dependency.
+
+
+867
+00:37:42,416 --> 00:37:43,456
+It looks a lot like the other,
+
+
+868
+00:37:43,456 --> 00:37:45,716
+except we're not using
+a in the if statement.
+
+
+869
+00:37:46,906 --> 00:37:51,086
+But typically, we can't
+wait across control flow.
+
+
+870
+00:37:51,346 --> 00:37:54,366
+The if statement acts an
+effective barrier in this case.
+
+
+871
+00:37:54,706 --> 00:37:56,746
+So, we automatically have
+
+
+872
+00:37:56,886 --> 00:37:59,796
+to wait here anyways even though
+there's no data dependency.
+
+
+873
+00:38:00,116 --> 00:38:01,636
+So we still get twice
+the latency.
+
+
+874
+00:38:02,006 --> 00:38:04,386
+As you noticed the GPU
+does not actually care
+
+
+875
+00:38:04,456 --> 00:38:05,656
+about your data dependencies.
+
+
+876
+00:38:06,046 --> 00:38:09,406
+It only cares about what the
+dependencies appear to be
+
+
+877
+00:38:09,966 --> 00:38:13,106
+and so the second one will
+be just as long latency
+
+
+878
+00:38:13,106 --> 00:38:15,196
+as the first one, even
+though there isn't a data
+
+
+879
+00:38:15,196 --> 00:38:16,016
+dependency there.
+
+
+880
+00:38:16,846 --> 00:38:19,426
+And then finally
+here's a simple one
+
+
+881
+00:38:19,426 --> 00:38:21,326
+where you just have two
+texture reads at the top,
+
+
+882
+00:38:21,946 --> 00:38:23,826
+and they can both
+be done in parallel
+
+
+883
+00:38:24,456 --> 00:38:26,626
+and then we can have
+a single wait.
+
+
+884
+00:38:26,746 --> 00:38:29,186
+So it's 1 x instead
+of 2 x for latency.
+
+
+885
+00:38:30,226 --> 00:38:32,386
+So, what are you going to
+do with this knowledge?
+
+
+886
+00:38:32,696 --> 00:38:36,146
+So in many real world
+shaders you have opportunities
+
+
+887
+00:38:36,146 --> 00:38:38,466
+to tradeoff between
+latency and throughput.
+
+
+888
+00:38:39,046 --> 00:38:41,946
+And a common example of this
+might be that you have some code
+
+
+889
+00:38:41,946 --> 00:38:45,956
+where based on one texture read
+you can decide, oh we don't need
+
+
+890
+00:38:45,956 --> 00:38:48,776
+to do anything in this shader,
+we're going to quit early.
+
+
+891
+00:38:48,776 --> 00:38:50,436
+And that can be very useful.
+
+
+892
+00:38:50,436 --> 00:38:53,366
+Because now all that work
+that's being done in the cases
+
+
+893
+00:38:53,366 --> 00:38:54,546
+where you don't need
+it to be done,
+
+
+894
+00:38:55,026 --> 00:38:56,056
+you're saving all that work.
+
+
+895
+00:38:56,346 --> 00:38:57,036
+That's great.
+
+
+896
+00:38:57,386 --> 00:39:01,816
+But now you're increasing
+your throughput
+
+
+897
+00:39:02,596 --> 00:39:04,156
+by reducing the amount
+of work you need to do.
+
+
+898
+00:39:05,026 --> 00:39:09,256
+But you're also increasing
+your latency because now it has
+
+
+899
+00:39:09,316 --> 00:39:12,866
+to do the first texture read,
+then wait for that texture read,
+
+
+900
+00:39:13,306 --> 00:39:14,956
+then do your early
+termination check,
+
+
+901
+00:39:15,336 --> 00:39:18,616
+and then do whatever other
+texture reads you have.
+
+
+902
+00:39:18,996 --> 00:39:20,626
+And well is it faster?
+
+
+903
+00:39:20,626 --> 00:39:21,106
+Is it not?
+
+
+904
+00:39:21,476 --> 00:39:23,976
+Often you just have to test.
+
+
+905
+00:39:24,386 --> 00:39:26,756
+Because which is faster
+is really going to depend
+
+
+906
+00:39:26,756 --> 00:39:28,966
+on your shader, but it's
+a thing worth being aware
+
+
+907
+00:39:28,966 --> 00:39:32,026
+of that often is a real
+tradeoff and you often have
+
+
+908
+00:39:32,096 --> 00:39:33,436
+to experiment to
+see what's right.
+
+
+909
+00:39:34,246 --> 00:39:35,976
+Now, while there isn't
+a universal rule,
+
+
+910
+00:39:35,976 --> 00:39:39,056
+there is one particular
+guideline I can give for A8
+
+
+911
+00:39:39,056 --> 00:39:43,016
+and later GPUs and that is
+typically the hardware needs
+
+
+912
+00:39:43,016 --> 00:39:45,556
+at least two texture
+reads at a time
+
+
+913
+00:39:45,556 --> 00:39:47,706
+to get full ability
+to hide latency.
+
+
+914
+00:39:48,206 --> 00:39:49,086
+One is not enough.
+
+
+915
+00:39:49,896 --> 00:39:51,656
+If you have to do
+one, no problem.
+
+
+916
+00:39:51,706 --> 00:39:53,816
+But if you have some choice
+
+
+917
+00:39:53,816 --> 00:39:55,726
+in how you arrange your
+texture reads in your shader,
+
+
+918
+00:39:55,946 --> 00:39:58,066
+if you allow it to do
+at least two at a time,
+
+
+919
+00:39:58,266 --> 00:39:59,416
+you may get better performance.
+
+
+920
+00:40:01,326 --> 00:40:02,236
+So, in summary.
+
+
+921
+00:40:03,576 --> 00:40:06,436
+Make sure you pick the correct
+address spaces, data structures,
+
+
+922
+00:40:06,436 --> 00:40:09,556
+layouts and so forth, because
+getting this wrong is going
+
+
+923
+00:40:09,556 --> 00:40:11,676
+to hurt so much that often
+none of the other stuff
+
+
+924
+00:40:11,676 --> 00:40:12,816
+in the presentation will matter.
+
+
+925
+00:40:14,326 --> 00:40:15,646
+Work with the compiler.
+
+
+926
+00:40:15,646 --> 00:40:16,506
+Write what you mean.
+
+
+927
+00:40:17,086 --> 00:40:18,476
+Don't try to be too clever,
+
+
+928
+00:40:18,476 --> 00:40:20,966
+or the compiler won't know what
+you mean and will get lost,
+
+
+929
+00:40:21,406 --> 00:40:22,786
+and won't be able to do its job.
+
+
+930
+00:40:23,656 --> 00:40:25,456
+Plus, it's easier to
+write what you mean.
+
+
+931
+00:40:26,976 --> 00:40:28,566
+Keep an eye out for
+the big pitfalls,
+
+
+932
+00:40:28,566 --> 00:40:30,156
+not just the
+micro-optimizations.
+
+
+933
+00:40:30,386 --> 00:40:32,796
+They're often not as obvious,
+and they often don't come
+
+
+934
+00:40:32,796 --> 00:40:35,326
+up as often, but when
+they do, they hurt.
+
+
+935
+00:40:35,456 --> 00:40:37,716
+And they will hurt so
+much that no number
+
+
+936
+00:40:37,716 --> 00:40:39,346
+of micro-optimizations
+will save you.
+
+
+937
+00:40:40,986 --> 00:40:42,466
+And feel free to experiment.
+
+
+938
+00:40:42,696 --> 00:40:44,926
+There's a number of rule
+tradeoffs that happen,
+
+
+939
+00:40:44,926 --> 00:40:47,646
+where there's simply
+no single rule.
+
+
+940
+00:40:48,076 --> 00:40:49,946
+And try them both,
+see what's faster.
+
+
+941
+00:40:51,936 --> 00:40:54,486
+So, if you want more
+information, go online.
+
+
+942
+00:40:54,486 --> 00:40:55,886
+The video of the talk
+will be up there.
+
+
+943
+00:40:55,886 --> 00:40:59,946
+Here are the other session if
+you missed them earlier, again,
+
+
+944
+00:40:59,946 --> 00:41:01,406
+the videos will be online.
+
+
+945
+00:41:02,936 --> 00:41:03,246
+Thank you.
+

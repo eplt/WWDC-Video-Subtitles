@@ -1,0 +1,5299 @@
+1
+00:00:07,516 --> 00:00:19,460
+[ Music ]
+
+
+2
+00:00:22,516 --> 00:00:27,896
+[ Applause ]
+
+
+3
+00:00:28,396 --> 00:00:30,036
+>> Good afternoon
+everyone and welcome
+
+
+4
+00:00:30,036 --> 00:00:32,286
+to Architecting Performance
+on watchOS 3.
+
+
+5
+00:00:32,806 --> 00:00:34,006
+My name is Tyler McAtee
+
+
+6
+00:00:34,266 --> 00:00:36,476
+and shortly you'll be meeting
+my colleague, Todd Grooms.
+
+
+7
+00:00:37,386 --> 00:00:39,996
+Today we'll be discussing the
+way we at Apple have thought
+
+
+8
+00:00:39,996 --> 00:00:42,806
+about performance and where that
+took us when building watchOS 3.
+
+
+9
+00:00:43,736 --> 00:00:47,156
+We'll start by talking about
+2-Second tasks, what that is,
+
+
+10
+00:00:47,426 --> 00:00:49,456
+how it helped influence
+the design of watchOS 3,
+
+
+11
+00:00:49,576 --> 00:00:51,366
+and what that means for
+your app's architecture.
+
+
+12
+00:00:52,366 --> 00:00:55,166
+I'll then talk a bit about how
+design strategies influenced
+
+
+13
+00:00:55,166 --> 00:00:59,206
+performance and, showcase
+a new detail paging API
+
+
+14
+00:00:59,206 --> 00:01:01,686
+that will help reduce
+unnecessary navigation time.
+
+
+15
+00:01:02,946 --> 00:01:04,696
+Finally, Todd will come on stage
+
+
+16
+00:01:04,736 --> 00:01:06,856
+and show how we've taken
+these ideas and applied
+
+
+17
+00:01:06,856 --> 00:01:08,726
+to them the stock's
+watch application.
+
+
+18
+00:01:09,366 --> 00:01:11,436
+So let's start with
+2-Second tasks.
+
+
+19
+00:01:11,436 --> 00:01:13,856
+We've focused on this idea
+as a good rule of thumb
+
+
+20
+00:01:14,086 --> 00:01:16,276
+for what an interaction with the
+Apple Watch should feel like.
+
+
+21
+00:01:16,436 --> 00:01:17,776
+So what is a 2-Second task?
+
+
+22
+00:01:18,636 --> 00:01:21,156
+A 2-Second task is something
+the user wants to accomplish
+
+
+23
+00:01:21,226 --> 00:01:22,926
+or learn by looking
+at their Apple Watch.
+
+
+24
+00:01:23,716 --> 00:01:25,786
+These tasks should only
+take a couple seconds.
+
+
+25
+00:01:26,516 --> 00:01:29,926
+And these seconds should be
+measured from the very beginning
+
+
+26
+00:01:29,926 --> 00:01:31,626
+of the interaction
+until the very end,
+
+
+27
+00:01:31,866 --> 00:01:33,706
+from the moment the user
+raises their wrist to look
+
+
+28
+00:01:33,706 --> 00:01:35,776
+at their Apple Watch, to the
+point where they've lowered it.
+
+
+29
+00:01:36,836 --> 00:01:41,086
+Some examples of a 2-Second task
+may be, checking a notification,
+
+
+30
+00:01:41,816 --> 00:01:43,526
+setting a timer or
+starting a workout.
+
+
+31
+00:01:44,826 --> 00:01:46,076
+Today I'm going to
+walk through some
+
+
+32
+00:01:46,076 --> 00:01:47,816
+of the key changes
+we've made to the system
+
+
+33
+00:01:47,936 --> 00:01:49,726
+and explain how these
+will affect the way you
+
+
+34
+00:01:49,726 --> 00:01:51,766
+as a developer should
+think about performance
+
+
+35
+00:01:51,766 --> 00:01:52,936
+in your WatchKit application.
+
+
+36
+00:01:54,986 --> 00:01:56,516
+Now, one of the first
+bottlenecks
+
+
+37
+00:01:56,516 --> 00:01:59,006
+in accomplishing a task on
+the Apple Watch is the amount
+
+
+38
+00:01:59,006 --> 00:02:01,726
+of navigation it can take to get
+to the appropriate application.
+
+
+39
+00:02:02,496 --> 00:02:04,046
+The quickest way to
+launch an application
+
+
+40
+00:02:04,046 --> 00:02:06,226
+on the Apple Watch is by
+tapping a complication.
+
+
+41
+00:02:06,896 --> 00:02:09,326
+We only encourage developers
+to implement a complication
+
+
+42
+00:02:09,476 --> 00:02:10,895
+if they had relevant
+data to display.
+
+
+43
+00:02:10,895 --> 00:02:13,626
+A lot of our apps,
+such as Messages,
+
+
+44
+00:02:13,626 --> 00:02:15,496
+Mail and Phone had
+no complication.
+
+
+45
+00:02:16,266 --> 00:02:17,796
+In order to increase
+navigatability
+
+
+46
+00:02:17,796 --> 00:02:20,696
+on the Apple Watch as well as
+present users with more options
+
+
+47
+00:02:20,696 --> 00:02:23,146
+to customize, now
+on watchOS 3 all
+
+
+48
+00:02:23,146 --> 00:02:25,046
+of our applications
+have complications.
+
+
+49
+00:02:25,906 --> 00:02:28,486
+These launcher complications
+are useful for quick access
+
+
+50
+00:02:28,486 --> 00:02:30,256
+to your very favorite
+applications right
+
+
+51
+00:02:30,256 --> 00:02:31,156
+from the watch face.
+
+
+52
+00:02:31,776 --> 00:02:33,176
+We encourage you to
+adopt this policy
+
+
+53
+00:02:33,176 --> 00:02:34,486
+for your application as well.
+
+
+54
+00:02:34,816 --> 00:02:38,876
+Implement a complication whether
+or not you have data to display.
+
+
+55
+00:02:38,996 --> 00:02:41,496
+Additionally, new in watchOS
+3 we've brought you the dock.
+
+
+56
+00:02:42,576 --> 00:02:44,936
+Just by pressing the side button
+users will be able to bring
+
+
+57
+00:02:44,936 --> 00:02:46,786
+up their dock and
+quickly look through all
+
+
+58
+00:02:46,786 --> 00:02:48,036
+of their favorites applications.
+
+
+59
+00:02:49,066 --> 00:02:52,136
+Navigating to and from these
+applications is extremely quick
+
+
+60
+00:02:52,136 --> 00:02:52,526
+and easy.
+
+
+61
+00:02:53,496 --> 00:02:55,006
+Now we want our users
+to be able to go
+
+
+62
+00:02:55,006 --> 00:02:57,246
+to these favorite applications
+and have them already ready
+
+
+63
+00:02:57,246 --> 00:02:59,866
+and loaded, instead of having to
+wait for an activity indicator
+
+
+64
+00:02:59,906 --> 00:03:01,166
+as the application
+is brought up.
+
+
+65
+00:03:01,926 --> 00:03:05,146
+In order to address this, in
+watchOS 3 all the applications
+
+
+66
+00:03:05,146 --> 00:03:07,106
+that a user chooses to
+put on their watch face
+
+
+67
+00:03:07,226 --> 00:03:09,506
+or in their dock will be
+kept alive and suspended
+
+
+68
+00:03:09,506 --> 00:03:10,536
+in memory by the system.
+
+
+69
+00:03:11,376 --> 00:03:13,866
+That way when they go to
+interact with the applications,
+
+
+70
+00:03:14,066 --> 00:03:16,316
+they only have to wait for
+resume, instead of a launch.
+
+
+71
+00:03:16,926 --> 00:03:18,686
+But the system still has
+a fixed amount of memory,
+
+
+72
+00:03:19,046 --> 00:03:20,586
+and as an application
+in the system,
+
+
+73
+00:03:20,916 --> 00:03:22,176
+you'll need to be
+a good citizen.
+
+
+74
+00:03:22,456 --> 00:03:24,486
+Because there can be up
+to 10 dock applications,
+
+
+75
+00:03:24,776 --> 00:03:26,756
+up to 5 complications, as well
+
+
+76
+00:03:26,756 --> 00:03:28,826
+as the system application,
+processes and more.
+
+
+77
+00:03:30,236 --> 00:03:32,486
+You have to remember
+that you're just one part
+
+
+78
+00:03:32,486 --> 00:03:35,296
+of a large ecosystem, so
+you have to only use as much
+
+
+79
+00:03:35,296 --> 00:03:37,006
+as you absolutely need.
+
+
+80
+00:03:38,206 --> 00:03:40,956
+Now the system, because of
+the nature of this ecosystem,
+
+
+81
+00:03:41,046 --> 00:03:43,866
+our system does impose a fixed
+ceiling on the amount of memory
+
+
+82
+00:03:43,866 --> 00:03:45,526
+that a WatchKit application
+can use.
+
+
+83
+00:03:46,016 --> 00:03:47,046
+If you exceed this limit,
+
+
+84
+00:03:47,286 --> 00:03:49,696
+our system will terminate you
+abruptly with no chance to tear
+
+
+85
+00:03:49,696 --> 00:03:52,386
+down so that the memory can be
+reclaimed for other processes.
+
+
+86
+00:03:52,836 --> 00:03:56,256
+This limit isn't a goal, and you
+shouldn't feel the need to use
+
+
+87
+00:03:56,256 --> 00:03:57,836
+up all this memory
+and realistically,
+
+
+88
+00:03:57,836 --> 00:03:58,976
+it should be nowhere
+near the limit.
+
+
+89
+00:03:59,626 --> 00:04:02,696
+The current limit, as of watchOS
+3 is 30 megabytes per WatchKit
+
+
+90
+00:04:02,696 --> 00:04:04,716
+application, but this
+may change in the future.
+
+
+91
+00:04:05,786 --> 00:04:07,966
+So what are some good tips for
+keeping your memory usage down?
+
+
+92
+00:04:09,146 --> 00:04:11,306
+Use appropriately sized
+images for the watch screen,
+
+
+93
+00:04:11,656 --> 00:04:13,586
+not only does this
+keep down memory usage
+
+
+94
+00:04:13,816 --> 00:04:15,456
+but will help increase
+overall performance,
+
+
+95
+00:04:15,496 --> 00:04:16,326
+because the watch won't have
+
+
+96
+00:04:16,356 --> 00:04:18,696
+to do the extra work
+to resize the images.
+
+
+97
+00:04:19,326 --> 00:04:23,926
+Use appropriately sized data
+sets, don't download a giant set
+
+
+98
+00:04:23,926 --> 00:04:25,786
+of data if you're only
+displaying a few records
+
+
+99
+00:04:25,786 --> 00:04:26,236
+on screen.
+
+
+100
+00:04:26,716 --> 00:04:29,136
+And if you're only displaying
+one property of a data object,
+
+
+101
+00:04:29,286 --> 00:04:30,126
+don't download or keep
+
+
+102
+00:04:30,126 --> 00:04:31,676
+around all the other
+properties as well.
+
+
+103
+00:04:32,866 --> 00:04:34,936
+If you have control over
+the API you're using
+
+
+104
+00:04:34,936 --> 00:04:36,896
+to download the data
+it may make sense
+
+
+105
+00:04:36,896 --> 00:04:39,406
+to build separate end points
+for the phone and for the watch
+
+
+106
+00:04:39,406 --> 00:04:41,906
+since the watch will probably
+display a more condensed version
+
+
+107
+00:04:41,906 --> 00:04:42,706
+of the information.
+
+
+108
+00:04:43,176 --> 00:04:45,876
+This will help save on the
+amount of network traffic
+
+
+109
+00:04:45,876 --> 00:04:47,916
+that your watch has to
+process as well as the amount
+
+
+110
+00:04:47,916 --> 00:04:48,996
+of transient data and memory.
+
+
+111
+00:04:50,306 --> 00:04:51,756
+Finally, it's important
+
+
+112
+00:04:51,756 --> 00:04:53,156
+to release objects
+you're no longer using.
+
+
+113
+00:04:53,736 --> 00:04:54,896
+Take the time to go
+through your code
+
+
+114
+00:04:54,896 --> 00:04:55,926
+and make sure you're
+only keeping
+
+
+115
+00:04:55,926 --> 00:04:57,466
+around things you
+absolutely need.
+
+
+116
+00:04:58,516 --> 00:05:01,436
+Now, because the applications
+that a user chooses to put
+
+
+117
+00:05:01,436 --> 00:05:03,776
+on their watch face and
+in the dock are kept alive
+
+
+118
+00:05:03,776 --> 00:05:05,386
+and suspended in
+memory by the system,
+
+
+119
+00:05:05,386 --> 00:05:08,136
+they will be resumed much more
+often than they're launched.
+
+
+120
+00:05:08,896 --> 00:05:11,576
+Because of this, for watchOS 3
+the key path we want to focus
+
+
+121
+00:05:11,576 --> 00:05:13,036
+on optimizing is resume time.
+
+
+122
+00:05:14,046 --> 00:05:16,826
+Now apps won't only be
+resumed more often just
+
+
+123
+00:05:16,826 --> 00:05:18,316
+because they're kept
+alive in memory,
+
+
+124
+00:05:18,506 --> 00:05:19,916
+but also because
+they're in the dock.
+
+
+125
+00:05:20,806 --> 00:05:22,976
+When the user scrolls over to
+your application in the dock,
+
+
+126
+00:05:23,396 --> 00:05:24,516
+the application will be resumed.
+
+
+127
+00:05:24,516 --> 00:05:27,706
+When the user scrolls away, the
+application will be suspended.
+
+
+128
+00:05:29,186 --> 00:05:32,896
+This behavior of resuming and
+suspending often is now typical
+
+
+129
+00:05:32,896 --> 00:05:34,406
+for applications in watchOS 3.
+
+
+130
+00:05:34,436 --> 00:05:37,446
+So it's important to understand
+
+
+131
+00:05:37,446 --> 00:05:39,526
+which lifecycle methods
+are a good place to do work
+
+
+132
+00:05:39,706 --> 00:05:41,756
+and which lifecycle methods
+are not a good place.
+
+
+133
+00:05:42,876 --> 00:05:44,626
+So let's talk about the
+different lifecycle methods
+
+
+134
+00:05:44,676 --> 00:05:46,436
+that the WatchKit
+extension delegate will see.
+
+
+135
+00:05:47,576 --> 00:05:49,576
+ApplicationDidFinishLaunching
+is the first method
+
+
+136
+00:05:49,576 --> 00:05:50,526
+that your delegate will see.
+
+
+137
+00:05:50,946 --> 00:05:53,086
+This gets called when the
+application is first launched
+
+
+138
+00:05:53,426 --> 00:05:55,596
+and is a good place to perform
+any final initialization
+
+
+139
+00:05:55,596 --> 00:05:57,556
+of your application
+as well as any tasks
+
+
+140
+00:05:57,556 --> 00:05:59,156
+that only need to
+be performed once.
+
+
+141
+00:06:00,146 --> 00:06:01,886
+The second method that
+your delegate will see
+
+
+142
+00:06:01,886 --> 00:06:04,076
+is applicationDidBecomeActive.
+
+
+143
+00:06:05,036 --> 00:06:07,616
+This gets called whenever your
+application becomes the active
+
+
+144
+00:06:07,616 --> 00:06:10,136
+application on the
+platform, restart any tasks
+
+
+145
+00:06:10,186 --> 00:06:13,126
+that were previously paused or
+not yet started, and if needed,
+
+
+146
+00:06:13,256 --> 00:06:14,546
+refresh the user interface.
+
+
+147
+00:06:15,986 --> 00:06:17,886
+Once the application
+goes from the active
+
+
+148
+00:06:18,006 --> 00:06:19,716
+to the inactive state
+you will get the
+
+
+149
+00:06:19,716 --> 00:06:21,446
+applicationWillResignActive
+call.
+
+
+150
+00:06:22,156 --> 00:06:24,596
+This can occur for certain
+types of temporary interruptions
+
+
+151
+00:06:24,596 --> 00:06:26,836
+such as an incoming phone
+call or a notification
+
+
+152
+00:06:27,406 --> 00:06:29,576
+when the user presses the side
+button to bring up the dock,
+
+
+153
+00:06:30,016 --> 00:06:31,706
+or when the user
+exits your application
+
+
+154
+00:06:31,786 --> 00:06:34,306
+and it starts its transition
+to the background state.
+
+
+155
+00:06:35,876 --> 00:06:38,296
+When your application is no
+longer active and it starts
+
+
+156
+00:06:38,296 --> 00:06:39,576
+to go to the background
+you'll get the
+
+
+157
+00:06:39,576 --> 00:06:41,156
+applicationDidEnterBackground
+call.
+
+
+158
+00:06:41,156 --> 00:06:42,666
+And when your application
+returns
+
+
+159
+00:06:42,666 --> 00:06:44,986
+to the foreground you'll get the
+applicationWillEnterForeground
+
+
+160
+00:06:44,986 --> 00:06:45,236
+call.
+
+
+161
+00:06:45,966 --> 00:06:47,376
+These methods are only
+called when you're going
+
+
+162
+00:06:47,376 --> 00:06:50,446
+from background to foreground or
+from foreground to background,
+
+
+163
+00:06:50,486 --> 00:06:51,836
+so it won't be called
+on first launch.
+
+
+164
+00:06:52,376 --> 00:06:55,826
+In addition, there are
+lifecycle methods associated
+
+
+165
+00:06:55,826 --> 00:06:56,866
+with the interface controller.
+
+
+166
+00:06:57,876 --> 00:06:59,306
+AwakeWithContext gets called
+
+
+167
+00:06:59,306 --> 00:07:01,396
+when your interface
+controller's first instantiated.
+
+
+168
+00:07:01,806 --> 00:07:04,336
+This is a good place to do work
+that only needs to be done once.
+
+
+169
+00:07:05,326 --> 00:07:07,906
+willActivate is called when
+the interface is active
+
+
+170
+00:07:08,026 --> 00:07:09,056
+and able to be updated.
+
+
+171
+00:07:09,356 --> 00:07:11,686
+It can be called before the
+interface is actually visible
+
+
+172
+00:07:11,686 --> 00:07:12,276
+to the user.
+
+
+173
+00:07:12,676 --> 00:07:14,696
+Once the interface is
+fully visible to the user,
+
+
+174
+00:07:14,696 --> 00:07:15,906
+you'll get the didAppear method.
+
+
+175
+00:07:16,526 --> 00:07:17,806
+If you have work
+to do on resume,
+
+
+176
+00:07:18,236 --> 00:07:19,636
+these methods are the
+good place to do it.
+
+
+177
+00:07:20,146 --> 00:07:21,946
+If the work is heavy
+weight it may make sense
+
+
+178
+00:07:22,006 --> 00:07:23,926
+to dispatch the work out
+to a background queue,
+
+
+179
+00:07:24,086 --> 00:07:25,386
+so that these methods
+can complete
+
+
+180
+00:07:25,756 --> 00:07:27,026
+and your app can
+finish resuming.
+
+
+181
+00:07:28,876 --> 00:07:30,436
+Once you're application's
+getting suspended,
+
+
+182
+00:07:31,016 --> 00:07:32,766
+you'll get the willDisappear
+call first
+
+
+183
+00:07:32,766 --> 00:07:35,896
+on your interface controller
+when the user interface is
+
+
+184
+00:07:35,896 --> 00:07:37,696
+about to be no longer
+visible to the user.
+
+
+185
+00:07:38,646 --> 00:07:40,556
+Once the user interface
+is deactivated
+
+
+186
+00:07:40,556 --> 00:07:43,226
+and no longer be updated you'll
+get the didDeactivate call.
+
+
+187
+00:07:44,376 --> 00:07:46,826
+These methods are a good place
+to cancel any heavy weight tasks
+
+
+188
+00:07:46,936 --> 00:07:49,476
+that you may have started in
+willActivate and didAppear.
+
+
+189
+00:07:50,716 --> 00:07:54,746
+It's important to understand
+this lifecycle and understand
+
+
+190
+00:07:54,746 --> 00:07:57,266
+that these methods can get
+called repeatedly and often.
+
+
+191
+00:07:58,546 --> 00:08:00,136
+I'd like to now walk
+through an example
+
+
+192
+00:08:00,136 --> 00:08:02,046
+of how an application might
+see these events during
+
+
+193
+00:08:02,046 --> 00:08:02,646
+its lifetime.
+
+
+194
+00:08:03,246 --> 00:08:05,496
+We'll start with an application
+that, for the purposes
+
+
+195
+00:08:05,496 --> 00:08:07,596
+of this talk is not
+running or backgrounded.
+
+
+196
+00:08:08,216 --> 00:08:09,716
+When the user taps
+your application,
+
+
+197
+00:08:09,976 --> 00:08:12,376
+the first methods will go to
+the WatchKit extension delegate,
+
+
+198
+00:08:12,746 --> 00:08:14,516
+didFinishLaunching,
+and didBecomeActive.
+
+
+199
+00:08:15,116 --> 00:08:17,716
+The interface controller will
+receive its awakeWithContext
+
+
+200
+00:08:17,796 --> 00:08:19,136
+willActivate and didAppear.
+
+
+201
+00:08:20,436 --> 00:08:23,206
+Now your application is running
+foregrounded, and active.
+
+
+202
+00:08:23,246 --> 00:08:25,536
+But what happens when the
+user presses the side button
+
+
+203
+00:08:25,636 --> 00:08:26,396
+to bring up the dock?
+
+
+204
+00:08:27,476 --> 00:08:30,076
+At this moment your application
+is no longer the active
+
+
+205
+00:08:30,076 --> 00:08:32,655
+application on the platform,
+that's the system application.
+
+
+206
+00:08:32,876 --> 00:08:35,535
+So your delegate will get the
+applicationWillResignActive
+
+
+207
+00:08:35,596 --> 00:08:35,785
+call.
+
+
+208
+00:08:38,166 --> 00:08:40,436
+While the user's still settled
+on your application however,
+
+
+209
+00:08:40,726 --> 00:08:42,285
+you'll still foreground
+it in running,
+
+
+210
+00:08:42,446 --> 00:08:43,666
+you're getting CPU time,
+
+
+211
+00:08:43,666 --> 00:08:46,066
+your updating your user
+interface, all that.
+
+
+212
+00:08:46,476 --> 00:08:48,616
+As soon as the user scrolls
+away from your application,
+
+
+213
+00:08:48,906 --> 00:08:50,516
+the system will suspend
+your application.
+
+
+214
+00:08:50,956 --> 00:08:53,196
+So your interface controller
+will get the willDisappear
+
+
+215
+00:08:53,196 --> 00:08:54,926
+and didDeactivate
+and you'll get your
+
+
+216
+00:08:54,926 --> 00:08:56,446
+application didEnterBackground.
+
+
+217
+00:08:58,876 --> 00:09:01,436
+Now here your application has
+just entered a background state
+
+
+218
+00:09:01,956 --> 00:09:03,816
+so the system might
+wake up your application
+
+
+219
+00:09:03,876 --> 00:09:05,316
+for a background snapshot task.
+
+
+220
+00:09:05,766 --> 00:09:07,486
+To learn more about
+these snapshot tasks,
+
+
+221
+00:09:07,746 --> 00:09:09,156
+check out the talk
+we gave this morning,
+
+
+222
+00:09:09,366 --> 00:09:10,706
+Keeping Your Watch
+Apps Up to Date.
+
+
+223
+00:09:10,706 --> 00:09:14,066
+Your interface controller gets
+woken up with willActivate
+
+
+224
+00:09:14,066 --> 00:09:16,576
+and didAppear, before your
+delegates given the opportunity
+
+
+225
+00:09:16,676 --> 00:09:17,876
+to handleBackgroundTasks.
+
+
+226
+00:09:18,716 --> 00:09:20,196
+And then your interface
+controller gets the
+
+
+227
+00:09:20,196 --> 00:09:21,706
+willDisappear and didDeactivate.
+
+
+228
+00:09:22,936 --> 00:09:24,736
+Now your application
+is fully suspended
+
+
+229
+00:09:24,836 --> 00:09:26,526
+and it's handled its
+background tasks.
+
+
+230
+00:09:26,896 --> 00:09:28,776
+Once the user swipes
+back to your application,
+
+
+231
+00:09:29,096 --> 00:09:30,906
+you'll get your
+applicationWillEnterForeground,
+
+
+232
+00:09:31,306 --> 00:09:34,586
+and your willActivate
+and didAppear.
+
+
+233
+00:09:34,586 --> 00:09:36,406
+Your application is
+once again running
+
+
+234
+00:09:36,486 --> 00:09:37,846
+and foregrounded in the dock.
+
+
+235
+00:09:38,586 --> 00:09:40,636
+It's no until the user taps
+into your application though
+
+
+236
+00:09:40,636 --> 00:09:42,786
+that you become the active
+application on the platform
+
+
+237
+00:09:42,786 --> 00:09:44,686
+and get
+applicationDidBecomeActive.
+
+
+238
+00:09:46,236 --> 00:09:48,806
+Now a lot has happened just
+from the user entering the dock,
+
+
+239
+00:09:48,956 --> 00:09:51,366
+swiping away from your
+application, and swiping back.
+
+
+240
+00:09:51,816 --> 00:09:54,076
+That's why it's important to
+be cognizant of this lifecycle
+
+
+241
+00:09:54,076 --> 00:09:56,716
+and understand that as a
+user browses their dock your
+
+
+242
+00:09:56,716 --> 00:10:01,706
+application may be seeing these
+events repeatedly and often.
+
+
+243
+00:10:02,046 --> 00:10:03,856
+So what are some other tips
+for reducing resume time?
+
+
+244
+00:10:04,416 --> 00:10:08,276
+You should use discretion when
+updating WKInterface objects.
+
+
+245
+00:10:08,576 --> 00:10:10,216
+Every time you set a property
+
+
+246
+00:10:10,216 --> 00:10:13,216
+on WKInterface object the system
+creates a message to send,
+
+
+247
+00:10:13,506 --> 00:10:15,686
+packs it up, and dispatches
+it to the app process
+
+
+248
+00:10:15,726 --> 00:10:16,766
+where the UI is updated.
+
+
+249
+00:10:17,476 --> 00:10:19,986
+It may be tempting to build some
+method that based on the state
+
+
+250
+00:10:19,986 --> 00:10:22,646
+of your application updates
+your UI and then call
+
+
+251
+00:10:22,646 --> 00:10:23,686
+that every time you resume.
+
+
+252
+00:10:24,016 --> 00:10:25,846
+But setting each property
+comes with a cost.
+
+
+253
+00:10:26,116 --> 00:10:28,376
+Even if the property isn't
+changing this results
+
+
+254
+00:10:28,376 --> 00:10:32,456
+in unnecessary traffic between
+the app and the extension.
+
+
+255
+00:10:32,456 --> 00:10:34,476
+It's worth the effort to
+only set these properties
+
+
+256
+00:10:34,476 --> 00:10:39,096
+if they're changing, so
+you absolutely need to.
+
+
+257
+00:10:39,256 --> 00:10:40,096
+You should also not
+
+
+258
+00:10:40,096 --> 00:10:43,146
+that WKInterfaceTable does not
+behave the same as UITableView.
+
+
+259
+00:10:43,706 --> 00:10:44,946
+The phone has a lot more memory
+
+
+260
+00:10:44,946 --> 00:10:46,486
+for storing a lot
+more information
+
+
+261
+00:10:46,736 --> 00:10:49,416
+and UITableView is just
+optimized to quickly scroll
+
+
+262
+00:10:49,416 --> 00:10:50,466
+through these larger data set.
+
+
+263
+00:10:51,076 --> 00:10:53,836
+The cells are created on demand,
+and are reused as you scroll.
+
+
+264
+00:10:54,806 --> 00:10:56,396
+With WKInterfaceTable however,
+
+
+265
+00:10:56,536 --> 00:10:59,196
+all the cells are created
+upfront and there's no reuse.
+
+
+266
+00:10:59,396 --> 00:11:00,776
+So the amount of work
+that your watch has
+
+
+267
+00:11:00,776 --> 00:11:02,966
+to do scales linearly
+with the table size.
+
+
+268
+00:11:03,886 --> 00:11:05,186
+Because of that it's important
+
+
+269
+00:11:05,186 --> 00:11:07,146
+to keep WKInterfaceTable
+size down.
+
+
+270
+00:11:07,716 --> 00:11:09,776
+The watch is not the appropriate
+form factor to scroll
+
+
+271
+00:11:09,776 --> 00:11:12,666
+through hundreds of records and
+in fact we found that it's best
+
+
+272
+00:11:12,666 --> 00:11:17,876
+to keep WKInterfaceTable
+size to maybe just over 20.
+
+
+273
+00:11:18,116 --> 00:11:20,536
+You should avoid reloading
+a WKInterfaceTable whenever
+
+
+274
+00:11:20,536 --> 00:11:21,336
+possible as well.
+
+
+275
+00:11:21,766 --> 00:11:24,106
+This is an expensive operation.
+
+
+276
+00:11:24,626 --> 00:11:27,886
+If it may be tempting to reload
+your entire table on resume
+
+
+277
+00:11:28,026 --> 00:11:30,336
+or when your data set
+changes, but if you need to add
+
+
+278
+00:11:30,336 --> 00:11:31,506
+and remove rows, it's better
+
+
+279
+00:11:31,506 --> 00:11:34,636
+to use the insertion
+and deletion APIs.
+
+
+280
+00:11:35,806 --> 00:11:38,096
+I'd now like to talk
+a bit about design.
+
+
+281
+00:11:38,696 --> 00:11:40,666
+Thinking about the right
+information to display
+
+
+282
+00:11:40,666 --> 00:11:42,876
+on the watch form factor
+as well as the best way
+
+
+283
+00:11:42,876 --> 00:11:44,986
+to display it can
+greatly help performance.
+
+
+284
+00:11:46,466 --> 00:11:48,786
+In watchOS 3you should
+design your applications
+
+
+285
+00:11:48,986 --> 00:11:49,866
+to be glanceable.
+
+
+286
+00:11:50,276 --> 00:11:54,646
+The dock lets users quickly look
+
+
+287
+00:11:54,776 --> 00:11:56,106
+through their favorite
+applications.
+
+
+288
+00:11:56,636 --> 00:11:58,586
+So your application may
+only be seen on screen
+
+
+289
+00:11:58,586 --> 00:12:00,726
+for a brief moment in
+time as the user swipes
+
+
+290
+00:12:00,726 --> 00:12:02,196
+from one application
+to the other.
+
+
+291
+00:12:02,806 --> 00:12:05,326
+So focus on showing only the
+most essential information
+
+
+292
+00:12:05,416 --> 00:12:07,006
+and display it as
+clearly as possible.
+
+
+293
+00:12:08,196 --> 00:12:11,186
+Part of making your application
+more glanceable is designing it
+
+
+294
+00:12:11,186 --> 00:12:12,266
+with a focused purpose.
+
+
+295
+00:12:12,956 --> 00:12:15,376
+The watch is not the appropriate
+form factor for scrolling
+
+
+296
+00:12:15,376 --> 00:12:16,886
+through large amounts
+of content,
+
+
+297
+00:12:17,386 --> 00:12:19,236
+or looking at complex
+data hierarchies.
+
+
+298
+00:12:20,126 --> 00:12:22,426
+By only showing the most
+essential information,
+
+
+299
+00:12:22,546 --> 00:12:24,436
+you tend to get better
+performance as a byproduct.
+
+
+300
+00:12:25,216 --> 00:12:27,336
+Since you're displaying less
+data, you save on memory
+
+
+301
+00:12:27,396 --> 00:12:29,416
+and processing and need
+fewer network calls
+
+
+302
+00:12:29,416 --> 00:12:32,506
+to stay up to date.
+
+
+303
+00:12:32,506 --> 00:12:34,406
+Lastly, it's important
+to consider navigation.
+
+
+304
+00:12:34,966 --> 00:12:36,876
+I've talked a lot about how
+we've improved navigation
+
+
+305
+00:12:36,876 --> 00:12:39,036
+on a system level, but
+it's equally important
+
+
+306
+00:12:39,036 --> 00:12:41,346
+to consider navigation on an
+application level as well.
+
+
+307
+00:12:41,976 --> 00:12:45,636
+In order to help with this
+we're introducing a new detailed
+
+
+308
+00:12:45,636 --> 00:12:46,266
+pageing API.
+
+
+309
+00:12:47,326 --> 00:12:51,736
+A standard setup for a WatchKit
+application is the hierarchal
+
+
+310
+00:12:51,736 --> 00:12:55,446
+data view where you have a
+table of cells, and tapping one
+
+
+311
+00:12:55,446 --> 00:12:57,306
+of the cells drills into
+detail about that item.
+
+
+312
+00:12:57,926 --> 00:12:59,746
+The problem with this
+setup though is if you want
+
+
+313
+00:12:59,746 --> 00:13:01,176
+to see the detail
+about a couple items,
+
+
+314
+00:13:01,446 --> 00:13:03,576
+you end up tapping
+back and forth a lot.
+
+
+315
+00:13:04,476 --> 00:13:07,606
+In order to solve this, our new
+detail paging API lets users
+
+
+316
+00:13:07,606 --> 00:13:09,616
+quickly scroll from
+detail view to detail view,
+
+
+317
+00:13:09,956 --> 00:13:13,286
+just panning along the screen
+or rotating the digital crown.
+
+
+318
+00:13:14,066 --> 00:13:16,536
+To learn more about how to set
+up this API in your code as well
+
+
+319
+00:13:16,536 --> 00:13:19,026
+as learn about other quick
+interaction techniques we've
+
+
+320
+00:13:19,396 --> 00:13:20,436
+released, for developers,
+
+
+321
+00:13:20,786 --> 00:13:22,346
+check out the Quick
+Interaction Techniques
+
+
+322
+00:13:22,346 --> 00:13:23,946
+for watchOS talk
+we gave yesterday.
+
+
+323
+00:13:25,146 --> 00:13:27,666
+But in this talk I'd like
+to talk a little bit more
+
+
+324
+00:13:27,666 --> 00:13:29,726
+about the lifecycle that
+view controllers will go
+
+
+325
+00:13:29,726 --> 00:13:30,716
+through as part of this API.
+
+
+326
+00:13:30,716 --> 00:13:33,096
+Because it's important from
+a performance point of view.
+
+
+327
+00:13:33,976 --> 00:13:37,506
+So here we have our table with
+3 cells, red, orange and yellow.
+
+
+328
+00:13:37,936 --> 00:13:41,436
+The detail paging API works
+on segue from inner tables
+
+
+329
+00:13:41,436 --> 00:13:42,476
+to interface controllers.
+
+
+330
+00:13:42,776 --> 00:13:44,826
+So when you tap one of the cells
+we're going to trigger a segue.
+
+
+331
+00:13:44,826 --> 00:13:46,706
+When you tap the cell,
+
+
+332
+00:13:46,706 --> 00:13:48,616
+your master interface
+controller is going
+
+
+333
+00:13:48,616 --> 00:13:50,096
+to get the method
+contextForSegue
+
+
+334
+00:13:50,096 --> 00:13:52,266
+withidentifierinTable row index.
+
+
+335
+00:13:53,056 --> 00:13:54,856
+This is where you're going to
+build up the context object
+
+
+336
+00:13:54,996 --> 00:13:56,936
+that gets passed to your
+detail view controller
+
+
+337
+00:13:56,936 --> 00:13:58,346
+and it's awakeWithContext
+method.
+
+
+338
+00:13:59,346 --> 00:14:01,376
+Your master view controller
+will not only receive its call
+
+
+339
+00:14:01,376 --> 00:14:03,166
+for the cell you
+tapped, but each
+
+
+340
+00:14:03,166 --> 00:14:04,536
+and every cell in the table.
+
+
+341
+00:14:05,696 --> 00:14:08,186
+We prepare the context for every
+detail view controller right
+
+
+342
+00:14:08,186 --> 00:14:11,136
+away so that when we
+prepare the context for them
+
+
+343
+00:14:11,136 --> 00:14:12,886
+so that we can instantiate
+them upfront.
+
+
+344
+00:14:13,376 --> 00:14:15,016
+That way when the user, goes
+
+
+345
+00:14:15,016 --> 00:14:16,566
+to their first one
+they can quickly scroll
+
+
+346
+00:14:16,566 --> 00:14:20,386
+through all of them.
+
+
+347
+00:14:21,226 --> 00:14:23,226
+Your first controller
+will be the,
+
+
+348
+00:14:23,466 --> 00:14:25,456
+first one to get its
+awakeWithContext called on it
+
+
+349
+00:14:25,456 --> 00:14:28,176
+as well as its willActivate
+and didAppear.
+
+
+350
+00:14:28,906 --> 00:14:30,626
+However, this is where
+behavior is interesting
+
+
+351
+00:14:30,626 --> 00:14:31,296
+for the scroll view.
+
+
+352
+00:14:31,706 --> 00:14:33,176
+We'll preheat the
+controllers close
+
+
+353
+00:14:33,176 --> 00:14:34,726
+to the selected detail
+view controller,
+
+
+354
+00:14:35,176 --> 00:14:37,346
+so that the users can
+scroll to the next one.
+
+
+355
+00:14:37,556 --> 00:14:38,486
+So the other colors are going
+
+
+356
+00:14:38,486 --> 00:14:40,496
+to get their lifecycle
+methods called on them as well.
+
+
+357
+00:14:41,376 --> 00:14:43,516
+They're going to first get
+their awakeWithContext,
+
+
+358
+00:14:44,046 --> 00:14:47,526
+and then their willActivate
+and didDeactivate.
+
+
+359
+00:14:50,566 --> 00:14:52,816
+It's important to be smart
+about setting up work
+
+
+360
+00:14:52,816 --> 00:14:54,216
+on these off screen
+view controllers.
+
+
+361
+00:14:54,906 --> 00:14:58,026
+Don't start long CPU intensive
+tasks on all of them blindly.
+
+
+362
+00:14:58,586 --> 00:15:02,296
+Because this may cause a lot
+of work to spin up on the CPU
+
+
+363
+00:15:02,366 --> 00:15:03,676
+if you have a lot
+of table cells.
+
+
+364
+00:15:04,486 --> 00:15:06,156
+Now as the user scrolls
+from one detail view
+
+
+365
+00:15:06,156 --> 00:15:09,176
+to the other your previous
+interface controller will be the
+
+
+366
+00:15:09,246 --> 00:15:12,366
+first to get its willDisappear
+call, willActivate,
+
+
+367
+00:15:12,796 --> 00:15:14,266
+didDeactivate, and didAppear.
+
+
+368
+00:15:15,026 --> 00:15:16,306
+This keeps your interface
+controllers
+
+
+369
+00:15:16,306 --> 00:15:17,246
+in a consistent state.
+
+
+370
+00:15:17,716 --> 00:15:19,706
+Those that are on screen
+most recently have got their
+
+
+371
+00:15:19,706 --> 00:15:21,026
+didAppear call and those
+
+
+372
+00:15:21,026 --> 00:15:23,236
+that are off screen
+most recently got their
+
+
+373
+00:15:23,326 --> 00:15:24,176
+didDeactivate call.
+
+
+374
+00:15:25,226 --> 00:15:26,706
+That way when you tap back to go
+
+
+375
+00:15:26,706 --> 00:15:28,016
+to the master interface
+controller,
+
+
+376
+00:15:28,256 --> 00:15:31,346
+only one interface controller
+needs lifecycle methods called
+
+
+377
+00:15:31,346 --> 00:15:32,646
+on it, the one that's visible.
+
+
+378
+00:15:32,766 --> 00:15:35,336
+It'll get its willDisappear,
+and didDeactivate.
+
+
+379
+00:15:38,076 --> 00:15:40,056
+Alright, I'd like to
+invite up Todd to talk
+
+
+380
+00:15:40,056 --> 00:15:41,616
+about how we've applied
+these ideas
+
+
+381
+00:15:41,656 --> 00:15:43,216
+to our Stocks WatchKit
+application.
+
+
+382
+00:15:43,656 --> 00:15:43,906
+Thank you.
+
+
+383
+00:15:45,516 --> 00:15:50,500
+[ Applause ]
+
+
+384
+00:15:56,576 --> 00:15:57,396
+>> Good afternoon.
+
+
+385
+00:15:57,606 --> 00:16:01,746
+I'm a watch OS engineer,
+and we're presenting Stocks
+
+
+386
+00:16:01,746 --> 00:16:04,116
+as a case study to
+WatchKit and developers.
+
+
+387
+00:16:04,796 --> 00:16:06,546
+So many of you may
+not know this,
+
+
+388
+00:16:06,856 --> 00:16:09,296
+but Stocks is a watch
+app built with WatchKit.
+
+
+389
+00:16:09,636 --> 00:16:12,106
+At Apple we wanted to
+have firsthand experience
+
+
+390
+00:16:12,566 --> 00:16:13,686
+with WatchKit development,
+
+
+391
+00:16:13,926 --> 00:16:16,386
+and we felt that Stocks
+would be a great use case
+
+
+392
+00:16:16,696 --> 00:16:17,666
+for WatchKit development.
+
+
+393
+00:16:18,826 --> 00:16:22,566
+I have three topics that I
+would like to talk about today
+
+
+394
+00:16:22,756 --> 00:16:24,786
+in regard to Stocks and
+WatchKit development.
+
+
+395
+00:16:25,596 --> 00:16:29,246
+I'm going to identify our
+2-Second tasks for Stocks,
+
+
+396
+00:16:30,146 --> 00:16:31,626
+then I'm going to discuss some
+
+
+397
+00:16:31,626 --> 00:16:34,976
+of the implementation details
+behind our background refresh
+
+
+398
+00:16:34,976 --> 00:16:35,516
+use cases.
+
+
+399
+00:16:37,686 --> 00:16:40,996
+Finally, I will talk a bit about
+the optimizations we have made
+
+
+400
+00:16:41,456 --> 00:16:45,446
+to help with our resume time and
+by extension, our launch time.
+
+
+401
+00:16:47,466 --> 00:16:51,136
+So, we'll begin with
+our 2-Second tasks.
+
+
+402
+00:16:51,776 --> 00:16:53,786
+When we thought of Stocks,
+
+
+403
+00:16:54,446 --> 00:16:56,676
+we thought of three
+important 2-Second tasks,
+
+
+404
+00:16:57,646 --> 00:16:59,846
+the first is you
+most likely want
+
+
+405
+00:16:59,846 --> 00:17:02,266
+to view how a favorite
+stock's current price is doing
+
+
+406
+00:17:02,326 --> 00:17:03,696
+right now.
+
+
+407
+00:17:04,046 --> 00:17:05,816
+This can of course
+be accomplished
+
+
+408
+00:17:06,056 --> 00:17:07,046
+with a complication.
+
+
+409
+00:17:07,915 --> 00:17:10,955
+But with the dock, we're able
+to get a little bit more detail
+
+
+410
+00:17:11,256 --> 00:17:12,316
+with that 2-Second task.
+
+
+411
+00:17:13,026 --> 00:17:14,455
+In particular, we felt
+
+
+412
+00:17:14,455 --> 00:17:17,546
+that another important 2-Second
+task would be seeing your
+
+
+413
+00:17:17,586 --> 00:17:20,896
+favorite stock's current
+performance throughout the day
+
+
+414
+00:17:21,116 --> 00:17:21,586
+in a chart.
+
+
+415
+00:17:22,896 --> 00:17:25,945
+Lastly, we felt that it
+would be important for you
+
+
+416
+00:17:25,945 --> 00:17:29,456
+to see the current
+price for a few stocks.
+
+
+417
+00:17:30,016 --> 00:17:31,636
+So we'll start with
+the complication.
+
+
+418
+00:17:32,146 --> 00:17:34,816
+Now of course the
+complication is the fastest way
+
+
+419
+00:17:35,346 --> 00:17:38,036
+to see data on your watch.
+
+
+420
+00:17:38,646 --> 00:17:41,956
+That data is always present and
+it's there every time you go
+
+
+421
+00:17:41,956 --> 00:17:43,556
+to look at the time
+on your watch.
+
+
+422
+00:17:44,376 --> 00:17:48,876
+The important piece in that, in
+watchOS 3 is that data is kept
+
+
+423
+00:17:48,876 --> 00:17:52,916
+in sync between the
+complication and the app.
+
+
+424
+00:17:53,276 --> 00:17:55,916
+Now for more information on
+that, I would encourage you
+
+
+425
+00:17:55,916 --> 00:17:58,676
+to check out the Keeping Your
+Watch App Up to Date session
+
+
+426
+00:17:58,976 --> 00:17:59,986
+that occurred this morning.
+
+
+427
+00:18:01,156 --> 00:18:04,336
+So now we'll go and
+talk about how some
+
+
+428
+00:18:04,336 --> 00:18:07,796
+of the other 2-Second tasks
+were performed in watchOS 2.
+
+
+429
+00:18:08,706 --> 00:18:12,386
+So in watchOS 2, you
+would launch Stocks
+
+
+430
+00:18:12,906 --> 00:18:15,656
+and you could see the
+current price of the stock
+
+
+431
+00:18:15,816 --> 00:18:17,916
+that you were interested in or
+the other stocks right away.
+
+
+432
+00:18:18,746 --> 00:18:20,036
+But if you wanted to see how
+
+
+433
+00:18:20,036 --> 00:18:22,066
+that stock had been
+performing throughout the day,
+
+
+434
+00:18:22,346 --> 00:18:23,926
+you would need to
+tap on a stock,
+
+
+435
+00:18:24,096 --> 00:18:25,346
+and now you're presented
+with this view.
+
+
+436
+00:18:25,526 --> 00:18:26,756
+It's a little bit
+more information,
+
+
+437
+00:18:26,756 --> 00:18:29,236
+but it still doesn't really
+answer the question on how
+
+
+438
+00:18:29,236 --> 00:18:31,906
+that stock price had been
+performing through the day.
+
+
+439
+00:18:32,556 --> 00:18:34,636
+So if you wanted to see that,
+you would have to scroll
+
+
+440
+00:18:34,636 --> 00:18:36,686
+down a little bit, and
+now you're on the chart.
+
+
+441
+00:18:37,996 --> 00:18:41,216
+We had four options, for the
+chart, we have the day interval,
+
+
+442
+00:18:41,376 --> 00:18:43,866
+the one week, the one
+month, and the six month.
+
+
+443
+00:18:44,796 --> 00:18:46,296
+So odds are the first
+time that you scroll
+
+
+444
+00:18:46,296 --> 00:18:48,816
+down there you're probably
+not even seeing the interval
+
+
+445
+00:18:48,816 --> 00:18:51,696
+that you care about which is
+probably the one day interval.
+
+
+446
+00:18:52,856 --> 00:18:54,876
+So that would require you
+tapping on those very,
+
+
+447
+00:18:55,046 --> 00:18:58,156
+very small buttons and
+opening that chart.
+
+
+448
+00:18:58,156 --> 00:19:01,796
+And then after that, you would
+have all this other metadata
+
+
+449
+00:19:02,396 --> 00:19:06,076
+down below that a lot of the
+time isn't really necessary
+
+
+450
+00:19:06,076 --> 00:19:08,366
+for when you're glancing at
+information throughout the day.
+
+
+451
+00:19:09,616 --> 00:19:12,206
+And of course if you wanted
+to view multiple stocks
+
+
+452
+00:19:12,206 --> 00:19:13,496
+and how they're performing
+throughout the day,
+
+
+453
+00:19:13,496 --> 00:19:16,476
+you would have to navigate
+back, tap into the new one,
+
+
+454
+00:19:16,626 --> 00:19:18,506
+much like Tyler should you
+in this animation earlier.
+
+
+455
+00:19:20,236 --> 00:19:21,836
+So let's look at watchOS 3.
+
+
+456
+00:19:22,686 --> 00:19:25,766
+Now here's the new watchOS
+3 design, as you can see,
+
+
+457
+00:19:25,816 --> 00:19:28,816
+first of all, still a list
+view that you come into.
+
+
+458
+00:19:29,436 --> 00:19:32,746
+But the font is much larger,
+much more legible, a little bit
+
+
+459
+00:19:32,746 --> 00:19:33,806
+of a simplified interface.
+
+
+460
+00:19:34,176 --> 00:19:37,916
+To me it pops and it's easily
+readable at small sizes
+
+
+461
+00:19:38,006 --> 00:19:38,976
+like you would see in the dock.
+
+
+462
+00:19:40,056 --> 00:19:42,646
+So if you wanted to see
+how Apple was doing,
+
+
+463
+00:19:42,876 --> 00:19:44,986
+today and how the performance
+was going you would tap
+
+
+464
+00:19:44,986 --> 00:19:48,756
+on Apple, again, but now you
+see the chart right there.
+
+
+465
+00:19:49,126 --> 00:19:50,906
+And we just assume
+that you always want
+
+
+466
+00:19:50,906 --> 00:19:51,996
+to see the one day chart.
+
+
+467
+00:19:52,996 --> 00:19:55,366
+There are instances of course,
+where there isn't a day chart,
+
+
+468
+00:19:55,966 --> 00:19:57,906
+much like index funds
+won't have a day chart.
+
+
+469
+00:19:58,666 --> 00:20:01,476
+But we can fall back to the
+one month chart when we come
+
+
+470
+00:20:01,476 --> 00:20:04,436
+across those, and that's
+the more relevant interval
+
+
+471
+00:20:04,436 --> 00:20:05,626
+that you would like
+to see at a glance.
+
+
+472
+00:20:08,346 --> 00:20:11,156
+We also got rid of some of
+the more minute detail below.
+
+
+473
+00:20:11,676 --> 00:20:13,636
+Now this gives us
+two advantages.
+
+
+474
+00:20:13,876 --> 00:20:17,356
+One, it eliminates a
+network request, which speeds
+
+
+475
+00:20:17,356 --> 00:20:18,506
+up our loading performance.
+
+
+476
+00:20:19,466 --> 00:20:23,506
+And two, it allows us to adopt
+the new vertical detail pageing
+
+
+477
+00:20:23,506 --> 00:20:26,086
+API, so then that
+way you can scroll
+
+
+478
+00:20:26,086 --> 00:20:29,246
+through multiple Stocks either
+with a turn of the digital crown
+
+
+479
+00:20:29,716 --> 00:20:30,766
+or a swipe of your finger.
+
+
+480
+00:20:31,516 --> 00:20:33,266
+And of course, if you
+want to view the details
+
+
+481
+00:20:33,266 --> 00:20:36,906
+of a stock's performance you
+know like more minute details
+
+
+482
+00:20:36,906 --> 00:20:40,126
+that we had before such as the
+52 week high or the 52 week low.
+
+
+483
+00:20:40,736 --> 00:20:44,136
+You can view that using
+Handoff, so with Handoff,
+
+
+484
+00:20:44,276 --> 00:20:48,666
+you're able to setup a
+context activity and then hand
+
+
+485
+00:20:48,666 --> 00:20:49,656
+that off to your iPhone.
+
+
+486
+00:20:50,356 --> 00:20:53,386
+So we feel that the watch is
+the place for glanceable data,
+
+
+487
+00:20:54,076 --> 00:20:56,376
+and that the iPhone
+is the place for,
+
+
+488
+00:20:56,596 --> 00:20:58,896
+you know like a view
+that's data rich
+
+
+489
+00:20:59,016 --> 00:21:00,536
+or a little bit too convoluted.
+
+
+490
+00:21:01,636 --> 00:21:04,566
+So the good thing about the
+new design, as I mentioned,
+
+
+491
+00:21:04,766 --> 00:21:09,146
+it's very readable in the
+dock and with the dock,
+
+
+492
+00:21:09,506 --> 00:21:12,786
+we decided to reevaluate what
+we would show there for Stocks.
+
+
+493
+00:21:13,576 --> 00:21:15,636
+So if you attended some of the
+other sessions you're aware
+
+
+494
+00:21:15,636 --> 00:21:19,046
+that there is a concept of a
+default state, and a snapshot.
+
+
+495
+00:21:19,966 --> 00:21:23,166
+So we took this to mean that
+it should be a sticky view.
+
+
+496
+00:21:23,616 --> 00:21:26,126
+And what I mean by sticky is
+that when you leave Stocks,
+
+
+497
+00:21:26,386 --> 00:21:29,246
+if you're looking at the
+stock list, when you return
+
+
+498
+00:21:29,246 --> 00:21:32,916
+to Stocks either in the dock or
+by going into the application,
+
+
+499
+00:21:33,366 --> 00:21:34,686
+you will see the stock list.
+
+
+500
+00:21:35,736 --> 00:21:37,136
+And this is also the
+view that we'll keep
+
+
+501
+00:21:37,136 --> 00:21:38,556
+up to date throughout the day.
+
+
+502
+00:21:39,616 --> 00:21:43,816
+However, if you were to tap
+into the details of a stock
+
+
+503
+00:21:43,816 --> 00:21:47,046
+and returned to look at
+the, either the dock or go
+
+
+504
+00:21:47,046 --> 00:21:49,876
+into the app, then you're
+going to see the detail view.
+
+
+505
+00:21:50,286 --> 00:21:52,426
+Now there's one caveat
+with this,
+
+
+506
+00:21:52,986 --> 00:21:56,196
+so on Stocks you can set
+your complication stock
+
+
+507
+00:21:56,726 --> 00:21:58,106
+and that's the stock
+that you view,
+
+
+508
+00:21:58,106 --> 00:21:59,316
+of course on your complication.
+
+
+509
+00:21:59,716 --> 00:22:00,466
+So we took that to mean
+
+
+510
+00:22:00,466 --> 00:22:02,116
+that that's most likely
+your favorite stock.
+
+
+511
+00:22:03,076 --> 00:22:05,446
+So once you set that,
+that's the detail view
+
+
+512
+00:22:05,446 --> 00:22:06,596
+that we try to return you to.
+
+
+513
+00:22:07,186 --> 00:22:10,786
+So if you open up Stocks and
+you say navigated from Apple
+
+
+514
+00:22:10,916 --> 00:22:14,646
+to the Facebook stock, and you
+resumed back to the home screen,
+
+
+515
+00:22:15,386 --> 00:22:19,436
+in about an hour, when we get
+the return to default state flag
+
+
+516
+00:22:19,636 --> 00:22:22,306
+for our snapshot, we will
+actually take you back
+
+
+517
+00:22:22,306 --> 00:22:23,176
+to the Apple stock.
+
+
+518
+00:22:23,426 --> 00:22:26,106
+Because we take that to mean
+that you had that selected
+
+
+519
+00:22:26,106 --> 00:22:27,906
+as your complication
+stock and that
+
+
+520
+00:22:27,906 --> 00:22:29,826
+that would be your favorite
+stock, and that's the one
+
+
+521
+00:22:29,826 --> 00:22:30,926
+that we want to return you to.
+
+
+522
+00:22:31,296 --> 00:22:33,306
+So we want to make a
+predictable experience
+
+
+523
+00:22:33,516 --> 00:22:36,086
+and always return the user to
+something that they would expect
+
+
+524
+00:22:36,086 --> 00:22:38,826
+to see after a certain
+amount of time.
+
+
+525
+00:22:39,676 --> 00:22:41,656
+So let's recap what we've done
+
+
+526
+00:22:42,306 --> 00:22:43,866
+in our 2-Second tasks
+for Stocks.
+
+
+527
+00:22:44,296 --> 00:22:48,966
+The first thing, we made sure
+that we had consistent data
+
+
+528
+00:22:49,226 --> 00:22:52,586
+between our complication
+and app.
+
+
+529
+00:22:52,646 --> 00:22:54,866
+The next, we simplified
+our design,
+
+
+530
+00:22:55,436 --> 00:22:58,046
+we made it a lot more
+legible at smaller sizes,
+
+
+531
+00:22:59,176 --> 00:23:04,516
+and much more usable
+whenever you vertically scroll
+
+
+532
+00:23:04,516 --> 00:23:05,626
+through the detail pageing API.
+
+
+533
+00:23:05,626 --> 00:23:10,616
+And that lets you look at
+multiple stocks, quickly instead
+
+
+534
+00:23:10,616 --> 00:23:12,716
+of having to do the
+back and forth shuffle.
+
+
+535
+00:23:13,226 --> 00:23:16,556
+So next, we'll talk a little
+bit about background refresh,
+
+
+536
+00:23:17,216 --> 00:23:18,766
+and I would like to
+talk a little bit more
+
+
+537
+00:23:18,766 --> 00:23:21,686
+about how we implemented
+background refresh in Stocks.
+
+
+538
+00:23:26,436 --> 00:23:29,046
+So when we started implementing
+background refresh in Stocks,
+
+
+539
+00:23:29,776 --> 00:23:30,826
+we came up with two questions.
+
+
+540
+00:23:31,506 --> 00:23:33,966
+One, how often do we need
+
+
+541
+00:23:33,966 --> 00:23:35,716
+to update our information
+in Stocks?
+
+
+542
+00:23:36,696 --> 00:23:39,616
+And two, what data
+do we need to fetch
+
+
+543
+00:23:39,796 --> 00:23:41,726
+to keep our app up to date?
+
+
+544
+00:23:42,776 --> 00:23:45,626
+So determining how often
+we should refresh our data
+
+
+545
+00:23:45,626 --> 00:23:48,096
+in Stocks was a little bit
+of a tricky proposition.
+
+
+546
+00:23:49,066 --> 00:23:51,816
+At first we felt that updating
+our data every 15 minutes was a
+
+
+547
+00:23:51,816 --> 00:23:52,716
+pretty good start.
+
+
+548
+00:23:54,316 --> 00:23:57,326
+This would leave us updating our
+app many times throughout the
+
+
+549
+00:23:57,326 --> 00:23:58,046
+day, however.
+
+
+550
+00:23:58,506 --> 00:24:03,496
+And many of those updates could
+occur when it's unhelpful,
+
+
+551
+00:24:03,846 --> 00:24:05,836
+like when the stock
+market is closed at the end
+
+
+552
+00:24:05,836 --> 00:24:07,706
+of the day or over the weekend.
+
+
+553
+00:24:09,746 --> 00:24:11,556
+So let's take some
+facts that we know
+
+
+554
+00:24:11,556 --> 00:24:13,336
+because we felt we
+could be a bit smarter
+
+
+555
+00:24:13,336 --> 00:24:14,476
+in how we implemented this.
+
+
+556
+00:24:14,826 --> 00:24:16,516
+First, markets are
+open for a period
+
+
+557
+00:24:16,516 --> 00:24:17,476
+of time throughout the day.
+
+
+558
+00:24:18,076 --> 00:24:20,756
+So for an example, let's
+say we're following a stock
+
+
+559
+00:24:20,756 --> 00:24:21,926
+on the New York Stock Exchange,
+
+
+560
+00:24:23,096 --> 00:24:25,716
+and we know that the New
+York Stock Exchange opens
+
+
+561
+00:24:25,716 --> 00:24:29,326
+at 9:30 a.m. Eastern and it
+closes at 4 p.m. Eastern.
+
+
+562
+00:24:29,326 --> 00:24:33,436
+So if we limit our
+background refresh request to,
+
+
+563
+00:24:34,266 --> 00:24:37,346
+basically when the market is
+open, then we're able to cut
+
+
+564
+00:24:37,346 --> 00:24:41,006
+down our number of updates,
+and it can sort of budget
+
+
+565
+00:24:41,326 --> 00:24:42,426
+for other applications.
+
+
+566
+00:24:42,886 --> 00:24:46,096
+And it's also going
+to give us the benefit
+
+
+567
+00:24:46,176 --> 00:24:50,756
+of not updating our complication
+and our application in times
+
+
+568
+00:24:50,756 --> 00:24:51,716
+when it would be ineffective.
+
+
+569
+00:24:52,676 --> 00:24:57,776
+So that's also nice as well.
+
+
+570
+00:24:59,016 --> 00:25:01,996
+So let's look at a little pseudo
+code on how we would do that
+
+
+571
+00:25:01,996 --> 00:25:04,146
+and how would we decide
+when the next refresh date
+
+
+572
+00:25:04,146 --> 00:25:05,376
+for Stocks should be.
+
+
+573
+00:25:06,486 --> 00:25:09,216
+First, we're going to enumerate
+through their list of stocks,
+
+
+574
+00:25:10,496 --> 00:25:14,796
+then we're going to check and
+see if the markets are like,
+
+
+575
+00:25:14,796 --> 00:25:17,456
+basically if the
+markets are all closed.
+
+
+576
+00:25:17,536 --> 00:25:18,266
+Because if we know,
+
+
+577
+00:25:18,496 --> 00:25:22,306
+if the markets are all closed we
+want the earliest next open time
+
+
+578
+00:25:22,416 --> 00:25:23,406
+that we have in our stock list.
+
+
+579
+00:25:24,416 --> 00:25:27,006
+Otherwise, that means at
+least one market is open,
+
+
+580
+00:25:27,276 --> 00:25:30,366
+so we should fall back to our
+regular 15 minute cadence.
+
+
+581
+00:25:31,116 --> 00:25:32,736
+So we'll look at a
+little bit of source here.
+
+
+582
+00:25:33,686 --> 00:25:35,346
+The first thing that I'll
+call your attention to,
+
+
+583
+00:25:35,346 --> 00:25:37,226
+this is just a function
+that we would have in Stocks
+
+
+584
+00:25:37,226 --> 00:25:38,896
+for scheduling our
+background refresh time,
+
+
+585
+00:25:39,156 --> 00:25:41,066
+and it takes an optional
+preferred date.
+
+
+586
+00:25:43,296 --> 00:25:46,156
+We use the
+scheduleBackgroundRefresh
+
+
+587
+00:25:46,226 --> 00:25:49,976
+instance method in WKExtension,
+and we're going to pass
+
+
+588
+00:25:49,976 --> 00:25:52,126
+in this preferredDate here.
+
+
+589
+00:25:53,106 --> 00:25:55,646
+Now that preferred date is
+calculated elsewhere in the app,
+
+
+590
+00:25:55,956 --> 00:25:57,536
+but that's at least how
+we schedule our background
+
+
+591
+00:25:57,536 --> 00:25:58,206
+refresh time.
+
+
+592
+00:25:58,206 --> 00:26:00,626
+So I'm kind of working
+backwards from the end result.
+
+
+593
+00:26:01,806 --> 00:26:05,726
+So let's see what happens in
+our next preferred refresh data.
+
+
+594
+00:26:06,526 --> 00:26:11,026
+That function has a guard early
+on, and so basically we're going
+
+
+595
+00:26:11,026 --> 00:26:14,576
+to call our function
+earliestNextOpenDateInStocks.
+
+
+596
+00:26:16,286 --> 00:26:20,196
+And if it returns nil, then
+we're going to go ahead
+
+
+597
+00:26:20,196 --> 00:26:23,446
+and bail, because in
+earliestNextOpenDateInStocks,
+
+
+598
+00:26:23,956 --> 00:26:24,986
+we would return nil
+
+
+599
+00:26:25,246 --> 00:26:27,106
+if you didn't have any
+stocks in your list.
+
+
+600
+00:26:27,406 --> 00:26:28,676
+Because at that point
+there's no use
+
+
+601
+00:26:28,676 --> 00:26:30,156
+in doing a background refresh
+
+
+602
+00:26:30,196 --> 00:26:31,596
+because there's no
+data to refresh.
+
+
+603
+00:26:33,616 --> 00:26:36,946
+So now we'll go ahead
+and we'll calculate the
+
+
+604
+00:26:36,946 --> 00:26:38,356
+nextRegularRefreshData,
+
+
+605
+00:26:38,526 --> 00:26:40,706
+so that's just our update
+cadence, so every 15 minutes.
+
+
+606
+00:26:41,146 --> 00:26:44,586
+And then finally, we'll
+do this check here.
+
+
+607
+00:26:44,766 --> 00:26:46,966
+So we take that
+earliestNextOpenDateInStocks,
+
+
+608
+00:26:47,506 --> 00:26:49,396
+and we'll do a later
+date comparison
+
+
+609
+00:26:49,536 --> 00:26:51,806
+against our regular
+refresh cadence.
+
+
+610
+00:26:53,096 --> 00:26:55,426
+Now our
+earliestNextOpenDateInStocks
+
+
+611
+00:26:55,426 --> 00:26:59,516
+also has the added benefit
+of returning distant past,
+
+
+612
+00:26:59,516 --> 00:27:01,886
+if the market is currently
+open for any of our stocks.
+
+
+613
+00:27:02,246 --> 00:27:05,936
+So the later date would
+always be the refresh cadence
+
+
+614
+00:27:05,936 --> 00:27:06,776
+in that scenario.
+
+
+615
+00:27:07,346 --> 00:27:11,336
+So let's look at that
+earliestNextOpenDateInStocks
+
+
+616
+00:27:11,336 --> 00:27:11,746
+method.
+
+
+617
+00:27:12,726 --> 00:27:14,666
+First we're going to
+grab our list of stocks
+
+
+618
+00:27:14,976 --> 00:27:16,716
+and then we're going to
+do this guard check here.
+
+
+619
+00:27:16,716 --> 00:27:21,236
+And so if it's 0 again, we're
+going to bail out, return nil,
+
+
+620
+00:27:21,486 --> 00:27:23,766
+there's no use in doing
+background refreshes.
+
+
+621
+00:27:26,226 --> 00:27:32,216
+Then we're going to iterate
+over our list of stocks.
+
+
+622
+00:27:32,666 --> 00:27:37,636
+If any of the markets, are open
+then we're going to go ahead
+
+
+623
+00:27:37,636 --> 00:27:38,736
+and return the distantPast.
+
+
+624
+00:27:40,006 --> 00:27:41,796
+Otherwise we're going
+to do this check here.
+
+
+625
+00:27:41,846 --> 00:27:44,086
+And we're just going to
+basically iterate over the list
+
+
+626
+00:27:44,366 --> 00:27:45,866
+and find the
+earliestNextOpenDate.
+
+
+627
+00:27:46,956 --> 00:27:49,386
+And so I mean, I just wanted
+to show some of that code
+
+
+628
+00:27:50,156 --> 00:27:52,046
+because we feel that
+that's a pretty good way
+
+
+629
+00:27:52,116 --> 00:27:53,586
+of limiting the number of times
+
+
+630
+00:27:53,586 --> 00:27:55,046
+that you're doing
+background refresh,
+
+
+631
+00:27:55,296 --> 00:27:59,866
+with not a whole lot of code.
+
+
+632
+00:28:00,056 --> 00:28:02,606
+So let's talk about scheduling
+multiple background requests.
+
+
+633
+00:28:03,246 --> 00:28:05,706
+Because in particularly with
+Stocks, we have two end points
+
+
+634
+00:28:05,706 --> 00:28:07,576
+that we hit to keep our
+application up to date.
+
+
+635
+00:28:08,246 --> 00:28:12,036
+So we have endpoint A, which
+keeps the application data
+
+
+636
+00:28:12,036 --> 00:28:13,896
+up to date, and then
+we have endpoint B,
+
+
+637
+00:28:14,116 --> 00:28:15,316
+for updating the complication.
+
+
+638
+00:28:18,216 --> 00:28:21,316
+So if we're going to schedule
+our background refresh time,
+
+
+639
+00:28:21,786 --> 00:28:22,316
+we do that.
+
+
+640
+00:28:23,006 --> 00:28:25,376
+Once we receive the
+handle background task,
+
+
+641
+00:28:26,086 --> 00:28:27,576
+we'll submit our
+endpoint A request,
+
+
+642
+00:28:27,836 --> 00:28:29,176
+submit our endpoint B request
+
+
+643
+00:28:29,226 --> 00:28:31,426
+and we'll schedule our future
+background refresh time.
+
+
+644
+00:28:31,946 --> 00:28:32,826
+So what does that look like?
+
+
+645
+00:28:33,056 --> 00:28:35,786
+Well, we have our handle
+background tasks method
+
+
+646
+00:28:35,856 --> 00:28:37,356
+in our WKExtension delegate.
+
+
+647
+00:28:38,616 --> 00:28:41,386
+We're going to iterate over
+those background tasks.
+
+
+648
+00:28:42,226 --> 00:28:44,376
+We're going to go ahead
+and first check to see
+
+
+649
+00:28:44,376 --> 00:28:45,916
+if it's an application
+refresh task.
+
+
+650
+00:28:46,606 --> 00:28:49,056
+And if it is, we're going
+to go ahead and schedule
+
+
+651
+00:28:49,056 --> 00:28:51,006
+that data update request
+and that's just going to be
+
+
+652
+00:28:51,006 --> 00:28:53,726
+where we actually
+schedule our NSURL request.
+
+
+653
+00:28:55,026 --> 00:28:56,466
+The next we'll do,
+we'll go ahead
+
+
+654
+00:28:56,466 --> 00:28:58,436
+and schedule our next
+background refresh time,
+
+
+655
+00:28:58,436 --> 00:29:00,826
+using that handy dandy
+nextPreferredRefreshDate.
+
+
+656
+00:29:01,326 --> 00:29:03,946
+And then we'll complete
+our app refresh task.
+
+
+657
+00:29:05,066 --> 00:29:07,166
+The last part of this, I'll
+call out to your attention is
+
+
+658
+00:29:07,166 --> 00:29:09,096
+that URL session
+refresh background task.
+
+
+659
+00:29:09,316 --> 00:29:10,436
+Now you will get one of these
+
+
+660
+00:29:10,896 --> 00:29:14,516
+when you trigger a background
+NSURL session request.
+
+
+661
+00:29:15,196 --> 00:29:17,586
+So it's our job here
+to store that somewhere
+
+
+662
+00:29:17,706 --> 00:29:20,156
+where we can complete
+it later whenever
+
+
+663
+00:29:20,156 --> 00:29:23,126
+that request is finished.
+
+
+664
+00:29:24,936 --> 00:29:26,246
+So now we've talked
+about that let's talk
+
+
+665
+00:29:26,246 --> 00:29:27,186
+about what it actually looks
+
+
+666
+00:29:27,186 --> 00:29:29,136
+like when we schedule
+those NS URL requests,
+
+
+667
+00:29:29,346 --> 00:29:30,116
+just at a high level.
+
+
+668
+00:29:30,116 --> 00:29:33,806
+So we're going to schedule
+those requests, we're going to,
+
+
+669
+00:29:33,806 --> 00:29:35,266
+and then when those
+requests are complete,
+
+
+670
+00:29:36,146 --> 00:29:37,586
+we're going to schedule
+a snapshot,
+
+
+671
+00:29:37,696 --> 00:29:39,356
+reload the complication,
+and we're going
+
+
+672
+00:29:39,356 --> 00:29:42,106
+to complete our refresh
+background task.
+
+
+673
+00:29:42,936 --> 00:29:46,036
+So the first thing we'll
+setup the app data request
+
+
+674
+00:29:46,126 --> 00:29:47,516
+and the complication
+data request.
+
+
+675
+00:29:48,106 --> 00:29:50,526
+Then we're going to setup
+our finish update handler.
+
+
+676
+00:29:50,716 --> 00:29:54,326
+Now the finish update handler is
+just, for lack of a better term,
+
+
+677
+00:29:54,716 --> 00:29:58,406
+a block that I set so that
+whenever the NS URL session
+
+
+678
+00:29:58,406 --> 00:30:01,536
+delegate method for finishing
+the background request is
+
+
+679
+00:30:01,536 --> 00:30:03,966
+called, I can call that
+finish update handler
+
+
+680
+00:30:04,666 --> 00:30:08,636
+and that'll call
+what's in that block.
+
+
+681
+00:30:10,306 --> 00:30:11,836
+So then we have our
+submitRequest
+
+
+682
+00:30:11,836 --> 00:30:14,366
+which is essentially just
+taking the network request
+
+
+683
+00:30:14,456 --> 00:30:17,486
+and calling resume on the tasks.
+
+
+684
+00:30:17,856 --> 00:30:20,316
+Now once the task is complete,
+we'll go ahead and grab
+
+
+685
+00:30:20,316 --> 00:30:23,526
+that task from our URL sessions
+task which is just a dictionary.
+
+
+686
+00:30:24,276 --> 00:30:27,096
+We'll schedule our snapshot,
+we'll reload our complication,
+
+
+687
+00:30:27,446 --> 00:30:32,896
+and we'll go ahead and
+complete that URL session task.
+
+
+688
+00:30:33,766 --> 00:30:35,116
+And one last thing
+that I'll call
+
+
+689
+00:30:35,116 --> 00:30:38,106
+out here is our
+urlSessionDidFinishEvents just
+
+
+690
+00:30:38,106 --> 00:30:40,996
+to show you that whenever
+our requests finish,
+
+
+691
+00:30:41,376 --> 00:30:45,876
+we just grab the identifier
+from the session configuration,
+
+
+692
+00:30:46,406 --> 00:30:47,846
+and we call our
+finishUpdateHandler.
+
+
+693
+00:30:48,806 --> 00:30:50,236
+And so that kind of
+gives you an idea
+
+
+694
+00:30:50,576 --> 00:30:53,366
+of how you can run multiple
+requests to keep your app
+
+
+695
+00:30:53,466 --> 00:30:55,936
+up to date if you have
+separate requests for your app
+
+
+696
+00:30:56,136 --> 00:30:57,116
+and your complication.
+
+
+697
+00:30:57,576 --> 00:30:59,966
+So the first thing,
+obviously you want
+
+
+698
+00:30:59,966 --> 00:31:01,916
+to optimize how often
+you schedule your updates
+
+
+699
+00:31:02,086 --> 00:31:03,946
+for your app when you're
+doing background refreshes.
+
+
+700
+00:31:04,746 --> 00:31:06,546
+That's goal number one.
+
+
+701
+00:31:07,226 --> 00:31:10,036
+And if you're updating
+with data from a server,
+
+
+702
+00:31:10,206 --> 00:31:12,166
+try to use a single
+specialized endpoint
+
+
+703
+00:31:12,206 --> 00:31:13,356
+if you have control over that.
+
+
+704
+00:31:13,836 --> 00:31:15,506
+But if you don't, it is possible
+
+
+705
+00:31:15,656 --> 00:31:18,476
+to submit multiple requests
+during a background refresh.
+
+
+706
+00:31:18,926 --> 00:31:22,656
+So now let's move onto
+resume time optimizations.
+
+
+707
+00:31:23,026 --> 00:31:25,936
+So when you optimize your resume
+time by extension you're going
+
+
+708
+00:31:25,936 --> 00:31:27,256
+to be optimizing
+your launch time
+
+
+709
+00:31:27,256 --> 00:31:29,186
+as well, which is very nice.
+
+
+710
+00:31:29,796 --> 00:31:32,856
+So let's talk about
+what we can do.
+
+
+711
+00:31:33,586 --> 00:31:34,786
+As Tyler I mentioned earlier,
+
+
+712
+00:31:35,886 --> 00:31:38,616
+we can minimize the work we're
+doing during willActivate
+
+
+713
+00:31:38,756 --> 00:31:39,526
+and didAppear.
+
+
+714
+00:31:39,826 --> 00:31:40,856
+So you know to do that,
+
+
+715
+00:31:40,856 --> 00:31:42,496
+of course we avoid
+long running tasks
+
+
+716
+00:31:42,496 --> 00:31:43,756
+that are triggered
+from willActivate.
+
+
+717
+00:31:44,256 --> 00:31:46,816
+We'll do a smart loading
+and reloading of our data,
+
+
+718
+00:31:47,406 --> 00:31:48,966
+and of course as he
+mentioned before, we only want
+
+
+719
+00:31:48,966 --> 00:31:50,956
+to set properties on
+our interface elements
+
+
+720
+00:31:50,996 --> 00:31:52,086
+that have actually changed.
+
+
+721
+00:31:52,976 --> 00:31:55,416
+So I'll start this off
+with a cautionary tale,
+
+
+722
+00:31:55,796 --> 00:31:59,006
+and this involves implementing
+the vertical detail paging API.
+
+
+723
+00:31:59,716 --> 00:32:00,986
+So as Tyler mentioned before,
+
+
+724
+00:32:00,986 --> 00:32:03,156
+neighboring detail pages
+will have willActivate called
+
+
+725
+00:32:03,966 --> 00:32:06,536
+and you also want to
+avoid expensive operations
+
+
+726
+00:32:06,536 --> 00:32:08,476
+in willActivate for
+detail pages.
+
+
+727
+00:32:08,776 --> 00:32:11,716
+But in particular, there's one
+very big expensive operation
+
+
+728
+00:32:11,716 --> 00:32:12,336
+in this view.
+
+
+729
+00:32:12,606 --> 00:32:15,046
+So it started with a
+couple of bug reports
+
+
+730
+00:32:15,046 --> 00:32:17,046
+but essentially we got
+reports of slow loading,
+
+
+731
+00:32:17,046 --> 00:32:19,236
+a slow loading chart for a stock
+
+
+732
+00:32:19,236 --> 00:32:20,646
+when you first entered
+the detail page.
+
+
+733
+00:32:21,056 --> 00:32:23,646
+And other detail pages never
+finish loading their charts,
+
+
+734
+00:32:23,726 --> 00:32:25,256
+or were extremely slow.
+
+
+735
+00:32:25,256 --> 00:32:28,276
+So we kind of looked at
+the code, and tried to look
+
+
+736
+00:32:28,276 --> 00:32:30,406
+and see what was going on, so
+this is a slimmed down version
+
+
+737
+00:32:30,406 --> 00:32:31,706
+of a stock interface controller.
+
+
+738
+00:32:32,266 --> 00:32:33,356
+But if you'll notice,
+
+
+739
+00:32:33,356 --> 00:32:36,076
+in willActivate we're calling
+this downloadAndGenerateChart
+
+
+740
+00:32:36,576 --> 00:32:41,076
+which was, basically an NS
+operation that was long running
+
+
+741
+00:32:41,076 --> 00:32:43,906
+and doing a lot of work to get
+chart data and draw that chart.
+
+
+742
+00:32:43,906 --> 00:32:47,006
+So what can we do to
+improve upon that?
+
+
+743
+00:32:47,676 --> 00:32:51,376
+Well, so we know that in
+didAppear it gets called
+
+
+744
+00:32:51,376 --> 00:32:53,626
+when that interface
+controller is actually visible
+
+
+745
+00:32:53,626 --> 00:32:54,956
+to the user and it has settled.
+
+
+746
+00:32:55,656 --> 00:32:58,226
+So how about we start
+downloading and generating
+
+
+747
+00:32:58,226 --> 00:32:59,306
+that chart data there?
+
+
+748
+00:33:00,016 --> 00:33:02,266
+And then what happens
+if you're scrolling
+
+
+749
+00:33:02,266 --> 00:33:04,306
+through those quite frequently?
+
+
+750
+00:33:04,866 --> 00:33:06,896
+We don't want to continue
+downloading and generating
+
+
+751
+00:33:06,896 --> 00:33:08,856
+that chart data for a view
+that you already left.
+
+
+752
+00:33:08,856 --> 00:33:12,256
+So we'll go ahead and we'll call
+cancelDownloadAndGenerateChart,
+
+
+753
+00:33:12,606 --> 00:33:13,546
+which is just a method
+
+
+754
+00:33:13,626 --> 00:33:15,946
+that takes the operation
+that's running and cancels it.
+
+
+755
+00:33:16,676 --> 00:33:21,046
+So, let's look at, again to
+review some of these caveats,
+
+
+756
+00:33:21,256 --> 00:33:23,236
+because I have to learn
+from my mistakes here.
+
+
+757
+00:33:23,976 --> 00:33:26,996
+We want to avoid triggering long
+running tasks in willActivate.
+
+
+758
+00:33:29,396 --> 00:33:32,136
+And if possible, it's
+great to make use
+
+
+759
+00:33:32,216 --> 00:33:33,746
+of cancellable operations,
+
+
+760
+00:33:34,306 --> 00:33:37,546
+so NS operation is a nice
+template for doing that.
+
+
+761
+00:33:38,126 --> 00:33:40,356
+So we'll move onto the
+WKInterfaceTable loading.
+
+
+762
+00:33:40,996 --> 00:33:43,346
+We know that all rows
+are loaded in memory,
+
+
+763
+00:33:44,016 --> 00:33:45,856
+and we know that there's
+a linear upfront cost
+
+
+764
+00:33:45,856 --> 00:33:47,886
+to the number of rows
+you have in your table.
+
+
+765
+00:33:48,566 --> 00:33:51,906
+And, of course there's no reuse
+as there is in UITableView.
+
+
+766
+00:33:52,106 --> 00:33:54,976
+So I'm going to show a graph and
+this is some of the profiling
+
+
+767
+00:33:54,976 --> 00:33:55,976
+that I had done in Stocks.
+
+
+768
+00:33:56,656 --> 00:33:59,606
+And this for the initial
+launch time, so after a reboot,
+
+
+769
+00:33:59,996 --> 00:34:02,036
+not resume time, any of that.
+
+
+770
+00:34:02,316 --> 00:34:04,526
+But it's kind of important to
+note that when we had 0 stocks
+
+
+771
+00:34:04,526 --> 00:34:05,956
+in the list, so an
+empty stock listed,
+
+
+772
+00:34:06,026 --> 00:34:08,206
+so just under 5 1/2
+seconds to load.
+
+
+773
+00:34:09,565 --> 00:34:11,585
+If we added one stock it
+jumped up a little bit,
+
+
+774
+00:34:11,766 --> 00:34:14,755
+to just under 6 1/2
+seconds, and if add 5 stocks,
+
+
+775
+00:34:14,926 --> 00:34:16,676
+a little over 6 1/2 seconds.
+
+
+776
+00:34:17,255 --> 00:34:19,295
+And if we had 10
+stocks, now it's starting
+
+
+777
+00:34:19,366 --> 00:34:20,946
+to creep up towards 7 seconds.
+
+
+778
+00:34:22,406 --> 00:34:25,295
+So if you have a
+large number of rows
+
+
+779
+00:34:25,815 --> 00:34:30,096
+in your table you're just
+basically delaying how quickly
+
+
+780
+00:34:30,356 --> 00:34:35,525
+that interface controller
+can load.
+
+
+781
+00:34:36,056 --> 00:34:38,556
+So what can we do to improve
+our loading time here?
+
+
+782
+00:34:38,976 --> 00:34:41,416
+Well first we can limit the
+number of rows that we load.
+
+
+783
+00:34:42,016 --> 00:34:45,226
+And we can also try to do
+smart updates of our table
+
+
+784
+00:34:45,315 --> 00:34:47,946
+when row deltas occur so
+meaning, when the list mutates.
+
+
+785
+00:34:48,326 --> 00:34:50,466
+So let's look at our initial
+approach of loadTable.
+
+
+786
+00:34:52,116 --> 00:34:54,806
+We'll go ahead and we'll grab
+the stocks from our manager,
+
+
+787
+00:34:54,906 --> 00:34:57,366
+and then we're going to set the
+number of rows on the table.
+
+
+788
+00:34:57,956 --> 00:34:59,896
+And then after that,
+
+
+789
+00:35:00,066 --> 00:35:02,856
+we'll populate each row
+controller with a stock.
+
+
+790
+00:35:02,856 --> 00:35:05,846
+Now it seems pretty harmless at
+first, what's happening there?
+
+
+791
+00:35:06,336 --> 00:35:09,746
+Well the number of stocks isn't
+capped, so if you had 20 stocks,
+
+
+792
+00:35:09,746 --> 00:35:13,166
+it would be 20 rows, if you had
+30, 30 and so on and so forth.
+
+
+793
+00:35:14,446 --> 00:35:16,676
+And we were always using
+a set number of rows.
+
+
+794
+00:35:17,026 --> 00:35:20,806
+And if just one row is being
+added when use that number
+
+
+795
+00:35:20,806 --> 00:35:22,876
+of rows you're essentially
+wiping
+
+
+796
+00:35:22,876 --> 00:35:26,486
+out what you had there before
+and starting over again.
+
+
+797
+00:35:26,836 --> 00:35:27,546
+So it's inefficient.
+
+
+798
+00:35:28,466 --> 00:35:29,716
+So let's look at
+what we could do
+
+
+799
+00:35:29,716 --> 00:35:31,116
+to be a little smarter
+this time.
+
+
+800
+00:35:31,606 --> 00:35:34,056
+So we grab the stocks like
+we did before, we'll go ahead
+
+
+801
+00:35:34,056 --> 00:35:35,726
+and check the count, and
+we're going to go ahead
+
+
+802
+00:35:35,726 --> 00:35:36,956
+and cap that at a max size.
+
+
+803
+00:35:37,456 --> 00:35:38,786
+So in Stocks' case, 20.
+
+
+804
+00:35:40,286 --> 00:35:42,876
+Then we're going to
+calculate our row delta
+
+
+805
+00:35:43,026 --> 00:35:45,076
+to see what the difference
+is, how much has it changed?
+
+
+806
+00:35:45,376 --> 00:35:47,646
+And then we're going to call
+this insertRemoveTableRows,
+
+
+807
+00:35:47,846 --> 00:35:48,706
+which I'll get to in a second.
+
+
+808
+00:35:49,556 --> 00:35:51,936
+And then one last
+button suspender approach
+
+
+809
+00:35:51,936 --> 00:35:53,716
+to make sure we're not doing
+more work than we need to.
+
+
+810
+00:35:54,076 --> 00:35:56,996
+We'll go ahead and check to
+make sure our index falls below
+
+
+811
+00:35:56,996 --> 00:35:59,446
+that max Stocks list size.
+
+
+812
+00:36:00,336 --> 00:36:02,676
+So let's look at that
+insertRemoveTableRows.
+
+
+813
+00:36:03,076 --> 00:36:04,126
+So the first thing we're going
+
+
+814
+00:36:04,126 --> 00:36:07,526
+to do is calculate the row
+change and then we're going
+
+
+815
+00:36:07,526 --> 00:36:08,656
+to check the stock row delta.
+
+
+816
+00:36:08,656 --> 00:36:11,086
+So if it's greater than 0,
+we know we're inserting,
+
+
+817
+00:36:11,616 --> 00:36:15,796
+if it's less than 0, then we
+know that we're going to remove.
+
+
+818
+00:36:16,136 --> 00:36:17,806
+And the important thing
+here, I mean you can try
+
+
+819
+00:36:17,806 --> 00:36:19,626
+to be a little bit more
+clever if you would like
+
+
+820
+00:36:19,626 --> 00:36:20,996
+and do smart updating based
+
+
+821
+00:36:20,996 --> 00:36:22,956
+on how much the list
+has actually changed.
+
+
+822
+00:36:23,026 --> 00:36:25,226
+But we found, for
+performance reasons,
+
+
+823
+00:36:25,226 --> 00:36:29,666
+just doing a simple insert
+at index 0 or removing,
+
+
+824
+00:36:29,756 --> 00:36:32,656
+starting at index 0, seems
+to serve us pretty well.
+
+
+825
+00:36:33,926 --> 00:36:37,076
+So let's not do more
+work than we have to.
+
+
+826
+00:36:37,286 --> 00:36:40,686
+Alright so to recap,
+the number of the stocks
+
+
+827
+00:36:40,686 --> 00:36:42,796
+in your stock list, or in
+my case, the stock list,
+
+
+828
+00:36:42,896 --> 00:36:44,486
+in your case, I'm not sure
+what you're putting in there,
+
+
+829
+00:36:44,686 --> 00:36:47,006
+but keep the number of
+rows down and cap it
+
+
+830
+00:36:47,006 --> 00:36:49,036
+at something reasonable
+for your use case.
+
+
+831
+00:36:49,816 --> 00:36:54,376
+Next, when you're inserting
+and removing rows, that's going
+
+
+832
+00:36:54,376 --> 00:36:57,176
+to be much more efficient than
+if just calling the set number
+
+
+833
+00:36:57,176 --> 00:36:59,526
+of rows method on
+WKInterfaceTable.
+
+
+834
+00:37:00,126 --> 00:37:04,606
+So one last thing here,
+instead of iterating
+
+
+835
+00:37:04,606 --> 00:37:08,096
+over the entire table when
+single row updates are coming.
+
+
+836
+00:37:08,326 --> 00:37:09,326
+So think about it this way,
+
+
+837
+00:37:09,326 --> 00:37:12,426
+like what if we're updating
+the Apple stock price
+
+
+838
+00:37:12,496 --> 00:37:14,986
+in our table list or
+our list of stocks?
+
+
+839
+00:37:16,126 --> 00:37:18,916
+Instead of going through and
+updating each one of those rows
+
+
+840
+00:37:18,916 --> 00:37:22,226
+when we don't have to, we can
+make use of the rowController
+
+
+841
+00:37:22,226 --> 00:37:24,456
+at index so that way we only
+update the rowController
+
+
+842
+00:37:24,456 --> 00:37:25,236
+that we care about.
+
+
+843
+00:37:25,896 --> 00:37:30,086
+Or, you can even do something
+similar to storing a reference
+
+
+844
+00:37:30,086 --> 00:37:32,326
+to that rowController
+and updating it later.
+
+
+845
+00:37:32,906 --> 00:37:36,136
+So now we're going
+to talk a little bit
+
+
+846
+00:37:36,136 --> 00:37:37,566
+about updating your UIElements.
+
+
+847
+00:37:38,286 --> 00:37:42,486
+So as Tyler mentioned before,
+these UIObjects and WatchKit,
+
+
+848
+00:37:42,486 --> 00:37:44,886
+they're modified in
+the extension process,
+
+
+849
+00:37:45,336 --> 00:37:46,896
+and updates to these
+properties are sent
+
+
+850
+00:37:46,896 --> 00:37:49,076
+from the extension
+process to the app process.
+
+
+851
+00:37:49,756 --> 00:37:52,596
+And the app process handles
+layout of the interface.
+
+
+852
+00:37:53,176 --> 00:37:54,846
+So let's look at
+our UI for Stocks,
+
+
+853
+00:37:54,846 --> 00:37:56,256
+and this is just
+a rowController.
+
+
+854
+00:37:56,396 --> 00:37:58,316
+But we have the platter
+here, which is a group
+
+
+855
+00:37:58,416 --> 00:38:00,926
+which has just the
+tappable area for the row.
+
+
+856
+00:38:02,146 --> 00:38:03,446
+Then we also have the list name
+
+
+857
+00:38:03,446 --> 00:38:04,936
+and so that's just
+the ticker symbol
+
+
+858
+00:38:04,936 --> 00:38:06,806
+of the company name,
+that's a label.
+
+
+859
+00:38:07,146 --> 00:38:08,806
+The change in points label,
+
+
+860
+00:38:08,886 --> 00:38:10,656
+and that's just the
+change that we've had.
+
+
+861
+00:38:11,226 --> 00:38:13,746
+And then we have the price
+label, current price.
+
+
+862
+00:38:14,376 --> 00:38:15,886
+So let's look and see
+what we're doing there.
+
+
+863
+00:38:16,256 --> 00:38:18,096
+When we would go to
+update this rowController,
+
+
+864
+00:38:18,126 --> 00:38:19,236
+we had this update method
+
+
+865
+00:38:19,386 --> 00:38:21,266
+and it would just take
+whatever values we gave it
+
+
+866
+00:38:21,266 --> 00:38:23,096
+and it would set those
+properties right away.
+
+
+867
+00:38:24,426 --> 00:38:27,976
+Now that's bad because
+properties
+
+
+868
+00:38:28,256 --> 00:38:31,606
+on the interface object
+are not cached, right.
+
+
+869
+00:38:32,576 --> 00:38:36,366
+And setting a property on
+that object sends that value
+
+
+870
+00:38:36,366 --> 00:38:39,136
+to the app process every time,
+and I'm redundant on this
+
+
+871
+00:38:39,136 --> 00:38:42,276
+but I want to emphasize
+the importance of that.
+
+
+872
+00:38:42,606 --> 00:38:45,866
+On average, in my profiling
+
+
+873
+00:38:45,866 --> 00:38:49,526
+in Stocks it would take roughly
+200 milliseconds for a value
+
+
+874
+00:38:49,526 --> 00:38:52,526
+to move from the extension
+process to the app process.
+
+
+875
+00:38:52,526 --> 00:38:56,186
+And that doesn't really
+seem like a long time, but,
+
+
+876
+00:38:57,256 --> 00:39:01,326
+in some profiling, that I
+did for the initial launch,
+
+
+877
+00:39:01,996 --> 00:39:05,496
+I saw a pretty staggering
+number of on average,
+
+
+878
+00:39:05,786 --> 00:39:08,226
+a worst case scenario
+1.4 seconds for some
+
+
+879
+00:39:08,226 --> 00:39:09,476
+of those messages to get sent
+
+
+880
+00:39:09,476 --> 00:39:12,296
+over from the extension
+process to the app process.
+
+
+881
+00:39:13,146 --> 00:39:16,286
+So it's a big difference.
+
+
+882
+00:39:16,806 --> 00:39:18,306
+So what can we do to
+be a little smarter?
+
+
+883
+00:39:19,306 --> 00:39:21,866
+Really just cache those values
+that you've already sent over
+
+
+884
+00:39:22,376 --> 00:39:26,936
+and then only send them
+if they've changed.
+
+
+885
+00:39:27,006 --> 00:39:29,726
+So let's do a little recap of
+our resume time discussion.
+
+
+886
+00:39:29,726 --> 00:39:33,036
+We want to minimize the work
+performed in our willActivate
+
+
+887
+00:39:33,036 --> 00:39:35,546
+and our didAppear, and
+we'll want to make use
+
+
+888
+00:39:35,596 --> 00:39:37,956
+of cancelable operations
+whenever possible.
+
+
+889
+00:39:38,426 --> 00:39:39,736
+It's also important to note,
+
+
+890
+00:39:39,916 --> 00:39:42,676
+that overly complicated user
+interfaces, they're going
+
+
+891
+00:39:42,676 --> 00:39:43,836
+to lead to slower load times.
+
+
+892
+00:39:44,316 --> 00:39:46,476
+So the more data that you're
+having to pull through
+
+
+893
+00:39:46,476 --> 00:39:48,826
+and update on the UI,
+the slower it can be.
+
+
+894
+00:39:49,506 --> 00:39:52,456
+And of course, we'll only want
+to update our user interface
+
+
+895
+00:39:52,456 --> 00:39:54,596
+when necessary, so only
+when things change.
+
+
+896
+00:39:55,746 --> 00:39:59,256
+So to summarize the Stocks
+case study and what I would
+
+
+897
+00:39:59,256 --> 00:40:01,736
+like for you to take from
+this, think small in your apps.
+
+
+898
+00:40:02,366 --> 00:40:05,016
+Keep your tasks small
+and easy to perform.
+
+
+899
+00:40:05,486 --> 00:40:09,526
+You'll want to simplify your
+user interface and you want
+
+
+900
+00:40:09,526 --> 00:40:13,706
+to make use of the new
+background refresh APIs.
+
+
+901
+00:40:13,876 --> 00:40:16,826
+Focus on resume time in your
+apps, we want to pay attention
+
+
+902
+00:40:16,826 --> 00:40:19,166
+to the WKInterfaceController
+lifecycle methods,
+
+
+903
+00:40:19,356 --> 00:40:20,936
+especially willActivate
+and didAppear.
+
+
+904
+00:40:21,416 --> 00:40:24,386
+And make use of our cancelable
+operations when possible,
+
+
+905
+00:40:25,006 --> 00:40:27,776
+and optimize when updating
+your user interface
+
+
+906
+00:40:27,916 --> 00:40:29,376
+by not sending redundant
+information.
+
+
+907
+00:40:30,146 --> 00:40:33,456
+For more information, you can
+view the developer website.
+
+
+908
+00:40:33,456 --> 00:40:35,096
+Our session number is 227.
+
+
+909
+00:40:35,576 --> 00:40:36,996
+Some of the related sessions,
+
+
+910
+00:40:36,996 --> 00:40:38,466
+unfortunately have
+already happened,
+
+
+911
+00:40:38,696 --> 00:40:40,926
+but some of these I
+feel are important
+
+
+912
+00:40:40,926 --> 00:40:44,596
+to not only WatchKit development
+but, we have concurrent program
+
+
+913
+00:40:44,596 --> 00:40:48,576
+on GCD in Swift 3, so that's
+also important as well.
+
+
+914
+00:40:48,576 --> 00:40:51,646
+So thank you and have a
+wonderful rest of the week.
+
+
+915
+00:40:52,516 --> 00:41:01,030e
+[ Applause ]
+

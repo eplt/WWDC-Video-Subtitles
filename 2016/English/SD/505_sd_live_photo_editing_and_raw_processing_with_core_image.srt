@@ -1,0 +1,6969 @@
+1
+00:00:07,516 --> 00:00:18,500
+[ Music ]
+
+
+2
+00:00:24,516 --> 00:00:29,006
+[ Applause ]
+
+
+3
+00:00:29,506 --> 00:00:30,866
+>> Thank you so much,
+and good morning.
+
+
+4
+00:00:30,866 --> 00:00:33,976
+And my name is David Hayward and
+I'm here to talk to you today
+
+
+5
+00:00:34,266 --> 00:00:35,726
+about editing Live Photos
+
+
+6
+00:00:35,726 --> 00:00:37,786
+and processing RAW
+images with Core Image.
+
+
+7
+00:00:37,786 --> 00:00:39,886
+We got a bunch of great
+stuff to talk about today.
+
+
+8
+00:00:40,786 --> 00:00:42,956
+First I'll give a brief
+introduction to Core Image
+
+
+9
+00:00:42,956 --> 00:00:44,536
+for those of you who
+are new to the subject.
+
+
+10
+00:00:45,086 --> 00:00:47,056
+Then we'll be talking about
+our three main subjects
+
+
+11
+00:00:47,056 --> 00:00:47,746
+for this morning.
+
+
+12
+00:00:48,166 --> 00:00:50,746
+First we'll be adjusting
+RAW images on iOS.
+
+
+13
+00:00:51,476 --> 00:00:53,796
+Second, we'll be
+editing Live Photos.
+
+
+14
+00:00:53,796 --> 00:00:56,706
+And third, we'll be talking
+about how to extend Core Image
+
+
+15
+00:00:56,706 --> 00:00:59,276
+in a new way using
+CIImageProcessor nodes.
+
+
+16
+00:00:59,846 --> 00:01:03,396
+So first, so a very brief
+introduction to Core Image.
+
+
+17
+00:01:04,275 --> 00:01:07,696
+The reason for Core Image is
+that it provides a very simple,
+
+
+18
+00:01:07,696 --> 00:01:10,716
+high-performance API to
+apply filters to images.
+
+
+19
+00:01:11,396 --> 00:01:14,126
+The basic idea is you start with
+an input image that may come
+
+
+20
+00:01:14,126 --> 00:01:16,936
+from a JPEG or a file or
+memory, and you can choose
+
+
+21
+00:01:16,936 --> 00:01:19,556
+to apply a filter to it and
+the result is an output image,
+
+
+22
+00:01:20,006 --> 00:01:22,356
+and it's very, very easy
+to do this in your code.
+
+
+23
+00:01:22,766 --> 00:01:26,396
+All you do is you take your
+image, call applyingFilter,
+
+
+24
+00:01:26,516 --> 00:01:29,466
+and specify the name of the
+filter and any parameters
+
+
+25
+00:01:29,466 --> 00:01:30,946
+that are appropriate
+for that filter.
+
+
+26
+00:01:31,496 --> 00:01:32,206
+It's super easy.
+
+
+27
+00:01:32,626 --> 00:01:34,586
+And, of course, you can do
+much more complex things.
+
+
+28
+00:01:34,836 --> 00:01:38,496
+You can chain together multiple
+filters in either sequences
+
+
+29
+00:01:38,496 --> 00:01:41,056
+or graphs and get
+very complex effects.
+
+
+30
+00:01:42,356 --> 00:01:43,616
+One of the great features
+
+
+31
+00:01:43,616 --> 00:01:45,936
+of Core Image is it provides
+automatic color management,
+
+
+32
+00:01:46,396 --> 00:01:48,236
+and this is very
+important these days.
+
+
+33
+00:01:48,606 --> 00:01:52,136
+We now have a variety of devices
+that support wide gamut input
+
+
+34
+00:01:52,286 --> 00:01:53,566
+and wide gamut output.
+
+
+35
+00:01:54,156 --> 00:01:56,856
+And what Core Image will do is
+it will automatically insert the
+
+
+36
+00:01:56,856 --> 00:01:58,616
+appropriate nodes
+into the render graph
+
+
+37
+00:01:59,016 --> 00:02:01,326
+so that it will match
+your input image
+
+
+38
+00:02:01,476 --> 00:02:04,026
+to the Core Image working
+space, and when it comes time
+
+
+39
+00:02:04,026 --> 00:02:05,396
+to display, it will match
+
+
+40
+00:02:05,396 --> 00:02:07,446
+from the working space
+to the display space.
+
+
+41
+00:02:08,626 --> 00:02:10,696
+And this is something you
+should be very much aware
+
+
+42
+00:02:10,696 --> 00:02:12,246
+of because wide color images
+
+
+43
+00:02:12,246 --> 00:02:14,606
+and wide color displays
+are common now
+
+
+44
+00:02:15,706 --> 00:02:17,416
+and many open source libraries
+
+
+45
+00:02:17,416 --> 00:02:20,406
+for doing image processing
+don't handle this automatically.
+
+
+46
+00:02:20,506 --> 00:02:22,766
+So this is a great feature of
+Core Image because it takes care
+
+
+47
+00:02:22,766 --> 00:02:24,616
+of all that for you in
+a very easy to use way.
+
+
+48
+00:02:27,146 --> 00:02:28,336
+Another thing to be aware of is
+
+
+49
+00:02:28,336 --> 00:02:32,016
+that each filter actually has
+a little bit of code associated
+
+
+50
+00:02:32,016 --> 00:02:33,916
+with it, a small
+subroutine called a kernel.
+
+
+51
+00:02:34,656 --> 00:02:38,576
+And all of our built-in filters
+have these kernels and one
+
+
+52
+00:02:38,576 --> 00:02:40,916
+of the great features is if
+you chain together a sequence
+
+
+53
+00:02:40,916 --> 00:02:44,336
+of filters, Core Image will
+automatically concatenate these
+
+
+54
+00:02:44,416 --> 00:02:46,186
+subroutines into
+a single program.
+
+
+55
+00:02:46,776 --> 00:02:49,186
+The idea behind this is
+to improve performance
+
+
+56
+00:02:49,286 --> 00:02:52,436
+by reducing the -- and
+quality, by reducing the number
+
+
+57
+00:02:52,436 --> 00:02:55,496
+of intermediate buffers.
+
+
+58
+00:02:56,656 --> 00:02:59,086
+Core Image has over
+180 built-in filters.
+
+
+59
+00:02:59,126 --> 00:03:00,666
+They are the exact
+same filters on all
+
+
+60
+00:03:00,666 --> 00:03:05,086
+of our platforms;
+macOS, tvOS and iOS.
+
+
+61
+00:03:05,586 --> 00:03:07,676
+We have a few new ones this year
+which I'd like to talk about.
+
+
+62
+00:03:08,616 --> 00:03:09,466
+One is a new filter
+
+
+63
+00:03:09,466 --> 00:03:12,236
+for generating hue
+saturation and value gradient.
+
+
+64
+00:03:12,876 --> 00:03:15,336
+It creates a gradient
+in hue and saturation,
+
+
+65
+00:03:15,546 --> 00:03:18,606
+and then you can specify, as
+a parameter, the brightness
+
+
+66
+00:03:18,606 --> 00:03:20,906
+of the image and also
+specify the color space
+
+
+67
+00:03:20,906 --> 00:03:21,696
+that the wheel is in.
+
+
+68
+00:03:21,766 --> 00:03:26,136
+And as you might guess, this
+filter is now used on macOS
+
+
+69
+00:03:26,386 --> 00:03:30,486
+as the basis of the color
+picker, which is now aware
+
+
+70
+00:03:30,486 --> 00:03:36,206
+of the different types
+of display color spaces.
+
+
+71
+00:03:36,206 --> 00:03:39,526
+Another new filter we have
+is CINinePartStretched
+
+
+72
+00:03:39,526 --> 00:03:40,556
+and NinePartTiled.
+
+
+73
+00:03:40,916 --> 00:03:43,546
+The idea behind this is you
+might have a small asset,
+
+
+74
+00:03:43,546 --> 00:03:45,956
+like this picture frame here,
+and you want to stretch it
+
+
+75
+00:03:45,956 --> 00:03:48,216
+up to fit an arbitrary size.
+
+
+76
+00:03:48,476 --> 00:03:49,976
+This filter is very easy to use.
+
+
+77
+00:03:49,976 --> 00:03:54,736
+You provide an input image and
+you provide four breakpoints,
+
+
+78
+00:03:54,826 --> 00:03:56,536
+two horizontal and two vertical.
+
+
+79
+00:03:56,736 --> 00:03:58,206
+Once you've specified
+those points,
+
+
+80
+00:03:58,206 --> 00:04:00,606
+you can specify the size
+you want it to stretch to.
+
+
+81
+00:04:01,416 --> 00:04:02,336
+It's very easy to use.
+
+
+82
+00:04:02,896 --> 00:04:07,206
+The third new filter is
+something that's also
+
+
+83
+00:04:07,206 --> 00:04:08,076
+quite interesting.
+
+
+84
+00:04:08,076 --> 00:04:11,516
+The idea is to start
+with a small input image.
+
+
+85
+00:04:11,806 --> 00:04:13,856
+In this case it's an image
+containing color data,
+
+
+86
+00:04:13,856 --> 00:04:16,036
+but it can also contain
+parametric data.
+
+
+87
+00:04:16,356 --> 00:04:19,356
+So imagine you have a small
+set of colors or parameters
+
+
+88
+00:04:19,875 --> 00:04:23,366
+and maybe it's only 6 by 7
+pixels and you want to upsample
+
+
+89
+00:04:23,366 --> 00:04:25,076
+that to the full
+size of an image.
+
+
+90
+00:04:26,446 --> 00:04:28,836
+The idea is to upsample
+the color image,
+
+
+91
+00:04:29,166 --> 00:04:30,106
+the small color image,
+
+
+92
+00:04:31,006 --> 00:04:33,966
+but respect the edges
+in the guide image.
+
+
+93
+00:04:34,476 --> 00:04:36,166
+Now, if you weren't to
+respect the guide images,
+
+
+94
+00:04:36,166 --> 00:04:39,356
+if you were just to stretch the
+small image up to the same size
+
+
+95
+00:04:39,356 --> 00:04:43,006
+as the full image, you'd
+just get a blend of colors,
+
+
+96
+00:04:43,476 --> 00:04:45,046
+but with this filter
+you can get more.
+
+
+97
+00:04:45,296 --> 00:04:46,506
+You can actually get something
+
+
+98
+00:04:46,506 --> 00:04:49,376
+that preserves the edges while
+also respecting the colors.
+
+
+99
+00:04:49,376 --> 00:04:51,616
+And this is actually a
+useful feature for a lot
+
+
+100
+00:04:51,616 --> 00:04:52,866
+of other types of algorithms.
+
+
+101
+00:04:53,126 --> 00:04:56,396
+In fact, in the new version
+of Photos app we use this
+
+
+102
+00:04:56,396 --> 00:05:00,116
+to improve the behavior of
+the light adjustment sliders.
+
+
+103
+00:05:00,116 --> 00:05:03,016
+I look forward to
+seeing how you can use
+
+
+104
+00:05:03,016 --> 00:05:03,926
+that in your application.
+
+
+105
+00:05:04,646 --> 00:05:06,696
+We also have some new
+performance controls this year
+
+
+106
+00:05:07,256 --> 00:05:09,106
+and do things that
+improve performance
+
+
+107
+00:05:09,136 --> 00:05:10,036
+in Core Image this year.
+
+
+108
+00:05:10,776 --> 00:05:13,176
+One is we have Metal
+turned on by default.
+
+
+109
+00:05:13,556 --> 00:05:16,926
+So if you use any of
+our built-in 180 filters
+
+
+110
+00:05:16,926 --> 00:05:18,276
+or your own custom kernels,
+
+
+111
+00:05:18,686 --> 00:05:21,736
+all of those kernels
+will be converted
+
+
+112
+00:05:21,736 --> 00:05:23,016
+to Metal on the fly for you.
+
+
+113
+00:05:23,336 --> 00:05:25,386
+It's a great way of
+leveraging the power of Metal
+
+
+114
+00:05:25,886 --> 00:05:29,186
+with very little
+effort on your part.
+
+
+115
+00:05:29,506 --> 00:05:32,356
+We've also made some great
+improvements to a critical API,
+
+
+116
+00:05:32,356 --> 00:05:35,076
+which is creating a
+UIImage from a CIImage,
+
+
+117
+00:05:35,536 --> 00:05:37,686
+and this now produces
+much better performance
+
+
+118
+00:05:37,686 --> 00:05:38,516
+than it has in the past.
+
+
+119
+00:05:38,516 --> 00:05:40,636
+So you can actually use
+this very efficiently
+
+
+120
+00:05:40,926 --> 00:05:45,216
+to animate an image
+in a UIImage view.
+
+
+121
+00:05:45,866 --> 00:05:47,386
+Also another new feature is
+
+
+122
+00:05:47,386 --> 00:05:49,666
+that Core Image now
+supports a feature that's new
+
+
+123
+00:05:49,666 --> 00:05:50,866
+to Core Graphics, which is
+
+
+124
+00:05:50,966 --> 00:05:53,366
+that Core Graphics
+supports half-floats.
+
+
+125
+00:05:53,526 --> 00:05:55,446
+Let me just talk for a
+second about pixel formats
+
+
+126
+00:05:55,446 --> 00:05:56,846
+because this brings up
+an interesting point.
+
+
+127
+00:05:58,256 --> 00:06:01,196
+We're all familiar with the
+conventional pixel format
+
+
+128
+00:06:01,756 --> 00:06:06,516
+of RGBA8 and it takes just
+4 bytes per pixel to store
+
+
+129
+00:06:06,516 --> 00:06:10,246
+and has 8 bits of depth,
+and can encode values
+
+
+130
+00:06:10,246 --> 00:06:11,426
+in the range of 0 to 1.
+
+
+131
+00:06:12,376 --> 00:06:14,006
+However, this format
+is not great
+
+
+132
+00:06:14,006 --> 00:06:18,686
+for representing wide-colored
+data because it only has 8 bits
+
+
+133
+00:06:18,716 --> 00:06:20,796
+and it's limited to the
+values in the range 0 to 1.
+
+
+134
+00:06:21,236 --> 00:06:25,156
+So in the past the alternative
+has been to use RGBAfloat,
+
+
+135
+00:06:25,666 --> 00:06:28,636
+which takes 16 bytes per pixel,
+so four times as much memory,
+
+
+136
+00:06:28,986 --> 00:06:31,866
+but gives you all the depth and
+range you could ever hope for.
+
+
+137
+00:06:32,916 --> 00:06:35,456
+Another feature of the fact
+that it's using floats is
+
+
+138
+00:06:35,456 --> 00:06:37,056
+that what quantization there is,
+
+
+139
+00:06:37,056 --> 00:06:38,436
+it's distributed
+logarithmically,
+
+
+140
+00:06:38,466 --> 00:06:41,326
+which is a good fit for the way
+the human eye perceives color.
+
+
+141
+00:06:41,326 --> 00:06:45,486
+Well, there's a new format
+which Core Image has supported
+
+
+142
+00:06:45,486 --> 00:06:48,286
+and now Core Graphics does
+as well, which I refer
+
+
+143
+00:06:48,286 --> 00:06:51,536
+to as the Goldilocks pixel
+format, which is RGBAh,
+
+
+144
+00:06:51,536 --> 00:06:55,256
+and this allows you to,
+in just 8 bytes per pixel,
+
+
+145
+00:06:55,726 --> 00:06:59,816
+store data that is 10 bits
+of depth and allows values
+
+
+146
+00:06:59,816 --> 00:07:03,216
+in the range of minus
+65,000 to positive 65,000.
+
+
+147
+00:07:03,556 --> 00:07:05,806
+And again, those values are
+quantized logarithmically,
+
+
+148
+00:07:05,806 --> 00:07:08,066
+so it's great to store
+linear data in a way
+
+
+149
+00:07:08,066 --> 00:07:09,646
+that won't be perceived
+as quantized.
+
+
+150
+00:07:10,296 --> 00:07:12,826
+So I highly recommend
+this pixel format.
+
+
+151
+00:07:13,466 --> 00:07:15,306
+There's another new format
+which I should mention,
+
+
+152
+00:07:15,306 --> 00:07:18,176
+which is that Core Video
+supports a pixel format
+
+
+153
+00:07:18,446 --> 00:07:19,346
+with the long name
+
+
+154
+00:07:19,346 --> 00:07:23,626
+of 30RGBLittle [inaudible]
+PackedWideGamut,
+
+
+155
+00:07:23,726 --> 00:07:27,646
+and this also supports 10
+bits of depth, but stores it
+
+
+156
+00:07:27,646 --> 00:07:31,676
+in an only 4 bytes per pixel by
+sacrificing the alpha channel.
+
+
+157
+00:07:32,026 --> 00:07:34,266
+So there's many cases where
+this is useful as well
+
+
+158
+00:07:34,636 --> 00:07:37,816
+and Core Image supports
+either rendering from
+
+
+159
+00:07:37,816 --> 00:07:39,966
+or to CV pixel buffers
+in this format.
+
+
+160
+00:07:40,316 --> 00:07:45,756
+So now I'd like to actually talk
+about the next major subject
+
+
+161
+00:07:45,756 --> 00:07:49,006
+of our discussion today,
+which is adjusting RAW images
+
+
+162
+00:07:49,006 --> 00:07:50,686
+with Core Image, and
+I'm really excited
+
+
+163
+00:07:50,686 --> 00:07:51,666
+to talk about this today.
+
+
+164
+00:07:51,666 --> 00:07:53,196
+We've been working on
+this for a long time.
+
+
+165
+00:07:53,196 --> 00:07:55,676
+It's been a lot of hard
+work and I'm really excited
+
+
+166
+00:07:55,676 --> 00:07:58,456
+about the fact that we've
+brought this to iOS.
+
+
+167
+00:07:58,986 --> 00:08:01,536
+In talking about this, I'd like
+to discuss what is a RAW file,
+
+
+168
+00:08:02,106 --> 00:08:03,796
+how to use the CIRAWFilter API,
+
+
+169
+00:08:03,796 --> 00:08:06,716
+some notes on supporting
+wide-gamut output,
+
+
+170
+00:08:07,126 --> 00:08:09,166
+and also tips for
+managing memory.
+
+
+171
+00:08:10,516 --> 00:08:12,776
+So first, what is a RAW file?
+
+
+172
+00:08:13,376 --> 00:08:17,546
+Well, the way most cameras work
+is that they have two key parts;
+
+
+173
+00:08:18,106 --> 00:08:20,286
+a color filter array
+and a sensor array.
+
+
+174
+00:08:20,836 --> 00:08:24,016
+And the idea is light from the
+scene enters from the scene
+
+
+175
+00:08:24,126 --> 00:08:25,406
+through the color filter array
+
+
+176
+00:08:25,646 --> 00:08:27,546
+and it's counted by
+the sensor array.
+
+
+177
+00:08:28,596 --> 00:08:31,016
+And this data is actually
+part of a much larger image,
+
+
+178
+00:08:31,016 --> 00:08:34,716
+of course, but in order to turn
+this data into a usable image,
+
+
+179
+00:08:34,716 --> 00:08:38,015
+a lot of image processing
+is needed in order
+
+
+180
+00:08:38,015 --> 00:08:40,385
+to produce a pleasing
+image for the user.
+
+
+181
+00:08:41,726 --> 00:08:43,066
+So I want to talk a
+little bit about that.
+
+
+182
+00:08:43,405 --> 00:08:46,996
+But the main idea here is
+that if you take the data
+
+
+183
+00:08:46,996 --> 00:08:49,416
+that was captured by the
+sensor, that is a RAW file.
+
+
+184
+00:08:49,626 --> 00:08:51,056
+If you take the data
+that was captured
+
+
+185
+00:08:51,436 --> 00:08:54,346
+after the image processing,
+that's a TIFF or a JPEG.
+
+
+186
+00:08:55,766 --> 00:08:58,476
+RAW files store the
+unprocessed scene data,
+
+
+187
+00:08:58,726 --> 00:09:02,266
+and JPEG files store the
+processed output image.
+
+
+188
+00:09:03,546 --> 00:09:04,846
+Another way to think of it is
+
+
+189
+00:09:04,846 --> 00:09:06,646
+that the RAW file
+stores the ingredients
+
+
+190
+00:09:06,646 --> 00:09:08,976
+from which you can
+make an image; whereas,
+
+
+191
+00:09:08,976 --> 00:09:12,316
+a JPEG stores the
+results of the ingredients
+
+
+192
+00:09:12,316 --> 00:09:14,466
+after they've been baked
+into a beautiful cake.
+
+
+193
+00:09:15,456 --> 00:09:19,176
+In order to go from
+the ingredients
+
+
+194
+00:09:19,176 --> 00:09:21,146
+to a final baked product,
+however, there is a lot
+
+
+195
+00:09:21,146 --> 00:09:23,696
+of stages, so let me just
+outline a few of those here.
+
+
+196
+00:09:24,766 --> 00:09:26,846
+First of all, we have to
+extract metadata from the file
+
+
+197
+00:09:26,976 --> 00:09:28,966
+that tells us how
+long to cook the cake,
+
+
+198
+00:09:28,966 --> 00:09:30,006
+to extend the metaphor.
+
+
+199
+00:09:31,116 --> 00:09:33,416
+Also, we need to decode the
+RAW data from the sensor.
+
+
+200
+00:09:34,546 --> 00:09:39,406
+We need to demosaic the image to
+reconstruct the full color image
+
+
+201
+00:09:39,406 --> 00:09:41,256
+from the data that was captured
+
+
+202
+00:09:41,256 --> 00:09:43,936
+with only one RGB value
+per pixel location.
+
+
+203
+00:09:44,356 --> 00:09:48,506
+We need to apply geometric
+distortions for lens correction.
+
+
+204
+00:09:49,866 --> 00:09:53,426
+Noise reduction, which is a
+huge piece of the processing.
+
+
+205
+00:09:54,476 --> 00:09:57,226
+We need to do color matching
+from the scene-referred datas
+
+
+206
+00:09:57,226 --> 00:09:58,256
+that the sensor captured
+
+
+207
+00:09:58,506 --> 00:09:59,936
+into the output-referred
+data for display.
+
+
+208
+00:10:00,046 --> 00:10:04,296
+And then we need to do
+things like adjust exposure
+
+
+209
+00:10:04,296 --> 00:10:05,206
+and temperature and tint.
+
+
+210
+00:10:05,746 --> 00:10:08,616
+And lastly, but very
+importantly, add sharpening,
+
+
+211
+00:10:08,616 --> 00:10:11,576
+contrast and saturation to
+make an image look pleasing.
+
+
+212
+00:10:12,006 --> 00:10:13,086
+That's a lot of stages.
+
+
+213
+00:10:13,786 --> 00:10:16,766
+What are some of the
+advantages of RAW?
+
+
+214
+00:10:16,936 --> 00:10:18,476
+Well, one of the great things is
+
+
+215
+00:10:18,476 --> 00:10:21,306
+that the RAW file contains
+linear and deep pixel data,
+
+
+216
+00:10:21,726 --> 00:10:23,986
+which is what enables
+great editability.
+
+
+217
+00:10:25,906 --> 00:10:28,336
+Another feature is that RAW
+image processing gets better
+
+
+218
+00:10:28,846 --> 00:10:29,316
+every year.
+
+
+219
+00:10:29,706 --> 00:10:32,056
+So with the RAW you
+have the promise
+
+
+220
+00:10:32,056 --> 00:10:34,916
+that an image you took yesterday
+might have better quality
+
+
+221
+00:10:34,916 --> 00:10:38,746
+when you process it next year.
+
+
+222
+00:10:39,456 --> 00:10:41,986
+Also, RAW files are
+color space agnostic.
+
+
+223
+00:10:42,046 --> 00:10:44,316
+They can actually be rendered
+to any target output space,
+
+
+224
+00:10:44,746 --> 00:10:46,846
+which is also a good
+feature, given the variety
+
+
+225
+00:10:46,846 --> 00:10:47,896
+of displays we have today.
+
+
+226
+00:10:49,656 --> 00:10:52,176
+Also, a user can choose
+to use different software
+
+
+227
+00:10:52,176 --> 00:10:53,316
+to interpret the RAW file.
+
+
+228
+00:10:53,676 --> 00:10:55,046
+Just like giving
+the same ingredient
+
+
+229
+00:10:55,096 --> 00:10:57,266
+to two different chefs, you
+can get two different results,
+
+
+230
+00:10:57,686 --> 00:11:00,116
+and some users might prefer
+one chef over another.
+
+
+231
+00:11:00,726 --> 00:11:05,216
+That said, there are some great
+advantages to JPEG as well.
+
+
+232
+00:11:06,226 --> 00:11:08,366
+First of all, because the
+processing has been applied,
+
+
+233
+00:11:08,366 --> 00:11:09,936
+they are fast to
+load and display.
+
+
+234
+00:11:11,096 --> 00:11:13,706
+They contain colors
+and adjustments
+
+
+235
+00:11:13,706 --> 00:11:16,026
+that target a specific
+output, which can be useful.
+
+
+236
+00:11:16,896 --> 00:11:19,146
+And that also gives
+predictable results.
+
+
+237
+00:11:20,436 --> 00:11:23,986
+Also, it's worth mentioning that
+cameras do a great job today
+
+
+238
+00:11:23,986 --> 00:11:25,556
+of producing JPEG images,
+
+
+239
+00:11:25,866 --> 00:11:30,806
+and our iOS cameras are an
+especially good example of that.
+
+
+240
+00:11:31,946 --> 00:11:34,456
+So on the subject of RAW,
+let me talk a little bit
+
+
+241
+00:11:34,456 --> 00:11:36,346
+about how our platforms
+support RAW.
+
+
+242
+00:11:37,286 --> 00:11:41,526
+So the great news is that now
+we fully support RAW on iOS
+
+
+243
+00:11:41,756 --> 00:11:44,286
+and upcoming seed
+on tvOS as well.
+
+
+244
+00:11:45,836 --> 00:11:48,426
+This means we support over
+400 unique camera models
+
+
+245
+00:11:48,426 --> 00:11:49,966
+from 16 different vendors.
+
+
+246
+00:11:50,486 --> 00:11:53,496
+And also, we support DNG
+files such as those captured
+
+
+247
+00:11:53,496 --> 00:11:54,996
+by our own iOS devices.
+
+
+248
+00:11:55,886 --> 00:12:01,736
+The iOS devices include
+the iPhone 6S, 6S Plus, SE,
+
+
+249
+00:12:01,846 --> 00:12:03,816
+and also the iPad Pro 9.7.
+
+
+250
+00:12:05,376 --> 00:12:06,426
+That is really exciting.
+
+
+251
+00:12:06,956 --> 00:12:09,096
+I recommend you all go back,
+if you haven't already,
+
+
+252
+00:12:09,096 --> 00:12:11,306
+and watch the Advances
+in iOS Photography,
+
+
+253
+00:12:11,306 --> 00:12:13,636
+which talks about the new
+APIs that are available
+
+
+254
+00:12:13,636 --> 00:12:15,526
+to capture RAW on these devices.
+
+
+255
+00:12:15,526 --> 00:12:20,076
+Another great thing is that
+we now have the same high
+
+
+256
+00:12:20,076 --> 00:12:24,396
+performance RAW pipeline
+on iOS as we do on macOS,
+
+
+257
+00:12:24,846 --> 00:12:27,016
+and this is actually
+quite an achievement.
+
+
+258
+00:12:27,176 --> 00:12:29,726
+I counted the other day
+and looked at our pipeline
+
+
+259
+00:12:29,726 --> 00:12:34,026
+and it involves over 4,500
+lines of CIKernel code
+
+
+260
+00:12:34,676 --> 00:12:36,406
+and this all works
+very efficiently
+
+
+261
+00:12:36,406 --> 00:12:39,516
+and it's a great testament to
+our ability and the abilities
+
+
+262
+00:12:39,516 --> 00:12:40,646
+of Core Image to be able
+
+
+263
+00:12:40,646 --> 00:12:42,956
+to handle complex
+rendering situations.
+
+
+264
+00:12:43,496 --> 00:12:49,346
+Our pipeline on iOS
+requires A8 devices or later,
+
+
+265
+00:12:49,656 --> 00:12:52,516
+and you can test for this in
+your application by looking
+
+
+266
+00:12:52,516 --> 00:12:56,366
+for the iOS GPU Family 2.
+
+
+267
+00:12:57,746 --> 00:12:59,486
+Another note on platform
+support.
+
+
+268
+00:12:59,486 --> 00:13:01,636
+We continuously add
+support for new cameras
+
+
+269
+00:13:01,636 --> 00:13:04,576
+as new ones become available,
+and also to improve the quality
+
+
+270
+00:13:04,576 --> 00:13:06,316
+of existing cameras
+that we already support.
+
+
+271
+00:13:07,236 --> 00:13:09,866
+New cameras are added in
+future software updates.
+
+
+272
+00:13:10,476 --> 00:13:13,186
+And also, we improve our
+pipeline periodically as well.
+
+
+273
+00:13:13,566 --> 00:13:15,166
+And our pipelines are versions,
+
+
+274
+00:13:15,166 --> 00:13:17,466
+so you can either use our
+latest version or go back
+
+
+275
+00:13:17,466 --> 00:13:19,056
+and use previous
+versions if you desire.
+
+
+276
+00:13:20,286 --> 00:13:23,966
+So without further ado, I
+want to give a demonstration
+
+
+277
+00:13:23,966 --> 00:13:24,976
+of how this looks in action.
+
+
+278
+00:13:32,106 --> 00:13:34,296
+So what I have here
+is some sample code.
+
+
+279
+00:13:34,296 --> 00:13:36,556
+There's an early version of that
+that's available for download,
+
+
+280
+00:13:36,556 --> 00:13:39,806
+and it's called RAWExposed,
+and this is both an application
+
+
+281
+00:13:39,806 --> 00:13:42,946
+and this latest version is
+also a photo editing extension.
+
+
+282
+00:13:43,496 --> 00:13:45,416
+So what we can do is
+we can go into Photos
+
+
+283
+00:13:45,416 --> 00:13:46,816
+and actually use
+this sample code.
+
+
+284
+00:13:47,436 --> 00:13:50,346
+We have three RAW images here
+that are 24 megapixels each
+
+
+285
+00:13:50,346 --> 00:13:52,716
+that were taken with
+a Canon 5D Mark III.
+
+
+286
+00:13:53,166 --> 00:13:55,556
+And you can see here that
+this image is pretty poorly
+
+
+287
+00:13:55,556 --> 00:13:58,046
+overexposed, but one of the
+great features of RAW is
+
+
+288
+00:13:58,046 --> 00:13:59,926
+that you can actually
+salvage images like this.
+
+
+289
+00:14:00,356 --> 00:14:01,896
+So we can go here and edit it
+
+
+290
+00:14:02,226 --> 00:14:04,816
+and use our photo
+editing extension
+
+
+291
+00:14:05,376 --> 00:14:07,136
+to edit this as a RAW file.
+
+
+292
+00:14:07,956 --> 00:14:10,706
+So now, since we're
+editing this as a RAW file,
+
+
+293
+00:14:10,706 --> 00:14:12,016
+we can actually make
+adjustments [inaudible].
+
+
+294
+00:14:12,996 --> 00:14:17,226
+We can adjust the
+exposure up and down.
+
+
+295
+00:14:18,596 --> 00:14:21,486
+You can see we can pan
+across all the 24 megapixels
+
+
+296
+00:14:22,146 --> 00:14:23,466
+and we get great results.
+
+
+297
+00:14:24,576 --> 00:14:27,246
+Once I'm happy with the
+image, this looks much better
+
+
+298
+00:14:27,246 --> 00:14:29,046
+than it did before,
+I can hit Done
+
+
+299
+00:14:29,046 --> 00:14:32,516
+and it will generate a new
+full resolution image of that,
+
+
+300
+00:14:32,516 --> 00:14:34,316
+and now it is actually
+available to see
+
+
+301
+00:14:34,316 --> 00:14:34,976
+in the Photos application.
+
+
+302
+00:14:35,516 --> 00:14:42,876
+[ Applause ]
+
+
+303
+00:14:43,376 --> 00:14:45,586
+One of the other things
+that's great in RAW files is
+
+
+304
+00:14:45,586 --> 00:14:46,816
+that you can make
+great adjustments
+
+
+305
+00:14:46,816 --> 00:14:48,046
+on white balance in an image.
+
+
+306
+00:14:48,046 --> 00:14:49,986
+Again, on this image
+the image is fine,
+
+
+307
+00:14:49,986 --> 00:14:51,316
+but it may be a little crooked,
+
+
+308
+00:14:51,316 --> 00:14:52,706
+but also the white
+balance is off.
+
+
+309
+00:14:53,346 --> 00:14:54,466
+So I'm going to go in here
+
+
+310
+00:14:54,846 --> 00:14:58,396
+and adjust the white
+balance just a little bit
+
+
+311
+00:14:58,396 --> 00:14:59,916
+and I can make a much
+more pleasant image.
+
+
+312
+00:14:59,916 --> 00:15:01,666
+And again, we can zoom
+in and see the results.
+
+
+313
+00:15:02,246 --> 00:15:04,556
+And we can adjust
+these results live.
+
+
+314
+00:15:05,406 --> 00:15:08,226
+So we hit Done and save that.
+
+
+315
+00:15:10,266 --> 00:15:12,096
+Another image I want to
+show is this image here,
+
+
+316
+00:15:12,096 --> 00:15:13,656
+which is actually
+a very noisy image.
+
+
+317
+00:15:13,656 --> 00:15:15,366
+I want to show you a little bit
+
+
+318
+00:15:15,366 --> 00:15:16,676
+about our noise reduction
+algorithms.
+
+
+319
+00:15:17,146 --> 00:15:19,566
+Over half of our 4,500 lines
+
+
+320
+00:15:19,566 --> 00:15:21,486
+of kernel code relate
+to noise reduction.
+
+
+321
+00:15:22,046 --> 00:15:23,906
+So if I go in here
+and edit this one,
+
+
+322
+00:15:24,906 --> 00:15:26,176
+you can see that there's some --
+
+
+323
+00:15:26,236 --> 00:15:27,526
+hopefully at least
+in the front rows,
+
+
+324
+00:15:27,526 --> 00:15:29,046
+you can see the grain
+that's in this image.
+
+
+325
+00:15:30,056 --> 00:15:32,326
+One of the features we expose
+in our API is the ability
+
+
+326
+00:15:32,326 --> 00:15:34,306
+to turn off our noise
+reduction algorithm,
+
+
+327
+00:15:34,796 --> 00:15:36,746
+and then you can actually
+see the colorful nature
+
+
+328
+00:15:36,746 --> 00:15:39,036
+of the noise that's actually
+present in the RAW file.
+
+
+329
+00:15:39,106 --> 00:15:41,736
+And it's this very
+challenging task
+
+
+330
+00:15:41,736 --> 00:15:44,596
+of doing the noise
+reduction to make an image
+
+
+331
+00:15:44,596 --> 00:15:46,576
+that doesn't have
+those colorful speckles
+
+
+332
+00:15:46,576 --> 00:15:49,276
+but still preserves
+nice color edges
+
+
+333
+00:15:49,526 --> 00:15:50,766
+that are intended in the image.
+
+
+334
+00:15:52,376 --> 00:15:55,256
+So I'll save that as well.
+
+
+335
+00:15:55,466 --> 00:15:59,546
+Lastly, I want to demonstrate an
+image we took earlier this week
+
+
+336
+00:16:00,136 --> 00:16:02,446
+out in the lobby, which
+was taken with this iPad.
+
+
+337
+00:16:02,446 --> 00:16:03,966
+Yes, I was one of those people
+taking a picture with an iPad.
+
+
+338
+00:16:04,316 --> 00:16:06,316
+[ Laughter ]
+
+
+339
+00:16:06,616 --> 00:16:09,586
+And here I want to
+show you, you know,
+
+
+340
+00:16:09,586 --> 00:16:11,256
+this is an image that's
+challenging in its own way
+
+
+341
+00:16:11,256 --> 00:16:12,706
+because it's got some
+areas that are dark
+
+
+342
+00:16:12,706 --> 00:16:14,386
+and some areas that
+are overexposed.
+
+
+343
+00:16:15,586 --> 00:16:18,986
+One thing I could do here is I
+could bring down the exposure --
+
+
+344
+00:16:18,986 --> 00:16:20,796
+well, I have a highlight
+slider which can allow me
+
+
+345
+00:16:20,796 --> 00:16:25,446
+to bring the highlights
+in a bit.
+
+
+346
+00:16:25,666 --> 00:16:27,326
+I can also bring
+down the exposure.
+
+
+347
+00:16:27,786 --> 00:16:30,166
+And now I can really see what's
+going on outside the windows.
+
+
+348
+00:16:30,786 --> 00:16:32,236
+But now the shadows
+are too dark,
+
+
+349
+00:16:32,236 --> 00:16:33,316
+so I can then increase those.
+
+
+350
+00:16:33,316 --> 00:16:36,786
+So this gives you an idea of the
+kind of adjustments you can do
+
+
+351
+00:16:36,786 --> 00:16:38,656
+on RAW files, and
+this is the benefit
+
+
+352
+00:16:38,656 --> 00:16:41,696
+of having deeper
+precision on your pixel data
+
+
+353
+00:16:41,786 --> 00:16:42,826
+that you get in a RAW file.
+
+
+354
+00:16:43,936 --> 00:16:47,706
+So I'll hit Done on that.
+
+
+355
+00:16:48,046 --> 00:16:49,976
+So that's our demo
+of RAW in iOS.
+
+
+356
+00:16:50,516 --> 00:16:55,546
+[ Applause ]
+
+
+357
+00:16:56,046 --> 00:16:57,956
+And a huge thanks to the team
+for making this possible.
+
+
+358
+00:16:58,356 --> 00:17:01,836
+So let me talk about the API,
+because it's not just enough
+
+
+359
+00:17:01,836 --> 00:17:03,706
+to provide a demo application.
+
+
+360
+00:17:03,706 --> 00:17:05,675
+We want to enable your
+applications to be able
+
+
+361
+00:17:05,675 --> 00:17:07,006
+to do this in your apps as well.
+
+
+362
+00:17:07,586 --> 00:17:09,435
+So we have an API
+that's referred
+
+
+363
+00:17:09,435 --> 00:17:11,096
+to as the CIRAWFilter API,
+
+
+364
+00:17:11,096 --> 00:17:14,046
+and it gives your application
+some critical things.
+
+
+365
+00:17:14,526 --> 00:17:17,736
+It gives your application
+a CIImage with wide-gamut,
+
+
+366
+00:17:17,736 --> 00:17:20,675
+extended range, half-float
+precision math behind it.
+
+
+367
+00:17:21,766 --> 00:17:24,596
+It also gives you control
+over many of the stages
+
+
+368
+00:17:24,596 --> 00:17:26,185
+in the RAW processing pipeline,
+
+
+369
+00:17:26,185 --> 00:17:27,465
+such as those that
+I demonstrated.
+
+
+370
+00:17:28,806 --> 00:17:31,276
+It also provides fast
+interactive performance using
+
+
+371
+00:17:31,276 --> 00:17:32,966
+the GPU on all our devices.
+
+
+372
+00:17:34,486 --> 00:17:35,786
+So how does this
+work in practice?
+
+
+373
+00:17:35,786 --> 00:17:37,086
+The API is actually very simple.
+
+
+374
+00:17:37,376 --> 00:17:41,116
+You start with an input, which
+is either a file URL or data,
+
+
+375
+00:17:41,416 --> 00:17:43,376
+or even in our next
+seed we'll have an API
+
+
+376
+00:17:43,376 --> 00:17:45,356
+that works using CVPixelBuffer.
+
+
+377
+00:17:46,316 --> 00:17:47,456
+That is our input.
+
+
+378
+00:17:47,456 --> 00:17:48,876
+We're then going to
+create an instance
+
+
+379
+00:17:48,916 --> 00:17:50,886
+of a CIRAWFilter
+from that input.
+
+
+380
+00:17:51,426 --> 00:17:55,316
+At the time that filter is
+instantiated it will have
+
+
+381
+00:17:55,316 --> 00:17:58,596
+default values for all the
+user adjustable parameters
+
+
+382
+00:17:58,856 --> 00:18:01,086
+that you might want to
+present to your user.
+
+
+383
+00:18:02,836 --> 00:18:05,716
+Once you have the
+CIRAWFilter, you can then ask it
+
+
+384
+00:18:05,716 --> 00:18:07,966
+for a CIImage, and you can
+do lots of things from there.
+
+
+385
+00:18:07,966 --> 00:18:09,156
+Let me just show you the code
+
+
+386
+00:18:09,156 --> 00:18:10,776
+and how simple it
+is just to do this.
+
+
+387
+00:18:12,146 --> 00:18:14,026
+All we need to do
+is give it a URL.
+
+
+388
+00:18:14,026 --> 00:18:16,076
+We're going to create
+an instance
+
+
+389
+00:18:16,076 --> 00:18:17,696
+of the CIFilter given that URL.
+
+
+390
+00:18:18,666 --> 00:18:21,186
+Then, for example, if
+we want to get the value
+
+
+391
+00:18:21,186 --> 00:18:22,616
+of the current noise
+reduction amount,
+
+
+392
+00:18:22,736 --> 00:18:24,546
+we can just access the value
+
+
+393
+00:18:24,546 --> 00:18:27,546
+for key kCIInput
+ImageNoiseReductionAmount.
+
+
+394
+00:18:28,736 --> 00:18:30,596
+If we want to alter
+that, it's equally easy.
+
+
+395
+00:18:30,596 --> 00:18:32,156
+We just set a new
+value for that key.
+
+
+396
+00:18:32,906 --> 00:18:34,246
+When we're done making changes,
+
+
+397
+00:18:34,536 --> 00:18:36,606
+we ask for the outputImage
+and we're done.
+
+
+398
+00:18:36,606 --> 00:18:37,656
+That's all we need to do.
+
+
+399
+00:18:38,136 --> 00:18:40,276
+Of course, you might want
+to display this image,
+
+
+400
+00:18:40,656 --> 00:18:43,516
+so typically you'll take that
+image and display it either
+
+
+401
+00:18:43,516 --> 00:18:47,066
+in a UIImage view or
+in a MetalKit view
+
+
+402
+00:18:47,066 --> 00:18:48,876
+or other type of view system.
+
+
+403
+00:18:49,516 --> 00:18:51,616
+In this case the user might
+suggest though that, well,
+
+
+404
+00:18:51,616 --> 00:18:53,486
+maybe this image is a
+little underexposed,
+
+
+405
+00:18:53,736 --> 00:18:57,466
+so in your UI you can have
+adjustable sliders for exposure
+
+
+406
+00:18:57,966 --> 00:18:59,936
+and then the user can
+make that adjustment.
+
+
+407
+00:19:00,256 --> 00:19:03,216
+You can then pass that in as a
+new value to the CIRAWFilter.
+
+
+408
+00:19:03,726 --> 00:19:06,066
+Then you can ask for
+a CIImage from that,
+
+
+409
+00:19:06,856 --> 00:19:09,676
+and then you can then
+display that new image
+
+
+410
+00:19:09,676 --> 00:19:11,016
+with the exposure
+slightly brighter.
+
+
+411
+00:19:12,316 --> 00:19:13,686
+And this is very easy as well.
+
+
+412
+00:19:15,956 --> 00:19:19,606
+You also might want to take your
+CIImage -- at times, let's say,
+
+
+413
+00:19:19,606 --> 00:19:21,406
+you want to export your
+image in the background
+
+
+414
+00:19:21,406 --> 00:19:22,716
+to produce a full-size image,
+
+
+415
+00:19:23,096 --> 00:19:25,356
+or you may be exporting several
+images in the background.
+
+
+416
+00:19:25,926 --> 00:19:29,246
+So you might want to, in those
+cases, either create a CGImage
+
+
+417
+00:19:29,246 --> 00:19:34,286
+for passing to other APIs, or
+go directly to a JPEG or a TIFF,
+
+
+418
+00:19:34,286 --> 00:19:36,926
+and we have some easy to
+use APIs for that now.
+
+
+419
+00:19:38,286 --> 00:19:40,376
+If you're going to be
+doing background processing
+
+
+420
+00:19:40,376 --> 00:19:41,776
+of large files like RAWs,
+
+
+421
+00:19:42,106 --> 00:19:45,556
+we recommend you create
+a CIContext explicitly
+
+
+422
+00:19:45,556 --> 00:19:46,396
+for that purpose.
+
+
+423
+00:19:46,566 --> 00:19:50,946
+Specifically, you want to
+specify a context that is saved
+
+
+424
+00:19:50,946 --> 00:19:52,686
+in a singleton variable,
+so there's no need
+
+
+425
+00:19:52,686 --> 00:19:54,586
+to create a new context
+for every image.
+
+
+426
+00:19:55,126 --> 00:19:57,516
+This allows CI to
+cache the compilation
+
+
+427
+00:19:57,656 --> 00:19:59,606
+of all the kernels
+that are involved.
+
+
+428
+00:20:01,166 --> 00:20:03,566
+However, because we're going to
+be rendering an image only once,
+
+
+429
+00:20:03,566 --> 00:20:06,336
+we don't need Core Image to be
+able to cache intermediates,
+
+
+430
+00:20:06,336 --> 00:20:07,816
+so you can specify false there,
+
+
+431
+00:20:07,816 --> 00:20:10,066
+and that will help reduce
+the memory requirements
+
+
+432
+00:20:10,226 --> 00:20:11,086
+in this situation.
+
+
+433
+00:20:12,306 --> 00:20:14,126
+Also, there's a setting
+to say that you want
+
+
+434
+00:20:14,126 --> 00:20:16,296
+to use a low priority
+GPU render.
+
+
+435
+00:20:16,926 --> 00:20:19,106
+The idea behind this, if
+you're doing a background save,
+
+
+436
+00:20:19,106 --> 00:20:21,236
+you don't want the
+GPU usages required
+
+
+437
+00:20:21,236 --> 00:20:24,216
+for that background operation
+to slow down the performance
+
+
+438
+00:20:24,216 --> 00:20:26,636
+of your foreground UI,
+either if that's done
+
+
+439
+00:20:26,636 --> 00:20:28,036
+in Core Image or Core Animation.
+
+
+440
+00:20:29,306 --> 00:20:30,966
+So this is great for
+background processing.
+
+
+441
+00:20:30,966 --> 00:20:32,916
+And a great new thing we're
+announcing this year is
+
+
+442
+00:20:32,916 --> 00:20:38,736
+that this option is also
+available on macOS, too.
+
+
+443
+00:20:39,456 --> 00:20:42,026
+Once you have your context,
+then it's very simple.
+
+
+444
+00:20:42,346 --> 00:20:44,666
+You get to decide what color
+space you want to render to.
+
+
+445
+00:20:44,816 --> 00:20:46,936
+For example, the
+DisplayP3 colorSpace.
+
+
+446
+00:20:47,626 --> 00:20:49,216
+And then we have a
+new convenience API
+
+
+447
+00:20:49,216 --> 00:20:52,016
+for taking a CIImage and
+writing it to a JPEG.
+
+
+448
+00:20:52,166 --> 00:20:52,826
+Super easy.
+
+
+449
+00:20:52,826 --> 00:20:54,786
+You specify the CIImage,
+
+
+450
+00:20:55,226 --> 00:20:57,586
+the destination URL,
+and the colorSpace.
+
+
+451
+00:20:58,786 --> 00:20:59,826
+This is also a good time
+
+
+452
+00:20:59,826 --> 00:21:03,556
+to specify what compression
+quality you want for the JPEG.
+
+
+453
+00:21:04,876 --> 00:21:07,296
+Now, in this case this will
+produce an image that is a JPEG
+
+
+454
+00:21:07,296 --> 00:21:10,406
+that has been tagged with a
+P3 space, which is a great way
+
+
+455
+00:21:10,406 --> 00:21:14,046
+of producing a wide-gamut image
+that will display correctly
+
+
+456
+00:21:14,046 --> 00:21:18,766
+on any platform that supports
+ICC-based color management.
+
+
+457
+00:21:19,566 --> 00:21:22,036
+However, if you think your
+image will go to a platform
+
+
+458
+00:21:22,036 --> 00:21:23,606
+that doesn't support
+color management,
+
+
+459
+00:21:23,606 --> 00:21:25,266
+we have a new option
+that's available for you.
+
+
+460
+00:21:25,986 --> 00:21:27,756
+This is an option
+that's available as part
+
+
+461
+00:21:27,756 --> 00:21:29,416
+of the CGImageDestination API,
+
+
+462
+00:21:30,356 --> 00:21:33,776
+and it's CGImageDestination
+OptimizeForSharing.
+
+
+463
+00:21:34,686 --> 00:21:37,556
+The idea behind this is it
+stores all the colors that are
+
+
+464
+00:21:37,556 --> 00:21:40,906
+in the P3 colorSpace, but
+stores them in such a way
+
+
+465
+00:21:40,906 --> 00:21:42,036
+and with a custom profile,
+
+
+466
+00:21:42,036 --> 00:21:44,196
+such that that image will
+still display correctly
+
+
+467
+00:21:44,196 --> 00:21:47,746
+if your recipient of that
+image doesn't support
+
+
+468
+00:21:47,746 --> 00:21:48,446
+color management.
+
+
+469
+00:21:48,826 --> 00:21:50,016
+So this is a great
+feature as well.
+
+
+470
+00:21:51,566 --> 00:21:55,616
+Another thing is if you want
+to actually create a CGImage
+
+
+471
+00:21:55,616 --> 00:21:58,296
+from a CIImage, we have a
+new API for that as well
+
+
+472
+00:21:58,296 --> 00:21:59,296
+with some new options.
+
+
+473
+00:22:00,176 --> 00:22:02,116
+We have this convenience
+API which allows you
+
+
+474
+00:22:02,116 --> 00:22:04,836
+to specify what the
+colorSpace and the pixel format
+
+
+475
+00:22:04,836 --> 00:22:06,106
+that you want to render to is.
+
+
+476
+00:22:07,546 --> 00:22:10,236
+You may choose, however,
+now you to create a CGImage
+
+
+477
+00:22:10,526 --> 00:22:12,486
+that has the format of RGBAh,
+
+
+478
+00:22:12,486 --> 00:22:14,926
+the Goldilocks pixel format
+I was talking about earlier.
+
+
+479
+00:22:14,926 --> 00:22:17,366
+And in that case you
+might also choose
+
+
+480
+00:22:17,366 --> 00:22:18,606
+to use a special color space,
+
+
+481
+00:22:18,606 --> 00:22:21,126
+which is the extendedLinearSRGB
+space.
+
+
+482
+00:22:21,326 --> 00:22:23,566
+Because the pixel format
+supports values outside
+
+
+483
+00:22:23,566 --> 00:22:27,776
+of the range 0 to 1, you want
+your color space to as well.
+
+
+484
+00:22:28,636 --> 00:22:30,536
+Another option that we have
+that's new is being able
+
+
+485
+00:22:30,536 --> 00:22:31,816
+to specify whether the act
+
+
+486
+00:22:31,816 --> 00:22:34,136
+of creating the CGImage
+does the work
+
+
+487
+00:22:34,136 --> 00:22:35,746
+in a deferred or
+immediate fashion.
+
+
+488
+00:22:36,376 --> 00:22:39,746
+If you specify deferred,
+then the work that's involved
+
+
+489
+00:22:39,746 --> 00:22:43,506
+in rendering the CIImage
+into a CGImage takes place
+
+
+490
+00:22:43,506 --> 00:22:44,776
+when the CGImage is drawn.
+
+
+491
+00:22:45,266 --> 00:22:46,996
+This is a great way
+of minimizing memory,
+
+
+492
+00:22:47,196 --> 00:22:49,116
+especially if you're only
+going to be drawing part
+
+
+493
+00:22:49,116 --> 00:22:51,366
+of that CGImage later,
+or if you're only going
+
+
+494
+00:22:51,366 --> 00:22:52,856
+to be drawing that CGImage once.
+
+
+495
+00:22:53,586 --> 00:22:54,946
+However, if you're
+going to be rendering
+
+
+496
+00:22:54,946 --> 00:22:58,886
+that image multiple times, you
+can specify deferred false,
+
+
+497
+00:22:59,186 --> 00:23:02,346
+and in that case Core Image
+will do the work of rendering
+
+
+498
+00:23:02,346 --> 00:23:04,576
+into the CGImage at the time
+this function is called.
+
+
+499
+00:23:04,576 --> 00:23:07,796
+So this is a great new,
+flexible API that we have
+
+
+500
+00:23:07,796 --> 00:23:08,806
+for your applications.
+
+
+501
+00:23:10,776 --> 00:23:14,926
+Another advanced feature of this
+Core Image filter API that I'd
+
+
+502
+00:23:14,926 --> 00:23:17,256
+like to talk about
+today is this.
+
+
+503
+00:23:17,386 --> 00:23:20,706
+As I mentioned before, there's
+a long stage of pipeline
+
+
+504
+00:23:20,746 --> 00:23:24,126
+in processing RAW files, and
+a lot of people ask me, well,
+
+
+505
+00:23:24,126 --> 00:23:27,416
+how can I add my own
+processing to that pipeline.
+
+
+506
+00:23:27,816 --> 00:23:31,076
+Well, one common place
+where developers will want
+
+
+507
+00:23:31,076 --> 00:23:33,946
+to add processing to the
+RAW pipeline is somewhere
+
+
+508
+00:23:33,946 --> 00:23:36,156
+in the middle; after the
+demosaic has occurred,
+
+
+509
+00:23:36,256 --> 00:23:39,366
+but before all the nonlinear
+operations like sharpening
+
+
+510
+00:23:39,776 --> 00:23:42,426
+and contrast and color
+boosting has occurred.
+
+
+511
+00:23:42,726 --> 00:23:44,656
+So we have an API just for this.
+
+
+512
+00:23:44,656 --> 00:23:47,456
+It's a property on the
+CIRAWFilter which allows you
+
+
+513
+00:23:47,456 --> 00:23:49,746
+to specify a filter
+that gets inserted
+
+
+514
+00:23:49,746 --> 00:23:51,386
+into the middle of our graph.
+
+
+515
+00:23:51,476 --> 00:23:54,586
+So I look forward to seeing what
+you guys can imagine and think
+
+
+516
+00:23:54,586 --> 00:23:56,496
+of and what can go
+into this location.
+
+
+517
+00:23:58,926 --> 00:24:01,996
+Some notes on wide-gamut
+output that I mentioned before.
+
+
+518
+00:24:02,496 --> 00:24:06,156
+The CIKernel language supports
+float precision as a language.
+
+
+519
+00:24:06,696 --> 00:24:09,936
+However, whenever a
+CIFilter needs to render
+
+
+520
+00:24:09,936 --> 00:24:13,796
+to an intermediate buffer, we
+will use the working format
+
+
+521
+00:24:13,796 --> 00:24:15,336
+of the current CIContext.
+
+
+522
+00:24:16,646 --> 00:24:20,196
+On macOS the default
+working format is RGBA,
+
+
+523
+00:24:20,196 --> 00:24:21,356
+our Goldilocks format.
+
+
+524
+00:24:22,366 --> 00:24:26,386
+On iOS and tvOS our default
+format is still BGRA8,
+
+
+525
+00:24:26,386 --> 00:24:28,636
+which is good for performance,
+
+
+526
+00:24:28,796 --> 00:24:30,656
+but if you're rendering
+extended range data,
+
+
+527
+00:24:30,996 --> 00:24:33,276
+that may not be what you want.
+
+
+528
+00:24:34,266 --> 00:24:38,186
+Our RAW pipeline, with this
+in mind, all of the kernels
+
+
+529
+00:24:38,186 --> 00:24:43,066
+in our pipeline force the usage
+of RGBA half-float precision,
+
+
+530
+00:24:43,586 --> 00:24:44,946
+which is critical for RAW files.
+
+
+531
+00:24:46,126 --> 00:24:48,566
+But as you might guess,
+if you are concerned
+
+
+532
+00:24:48,566 --> 00:24:51,216
+about wide-gamut input
+and output and preserving
+
+
+533
+00:24:51,216 --> 00:24:53,126
+that data throughout
+a rendered graph,
+
+
+534
+00:24:53,766 --> 00:24:57,586
+you should modify your CIContext
+when you create it to specify
+
+
+535
+00:24:57,586 --> 00:25:00,496
+that you want a working
+format that is RGBAh.
+
+
+536
+00:25:01,216 --> 00:25:04,626
+I should also mention again
+
+
+537
+00:25:04,626 --> 00:25:06,666
+that Core Image supports
+a wide variety
+
+
+538
+00:25:06,666 --> 00:25:08,216
+of wide-gamut output spaces.
+
+
+539
+00:25:08,216 --> 00:25:12,556
+For example, you can render to
+extendedLinearSRGB or Adobe RGB
+
+
+540
+00:25:12,556 --> 00:25:16,066
+or DisplayP3, whatever
+format you wish.
+
+
+541
+00:25:17,546 --> 00:25:18,646
+Now, as I mentioned before,
+
+
+542
+00:25:18,646 --> 00:25:20,886
+I was demonstrating
+a 24-megapixel image.
+
+
+543
+00:25:20,936 --> 00:25:23,026
+RAW files can be a lot
+larger than you might think.
+
+
+544
+00:25:23,796 --> 00:25:26,286
+RAW files can be large and
+they also require several
+
+
+545
+00:25:26,286 --> 00:25:28,676
+intermediate buffers to render
+all the stages of the pipeline.
+
+
+546
+00:25:29,896 --> 00:25:31,756
+And so it's important
+that in order
+
+
+547
+00:25:31,756 --> 00:25:34,436
+to reduce the high water
+memory mark of your application
+
+
+548
+00:25:34,436 --> 00:25:37,066
+that you use some of these APIs
+that I've talked about today,
+
+
+549
+00:25:37,356 --> 00:25:39,866
+such as turning off caching
+intermediates in cases
+
+
+550
+00:25:39,866 --> 00:25:41,206
+where you don't need it,
+
+
+551
+00:25:41,206 --> 00:25:44,106
+or using the new write JPEG
+representation of image,
+
+
+552
+00:25:44,106 --> 00:25:44,976
+which is very efficient,
+
+
+553
+00:25:45,636 --> 00:25:47,436
+or specifying the
+deferred rendering
+
+
+554
+00:25:47,436 --> 00:25:48,546
+when creating a CGImage.
+
+
+555
+00:25:50,006 --> 00:25:53,576
+Some notes on limits
+of RAW files.
+
+
+556
+00:25:54,786 --> 00:25:58,226
+On iOS devices with 2
+gigabytes of memory or more,
+
+
+557
+00:25:58,416 --> 00:26:00,896
+we support RAW files
+up to 120 megapixels.
+
+
+558
+00:26:00,896 --> 00:26:01,976
+So we're really proud to
+be able to pull that off.
+
+
+559
+00:26:02,516 --> 00:26:07,946
+[ Applause ]
+
+
+560
+00:26:08,446 --> 00:26:12,976
+On apps running on devices with
+1 gigabyte of memory we support
+
+
+561
+00:26:13,346 --> 00:26:16,856
+up to 60 megapixels, which is
+also really quite impressive.
+
+
+562
+00:26:16,856 --> 00:26:19,496
+And this also holds true for
+photo editing extensions,
+
+
+563
+00:26:19,496 --> 00:26:24,216
+which run in a lesser
+amount of memory.
+
+
+564
+00:26:24,816 --> 00:26:26,546
+So that's our discussion of RAW.
+
+
+565
+00:26:26,546 --> 00:26:28,566
+Again, I'm super proud to be
+able to demonstrate this today.
+
+
+566
+00:26:28,856 --> 00:26:30,646
+I would like to hand the
+stage over to Etienne
+
+
+567
+00:26:30,646 --> 00:26:33,056
+who will be talking about
+another great new image format
+
+
+568
+00:26:33,266 --> 00:26:35,796
+and how you can edit those in
+your application, Live Photos.
+
+
+569
+00:26:35,796 --> 00:26:35,976
+Thank you.
+
+
+570
+00:26:36,516 --> 00:26:42,826
+[ Applause ]
+
+
+571
+00:26:43,326 --> 00:26:43,956
+>> Thank you, David.
+
+
+572
+00:26:44,326 --> 00:26:44,886
+Hello everyone.
+
+
+573
+00:26:45,576 --> 00:26:48,066
+I'm really excited to be
+here today to talk to you
+
+
+574
+00:26:48,066 --> 00:26:50,226
+about how you can edit Live
+Photos in your application.
+
+
+575
+00:26:50,536 --> 00:26:54,856
+So first, we're going to go
+over a quick introduction
+
+
+576
+00:26:55,126 --> 00:26:57,736
+of what are Live Photos, then
+we see what you can edit,
+
+
+577
+00:26:58,646 --> 00:27:02,996
+and then we'll go
+step-by-step into the code
+
+
+578
+00:27:02,996 --> 00:27:06,236
+and see how you can get
+a Live Photo for editing,
+
+
+579
+00:27:06,896 --> 00:27:10,476
+how you can then set up a
+Live Photo Editing context,
+
+
+580
+00:27:11,556 --> 00:27:14,066
+how you can apply Core Image
+filters to your Live Photo,
+
+
+581
+00:27:15,216 --> 00:27:19,196
+and how you can preview your
+Live Photo in your application,
+
+
+582
+00:27:19,686 --> 00:27:22,926
+and finally, how you can save
+an edited Live Photo back
+
+
+583
+00:27:22,926 --> 00:27:25,696
+into the Photo Library, and
+we'll finish with a quick demo.
+
+
+584
+00:27:25,696 --> 00:27:27,036
+All right.
+
+
+585
+00:27:27,036 --> 00:27:27,786
+So let's get started.
+
+
+586
+00:27:28,546 --> 00:27:32,046
+So Live Photos, as you may know,
+
+
+587
+00:27:32,046 --> 00:27:35,396
+are photos that also include
+motion and sound from before
+
+
+588
+00:27:35,556 --> 00:27:37,406
+and after the time
+of the capture.
+
+
+589
+00:27:39,066 --> 00:27:42,426
+And Live Photos can be
+captured on the new devices
+
+
+590
+00:27:42,916 --> 00:27:47,726
+such as iPhone 6S, 6S Plus,
+iPhone SE and iPod Pro.
+
+
+591
+00:27:47,816 --> 00:27:52,206
+In fact, Live Photo is
+actually a default capture mode
+
+
+592
+00:27:52,276 --> 00:27:55,036
+on those devices, so you
+can expect your users
+
+
+593
+00:27:55,266 --> 00:27:57,606
+to already have plenty of Live
+Photos in their Photo Library.
+
+
+594
+00:27:58,976 --> 00:28:01,466
+So what's new this
+year about Live Photos?
+
+
+595
+00:28:02,336 --> 00:28:06,366
+So first, users can now
+fully edit their Live Photos
+
+
+596
+00:28:06,366 --> 00:28:07,206
+in Photos.
+
+
+597
+00:28:07,206 --> 00:28:09,676
+They can apply -- all the
+adjustment that they would
+
+
+598
+00:28:09,676 --> 00:28:11,966
+to a regular photo they
+can apply to a Live Photo.
+
+
+599
+00:28:13,346 --> 00:28:16,716
+Next we have a new API
+to capture Live Photos
+
+
+600
+00:28:16,716 --> 00:28:20,136
+in your application and for
+that, for more information
+
+
+601
+00:28:20,136 --> 00:28:23,496
+about that, I strongly recommend
+that you watch this Advances
+
+
+602
+00:28:23,496 --> 00:28:26,526
+in iOS Photography session that
+took place earlier this week.
+
+
+603
+00:28:26,926 --> 00:28:30,026
+It also includes a lot of
+information about Live Photos
+
+
+604
+00:28:30,026 --> 00:28:31,126
+from the capturer point of view.
+
+
+605
+00:28:32,196 --> 00:28:34,596
+And finally, we have a new
+API to edit Live Photos,
+
+
+606
+00:28:34,596 --> 00:28:36,266
+and that's why I'm here
+to talk about today.
+
+
+607
+00:28:37,466 --> 00:28:38,036
+All right.
+
+
+608
+00:28:38,726 --> 00:28:40,516
+So what can be edited exactly?
+
+
+609
+00:28:40,766 --> 00:28:44,186
+Right. So first, of course,
+you can edit the content
+
+
+610
+00:28:44,186 --> 00:28:47,096
+of the photo, but
+you can also edit all
+
+
+611
+00:28:47,096 --> 00:28:48,516
+of the video frames as well.
+
+
+612
+00:28:49,886 --> 00:28:51,636
+You can also address
+the audio volume,
+
+
+613
+00:28:53,376 --> 00:28:56,326
+and you can change the
+dimensions of the Live Photo.
+
+
+614
+00:28:57,226 --> 00:28:58,736
+Things you can't do though is
+
+
+615
+00:28:58,736 --> 00:29:00,476
+that you can't change
+the duration
+
+
+616
+00:29:00,536 --> 00:29:05,196
+or the timing of the Live Photo.
+
+
+617
+00:29:05,196 --> 00:29:09,386
+So in order to get a Live Photo
+for editing, the first thing
+
+
+618
+00:29:09,386 --> 00:29:12,076
+to do is to actually get a Live
+Photo out of the Photo Library.
+
+
+619
+00:29:12,076 --> 00:29:13,196
+So there's two ways to do that,
+
+
+620
+00:29:13,196 --> 00:29:15,696
+depending on whether you're
+building a photo editing
+
+
+621
+00:29:15,696 --> 00:29:18,266
+extension or a PhotoKit
+application.
+
+
+622
+00:29:18,736 --> 00:29:22,156
+In the case of a photo
+editing extension you need
+
+
+623
+00:29:22,156 --> 00:29:25,026
+to start first by opting
+in to Live Photo editing
+
+
+624
+00:29:25,026 --> 00:29:28,216
+by adding the LivePhoto
+string in your array
+
+
+625
+00:29:28,216 --> 00:29:30,786
+of supported media types
+for your extension.
+
+
+626
+00:29:31,836 --> 00:29:36,146
+And next, in your implementation
+of startContentEditing,
+
+
+627
+00:29:36,146 --> 00:29:39,596
+that's called automatically,
+
+
+628
+00:29:39,986 --> 00:29:43,646
+you can expect the content
+editing input that you receive
+
+
+629
+00:29:44,136 --> 00:29:47,046
+and you can check the media
+type and the media subtypes
+
+
+630
+00:29:47,106 --> 00:29:48,776
+to make sure that
+this is a Live Photo.
+
+
+631
+00:29:50,006 --> 00:29:52,096
+Okay. On the other hand,
+
+
+632
+00:29:52,286 --> 00:29:54,096
+if you're building a
+PhotoKit application,
+
+
+633
+00:29:54,696 --> 00:29:58,336
+you have to request the
+contentEditingInput yourself
+
+
+634
+00:29:58,336 --> 00:30:01,836
+from a PHAsset, and then
+you can check the media type
+
+
+635
+00:30:01,836 --> 00:30:04,586
+and media subtypes
+in the same way.
+
+
+636
+00:30:04,756 --> 00:30:05,126
+All right.
+
+
+637
+00:30:05,176 --> 00:30:08,446
+So the next step would be to set
+up a LivePhotoEditingContext.
+
+
+638
+00:30:09,076 --> 00:30:12,116
+A LivePhotoEditingContext
+includes all the resources
+
+
+639
+00:30:12,116 --> 00:30:13,806
+that are needed to
+edit Live Photos.
+
+
+640
+00:30:14,296 --> 00:30:16,066
+It includes information
+about the Live Photo,
+
+
+641
+00:30:16,066 --> 00:30:19,096
+such as its duration,
+the time of the photo,
+
+
+642
+00:30:19,376 --> 00:30:23,686
+the size of the Live Photo,
+also the orientation, all that.
+
+
+643
+00:30:24,616 --> 00:30:28,026
+It also has a frame processor
+property that you can set
+
+
+644
+00:30:28,026 --> 00:30:29,936
+to actually edit the
+contents of Live Photo,
+
+
+645
+00:30:30,096 --> 00:30:33,506
+and I'll tell you more
+about that in a minute.
+
+
+646
+00:30:33,606 --> 00:30:35,966
+You can adjust the
+audio volume as well.
+
+
+647
+00:30:36,776 --> 00:30:38,686
+You can ask the
+LivePhotoEditingContext
+
+
+648
+00:30:38,736 --> 00:30:41,066
+to prepare a Live
+Photo for playback,
+
+
+649
+00:30:42,516 --> 00:30:46,166
+and you can ask the
+LivePhotoEditingContext to save
+
+
+650
+00:30:46,416 --> 00:30:47,546
+and process a Live Photo
+
+
+651
+00:30:47,546 --> 00:30:48,946
+for saving back to
+the Photo Library.
+
+
+652
+00:30:50,596 --> 00:30:52,906
+Creating a
+LivePhotoEditingContext is
+
+
+653
+00:30:52,906 --> 00:30:53,416
+really easy.
+
+
+654
+00:30:53,536 --> 00:30:55,456
+All you need to do is
+institute a new one
+
+
+655
+00:30:55,686 --> 00:30:58,236
+from a LivePhotoEditingInput
+for a Live Photo.
+
+
+656
+00:31:00,586 --> 00:31:00,876
+All right.
+
+
+657
+00:31:01,326 --> 00:31:02,916
+So now let's take a look at how
+
+
+658
+00:31:02,916 --> 00:31:05,016
+to use the frame processor
+I mentioned earlier.
+
+
+659
+00:31:06,076 --> 00:31:07,886
+So the frame of a Live
+Photo I'll describe
+
+
+660
+00:31:07,886 --> 00:31:11,836
+by a PHLivePhotoFrame object
+that contains an input image,
+
+
+661
+00:31:12,096 --> 00:31:13,856
+which is a CIImage
+for that frame.
+
+
+662
+00:31:14,966 --> 00:31:18,446
+Type, which is whether it's a
+video frame or a photo frame.
+
+
+663
+00:31:19,486 --> 00:31:22,186
+And the time of the
+frame in the Live Photo,
+
+
+664
+00:31:22,186 --> 00:31:24,756
+as well as the resolution
+at which
+
+
+665
+00:31:24,756 --> 00:31:25,906
+that frame is being rendered.
+
+
+666
+00:31:25,996 --> 00:31:32,376
+In order to implement a frame
+processor you would set the
+
+
+667
+00:31:32,376 --> 00:31:35,436
+frame processor property on
+the LivePhotoEditingContext
+
+
+668
+00:31:35,816 --> 00:31:40,606
+to be a block that takes
+a frame as parameter
+
+
+669
+00:31:40,836 --> 00:31:43,956
+and returns an image
+or an error.
+
+
+670
+00:31:43,956 --> 00:31:47,436
+And here we just simply return
+the input image of the frame,
+
+
+671
+00:31:47,436 --> 00:31:50,626
+so that's just necessarily
+a node frame processor.
+
+
+672
+00:31:51,236 --> 00:31:53,416
+So now let's take a
+look at the real case.
+
+
+673
+00:31:53,986 --> 00:31:57,766
+This is a Live Photo, as
+you can see in Photos,
+
+
+674
+00:31:58,336 --> 00:32:01,026
+and I can play it right there.
+
+
+675
+00:32:02,406 --> 00:32:04,156
+And so let's say we want
+
+
+676
+00:32:04,156 --> 00:32:07,026
+to apply a simple basic
+adjustment to the Live Photo.
+
+
+677
+00:32:07,216 --> 00:32:09,466
+That's start with a
+simple square crop.
+
+
+678
+00:32:10,466 --> 00:32:11,246
+Here's how to do that.
+
+
+679
+00:32:12,346 --> 00:32:15,376
+In the implementation of
+your frame processor you want
+
+
+680
+00:32:15,376 --> 00:32:17,616
+to start with the input
+image for the frame.
+
+
+681
+00:32:17,956 --> 00:32:19,396
+Then you compute your crop rect.
+
+
+682
+00:32:20,966 --> 00:32:24,316
+Then you crop the image
+using [inaudible] here,
+
+
+683
+00:32:24,316 --> 00:32:27,046
+which is called the
+cropping through rect,
+
+
+684
+00:32:27,496 --> 00:32:28,996
+and just return that
+cropped image.
+
+
+685
+00:32:28,996 --> 00:32:32,326
+That's all it takes to actually
+edit and crop the Live Photo.
+
+
+686
+00:32:32,966 --> 00:32:33,686
+Here's the result.
+
+
+687
+00:32:34,896 --> 00:32:37,096
+I can place side photo, you
+can see the photo is cropped,
+
+
+688
+00:32:37,096 --> 00:32:40,126
+but the video is also
+cropped as I play it.
+
+
+689
+00:32:41,116 --> 00:32:41,466
+All right.
+
+
+690
+00:32:42,006 --> 00:32:45,556
+So that's an example of a
+very basic static adjustment.
+
+
+691
+00:32:45,926 --> 00:32:49,706
+Now, what if we want to apply
+a more dynamic adjustment,
+
+
+692
+00:32:49,906 --> 00:32:52,636
+and that is one that will
+actually depend on the time
+
+
+693
+00:32:53,146 --> 00:32:55,276
+and will change while the
+Live Photo is being played.
+
+
+694
+00:32:55,436 --> 00:32:56,826
+So you can do that, too.
+
+
+695
+00:32:57,166 --> 00:32:59,646
+So here let's build up
+on that crop example
+
+
+696
+00:32:59,646 --> 00:33:01,106
+and implement the dynamic crop.
+
+
+697
+00:33:02,446 --> 00:33:04,386
+So here's how to do it.
+
+
+698
+00:33:04,676 --> 00:33:08,666
+So first we need to capture
+a couple of information
+
+
+699
+00:33:08,666 --> 00:33:12,236
+about the timing of the Live
+Photo, such as the exact time
+
+
+700
+00:33:12,236 --> 00:33:14,716
+of the photo because we want
+the effect to stay the same
+
+
+701
+00:33:15,086 --> 00:33:18,266
+and have your crop rect really
+centered on the Live Photo.
+
+
+702
+00:33:19,026 --> 00:33:23,196
+Next we take it so we capture
+the duration of the Live Photo.
+
+
+703
+00:33:24,466 --> 00:33:27,046
+And you can notice
+that we do that outside
+
+
+704
+00:33:27,046 --> 00:33:28,706
+of the frame processor
+block and that's
+
+
+705
+00:33:28,706 --> 00:33:32,306
+to avoid cycling dependency.
+
+
+706
+00:33:33,146 --> 00:33:37,636
+Here in the block we can ask for
+the exact time of that frame,
+
+
+707
+00:33:37,966 --> 00:33:40,676
+and then we can build a
+function of time using all
+
+
+708
+00:33:40,676 --> 00:33:42,946
+that information to
+drive a crop rect.
+
+
+709
+00:33:44,526 --> 00:33:46,456
+And here's what the result.
+
+
+710
+00:33:46,456 --> 00:33:48,746
+So you can see the Live Photo
+is cropped the same way,
+
+
+711
+00:33:48,746 --> 00:33:50,806
+the photo is the same,
+but when I play it,
+
+
+712
+00:33:51,316 --> 00:33:56,446
+you can see that the crop rect
+now moves from bottom to top.
+
+
+713
+00:33:56,636 --> 00:33:56,926
+All right.
+
+
+714
+00:33:56,926 --> 00:33:59,506
+So that's an example of
+a time-based adjustment.
+
+
+715
+00:34:00,606 --> 00:34:02,186
+Now let's take a look
+at something else.
+
+
+716
+00:34:03,046 --> 00:34:05,036
+This effect is interesting
+
+
+717
+00:34:05,236 --> 00:34:07,936
+because it's a
+resolution-dependent effect.
+
+
+718
+00:34:08,335 --> 00:34:13,835
+What I mean by that is that the
+way the filter parameters are
+
+
+719
+00:34:13,835 --> 00:34:17,005
+specified, they're
+specified in pixels, right,
+
+
+720
+00:34:17,005 --> 00:34:19,545
+which mean that you
+need to be extra careful
+
+
+721
+00:34:19,545 --> 00:34:21,536
+when you apply these kind
+of effects to make sure
+
+
+722
+00:34:21,536 --> 00:34:24,726
+that the effect is visually
+consistent regardless
+
+
+723
+00:34:24,726 --> 00:34:27,356
+of the resolution at which the
+Live Photo is being rendered.
+
+
+724
+00:34:27,766 --> 00:34:30,616
+So here if I play it, you
+can see that the video --
+
+
+725
+00:34:30,616 --> 00:34:32,106
+the effect is applied
+
+
+726
+00:34:32,106 --> 00:34:33,795
+to the video the same way
+it's applied to the photos.
+
+
+727
+00:34:33,795 --> 00:34:34,286
+So that's great.
+
+
+728
+00:34:34,585 --> 00:34:36,996
+So let's see how to
+do that correctly.
+
+
+729
+00:34:38,096 --> 00:34:41,126
+So in your frame processor
+you want to pay attention
+
+
+730
+00:34:41,126 --> 00:34:43,565
+to this renderScale
+property on the frame.
+
+
+731
+00:34:43,916 --> 00:34:46,326
+This will give you
+the resolution
+
+
+732
+00:34:46,326 --> 00:34:48,436
+of the current frame compared
+
+
+733
+00:34:48,436 --> 00:34:52,755
+to the one-to-one full-size
+still image in the Live Photo.
+
+
+734
+00:34:53,545 --> 00:34:57,406
+So keep in mind that
+the video frames
+
+
+735
+00:34:57,406 --> 00:34:59,606
+and the photo are
+different size as well.
+
+
+736
+00:34:59,606 --> 00:35:02,176
+Right. Usually the video is
+way smaller than the photo is.
+
+
+737
+00:35:02,176 --> 00:35:04,806
+So you want to make sure
+to apply that correctly.
+
+
+738
+00:35:05,106 --> 00:35:09,606
+In order to do that, you can
+use the scale here to scale
+
+
+739
+00:35:09,606 --> 00:35:12,866
+down that width parameter
+so that at one-to-one
+
+
+740
+00:35:12,866 --> 00:35:15,166
+on the full-size photo
+the parameter will be 50,
+
+
+741
+00:35:15,166 --> 00:35:17,706
+but it will be smaller on
+the smaller resolution.
+
+
+742
+00:35:18,696 --> 00:35:24,046
+Another way to apply your
+resolution-dependent adjustment
+
+
+743
+00:35:24,046 --> 00:35:30,246
+is to use the extent of
+the image like I do here
+
+
+744
+00:35:30,846 --> 00:35:32,286
+for the inputCenter parameter.
+
+
+745
+00:35:32,506 --> 00:35:35,986
+I actually use the midpoint of
+the image and that's granted
+
+
+746
+00:35:35,986 --> 00:35:37,346
+to also scale [inaudible].
+
+
+747
+00:35:38,216 --> 00:35:39,686
+All right.
+
+
+748
+00:35:40,266 --> 00:35:42,716
+One more edit on that image.
+
+
+749
+00:35:43,776 --> 00:35:48,696
+You can notice that I did a logo
+here that might be familiar,
+
+
+750
+00:35:49,036 --> 00:35:52,006
+and when I play it, you see
+
+
+751
+00:35:52,006 --> 00:35:54,126
+that the logo actually
+disappears from the video.
+
+
+752
+00:35:54,126 --> 00:35:59,056
+So this is how you would apply
+an adjustment just to the photo
+
+
+753
+00:35:59,056 --> 00:36:01,676
+and not to the video,
+and here's how to do it.
+
+
+754
+00:36:02,156 --> 00:36:06,736
+In your implementation of your
+frame processor you want to look
+
+
+755
+00:36:06,736 --> 00:36:10,516
+at the frame type, and here
+we just check if it's a photo,
+
+
+756
+00:36:10,786 --> 00:36:12,006
+then we composite the still logo
+
+
+757
+00:36:12,006 --> 00:36:15,506
+into the image, but
+not on the video.
+
+
+758
+00:36:15,736 --> 00:36:16,926
+So that's as easy as that.
+
+
+759
+00:36:17,386 --> 00:36:19,986
+And you may have, you
+know, some adjustments
+
+
+760
+00:36:19,986 --> 00:36:22,716
+that are local advertisement or
+single ad that you don't want
+
+
+761
+00:36:22,716 --> 00:36:24,556
+to apply or you can't
+apply to the video,
+
+
+762
+00:36:24,806 --> 00:36:28,206
+and so that's a good
+way to do it.
+
+
+763
+00:36:28,466 --> 00:36:28,756
+All right.
+
+
+764
+00:36:29,246 --> 00:36:31,086
+Now that we have an
+edited Live Photo,
+
+
+765
+00:36:32,166 --> 00:36:35,946
+let's see how we can
+preview it in our app.
+
+
+766
+00:36:36,186 --> 00:36:39,766
+So in order to preview a
+Live Photo you want to work
+
+
+767
+00:36:39,766 --> 00:36:40,946
+with the PHLivePhotoView.
+
+
+768
+00:36:41,426 --> 00:36:44,316
+So this view is readily
+available on iOS
+
+
+769
+00:36:44,316 --> 00:36:46,696
+and is new this year on macOS.
+
+
+770
+00:36:48,446 --> 00:36:50,826
+So in order to preview
+Live Photo you need
+
+
+771
+00:36:50,826 --> 00:36:53,406
+to ask the
+LivePhotoEditingContext
+
+
+772
+00:36:53,406 --> 00:36:56,666
+to prepare a Live Photo
+for playback and you pass
+
+
+773
+00:36:56,666 --> 00:37:01,966
+in the target size, which is
+typically the size of your view
+
+
+774
+00:37:01,966 --> 00:37:06,076
+in pixels, and then you get
+called back asynchronously
+
+
+775
+00:37:06,076 --> 00:37:09,056
+on the main thread with
+a rendered Live Photo.
+
+
+776
+00:37:10,456 --> 00:37:13,066
+And then all you need to do
+is set the Live Photo property
+
+
+777
+00:37:13,066 --> 00:37:17,136
+of the LivePhotoView so that
+your users can now interact
+
+
+778
+00:37:17,136 --> 00:37:19,816
+with their Live Photo
+and get an idea
+
+
+779
+00:37:19,816 --> 00:37:24,436
+of what the edited Live
+Photo will look like.
+
+
+780
+00:37:24,436 --> 00:37:27,576
+Now, the final set will be to
+save back to the Photo Library.
+
+
+781
+00:37:27,766 --> 00:37:32,476
+And that, again, depends whether
+you're building a photo editing
+
+
+782
+00:37:32,476 --> 00:37:34,786
+extension or a PhotoKit
+application.
+
+
+783
+00:37:36,066 --> 00:37:39,026
+In the case of a photo
+editing extension you will
+
+
+784
+00:37:39,026 --> 00:37:40,456
+implement finishContentEditing.
+
+
+785
+00:37:41,086 --> 00:37:45,346
+And the first step is to create
+a new contentEditingOutput
+
+
+786
+00:37:45,806 --> 00:37:48,526
+from that contentEditingInput
+that you received earlier.
+
+
+787
+00:37:49,876 --> 00:37:53,266
+And next you will ask your
+LivePhotoEditingContext
+
+
+788
+00:37:53,266 --> 00:37:55,206
+to save the Live
+Photo to that output.
+
+
+789
+00:37:55,726 --> 00:37:59,156
+And again, that will process
+the full resolution Live Photo
+
+
+790
+00:37:59,556 --> 00:38:02,226
+asynchronously and call
+you back on the main thread
+
+
+791
+00:38:02,346 --> 00:38:05,176
+with success or error.
+
+
+792
+00:38:05,456 --> 00:38:07,626
+And in the case everything
+goes fine,
+
+
+793
+00:38:08,206 --> 00:38:11,186
+make sure you save also
+your adjustment data along
+
+
+794
+00:38:11,276 --> 00:38:15,116
+with your edits and that will
+allow your users to go back
+
+
+795
+00:38:15,286 --> 00:38:20,536
+to your app or extension later
+and continue editing there.
+
+
+796
+00:38:20,736 --> 00:38:22,756
+And then last step is
+
+
+797
+00:38:22,756 --> 00:38:24,266
+to actually call the
+completionHandler
+
+
+798
+00:38:24,266 --> 00:38:25,886
+for that extension
+and you're done.
+
+
+799
+00:38:27,306 --> 00:38:29,086
+If you're building a
+PhotoKit application,
+
+
+800
+00:38:29,566 --> 00:38:31,756
+the steps are really similar.
+
+
+801
+00:38:32,356 --> 00:38:35,926
+The only difference really
+that you have to make your --
+
+
+802
+00:38:35,926 --> 00:38:38,966
+they are from the changes
+[inaudible] yourself using
+
+
+803
+00:38:38,966 --> 00:38:40,306
+a PHAssetChangeRequest.
+
+
+804
+00:38:40,306 --> 00:38:40,806
+All right.
+
+
+805
+00:38:41,516 --> 00:38:42,976
+So now I'd like to
+show you a quick demo.
+
+
+806
+00:38:52,456 --> 00:38:53,036
+All right.
+
+
+807
+00:38:54,156 --> 00:38:58,326
+So I've built a simple demo
+Live Photo extension that I'd
+
+
+808
+00:38:58,326 --> 00:38:59,146
+like to show you today.
+
+
+809
+00:39:00,046 --> 00:39:03,656
+So here I am in Photos and I can
+see a couple Live Photos here,
+
+
+810
+00:39:04,136 --> 00:39:06,286
+can pick to see the contents.
+
+
+811
+00:39:07,216 --> 00:39:09,506
+I can swipe and see
+them animate.
+
+
+812
+00:39:10,296 --> 00:39:10,586
+All right.
+
+
+813
+00:39:10,586 --> 00:39:11,936
+That's the one I
+want to edit today.
+
+
+814
+00:39:12,746 --> 00:39:13,806
+So I can go to edit.
+
+
+815
+00:39:13,806 --> 00:39:14,966
+And as I mentioned earlier,
+
+
+816
+00:39:15,296 --> 00:39:18,216
+I can actually edit the Live
+Photo right there in Photos.
+
+
+817
+00:39:18,586 --> 00:39:19,296
+Let me do that.
+
+
+818
+00:39:19,596 --> 00:39:22,096
+I'd like to apply
+this new light slider
+
+
+819
+00:39:22,206 --> 00:39:23,766
+that David mentioned earlier.
+
+
+820
+00:39:24,946 --> 00:39:25,366
+All right.
+
+
+821
+00:39:26,456 --> 00:39:29,786
+So here in Photos I
+can just play that.
+
+
+822
+00:39:31,696 --> 00:39:35,766
+Right. Of course, I could
+stop here, but I actually want
+
+
+823
+00:39:35,766 --> 00:39:38,116
+to apply my sample
+edits as well.
+
+
+824
+00:39:38,116 --> 00:39:40,966
+So I'm going to pick
+my extension here.
+
+
+825
+00:39:46,056 --> 00:39:50,806
+And, yes, we actually apply the
+same adjustment that we went
+
+
+826
+00:39:50,806 --> 00:39:51,646
+through for the slides.
+
+
+827
+00:39:52,406 --> 00:39:55,956
+And you can see this is
+really a simple extension,
+
+
+828
+00:39:56,176 --> 00:39:59,156
+but it shows a LivePhotoView,
+so I can interact with this
+
+
+829
+00:39:59,156 --> 00:40:01,736
+and I can actually press
+to play it, like this,
+
+
+830
+00:40:02,106 --> 00:40:03,136
+right in my extension.
+
+
+831
+00:40:03,956 --> 00:40:05,146
+So that's real easy.
+
+
+832
+00:40:05,146 --> 00:40:08,556
+And the next step is to actually
+save by hitting Done here.
+
+
+833
+00:40:09,556 --> 00:40:13,146
+And this is going to process
+a full resolution Live Photo
+
+
+834
+00:40:13,986 --> 00:40:15,296
+and send it back to
+the Photo Library.
+
+
+835
+00:40:16,416 --> 00:40:18,176
+And there it is,
+right there in Photos.
+
+
+836
+00:40:19,756 --> 00:40:20,366
+All right.
+
+
+837
+00:40:21,556 --> 00:40:22,996
+So that was for the quick demo.
+
+
+838
+00:40:22,996 --> 00:40:23,966
+Now back to slides.
+
+
+839
+00:40:24,516 --> 00:40:29,886
+[ Applause ]
+
+
+840
+00:40:30,386 --> 00:40:30,756
+Thank you.
+
+
+841
+00:40:31,386 --> 00:40:32,326
+All right.
+
+
+842
+00:40:32,326 --> 00:40:35,646
+So here's a quick summary of
+what we've learned so far today.
+
+
+843
+00:40:36,546 --> 00:40:39,326
+So we've learned how
+to get a Live Photo
+
+
+844
+00:40:39,466 --> 00:40:44,326
+out of the Photo Library
+and how to use and set
+
+
+845
+00:40:44,326 --> 00:40:47,686
+up a LivePhotoEditingContext,
+how to use a frame processor
+
+
+846
+00:40:47,916 --> 00:40:50,256
+to edit the contents
+of the Live Photo.
+
+
+847
+00:40:51,036 --> 00:40:53,226
+We've seen how to
+preview a Live Photo
+
+
+848
+00:40:53,226 --> 00:40:56,146
+in your app using
+the LivePhotoView.
+
+
+849
+00:40:57,236 --> 00:41:00,396
+And we've seen how to
+save a Live Photo back
+
+
+850
+00:41:00,396 --> 00:41:03,156
+into the Photo Library.
+
+
+851
+00:41:03,296 --> 00:41:05,966
+Now I can't wait to see what
+you will do with this new API.
+
+
+852
+00:41:07,116 --> 00:41:08,226
+A few things to remember.
+
+
+853
+00:41:08,226 --> 00:41:12,406
+First, if you're building
+a photo editing extension,
+
+
+854
+00:41:12,406 --> 00:41:15,486
+do not forget to opt
+in to LivePhotoEditing
+
+
+855
+00:41:15,486 --> 00:41:17,306
+in your info.plist
+for your extension.
+
+
+856
+00:41:17,446 --> 00:41:19,856
+Otherwise, you'll get a still
+image instead of a Live Photo.
+
+
+857
+00:41:20,966 --> 00:41:24,516
+And as I said, make sure you
+always save adjustment data
+
+
+858
+00:41:24,956 --> 00:41:28,526
+as well so that your users
+can go back to your app
+
+
+859
+00:41:28,526 --> 00:41:30,396
+and continue the edit
+nondestructively.
+
+
+860
+00:41:31,686 --> 00:41:36,376
+Finally, I think if you
+already have an image editing
+
+
+861
+00:41:36,376 --> 00:41:40,956
+application, adopting Live
+Photo and adding support
+
+
+862
+00:41:40,956 --> 00:41:44,496
+for LivePhotoEditing should be
+really easy with this new API,
+
+
+863
+00:41:45,096 --> 00:41:47,986
+especially if your app is
+using Core Image already.
+
+
+864
+00:41:48,486 --> 00:41:52,066
+And if not, there's actually
+a new API in Core Image
+
+
+865
+00:41:52,066 --> 00:41:54,926
+to let you integrate your
+own custom processing
+
+
+866
+00:41:54,926 --> 00:41:55,766
+into Core Image.
+
+
+867
+00:41:56,156 --> 00:41:57,886
+And to tell you all about it,
+
+
+868
+00:41:57,886 --> 00:41:59,796
+I'd like to invite
+Alex on stage.
+
+
+869
+00:41:59,796 --> 00:41:59,976dle
+Thank you.
+
+
+870
+00:42:00,516 --> 00:42:06,546
+[ Applause ]
+
+
+871
+00:42:07,046 --> 00:42:07,566
+>> Thank you, Etienne.
+
+
+872
+00:42:08,146 --> 00:42:10,156
+So my name is Alexandre Naaman,
+and today I'm going to talk
+
+
+873
+00:42:10,156 --> 00:42:11,926
+to you about some new
+functionality we have inside
+
+
+874
+00:42:11,926 --> 00:42:14,026
+of Core Image to do
+additional effects
+
+
+875
+00:42:14,026 --> 00:42:15,646
+that weren't possible
+previously, and that's going
+
+
+876
+00:42:15,646 --> 00:42:18,486
+to be using a new API
+called CIImageProcessor.
+
+
+877
+00:42:19,826 --> 00:42:22,596
+As David mentioned earlier,
+there's a lot you can do inside
+
+
+878
+00:42:22,596 --> 00:42:26,486
+of Core Image using our
+existing built-in 180 filters,
+
+
+879
+00:42:26,706 --> 00:42:28,656
+and you can extend
+that even further
+
+
+880
+00:42:28,656 --> 00:42:30,136
+by writing your own
+custom kernels.
+
+
+881
+00:42:30,896 --> 00:42:33,826
+Now with CIImageProcessor
+we can do even more,
+
+
+882
+00:42:34,486 --> 00:42:38,316
+and we can insert a new node
+inside of our render graph
+
+
+883
+00:42:39,026 --> 00:42:42,186
+that can do basically
+anything we want and will fit
+
+
+884
+00:42:42,186 --> 00:42:43,556
+in perfectly with
+the existing graph.
+
+
+885
+00:42:43,556 --> 00:42:47,436
+So we can write our own custom
+CPU code or custom Metal code.
+
+
+886
+00:42:48,696 --> 00:42:52,386
+So there are some analogies
+when using CIImageProcessor
+
+
+887
+00:42:53,136 --> 00:42:54,786
+with writing general kernels.
+
+
+888
+00:42:54,936 --> 00:42:57,466
+So in the past you would
+write a general kernel,
+
+
+889
+00:42:57,466 --> 00:43:02,026
+specify some string, and then
+override the output image method
+
+
+890
+00:43:02,406 --> 00:43:07,136
+on your CIFilter and
+provide the extent,
+
+
+891
+00:43:07,136 --> 00:43:09,046
+which is the output image
+size that you're going
+
+
+892
+00:43:09,046 --> 00:43:12,076
+to be creating, and
+an roiCallback,
+
+
+893
+00:43:13,676 --> 00:43:16,686
+and then finally whatever
+arguments you need
+
+
+894
+00:43:16,686 --> 00:43:18,406
+to pass to your kernel.
+
+
+895
+00:43:19,566 --> 00:43:22,136
+Now, there are a
+lot of similarities
+
+
+896
+00:43:22,356 --> 00:43:24,836
+with creating CIImageProcessors,
+and we're not going to go
+
+
+897
+00:43:24,836 --> 00:43:27,166
+into detail with them
+about that today.
+
+
+898
+00:43:27,486 --> 00:43:30,656
+Instead we refer
+you to Session 515
+
+
+899
+00:43:30,656 --> 00:43:32,886
+from our WWDC talk from 2014.
+
+
+900
+00:43:33,206 --> 00:43:35,426
+So if you want to
+create CIImageProcessors,
+
+
+901
+00:43:35,426 --> 00:43:38,036
+we strongly suggest you go
+and look back at that talk
+
+
+902
+00:43:38,036 --> 00:43:40,346
+because we talked about
+how to deal with the extent
+
+
+903
+00:43:40,396 --> 00:43:43,286
+and ROI parameters
+in great length.
+
+
+904
+00:43:45,536 --> 00:43:46,876
+So now let's look
+at what the API
+
+
+905
+00:43:47,066 --> 00:43:49,036
+for creating a CIImage
+Processor looks like,
+
+
+906
+00:43:50,266 --> 00:43:52,026
+and this may change a
+little bit in future seeds,
+
+
+907
+00:43:52,026 --> 00:43:53,956
+but this is what it
+looks like right now.
+
+
+908
+00:43:55,066 --> 00:43:56,666
+So the similarities are there.
+
+
+909
+00:43:56,666 --> 00:43:57,846
+We need to provide the extent,
+
+
+910
+00:43:57,846 --> 00:43:59,666
+which is the output image size
+we're going to be producing,
+
+
+911
+00:44:00,016 --> 00:44:02,946
+give it an input
+image, and the ROI.
+
+
+912
+00:44:04,036 --> 00:44:06,386
+There are a bunch of additional
+parameters we need to provide,
+
+
+913
+00:44:06,386 --> 00:44:09,586
+however, such as, for example,
+the description of the node
+
+
+914
+00:44:09,586 --> 00:44:10,206
+that we'll be creating.
+
+
+915
+00:44:11,476 --> 00:44:14,606
+We then need to provide a
+digest with some sort of hash
+
+
+916
+00:44:14,606 --> 00:44:15,906
+of all our input parameters.
+
+
+917
+00:44:16,206 --> 00:44:18,066
+And this is really
+important for Core Image
+
+
+918
+00:44:18,066 --> 00:44:20,226
+because this is how Core
+Image determines whether
+
+
+919
+00:44:20,226 --> 00:44:22,636
+or not we can cache the
+values or not, and whether
+
+
+920
+00:44:22,636 --> 00:44:23,746
+or not we need to rerender.
+
+
+921
+00:44:24,316 --> 00:44:25,316
+So you need to make sure
+
+
+922
+00:44:25,316 --> 00:44:27,146
+that every time your
+parameter changes,
+
+
+923
+00:44:27,726 --> 00:44:28,956
+that you update the hash.
+
+
+924
+00:44:30,306 --> 00:44:34,656
+The next thing we can
+specify is an input format.
+
+
+925
+00:44:34,966 --> 00:44:37,196
+In this case here
+we've used BGRA8,
+
+
+926
+00:44:38,826 --> 00:44:40,356
+but you can also specify zero,
+
+
+927
+00:44:40,356 --> 00:44:43,256
+which means you'll get the
+working format for the context
+
+
+928
+00:44:43,256 --> 00:44:46,286
+as an input image format.
+
+
+929
+00:44:46,696 --> 00:44:48,716
+You can specify the
+output format as well.
+
+
+930
+00:44:49,146 --> 00:44:51,356
+In this case we're using
+RGBAf because the example
+
+
+931
+00:44:51,356 --> 00:44:53,696
+that we're going to be going
+over in more detail needs a lot
+
+
+932
+00:44:53,696 --> 00:44:55,276
+of precision, so we'll
+need full flow here.
+
+
+933
+00:44:56,306 --> 00:44:58,466
+And then finally we get
+to our processor block,
+
+
+934
+00:44:58,466 --> 00:45:00,426
+which is where we have
+exactly two parameters;
+
+
+935
+00:45:00,966 --> 00:45:05,596
+our CIImageProcessorInput
+and CIImageProcessorOutput,
+
+
+936
+00:45:06,786 --> 00:45:08,956
+and it's inside of here that
+we can do all the work we need
+
+
+937
+00:45:08,956 --> 00:45:09,246
+to do.
+
+
+938
+00:45:10,416 --> 00:45:12,396
+So let's take a look
+at how we can do this,
+
+
+939
+00:45:13,056 --> 00:45:14,106
+and why you would
+want to do this.
+
+
+940
+00:45:16,236 --> 00:45:19,616
+So CIImageProcessor
+is particularly useful
+
+
+941
+00:45:19,616 --> 00:45:22,876
+for when you have some algorithm
+or you want to use a library
+
+
+942
+00:45:23,216 --> 00:45:26,216
+that implements something
+outside of Core Image
+
+
+943
+00:45:26,416 --> 00:45:27,556
+and something that
+isn't suitable
+
+
+944
+00:45:27,556 --> 00:45:28,636
+for the CIKernel language.
+
+
+945
+00:45:28,886 --> 00:45:31,936
+A really good example of this is
+what we call an integral image.
+
+
+946
+00:45:32,746 --> 00:45:35,296
+An integral image is an image
+whereby the output pixel
+
+
+947
+00:45:35,606 --> 00:45:37,896
+contains the sum of
+all the pixels above it
+
+
+948
+00:45:37,896 --> 00:45:39,446
+and to the left,
+including itself.
+
+
+949
+00:45:39,806 --> 00:45:42,716
+And this is a very good
+example of the kind of thing
+
+
+950
+00:45:42,716 --> 00:45:45,716
+that can't be done in a
+data parallel-type shader,
+
+
+951
+00:45:46,056 --> 00:45:47,296
+which is the kind of
+shader that you write
+
+
+952
+00:45:47,296 --> 00:45:48,626
+when you're writing CIKernels.
+
+
+953
+00:45:50,976 --> 00:45:54,286
+So let's take a look at
+what an integral image is
+
+
+954
+00:45:54,286 --> 00:45:55,136
+in a little bit more detail.
+
+
+955
+00:45:55,136 --> 00:45:57,946
+If we start off with the input
+image on the left, which,
+
+
+956
+00:45:57,946 --> 00:46:01,386
+let's say, corresponds to some
+single channel, 8-bit data,
+
+
+957
+00:46:02,716 --> 00:46:04,596
+our integral image would
+be the image on the right.
+
+
+958
+00:46:04,826 --> 00:46:07,366
+So if we take a look
+at this pixel here, 7,
+
+
+959
+00:46:07,896 --> 00:46:11,146
+it actually corresponds to
+the sum of all of those pixels
+
+
+960
+00:46:11,146 --> 00:46:14,216
+on the left, which would
+be 1 plus 4 plus 0 plus 2.
+
+
+961
+00:46:15,016 --> 00:46:19,026
+The same goes for this other
+pixel; 45 corresponds to the sum
+
+
+962
+00:46:19,026 --> 00:46:22,196
+of all those other pixels above
+it and to the left, plus itself.
+
+
+963
+00:46:25,266 --> 00:46:29,146
+So now let's take a look
+at what you would do inside
+
+
+964
+00:46:29,146 --> 00:46:33,346
+of the image processor block
+if you were writing a CPU code,
+
+
+965
+00:46:33,966 --> 00:46:36,716
+and you could also use V Image
+or any number of other libraries
+
+
+966
+00:46:36,716 --> 00:46:37,516
+that we have on the system.
+
+
+967
+00:46:38,996 --> 00:46:39,866
+So first things first.
+
+
+968
+00:46:40,506 --> 00:46:42,516
+We're going to get some
+pointers back to our input data.
+
+
+969
+00:46:42,996 --> 00:46:45,596
+So from the
+CIImageProcessorInput we'll get
+
+
+970
+00:46:45,596 --> 00:46:47,956
+the base address,
+and we'll make sure
+
+
+971
+00:46:47,956 --> 00:46:50,586
+that we use 8-bit
+data, so UInt8.
+
+
+972
+00:46:50,586 --> 00:46:52,816
+And then we'll get
+our outputPointer,
+
+
+973
+00:46:52,816 --> 00:46:54,426
+which is where we're going
+to write all of our results
+
+
+974
+00:46:54,826 --> 00:46:56,246
+as float, because we specified
+
+
+975
+00:46:56,246 --> 00:46:58,036
+that we wanted to
+write to RGBAf.
+
+
+976
+00:47:00,366 --> 00:47:04,526
+The next thing we do
+is we make sure to deal
+
+
+977
+00:47:04,526 --> 00:47:06,996
+with the relative offsets of
+our input and output image.
+
+
+978
+00:47:07,796 --> 00:47:10,426
+It's highly likely that
+Core Image will provide you
+
+
+979
+00:47:10,426 --> 00:47:13,386
+with an input image that
+is going to be larger,
+
+
+980
+00:47:13,386 --> 00:47:16,026
+or at least not equivalent
+to your output image,
+
+
+981
+00:47:16,026 --> 00:47:19,016
+so you have to take care of
+whatever offset might be in play
+
+
+982
+00:47:19,626 --> 00:47:22,126
+when you're creating your output
+image and doing your four loops.
+
+
+983
+00:47:22,716 --> 00:47:25,046
+And in this case,
+once we have figured
+
+
+984
+00:47:25,046 --> 00:47:27,276
+out whatever offsets
+we need, we can then go
+
+
+985
+00:47:27,276 --> 00:47:30,226
+and execute our four-loop to
+calculate the output values
+
+
+986
+00:47:30,226 --> 00:47:33,996
+at location i, j by using
+the input at location i, j,
+
+
+987
+00:47:34,086 --> 00:47:35,266
+plus whatever offset we had.
+
+
+988
+00:47:38,706 --> 00:47:41,426
+Now that we've seen how to do
+this with a custom CPU loop,
+
+
+989
+00:47:41,426 --> 00:47:44,246
+let's take a look at how
+this can be done using Metal.
+
+
+990
+00:47:44,396 --> 00:47:47,836
+In this case we're going to be
+using Metal Performance Shaders.
+
+
+991
+00:47:49,176 --> 00:47:50,266
+And there's a great
+primitive inside
+
+
+992
+00:47:50,266 --> 00:47:51,096
+of Metal Performance Shaders
+
+
+993
+00:47:51,126 --> 00:47:53,926
+to compute integral images
+called MPSImageIntegral.
+
+
+994
+00:47:55,266 --> 00:47:59,176
+From our CIImageProcessorOutput
+we can get the commandBuffer,
+
+
+995
+00:47:59,686 --> 00:48:02,266
+the Metal command buffer, so we
+just create an MPSImageIntegral
+
+
+996
+00:48:02,686 --> 00:48:03,786
+with that commandBuffer.
+
+
+997
+00:48:05,286 --> 00:48:07,856
+Once again we take care of
+whatever offsets we may need
+
+
+998
+00:48:07,856 --> 00:48:11,766
+to deal with, and then we
+simply encode that kernel
+
+
+999
+00:48:11,976 --> 00:48:14,226
+to the commandBuffer,
+and providing
+
+
+1000
+00:48:14,226 --> 00:48:16,186
+as input the input
+texture that we get
+
+
+1001
+00:48:16,186 --> 00:48:17,466
+from the CIImageProcessorInput,
+
+
+1002
+00:48:17,956 --> 00:48:20,756
+and as a destination
+the output.MetalTexture.
+
+
+1003
+00:48:21,356 --> 00:48:24,486
+And this is how we can use
+Metal very simply inside
+
+
+1004
+00:48:24,486 --> 00:48:26,096
+of an existing CIFilter graph.
+
+
+1005
+00:48:27,376 --> 00:48:29,336
+So now let's take a look
+at what we can actually do
+
+
+1006
+00:48:29,336 --> 00:48:30,616
+with this integral image
+now that we have it.
+
+
+1007
+00:48:31,796 --> 00:48:33,526
+So let's say we start
+with an image like this.
+
+
+1008
+00:48:33,686 --> 00:48:36,396
+Our goal is going to be
+to produce a new image
+
+
+1009
+00:48:37,636 --> 00:48:40,706
+where we have a per
+pixel variable box blur.
+
+
+1010
+00:48:41,256 --> 00:48:44,106
+So each pixel in that image
+can have a different amount
+
+
+1011
+00:48:44,106 --> 00:48:44,966
+of blur applied to it,
+
+
+1012
+00:48:45,176 --> 00:48:48,576
+and we can do this really
+quickly using an integral image.
+
+
+1013
+00:48:51,006 --> 00:48:53,626
+So, as I was saying, box
+blurs are very useful
+
+
+1014
+00:48:54,666 --> 00:48:56,656
+for doing very fast box sums.
+
+
+1015
+00:48:57,036 --> 00:48:58,896
+So if we start right off with
+this input image and we wanted
+
+
+1016
+00:48:58,896 --> 00:49:02,336
+to get the sum of those nine
+pixels, traditionally speaking,
+
+
+1017
+00:49:02,896 --> 00:49:04,116
+this would require nine reads,
+
+
+1018
+00:49:04,606 --> 00:49:06,146
+which means it's an
+n squared problem.
+
+
+1019
+00:49:06,906 --> 00:49:10,056
+That's obviously not
+going to be very fast.
+
+
+1020
+00:49:11,856 --> 00:49:12,706
+That's not completely true.
+
+
+1021
+00:49:12,706 --> 00:49:14,046
+If you were a little
+more smart about it,
+
+
+1022
+00:49:14,106 --> 00:49:16,516
+you could probably do this as
+a multipass approach and do it
+
+
+1023
+00:49:16,516 --> 00:49:18,706
+in two n reads, but that
+still means you're looking
+
+
+1024
+00:49:18,706 --> 00:49:21,946
+at six reads, and obviously
+that doesn't scale very well.
+
+
+1025
+00:49:23,646 --> 00:49:25,776
+With an integral image,
+however, we can just --
+
+
+1026
+00:49:26,136 --> 00:49:29,596
+if we want to get the sum of
+those nine pixels, we just have
+
+
+1027
+00:49:29,596 --> 00:49:30,776
+to read at a few locations.
+
+
+1028
+00:49:30,776 --> 00:49:35,316
+We will read at the lower right
+corner and then we can read
+
+
+1029
+00:49:35,716 --> 00:49:39,216
+from just one pixel off to the
+left, the sum of all the values,
+
+
+1030
+00:49:39,936 --> 00:49:42,816
+and subtract that from the
+first value we just read.
+
+
+1031
+00:49:43,856 --> 00:49:47,006
+And then we read at a pixel
+right above where we need to be
+
+
+1032
+00:49:47,006 --> 00:49:49,036
+and subtract the row which
+corresponds to the sum
+
+
+1033
+00:49:49,036 --> 00:49:50,276
+of all the pixels
+up to that stage.
+
+
+1034
+00:49:50,606 --> 00:49:52,556
+But now you can see we've
+highlighted the upper left
+
+
+1035
+00:49:52,556 --> 00:49:54,996
+corner with a 1 because we've
+subtracted that value twice,
+
+
+1036
+00:49:54,996 --> 00:49:56,106
+so we need to add it back in.
+
+
+1037
+00:49:57,556 --> 00:50:03,226
+So what this means is we can
+create an arbitrarily-sized box
+
+
+1038
+00:50:03,276 --> 00:50:05,476
+blur with just four reads.
+
+
+1039
+00:50:05,566 --> 00:50:08,126
+And if we were to --
+
+
+1040
+00:50:09,016 --> 00:50:10,476
+[ Applause ]
+
+
+1041
+00:50:10,476 --> 00:50:10,766
+Thank you.
+
+
+1042
+00:50:11,146 --> 00:50:13,146
+[ Applause ]
+
+
+1043
+00:50:13,276 --> 00:50:15,216
+If we were to actually do the
+math manually, you could see
+
+
+1044
+00:50:15,216 --> 00:50:16,396
+that these numbers do add up.
+
+
+1045
+00:50:16,396 --> 00:50:19,796
+So 2 plus 4 plus 6, et cetera,
+is equal to the exact same thing
+
+
+1046
+00:50:19,796 --> 00:50:22,926
+as 66 minus 10 minus 13 plus 1.
+
+
+1047
+00:50:26,896 --> 00:50:30,216
+Now let's jump back into
+Core Image kernel language
+
+
+1048
+00:50:30,416 --> 00:50:31,996
+and see how we can
+use our integral image
+
+
+1049
+00:50:31,996 --> 00:50:34,316
+that we've computed
+either with a CPU code
+
+
+1050
+00:50:34,866 --> 00:50:37,076
+or using the Metal
+Performance Shader primitives
+
+
+1051
+00:50:38,406 --> 00:50:39,336
+and continue doing the work
+
+
+1052
+00:50:39,336 --> 00:50:40,836
+of actually creating
+the box blur effect.
+
+
+1053
+00:50:41,376 --> 00:50:42,956
+So the first thing we're
+going to do is we're going
+
+
+1054
+00:50:42,956 --> 00:50:44,486
+to compute our lower left corner
+
+
+1055
+00:50:44,486 --> 00:50:47,036
+and upper right corner
+from our image.
+
+
+1056
+00:50:47,036 --> 00:50:50,546
+Those will tell us where we
+need to subtract and add from.
+
+
+1057
+00:50:51,696 --> 00:50:54,596
+We're then going to compute
+a few additional values
+
+
+1058
+00:50:54,596 --> 00:50:57,816
+and they're going to help us
+determine what the alpha value
+
+
+1059
+00:50:57,966 --> 00:50:59,446
+should be, so how
+transparent the pixel
+
+
+1060
+00:50:59,446 --> 00:51:00,856
+that we're currently
+trying to produce is.
+
+
+1061
+00:51:01,956 --> 00:51:05,596
+We take our four
+samples, the four corners,
+
+
+1062
+00:51:07,306 --> 00:51:10,786
+and then finally we do our
+additions and subtractions
+
+
+1063
+00:51:10,786 --> 00:51:13,226
+and multiply by what we've
+decided is the appropriate
+
+
+1064
+00:51:13,226 --> 00:51:15,576
+amount of transparency
+for this output pixel.
+
+
+1065
+00:51:16,846 --> 00:51:22,056
+Now, this particular kernel
+takes a single parameter
+
+
+1066
+00:51:22,056 --> 00:51:24,906
+as an input radius, which
+would mean that if you were
+
+
+1067
+00:51:24,906 --> 00:51:25,906
+to call this on an
+image, you would get
+
+
+1068
+00:51:25,906 --> 00:51:28,386
+that same radius applied
+to the entire image,
+
+
+1069
+00:51:29,036 --> 00:51:33,836
+but we can very simply go and
+create a variable box blur
+
+
+1070
+00:51:34,036 --> 00:51:37,396
+by passing in a mask image,
+and we can use this mask image
+
+
+1071
+00:51:37,446 --> 00:51:41,716
+to determine how large
+the radius should be
+
+
+1072
+00:51:41,716 --> 00:51:42,906
+on a per pixel basis.
+
+
+1073
+00:51:44,636 --> 00:51:46,836
+So we just pass in an additional
+parameter, mask image.
+
+
+1074
+00:51:46,896 --> 00:51:49,186
+We read from it.
+
+
+1075
+00:51:49,416 --> 00:51:51,806
+We take a look at what's in the
+red channel, say, or it could be
+
+
+1076
+00:51:51,806 --> 00:51:55,386
+from any channel, and we then
+multiply our radius by that.
+
+
+1077
+00:51:55,446 --> 00:51:57,236
+So if we had a radius
+of 15 and at
+
+
+1078
+00:51:57,266 --> 00:51:59,406
+that current pixel
+location we had .5,
+
+
+1079
+00:51:59,406 --> 00:52:01,506
+it would give us
+a radius of 7.5.
+
+
+1080
+00:52:02,556 --> 00:52:04,856
+We can then take those
+values and pass it
+
+
+1081
+00:52:04,856 --> 00:52:06,566
+into the box blur kernel
+that we just wrote.
+
+
+1082
+00:52:07,006 --> 00:52:09,666
+And this is how we can very
+simply create a variable box
+
+
+1083
+00:52:09,666 --> 00:52:13,236
+blur using Metal
+Performance Shaders
+
+
+1084
+00:52:13,536 --> 00:52:14,796
+and the CIImageProcessor nodes.
+
+
+1085
+00:52:18,316 --> 00:52:21,056
+One additional thing we haven't
+mentioned so far today is
+
+
+1086
+00:52:21,056 --> 00:52:23,736
+that we now have some
+attributes you can specify
+
+
+1087
+00:52:24,646 --> 00:52:28,426
+on your CIKernels when you
+write them and, in fact,
+
+
+1088
+00:52:28,426 --> 00:52:31,316
+we have this just one right
+now, which is the output format.
+
+
+1089
+00:52:31,836 --> 00:52:34,706
+In this case we're
+asking for RGBAf,
+
+
+1090
+00:52:34,916 --> 00:52:37,306
+which is not really
+necessarily useful,
+
+
+1091
+00:52:37,746 --> 00:52:40,946
+but the key thing here is
+that you can say that you'd
+
+
+1092
+00:52:41,046 --> 00:52:43,326
+like to write only
+single-channel
+
+
+1093
+00:52:43,636 --> 00:52:44,416
+or two-channel data.
+
+
+1094
+00:52:44,416 --> 00:52:44,966
+So if you wanted to do --
+
+
+1095
+00:52:45,516 --> 00:52:48,546
+[ Applause ]
+
+
+1096
+00:52:49,046 --> 00:52:50,596
+As some people have
+noticed, this is a great way
+
+
+1097
+00:52:50,596 --> 00:52:56,456
+to reduce your memory usage,
+and it's also a way to specify
+
+
+1098
+00:52:56,596 --> 00:53:00,156
+that you want a certain
+precision for a specific kernel
+
+
+1099
+00:53:00,156 --> 00:53:02,256
+in your graph that may
+not correspond to the rest
+
+
+1100
+00:53:02,736 --> 00:53:04,196
+of the graph, which
+is also what we do
+
+
+1101
+00:53:04,196 --> 00:53:05,856
+when we're processing
+RAW images on iOS.
+
+
+1102
+00:53:06,336 --> 00:53:10,646
+All of our kernels
+are tagged with RGBAh.
+
+
+1103
+00:53:10,926 --> 00:53:16,206
+So one or more thing we need
+to do to create this effect is
+
+
+1104
+00:53:16,206 --> 00:53:17,546
+to provide some sort
+of mask image.
+
+
+1105
+00:53:17,546 --> 00:53:20,956
+We can do this very simply
+by calling CIFilter(name,
+
+
+1106
+00:53:21,386 --> 00:53:23,106
+and then ask for
+a CIRadialGradient
+
+
+1107
+00:53:23,136 --> 00:53:24,796
+with a few parameters,
+which are going
+
+
+1108
+00:53:24,796 --> 00:53:28,126
+to determine how
+large the mask will be
+
+
+1109
+00:53:28,776 --> 00:53:30,226
+and where it will be located.
+
+
+1110
+00:53:30,226 --> 00:53:33,066
+And then we're going to be
+interpolating between 0 and 1,
+
+
+1111
+00:53:33,066 --> 00:53:34,106
+which is going to
+be black and white.
+
+
+1112
+00:53:34,106 --> 00:53:37,446
+And then we ask for the
+output image from the CIFilter
+
+
+1113
+00:53:38,046 --> 00:53:39,916
+and we have a perfectly
+usable mask.
+
+
+1114
+00:53:42,496 --> 00:53:44,916
+So now let's take a look
+at what this actually looks
+
+
+1115
+00:53:44,916 --> 00:53:46,296
+like when running on device,
+
+
+1116
+00:53:46,886 --> 00:53:50,076
+and this is recorded
+from an iPhone 6S.
+
+
+1117
+00:53:50,216 --> 00:53:52,716
+If we start with our input
+image and then look at our mask,
+
+
+1118
+00:53:53,016 --> 00:53:54,076
+we can move it around.
+
+
+1119
+00:53:54,466 --> 00:53:55,416
+It's all very interactive.
+
+
+1120
+00:53:56,506 --> 00:53:59,516
+Change the radius, even
+make it go negative.
+
+
+1121
+00:54:01,456 --> 00:54:05,136
+And then if we apply this
+mask image and use it inside
+
+
+1122
+00:54:05,136 --> 00:54:08,516
+of our variable box
+blur kernel code,
+
+
+1123
+00:54:08,706 --> 00:54:10,696
+we then get this type of result.
+
+
+1124
+00:54:11,026 --> 00:54:12,366
+And it's very interactive
+
+
+1125
+00:54:13,066 --> 00:54:15,516
+because the integral image
+only needs to be computed once,
+
+
+1126
+00:54:15,576 --> 00:54:17,536
+and Core Image caches
+those results for you.
+
+
+1127
+00:54:17,666 --> 00:54:20,096
+So it literally, everything
+you're seeing right now,
+
+
+1128
+00:54:20,096 --> 00:54:21,536
+is just involving four reads.
+
+
+1129
+00:54:21,536 --> 00:54:21,926
+So it's superfast.
+
+
+1130
+00:54:22,516 --> 00:54:32,086
+[ Applause ]
+
+
+1131
+00:54:32,586 --> 00:54:33,646
+Some things to keep in mind.
+
+
+1132
+00:54:34,206 --> 00:54:35,606
+When you're using
+the CIImageProcessor,
+
+
+1133
+00:54:37,136 --> 00:54:39,706
+if the data that you
+would like to use inside
+
+
+1134
+00:54:39,706 --> 00:54:41,376
+of your image processor
+is not inside
+
+
+1135
+00:54:41,376 --> 00:54:45,456
+of the context current
+workingColorSpace, you're going
+
+
+1136
+00:54:45,456 --> 00:54:47,546
+to want to call
+CIImage.byColorMatching
+
+
+1137
+00:54:47,636 --> 00:54:49,916
+WorkingSpace(to, and then
+provide a color space.
+
+
+1138
+00:54:52,116 --> 00:54:55,646
+Similarly, on the way out,
+if you would like the data
+
+
+1139
+00:54:55,646 --> 00:54:56,726
+in a different color space,
+
+
+1140
+00:54:56,726 --> 00:54:59,306
+you can call
+CIImage.byColorMatching
+
+
+1141
+00:54:59,306 --> 00:55:02,126
+ColorSpace(toWorking, and
+then give it a color space.
+
+
+1142
+00:55:05,756 --> 00:55:09,676
+Now that we've seen how to
+create the CIImageProcessor
+
+
+1143
+00:55:09,976 --> 00:55:13,416
+and how to use it, let's
+take a look at what happens
+
+
+1144
+00:55:13,416 --> 00:55:15,206
+when we use the environment
+variable CI PRINT TREE,
+
+
+1145
+00:55:15,536 --> 00:55:18,996
+which we use to get an idea
+of what the actual graph
+
+
+1146
+00:55:18,996 --> 00:55:20,416
+that we're trying to
+render looks like.
+
+
+1147
+00:55:23,206 --> 00:55:24,026
+So this is what it looks
+
+
+1148
+00:55:24,026 --> 00:55:26,686
+like when you use the
+environment variable CI PRINT
+
+
+1149
+00:55:26,686 --> 00:55:27,816
+TREE with the value
+equal to the 1.
+
+
+1150
+00:55:27,936 --> 00:55:30,376
+And this is read
+from bottom to top.
+
+
+1151
+00:55:30,476 --> 00:55:31,716
+And it can be quite verbose.
+
+
+1152
+00:55:32,476 --> 00:55:36,136
+It starts off with our input
+radialGradient that we created.
+
+
+1153
+00:55:37,036 --> 00:55:38,106
+We then have our input image
+
+
+1154
+00:55:38,396 --> 00:55:41,326
+which gets matched
+to the workingspace.
+
+
+1155
+00:55:42,866 --> 00:55:45,846
+And then here's our processor
+node that gets called,
+
+
+1156
+00:55:46,036 --> 00:55:49,466
+and that hex value is the
+digest that we've computed.
+
+
+1157
+00:55:50,016 --> 00:55:53,526
+And then both the processor
+and the color kernel result
+
+
+1158
+00:55:53,526 --> 00:55:56,586
+from the radialGradient get
+fed into the variableBoxBlur.
+
+
+1159
+00:55:57,786 --> 00:56:02,266
+And finally we do the color
+matching to our output display.
+
+
+1160
+00:56:03,766 --> 00:56:06,696
+So this is the original
+recipe that we use
+
+
+1161
+00:56:06,726 --> 00:56:11,286
+to specify this effect, but it's
+not what actually gets rendered.
+
+
+1162
+00:56:12,546 --> 00:56:14,876
+If we were to set the
+environmental variable CI PRINT
+
+
+1163
+00:56:14,876 --> 00:56:18,566
+TREE to 8, we can now see that
+many things have been collapsed
+
+
+1164
+00:56:19,266 --> 00:56:22,446
+and the processing looks
+to be less involved.
+
+
+1165
+00:56:23,766 --> 00:56:26,096
+We still, once again,
+have our processor node,
+
+
+1166
+00:56:26,476 --> 00:56:28,066
+which lives on a
+line on its own,
+
+
+1167
+00:56:28,066 --> 00:56:30,846
+which means that it
+does require the need
+
+
+1168
+00:56:30,846 --> 00:56:32,386
+of an intermediate buffer,
+
+
+1169
+00:56:32,386 --> 00:56:35,546
+which is why the
+CIImageProcessors are great,
+
+
+1170
+00:56:35,656 --> 00:56:38,056
+but you should only use them
+when the kind of things --
+
+
+1171
+00:56:38,056 --> 00:56:39,826
+the effect that you're trying
+to produce, the algorithms
+
+
+1172
+00:56:39,826 --> 00:56:42,226
+that you have cannot
+be expressed inside
+
+
+1173
+00:56:42,226 --> 00:56:43,316
+of the CIKernel language.
+
+
+1174
+00:56:44,566 --> 00:56:45,776
+As you can see, the rest
+
+
+1175
+00:56:45,776 --> 00:56:48,036
+of the processing all
+gets concatenated.
+
+
+1176
+00:56:48,036 --> 00:56:50,276
+So we have our variableBoxBlur
+with the rest
+
+
+1177
+00:56:50,276 --> 00:56:53,076
+of the color matching, and
+the clamptoalpha all happening
+
+
+1178
+00:56:53,076 --> 00:56:53,946
+in a single pass.
+
+
+1179
+00:56:54,616 --> 00:56:57,576
+So this is why there are always
+tradeoffs in between these APIs.
+
+
+1180
+00:56:57,856 --> 00:57:00,066
+And if you can write something
+inside the CIKernel language,
+
+
+1181
+00:57:00,066 --> 00:57:00,436
+you should.
+
+
+1182
+00:57:03,106 --> 00:57:06,476
+That may be a little
+difficult to read.
+
+
+1183
+00:57:07,406 --> 00:57:09,966
+So we have an additional
+option now that you can specify
+
+
+1184
+00:57:09,966 --> 00:57:11,896
+when you're using CI PRINT
+TREE, which is graphviz.
+
+
+1185
+00:57:12,946 --> 00:57:16,306
+In this case we're
+using CI PRINT TREE=8,
+
+
+1186
+00:57:17,196 --> 00:57:18,406
+along with the graphviz option,
+
+
+1187
+00:57:19,446 --> 00:57:21,606
+and we can see our
+processor node and how it fits
+
+
+1188
+00:57:21,606 --> 00:57:22,956
+in perfectly with the
+rest of the graph.
+
+
+1189
+00:57:23,996 --> 00:57:26,966
+And we can also see that
+we've asked for RGBAf output.
+
+
+1190
+00:57:30,816 --> 00:57:33,686
+So let's do a little recap
+of what we learned today.
+
+
+1191
+00:57:34,356 --> 00:57:37,276
+We saw, David showed us how
+to edit RAW images on iOS.
+
+
+1192
+00:57:38,196 --> 00:57:39,166
+Then Etienne spoke to us
+
+
+1193
+00:57:39,166 --> 00:57:42,196
+about how you can edit Live
+Photos using Core Image.
+
+
+1194
+00:57:42,486 --> 00:57:45,336
+And then finally, we got to
+see how to use this new API
+
+
+1195
+00:57:45,336 --> 00:57:49,256
+on CIImage called
+CIImageProcessor, as well as how
+
+
+1196
+00:57:49,256 --> 00:57:51,066
+to specify an output
+format on your kernels
+
+
+1197
+00:57:51,066 --> 00:57:53,006
+to help reduce the memory usage.
+
+
+1198
+00:57:53,706 --> 00:57:56,746
+For additional information
+please
+
+
+1199
+00:57:56,746 --> 00:57:58,546
+visit developer.apple.com.
+
+
+1200
+00:58:01,016 --> 00:58:03,046
+There are a few related sessions
+that may be of interest to you,
+
+
+1201
+00:58:03,266 --> 00:58:06,416
+especially if you're planning
+on doing RAW processing on iOS.
+
+
+1202
+00:58:06,496 --> 00:58:07,916
+There's Advances
+in iOS Photography
+
+
+1203
+00:58:07,916 --> 00:58:09,186
+that Etienne mentioned as well.
+
+
+1204
+00:58:09,936 --> 00:58:13,496
+There's also a talk later on
+today, Working with Wide Color,
+
+
+1205
+00:58:14,216 --> 00:58:15,116
+that's taking place right here.
+
+
+1206
+00:58:16,916 --> 00:58:18,746
+And on that note, I would like
+to thank you all for coming.
+
+
+1207
+00:58:18,746 --> 00:58:19,936
+I hope you enjoy
+the rest of WWDC.
+
+
+1208
+00:58:20,516 --> 00:58:30,760
+[ Applause ]
+

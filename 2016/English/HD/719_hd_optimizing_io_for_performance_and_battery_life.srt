@@ -1,0 +1,5308 @@
+1
+00:00:07,516 --> 00:00:17,500
+[ Music ]
+
+
+2
+00:00:20,516 --> 00:00:23,386
+[ Applause ]
+
+
+3
+00:00:23,886 --> 00:00:25,686
+>> Hello and welcome.
+
+
+4
+00:00:27,616 --> 00:00:31,356
+My name is Kushal Dalmia, and
+I and my colleague, Terry Long,
+
+
+5
+00:00:31,446 --> 00:00:33,816
+I'm going to be representing
+optimizing I/O
+
+
+6
+00:00:33,906 --> 00:00:35,476
+for performance and
+battery life.
+
+
+7
+00:00:36,506 --> 00:00:39,146
+In this talk, we're going to
+take a look at what an I/O is,
+
+
+8
+00:00:39,846 --> 00:00:43,346
+how it affects your app, and
+how you can improve your app's
+
+
+9
+00:00:43,346 --> 00:00:45,896
+performance by improving
+its I/O performance.
+
+
+10
+00:00:46,596 --> 00:00:47,656
+So let's begin.
+
+
+11
+00:00:49,076 --> 00:00:52,136
+As we all know, devices
+are getting bigger
+
+
+12
+00:00:52,136 --> 00:00:53,106
+and better every year.
+
+
+13
+00:00:54,376 --> 00:00:56,596
+Screen resolutions
+have gone up by as much
+
+
+14
+00:00:56,596 --> 00:00:58,766
+as 16 times in the past decade.
+
+
+15
+00:01:00,216 --> 00:01:01,216
+Similar improvements
+
+
+16
+00:01:01,216 --> 00:01:04,866
+in [inaudible] technologies
+allow us to capture 4K HD videos
+
+
+17
+00:01:05,156 --> 00:01:08,136
+and amazing high-quality
+images from our mobile devices.
+
+
+18
+00:01:10,226 --> 00:01:14,036
+All these improvements have led
+to richer media being produced
+
+
+19
+00:01:14,166 --> 00:01:15,236
+and consumed every day.
+
+
+20
+00:01:15,766 --> 00:01:20,726
+Just to put it in perspective,
+let's take a look at the trend
+
+
+21
+00:01:20,726 --> 00:01:22,396
+of the iPhone wallpaper size.
+
+
+22
+00:01:23,036 --> 00:01:27,176
+If you look at the size of the
+iPhone wallpaper across device
+
+
+23
+00:01:27,176 --> 00:01:30,236
+and generations, you notice that
+the growth has been exponential.
+
+
+24
+00:01:31,536 --> 00:01:35,126
+The size of the wallpaper on
+an iPhone 6s Plus is as much
+
+
+25
+00:01:35,126 --> 00:01:37,956
+as 14 times its counterpart
+on the iPhone 3G.
+
+
+26
+00:01:38,666 --> 00:01:41,276
+And there's a similar trend in
+all of the phones' data as well.
+
+
+27
+00:01:41,796 --> 00:01:44,496
+We build and use
+complex apps for gaming,
+
+
+28
+00:01:44,836 --> 00:01:46,456
+messaging, and social networks.
+
+
+29
+00:01:47,566 --> 00:01:52,006
+We work and store richer
+documents like PDF's.
+
+
+30
+00:01:52,446 --> 00:01:55,236
+And we all share and
+capture high-quality audio
+
+
+31
+00:01:55,236 --> 00:01:56,056
+and video files.
+
+
+32
+00:01:56,786 --> 00:02:01,376
+Now to manage this
+data explosion,
+
+
+33
+00:02:01,536 --> 00:02:04,726
+apps need to be really efficient
+in their system resource usage,
+
+
+34
+00:02:05,616 --> 00:02:11,716
+and the main system resources
+are CPU, memory, and I/O.
+
+
+35
+00:02:12,346 --> 00:02:17,216
+For CPU and memory, I'll refer
+you to last year's WWDC talk,
+
+
+36
+00:02:17,276 --> 00:02:19,166
+Performance on iOS and watchOS,
+
+
+37
+00:02:20,166 --> 00:02:21,996
+and today we're going
+to talk about I/O.
+
+
+38
+00:02:24,086 --> 00:02:27,896
+I/O, or input/output, are
+operations that interact
+
+
+39
+00:02:27,896 --> 00:02:32,206
+with the local file storage
+or network-based servers.
+
+
+40
+00:02:32,616 --> 00:02:35,786
+Operations that interact
+with the file system and deal
+
+
+41
+00:02:35,786 --> 00:02:38,486
+with reading or writing files
+are generally considered an I/O.
+
+
+42
+00:02:38,816 --> 00:02:43,086
+Talking to a web
+server is a good example
+
+
+43
+00:02:43,086 --> 00:02:44,836
+of network-based I/O.
+
+
+44
+00:02:46,586 --> 00:02:49,506
+Now one of the reasons
+I/O's are so interesting is
+
+
+45
+00:02:49,506 --> 00:02:52,096
+that there is a huge variation
+in the I/O technologies
+
+
+46
+00:02:52,486 --> 00:02:54,066
+and the performance
+characteristics.
+
+
+47
+00:02:55,876 --> 00:02:58,806
+Consider the latency to do
+a one megabyte write to some
+
+
+48
+00:02:58,806 --> 00:03:03,736
+of the most common I/O medium
+such as the SSD, a hard disk,
+
+
+49
+00:03:04,656 --> 00:03:05,996
+and a common Wi-Fi network.
+
+
+50
+00:03:07,496 --> 00:03:10,486
+As you'll notice here, the
+same operation takes anywhere
+
+
+51
+00:03:10,486 --> 00:03:13,606
+from a couple of milliseconds to
+hundreds of milliseconds based
+
+
+52
+00:03:13,606 --> 00:03:15,416
+on the I/O medium
+you're interacting with.
+
+
+53
+00:03:15,926 --> 00:03:20,106
+And the reason I/O
+is so important is
+
+
+54
+00:03:20,106 --> 00:03:23,186
+that the I/O performance of your
+application has a direct impact
+
+
+55
+00:03:23,186 --> 00:03:24,206
+on user experience.
+
+
+56
+00:03:24,646 --> 00:03:29,636
+Latency variations in your
+app's performance can show
+
+
+57
+00:03:29,636 --> 00:03:30,996
+as responsiveness issues.
+
+
+58
+00:03:32,616 --> 00:03:35,196
+Since I/O is a shared
+resource in the system,
+
+
+59
+00:03:35,396 --> 00:03:37,706
+your app's I/O performance
+could affect overall
+
+
+60
+00:03:37,706 --> 00:03:38,536
+system performance.
+
+
+61
+00:03:40,036 --> 00:03:41,606
+And as we'll see shortly,
+
+
+62
+00:03:42,066 --> 00:03:44,806
+I/O significantly impacts the
+battery life of the device.
+
+
+63
+00:03:45,606 --> 00:03:50,426
+Now to help you reason about
+the I/O usage of your app,
+
+
+64
+00:03:50,816 --> 00:03:52,846
+we've come up with our
+own I/O philosophy,
+
+
+65
+00:03:54,066 --> 00:03:56,516
+and the I/O philosophy
+has four main pillars.
+
+
+66
+00:03:57,096 --> 00:04:01,156
+Reduce the amount of I/O
+your application does,
+
+
+67
+00:04:01,766 --> 00:04:08,396
+use the right thread to do
+these I/O's, adopt appropriate
+
+
+68
+00:04:08,396 --> 00:04:11,836
+and efficient API's to do
+these I/O's, and, lastly,
+
+
+69
+00:04:12,076 --> 00:04:14,796
+test and measure your
+application for I/O performance.
+
+
+70
+00:04:16,286 --> 00:04:18,576
+As we move through rest of the
+doc, we'll look at each one
+
+
+71
+00:04:18,576 --> 00:04:19,856
+of them in further detail.
+
+
+72
+00:04:21,726 --> 00:04:25,306
+Now the best way to
+improve the I/O efficiency
+
+
+73
+00:04:25,306 --> 00:04:29,936
+of your application is to reduce
+the amount of I/O it does.
+
+
+74
+00:04:30,156 --> 00:04:31,966
+Every I/O operation interacts
+
+
+75
+00:04:31,966 --> 00:04:34,246
+with multiple hardware
+competence on your device.
+
+
+76
+00:04:34,856 --> 00:04:39,246
+Here's a simple block diagram
+of a modern device with some
+
+
+77
+00:04:39,246 --> 00:04:41,926
+of its competence and their
+impact on battery life.
+
+
+78
+00:04:43,866 --> 00:04:48,806
+When your app is using I/O,
+it runs on code on the CPU,
+
+
+79
+00:04:48,936 --> 00:04:52,606
+accesses memory, and
+ultimately fetches data
+
+
+80
+00:04:52,686 --> 00:04:53,666
+to or from the disk.
+
+
+81
+00:04:55,106 --> 00:04:56,716
+If the network is involved,
+
+
+82
+00:04:57,216 --> 00:04:59,686
+the network-based radios
+are interacted with as well.
+
+
+83
+00:05:01,516 --> 00:05:03,306
+The combined power cost of all
+
+
+84
+00:05:03,306 --> 00:05:06,036
+of these competents makes
+I/O a heavy operation
+
+
+85
+00:05:06,036 --> 00:05:07,346
+in terms of battery usage.
+
+
+86
+00:05:09,156 --> 00:05:11,836
+Since I/O has such an adverse
+effect on the battery life
+
+
+87
+00:05:11,836 --> 00:05:13,856
+of the device, let's
+take a look at a couple
+
+
+88
+00:05:13,856 --> 00:05:16,656
+of best practices you can
+use to reduce the amount
+
+
+89
+00:05:16,656 --> 00:05:17,806
+of I/O in your application.
+
+
+90
+00:05:18,346 --> 00:05:21,376
+And the first one is caching.
+
+
+91
+00:05:22,326 --> 00:05:25,766
+The main idea here is to
+create an in memory copy
+
+
+92
+00:05:25,766 --> 00:05:27,476
+of your data rather than going
+
+
+93
+00:05:27,476 --> 00:05:29,226
+out of the disk for
+every operation.
+
+
+94
+00:05:30,956 --> 00:05:33,886
+To decide if your data
+should be cached in memory
+
+
+95
+00:05:33,886 --> 00:05:35,776
+in your application,
+you should look
+
+
+96
+00:05:35,776 --> 00:05:38,716
+at the access patterns
+of your data.
+
+
+97
+00:05:39,286 --> 00:05:41,116
+Data which is frequently
+written to
+
+
+98
+00:05:41,116 --> 00:05:43,076
+or updated might
+be a good candidate
+
+
+99
+00:05:43,076 --> 00:05:44,426
+to cache in your application.
+
+
+100
+00:05:46,596 --> 00:05:48,196
+Also, data which [inaudible]
+
+
+101
+00:05:48,196 --> 00:05:51,856
+from the disk needs an expensive
+processing step, for example,
+
+
+102
+00:05:51,856 --> 00:05:54,536
+decompressing an image file
+might be a good example
+
+
+103
+00:05:54,536 --> 00:05:56,386
+of data you should cache.
+
+
+104
+00:05:57,756 --> 00:06:00,646
+Having said that, you should
+be aware of the tradeoffs
+
+
+105
+00:06:00,646 --> 00:06:02,056
+between memory and I/O.
+
+
+106
+00:06:03,416 --> 00:06:06,366
+Just like I/O, memory is a
+shared and limited resource
+
+
+107
+00:06:06,366 --> 00:06:08,126
+in the system, and
+you should be careful
+
+
+108
+00:06:08,126 --> 00:06:08,886
+in your user [inaudible].
+
+
+109
+00:06:10,366 --> 00:06:12,886
+If you do decide to create
+caches in your application,
+
+
+110
+00:06:13,536 --> 00:06:15,856
+we would recommend
+using the NS cache API's
+
+
+111
+00:06:16,586 --> 00:06:18,506
+since they handle memory
+pressure conditions
+
+
+112
+00:06:18,506 --> 00:06:19,546
+appropriately for you.
+
+
+113
+00:06:24,136 --> 00:06:27,096
+The next best practice
+is coalescing your I/O's,
+
+
+114
+00:06:28,196 --> 00:06:32,056
+and the main idea here is to
+defer your I/O's to a later,
+
+
+115
+00:06:32,056 --> 00:06:33,626
+more suitable time
+in the system.
+
+
+116
+00:06:34,446 --> 00:06:37,916
+Due to the way I/O
+technologies work, larger,
+
+
+117
+00:06:37,916 --> 00:06:40,526
+fewer I/O's are always more
+efficient for the system.
+
+
+118
+00:06:42,336 --> 00:06:43,696
+One of the ways to do that is
+
+
+119
+00:06:43,696 --> 00:06:46,386
+to use the application app
+state change notification,
+
+
+120
+00:06:46,586 --> 00:06:48,776
+for example, application
+data in the background
+
+
+121
+00:06:48,826 --> 00:06:50,526
+to schedule your I/O's.
+
+
+122
+00:06:51,476 --> 00:06:54,926
+On macOS, you can use the
+centralized task scheduling
+
+
+123
+00:06:54,926 --> 00:06:57,626
+API's to schedule your
+maintenance and backup tasks,
+
+
+124
+00:06:57,976 --> 00:06:58,866
+and the system will figure
+
+
+125
+00:06:58,866 --> 00:07:00,996
+out an optimal time
+to run these for you.
+
+
+126
+00:07:01,646 --> 00:07:06,296
+To learn more about these API's,
+we would recommend looking
+
+
+127
+00:07:06,296 --> 00:07:10,006
+at WWDC 2014 talk Writing
+Energy Efficient Code.
+
+
+128
+00:07:10,646 --> 00:07:14,556
+Now that we've taken a look
+at a couple of best practices
+
+
+129
+00:07:14,556 --> 00:07:16,706
+to reduce the amount of
+I/O in your application,
+
+
+130
+00:07:17,356 --> 00:07:19,796
+I'd like to introduce our
+sample application which Terry
+
+
+131
+00:07:19,796 --> 00:07:22,986
+and I have been working on,
+and we'll use this application
+
+
+132
+00:07:22,986 --> 00:07:23,876
+for the rest of the talk
+
+
+133
+00:07:24,046 --> 00:07:26,346
+to demonstrate the
+practical implications of some
+
+
+134
+00:07:26,346 --> 00:07:27,286
+of these best practices.
+
+
+135
+00:07:28,766 --> 00:07:30,536
+And that app is called ImageBox.
+
+
+136
+00:07:31,546 --> 00:07:35,196
+ImageBox is our amazing
+app on iOS and macOS
+
+
+137
+00:07:35,776 --> 00:07:37,576
+that lets you add
+and browse images.
+
+
+138
+00:07:38,166 --> 00:07:42,406
+For each image, it
+shows you a thumbnail,
+
+
+139
+00:07:43,406 --> 00:07:46,096
+shows you associated
+badges such as favorites,
+
+
+140
+00:07:47,216 --> 00:07:48,886
+or whether it has
+notes associated
+
+
+141
+00:07:48,886 --> 00:07:49,886
+with the particular image.
+
+
+142
+00:07:50,426 --> 00:07:53,916
+When you tap on a
+particular image, it takes you
+
+
+143
+00:07:53,916 --> 00:07:56,816
+to a detailed view, which
+lets you mark the image
+
+
+144
+00:07:56,816 --> 00:08:02,186
+as a favorite, unfavorited,
+or add a note to it.
+
+
+145
+00:08:03,196 --> 00:08:05,566
+Now that we've created
+this app, we want to know
+
+
+146
+00:08:05,566 --> 00:08:07,906
+if our app is I/O
+efficient and does well
+
+
+147
+00:08:07,906 --> 00:08:09,196
+in terms of I/O performance.
+
+
+148
+00:08:10,176 --> 00:08:12,226
+So I'm going to talk about
+the tool that you can use
+
+
+149
+00:08:12,266 --> 00:08:14,416
+to decide this for
+your own application,
+
+
+150
+00:08:15,476 --> 00:08:17,536
+and the tool is the
+Xcode debug gauge.
+
+
+151
+00:08:18,636 --> 00:08:19,896
+So let's see how that works.
+
+
+152
+00:08:21,146 --> 00:08:22,296
+In order to use that tool,
+
+
+153
+00:08:22,706 --> 00:08:24,686
+simply run your project
+from the Xcode UI.
+
+
+154
+00:08:26,236 --> 00:08:28,206
+This launches the
+project or the application
+
+
+155
+00:08:28,206 --> 00:08:29,606
+on the device or the simulator.
+
+
+156
+00:08:30,156 --> 00:08:32,135
+Click on the Xcode
+debug navigator.
+
+
+157
+00:08:32,785 --> 00:08:37,356
+Now this shows you live data
+from all, from your application
+
+
+158
+00:08:37,416 --> 00:08:40,426
+about all the system resources
+your application is using.
+
+
+159
+00:08:41,236 --> 00:08:45,876
+You have CPU, memory,
+energy, network, and disk.
+
+
+160
+00:08:47,686 --> 00:08:50,536
+Since we're interested in the
+I/O activity or I/O performance
+
+
+161
+00:08:50,536 --> 00:08:53,116
+of our application, let's
+go ahead and select disk.
+
+
+162
+00:08:54,796 --> 00:08:57,396
+Once you do that, you notice
+that it shows you live data
+
+
+163
+00:08:57,396 --> 00:08:59,746
+about the reads and writes
+being done by your application,
+
+
+164
+00:09:00,626 --> 00:09:02,966
+and it looks like our
+application is doing a lot
+
+
+165
+00:09:02,966 --> 00:09:06,226
+of writes every few seconds even
+though there is no user activity
+
+
+166
+00:09:06,226 --> 00:09:06,676
+to it.
+
+
+167
+00:09:06,936 --> 00:09:10,926
+Now to investigate this further,
+we want to dig into instruments,
+
+
+168
+00:09:11,056 --> 00:09:13,276
+and use instruments to
+find out what's happening.
+
+
+169
+00:09:13,796 --> 00:09:16,156
+So let's go ahead and click
+on profile in instruments,
+
+
+170
+00:09:16,666 --> 00:09:17,806
+and hit the restart button.
+
+
+171
+00:09:19,846 --> 00:09:22,846
+Once you do that, instruments
+provides you a set of templates
+
+
+172
+00:09:22,846 --> 00:09:25,986
+that you can choose from for
+analyzing your application.
+
+
+173
+00:09:27,226 --> 00:09:29,056
+And since we're interested
+in the I/O activity
+
+
+174
+00:09:29,056 --> 00:09:30,616
+of our application, we go ahead
+
+
+175
+00:09:30,616 --> 00:09:36,676
+and select system usage,
+and next hit choose.
+
+
+176
+00:09:36,876 --> 00:09:39,846
+Doing that opens a new
+instruments template that's
+
+
+177
+00:09:39,846 --> 00:09:42,266
+ready to record the I/O
+activity for your application.
+
+
+178
+00:09:43,026 --> 00:09:44,726
+So let's go ahead
+and start recording.
+
+
+179
+00:09:45,286 --> 00:09:50,436
+As you now notice in
+the detail section,
+
+
+180
+00:09:50,696 --> 00:09:53,296
+this template shows you
+all system calls being done
+
+
+181
+00:09:53,296 --> 00:09:56,236
+by our application which does,
+which do I/O on your behalf.
+
+
+182
+00:09:57,046 --> 00:09:59,616
+It shows other useful
+information such as the actual
+
+
+183
+00:09:59,616 --> 00:10:02,656
+and requested number of bytes
+for those reads and writes
+
+
+184
+00:10:03,036 --> 00:10:04,706
+and the file path
+associated with them.
+
+
+185
+00:10:05,786 --> 00:10:08,056
+I'll go ahead and stop
+this recording now.
+
+
+186
+00:10:09,396 --> 00:10:11,906
+Now in order to find out the
+large writes that we were seeing
+
+
+187
+00:10:11,906 --> 00:10:14,546
+in the Xcode debug
+gauge, we sort this data
+
+
+188
+00:10:14,546 --> 00:10:16,896
+by the actual number of bytes
+that are being read and written
+
+
+189
+00:10:17,156 --> 00:10:20,546
+and identify the large
+write that's near the top.
+
+
+190
+00:10:21,116 --> 00:10:23,936
+Once we have that,
+we can actually go
+
+
+191
+00:10:23,936 --> 00:10:27,336
+into the extended detail viewer
+and see the exact backtrace
+
+
+192
+00:10:27,396 --> 00:10:29,776
+of the piece of code doing
+these I/O's in our application.
+
+
+193
+00:10:30,986 --> 00:10:33,386
+It looks like it's our
+app delegate method.
+
+
+194
+00:10:34,976 --> 00:10:38,446
+Double clicking on that takes
+you to a source inspector
+
+
+195
+00:10:38,446 --> 00:10:41,406
+which shows you the exact block
+of code doing these I/O's.
+
+
+196
+00:10:42,766 --> 00:10:45,176
+If you click on the Xcode
+icon in the source inspector,
+
+
+197
+00:10:45,406 --> 00:10:48,416
+it takes you back to Xcode
+project and highlights the piece
+
+
+198
+00:10:48,416 --> 00:10:50,056
+of code doing these
+I/O's for you.
+
+
+199
+00:10:50,686 --> 00:10:54,526
+So let's take a look at this
+piece of code in further detail,
+
+
+200
+00:10:55,786 --> 00:10:58,226
+and the code in question
+is our implementation
+
+
+201
+00:10:58,226 --> 00:11:00,486
+of the application
+didFinishLaunchingApp
+
+
+202
+00:11:00,486 --> 00:11:01,256
+delegate method.
+
+
+203
+00:11:01,776 --> 00:11:04,286
+As part of its implementation,
+
+
+204
+00:11:04,286 --> 00:11:06,146
+we create a new timer
+DispatchSource,
+
+
+205
+00:11:07,366 --> 00:11:09,606
+schedule it to file
+every five seconds,
+
+
+206
+00:11:11,326 --> 00:11:13,496
+and as part of the event
+handler for that timer,
+
+
+207
+00:11:13,796 --> 00:11:15,486
+we write out our
+entire data store.
+
+
+208
+00:11:16,926 --> 00:11:19,096
+Now a lot of us write code
+like this because we want
+
+
+209
+00:11:19,096 --> 00:11:21,536
+to make sure that the
+application data is being saved
+
+
+210
+00:11:21,536 --> 00:11:23,426
+out consistently and regularly.
+
+
+211
+00:11:24,606 --> 00:11:27,606
+However, there's a more I/O
+efficient way of doing this,
+
+
+212
+00:11:28,686 --> 00:11:30,646
+and to fix this code,
+the first thing
+
+
+213
+00:11:30,646 --> 00:11:33,716
+that we'll do is eliminate the
+repeating nature of the timer.
+
+
+214
+00:11:34,326 --> 00:11:36,276
+So let's get rid of that.
+
+
+215
+00:11:37,576 --> 00:11:41,026
+Instead, we create a new method
+called dataStoreDidChange,
+
+
+216
+00:11:41,386 --> 00:11:42,786
+which is culled from
+various places
+
+
+217
+00:11:42,786 --> 00:11:45,116
+in the application
+whenever there is a change
+
+
+218
+00:11:45,116 --> 00:11:47,636
+to the to the data store.
+
+
+219
+00:11:47,636 --> 00:11:49,086
+As part of this implementation,
+
+
+220
+00:11:49,726 --> 00:11:51,636
+we push out the timer
+dispatch source
+
+
+221
+00:11:51,636 --> 00:11:53,256
+by 15 seconds into the future.
+
+
+222
+00:11:54,686 --> 00:11:56,886
+This way, we collect all updates
+
+
+223
+00:11:56,886 --> 00:11:59,986
+for our application's data
+store update and push them
+
+
+224
+00:11:59,986 --> 00:12:02,156
+out into the future and
+coalesce and write them.
+
+
+225
+00:12:03,366 --> 00:12:04,946
+Once the timer eventually
+expires,
+
+
+226
+00:12:05,326 --> 00:12:07,236
+it has basically
+collected a bunch of updates
+
+
+227
+00:12:07,236 --> 00:12:09,286
+that were frequently
+done, and we'll write them
+
+
+228
+00:12:09,286 --> 00:12:10,916
+out as a single I/O operation.
+
+
+229
+00:12:11,486 --> 00:12:15,226
+So let's see what these code
+changes do for our application.
+
+
+230
+00:12:16,496 --> 00:12:20,026
+We run the application again
+using the Xcode UI's run button.
+
+
+231
+00:12:21,066 --> 00:12:24,346
+Go to the debug navigator
+and select the disk gauge
+
+
+232
+00:12:24,346 --> 00:12:25,456
+to find the I/O activity.
+
+
+233
+00:12:26,076 --> 00:12:30,906
+As you'll notice here that the
+application is not doing those
+
+
+234
+00:12:30,906 --> 00:12:31,546
+writes anymore.
+
+
+235
+00:12:32,246 --> 00:12:34,636
+Since it's completely idle and
+the user is not interacting
+
+
+236
+00:12:34,636 --> 00:12:36,586
+with it, this is
+exactly what we expect.
+
+
+237
+00:12:37,546 --> 00:12:39,686
+We've effectively
+coalesced the amount of I/O's
+
+
+238
+00:12:39,726 --> 00:12:43,126
+that our application does, and
+improved its I/O efficiency.
+
+
+239
+00:12:43,126 --> 00:12:48,006
+Now that we've taken
+a look at a couple
+
+
+240
+00:12:48,006 --> 00:12:50,686
+of best practices you can use
+to reduce the amount of I/O,
+
+
+241
+00:12:51,186 --> 00:12:53,946
+let's take a look at what
+trends you should be using
+
+
+242
+00:12:53,946 --> 00:12:55,986
+to do these I/O's, and for that,
+
+
+243
+00:12:56,316 --> 00:12:57,866
+I'd like to invite
+Terry on stage.
+
+
+244
+00:12:58,146 --> 00:12:58,396
+Terry.
+
+
+245
+00:12:59,516 --> 00:13:04,086e
+[ Applause ]
+
+
+246
+00:12:59,516 --> 00:13:04,086
+[ Applause ]
+
+
+247
+00:13:04,586 --> 00:13:05,216
+>> Thanks, Kushal.
+
+
+248
+00:13:06,006 --> 00:13:08,786
+So we just saw some great
+ways that you can reduce I/O
+
+
+249
+00:13:08,786 --> 00:13:11,296
+in your applications to
+avoid negatively impacting
+
+
+250
+00:13:11,296 --> 00:13:11,936
+battery life.
+
+
+251
+00:13:12,936 --> 00:13:15,906
+Now let's move on to the second
+pillar of our I/O philosophy.
+
+
+252
+00:13:16,556 --> 00:13:18,956
+I'll explain some ways
+that you can use threads
+
+
+253
+00:13:19,096 --> 00:13:21,016
+and queues effectively
+in your application
+
+
+254
+00:13:21,456 --> 00:13:23,646
+for great I/O performance
+and efficiency.
+
+
+255
+00:13:24,136 --> 00:13:29,116
+Every thread or every
+application on the system starts
+
+
+256
+00:13:29,116 --> 00:13:30,826
+with a single thread
+called the main thread.
+
+
+257
+00:13:32,036 --> 00:13:35,776
+This thread is special, and
+it has a few primary purposes.
+
+
+258
+00:13:35,846 --> 00:13:39,196
+The first purpose of the main
+thread is to handle input.
+
+
+259
+00:13:40,316 --> 00:13:42,496
+So if I tap on a button
+in my application,
+
+
+260
+00:13:43,236 --> 00:13:45,246
+the main thread is
+responsible for handling
+
+
+261
+00:13:45,246 --> 00:13:48,806
+that input and responding to it.
+
+
+262
+00:13:49,126 --> 00:13:51,326
+Additionally, the main
+thread is responsible
+
+
+263
+00:13:51,326 --> 00:13:52,586
+for updating your interface.
+
+
+264
+00:13:53,366 --> 00:13:55,486
+This is for doing things
+like drawing your views,
+
+
+265
+00:13:56,036 --> 00:13:57,646
+doing layout, or animating.
+
+
+266
+00:13:58,206 --> 00:14:02,766
+When your main thread is
+idle, it's ready and available
+
+
+267
+00:14:02,916 --> 00:14:05,776
+to respond to input or
+update your user interface.
+
+
+268
+00:14:06,286 --> 00:14:09,696
+But if you're doing other
+things on your main thread,
+
+
+269
+00:14:10,196 --> 00:14:13,706
+such as executing lengthy
+tasks, this could be something
+
+
+270
+00:14:13,706 --> 00:14:17,006
+like expensive image
+processing, doing this type
+
+
+271
+00:14:17,006 --> 00:14:18,816
+of work keeps your
+main thread busy,
+
+
+272
+00:14:19,266 --> 00:14:22,226
+which means it won't be idle,
+you won't be able to respond
+
+
+273
+00:14:22,226 --> 00:14:25,426
+to input, or update your UI.
+
+
+274
+00:14:25,956 --> 00:14:27,856
+Additionally, what
+we'll focus on today,
+
+
+275
+00:14:27,856 --> 00:14:30,636
+you should avoid doing
+I/O on your main thread.
+
+
+276
+00:14:31,846 --> 00:14:35,616
+As we've already seen, I/O is an
+expensive resource on the system
+
+
+277
+00:14:35,926 --> 00:14:37,456
+that needs to be
+managed properly.
+
+
+278
+00:14:39,046 --> 00:14:40,586
+If you're doing I/O
+on your main thread,
+
+
+279
+00:14:41,286 --> 00:14:44,196
+someone using your application
+could notice some problems.
+
+
+280
+00:14:45,586 --> 00:14:48,106
+The first example
+of this is on macOS.
+
+
+281
+00:14:48,826 --> 00:14:50,286
+Someone may see the
+spinning cursor.
+
+
+282
+00:14:51,636 --> 00:14:54,076
+The spinning cursor indicates
+that your main thread is busy
+
+
+283
+00:14:54,766 --> 00:14:58,766
+and that you won't be able to
+interact with the application.
+
+
+284
+00:14:58,976 --> 00:15:03,106
+Additionally, on iOS, a
+busy main thread may appear
+
+
+285
+00:15:03,236 --> 00:15:05,936
+as a frozen or just
+unresponsive application.
+
+
+286
+00:15:06,526 --> 00:15:11,596
+And, lastly, doing I/O on your
+main thread can cause issues
+
+
+287
+00:15:11,596 --> 00:15:12,476
+for animations.
+
+
+288
+00:15:13,406 --> 00:15:16,106
+For example, if I do a
+large scroll in a table view
+
+
+289
+00:15:16,106 --> 00:15:19,416
+in my application and then do
+I/O on the main thread to load
+
+
+290
+00:15:19,416 --> 00:15:23,166
+in more data, the time that
+my application spends doing
+
+
+291
+00:15:23,166 --> 00:15:26,586
+that I/O is time that it doesn't
+have to continue animating,
+
+
+292
+00:15:26,926 --> 00:15:28,606
+which can cause issues
+like stutters.
+
+
+293
+00:15:29,456 --> 00:15:31,616
+I'd like to mention, again,
+the talk that Kushal pointed
+
+
+294
+00:15:31,616 --> 00:15:34,606
+out earlier, Performance
+on iOS and watchOS.
+
+
+295
+00:15:35,386 --> 00:15:37,326
+This talk also has
+some great information
+
+
+296
+00:15:37,536 --> 00:15:39,066
+about using your main
+thread effectively.
+
+
+297
+00:15:39,686 --> 00:15:44,396
+Now I'd like take a look at our
+ImageBox sample application,
+
+
+298
+00:15:44,706 --> 00:15:46,156
+this time running on macOS.
+
+
+299
+00:15:47,176 --> 00:15:49,876
+I've been noticing an issue
+when trying to add images
+
+
+300
+00:15:50,106 --> 00:15:51,316
+to the main collection view.
+
+
+301
+00:15:52,046 --> 00:15:53,606
+So let's take a look.
+
+
+302
+00:15:54,536 --> 00:15:56,926
+First from Xcode, I'll
+click on the run button.
+
+
+303
+00:15:58,156 --> 00:15:59,966
+Xcode launches my application,
+
+
+304
+00:16:00,436 --> 00:16:01,976
+and then I'll click
+the add button
+
+
+305
+00:16:01,976 --> 00:16:05,406
+on the right side
+of the toolbar.
+
+
+306
+00:16:05,566 --> 00:16:09,996
+Then I'll select an image from
+the open panel and click open.
+
+
+307
+00:16:10,556 --> 00:16:15,236
+As you can see, the open
+panel doesn't disappear,
+
+
+308
+00:16:15,706 --> 00:16:17,006
+and we see the spinning cursor.
+
+
+309
+00:16:18,886 --> 00:16:23,606
+Eventually, the open panel
+disappears, and the image
+
+
+310
+00:16:23,766 --> 00:16:26,136
+that we selected shows up
+in the main collection view.
+
+
+311
+00:16:27,696 --> 00:16:31,876
+So what might be going on here?
+
+
+312
+00:16:32,096 --> 00:16:35,406
+Well, as we already saw, the
+spinning cursor indicates
+
+
+313
+00:16:35,406 --> 00:16:36,446
+that your main thread is busy.
+
+
+314
+00:16:37,006 --> 00:16:38,206
+So something must be running
+
+
+315
+00:16:38,206 --> 00:16:41,726
+on the main thread that's
+preventing it from being idle.
+
+
+316
+00:16:41,996 --> 00:16:43,916
+So we won't be able to
+interact with the application.
+
+
+317
+00:16:44,916 --> 00:16:48,076
+We need to figure out what's
+going on, and to do that,
+
+
+318
+00:16:48,126 --> 00:16:49,446
+we can use instruments.
+
+
+319
+00:16:50,656 --> 00:16:53,516
+Back in Xcode, we can choose
+profile from the product menu.
+
+
+320
+00:16:55,246 --> 00:16:57,696
+Xcode recompiles our
+application for profiling
+
+
+321
+00:16:57,876 --> 00:16:59,006
+and then launches instruments.
+
+
+322
+00:16:59,516 --> 00:17:02,656
+This time, I'll choose the time
+profiler instruments template.
+
+
+323
+00:17:03,206 --> 00:17:05,556
+Time profiler is great
+
+
+324
+00:17:05,556 --> 00:17:08,126
+for seeing how much
+time different parts
+
+
+325
+00:17:08,126 --> 00:17:09,546
+of your code are
+spending executing.
+
+
+326
+00:17:09,976 --> 00:17:12,656
+So we can use this to figure
+out why our main thread is busy.
+
+
+327
+00:17:14,465 --> 00:17:17,656
+Now I'll click choose, and
+instruments opens a new,
+
+
+328
+00:17:18,136 --> 00:17:19,816
+blank time profiler document.
+
+
+329
+00:17:24,195 --> 00:17:28,226
+By default, instruments time
+profiler only shows time spent
+
+
+330
+00:17:28,316 --> 00:17:30,536
+while the CPU is
+actively executing code.
+
+
+331
+00:17:31,906 --> 00:17:35,566
+Other things like I/O aren't
+actively executing on the CPU.
+
+
+332
+00:17:36,386 --> 00:17:38,256
+The CPU's just waiting
+on the I/O to complete.
+
+
+333
+00:17:39,506 --> 00:17:41,746
+So to also see those
+types of operations
+
+
+334
+00:17:42,306 --> 00:17:44,856
+in our instruments trace,
+first we need to click
+
+
+335
+00:17:44,856 --> 00:17:46,466
+on the record waiting
+threads option
+
+
+336
+00:17:46,746 --> 00:17:47,876
+under the record settings.
+
+
+337
+00:17:48,796 --> 00:17:51,676
+Now instruments will also show
+us time spent while we're doing
+
+
+338
+00:17:51,676 --> 00:17:53,026
+things like waiting on I/O.
+
+
+339
+00:17:54,106 --> 00:17:56,266
+So let's get started and
+click the record button
+
+
+340
+00:17:56,436 --> 00:17:57,186
+in instruments.
+
+
+341
+00:18:00,066 --> 00:18:01,486
+Instruments launches
+our application,
+
+
+342
+00:18:01,486 --> 00:18:04,526
+and then I'll take the same
+actions that I took before
+
+
+343
+00:18:04,716 --> 00:18:05,696
+to reproduce the problem.
+
+
+344
+00:18:06,256 --> 00:18:08,646
+First, clicking the add button,
+
+
+345
+00:18:08,826 --> 00:18:10,806
+selecting an image,
+and hitting open.
+
+
+346
+00:18:12,296 --> 00:18:13,406
+Again, we see the issue.
+
+
+347
+00:18:13,626 --> 00:18:15,496
+So now we can hit
+stop in instruments
+
+
+348
+00:18:16,026 --> 00:18:17,566
+and see what's going on.
+
+
+349
+00:18:18,976 --> 00:18:21,766
+Before I continue, I'd like
+to reduce some of the noise
+
+
+350
+00:18:21,766 --> 00:18:25,016
+in this output by focusing just
+on the code that I've written
+
+
+351
+00:18:25,316 --> 00:18:26,926
+and not any other
+system libraries.
+
+
+352
+00:18:27,796 --> 00:18:30,696
+And to do that, first, I can
+click on the display options
+
+
+353
+00:18:30,796 --> 00:18:32,146
+on the right side
+of instruments.
+
+
+354
+00:18:33,616 --> 00:18:36,336
+Then click on hide
+system libraries.
+
+
+355
+00:18:37,566 --> 00:18:40,196
+Now instruments will only
+show me code that I've written
+
+
+356
+00:18:40,526 --> 00:18:42,116
+and not any other
+system frameworks
+
+
+357
+00:18:42,166 --> 00:18:43,076
+that I might be calling.
+
+
+358
+00:18:43,646 --> 00:18:47,726
+So now let's take a look at the
+main detail view of instruments.
+
+
+359
+00:18:48,616 --> 00:18:50,196
+Instruments shows all
+the different threads
+
+
+360
+00:18:50,196 --> 00:18:52,296
+in my application,
+and the different time
+
+
+361
+00:18:52,296 --> 00:18:53,536
+that they're spending executing.
+
+
+362
+00:18:54,676 --> 00:18:57,656
+In this case, we know that we're
+interested in the main thread.
+
+
+363
+00:18:58,286 --> 00:19:00,306
+So I can expand the
+main thread section
+
+
+364
+00:19:00,886 --> 00:19:04,446
+and find the heaviest stack.
+
+
+365
+00:19:07,036 --> 00:19:10,976
+In this case, I can see that
+we have an open panel callback
+
+
+366
+00:19:10,976 --> 00:19:13,836
+in our application, which
+is calling an add method
+
+
+367
+00:19:13,836 --> 00:19:14,636
+on our data store.
+
+
+368
+00:19:15,596 --> 00:19:18,196
+That add method is then
+saving our entire data store
+
+
+369
+00:19:18,196 --> 00:19:20,476
+out to disk.
+
+
+370
+00:19:20,856 --> 00:19:21,946
+And instrument shows us
+
+
+371
+00:19:22,006 --> 00:19:24,936
+that saving is taking
+almost seven seconds,
+
+
+372
+00:19:25,616 --> 00:19:27,586
+and that's really bad.
+
+
+373
+00:19:28,876 --> 00:19:31,516
+I happen to know that this
+save method is writing
+
+
+374
+00:19:31,516 --> 00:19:34,246
+out a pretty big Plist, and
+that could be contributing
+
+
+375
+00:19:34,246 --> 00:19:34,836
+to the problem.
+
+
+376
+00:19:36,156 --> 00:19:38,046
+Kushal will mention some
+ways later in the talk
+
+
+377
+00:19:38,286 --> 00:19:40,696
+on how we can optimize
+our data store operations
+
+
+378
+00:19:40,886 --> 00:19:44,606
+so that this is really fast,
+but for now, I'd like to focus
+
+
+379
+00:19:44,606 --> 00:19:47,696
+on how we can fix this problem
+so that no matter how long
+
+
+380
+00:19:47,696 --> 00:19:48,686
+that operation takes,
+
+
+381
+00:19:49,296 --> 00:19:51,596
+our application is still
+extremely responsive.
+
+
+382
+00:19:52,286 --> 00:19:56,766
+To do that, let's take
+a look at the code.
+
+
+383
+00:19:56,976 --> 00:19:58,496
+Here I have the open
+panel callback.
+
+
+384
+00:19:59,986 --> 00:20:01,186
+It's waiting for a response.
+
+
+385
+00:20:01,906 --> 00:20:05,936
+Once it receives that response,
+it validates that it has URL
+
+
+386
+00:20:06,056 --> 00:20:07,346
+that points to a valid image.
+
+
+387
+00:20:09,016 --> 00:20:12,066
+Then it creates a new item
+for our collection view
+
+
+388
+00:20:12,266 --> 00:20:14,826
+from the image and tries to
+add it to our data store.
+
+
+389
+00:20:15,456 --> 00:20:20,166
+If that was successful, it
+tells the main collection view
+
+
+390
+00:20:20,166 --> 00:20:23,926
+to reload its data so
+that we can see the image
+
+
+391
+00:20:23,926 --> 00:20:24,856
+that we just selected.
+
+
+392
+00:20:25,356 --> 00:20:30,306
+As we saw earlier, and what
+instruments verified for us,
+
+
+393
+00:20:30,876 --> 00:20:33,676
+calling that add method is
+expensive because it's saving
+
+
+394
+00:20:33,676 --> 00:20:35,526
+out all that data to disk.
+
+
+395
+00:20:36,516 --> 00:20:38,906
+So let's see how
+we can fix this.
+
+
+396
+00:20:40,456 --> 00:20:43,806
+To recap, our application
+has a main thread.
+
+
+397
+00:20:44,826 --> 00:20:46,886
+The main thread is running
+the open panel callback.
+
+
+398
+00:20:48,766 --> 00:20:51,616
+That callback then calls the
+add method on our data store,
+
+
+399
+00:20:51,786 --> 00:20:53,596
+and this is where we
+see the spinning cursor.
+
+
+400
+00:20:54,136 --> 00:20:56,736
+Once that work is done,
+
+
+401
+00:20:57,046 --> 00:20:58,946
+we finally update our
+main collection view,
+
+
+402
+00:21:00,446 --> 00:21:02,516
+and this is obviously
+not what we want.
+
+
+403
+00:21:03,106 --> 00:21:05,586
+This entire time, the
+main thread is busy,
+
+
+404
+00:21:06,026 --> 00:21:07,866
+and we can't interact
+with our application,
+
+
+405
+00:21:08,246 --> 00:21:09,296
+and we can't update any UI.
+
+
+406
+00:21:09,296 --> 00:21:13,456
+So one way that we
+can fix this is
+
+
+407
+00:21:13,456 --> 00:21:15,996
+by using Grand Central
+Dispatch, or GCD.
+
+
+408
+00:21:16,576 --> 00:21:19,926
+With GCD, we can create
+a new dispatch queue.
+
+
+409
+00:21:21,526 --> 00:21:23,196
+Dispatch queues are a way
+
+
+410
+00:21:23,196 --> 00:21:25,156
+to run code concurrently
+to the main thread.
+
+
+411
+00:21:26,266 --> 00:21:29,426
+We can use this to move our
+expensive I/O related work
+
+
+412
+00:21:29,876 --> 00:21:32,136
+onto this queue, leaving
+the main thread idle.
+
+
+413
+00:21:33,606 --> 00:21:36,396
+To do that, we can call the
+async method on the queue
+
+
+414
+00:21:36,866 --> 00:21:38,286
+and push that expensive work
+
+
+415
+00:21:38,876 --> 00:21:43,296
+onto our queue rather
+than the main thread.
+
+
+416
+00:21:43,466 --> 00:21:46,236
+Finally, since UI related
+work has to happen back
+
+
+417
+00:21:46,236 --> 00:21:46,876
+on the main thread,
+
+
+418
+00:21:47,876 --> 00:21:50,356
+we can asynchronously
+dispatch back there
+
+
+419
+00:21:50,706 --> 00:21:52,076
+to finally update
+our collection view.
+
+
+420
+00:21:52,696 --> 00:21:56,026
+And now this is exactly
+what we want.
+
+
+421
+00:21:57,426 --> 00:22:00,516
+Now the expensive I/O work is
+happening on a separate queue,
+
+
+422
+00:22:00,996 --> 00:22:03,686
+which leaves the main thread
+idle, which means we'll be able
+
+
+423
+00:22:03,686 --> 00:22:06,236
+to interact with the application
+and continue using it.
+
+
+424
+00:22:06,746 --> 00:22:12,686
+Let's see what this looks like
+if we implement it in code.
+
+
+425
+00:22:12,886 --> 00:22:15,296
+Here I have the same open
+panel callback from before.
+
+
+426
+00:22:16,406 --> 00:22:20,536
+To get started, first I can
+create a new GCD dispatch queue
+
+
+427
+00:22:21,146 --> 00:22:22,436
+and provide a descriptive label.
+
+
+428
+00:22:23,956 --> 00:22:27,156
+In this case, I've created a
+queue that I can reuse for all
+
+
+429
+00:22:27,156 --> 00:22:28,516
+of my data store operations.
+
+
+430
+00:22:29,066 --> 00:22:33,176
+Next, we can move the
+expensive work when we're adding
+
+
+431
+00:22:33,176 --> 00:22:36,746
+that image onto this queue by
+providing that code as a block
+
+
+432
+00:22:37,116 --> 00:22:39,586
+to the async method
+on the dispatch queue.
+
+
+433
+00:22:40,486 --> 00:22:43,856
+Finally, to update our UI,
+
+
+434
+00:22:43,856 --> 00:22:47,856
+we can call dispatch
+queue.main.async,
+
+
+435
+00:22:48,846 --> 00:22:51,776
+and pass it in a block that
+has all of our UI related work.
+
+
+436
+00:22:53,176 --> 00:22:56,216
+Now that we've done that,
+let's see what this looks
+
+
+437
+00:22:56,216 --> 00:22:58,776
+like if we rebuild and run
+our application in Xcode.
+
+
+438
+00:22:59,766 --> 00:23:04,136
+So first I'll click the run
+button, wait for the application
+
+
+439
+00:23:04,136 --> 00:23:06,696
+to launch, and then try
+adding an image again.
+
+
+440
+00:23:08,126 --> 00:23:10,476
+Click the add button,
+select an image
+
+
+441
+00:23:10,476 --> 00:23:13,236
+from the open panel,
+and then click open.
+
+
+442
+00:23:13,816 --> 00:23:17,956
+As you can see, the open
+panel disappears immediately,
+
+
+443
+00:23:18,296 --> 00:23:20,676
+and we can continue
+interacting with the application
+
+
+444
+00:23:20,966 --> 00:23:22,616
+and adding more and more images.
+
+
+445
+00:23:23,966 --> 00:23:26,256
+You'll also notice that I've
+added some placeholder images
+
+
+446
+00:23:26,316 --> 00:23:26,976
+in the main view.
+
+
+447
+00:23:27,366 --> 00:23:28,756
+This is just to give
+an indication
+
+
+448
+00:23:28,756 --> 00:23:30,806
+that we're currently
+processing that data
+
+
+449
+00:23:30,806 --> 00:23:31,936
+and saving it out to disk.
+
+
+450
+00:23:33,466 --> 00:23:35,926
+Once all that data is done
+being added and saved,
+
+
+451
+00:23:36,586 --> 00:23:38,456
+all the images show up in
+the main collection view,
+
+
+452
+00:23:38,966 --> 00:23:42,396
+and now this entire time,
+our main thread was idle,
+
+
+453
+00:23:42,706 --> 00:23:44,946
+which means their application
+was extremely responsive,
+
+
+454
+00:23:45,636 --> 00:23:47,446
+and that's exactly what we want.
+
+
+455
+00:23:48,416 --> 00:23:52,456
+So now that we've moved that
+work from the main thread off
+
+
+456
+00:23:52,456 --> 00:23:56,086
+to a dispatch queue, we should
+consider telling the system the
+
+
+457
+00:23:56,086 --> 00:23:59,396
+intent of that work so it can
+manage resources on our behalf,
+
+
+458
+00:24:00,166 --> 00:24:02,946
+and to do that, we can use
+something called quality
+
+
+459
+00:24:02,946 --> 00:24:03,586
+of service.
+
+
+460
+00:24:05,176 --> 00:24:08,426
+Quality of service is a way
+to tell the system the intent
+
+
+461
+00:24:08,426 --> 00:24:09,606
+of the work that
+you're performing
+
+
+462
+00:24:10,026 --> 00:24:13,946
+so that it can properly manage
+resources like CPU or I/O.
+
+
+463
+00:24:16,386 --> 00:24:19,786
+It manages these resources among
+the different processes running
+
+
+464
+00:24:19,786 --> 00:24:21,716
+on the system and
+the different threads
+
+
+465
+00:24:21,716 --> 00:24:22,836
+within your own application.
+
+
+466
+00:24:23,386 --> 00:24:26,516
+When thinking about
+quality of service,
+
+
+467
+00:24:26,976 --> 00:24:30,366
+keep in mind three attributes of
+the work that you're performing.
+
+
+468
+00:24:31,586 --> 00:24:34,136
+The visibility, importance,
+and expectation.
+
+
+469
+00:24:35,826 --> 00:24:37,156
+Ask yourself three questions.
+
+
+470
+00:24:38,476 --> 00:24:40,656
+Is the work that you're
+performing visible
+
+
+471
+00:24:40,656 --> 00:24:41,936
+to someone using
+your application?
+
+
+472
+00:24:43,556 --> 00:24:46,276
+Secondly, what is the
+importance of that work?
+
+
+473
+00:24:46,276 --> 00:24:48,236
+Is that work required
+
+
+474
+00:24:48,236 --> 00:24:51,236
+to complete before someone can
+continue using your application?
+
+
+475
+00:24:51,756 --> 00:24:56,276
+And, lastly, how long is
+that work expected to take?
+
+
+476
+00:24:56,926 --> 00:24:59,756
+Is this something that happens
+immediately or something
+
+
+477
+00:24:59,756 --> 00:25:03,386
+that you might assume takes
+a longer amount of time?
+
+
+478
+00:25:03,996 --> 00:25:06,116
+Before I continue, I'd
+like to mention a talk
+
+
+479
+00:25:06,116 --> 00:25:09,536
+from last year's WWDC
+called Building Responsive
+
+
+480
+00:25:09,536 --> 00:25:10,966
+and Efficient Apps with GCD.
+
+
+481
+00:25:11,666 --> 00:25:15,056
+This talk goes into a lot
+of detail about GCD and how
+
+
+482
+00:25:15,056 --> 00:25:16,206
+to use quality of service,
+
+
+483
+00:25:16,566 --> 00:25:18,806
+and I highly recommend
+that you go watch it.
+
+
+484
+00:25:19,956 --> 00:25:23,376
+So once we've thought about
+these three attributes
+
+
+485
+00:25:23,376 --> 00:25:25,976
+of our work, we're
+ready to choose from one
+
+
+486
+00:25:25,976 --> 00:25:28,766
+of the four quality
+of service classes.
+
+
+487
+00:25:29,316 --> 00:25:32,776
+The first quality of service
+class is user interactive.
+
+
+488
+00:25:34,086 --> 00:25:36,716
+User interactive is
+designated for your main thread.
+
+
+489
+00:25:37,726 --> 00:25:39,236
+This is for doing
+things like responding
+
+
+490
+00:25:39,236 --> 00:25:40,756
+to input and animating.
+
+
+491
+00:25:41,356 --> 00:25:45,106
+All other work that
+happens asynchronously
+
+
+492
+00:25:45,106 --> 00:25:47,016
+from the main thread
+should be using one
+
+
+493
+00:25:47,016 --> 00:25:51,516
+of the other three quality of
+service classes, and the first
+
+
+494
+00:25:51,516 --> 00:25:53,676
+of those is user initiated.
+
+
+495
+00:25:55,126 --> 00:25:56,906
+User initiated work is visible
+
+
+496
+00:25:56,906 --> 00:25:58,156
+to someone using
+your application,
+
+
+497
+00:25:58,156 --> 00:26:00,656
+and they're expecting immediate
+results from that work.
+
+
+498
+00:26:01,656 --> 00:26:03,236
+They probably also
+need that work
+
+
+499
+00:26:03,236 --> 00:26:05,946
+to complete before they
+can continue interacting
+
+
+500
+00:26:05,946 --> 00:26:06,696
+with your application.
+
+
+501
+00:26:07,796 --> 00:26:11,206
+A good example of that is if
+I click on a button to switch
+
+
+502
+00:26:11,206 --> 00:26:14,336
+to a new view, I may need
+to load some resources
+
+
+503
+00:26:14,336 --> 00:26:17,006
+on a different queue in
+order to display that view,
+
+
+504
+00:26:17,526 --> 00:26:19,686
+and that work should be
+happening at user initiated.
+
+
+505
+00:26:20,296 --> 00:26:23,926
+The third quality of
+service class is utility.
+
+
+506
+00:26:25,146 --> 00:26:27,956
+Utility quality of service is
+often associated with things
+
+
+507
+00:26:27,956 --> 00:26:31,306
+that have progress bars or
+other activity indicators.
+
+
+508
+00:26:32,216 --> 00:26:34,446
+This work generally takes
+a longer amount of time,
+
+
+509
+00:26:35,046 --> 00:26:36,916
+and it's something
+that's still visible
+
+
+510
+00:26:36,916 --> 00:26:38,256
+to someone using
+your application.
+
+
+511
+00:26:39,326 --> 00:26:41,206
+A good example of this
+is rendering a movie.
+
+
+512
+00:26:41,926 --> 00:26:45,376
+This is something that doesn't
+block someone from continuing
+
+
+513
+00:26:45,376 --> 00:26:47,496
+to use your application,
+but it's going
+
+
+514
+00:26:47,496 --> 00:26:49,116
+to take a longer amount
+of time to complete.
+
+
+515
+00:26:49,626 --> 00:26:53,306
+And the final quality of
+service class is background.
+
+
+516
+00:26:54,116 --> 00:26:55,766
+Background work is not visible
+
+
+517
+00:26:55,766 --> 00:26:57,036
+to someone using
+your application.
+
+
+518
+00:26:57,996 --> 00:27:00,216
+In fact, they may not even
+be aware that it's happening.
+
+
+519
+00:27:01,346 --> 00:27:03,286
+A good example of
+that is indexing work.
+
+
+520
+00:27:04,056 --> 00:27:06,176
+Indexing is usually
+important for the performance
+
+
+521
+00:27:06,176 --> 00:27:08,526
+of your application,
+but it's not something
+
+
+522
+00:27:08,796 --> 00:27:10,766
+that someone using
+your app is aware of.
+
+
+523
+00:27:10,906 --> 00:27:16,006
+All of these quality of
+service classes are important
+
+
+524
+00:27:16,846 --> 00:27:19,726
+because if you, when you choose
+the quality of service class,
+
+
+525
+00:27:19,726 --> 00:27:22,556
+it helps inform the system
+how it should manage resources
+
+
+526
+00:27:23,056 --> 00:27:26,126
+so that less important work
+like background operations
+
+
+527
+00:27:26,126 --> 00:27:29,656
+and indexing doesn't adversely
+affect more important work
+
+
+528
+00:27:29,656 --> 00:27:32,936
+like animating, even if
+that work is happening
+
+
+529
+00:27:32,936 --> 00:27:33,886
+in a different process.
+
+
+530
+00:27:35,756 --> 00:27:38,916
+So once we've chosen from one of
+the quality of service classes,
+
+
+531
+00:27:39,506 --> 00:27:42,426
+there are two main ways that you
+can specify quality of service
+
+
+532
+00:27:42,466 --> 00:27:45,776
+in your applications,
+and the first way is
+
+
+533
+00:27:45,776 --> 00:27:49,406
+by supplying an optional QOS
+parameter to the async method
+
+
+534
+00:27:49,406 --> 00:27:50,286
+on the dispatch queue.
+
+
+535
+00:27:51,536 --> 00:27:54,506
+In this case, I've
+specified QOS background.
+
+
+536
+00:27:55,656 --> 00:27:57,246
+This means that when
+the supplied block
+
+
+537
+00:27:57,246 --> 00:27:58,816
+of code is running
+asynchronously,
+
+
+538
+00:27:59,516 --> 00:28:01,656
+it will be using the
+background quality of service.
+
+
+539
+00:28:03,586 --> 00:28:05,726
+Additionally, if you're
+using the operation queue
+
+
+540
+00:28:06,066 --> 00:28:09,186
+or operation API's, both
+of those have a quality
+
+
+541
+00:28:09,186 --> 00:28:12,236
+of service property that you
+can set, such as utility.
+
+
+542
+00:28:12,846 --> 00:28:18,026
+So now that we know a little
+bit about quality of service
+
+
+543
+00:28:18,096 --> 00:28:20,476
+and how we can specify
+it, let's go back
+
+
+544
+00:28:20,476 --> 00:28:21,876
+to our ImageBox application,
+
+
+545
+00:28:22,196 --> 00:28:24,056
+and see if we can choose
+an appropriate quality
+
+
+546
+00:28:24,056 --> 00:28:25,716
+of service for adding images.
+
+
+547
+00:28:26,656 --> 00:28:29,446
+And to do that, we can think
+about the three attributes
+
+
+548
+00:28:29,446 --> 00:28:33,516
+of this work: The visibility,
+importance, and expectation.
+
+
+549
+00:28:34,026 --> 00:28:37,646
+Well, adding an image is
+something that is visible
+
+
+550
+00:28:37,886 --> 00:28:39,226
+to someone using
+our application,
+
+
+551
+00:28:40,656 --> 00:28:42,666
+but it's not necessarily
+required
+
+
+552
+00:28:42,666 --> 00:28:45,376
+to complete before we can
+continue doing other things
+
+
+553
+00:28:45,376 --> 00:28:47,936
+like browsing images
+or adding more images.
+
+
+554
+00:28:49,616 --> 00:28:52,476
+Additionally, because we are
+showing that placeholder image,
+
+
+555
+00:28:52,856 --> 00:28:55,396
+we've given an indication
+that this is an operation
+
+
+556
+00:28:55,396 --> 00:28:58,556
+that could take a
+longer amount of time.
+
+
+557
+00:28:58,756 --> 00:29:01,306
+For all of those reasons,
+the utility quality
+
+
+558
+00:29:01,306 --> 00:29:03,996
+of service may be an appropriate
+choice for this work.
+
+
+559
+00:29:04,626 --> 00:29:08,346
+So now that we know some ways
+
+
+560
+00:29:08,346 --> 00:29:10,866
+that you can move
+expensive work, like I/O,
+
+
+561
+00:29:11,066 --> 00:29:14,146
+off of your main thread and
+onto a separate dispatch queue
+
+
+562
+00:29:14,676 --> 00:29:16,156
+and how to specify the intent
+
+
+563
+00:29:16,156 --> 00:29:17,656
+of that work using
+quality of service.
+
+
+564
+00:29:18,406 --> 00:29:21,496
+Let's take a look at the third
+pillar of our I/O philosophy,
+
+
+565
+00:29:22,286 --> 00:29:26,336
+adopting appropriate API's,
+and the first one that I'd
+
+
+566
+00:29:26,336 --> 00:29:29,066
+like to mention is
+Asset Catalogs.
+
+
+567
+00:29:30,966 --> 00:29:33,386
+If you're not already aware,
+Asset Catalogs are a way
+
+
+568
+00:29:33,386 --> 00:29:36,696
+to easily manage resources in
+your application, like images.
+
+
+569
+00:29:37,646 --> 00:29:39,566
+They're used to store
+things like your app icon
+
+
+570
+00:29:39,566 --> 00:29:42,526
+and launch images and
+also all of the images
+
+
+571
+00:29:42,526 --> 00:29:45,616
+for the different devices that
+you support and scale factors,
+
+
+572
+00:29:45,836 --> 00:29:47,586
+like retina or non-retina.
+
+
+573
+00:29:48,186 --> 00:29:50,556
+When building games
+with SpriteKit,
+
+
+574
+00:29:50,906 --> 00:29:54,286
+Asset Catalogs are also the way
+that you guild Sprite Atlases.
+
+
+575
+00:29:55,186 --> 00:29:58,876
+And you can use Asset Catalogs
+to tag resources for use
+
+
+576
+00:29:58,876 --> 00:30:00,576
+with the on-demand
+resources feature.
+
+
+577
+00:30:01,766 --> 00:30:05,196
+And another good example of how
+you can use Asset Catalogs is
+
+
+578
+00:30:05,196 --> 00:30:07,966
+for storing resources for
+your watch complications.
+
+
+579
+00:30:09,976 --> 00:30:12,806
+So why are Asset
+Catalogs great for I/O?
+
+
+580
+00:30:14,546 --> 00:30:16,576
+Well, Asset Catalogs
+have some great storage
+
+
+581
+00:30:16,576 --> 00:30:17,686
+efficiency properties.
+
+
+582
+00:30:18,586 --> 00:30:21,906
+First of all, because
+Asset Catalogs store all
+
+
+583
+00:30:21,906 --> 00:30:24,736
+of their images in a single
+optimized format rather
+
+
+584
+00:30:24,736 --> 00:30:26,426
+than many individual files,
+
+
+585
+00:30:27,996 --> 00:30:29,696
+you can have a lower
+on-disk footprint
+
+
+586
+00:30:29,856 --> 00:30:31,136
+by using Asset Catalogs.
+
+
+587
+00:30:32,996 --> 00:30:36,446
+Additionally, with features
+like app slicing on iOS,
+
+
+588
+00:30:37,056 --> 00:30:39,196
+when you download an
+app from the App Store,
+
+
+589
+00:30:39,706 --> 00:30:42,946
+it uses the metadata in your
+Asset Catalog to determine
+
+
+590
+00:30:42,946 --> 00:30:45,456
+which resources it should
+download to your device.
+
+
+591
+00:30:46,736 --> 00:30:49,326
+For example, if I download
+an app to my iPhone,
+
+
+592
+00:30:50,086 --> 00:30:51,616
+the App Store knows
+that it doesn't need
+
+
+593
+00:30:51,616 --> 00:30:55,196
+to download any resources for
+an iPad or for any iPhones
+
+
+594
+00:30:55,196 --> 00:30:56,556
+with different screen
+resolutions,
+
+
+595
+00:30:56,936 --> 00:31:01,376
+and this can save a lot
+of space on my device.
+
+
+596
+00:31:01,526 --> 00:31:04,626
+Furthermore, Asset Catalogs
+can be great for performance.
+
+
+597
+00:31:05,636 --> 00:31:07,866
+Because of this optimized
+format that they're stored in,
+
+
+598
+00:31:08,636 --> 00:31:09,856
+image loading can be faster.
+
+
+599
+00:31:11,226 --> 00:31:14,156
+And if you're using them to make
+Sprite Atlases for your games,
+
+
+600
+00:31:15,216 --> 00:31:16,666
+since cheap user much better
+
+
+601
+00:31:16,666 --> 00:31:19,086
+at managing a single
+larger resource rather
+
+
+602
+00:31:19,086 --> 00:31:20,776
+than many tiny resources,
+
+
+603
+00:31:21,476 --> 00:31:23,456
+these Sprites Atlases
+can improve your texture
+
+
+604
+00:31:23,456 --> 00:31:24,296
+rendering times.
+
+
+605
+00:31:26,046 --> 00:31:29,036
+And, lastly, if you're
+using Asset Catalogs
+
+
+606
+00:31:29,426 --> 00:31:31,406
+on hard-drive machines
+running macOS,
+
+
+607
+00:31:32,416 --> 00:31:34,096
+you can also improve
+your app launch time.
+
+
+608
+00:31:35,476 --> 00:31:38,676
+In fact, we've seen up to
+a ten percent improvement
+
+
+609
+00:31:38,896 --> 00:31:41,546
+in app launch time on
+these machines just
+
+
+610
+00:31:41,546 --> 00:31:43,106
+by switching to Asset Catalogs.
+
+
+611
+00:31:43,616 --> 00:31:47,866
+And you might be thinking to get
+
+
+612
+00:31:47,866 --> 00:31:49,456
+such a big performance
+improvement,
+
+
+613
+00:31:49,866 --> 00:31:52,366
+this must be difficult or
+time consuming to switch
+
+
+614
+00:31:52,366 --> 00:31:54,646
+to Asset Catalogs, but, in fact,
+
+
+615
+00:31:55,156 --> 00:31:57,076
+if you're already using
+the standard NS image
+
+
+616
+00:31:57,126 --> 00:31:58,866
+and UI image based API's,
+
+
+617
+00:31:59,356 --> 00:32:01,316
+switching to Asset
+Catalogs is easy,
+
+
+618
+00:32:01,886 --> 00:32:04,736
+and I'd like to demonstrate that
+now with an example project.
+
+
+619
+00:32:04,736 --> 00:32:07,866
+Here I have a project
+that hasn't
+
+
+620
+00:32:07,866 --> 00:32:09,366
+yet adopted Asset Catalogs.
+
+
+621
+00:32:10,486 --> 00:32:14,046
+To get started, first
+we can choose new file
+
+
+622
+00:32:14,156 --> 00:32:15,066
+from the file menu.
+
+
+623
+00:32:15,666 --> 00:32:18,986
+Then, from the resource
+category,
+
+
+624
+00:32:19,646 --> 00:32:23,986
+select Asset Catalog
+and click next.
+
+
+625
+00:32:24,856 --> 00:32:27,756
+Xcode creates a new, sorry.
+
+
+626
+00:32:29,126 --> 00:32:30,416
+When prompted, enter a name
+
+
+627
+00:32:30,416 --> 00:32:32,396
+for your Asset Catalog
+and the location.
+
+
+628
+00:32:33,196 --> 00:32:34,126
+Then you can click create,
+
+
+629
+00:32:34,856 --> 00:32:37,386
+and now Xcode creates a
+new blank Asset Catalog
+
+
+630
+00:32:38,086 --> 00:32:38,756
+in your project.
+
+
+631
+00:32:40,816 --> 00:32:44,206
+To move all of your existing
+assets from your project
+
+
+632
+00:32:44,206 --> 00:32:47,806
+into this new Asset Catalog,
+first open the add menu
+
+
+633
+00:32:47,806 --> 00:32:50,496
+at the bottom of the screen,
+and choose import from project.
+
+
+634
+00:32:52,056 --> 00:32:56,026
+Xcode displays a list of all
+of the images in your project,
+
+
+635
+00:32:56,646 --> 00:32:59,906
+and when I click import,
+it will move all of these
+
+
+636
+00:33:00,036 --> 00:33:02,036
+into my new empty Asset Catalog.
+
+
+637
+00:33:02,766 --> 00:33:05,416
+Xcode automatically
+figures out which images are
+
+
+638
+00:33:05,416 --> 00:33:07,636
+for which devices and
+which scale factors.
+
+
+639
+00:33:08,216 --> 00:33:10,846
+Now when I rebuild
+my application,
+
+
+640
+00:33:11,736 --> 00:33:15,476
+it will be using this new
+Asset Catalog, and that's it.
+
+
+641
+00:33:16,136 --> 00:33:18,066
+It took less than a
+minute, and I didn't have
+
+
+642
+00:33:18,066 --> 00:33:19,876
+to change a single line of code.
+
+
+643
+00:33:20,546 --> 00:33:22,746
+So it's really easy, and
+I highly encourage you
+
+
+644
+00:33:22,746 --> 00:33:26,036
+to adopt Asset Catalogs
+today if you haven't already.
+
+
+645
+00:33:27,896 --> 00:33:29,816
+One more thing I'd
+like to mention
+
+
+646
+00:33:29,976 --> 00:33:32,186
+with Asset Catalogs is
+a new feature this year,
+
+
+647
+00:33:32,976 --> 00:33:34,226
+and that's image compression.
+
+
+648
+00:33:36,116 --> 00:33:39,166
+By default, images in your
+Asset Catalog are lossless,
+
+
+649
+00:33:40,436 --> 00:33:42,496
+but new this year, you
+can choose from one
+
+
+650
+00:33:42,496 --> 00:33:45,276
+of the lossy image
+compression formats.
+
+
+651
+00:33:46,816 --> 00:33:49,436
+These formats have hardware
+accelerated decompression.
+
+
+652
+00:33:49,896 --> 00:33:50,926
+So they're really fast,
+
+
+653
+00:33:51,926 --> 00:33:54,596
+and because of the compressed
+format, they can result
+
+
+654
+00:33:54,596 --> 00:33:55,786
+in lower memory footprints.
+
+
+655
+00:33:57,566 --> 00:33:59,576
+If you have a lot of
+assets in your application,
+
+
+656
+00:34:00,416 --> 00:34:02,556
+you may benefit from
+the potential memory
+
+
+657
+00:34:02,556 --> 00:34:04,526
+and space savings by
+using image compression.
+
+
+658
+00:34:05,956 --> 00:34:08,676
+So let's see how we can
+use image compression back
+
+
+659
+00:34:08,676 --> 00:34:11,636
+in the project that I just
+converted to use Asset Catalogs.
+
+
+660
+00:34:13,226 --> 00:34:15,335
+First, let's click on
+an image in our catalog.
+
+
+661
+00:34:16,596 --> 00:34:19,686
+Then open the utility sidebar
+on the right-hand side.
+
+
+662
+00:34:21,136 --> 00:34:22,815
+And then click on the
+attributes inspector.
+
+
+663
+00:34:24,326 --> 00:34:27,136
+New in Xcode is a
+compression popup menu.
+
+
+664
+00:34:28,235 --> 00:34:30,686
+When I select that,
+it displays all
+
+
+665
+00:34:30,686 --> 00:34:32,706
+of the available image
+compression formats.
+
+
+666
+00:34:33,275 --> 00:34:37,416
+In this case, I'll
+choose lossy automatic
+
+
+667
+00:34:37,856 --> 00:34:40,886
+so that Xcode can choose
+a good format for me.
+
+
+668
+00:34:42,556 --> 00:34:46,036
+So that's a little bit about
+how you can use Asset Catalogs
+
+
+669
+00:34:46,096 --> 00:34:48,196
+in your applications,
+adopt them,
+
+
+670
+00:34:48,766 --> 00:34:50,406
+and use the new image
+compression feature.
+
+
+671
+00:34:51,886 --> 00:34:53,616
+Now I'd like to hand
+it back to Kushal,
+
+
+672
+00:34:54,196 --> 00:34:56,136
+who's going to tell you
+more about some other API's
+
+
+673
+00:34:56,136 --> 00:34:58,636
+that you can adopt
+for storing your data.
+
+
+674
+00:34:59,516 --> 00:35:05,796dle
+[ Applause ]
+
+
+675
+00:34:59,516 --> 00:35:05,796
+[ Applause ]
+
+
+676
+00:35:06,296 --> 00:35:06,846
+>> Thanks, Terry.
+
+
+677
+00:35:07,666 --> 00:35:09,956
+Asset catalogs are an
+easy and efficient way
+
+
+678
+00:35:09,956 --> 00:35:12,076
+to manage your app's assets.
+
+
+679
+00:35:12,756 --> 00:35:15,416
+Another thing that a lot
+of us think about is how
+
+
+680
+00:35:15,416 --> 00:35:17,906
+and where our application
+data lives on device.
+
+
+681
+00:35:19,216 --> 00:35:22,906
+A lot of us are familiar with
+the serialized data formats.
+
+
+682
+00:35:22,966 --> 00:35:25,656
+For example, Plists,
+XML, and JSON.
+
+
+683
+00:35:26,926 --> 00:35:29,206
+The reason these data
+formats are popular are
+
+
+684
+00:35:29,206 --> 00:35:31,346
+because of their
+simplicity and ease of use,
+
+
+685
+00:35:31,926 --> 00:35:35,006
+and they have been made popular
+as data interchange formats
+
+
+686
+00:35:35,406 --> 00:35:36,866
+in a lot of web-based services.
+
+
+687
+00:35:38,146 --> 00:35:41,856
+These data formats are good
+for small read-only data
+
+
+688
+00:35:41,976 --> 00:35:43,546
+such as configuration
+information
+
+
+689
+00:35:43,546 --> 00:35:44,886
+in your Info.plist file.
+
+
+690
+00:35:46,206 --> 00:35:48,276
+However, they are
+not a database,
+
+
+691
+00:35:49,346 --> 00:35:51,706
+and the biggest reason
+they are not a database is
+
+
+692
+00:35:51,706 --> 00:35:54,706
+that minor updates to these
+files causes the entire data
+
+
+693
+00:35:54,706 --> 00:35:56,346
+file to be written
+out of the disk,
+
+
+694
+00:35:56,626 --> 00:35:58,436
+which is really bad
+for I/O efficiency.
+
+
+695
+00:35:59,376 --> 00:36:01,196
+For all your data storage needs,
+
+
+696
+00:36:01,466 --> 00:36:04,286
+we would recommend using Apple
+SQLite database framework
+
+
+697
+00:36:04,546 --> 00:36:05,066
+core data.
+
+
+698
+00:36:06,446 --> 00:36:11,466
+Core data is the, is a Cocoa
+application development
+
+
+699
+00:36:11,466 --> 00:36:13,766
+framework for managing
+your application data.
+
+
+700
+00:36:14,356 --> 00:36:19,376
+It handles your data persistence
+
+
+701
+00:36:19,506 --> 00:36:21,646
+by using SQLite as
+a backing store.
+
+
+702
+00:36:23,456 --> 00:36:26,436
+It automatically manages
+objects, objects graphs,
+
+
+703
+00:36:26,436 --> 00:36:29,786
+and relationships between
+those objects to allow you
+
+
+704
+00:36:29,826 --> 00:36:32,086
+to manage your data
+easily and efficiently.
+
+
+705
+00:36:32,696 --> 00:36:36,846
+It also does change tracking,
+will let you do, undo,
+
+
+706
+00:36:36,846 --> 00:36:38,806
+and redo operations
+on your data models.
+
+
+707
+00:36:41,046 --> 00:36:43,456
+And core data is
+completely integrated
+
+
+708
+00:36:43,456 --> 00:36:45,366
+with the Xcode tool chain
+so that you can build
+
+
+709
+00:36:45,366 --> 00:36:48,056
+and visualize your data model
+directly from the Xcode UI.
+
+
+710
+00:36:48,726 --> 00:36:54,126
+Now that we're aware of this
+amazing tool and framework
+
+
+711
+00:36:54,126 --> 00:36:56,306
+to use for designing or
+writing our data model,
+
+
+712
+00:36:56,786 --> 00:36:58,836
+let's think about how to
+design our data model.
+
+
+713
+00:36:59,346 --> 00:37:02,706
+And the best way to do that
+is to base your data model
+
+
+714
+00:37:02,706 --> 00:37:04,466
+on the UI needs of
+your application.
+
+
+715
+00:37:05,026 --> 00:37:07,276
+Let's go back to ImageBox,
+
+
+716
+00:37:07,366 --> 00:37:10,156
+which up until now has been
+using a giant Plist to write
+
+
+717
+00:37:10,156 --> 00:37:12,656
+out all the files and
+all the images associated
+
+
+718
+00:37:12,656 --> 00:37:13,916
+with the application,
+
+
+719
+00:37:14,796 --> 00:37:16,866
+and instead move it
+to a core data model.
+
+
+720
+00:37:18,396 --> 00:37:20,026
+Now if you think
+about the application,
+
+
+721
+00:37:20,026 --> 00:37:22,076
+there are two main
+entities for ImageBox.
+
+
+722
+00:37:23,046 --> 00:37:25,136
+The first is the list
+of items that's there
+
+
+723
+00:37:25,136 --> 00:37:29,076
+in the collection view, and
+secondly is the notes associated
+
+
+724
+00:37:29,076 --> 00:37:30,066
+with each of these items.
+
+
+725
+00:37:31,236 --> 00:37:33,536
+So let's go ahead and put
+them in a table of their own.
+
+
+726
+00:37:34,196 --> 00:37:37,656
+And the first table is BoxItem,
+
+
+727
+00:37:37,656 --> 00:37:39,776
+which represents a particular
+item in the collection view,
+
+
+728
+00:37:40,526 --> 00:37:41,996
+and the second table is notes,
+
+
+729
+00:37:41,996 --> 00:37:43,386
+which represents
+the notes itself.
+
+
+730
+00:37:44,556 --> 00:37:46,566
+The BoxItem table
+contains a Boolean
+
+
+731
+00:37:46,846 --> 00:37:50,036
+which represents whether the
+image is a favorite or not
+
+
+732
+00:37:50,036 --> 00:37:54,036
+and contains the full
+resolution image of the image
+
+
+733
+00:37:54,136 --> 00:37:55,306
+that you need to represent.
+
+
+734
+00:37:56,646 --> 00:38:00,036
+The Notes table contains a note
+body for all notes associated
+
+
+735
+00:38:00,036 --> 00:38:03,436
+with the BoxItem, and we relay
+these two tables using a simple
+
+
+736
+00:38:03,436 --> 00:38:04,636
+one is too many relationship.
+
+
+737
+00:38:05,186 --> 00:38:09,256
+Now when we use this data model
+and looked at the performance
+
+
+738
+00:38:09,256 --> 00:38:10,866
+of our application, we noticed
+
+
+739
+00:38:10,866 --> 00:38:12,976
+that the app launch
+performance was really slow.
+
+
+740
+00:38:14,196 --> 00:38:16,876
+We investigated using
+instruments, and we found
+
+
+741
+00:38:16,876 --> 00:38:18,326
+out that app was spending most
+
+
+742
+00:38:18,326 --> 00:38:21,386
+of its time fetching the core
+data model on the launch pad.
+
+
+743
+00:38:22,596 --> 00:38:25,266
+So we need to take a look at
+application launch performance
+
+
+744
+00:38:25,556 --> 00:38:28,116
+from core data's
+perspective, and,
+
+
+745
+00:38:28,116 --> 00:38:30,546
+luckily core data
+lets us do just that.
+
+
+746
+00:38:31,606 --> 00:38:34,576
+It has a set of tools that let
+you investigate how core data is
+
+
+747
+00:38:34,576 --> 00:38:35,576
+doing on your behalf.
+
+
+748
+00:38:36,736 --> 00:38:39,176
+For example, you can
+set a launch argument
+
+
+749
+00:38:39,176 --> 00:38:42,866
+on your application which
+is Apple.CoreData.SQLDebug
+
+
+750
+00:38:43,156 --> 00:38:46,226
+with a velocity level that
+lets you see how core data is
+
+
+751
+00:38:46,226 --> 00:38:48,166
+interacting with its
+SQLite backing store.
+
+
+752
+00:38:49,596 --> 00:38:53,836
+The core data instruments
+template lets you see
+
+
+753
+00:38:53,836 --> 00:38:55,676
+[inaudible] patterns
+in terms of fetching
+
+
+754
+00:38:55,736 --> 00:38:56,946
+and loading too much data.
+
+
+755
+00:38:57,526 --> 00:39:03,226
+And, lastly, the standard set
+of SQLite query analysis tools,
+
+
+756
+00:39:03,386 --> 00:39:05,486
+for example, explain
+query, are available
+
+
+757
+00:39:05,766 --> 00:39:07,926
+which lets you dive deep
+into a particular query
+
+
+758
+00:39:07,926 --> 00:39:09,236
+and find out its performance.
+
+
+759
+00:39:09,946 --> 00:39:13,076
+To learn more about these tools,
+
+
+760
+00:39:13,346 --> 00:39:17,126
+I would recommend you watching
+last year's WWDC doc What's New
+
+
+761
+00:39:17,266 --> 00:39:17,906
+in Core Data.
+
+
+762
+00:39:19,506 --> 00:39:22,036
+Now that we have these tools,
+let's use one of them to find
+
+
+763
+00:39:22,036 --> 00:39:23,376
+out what's wrong
+with our data model.
+
+
+764
+00:39:25,086 --> 00:39:27,346
+In order to do that,
+click on the project
+
+
+765
+00:39:27,956 --> 00:39:28,976
+and click edit scheme.
+
+
+766
+00:39:35,456 --> 00:39:37,466
+In the window that opens,
+
+
+767
+00:39:37,606 --> 00:39:39,146
+we're going to select
+the arguments pane,
+
+
+768
+00:39:39,926 --> 00:39:46,056
+and then add a new argument
+com.Apple.CoreData.SQLDebug
+
+
+769
+00:39:46,056 --> 00:39:53,166
+at the highest velocity
+level of 3.
+
+
+770
+00:39:53,746 --> 00:39:57,106
+Once you are done with that,
+we'll go ahead, and click close.
+
+
+771
+00:39:58,366 --> 00:40:01,696
+And now we simply launch our
+application from the Xcode UI.
+
+
+772
+00:40:03,716 --> 00:40:06,196
+This should rebuild
+your project, load it,
+
+
+773
+00:40:06,516 --> 00:40:07,676
+and launch the application.
+
+
+774
+00:40:08,276 --> 00:40:13,136
+As you'll notice here, the
+console shows various logs
+
+
+775
+00:40:13,136 --> 00:40:14,876
+from core data about
+its performance
+
+
+776
+00:40:15,156 --> 00:40:16,356
+in terms of the data model.
+
+
+777
+00:40:17,596 --> 00:40:19,046
+Another thing you
+should notice is
+
+
+778
+00:40:19,046 --> 00:40:21,196
+that the app is taking
+multiple seconds to launch,
+
+
+779
+00:40:21,196 --> 00:40:22,776
+and it still hasn't
+finished launching.
+
+
+780
+00:40:23,316 --> 00:40:29,876
+We see some more data from core
+data on the log output, and,
+
+
+781
+00:40:29,876 --> 00:40:31,406
+finally, the app launches.
+
+
+782
+00:40:32,596 --> 00:40:35,756
+If you go back to the Xcode
+UI, you can dig through all
+
+
+783
+00:40:35,756 --> 00:40:36,826
+of these logs and figure
+
+
+784
+00:40:36,826 --> 00:40:38,566
+out what was wrong
+with your data model.
+
+
+785
+00:40:39,306 --> 00:40:41,316
+So let's go ahead and do
+that for our application.
+
+
+786
+00:40:41,926 --> 00:40:46,126
+Now one of the first
+logs that you see here is
+
+
+787
+00:40:46,126 --> 00:40:48,646
+that core data is doing
+a fetch of all the rows
+
+
+788
+00:40:48,976 --> 00:40:52,926
+from the SQLite database for
+the BoxItem table, and it,
+
+
+789
+00:40:52,926 --> 00:40:55,966
+that is exactly what we expect.
+
+
+790
+00:40:55,966 --> 00:40:57,546
+However, the next log tells us
+
+
+791
+00:40:57,706 --> 00:41:01,706
+that that fetch took almost nine
+seconds, and that's really bad,
+
+
+792
+00:41:01,706 --> 00:41:04,736
+and one of the biggest reasons
+of our app launch slowness.
+
+
+793
+00:41:06,356 --> 00:41:08,746
+Now if you go back to the
+previous query that was executed
+
+
+794
+00:41:08,746 --> 00:41:11,686
+to fetch all this data,
+one thing you'll notice is
+
+
+795
+00:41:11,686 --> 00:41:14,126
+that we are fetching the full
+resolution image for each
+
+
+796
+00:41:14,126 --> 00:41:17,486
+of the items in the BoxItem
+table even though we just show
+
+
+797
+00:41:17,486 --> 00:41:19,196
+thumbnail images on
+the launch screen.
+
+
+798
+00:41:20,906 --> 00:41:24,926
+Moving on, we also notice
+that core data is doing a join
+
+
+799
+00:41:24,926 --> 00:41:27,406
+between the BoxItem
+table and the Notes table
+
+
+800
+00:41:27,726 --> 00:41:30,156
+for every item it fetches
+from the BoxItem table.
+
+
+801
+00:41:31,016 --> 00:41:32,856
+And the reason it's
+doing that is
+
+
+802
+00:41:32,856 --> 00:41:34,636
+because there is a one
+is too many relationship
+
+
+803
+00:41:34,636 --> 00:41:38,246
+between these two entities,
+and we need to show a UI batch
+
+
+804
+00:41:38,326 --> 00:41:39,096
+in the launch screen
+
+
+805
+00:41:39,096 --> 00:41:41,126
+to represent whether
+there are notes associated
+
+
+806
+00:41:41,126 --> 00:41:41,946
+with the BoxItem.
+
+
+807
+00:41:42,506 --> 00:41:46,166
+So let's go ahead and
+fix our data model.
+
+
+808
+00:41:46,166 --> 00:41:50,676
+The first thing we'll
+fix is to avoid the join
+
+
+809
+00:41:50,676 --> 00:41:51,626
+between these two tables,
+
+
+810
+00:41:52,586 --> 00:41:55,276
+and the reason the core data
+was doing this join again was
+
+
+811
+00:41:55,276 --> 00:41:57,756
+because it needs to show the,
+and we need to show the UI
+
+
+812
+00:41:57,756 --> 00:42:00,506
+for whether notes are present
+with the BoxItem or not.
+
+
+813
+00:42:01,066 --> 00:42:04,616
+So to improve this model, we
+can simply add another field
+
+
+814
+00:42:04,616 --> 00:42:07,306
+to the BoxItem table, which
+is called notes present.
+
+
+815
+00:42:08,506 --> 00:42:11,616
+The presence or absence or
+[inaudible] for false value
+
+
+816
+00:42:11,616 --> 00:42:13,986
+of this particular field
+tells us whether we need
+
+
+817
+00:42:13,986 --> 00:42:16,886
+to put a UI badge on
+the launch screen.
+
+
+818
+00:42:18,596 --> 00:42:20,906
+The next problem with
+our data model was
+
+
+819
+00:42:20,906 --> 00:42:22,846
+that we were fetching the
+full resolution images
+
+
+820
+00:42:22,846 --> 00:42:23,856
+at the launch screen.
+
+
+821
+00:42:24,886 --> 00:42:26,096
+So let's go ahead and fix that.
+
+
+822
+00:42:26,096 --> 00:42:29,096
+We replace the image
+data with thumbnail data,
+
+
+823
+00:42:29,466 --> 00:42:31,826
+and instead move the full
+resolution image data
+
+
+824
+00:42:31,826 --> 00:42:35,206
+into a table of its own,
+and we link these two tables
+
+
+825
+00:42:35,206 --> 00:42:36,886
+by a simple one is
+to one relationship.
+
+
+826
+00:42:37,446 --> 00:42:42,306
+Now as lot of you know, these
+images can become really large,
+
+
+827
+00:42:42,856 --> 00:42:45,166
+and it might be a good
+idea to store these images
+
+
+828
+00:42:45,166 --> 00:42:48,276
+as a separate file on the file
+system rather than putting them
+
+
+829
+00:42:48,276 --> 00:42:49,426
+in the SQLite database.
+
+
+830
+00:42:50,846 --> 00:42:53,606
+So we're going to replace the
+full resolution image being part
+
+
+831
+00:42:53,606 --> 00:42:56,656
+of the database itself
+with the image URL
+
+
+832
+00:42:56,656 --> 00:42:59,036
+and store the images
+directly on disk.
+
+
+833
+00:42:59,486 --> 00:43:02,246
+Now let's look at the
+launch performance
+
+
+834
+00:43:02,246 --> 00:43:04,166
+of our application once
+we made these changes.
+
+
+835
+00:43:05,366 --> 00:43:07,196
+Again, we run the
+project from the Xcode UI
+
+
+836
+00:43:07,196 --> 00:43:12,386
+with the new data model that
+builds it and launches it.
+
+
+837
+00:43:14,266 --> 00:43:17,526
+As you saw there, the
+application launched four
+
+
+838
+00:43:17,526 --> 00:43:20,036
+to five times faster just
+by changing the data model.
+
+
+839
+00:43:21,056 --> 00:43:22,426
+So basing your data model
+
+
+840
+00:43:22,426 --> 00:43:25,006
+on your UI needs has significant
+impact on your launch
+
+
+841
+00:43:25,006 --> 00:43:26,836
+and overall performance
+of your application.
+
+
+842
+00:43:27,426 --> 00:43:32,236
+Now that we've taken a
+look at ways you can reduce
+
+
+843
+00:43:32,236 --> 00:43:34,526
+and optimize the amount of
+I/O's your application does,
+
+
+844
+00:43:34,946 --> 00:43:37,966
+let's see how you can test
+your app for I/O performance.
+
+
+845
+00:43:38,576 --> 00:43:42,826
+One of the things we
+recommend is to test your app
+
+
+846
+00:43:42,826 --> 00:43:44,076
+on a variety of devices.
+
+
+847
+00:43:45,346 --> 00:43:47,706
+If your app shifts on this,
+on multiple platforms,
+
+
+848
+00:43:48,026 --> 00:43:51,346
+it might be a good idea to test
+your application on a variety
+
+
+849
+00:43:51,346 --> 00:43:53,046
+of devices from all
+those platforms.
+
+
+850
+00:43:54,086 --> 00:43:56,086
+Even if your app shifts
+on a single platform,
+
+
+851
+00:43:56,336 --> 00:43:58,976
+it might be a good idea to
+test it across generations
+
+
+852
+00:43:59,076 --> 00:44:01,256
+because I/O characteristics
+vary widely.
+
+
+853
+00:44:03,416 --> 00:44:06,956
+Now another thing that can
+vary between your environment
+
+
+854
+00:44:06,956 --> 00:44:09,416
+and probably your app user
+environment is the network
+
+
+855
+00:44:09,416 --> 00:44:12,926
+condition, and to help you
+test your network conditions
+
+
+856
+00:44:12,926 --> 00:44:14,676
+or the worst-case
+network conditions,
+
+
+857
+00:44:15,116 --> 00:44:17,266
+we provide a tool called
+network link conditioner.
+
+
+858
+00:44:17,266 --> 00:44:21,046
+In order to get to the
+network link conditioner,
+
+
+859
+00:44:21,306 --> 00:44:26,886
+open the settings app, scroll
+all the way to the bottom to get
+
+
+860
+00:44:26,886 --> 00:44:32,536
+to the developer settings,
+and tap on developer settings
+
+
+861
+00:44:32,696 --> 00:44:34,066
+which brings you to this menu.
+
+
+862
+00:44:35,346 --> 00:44:37,746
+Now as you see here, we have
+the network link conditioner,
+
+
+863
+00:44:38,646 --> 00:44:41,436
+and tapping on that
+opens up this menu
+
+
+864
+00:44:41,436 --> 00:44:42,576
+which shows various kinds
+
+
+865
+00:44:42,576 --> 00:44:44,246
+of profiles you can
+install on your device.
+
+
+866
+00:44:45,266 --> 00:44:47,896
+We have 3G, high latency DNS,
+
+
+867
+00:44:47,896 --> 00:44:50,596
+and my favorite,
+very bad network.
+
+
+868
+00:44:52,596 --> 00:44:55,416
+So let's go ahead and use that
+by picking very bad network
+
+
+869
+00:44:55,976 --> 00:44:59,126
+and enabling it with using
+the toggle switch on top.
+
+
+870
+00:44:59,986 --> 00:45:01,066
+And that's it.
+
+
+871
+00:45:01,646 --> 00:45:04,296
+Your device will now behave as
+if it's in a very bad network,
+
+
+872
+00:45:04,336 --> 00:45:06,746
+and you can test your
+application against it.
+
+
+873
+00:45:08,296 --> 00:45:10,576
+Another factor to remember is
+
+
+874
+00:45:10,576 --> 00:45:12,696
+that I/O is a shared
+resource on the system.
+
+
+875
+00:45:13,486 --> 00:45:16,736
+So the I/O performance of your
+application might be impacted
+
+
+876
+00:45:16,736 --> 00:45:18,086
+by other system resources
+
+
+877
+00:45:18,146 --> 00:45:23,176
+or other I/O's happening
+in the device.
+
+
+878
+00:45:23,336 --> 00:45:25,366
+For example, if there
+are other applications
+
+
+879
+00:45:25,366 --> 00:45:27,056
+that are running
+due to multitasking,
+
+
+880
+00:45:27,476 --> 00:45:29,596
+your app's I/O performance
+might be affected.
+
+
+881
+00:45:30,286 --> 00:45:32,116
+So it's a good idea to
+test your application
+
+
+882
+00:45:32,116 --> 00:45:35,326
+in the presence of other apps.
+
+
+883
+00:45:35,616 --> 00:45:38,616
+Also, the system tries to
+maintain a fair balance
+
+
+884
+00:45:38,616 --> 00:45:40,666
+between its memory
+and I/O usage,
+
+
+885
+00:45:41,496 --> 00:45:43,386
+and under memory
+pressure conditions,
+
+
+886
+00:45:43,686 --> 00:45:45,546
+your I/O latencies
+might be affected.
+
+
+887
+00:45:46,506 --> 00:45:47,976
+So we would recommend
+testing your app
+
+
+888
+00:45:47,976 --> 00:45:51,526
+under memory pressure
+conditions as well.
+
+
+889
+00:45:51,696 --> 00:45:55,506
+Lastly, the system maintains
+a bunch of caches by default
+
+
+890
+00:45:55,506 --> 00:45:57,496
+on your behalf to
+help you access
+
+
+891
+00:45:57,496 --> 00:45:58,586
+and store your data better.
+
+
+892
+00:45:59,906 --> 00:46:02,986
+The state of these caches
+could affect the system or,
+
+
+893
+00:46:02,986 --> 00:46:04,806
+and I/O performance
+of your application.
+
+
+894
+00:46:05,626 --> 00:46:07,606
+And to test the worst-case
+behavior for that,
+
+
+895
+00:46:08,006 --> 00:46:10,796
+we would recommend rebooting
+your device on an iOS device,
+
+
+896
+00:46:11,626 --> 00:46:13,876
+and on macOS, you can
+use the merge command
+
+
+897
+00:46:14,196 --> 00:46:16,046
+which flushes all these caches
+
+
+898
+00:46:16,046 --> 00:46:18,656
+and simulates worst-case
+behavior for our application.
+
+
+899
+00:46:20,036 --> 00:46:22,456
+To make sure that
+your app is robust
+
+
+900
+00:46:22,456 --> 00:46:24,316
+against all these
+environmental variations,
+
+
+901
+00:46:24,736 --> 00:46:26,516
+we recommend following
+the I/O philosophy
+
+
+902
+00:46:26,516 --> 00:46:28,786
+to reduce an optimize
+your I/O's.
+
+
+903
+00:46:29,696 --> 00:46:33,086
+So here are some key
+takeaways from the talk.
+
+
+904
+00:46:33,306 --> 00:46:35,396
+Reduce the amount of I/O's
+your application does
+
+
+905
+00:46:35,516 --> 00:46:38,886
+since that significantly
+impacts battery life.
+
+
+906
+00:46:39,416 --> 00:46:43,046
+Move your I/O heavy workload
+off the main thread and keep
+
+
+907
+00:46:43,046 --> 00:46:45,696
+that main thread idle
+for UI and animations.
+
+
+908
+00:46:47,096 --> 00:46:50,656
+Specify proper quality of
+service to specify the intent
+
+
+909
+00:46:50,656 --> 00:46:51,826
+of work you're performing.
+
+
+910
+00:46:52,346 --> 00:46:56,086
+Switch to Asset Catalog
+since they're an easy
+
+
+911
+00:46:56,086 --> 00:47:00,186
+and efficient way to
+manage your app's assets.
+
+
+912
+00:47:00,716 --> 00:47:04,566
+Use core data for all your
+database needs, and, lastly,
+
+
+913
+00:47:04,716 --> 00:47:06,886
+test and measure your
+app for I/O performance.
+
+
+914
+00:47:08,616 --> 00:47:11,086
+For more information,
+go to www.apple.com,
+
+
+915
+00:47:11,086 --> 00:47:13,026
+and the session ID is 719.
+
+
+916
+00:47:13,026 --> 00:47:17,196
+Here is some related sessions
+that happened during the week
+
+
+917
+00:47:17,196 --> 00:47:19,576
+that you can refer to for
+more details on the API's
+
+
+918
+00:47:19,576 --> 00:47:20,856
+and tools we mentioned.
+
+
+919
+00:47:21,636 --> 00:47:22,396
+And thanks for your time.
+

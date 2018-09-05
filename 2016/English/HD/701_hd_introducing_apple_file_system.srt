@@ -1,0 +1,4328 @@
+1
+00:00:07,516 --> 00:00:16,500
+[ Music ]
+
+
+2
+00:00:27,006 --> 00:00:28,026
+>> All right.
+
+
+3
+00:00:28,136 --> 00:00:29,726
+Welcome. My name is Eric Tamura.
+
+
+4
+00:00:29,726 --> 00:00:33,256
+I'm accompanied by Dominic
+Giampaolo and we're going
+
+
+5
+00:00:33,256 --> 00:00:34,976
+to tell you a little bit
+about Apple file systems.
+
+
+6
+00:00:35,516 --> 00:00:42,316
+[ Applause ]
+
+
+7
+00:00:42,816 --> 00:00:45,856
+All right so this is going to
+be a little bit of our roadmap
+
+
+8
+00:00:45,856 --> 00:00:47,056
+for our presentation today.
+
+
+9
+00:00:47,456 --> 00:00:50,416
+I'll tell you a little bit about
+introduction and motivation.
+
+
+10
+00:00:50,686 --> 00:00:51,946
+Why we decided to build this.
+
+
+11
+00:00:51,946 --> 00:00:54,116
+Some of the new features
+that we've added
+
+
+12
+00:00:54,116 --> 00:00:55,386
+as part of Apple File System.
+
+
+13
+00:00:55,806 --> 00:00:57,756
+We'll do a short demo,
+some of the new features.
+
+
+14
+00:00:57,906 --> 00:01:00,166
+And then we'll wrap it
+up with some new APIs
+
+
+15
+00:01:00,166 --> 00:01:02,146
+that you can use in your apps.
+
+
+16
+00:01:03,246 --> 00:01:05,996
+Okay, let's start it.
+
+
+17
+00:01:06,616 --> 00:01:09,806
+So as Sebastian mentioned,
+Apple File System is available
+
+
+18
+00:01:09,806 --> 00:01:12,296
+in the WWDC build
+of macOS Sierra
+
+
+19
+00:01:12,296 --> 00:01:13,806
+that you all got yesterday.
+
+
+20
+00:01:14,116 --> 00:01:17,076
+And it will be available as a
+developer preview technology
+
+
+21
+00:01:17,376 --> 00:01:21,496
+in macOS Sierra once it
+finally ships this fall.
+
+
+22
+00:01:22,656 --> 00:01:24,486
+So what is Apple File System?
+
+
+23
+00:01:25,166 --> 00:01:26,616
+It's our next generation
+file system
+
+
+24
+00:01:26,616 --> 00:01:28,936
+that we've been building
+for Apple products.
+
+
+25
+00:01:29,456 --> 00:01:32,796
+And you might care about
+this because it will run
+
+
+26
+00:01:32,966 --> 00:01:35,766
+on watchOS, iOS, tvOS and macOS.
+
+
+27
+00:01:36,666 --> 00:01:38,336
+So as far as the
+intended audience here,
+
+
+28
+00:01:38,336 --> 00:01:41,746
+we expect that some of you may
+be either new to the platforms,
+
+
+29
+00:01:41,746 --> 00:01:45,476
+or you're a long time developer,
+but we intend to cover all
+
+
+30
+00:01:45,546 --> 00:01:48,746
+of the high level of the new
+file system in enough detail
+
+
+31
+00:01:48,746 --> 00:01:49,756
+so you can follow along.
+
+
+32
+00:01:51,086 --> 00:01:53,876
+So, one of the hallmarks of
+this product is that we wanted
+
+
+33
+00:01:53,916 --> 00:01:57,006
+to scale from an Apple Watch
+all the way up to a Mac Pro.
+
+
+34
+00:01:58,446 --> 00:02:01,606
+We also wanted to take advantage
+of Flash and SSD storage,
+
+
+35
+00:02:01,686 --> 00:02:04,916
+because nearly all of
+our products use SSDs.
+
+
+36
+00:02:06,236 --> 00:02:09,086
+And finally it's been built with
+encryption as a primary feature
+
+
+37
+00:02:09,256 --> 00:02:12,946
+from the very beginning as we
+brought this idea to fruition.
+
+
+38
+00:02:14,026 --> 00:02:17,136
+So you might be wondering
+what about HFS+.
+
+
+39
+00:02:17,136 --> 00:02:21,486
+Well, we are currently shipping
+HFS+ as our primary file system.
+
+
+40
+00:02:21,736 --> 00:02:25,186
+But its original design
+is almost 30 years old
+
+
+41
+00:02:25,186 --> 00:02:25,686
+at this point.
+
+
+42
+00:02:25,686 --> 00:02:26,686
+So how many of you would like us
+
+
+43
+00:02:26,686 --> 00:02:29,176
+to ship HFS+ for
+another 30 years?
+
+
+44
+00:02:30,406 --> 00:02:34,746
+Great. So HFS+ which
+was designed in an era
+
+
+45
+00:02:34,746 --> 00:02:37,486
+where floppies and hard
+drives were state of the art,
+
+
+46
+00:02:38,406 --> 00:02:39,686
+and the world has
+changed since then.
+
+
+47
+00:02:39,686 --> 00:02:42,916
+We now use SSDs and other next
+generation storage technologies
+
+
+48
+00:02:43,266 --> 00:02:44,466
+evolving as well.
+
+
+49
+00:02:45,276 --> 00:02:49,006
+The data structures in HFS+ were
+also relatively single treaded,
+
+
+50
+00:02:49,006 --> 00:02:52,116
+so our B-trees are relying
+on a big block in order
+
+
+51
+00:02:52,116 --> 00:02:53,626
+to access or mutate them.
+
+
+52
+00:02:54,806 --> 00:02:58,766
+And the data structures
+are also relatively rigid.
+
+
+53
+00:02:59,146 --> 00:03:01,826
+And by this we mean things
+like the file record,
+
+
+54
+00:03:01,826 --> 00:03:04,466
+or catalog record in HFS+,
+which is more or less equivalent
+
+
+55
+00:03:04,466 --> 00:03:07,716
+to an inode in other filed
+systems, is fixed in order
+
+
+56
+00:03:07,716 --> 00:03:10,096
+to add new fields, to
+expand the file system,
+
+
+57
+00:03:10,096 --> 00:03:12,426
+give it new features, we
+would have to incur the cost
+
+
+58
+00:03:12,426 --> 00:03:15,296
+of a backwards, incompatible
+volume format change.
+
+
+59
+00:03:15,296 --> 00:03:18,346
+And by this we mean what happens
+if we add a new feature to HFS+
+
+
+60
+00:03:18,346 --> 00:03:21,566
+and take it all the way back
+to 10.5 and try to attach
+
+
+61
+00:03:21,566 --> 00:03:22,746
+that same file system?
+
+
+62
+00:03:23,096 --> 00:03:24,056
+What will happen?
+
+
+63
+00:03:24,726 --> 00:03:27,546
+So if we're concerned about
+backwards compatibility as well
+
+
+64
+00:03:27,546 --> 00:03:30,546
+as forwards compatibility
+we're starting to think
+
+
+65
+00:03:30,546 --> 00:03:32,046
+about well maybe it makes sense
+
+
+66
+00:03:32,076 --> 00:03:34,326
+to build something
+completely new altogether.
+
+
+67
+00:03:34,386 --> 00:03:37,406
+And so we thought
+about something new.
+
+
+68
+00:03:38,196 --> 00:03:40,406
+So we wanted something
+that was designed
+
+
+69
+00:03:40,406 --> 00:03:42,946
+and tuned specifically
+for Apple products.
+
+
+70
+00:03:43,536 --> 00:03:45,956
+And other file systems
+serve other purposes
+
+
+71
+00:03:45,956 --> 00:03:47,236
+and they do it well.
+
+
+72
+00:03:47,406 --> 00:03:48,936
+In particular filers
+
+
+73
+00:03:48,936 --> 00:03:53,556
+or enterprise level storage
+servers have a lot of features
+
+
+74
+00:03:53,556 --> 00:03:55,706
+that might not make
+sense on Apple products.
+
+
+75
+00:03:55,736 --> 00:03:58,246
+We typically use a
+single storage device all
+
+
+76
+00:03:58,246 --> 00:03:58,716
+of our products.
+
+
+77
+00:03:59,156 --> 00:04:01,996
+And we have a wide
+range of scale.
+
+
+78
+00:04:02,086 --> 00:04:07,216
+So on an Apple Watch, you have
+significantly DRAM and storage
+
+
+79
+00:04:07,436 --> 00:04:10,126
+than does a Mac Pro, which
+has tens of gigabytes
+
+
+80
+00:04:10,126 --> 00:04:12,766
+of DRAM potentially, and
+terabytes of storage.
+
+
+81
+00:04:12,766 --> 00:04:15,086
+So we wanted something
+that's flexible and dynamic
+
+
+82
+00:04:15,506 --> 00:04:18,305
+and that's the platform
+on which it's running.
+
+
+83
+00:04:20,906 --> 00:04:23,256
+So other things we wanted to
+build, we wanted to add new
+
+
+84
+00:04:23,256 --> 00:04:24,976
+and enhanced security
+capabilities.
+
+
+85
+00:04:24,976 --> 00:04:29,146
+So on iOS today we already
+shipped a version of HFS+
+
+
+86
+00:04:29,516 --> 00:04:31,556
+that uses per file encryption.
+
+
+87
+00:04:31,676 --> 00:04:33,336
+So every file is
+encrypted differently
+
+
+88
+00:04:33,516 --> 00:04:36,826
+on storage form every other
+file on the file system.
+
+
+89
+00:04:37,546 --> 00:04:40,536
+We want to take that a step
+further and we'll dive into some
+
+
+90
+00:04:40,536 --> 00:04:42,796
+of those features a little bit
+later on in the presentation.
+
+
+91
+00:04:43,556 --> 00:04:45,246
+And finally, we just wanted
+
+
+92
+00:04:45,246 --> 00:04:47,836
+to add some new general
+file system features
+
+
+93
+00:04:47,926 --> 00:04:49,446
+that have been requested
+
+
+94
+00:04:49,446 --> 00:04:52,016
+and that we learned
+were really important
+
+
+95
+00:04:52,016 --> 00:04:53,926
+for the future of our platforms.
+
+
+96
+00:04:54,926 --> 00:04:57,436
+So before we get into these
+new features, I just wanted
+
+
+97
+00:04:57,436 --> 00:05:00,096
+to give you a brief
+view of the landscape
+
+
+98
+00:05:00,096 --> 00:05:02,566
+of what storage software
+looks like at Apple.
+
+
+99
+00:05:03,166 --> 00:05:07,956
+And so in terms of file systems
+and storage, we talk about HFS+,
+
+
+100
+00:05:08,396 --> 00:05:12,206
+but it's actually not just HFS+
+in the little small bubble,
+
+
+101
+00:05:12,206 --> 00:05:14,456
+there's actually many
+ancillary technologies
+
+
+102
+00:05:14,456 --> 00:05:16,576
+that comprise our
+storage software.
+
+
+103
+00:05:17,546 --> 00:05:19,446
+So in the beginning, we
+had HFS standard, almost,
+
+
+104
+00:05:19,556 --> 00:05:21,076
+you know over 30 years
+ago at this point.
+
+
+105
+00:05:21,716 --> 00:05:25,256
+We then added HFS+, some
+number of years later.
+
+
+106
+00:05:25,676 --> 00:05:27,366
+But we added crash
+protection to it.
+
+
+107
+00:05:27,366 --> 00:05:30,486
+So we gave it a journal of
+case sensitive variant as well.
+
+
+108
+00:05:32,106 --> 00:05:35,576
+We also added core storage which
+gives us full disk encryption
+
+
+109
+00:05:35,576 --> 00:05:39,176
+as well as our fusion drive,
+which combines the speed
+
+
+110
+00:05:39,176 --> 00:05:41,236
+of an SSD with the
+capacity of a hard drive.
+
+
+111
+00:05:42,096 --> 00:05:44,836
+And let's not forget all of
+the iOS specific variants.
+
+
+112
+00:05:44,836 --> 00:05:48,916
+We have an iOS specific
+variant of HFS+ as well as one
+
+
+113
+00:05:48,916 --> 00:05:50,636
+that supports the
+per file encryption
+
+
+114
+00:05:50,736 --> 00:05:51,676
+that we just discussed.
+
+
+115
+00:05:52,656 --> 00:05:54,006
+So our intention is that all
+
+
+116
+00:05:54,006 --> 00:05:57,386
+of these technologies will
+get replaced by one thing,
+
+
+117
+00:05:57,876 --> 00:05:59,246
+which is Apple File System.
+
+
+118
+00:05:59,246 --> 00:06:04,016
+So, let me tell you a
+little bit about some
+
+
+119
+00:06:04,016 --> 00:06:05,956
+of the new features
+in Apple File System.
+
+
+120
+00:06:09,186 --> 00:06:13,126
+So, this is a brief view of
+what we've got on deck here,
+
+
+121
+00:06:13,266 --> 00:06:15,446
+so we've got some improved
+file system fundamentals,
+
+
+122
+00:06:16,226 --> 00:06:20,256
+HFS compatibility, Space
+Sharing, cloning files
+
+
+123
+00:06:20,256 --> 00:06:24,166
+and directories, snapshots,
+and reverting to snapshots.
+
+
+124
+00:06:24,896 --> 00:06:27,136
+A feature we're calling
+fast directory sizing.
+
+
+125
+00:06:27,736 --> 00:06:30,366
+Atomic safe save
+primitives and encryption.
+
+
+126
+00:06:30,366 --> 00:06:31,886
+So you don't have to
+memorize all of these,
+
+
+127
+00:06:31,936 --> 00:06:34,106
+we will go into greater
+detail of all of these
+
+
+128
+00:06:34,156 --> 00:06:35,196
+in the upcoming slides.
+
+
+129
+00:06:36,886 --> 00:06:40,296
+So, first let's talk about some
+of the improved fundamentals.
+
+
+130
+00:06:43,016 --> 00:06:45,666
+So first it's been
+Flash and SSD optimized.
+
+
+131
+00:06:46,546 --> 00:06:49,826
+So on all of our devices, you
+know on all of our iOS devices,
+
+
+132
+00:06:49,946 --> 00:06:53,486
+but a lot of our Macs we ship
+with SSDs so we want to be
+
+
+133
+00:06:53,486 --> 00:06:55,786
+as friendly to the solid
+state drives as we know how.
+
+
+134
+00:06:56,996 --> 00:06:59,196
+It's also crash protected, APFS,
+
+
+135
+00:06:59,196 --> 00:07:01,906
+or Apple File System
+employs a new and novel copy
+
+
+136
+00:07:01,906 --> 00:07:05,166
+and write metadata scheme so
+every metadata write is written
+
+
+137
+00:07:05,166 --> 00:07:07,516
+into a new location
+on stable storage.
+
+
+138
+00:07:07,866 --> 00:07:11,016
+We combine this with a
+transaction subsystem
+
+
+139
+00:07:11,016 --> 00:07:14,046
+which ensures that if you lose
+power, if the machine panics,
+
+
+140
+00:07:14,046 --> 00:07:16,796
+or anything bad happens, you'll
+either see a consistent view
+
+
+141
+00:07:16,796 --> 00:07:20,576
+of what was on disk or you
+won't see it at all, the change.
+
+
+142
+00:07:22,266 --> 00:07:25,736
+We have modern 64-bit
+native fields,
+
+
+143
+00:07:25,926 --> 00:07:28,786
+so the inode number has
+been expanded to 64-bits.
+
+
+144
+00:07:29,346 --> 00:07:32,556
+We have timestamps
+that are now 64-bits.
+
+
+145
+00:07:32,556 --> 00:07:35,036
+We support nanosecond
+time stamp granularity.
+
+
+146
+00:07:35,356 --> 00:07:37,366
+We also support Sparks
+Files for the first time
+
+
+147
+00:07:37,366 --> 00:07:38,356
+on an Apple File System.
+
+
+148
+00:07:39,906 --> 00:07:43,486
+And all of our file and
+directory records that point
+
+
+149
+00:07:43,486 --> 00:07:44,906
+at where the blocks
+actually live
+
+
+150
+00:07:44,906 --> 00:07:46,706
+on disks have been
+expanded to 64-bits.
+
+
+151
+00:07:47,706 --> 00:07:50,056
+Our data structures
+were also expansible
+
+
+152
+00:07:50,056 --> 00:07:51,066
+and allowed for future growth.
+
+
+153
+00:07:51,756 --> 00:07:54,596
+So one thing that we
+talked about HFS+ is
+
+
+154
+00:07:54,596 --> 00:07:56,976
+that its data structures
+are relatively rigid.
+
+
+155
+00:07:57,726 --> 00:08:01,836
+And at APFS, or Apple File
+System, the data structures
+
+
+156
+00:08:01,836 --> 00:08:04,586
+that represent the core
+inode are now flexible.
+
+
+157
+00:08:05,046 --> 00:08:06,496
+So fields are either optional,
+
+
+158
+00:08:06,496 --> 00:08:07,886
+or we may not have
+invented them yet.
+
+
+159
+00:08:07,996 --> 00:08:10,756
+So new fields that we may
+choose to add down the line,
+
+
+160
+00:08:11,126 --> 00:08:13,516
+will be correctly
+recognized as not supported,
+
+
+161
+00:08:13,516 --> 00:08:16,826
+or I don't understand if
+you attach that storage
+
+
+162
+00:08:16,826 --> 00:08:19,986
+to today's version
+of macOS Sierra.
+
+
+163
+00:08:20,706 --> 00:08:24,116
+In this way we can add
+new features without fear
+
+
+164
+00:08:24,116 --> 00:08:25,846
+of harming backwards
+compatibility.
+
+
+165
+00:08:26,606 --> 00:08:28,826
+This also allow us to
+have optional fields.
+
+
+166
+00:08:28,826 --> 00:08:32,635
+So on some systems,
+having the mere presence
+
+
+167
+00:08:32,635 --> 00:08:34,696
+of a file is enough to
+convey some information.
+
+
+168
+00:08:35,356 --> 00:08:38,976
+And so if you have a 0-byte file
+you don't necessarily need all
+
+
+169
+00:08:38,976 --> 00:08:41,126
+the machinery that points at
+which blocks live on disks,
+
+
+170
+00:08:41,216 --> 00:08:42,015
+because they're needed.
+
+
+171
+00:08:42,015 --> 00:08:43,476
+So those fields are optional.
+
+
+172
+00:08:45,626 --> 00:08:48,336
+It's also been optimized for
+our Apple Software ecosystems.
+
+
+173
+00:08:48,336 --> 00:08:51,636
+So we wanted to add features
+and optimize the APIs
+
+
+174
+00:08:51,636 --> 00:08:53,416
+that are extremely compelling
+
+
+175
+00:08:53,626 --> 00:08:55,506
+for our platforms
+moving forward.
+
+
+176
+00:08:55,506 --> 00:09:00,606
+And we also have a
+low latency design.
+
+
+177
+00:09:00,736 --> 00:09:03,326
+And typically in file systems
+latency is often a tradeoff
+
+
+178
+00:09:03,326 --> 00:09:05,026
+between latency and throughput.
+
+
+179
+00:09:05,026 --> 00:09:07,906
+And we've chosen to lean
+on the side of latency.
+
+
+180
+00:09:08,136 --> 00:09:12,016
+And we do this because we want
+your apps when a user clicks
+
+
+181
+00:09:12,016 --> 00:09:14,626
+on them on the desktop,
+or they tap on them
+
+
+182
+00:09:14,626 --> 00:09:17,556
+on your phone you want it to
+come up quickly and responsively
+
+
+183
+00:09:17,556 --> 00:09:19,306
+and have very crisp animation.
+
+
+184
+00:09:19,566 --> 00:09:22,006
+And the reason for that is when
+you go down to the file system,
+
+
+185
+00:09:22,006 --> 00:09:24,346
+we want to ensure that we
+get you the answers you need
+
+
+186
+00:09:24,446 --> 00:09:25,766
+as quickly as possible.
+
+
+187
+00:09:27,596 --> 00:09:29,886
+And finally we have native
+encryption support built
+
+
+188
+00:09:29,886 --> 00:09:30,696
+into the file system.
+
+
+189
+00:09:31,216 --> 00:09:34,656
+On HFS+ as we mentioned, it
+uses per file encryption,
+
+
+190
+00:09:34,706 --> 00:09:37,226
+but those are stored on disk
+through extended attributes.
+
+
+191
+00:09:37,656 --> 00:09:40,036
+On Apple File System that's not
+the case these are now first
+
+
+192
+00:09:40,036 --> 00:09:43,986
+class citizens, first class
+objects inside the file system.
+
+
+193
+00:09:45,316 --> 00:09:47,256
+So that's a bit about
+the fundamentals.
+
+
+194
+00:09:47,846 --> 00:09:50,436
+So HFS compatibility, if all
+of you have apps that run
+
+
+195
+00:09:50,436 --> 00:09:54,756
+on HFS+ just fine, we intend
+for those to continue to run
+
+
+196
+00:09:55,006 --> 00:09:57,706
+without any changes
+whatsoever on your side.
+
+
+197
+00:09:58,366 --> 00:09:59,806
+So Apple File System
+will support
+
+
+198
+00:09:59,806 --> 00:10:02,126
+and replace HFS+ functionality.
+
+
+199
+00:10:02,376 --> 00:10:04,936
+And there's an asterisks there
+because there's three things
+
+
+200
+00:10:04,936 --> 00:10:06,916
+that we will not
+support moving forward.
+
+
+201
+00:10:07,286 --> 00:10:10,416
+One of them is exchange
+data, the other search FS,
+
+
+202
+00:10:10,416 --> 00:10:14,596
+and the third is directory
+hard links for time machine.
+
+
+203
+00:10:15,646 --> 00:10:19,606
+But every other API and
+behavior will be supported just
+
+
+204
+00:10:19,606 --> 00:10:21,136
+as it is on HFS+.
+
+
+205
+00:10:22,156 --> 00:10:25,036
+So now I want to tell you a
+little bit about Space Sharing
+
+
+206
+00:10:25,036 --> 00:10:26,566
+which is one of the
+features that we've added
+
+
+207
+00:10:26,566 --> 00:10:28,096
+into Apple File System.
+
+
+208
+00:10:29,286 --> 00:10:31,086
+So let's take a quick
+poll how many of you
+
+
+209
+00:10:31,086 --> 00:10:33,636
+in the audience have a
+Mac or have used a Mac
+
+
+210
+00:10:34,036 --> 00:10:35,506
+with more than one partition?
+
+
+211
+00:10:36,846 --> 00:10:37,396
+Okay, great.
+
+
+212
+00:10:37,706 --> 00:10:41,916
+We do as well, one of the
+things that we do internally,
+
+
+213
+00:10:41,916 --> 00:10:44,836
+is we want a development
+version of OS on one partition,
+
+
+214
+00:10:44,836 --> 00:10:48,456
+and we want you know the stable
+released version on another.
+
+
+215
+00:10:48,826 --> 00:10:50,726
+Or you might choose to have
+your home directory on one
+
+
+216
+00:10:50,936 --> 00:10:53,956
+and other different data that
+you don't care about in another.
+
+
+217
+00:10:54,656 --> 00:10:57,986
+But one of the things that we've
+learned through our analytics
+
+
+218
+00:10:57,986 --> 00:10:59,876
+that come back when users
+opt in to data collection
+
+
+219
+00:10:59,876 --> 00:11:02,836
+and reporting their
+statistics to Apple machines is
+
+
+220
+00:11:02,836 --> 00:11:05,076
+that most end users
+don't do this.
+
+
+221
+00:11:05,296 --> 00:11:06,896
+They just have the
+one partition.
+
+
+222
+00:11:07,296 --> 00:11:09,846
+And the reason they don't
+is because it's hard.
+
+
+223
+00:11:10,396 --> 00:11:12,296
+You have to know exactly
+how you're going to lay
+
+
+224
+00:11:12,296 --> 00:11:14,096
+out your disk at the
+time you set it up,
+
+
+225
+00:11:14,306 --> 00:11:16,566
+and changing it is
+relatively expensive.
+
+
+226
+00:11:17,216 --> 00:11:19,236
+Moreover, free space
+on one partition,
+
+
+227
+00:11:19,236 --> 00:11:20,876
+as you know does not translate
+
+
+228
+00:11:20,876 --> 00:11:23,396
+into available free space
+on another partition.
+
+
+229
+00:11:23,906 --> 00:11:25,016
+So we're solving this
+
+
+230
+00:11:25,016 --> 00:11:26,826
+with a feature we're
+calling Space Sharing.
+
+
+231
+00:11:27,676 --> 00:11:30,166
+So let's take an example
+here, we'll work through this
+
+
+232
+00:11:30,166 --> 00:11:31,746
+as we kind of explain
+the feature.
+
+
+233
+00:11:32,236 --> 00:11:34,036
+Let's say you're
+downloading the latest
+
+
+234
+00:11:34,036 --> 00:11:36,356
+and greatest cat video you
+just got of the internet
+
+
+235
+00:11:36,356 --> 00:11:38,316
+from your friend
+over at AirDrop.
+
+
+236
+00:11:39,286 --> 00:11:42,466
+And let's say that file
+grows, and it gets bigger,
+
+
+237
+00:11:42,466 --> 00:11:45,856
+in fact so big that you've
+completely run out of space
+
+
+238
+00:11:46,056 --> 00:11:47,606
+on the partition on
+which you're running.
+
+
+239
+00:11:48,526 --> 00:11:50,286
+Well there's not a whole
+lot you can do in this case.
+
+
+240
+00:11:50,286 --> 00:11:51,526
+If you're out of space,
+you're out of space.
+
+
+241
+00:11:52,006 --> 00:11:55,976
+One thing you could do though is
+completely destroy the partition
+
+
+242
+00:11:55,976 --> 00:11:58,706
+immediately afterwards
+and then grow partition 1.
+
+
+243
+00:11:58,706 --> 00:12:00,256
+So let's look at that.
+
+
+244
+00:12:00,256 --> 00:12:04,796
+We can destroy partition
+2, partition 1 grows,
+
+
+245
+00:12:04,796 --> 00:12:08,396
+and now you have enough space to
+continue growing your cat video.
+
+
+246
+00:12:09,786 --> 00:12:12,126
+But this is also inflexible
+and presents a little bit
+
+
+247
+00:12:12,126 --> 00:12:15,446
+of a problem if the file that
+you're downloading wasn't
+
+
+248
+00:12:15,446 --> 00:12:18,916
+on partition 1, but it was
+in fact on partition 0.
+
+
+249
+00:12:19,726 --> 00:12:21,366
+So in this case, you're going
+
+
+250
+00:12:21,366 --> 00:12:23,816
+to grow the file,
+it will get bigger.
+
+
+251
+00:12:23,816 --> 00:12:26,106
+And then even if
+you have free space,
+
+
+252
+00:12:26,106 --> 00:12:29,166
+or content that you're willing
+to destroy on partition 2,
+
+
+253
+00:12:29,566 --> 00:12:33,576
+we could destroy it, but then
+partition 0 couldn't grow,
+
+
+254
+00:12:33,576 --> 00:12:36,056
+because it's not adjacent
+to any of the free space
+
+
+255
+00:12:36,056 --> 00:12:37,006
+that we just made available.
+
+
+256
+00:12:37,626 --> 00:12:38,556
+So we think this is something
+
+
+257
+00:12:38,556 --> 00:12:40,316
+that we can solve
+with Space Sharing.
+
+
+258
+00:12:40,696 --> 00:12:42,446
+So in Apple File
+System we've come
+
+
+259
+00:12:42,446 --> 00:12:45,356
+up with this base concept
+we're calling the container,
+
+
+260
+00:12:45,426 --> 00:12:48,186
+applicably named because
+it contains volumes
+
+
+261
+00:12:48,186 --> 00:12:49,506
+or individual file systems.
+
+
+262
+00:12:50,616 --> 00:12:54,156
+So, in this instance, Apple File
+System containers represent the
+
+
+263
+00:12:54,156 --> 00:12:55,576
+lowest level of functionality.
+
+
+264
+00:12:55,576 --> 00:12:58,676
+And this is what encapsulates
+our block allocator,
+
+
+265
+00:12:58,676 --> 00:13:00,736
+as well as our crash
+protection subsystem.
+
+
+266
+00:13:01,786 --> 00:13:04,786
+So let's say we have volume
+0, which occupies some amount
+
+
+267
+00:13:04,786 --> 00:13:07,916
+of free space in the partition,
+
+
+268
+00:13:08,776 --> 00:13:11,966
+volume can grow,
+or it can shrink.
+
+
+269
+00:13:12,896 --> 00:13:15,466
+But in all these cases the free
+space will dynamically resize
+
+
+270
+00:13:15,496 --> 00:13:18,236
+to what's currently available
+at the time that you request it.
+
+
+271
+00:13:18,956 --> 00:13:21,366
+You can also create more than
+one volume in the container
+
+
+272
+00:13:21,366 --> 00:13:23,226
+which will occupy
+incrementally more space.
+
+
+273
+00:13:24,126 --> 00:13:26,826
+And then if you wanted to
+grow partition or volume 0,
+
+
+274
+00:13:26,826 --> 00:13:27,986
+at this point you could do so.
+
+
+275
+00:13:28,466 --> 00:13:30,966
+And now if you ask for how
+much free space is available
+
+
+276
+00:13:30,966 --> 00:13:32,846
+on the system you will
+get the area that's
+
+
+277
+00:13:32,846 --> 00:13:34,466
+in the green rectangle
+at the bottom.
+
+
+278
+00:13:35,266 --> 00:13:37,516
+So developers take note, this
+is something that's a little bit
+
+
+279
+00:13:37,516 --> 00:13:40,506
+subtly different from how you
+may have computed free space
+
+
+280
+00:13:40,506 --> 00:13:41,076
+in the past.
+
+
+281
+00:13:41,076 --> 00:13:42,356
+If you're using some paradigm
+
+
+282
+00:13:42,356 --> 00:13:45,896
+like taking a total storage
+size, subtracting the used space
+
+
+283
+00:13:45,896 --> 00:13:48,086
+to get the free space,
+that will no longer work,
+
+
+284
+00:13:48,306 --> 00:13:49,986
+because other volumes
+
+
+285
+00:13:50,116 --> 00:13:52,766
+on the container are also
+participating in Space Sharing.
+
+
+286
+00:13:53,446 --> 00:13:56,616
+Additionally, you can't
+necessarily add up all
+
+
+287
+00:13:56,616 --> 00:13:58,286
+of the used space either.
+
+
+288
+00:13:59,316 --> 00:14:02,836
+So, next, I'm going to invite
+Dominic up and he will tell you
+
+
+289
+00:14:02,836 --> 00:14:04,886
+about cloning files
+and directories.
+
+
+290
+00:14:05,516 --> 00:14:11,546
+[ Applause ]
+
+
+291
+00:14:12,046 --> 00:14:13,426
+>> Hi. Again my name is
+Dominic and I'm going to walk
+
+
+292
+00:14:13,426 --> 00:14:14,776
+through a couple of the
+other higher level features
+
+
+293
+00:14:14,776 --> 00:14:16,186
+that we have in APFS.
+
+
+294
+00:14:16,666 --> 00:14:18,176
+First, we're going
+to talk about cloning
+
+
+295
+00:14:18,176 --> 00:14:19,496
+of files and directories.
+
+
+296
+00:14:19,896 --> 00:14:24,026
+So here we have a file, TOP
+SECRET APFS.key, that Eric has
+
+
+297
+00:14:24,026 --> 00:14:24,876
+in his home directory.
+
+
+298
+00:14:24,876 --> 00:14:27,046
+And it has references
+to two blocks of data.
+
+
+299
+00:14:27,486 --> 00:14:30,326
+Now if Eric wanted to make an
+archive of this presentation
+
+
+300
+00:14:30,866 --> 00:14:33,446
+as it existed at this point in
+time, he could copy the data
+
+
+301
+00:14:33,446 --> 00:14:35,996
+by reading it all in,
+and writing it back out.
+
+
+302
+00:14:36,436 --> 00:14:38,906
+That has obvious
+costs in terms of CPU,
+
+
+303
+00:14:39,156 --> 00:14:41,406
+power, and disk space usage.
+
+
+304
+00:14:41,696 --> 00:14:44,416
+Instead with APFS you
+can clone the file.
+
+
+305
+00:14:44,786 --> 00:14:47,036
+By cloning the file,
+you copy the references
+
+
+306
+00:14:47,036 --> 00:14:49,326
+to the data instead
+of the actual data.
+
+
+307
+00:14:49,466 --> 00:14:53,546
+So it's obviously much faster
+and if it's a large file,
+
+
+308
+00:14:53,616 --> 00:14:55,686
+you're not using twice
+the amount of space,
+
+
+309
+00:14:55,686 --> 00:14:57,246
+you're using exactly
+the same amount
+
+
+310
+00:14:57,246 --> 00:14:59,556
+of space plus a small
+incremental amount
+
+
+311
+00:14:59,846 --> 00:15:01,866
+for the additional
+references to the data.
+
+
+312
+00:15:02,386 --> 00:15:05,076
+What a clone guarantees
+in the file system is
+
+
+313
+00:15:05,076 --> 00:15:07,716
+that if a modification is
+made to either the original
+
+
+314
+00:15:07,716 --> 00:15:09,846
+or the clone, the
+file system will write
+
+
+315
+00:15:09,906 --> 00:15:11,566
+that data to a new location.
+
+
+316
+00:15:11,616 --> 00:15:13,436
+So the clone remains untouched.
+
+
+317
+00:15:14,476 --> 00:15:16,816
+So this is an important
+point to be aware of.
+
+
+318
+00:15:16,916 --> 00:15:20,946
+When you have clones, you
+will, at the time of the clone,
+
+
+319
+00:15:20,946 --> 00:15:22,366
+you're not using any
+additional space.
+
+
+320
+00:15:22,366 --> 00:15:24,966
+As you continue to make
+modifications, you will start
+
+
+321
+00:15:24,966 --> 00:15:26,496
+to use more and more space.
+
+
+322
+00:15:27,316 --> 00:15:33,336
+In addition, because APFS, or
+iOS and macOS support document
+
+
+323
+00:15:33,336 --> 00:15:36,356
+in application bundles,
+APFS will also allow you
+
+
+324
+00:15:36,426 --> 00:15:38,736
+to clone an entire
+directory hierarchy.
+
+
+325
+00:15:38,736 --> 00:15:41,746
+So a document bundle is a
+directory which contains a set
+
+
+326
+00:15:41,746 --> 00:15:43,586
+of files inside of it.
+
+
+327
+00:15:43,586 --> 00:15:45,876
+APFS can clone that
+atomically as well.
+
+
+328
+00:15:47,156 --> 00:15:48,966
+Next let's talk about snapshots.
+
+
+329
+00:15:49,726 --> 00:15:51,346
+Here, we have another
+representation
+
+
+330
+00:15:51,346 --> 00:15:53,356
+of a file system
+with two files in it.
+
+
+331
+00:15:53,686 --> 00:15:55,436
+BikeRacing and CoffeeOrigins.
+
+
+332
+00:15:55,966 --> 00:15:57,506
+BikeRacing has two
+blocks of data.
+
+
+333
+00:15:58,036 --> 00:15:59,526
+And CoffeeOrigins has one.
+
+
+334
+00:15:59,886 --> 00:16:03,536
+If we take snapshot of the file
+system, we now have a separate,
+
+
+335
+00:16:03,666 --> 00:16:07,346
+independently mountable, read
+only copy of the file system
+
+
+336
+00:16:07,986 --> 00:16:11,196
+that represents this data the
+file system at the point in time
+
+
+337
+00:16:11,196 --> 00:16:12,496
+that the snapshot was taken.
+
+
+338
+00:16:12,956 --> 00:16:15,376
+Much like with clones,
+if a write comes
+
+
+339
+00:16:15,376 --> 00:16:18,376
+into the live file system, the
+file system will put that data
+
+
+340
+00:16:18,376 --> 00:16:21,836
+in a new location preserving
+the integrity of the snapshot.
+
+
+341
+00:16:22,916 --> 00:16:27,636
+Likewise, if we were to delete
+CoffeeOrigins.key to try to free
+
+
+342
+00:16:27,636 --> 00:16:31,016
+up some space, the file system
+can't reclaim those blocks
+
+
+343
+00:16:31,086 --> 00:16:34,476
+because as you can see
+the snapshot continues
+
+
+344
+00:16:34,476 --> 00:16:35,676
+to refer to those blocks.
+
+
+345
+00:16:36,046 --> 00:16:37,606
+This is an important
+consideration
+
+
+346
+00:16:37,606 --> 00:16:40,486
+that developers need to be aware
+of when working with snapshots
+
+
+347
+00:16:40,646 --> 00:16:44,536
+because when a file is deleted,
+if it was present at the time
+
+
+348
+00:16:44,536 --> 00:16:46,626
+of a snapshot, the
+blocks aren't reclaimed.
+
+
+349
+00:16:46,916 --> 00:16:49,786
+So snapshots can cause you
+to use all of your disk space
+
+
+350
+00:16:49,786 --> 00:16:52,716
+if you don't harvest
+them periodically.
+
+
+351
+00:16:53,416 --> 00:16:56,366
+We expect that developers
+will probably use snapshots
+
+
+352
+00:16:56,366 --> 00:16:59,926
+for the purposes of having a
+stable read only copy from which
+
+
+353
+00:16:59,926 --> 00:17:02,906
+to perform a backup, but we're
+looking for other feedback
+
+
+354
+00:17:02,906 --> 00:17:04,396
+from developers on other uses
+
+
+355
+00:17:04,396 --> 00:17:05,816
+that they might have
+for snapshots.
+
+
+356
+00:17:05,816 --> 00:17:08,066
+So please come see us
+in the lab at 12:30.
+
+
+357
+00:17:08,396 --> 00:17:10,596
+Let us know what you would
+like to do with snapshots.
+
+
+358
+00:17:12,876 --> 00:17:14,976
+Now let's talk about
+reverting to a snapshot.
+
+
+359
+00:17:14,976 --> 00:17:17,256
+And this is another
+feature that APFS supports.
+
+
+360
+00:17:17,256 --> 00:17:20,175
+So we have the same state of the
+file system here but we decide
+
+
+361
+00:17:20,175 --> 00:17:23,906
+that well, we don't like
+this, we'd like to revert,
+
+
+362
+00:17:23,906 --> 00:17:25,445
+essentially a global undo.
+
+
+363
+00:17:25,445 --> 00:17:28,376
+We want to go back to the point
+in time of the file system
+
+
+364
+00:17:28,376 --> 00:17:30,646
+at the time the snapshot
+was taken.
+
+
+365
+00:17:31,036 --> 00:17:33,956
+So you can flag a
+file system to revert
+
+
+366
+00:17:33,956 --> 00:17:35,136
+to the state of a snapshot.
+
+
+367
+00:17:35,136 --> 00:17:38,606
+And the next time it's mounted,
+the file system will rewind,
+
+
+368
+00:17:38,796 --> 00:17:42,376
+essentially to the point it was
+at the time of the snapshot.
+
+
+369
+00:17:42,656 --> 00:17:44,636
+And then allow you to
+continue making changes
+
+
+370
+00:17:44,636 --> 00:17:45,766
+from that point forward.
+
+
+371
+00:17:45,886 --> 00:17:48,596
+So, again, you can see that
+CoffeeOrigins.key came back
+
+
+372
+00:17:48,956 --> 00:17:49,906
+and the change that was made
+
+
+373
+00:17:49,906 --> 00:17:51,686
+to the other file
+has been discarded.
+
+
+374
+00:17:52,116 --> 00:17:55,026
+The snapshot continues to
+exist and you can revert
+
+
+375
+00:17:55,026 --> 00:17:56,586
+as many times as you would like.
+
+
+376
+00:17:59,286 --> 00:17:59,496
+All right.
+
+
+377
+00:17:59,596 --> 00:18:01,596
+Now let's talk about
+fast directory sizing.
+
+
+378
+00:18:02,346 --> 00:18:03,176
+This is an answer
+
+
+379
+00:18:03,176 --> 00:18:06,386
+to the question how much space
+does a directory hierarchy use.
+
+
+380
+00:18:06,706 --> 00:18:09,876
+Now applications frequently
+need to compute this size
+
+
+381
+00:18:09,876 --> 00:18:13,126
+for sizing an operation to
+provide progress to the user.
+
+
+382
+00:18:13,456 --> 00:18:14,976
+And the obvious way
+to do this is
+
+
+383
+00:18:14,976 --> 00:18:17,766
+to open the directory hierarchy
+iterate all the contents
+
+
+384
+00:18:17,766 --> 00:18:19,946
+recursively and look at the size
+
+
+385
+00:18:19,946 --> 00:18:22,126
+of all the items
+to add the size up.
+
+
+386
+00:18:22,126 --> 00:18:24,596
+Of course users would
+really like to know
+
+
+387
+00:18:24,596 --> 00:18:26,246
+that answer a little
+bit more quickly.
+
+
+388
+00:18:26,636 --> 00:18:29,596
+On this next slide, if you focus
+your attention on the left side
+
+
+389
+00:18:29,596 --> 00:18:32,096
+of the screen, when the
+get info panel comes up,
+
+
+390
+00:18:32,166 --> 00:18:34,586
+you'll see it says,
+calculating size.
+
+
+391
+00:18:36,806 --> 00:18:39,436
+And after a couple of seconds
+it populates with the size.
+
+
+392
+00:18:39,716 --> 00:18:41,226
+That's what we're
+looking to improve.
+
+
+393
+00:18:42,086 --> 00:18:44,466
+So, the file system
+could keep track of this.
+
+
+394
+00:18:44,466 --> 00:18:47,286
+Obviously you could store the
+size of the directory hierarchy
+
+
+395
+00:18:47,316 --> 00:18:50,866
+with the directory itself,
+but that has one main issue,
+
+
+396
+00:18:51,226 --> 00:18:53,456
+how do you safely
+update copy your parent
+
+
+397
+00:18:53,456 --> 00:18:55,286
+and its parents on up the chain.
+
+
+398
+00:18:55,816 --> 00:18:58,476
+So we're just delving a little
+bit into file system internals,
+
+
+399
+00:18:58,536 --> 00:19:02,076
+but when you have a lock on a
+child when you're modifying it,
+
+
+400
+00:19:02,366 --> 00:19:03,906
+you can't also lock your parent,
+
+
+401
+00:19:04,056 --> 00:19:05,766
+because that's a
+lock order violation.
+
+
+402
+00:19:05,766 --> 00:19:09,136
+File system always lock
+from the parent to child,
+
+
+403
+00:19:09,186 --> 00:19:11,006
+never from the child
+to the parent.
+
+
+404
+00:19:11,006 --> 00:19:13,746
+And so if you start doing it
+the other way you have deadlock.
+
+
+405
+00:19:14,866 --> 00:19:17,606
+So APFS instead sidesteps
+the problem.
+
+
+406
+00:19:18,006 --> 00:19:20,266
+If the problem is storing
+the size with the directory,
+
+
+407
+00:19:20,416 --> 00:19:22,146
+well let's store the
+size somewhere else.
+
+
+408
+00:19:22,546 --> 00:19:24,426
+So by storing the
+size separately,
+
+
+409
+00:19:24,776 --> 00:19:27,576
+we can use atomic
+operations to update the size
+
+
+410
+00:19:27,696 --> 00:19:30,516
+in a separate record that's
+maintained by the file system.
+
+
+411
+00:19:30,926 --> 00:19:33,296
+And we don't have any
+lock order violations.
+
+
+412
+00:19:34,126 --> 00:19:36,076
+This comes at a small
+incremental cost
+
+
+413
+00:19:36,076 --> 00:19:39,026
+for the additional size records,
+but that's basically lost
+
+
+414
+00:19:39,026 --> 00:19:40,666
+in the noise with the IO.
+
+
+415
+00:19:41,426 --> 00:19:43,266
+All right.
+
+
+416
+00:19:43,386 --> 00:19:46,036
+Next, we're going to talk about
+atomic safe-save primitives.
+
+
+417
+00:19:46,716 --> 00:19:48,906
+The first example is
+just a basic file.
+
+
+418
+00:19:48,906 --> 00:19:52,496
+This is how safe-save works
+for a regular file today.
+
+
+419
+00:19:52,936 --> 00:19:55,136
+So here I have
+MakeMonneyFast.key.
+
+
+420
+00:19:55,546 --> 00:19:57,276
+And I come up with some
+brilliant new scheme
+
+
+421
+00:19:57,276 --> 00:19:58,556
+for making money fast.
+
+
+422
+00:19:58,876 --> 00:20:01,356
+And when the application
+saves that data, it's written
+
+
+423
+00:20:01,356 --> 00:20:03,906
+to a temporary location
+off on the side.
+
+
+424
+00:20:04,346 --> 00:20:06,936
+When the application is happy
+that everything has been written
+
+
+425
+00:20:07,176 --> 00:20:10,016
+and is safe out on disk,
+it will ask the file system
+
+
+426
+00:20:10,016 --> 00:20:11,106
+to perform a rename.
+
+
+427
+00:20:11,296 --> 00:20:13,826
+Now renames of files
+have always been atomic.
+
+
+428
+00:20:14,216 --> 00:20:16,676
+The file system guarantees that
+it either happens completely,
+
+
+429
+00:20:16,836 --> 00:20:19,196
+and it's safe, or it
+doesn't happen at all.
+
+
+430
+00:20:19,736 --> 00:20:22,246
+In addition, the file system
+will handle deleting the
+
+
+431
+00:20:22,246 --> 00:20:23,976
+previous version
+of the document.
+
+
+432
+00:20:24,306 --> 00:20:26,886
+So that's great for regular
+files, but what happens
+
+
+433
+00:20:26,886 --> 00:20:28,236
+if you have a document bundle?
+
+
+434
+00:20:28,696 --> 00:20:32,516
+So here we have a document
+bundle ClutchConcertReview.rtfd,
+
+
+435
+00:20:32,626 --> 00:20:35,756
+which is a directory
+that contains the assets
+
+
+436
+00:20:35,756 --> 00:20:37,056
+of the document inside of it.
+
+
+437
+00:20:37,566 --> 00:20:40,386
+And what happens today is
+let's say I go see Clutch play
+
+
+438
+00:20:40,386 --> 00:20:43,416
+and they play a really great
+show and I update my review,
+
+
+439
+00:20:43,946 --> 00:20:45,346
+that change is written out,
+
+
+440
+00:20:45,716 --> 00:20:47,996
+but now what commences
+is there's no way
+
+
+441
+00:20:47,996 --> 00:20:51,136
+to do an atomic rename
+of a directory over top
+
+
+442
+00:20:51,136 --> 00:20:54,206
+of another directory, because
+POSIX semantics don't allow
+
+
+443
+00:20:54,836 --> 00:20:57,046
+that if the destination
+has something inside of it.
+
+
+444
+00:20:57,436 --> 00:20:59,186
+So, we begin playing
+a shell game.
+
+
+445
+00:20:59,826 --> 00:21:02,886
+First, the document is moved out
+of the way, the live document.
+
+
+446
+00:21:02,886 --> 00:21:05,396
+So at this point, if
+something were to go wrong
+
+
+447
+00:21:05,396 --> 00:21:06,616
+and the application crashed,
+
+
+448
+00:21:06,616 --> 00:21:09,326
+or the system lost
+power, users data is gone.
+
+
+449
+00:21:10,106 --> 00:21:13,996
+Then, the application moves the
+data into place, and last it has
+
+
+450
+00:21:13,996 --> 00:21:15,906
+to handle deleting
+the previous version
+
+
+451
+00:21:15,906 --> 00:21:18,386
+of the directory,
+the document bundle.
+
+
+452
+00:21:18,706 --> 00:21:20,876
+So this is not atomic
+and it's not safe.
+
+
+453
+00:21:20,876 --> 00:21:22,796
+And this is something
+that has kind of bugged us
+
+
+454
+00:21:22,796 --> 00:21:24,986
+for a very long time and
+we wanted to improve it.
+
+
+455
+00:21:25,546 --> 00:21:29,116
+With APFS we introduced a
+new system called renamex np
+
+
+456
+00:21:29,496 --> 00:21:32,846
+for non POSIX, which
+allows an atomic safe-save
+
+
+457
+00:21:32,846 --> 00:21:33,776
+of the directory.
+
+
+458
+00:21:34,086 --> 00:21:36,686
+So now, when the
+application writes the data
+
+
+459
+00:21:36,686 --> 00:21:38,126
+to its temporary location,
+
+
+460
+00:21:38,536 --> 00:21:41,206
+and asks to perform the
+rename operation APFS
+
+
+461
+00:21:41,486 --> 00:21:43,836
+with atomically handle the swap
+
+
+462
+00:21:44,326 --> 00:21:46,676
+and deleting the previous
+version of the document.
+
+
+463
+00:21:46,676 --> 00:21:49,126
+So this is now atomic and safe.
+
+
+464
+00:21:49,126 --> 00:21:51,426
+Of course as a developer, you
+probably won't have to resort
+
+
+465
+00:21:51,426 --> 00:21:53,846
+to this low-level of system call
+
+
+466
+00:21:54,086 --> 00:21:56,746
+because it's already been
+adopted by Foundation for you.
+
+
+467
+00:21:56,746 --> 00:22:00,766
+So you just get the benefit of
+this improved behavior on APFS.
+
+
+468
+00:22:01,516 --> 00:22:07,816
+[ Applause ]
+
+
+469
+00:22:08,316 --> 00:22:09,996
+Next, I'm going to
+talk about encryption.
+
+
+470
+00:22:11,126 --> 00:22:13,196
+So as Eric mentioned, with HFS+,
+
+
+471
+00:22:13,666 --> 00:22:16,236
+on the Mac we use a
+layer called Core storage
+
+
+472
+00:22:16,276 --> 00:22:19,446
+that sits beneath HFS,
+
+
+473
+00:22:20,016 --> 00:22:22,466
+and provides full disk
+encryption among other things.
+
+
+474
+00:22:22,556 --> 00:22:24,016
+It's a rather sophisticated
+layer,
+
+
+475
+00:22:24,016 --> 00:22:25,156
+and it does a lot of things.
+
+
+476
+00:22:25,936 --> 00:22:28,076
+On iOS, we have a
+different variant
+
+
+477
+00:22:28,076 --> 00:22:31,806
+that stores encryption keys and
+extended attributes that work.
+
+
+478
+00:22:31,806 --> 00:22:33,696
+And those encryption
+keys work in conjunction
+
+
+479
+00:22:33,696 --> 00:22:37,186
+with the accelerated AES
+hardware found on iOS devices
+
+
+480
+00:22:37,186 --> 00:22:39,046
+to provide per file encryption.
+
+
+481
+00:22:39,436 --> 00:22:41,016
+It's a kind of complicated story
+
+
+482
+00:22:41,016 --> 00:22:42,946
+with two rather different
+code bases.
+
+
+483
+00:22:43,286 --> 00:22:45,176
+And with APFS, we
+were looking to try
+
+
+484
+00:22:45,176 --> 00:22:47,566
+and provide a more
+complete story
+
+
+485
+00:22:47,566 --> 00:22:49,026
+across all of our products.
+
+
+486
+00:22:49,916 --> 00:22:53,386
+So APFS supports multiple levels
+of file system encryption.
+
+
+487
+00:22:54,026 --> 00:22:56,466
+But first, the easiest level
+we got this working day one,
+
+
+488
+00:22:56,466 --> 00:22:57,246
+is no encryption.
+
+
+489
+00:22:57,736 --> 00:23:00,016
+All data is written in
+plain text, all data
+
+
+490
+00:23:00,016 --> 00:23:02,456
+and metadata is written
+in plain text to disk.
+
+
+491
+00:23:03,056 --> 00:23:05,896
+The next level is to
+have one key per volume.
+
+
+492
+00:23:06,386 --> 00:23:08,296
+So all sensitive metadata
+
+
+493
+00:23:08,566 --> 00:23:10,886
+and data are encrypted
+with the same key.
+
+
+494
+00:23:11,126 --> 00:23:12,646
+This is essentially
+the equivalent
+
+
+495
+00:23:12,646 --> 00:23:13,846
+of full disk encryption.
+
+
+496
+00:23:14,536 --> 00:23:15,846
+The most sophisticated level
+
+
+497
+00:23:15,846 --> 00:23:18,036
+that we support is
+multi-key encryption.
+
+
+498
+00:23:18,436 --> 00:23:21,376
+Here, sensitive Metadata
+is encrypted
+
+
+499
+00:23:22,146 --> 00:23:26,286
+with a single key that's
+distinct from the per file keys
+
+
+500
+00:23:26,326 --> 00:23:30,256
+that are used in
+encrypting individual files.
+
+
+501
+00:23:30,606 --> 00:23:33,376
+In addition, because of how
+snapshots and clones work,
+
+
+502
+00:23:33,736 --> 00:23:36,426
+APFS supports per
+extent encryption.
+
+
+503
+00:23:36,456 --> 00:23:40,076
+So each region of a file can
+be encrypted with its own key.
+
+
+504
+00:23:40,526 --> 00:23:42,426
+This is unique and
+no other file system
+
+
+505
+00:23:42,426 --> 00:23:44,446
+out there supports
+anything like this.
+
+
+506
+00:23:44,896 --> 00:23:47,706
+In addition, this allows us
+to unify our encryption story
+
+
+507
+00:23:47,706 --> 00:23:49,276
+across all of our platforms.
+
+
+508
+00:23:49,916 --> 00:23:52,036
+All right and with that I'll
+turn it back over to Eric.
+
+
+509
+00:23:53,516 --> 00:23:59,276
+[ Applause ]
+
+
+510
+00:23:59,776 --> 00:24:02,166
+>> Okay so now I'm going
+to show you a quick demo
+
+
+511
+00:24:02,316 --> 00:24:06,766
+of Apple File System on MacOS
+Sierra using the WWDC build.
+
+
+512
+00:24:09,956 --> 00:24:12,066
+So probably the easiest
+and fastest way
+
+
+513
+00:24:12,066 --> 00:24:13,296
+to start experimenting
+
+
+514
+00:24:13,296 --> 00:24:15,606
+with Apple File System
+is to use a disk image.
+
+
+515
+00:24:15,606 --> 00:24:16,806
+So we're going to do that first.
+
+
+516
+00:24:17,886 --> 00:24:20,676
+So, you can see on the command
+line here I've typed hdiutil
+
+
+517
+00:24:20,676 --> 00:24:24,506
+create-fs APFS which specifies
+create me a disk image
+
+
+518
+00:24:24,506 --> 00:24:27,216
+of type APFS, we give it
+a size and we're going
+
+
+519
+00:24:27,216 --> 00:24:28,196
+to do a sparse bundle.
+
+
+520
+00:24:28,836 --> 00:24:29,856
+So it's going to warn you here,
+
+
+521
+00:24:29,856 --> 00:24:32,016
+because this is an
+in-development project
+
+
+522
+00:24:32,266 --> 00:24:34,566
+and we want you to be aware
+
+
+523
+00:24:34,566 --> 00:24:39,076
+that you are using something
+that's not completed 100% yet.
+
+
+524
+00:24:39,426 --> 00:24:42,626
+So, at this point it will
+prompt me, I'll say yes.
+
+
+525
+00:24:44,556 --> 00:24:47,446
+And you've created the disk
+image, which if I attach.
+
+
+526
+00:24:53,056 --> 00:24:55,216
+You can examine that on
+the desktop, do a get info.
+
+
+527
+00:24:56,206 --> 00:24:59,446
+You can see that in fact the
+file system type is the APFS.
+
+
+528
+00:24:59,446 --> 00:25:01,196
+So that's probably the
+easiest way if you want
+
+
+529
+00:25:01,196 --> 00:25:03,866
+to just get something
+and try it out.
+
+
+530
+00:25:05,186 --> 00:25:09,226
+So next I want to show
+you some of the other,
+
+
+531
+00:25:09,226 --> 00:25:12,186
+more advanced features
+that we've added.
+
+
+532
+00:25:13,356 --> 00:25:13,876
+I'll close that.
+
+
+533
+00:25:14,436 --> 00:25:17,486
+So here I have two thumb sticks.
+
+
+534
+00:25:17,486 --> 00:25:19,106
+These are just ordinary
+thumb sticks.
+
+
+535
+00:25:19,106 --> 00:25:23,036
+You can get them at any
+standard office supply store.
+
+
+536
+00:25:23,676 --> 00:25:24,666
+So I will plug in one.
+
+
+537
+00:25:24,666 --> 00:25:27,626
+One is formatted as HFS+
+and the other is formatted
+
+
+538
+00:25:27,626 --> 00:25:29,036
+as Apple File System.
+
+
+539
+00:25:39,056 --> 00:25:41,756
+So we'll also do
+a get info on both
+
+
+540
+00:25:41,756 --> 00:25:44,746
+so you can watch the free
+space as it manipulates.
+
+
+541
+00:25:45,336 --> 00:25:51,836
+So at this point I have some
+demo photos of a trip to Italy.
+
+
+542
+00:25:51,836 --> 00:25:55,746
+And there's a good
+amount of storage in both
+
+
+543
+00:25:55,746 --> 00:25:56,886
+of those directory hierarchies.
+
+
+544
+00:25:57,366 --> 00:26:00,586
+But first we're going to start
+by copying this latest copy
+
+
+545
+00:26:00,586 --> 00:26:02,566
+of iTunes in the HFS volume
+
+
+546
+00:26:02,566 --> 00:26:04,846
+and then we'll do the
+same thing in APFS.
+
+
+547
+00:26:04,846 --> 00:26:07,896
+So start the copy, as that goes.
+
+
+548
+00:26:07,896 --> 00:26:09,966
+You can see the progress
+bar there,
+
+
+549
+00:26:10,506 --> 00:26:11,716
+but APFS already finished.
+
+
+550
+00:26:11,906 --> 00:26:13,626
+Because it uses the
+clone under the cover.
+
+
+551
+00:26:13,626 --> 00:26:17,076
+So finder has already adopted
+all of the new cloning behavior.
+
+
+552
+00:26:17,076 --> 00:26:19,716
+So if you do a copy and finder
+it will automatically clone
+
+
+553
+00:26:19,716 --> 00:26:21,046
+for you behind the scenes.
+
+
+554
+00:26:21,046 --> 00:26:22,926
+And HFS still hasn't
+finished yet.
+
+
+555
+00:26:23,516 --> 00:26:26,956
+[ Applause ]
+
+
+556
+00:26:27,456 --> 00:26:31,506
+Okay, so I could do the same
+thing with the demo photos,
+
+
+557
+00:26:31,506 --> 00:26:33,866
+which you can look in here,
+there's several photos,
+
+
+558
+00:26:33,866 --> 00:26:36,166
+they're all several
+megabytes in size.
+
+
+559
+00:26:36,696 --> 00:26:43,056
+Pay attention to the free space
+up here, 3.35-gigabytes free.
+
+
+560
+00:26:43,146 --> 00:26:46,986
+So if I do a copy, it's actually
+going to do a clone for me
+
+
+561
+00:26:47,196 --> 00:26:50,216
+and you notice the free space
+actually did not decrease
+
+
+562
+00:26:50,216 --> 00:26:50,486
+at all.
+
+
+563
+00:26:52,476 --> 00:26:56,996
+So next, I'm going to
+show taking a snapshot.
+
+
+564
+00:26:58,396 --> 00:27:01,126
+So this uses the tool
+called SnapshotUtil
+
+
+565
+00:27:01,126 --> 00:27:03,626
+which will be available
+in the public data once
+
+
+566
+00:27:03,626 --> 00:27:05,656
+that releases to everybody.
+
+
+567
+00:27:06,656 --> 00:27:09,596
+Oh, sorry this needs
+to be run as root.
+
+
+568
+00:27:12,046 --> 00:27:13,966
+Okay so now I've
+created a snapshot,
+
+
+569
+00:27:13,966 --> 00:27:17,586
+I can examine it
+with Snapshotutil-s.
+
+
+570
+00:27:24,046 --> 00:27:26,606
+And you can see that it
+now knows about APFS Snap.
+
+
+571
+00:27:27,136 --> 00:27:32,386
+So I've created a map point,
+already before this session.
+
+
+572
+00:27:33,016 --> 00:27:36,666
+So I will mount this
+snapshot at this time.
+
+
+573
+00:27:37,256 --> 00:27:39,146
+And you can see that
+the snapshot showed
+
+
+574
+00:27:39,146 --> 00:27:42,336
+up on the desktop and this
+contains a read only view
+
+
+575
+00:27:42,336 --> 00:27:44,966
+of the file system as
+it exists at the time
+
+
+576
+00:27:45,076 --> 00:27:45,776
+that I just took it, so.
+
+
+577
+00:27:46,516 --> 00:27:53,426
+[ Applause ]
+
+
+578
+00:27:53,926 --> 00:27:54,986
+So now in the APFS volume,
+
+
+579
+00:27:54,986 --> 00:27:57,706
+I'm going to create
+a temporary file,
+
+
+580
+00:27:59,466 --> 00:28:01,906
+hello I am a temporary file.
+
+
+581
+00:28:03,096 --> 00:28:04,596
+Save that, close it.
+
+
+582
+00:28:04,596 --> 00:28:06,346
+You can see that
+it showed up here
+
+
+583
+00:28:06,686 --> 00:28:09,306
+in that APFS volume this
+is mounted read write.
+
+
+584
+00:28:09,366 --> 00:28:11,726
+But it's not there
+in the snapshot.
+
+
+585
+00:28:14,136 --> 00:28:18,006
+Correspondingly, I
+can also delete some
+
+
+586
+00:28:18,006 --> 00:28:19,446
+of these demo photos.
+
+
+587
+00:28:19,676 --> 00:28:22,466
+I'll move them to the
+trash and then delete them.
+
+
+588
+00:28:24,146 --> 00:28:26,526
+The free space actually
+still does not decrease,
+
+
+589
+00:28:26,556 --> 00:28:31,006
+because now they're pinned by
+the presence of the snapshot.
+
+
+590
+00:28:31,116 --> 00:28:33,306
+So if I wanted to delete
+them I would also have
+
+
+591
+00:28:33,366 --> 00:28:35,936
+to delete the snapshot.
+
+
+592
+00:28:38,476 --> 00:28:40,456
+Okay, so that's just
+a quick peak
+
+
+593
+00:28:40,646 --> 00:28:43,076
+of Apple File System in action.
+
+
+594
+00:28:44,516 --> 00:28:50,546
+[ Applause ]
+
+
+595
+00:28:51,046 --> 00:28:53,836
+Okay, so let's talk about some
+of the new APIs that we've added
+
+
+596
+00:28:53,916 --> 00:28:55,356
+to support Apple File System.
+
+
+597
+00:28:56,476 --> 00:28:59,196
+So first, is one that
+we probably expect
+
+
+598
+00:28:59,196 --> 00:28:59,976
+that you're familiar with.
+
+
+599
+00:28:59,976 --> 00:29:01,446
+If you're using the Foundation
+
+
+600
+00:29:01,446 --> 00:29:04,576
+or the FileManager these have
+both been Swift enhanced.
+
+
+601
+00:29:05,076 --> 00:29:09,116
+So is use copy item or replace
+item they will adopt either the
+
+
+602
+00:29:09,176 --> 00:29:12,186
+clone or the safe-save
+semantics that we just described
+
+
+603
+00:29:12,186 --> 00:29:14,146
+for you automatically, you
+don't have to do anything
+
+
+604
+00:29:14,296 --> 00:29:15,246
+so it just comes for free.
+
+
+605
+00:29:15,786 --> 00:29:16,736
+It automatically figures
+
+
+606
+00:29:16,736 --> 00:29:19,466
+out if the file system
+you're suing is HFS+
+
+
+607
+00:29:19,466 --> 00:29:21,836
+or Apple File System and
+will use the behavior only
+
+
+608
+00:29:21,836 --> 00:29:22,996
+when it is appropriate.
+
+
+609
+00:29:24,476 --> 00:29:27,236
+If, however you decide
+that the Foundation
+
+
+610
+00:29:27,236 --> 00:29:29,476
+or the FileManager doesn't
+provide exactly what you need,
+
+
+611
+00:29:29,476 --> 00:29:31,056
+you can go a little bit lower
+
+
+612
+00:29:31,056 --> 00:29:33,396
+and we have a library
+called libcopyfile.
+
+
+613
+00:29:33,396 --> 00:29:36,426
+And this supports the
+copying of deep hierarchies
+
+
+614
+00:29:36,426 --> 00:29:37,896
+and this is what we
+used for a number
+
+
+615
+00:29:37,896 --> 00:29:39,296
+of years before we had cloning.
+
+
+616
+00:29:40,066 --> 00:29:43,236
+So copy files supports a new
+bit, called COPYFILE CLONE.
+
+
+617
+00:29:43,346 --> 00:29:46,816
+It's equivalent to the 5 or
+6-bits that are below it.
+
+
+618
+00:29:47,236 --> 00:29:48,756
+And we decided to
+make this opt-in
+
+
+619
+00:29:48,756 --> 00:29:50,776
+because if you're using
+a specialized library
+
+
+620
+00:29:50,776 --> 00:29:53,446
+like this you may not
+necessarily want your
+
+
+621
+00:29:53,446 --> 00:29:55,396
+[inaudible] and extended
+attributes and everything else
+
+
+622
+00:29:55,396 --> 00:29:58,326
+to be copied exactly
+as they are.
+
+
+623
+00:29:58,726 --> 00:30:01,286
+Whereas cloning will implicitly
+copy all of those things.
+
+
+624
+00:30:01,686 --> 00:30:05,616
+Again, this library will also
+automatically call clone for you
+
+
+625
+00:30:05,616 --> 00:30:07,236
+if the backend file
+system supports it.
+
+
+626
+00:30:07,516 --> 00:30:09,766
+And if not it will continue
+to do what it's always done.
+
+
+627
+00:30:11,416 --> 00:30:14,156
+These are the new
+safe-save APIs, so renamex np
+
+
+628
+00:30:14,156 --> 00:30:17,736
+and renameatx np are
+the new system calls
+
+
+629
+00:30:17,736 --> 00:30:20,116
+to support the safe-save
+primitives.
+
+
+630
+00:30:20,796 --> 00:30:23,136
+These are available in the
+Man Pages in your version
+
+
+631
+00:30:23,136 --> 00:30:25,266
+of macOS Sierra that you have
+so if you'd like to take a peek
+
+
+632
+00:30:25,266 --> 00:30:26,876
+at the Man Page,
+they're right there.
+
+
+633
+00:30:27,026 --> 00:30:29,706
+And these are the
+cloning APIs as well.
+
+
+634
+00:30:29,836 --> 00:30:33,036
+So clone files and its
+variance, support the cloning
+
+
+635
+00:30:33,036 --> 00:30:34,216
+of files and directories.
+
+
+636
+00:30:35,276 --> 00:30:38,996
+So a word on compatibility,
+we expect that the easiest way
+
+
+637
+00:30:38,996 --> 00:30:41,776
+to get access to an
+Apple File System images
+
+
+638
+00:30:41,776 --> 00:30:44,036
+to use hdiutil as I showed you.
+
+
+639
+00:30:44,406 --> 00:30:46,406
+It's currently available
+in the command line only
+
+
+640
+00:30:46,486 --> 00:30:50,026
+for macOS Sierra so as a
+developer preview technology has
+
+
+641
+00:30:50,026 --> 00:30:53,276
+not been fully wired up into
+disk utility intentionally.
+
+
+642
+00:30:53,596 --> 00:30:55,476
+So the fastest way
+to use something
+
+
+643
+00:30:55,476 --> 00:30:57,446
+like this hdiutil create-fs APFS
+
+
+644
+00:30:57,446 --> 00:31:01,046
+and you can get a disk
+image and attach it.
+
+
+645
+00:31:01,516 --> 00:31:05,766
+You can also use diskutil
+apfs to add a container,
+
+
+646
+00:31:05,766 --> 00:31:07,996
+delete a container, add a
+volume, delete a volume.
+
+
+647
+00:31:08,286 --> 00:31:11,576
+Whatever lower-level
+manipulations you want to do
+
+
+648
+00:31:11,746 --> 00:31:12,916
+to the container itself.
+
+
+649
+00:31:13,666 --> 00:31:15,196
+And finally, we also
+have an FS check
+
+
+650
+00:31:15,306 --> 00:31:16,936
+that we've been working
+on as well.
+
+
+651
+00:31:17,276 --> 00:31:20,326
+So this will be able to
+validate the file system
+
+
+652
+00:31:20,326 --> 00:31:21,626
+as well as perform repairs.
+
+
+653
+00:31:21,976 --> 00:31:24,246
+So that's also continuing
+to be in development.
+
+
+654
+00:31:25,266 --> 00:31:27,216
+So, some current limitations
+
+
+655
+00:31:27,216 --> 00:31:30,086
+of Apple File System file
+system in macOS Sierra.
+
+
+656
+00:31:31,136 --> 00:31:32,926
+This will be supported
+on data volumes only.
+
+
+657
+00:31:32,926 --> 00:31:35,566
+We don't support booting from
+Apple File System right now.
+
+
+658
+00:31:37,006 --> 00:31:40,556
+Time machine backups with Apple
+File System are not supported
+
+
+659
+00:31:40,556 --> 00:31:40,996
+right now.
+
+
+660
+00:31:42,556 --> 00:31:45,466
+File vault and fusion drive
+support is still forthcoming.
+
+
+661
+00:31:46,646 --> 00:31:49,746
+And currently the volume
+format is case sensitive only
+
+
+662
+00:31:49,746 --> 00:31:50,156
+right now.
+
+
+663
+00:31:50,246 --> 00:31:53,406
+So if you're not sure that your
+app requires case insensitivity
+
+
+664
+00:31:53,796 --> 00:31:56,206
+please give it a try, create
+a disk image or set it
+
+
+665
+00:31:56,206 --> 00:32:00,246
+up on a partition on your
+Mac, try substantiating it
+
+
+666
+00:32:00,246 --> 00:32:03,286
+and running your app
+from Apple File System
+
+
+667
+00:32:03,286 --> 00:32:05,166
+and let us know how it's doing.
+
+
+668
+00:32:07,476 --> 00:32:09,036
+Some other compatibility notes.
+
+
+669
+00:32:09,596 --> 00:32:12,186
+Apple File System cannot
+be shared over AFP.
+
+
+670
+00:32:12,186 --> 00:32:15,876
+So if you want to use
+file sharing, we recommend
+
+
+671
+00:32:15,876 --> 00:32:17,656
+that you use SNB instead
+
+
+672
+00:32:17,746 --> 00:32:21,576
+as a preferred file sharing
+mechanism moving forward.
+
+
+673
+00:32:21,796 --> 00:32:26,026
+OS X Yosemite or earlier
+will not recognize Apple File
+
+
+674
+00:32:26,026 --> 00:32:26,726
+System volume.
+
+
+675
+00:32:26,726 --> 00:32:29,466
+So please do not take an Apple
+File System instance all the way
+
+
+676
+00:32:29,466 --> 00:32:32,046
+back to OS X Yosemite
+or earlier.
+
+
+677
+00:32:32,046 --> 00:32:34,286
+You will inevitably
+get a dialogue
+
+
+678
+00:32:34,286 --> 00:32:36,476
+that you don't want
+to respond to.
+
+
+679
+00:32:37,896 --> 00:32:38,156
+So, [laughter].
+
+
+680
+00:32:38,196 --> 00:32:43,446
+macOS Sierra will have
+a developer preview
+
+
+681
+00:32:43,446 --> 00:32:44,976
+of Apple File System.
+
+
+682
+00:32:45,626 --> 00:32:49,036
+And it will be a developer
+preview technology once macOS
+
+
+683
+00:32:49,526 --> 00:32:52,466
+Sierra ships this fall.
+
+
+684
+00:32:52,686 --> 00:32:55,976
+So now you might be wondering
+what's our roll-out plan.
+
+
+685
+00:32:55,976 --> 00:32:57,416
+How do all of you get access
+
+
+686
+00:32:57,446 --> 00:32:59,686
+to Apple File System
+on your machines?
+
+
+687
+00:33:01,316 --> 00:33:02,086
+We'll talk about that.
+
+
+688
+00:33:03,626 --> 00:33:05,096
+So upgrading to Apple
+File System.
+
+
+689
+00:33:05,096 --> 00:33:06,416
+So you want these
+great new features
+
+
+690
+00:33:06,416 --> 00:33:08,256
+that we've shown you,
+how do you get them?
+
+
+691
+00:33:08,846 --> 00:33:11,816
+Well one way we could do
+this is to require everybody,
+
+
+692
+00:33:11,816 --> 00:33:14,716
+all users to back up their
+systems, save it away,
+
+
+693
+00:33:14,716 --> 00:33:16,256
+make sure everything's
+completely safe
+
+
+694
+00:33:16,436 --> 00:33:18,616
+and then erase the
+volume, erase the device,
+
+
+695
+00:33:18,886 --> 00:33:21,776
+restore it put a new OS back on
+and then restore from backup.
+
+
+696
+00:33:22,086 --> 00:33:23,666
+A process which will
+take several hours,
+
+
+697
+00:33:24,036 --> 00:33:25,866
+and hope that everything's
+exactly as it was
+
+
+698
+00:33:25,866 --> 00:33:26,816
+after you've restored it.
+
+
+699
+00:33:27,526 --> 00:33:28,286
+Well, we're not doing that.
+
+
+700
+00:33:29,316 --> 00:33:32,476
+Instead, Apple will provide
+an in-place upgrade path
+
+
+701
+00:33:32,706 --> 00:33:35,466
+from HFS+ to Apple File System.
+
+
+702
+00:33:36,516 --> 00:33:40,906
+[ Applause ]
+
+
+703
+00:33:41,406 --> 00:33:44,806
+In doing this, the user data
+will remain exactly where it is
+
+
+704
+00:33:45,276 --> 00:33:49,096
+and we will write, or Apple
+will write the APFS metadata,
+
+
+705
+00:33:49,096 --> 00:33:51,946
+brand new, into the
+HPF+ free space.
+
+
+706
+00:33:52,076 --> 00:33:54,516
+And we're doing this
+for crash protection.
+
+
+707
+00:33:55,256 --> 00:33:56,856
+This is a multi-second
+
+
+708
+00:33:56,856 --> 00:33:59,236
+to multi-minute operation
+potentially.
+
+
+709
+00:33:59,836 --> 00:34:02,896
+And over that time, if the
+device loses power, panics,
+
+
+710
+00:34:02,896 --> 00:34:06,126
+anything bad happens we want the
+data on the device to be safe
+
+
+711
+00:34:06,126 --> 00:34:07,996
+and sound as if nothing
+had ever happened.
+
+
+712
+00:34:08,565 --> 00:34:12,065
+So the Apple File System
+Converter will try to be
+
+
+713
+00:34:12,065 --> 00:34:13,266
+as atomic as possible.
+
+
+714
+00:34:13,266 --> 00:34:14,886
+It's not completely
+instantaneous,
+
+
+715
+00:34:14,996 --> 00:34:17,775
+but as the operation is
+ongoing, if the device crashes,
+
+
+716
+00:34:18,306 --> 00:34:20,466
+we intend for it
+to be completely
+
+
+717
+00:34:20,585 --> 00:34:23,096
+as if nothing had ever happened.
+
+
+718
+00:34:24,335 --> 00:34:26,406
+So Apple File System will ship,
+
+
+719
+00:34:26,406 --> 00:34:29,496
+by default on all
+devices in 2017.
+
+
+720
+00:34:31,516 --> 00:34:36,946
+[ Applause ]
+
+
+721
+00:34:37,446 --> 00:34:41,856
+So to summarize, Apple File
+System will be the default file
+
+
+722
+00:34:41,856 --> 00:34:46,065
+system for all Apple products
+2017, it's ultra-modern,
+
+
+723
+00:34:46,576 --> 00:34:49,045
+it's crash protected, it
+supports Space Sharing,
+
+
+724
+00:34:50,306 --> 00:34:52,156
+we support cloning
+and snapshots.
+
+
+725
+00:34:52,525 --> 00:34:55,686
+Enhanced data security features
+like the multikey encryption
+
+
+726
+00:34:55,996 --> 00:34:56,976
+that we just discussed.
+
+
+727
+00:34:58,016 --> 00:35:01,376
+It's also been tuned and
+designed specifically
+
+
+728
+00:35:01,376 --> 00:35:03,746
+for the Apple ecosystem
+in all of our devices.
+
+
+729
+00:35:04,516 --> 00:35:07,786
+So you can get more information
+about Apple File System
+
+
+730
+00:35:08,106 --> 00:35:12,746
+at this URL behind me that will
+have a developer guide as well
+
+
+731
+00:35:12,746 --> 00:35:16,156
+as some sample code so that
+you can see cloning of files
+
+
+732
+00:35:16,156 --> 00:35:17,636
+and directories in action.
+
+
+733
+00:35:18,906 --> 00:35:21,816
+So some takeaways for all
+of you in the audience.
+
+
+734
+00:35:22,356 --> 00:35:23,916
+Apple File System
+is coming soon,
+
+
+735
+00:35:23,916 --> 00:35:26,196
+2017 will be here
+before we know it.
+
+
+736
+00:35:26,466 --> 00:35:29,966
+I want you to please test your
+apps against Apple File System
+
+
+737
+00:35:29,966 --> 00:35:32,406
+with the macOS build
+that you got yesterday.
+
+
+738
+00:35:33,086 --> 00:35:35,166
+Try running your apps
+on Apple File System.
+
+
+739
+00:35:35,286 --> 00:35:37,966
+Please let us know
+how that process goes.
+
+
+740
+00:35:38,386 --> 00:35:41,986
+If you report any bugs, please
+report them through Bug Reporter
+
+
+741
+00:35:41,986 --> 00:35:44,126
+through traditional means
+so that we can investigate.
+
+
+742
+00:35:44,366 --> 00:35:47,086
+We all want you to love
+it as much as we do.
+
+
+743
+00:35:47,596 --> 00:35:51,706
+So, some related sessions.
+
+
+744
+00:35:51,706 --> 00:35:53,776
+If you're interested in
+learning more about some
+
+
+745
+00:35:53,776 --> 00:35:56,746
+of the security features on
+our platform, specifically iOS,
+
+
+746
+00:35:56,826 --> 00:35:59,726
+we recommend that
+you can take a look
+
+
+747
+00:35:59,726 --> 00:36:02,026
+at How iOS Security
+Really Works, which will be
+
+
+748
+00:36:02,026 --> 00:36:04,116
+in this room today at 4 o'clock.
+
+
+749
+00:36:04,646 --> 00:36:07,506
+And with that, that's Apple
+File System, we can't wait
+
+
+750
+00:36:07,506 --> 00:36:08,526
+to see how you're
+going to use it.
+
+
+751
+00:36:09,508 --> 00:36:11,508
+[ Applause ]
+

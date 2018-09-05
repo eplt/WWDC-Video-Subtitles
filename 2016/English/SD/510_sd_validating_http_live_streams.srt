@@ -1,0 +1,2349 @@
+1
+00:00:07,516 --> 00:00:17,500
+[ Music ]
+
+
+2
+00:00:20,046 --> 00:00:21,486
+>> Hello. Welcome
+to this session
+
+
+3
+00:00:21,486 --> 00:00:24,026
+on Validating HTTP Live Streams.
+
+
+4
+00:00:24,556 --> 00:00:25,536
+My name is Eryk.
+
+
+5
+00:00:25,616 --> 00:00:27,316
+I'm a media engineer at Apple.
+
+
+6
+00:00:27,526 --> 00:00:28,336
+Let's get started.
+
+
+7
+00:00:28,756 --> 00:00:31,766
+What are we doing when
+we validate a stream?
+
+
+8
+00:00:32,046 --> 00:00:34,206
+We're trying to ensure
+the stream is correct.
+
+
+9
+00:00:34,436 --> 00:00:35,946
+At least in terms
+of its structure.
+
+
+10
+00:00:36,766 --> 00:00:39,566
+Structural checks can't find
+all the potential problems,
+
+
+11
+00:00:39,566 --> 00:00:41,736
+but it will eliminate
+a lot of them.
+
+
+12
+00:00:42,526 --> 00:00:46,606
+To be more precise, we first
+want the playlist and segments
+
+
+13
+00:00:46,606 --> 00:00:47,886
+to be properly formatted.
+
+
+14
+00:00:48,256 --> 00:00:51,486
+That is, is the software going
+to be able to parse the stream?
+
+
+15
+00:00:52,526 --> 00:00:54,896
+Second, we have some
+additional requirements.
+
+
+16
+00:00:55,076 --> 00:00:58,926
+For example, the HLS spec does
+not require I frame playlists.
+
+
+17
+00:00:59,006 --> 00:01:00,686
+But we want to require them,
+
+
+18
+00:01:00,876 --> 00:01:03,006
+because they improve the
+experience for the user.
+
+
+19
+00:01:03,996 --> 00:01:05,756
+Third, we want these streams
+
+
+20
+00:01:05,756 --> 00:01:08,366
+to reflect established
+best practices.
+
+
+21
+00:01:09,676 --> 00:01:12,336
+Ultimately, this
+is all in service
+
+
+22
+00:01:12,336 --> 00:01:15,546
+of making sure the stream
+plays well on your devices.
+
+
+23
+00:01:17,376 --> 00:01:20,236
+So let's talk about the
+specifications we have.
+
+
+24
+00:01:21,506 --> 00:01:24,756
+The most important is the
+HLS specification itself.
+
+
+25
+00:01:25,226 --> 00:01:28,136
+If you've been working with
+HLS for any length of time,
+
+
+26
+00:01:28,216 --> 00:01:30,296
+you've probably read this
+document a time or two.
+
+
+27
+00:01:31,116 --> 00:01:34,976
+It is an Internet
+Engineering Taskforce --
+
+
+28
+00:01:35,036 --> 00:01:36,756
+IETF, internet draft.
+
+
+29
+00:01:37,506 --> 00:01:39,176
+You can find it just
+by searching
+
+
+30
+00:01:39,176 --> 00:01:40,966
+on the web for "draft pantos".
+
+
+31
+00:01:41,806 --> 00:01:44,266
+The first version was
+published seven years ago.
+
+
+32
+00:01:45,006 --> 00:01:46,986
+We updated two or
+three times a year.
+
+
+33
+00:01:47,366 --> 00:01:49,676
+It details the structure
+of playlists.
+
+
+34
+00:01:49,856 --> 00:01:52,126
+What kinds of tags
+exists, and their format.
+
+
+35
+00:01:52,586 --> 00:01:54,136
+And explains the
+responsibilities
+
+
+36
+00:01:54,136 --> 00:01:55,806
+for the clients and the server.
+
+
+37
+00:01:57,636 --> 00:02:00,546
+More recently we
+introduced a new document.
+
+
+38
+00:02:00,546 --> 00:02:02,266
+The HLS Authoring Specification.
+
+
+39
+00:02:03,106 --> 00:02:06,016
+This is available in
+the reference library.
+
+
+40
+00:02:06,266 --> 00:02:09,506
+We first published it
+last fall just for tvOS.
+
+
+41
+00:02:09,626 --> 00:02:14,716
+For WWDC, we've updated it to
+cover iOS and OS X as well.
+
+
+42
+00:02:15,416 --> 00:02:18,886
+This document tries to cover
+what constitutes well-structured
+
+
+43
+00:02:18,886 --> 00:02:19,746
+HLS content.
+
+
+44
+00:02:22,016 --> 00:02:23,876
+The requirements
+
+
+45
+00:02:23,876 --> 00:02:26,696
+in the authoring specification
+come from several sources.
+
+
+46
+00:02:27,436 --> 00:02:30,816
+Some echo requirements
+from the HLS specification.
+
+
+47
+00:02:30,966 --> 00:02:33,886
+For example, where
+discontinuities should be.
+
+
+48
+00:02:33,886 --> 00:02:36,336
+What your playlist
+duration should be.
+
+
+49
+00:02:36,976 --> 00:02:38,756
+Some have to do with
+device support.
+
+
+50
+00:02:38,876 --> 00:02:42,416
+For example, that all your
+video needs to be H.264.
+
+
+51
+00:02:42,826 --> 00:02:45,796
+Or that you can't have more than
+60 frame per second content.
+
+
+52
+00:02:47,006 --> 00:02:49,426
+Others come from the
+desired user experience.
+
+
+53
+00:02:49,676 --> 00:02:53,356
+For example, the I-Frame
+intervals that we expect.
+
+
+54
+00:02:53,506 --> 00:02:55,676
+Or, the fact that we want
+you to support trick play.
+
+
+55
+00:02:56,826 --> 00:03:00,116
+A number are informed
+by the past seven years
+
+
+56
+00:03:00,116 --> 00:03:02,486
+of our experience
+and our analysis.
+
+
+57
+00:03:02,946 --> 00:03:05,946
+I'm talking about the
+recommendations we have
+
+
+58
+00:03:05,946 --> 00:03:06,916
+around delivery.
+
+
+59
+00:03:07,216 --> 00:03:08,626
+The bitrates we recommend.
+
+
+60
+00:03:08,976 --> 00:03:12,016
+And our recommendations
+around privacy and security.
+
+
+61
+00:03:14,196 --> 00:03:18,106
+The requirements I've listed
+here are just some examples
+
+
+62
+00:03:18,106 --> 00:03:20,406
+to give you a flavor of
+what's in the document.
+
+
+63
+00:03:20,576 --> 00:03:24,016
+The specification itself
+is broken into categories.
+
+
+64
+00:03:24,016 --> 00:03:25,316
+Like video encoding.
+
+
+65
+00:03:25,476 --> 00:03:26,076
+Trick Play.
+
+
+66
+00:03:26,306 --> 00:03:27,526
+Media segmentation.
+
+
+67
+00:03:27,726 --> 00:03:30,906
+Delivery and so on.
+
+
+68
+00:03:31,836 --> 00:03:33,226
+Now of course we
+don't expect you
+
+
+69
+00:03:33,226 --> 00:03:34,926
+to do this validation by hand.
+
+
+70
+00:03:35,146 --> 00:03:37,396
+So let's look at the
+tools we provide.
+
+
+71
+00:03:38,086 --> 00:03:40,876
+But first, you need
+to get the tools.
+
+
+72
+00:03:41,126 --> 00:03:44,216
+Everything important about
+HLS can be found here
+
+
+73
+00:03:44,216 --> 00:03:48,646
+at the developer streaming page,
+developer.apple.com/streaming.
+
+
+74
+00:03:49,746 --> 00:03:51,556
+Now if we scroll
+down a bit, down --
+
+
+75
+00:03:51,556 --> 00:03:53,706
+halfway down on the
+right, there is a link
+
+
+76
+00:03:53,706 --> 00:03:54,676
+to the "Tools" download.
+
+
+77
+00:03:55,546 --> 00:03:58,596
+Now please note you
+will have to log
+
+
+78
+00:03:58,596 --> 00:04:00,606
+in with a developer
+enabled Apple ID
+
+
+79
+00:04:00,606 --> 00:04:02,236
+in order to access this page.
+
+
+80
+00:04:02,586 --> 00:04:05,026
+But remember that
+developer accounts are free.
+
+
+81
+00:04:05,486 --> 00:04:08,916
+Now once you've done that, you
+end up on the downloads page.
+
+
+82
+00:04:09,556 --> 00:04:12,106
+The download itself
+is a disk image
+
+
+83
+00:04:12,106 --> 00:04:13,916
+which contains an
+installer package.
+
+
+84
+00:04:14,646 --> 00:04:16,736
+Now the screenshot here
+is a little out of date.
+
+
+85
+00:04:16,736 --> 00:04:21,016
+You should see a newer disk
+image dated June 2016 or later.
+
+
+86
+00:04:21,716 --> 00:04:24,556
+We do typically update the
+tools several times a year.
+
+
+87
+00:04:25,396 --> 00:04:27,926
+Now by the way, if you are
+viewing this during WWDC,
+
+
+88
+00:04:27,926 --> 00:04:31,886
+the new version may not
+have been posted yet.
+
+
+89
+00:04:32,436 --> 00:04:35,706
+After you've run the installer,
+you end up with sever tools.
+
+
+90
+00:04:36,136 --> 00:04:39,806
+And I want to remind you that
+these tools run only on OS X.
+
+
+91
+00:04:40,826 --> 00:04:43,846
+The first two -- the
+validation are what I'll cover
+
+
+92
+00:04:43,846 --> 00:04:44,986
+in the rest of this talk.
+
+
+93
+00:04:45,946 --> 00:04:49,286
+The next three tools are
+segmenters for files,
+
+
+94
+00:04:49,496 --> 00:04:51,346
+streams, and subtitles.
+
+
+95
+00:04:51,766 --> 00:04:54,066
+And I wanted to mention
+as a quick side
+
+
+96
+00:04:54,066 --> 00:04:57,256
+that the subtitle segmenter
+is useful for breaking
+
+
+97
+00:04:57,256 --> 00:05:04,526
+up the large web VTTT into a
+set of segmented web VTT's.
+
+
+98
+00:05:05,256 --> 00:05:08,926
+The last two tools, Variant
+Playlist Creator is used
+
+
+99
+00:05:08,926 --> 00:05:10,756
+to create master playlists.
+
+
+100
+00:05:11,546 --> 00:05:16,446
+And the last one is used
+to format timed metadata
+
+
+101
+00:05:16,676 --> 00:05:19,236
+that you can then insert
+using the segmenters.
+
+
+102
+00:05:19,806 --> 00:05:21,866
+Now all of these tools
+have manned pages.
+
+
+103
+00:05:22,316 --> 00:05:25,636
+And you can pass any of these
+attached H option to get help.
+
+
+104
+00:05:28,366 --> 00:05:30,746
+But before we talk about
+the validation tools,
+
+
+105
+00:05:30,746 --> 00:05:33,156
+I want to make a short pitch
+for mediafilesegmenter.
+
+
+106
+00:05:33,926 --> 00:05:36,446
+It's simple to call, you
+just pass it a movie file.
+
+
+107
+00:05:37,236 --> 00:05:40,456
+It produces a media
+playlist and media segments.
+
+
+108
+00:05:40,996 --> 00:05:42,736
+While this tool has
+a lot of options,
+
+
+109
+00:05:42,736 --> 00:05:44,696
+it's not as complicated
+as it might seem.
+
+
+110
+00:05:45,306 --> 00:05:47,466
+The options break
+into a few categories.
+
+
+111
+00:05:48,716 --> 00:05:50,616
+Options having to do
+with naming files.
+
+
+112
+00:05:50,616 --> 00:05:52,146
+With structuring playlists.
+
+
+113
+00:05:53,046 --> 00:05:57,916
+How to do encryption and so on.
+
+
+114
+00:05:57,916 --> 00:05:59,706
+Even if you don't use
+this introduction,
+
+
+115
+00:05:59,856 --> 00:06:02,326
+the mediafilesegmenter
+can be a good cross check
+
+
+116
+00:06:02,326 --> 00:06:04,616
+on whatever process
+you do use to segment.
+
+
+117
+00:06:07,056 --> 00:06:08,406
+So on to validation.
+
+
+118
+00:06:09,306 --> 00:06:11,626
+Media stream validator
+is the core tool.
+
+
+119
+00:06:12,606 --> 00:06:14,936
+You can call it with
+your master playlist.
+
+
+120
+00:06:17,186 --> 00:06:21,186
+And it produces output on the
+terminal and the json file.
+
+
+121
+00:06:21,656 --> 00:06:24,496
+Now this json contains
+everything that was important
+
+
+122
+00:06:24,496 --> 00:06:27,146
+in the output, and
+more data besides.
+
+
+123
+00:06:28,336 --> 00:06:32,186
+A couple of options
+that I want to call out.
+
+
+124
+00:06:32,716 --> 00:06:34,356
+First of all you
+can adjust the path
+
+
+125
+00:06:34,356 --> 00:06:35,896
+and the name of the json file.
+
+
+126
+00:06:36,226 --> 00:06:39,106
+And you can adjust the timeout.
+
+
+127
+00:06:39,546 --> 00:06:40,906
+Well, what's the timeout?
+
+
+128
+00:06:41,346 --> 00:06:43,226
+By default, the validator
+times out.
+
+
+129
+00:06:43,226 --> 00:06:45,786
+That is, it stops
+processing after five minutes.
+
+
+130
+00:06:46,536 --> 00:06:48,036
+Now this may not be enough time
+
+
+131
+00:06:48,036 --> 00:06:50,536
+to process a big video
+on demand stream.
+
+
+132
+00:06:51,116 --> 00:06:54,086
+And for live content,
+while five minutes is fine
+
+
+133
+00:06:54,086 --> 00:06:56,676
+for your initial checks,
+you'll want to do some checks
+
+
+134
+00:06:56,676 --> 00:06:58,816
+over a much longer
+period, once you determine
+
+
+135
+00:06:58,816 --> 00:07:00,646
+that the stream is
+basically correct.
+
+
+136
+00:07:03,836 --> 00:07:06,596
+Here's what the media stream
+validator output looks like.
+
+
+137
+00:07:07,976 --> 00:07:11,456
+So here we're calling media
+stream validator with URL.
+
+
+138
+00:07:12,666 --> 00:07:15,686
+And first it tells you
+the version number.
+
+
+139
+00:07:16,006 --> 00:07:17,826
+And then it outputs some trace
+
+
+140
+00:07:17,826 --> 00:07:19,986
+as it's downloading
+playlists and files.
+
+
+141
+00:07:21,356 --> 00:07:26,046
+And then it outputs information
+about every variant, rendition
+
+
+142
+00:07:26,046 --> 00:07:27,636
+and I-Frame variant
+that it found.
+
+
+143
+00:07:28,336 --> 00:07:30,936
+Now this can be hard to digest.
+
+
+144
+00:07:31,116 --> 00:07:33,866
+So we created HLS report.
+
+
+145
+00:07:34,536 --> 00:07:38,126
+This is a python script
+that takes the json
+
+
+146
+00:07:38,216 --> 00:07:39,986
+and summarizes and condenses it.
+
+
+147
+00:07:41,306 --> 00:07:44,056
+And it produces an
+HTML file as output.
+
+
+148
+00:07:45,316 --> 00:07:47,056
+The name of that file
+is the same as the name
+
+
+149
+00:07:47,056 --> 00:07:49,846
+of your json file, except
+the extension is changed.
+
+
+150
+00:07:51,426 --> 00:07:54,056
+And again, there are some
+options I want to call out.
+
+
+151
+00:07:54,716 --> 00:07:56,936
+We can change the
+name of the HTML file.
+
+
+152
+00:07:58,046 --> 00:08:02,886
+The dash I or dash ID option
+is helpful when you want
+
+
+153
+00:08:02,886 --> 00:08:07,096
+to match HTML output to
+portions of the json file.
+
+
+154
+00:08:07,096 --> 00:08:09,716
+And I'll give you some more
+details about how that works
+
+
+155
+00:08:09,716 --> 00:08:11,336
+when I go through the examples.
+
+
+156
+00:08:12,456 --> 00:08:16,116
+Now the verbose option
+is a very handy option
+
+
+157
+00:08:16,116 --> 00:08:17,796
+that gives you a
+lot of information
+
+
+158
+00:08:17,796 --> 00:08:19,886
+about every variant
+and rendition.
+
+
+159
+00:08:20,286 --> 00:08:21,976
+Unfortunately, I
+don't have time to go
+
+
+160
+00:08:21,976 --> 00:08:23,486
+into detail about that output.
+
+
+161
+00:08:23,786 --> 00:08:26,556
+But I wanted to call it out as
+something that is available.
+
+
+162
+00:08:28,336 --> 00:08:30,636
+One quick aside here.
+
+
+163
+00:08:31,176 --> 00:08:34,515
+You should validate your
+streams before you submit
+
+
+164
+00:08:34,515 --> 00:08:35,336
+to the App Store.
+
+
+165
+00:08:36,126 --> 00:08:38,285
+And also, when you
+submit to the App Store,
+
+
+166
+00:08:38,566 --> 00:08:42,066
+you should include a test
+stream URL in your notes field
+
+
+167
+00:08:42,066 --> 00:08:45,326
+so that the reviewers have a
+stream that they can look at.
+
+
+168
+00:08:47,216 --> 00:08:49,516
+I'd like to run some demos.
+
+
+169
+00:08:49,676 --> 00:08:52,986
+But rather than run all this
+on the screen and have you try
+
+
+170
+00:08:52,986 --> 00:08:55,016
+to follow along and
+squint at tiny text,
+
+
+171
+00:08:55,266 --> 00:08:59,386
+I've captured the output and
+I'll guide you through it.
+
+
+172
+00:08:59,706 --> 00:09:01,496
+First, a little command
+line sample.
+
+
+173
+00:09:03,356 --> 00:09:04,996
+Run media stream validator.
+
+
+174
+00:09:05,036 --> 00:09:07,766
+And notice I'm giving the
+name of the json file.
+
+
+175
+00:09:08,486 --> 00:09:11,596
+And I've just got a fake URL
+here to give you the flavor.
+
+
+176
+00:09:12,526 --> 00:09:16,256
+Now we've seen the output
+before, so I'll skip that.
+
+
+177
+00:09:16,456 --> 00:09:19,076
+But remember that this might
+take several minutes to run.
+
+
+178
+00:09:22,346 --> 00:09:25,496
+Now once it's completed,
+we can run HLS report.
+
+
+179
+00:09:25,626 --> 00:09:28,476
+Passing at the json that media
+stream validator created.
+
+
+180
+00:09:30,516 --> 00:09:34,306
+If HLS report works well,
+we don't have any output.
+
+
+181
+00:09:34,376 --> 00:09:36,086
+Just the HTML file.
+
+
+182
+00:09:37,306 --> 00:09:38,966
+So if we look in our
+current directory,
+
+
+183
+00:09:39,686 --> 00:09:41,476
+we'll see there are
+just two files around.
+
+
+184
+00:09:41,866 --> 00:09:44,186
+The json that media
+stream validator created.
+
+
+185
+00:09:44,556 --> 00:09:47,646
+And the HTML file that
+HLS report created.
+
+
+186
+00:09:49,156 --> 00:09:51,956
+So let's take a look at
+some example reports.
+
+
+187
+00:09:52,926 --> 00:09:54,566
+First, I'm going to
+start with a playlist
+
+
+188
+00:09:54,566 --> 00:09:56,416
+that has several common errors.
+
+
+189
+00:09:57,856 --> 00:10:00,046
+This is what a report
+looks like.
+
+
+190
+00:10:01,076 --> 00:10:03,746
+The first thing you want to
+examine is the stream type.
+
+
+191
+00:10:06,296 --> 00:10:09,956
+Now usually, this is
+VOD, or LIVE, or EVENT.
+
+
+192
+00:10:11,106 --> 00:10:13,016
+These reflect a three kind --
+
+
+193
+00:10:13,016 --> 00:10:17,476
+basic kinds of streams
+that HLS supports.
+
+
+194
+00:10:18,116 --> 00:10:20,446
+But you could get
+the value "UNKNOWN".
+
+
+195
+00:10:20,446 --> 00:10:24,356
+And this means that we weren't
+able to read the playlists.
+
+
+196
+00:10:24,406 --> 00:10:27,196
+Or worse, you could
+get the value mixed.
+
+
+197
+00:10:27,646 --> 00:10:31,316
+Now this can mean that
+you had some unknowns.
+
+
+198
+00:10:31,346 --> 00:10:35,386
+That is, that some of the media
+playlists couldn't be read.
+
+
+199
+00:10:35,636 --> 00:10:38,826
+Or worse, it could be that you
+actually have conflicting types.
+
+
+200
+00:10:38,826 --> 00:10:43,096
+Like for example, some of your
+variants claim to be EVENT,
+
+
+201
+00:10:43,096 --> 00:10:44,466
+and some claim to be LIVE.
+
+
+202
+00:10:47,266 --> 00:10:50,946
+Now the next item in the report
+is the variant overview table.
+
+
+203
+00:10:51,356 --> 00:10:54,056
+It has one entry for
+each video variant.
+
+
+204
+00:10:55,156 --> 00:10:59,056
+Now if we happened to have
+our stream type as mixed,
+
+
+205
+00:10:59,056 --> 00:11:01,386
+that will be an added
+column in this table
+
+
+206
+00:11:01,386 --> 00:11:03,136
+that indicates the
+playlist type.
+
+
+207
+00:11:03,366 --> 00:11:05,186
+If we look over to the right,
+
+
+208
+00:11:05,726 --> 00:11:07,716
+we can see that there
+are more columns.
+
+
+209
+00:11:07,766 --> 00:11:10,396
+And in particular, if
+it's a VOD we're going
+
+
+210
+00:11:10,396 --> 00:11:12,976
+to have a percent
+processed column.
+
+
+211
+00:11:13,226 --> 00:11:16,826
+Now if this is less than 100%,
+
+
+212
+00:11:16,826 --> 00:11:19,256
+that means that the
+timeout wasn't long enough.
+
+
+213
+00:11:19,856 --> 00:11:21,946
+Now if you have live content,
+
+
+214
+00:11:22,046 --> 00:11:24,396
+you won't see the
+percent process.
+
+
+215
+00:11:24,396 --> 00:11:25,986
+Instead you'll see two columns.
+
+
+216
+00:11:26,316 --> 00:11:28,896
+Average segment count, and
+average playlist duration.
+
+
+217
+00:11:30,226 --> 00:11:31,096
+Now the next thing you want
+
+
+218
+00:11:31,096 --> 00:11:33,686
+to check is the percent
+difference column.
+
+
+219
+00:11:34,286 --> 00:11:37,256
+This shows you how much
+greater the measured bitrate is
+
+
+220
+00:11:37,296 --> 00:11:39,906
+than the value that was
+declared in the master playlist.
+
+
+221
+00:11:40,716 --> 00:11:42,586
+Now these values
+are way too high.
+
+
+222
+00:11:42,586 --> 00:11:48,236
+Notice that variant one has a --
+is 40% over what it should be.
+
+
+223
+00:11:48,496 --> 00:11:51,836
+Now these values
+should be in the range
+
+
+224
+00:11:51,836 --> 00:11:54,686
+of minus 10% to positive 10%.
+
+
+225
+00:11:55,466 --> 00:11:57,956
+If the value here is positive,
+
+
+226
+00:11:58,306 --> 00:12:00,876
+that means your declared
+value should be increased.
+
+
+227
+00:12:01,306 --> 00:12:02,736
+And if the value is negative,
+
+
+228
+00:12:02,926 --> 00:12:05,356
+your declared value should
+probably be decreased.
+
+
+229
+00:12:05,776 --> 00:12:08,746
+Now notice we've
+actually got two of these.
+
+
+230
+00:12:08,746 --> 00:12:12,186
+Because in our playlist we
+declared both the bandwidth
+
+
+231
+00:12:12,186 --> 00:12:13,336
+and the average bandwidth.
+
+
+232
+00:12:13,876 --> 00:12:16,396
+We are able to compare
+the declared
+
+
+233
+00:12:16,396 --> 00:12:17,896
+and measured values for both.
+
+
+234
+00:12:18,786 --> 00:12:21,986
+Now sometimes looking
+at this in terms
+
+
+235
+00:12:21,986 --> 00:12:24,616
+of percentage can
+be a little hard
+
+
+236
+00:12:24,616 --> 00:12:26,306
+to see what the real
+difference is.
+
+
+237
+00:12:26,746 --> 00:12:32,146
+So if you add the -- pl
+option, meaning playlist,
+
+
+238
+00:12:32,746 --> 00:12:38,936
+to your HLS report command line,
+you'll see two new columns.
+
+
+239
+00:12:39,726 --> 00:12:40,476
+Playlist rate.
+
+
+240
+00:12:40,826 --> 00:12:42,326
+And playlist average rate.
+
+
+241
+00:12:43,316 --> 00:12:46,596
+So with this, we can see that
+for example, for variant one,
+
+
+242
+00:12:46,926 --> 00:12:50,036
+the declared value is
+392 kilobits per second.
+
+
+243
+00:12:50,566 --> 00:12:55,236
+But the measured value was
+551 kilobits per second.
+
+
+244
+00:12:55,636 --> 00:12:58,336
+Now let's switch back to a
+version without the -p option
+
+
+245
+00:12:58,336 --> 00:12:59,256
+and scroll down a bit.
+
+
+246
+00:13:00,076 --> 00:13:02,466
+There's another table,
+the rendition overview.
+
+
+247
+00:13:03,796 --> 00:13:07,216
+In this master playlist we have
+audio as a separate stream.
+
+
+248
+00:13:07,866 --> 00:13:10,356
+That makes it a rendition,
+and so it gets reported here.
+
+
+249
+00:13:13,516 --> 00:13:17,056
+Following this, we have
+our must fix issues.
+
+
+250
+00:13:17,736 --> 00:13:19,976
+Now must fix issues are things
+
+
+251
+00:13:19,976 --> 00:13:22,416
+which are essential
+for correct playback.
+
+
+252
+00:13:22,796 --> 00:13:24,766
+Or things which we
+consider so important
+
+
+253
+00:13:24,766 --> 00:13:26,426
+that we made them
+hard requirements.
+
+
+254
+00:13:27,946 --> 00:13:33,146
+You see item #2 and #4 here are
+what we were just talking about.
+
+
+255
+00:13:33,536 --> 00:13:35,716
+The fact that the peak
+and average bit rates,
+
+
+256
+00:13:36,026 --> 00:13:38,426
+that the declared and
+measured values don't match up.
+
+
+257
+00:13:40,046 --> 00:13:43,216
+Now item 3 we'll address
+in a later example.
+
+
+258
+00:13:44,956 --> 00:13:47,936
+Scrolling down farther, we now
+have our should fix issues.
+
+
+259
+00:13:48,476 --> 00:13:50,026
+Should fix issues are things
+
+
+260
+00:13:50,026 --> 00:13:54,046
+which we strongly
+encourage you to do.
+
+
+261
+00:13:54,256 --> 00:13:57,296
+Now these are followed lastly
+by the report information.
+
+
+262
+00:13:57,296 --> 00:14:01,716
+The report information is
+so that we can backtrack
+
+
+263
+00:14:02,116 --> 00:14:04,316
+to which version of
+media stream validator
+
+
+264
+00:14:04,356 --> 00:14:05,976
+and HLS report was used.
+
+
+265
+00:14:06,146 --> 00:14:09,956
+This is important if you
+pass us in a bug report,
+
+
+266
+00:14:10,126 --> 00:14:13,046
+the output from HLS report.
+
+
+267
+00:14:13,576 --> 00:14:16,646
+Or if you're even going back
+and looking at something
+
+
+268
+00:14:17,196 --> 00:14:20,526
+after you've downloaded a more
+recent version of the tools.
+
+
+269
+00:14:21,506 --> 00:14:26,116
+Now item 5 here is telling us
+that we don't have any captions
+
+
+270
+00:14:26,116 --> 00:14:28,916
+or subtitles in our playlist.
+
+
+271
+00:14:29,326 --> 00:14:30,956
+We'll fix this in
+our next example.
+
+
+272
+00:14:31,956 --> 00:14:33,566
+Let's look at item number 7.
+
+
+273
+00:14:34,876 --> 00:14:40,286
+So item number 7 says that our
+default video variant is not
+
+
+274
+00:14:40,286 --> 00:14:42,616
+what we suggest.
+
+
+275
+00:14:43,856 --> 00:14:47,186
+And it's telling us
+about variant #8.
+
+
+276
+00:14:48,816 --> 00:14:51,266
+So let's scroll back up
+to the variant overview.
+
+
+277
+00:14:51,406 --> 00:14:55,396
+And we can see that item #8 has
+the item number highlighted.
+
+
+278
+00:14:55,886 --> 00:14:57,736
+That's how we can tell
+it's the default variant.
+
+
+279
+00:14:57,736 --> 00:15:00,356
+Now remember the default
+variant is the variant
+
+
+280
+00:15:00,356 --> 00:15:02,076
+that the client's going
+to play initially.
+
+
+281
+00:15:03,436 --> 00:15:05,606
+It's the first variant
+in the master play list.
+
+
+282
+00:15:06,376 --> 00:15:10,236
+And notice that this one, the
+max rate is 8 MB per second.
+
+
+283
+00:15:10,236 --> 00:15:12,636
+That's way too high
+as a default.
+
+
+284
+00:15:16,186 --> 00:15:20,026
+Okay. Those are some common
+problems that you might have.
+
+
+285
+00:15:20,106 --> 00:15:23,576
+In our second example, we've
+taken the first example
+
+
+286
+00:15:23,576 --> 00:15:25,166
+and fixed the problems
+I pointed out.
+
+
+287
+00:15:26,686 --> 00:15:30,216
+We've adjusted the
+declared values,
+
+
+288
+00:15:30,216 --> 00:15:33,346
+so now the percent
+difference is nearly zero.
+
+
+289
+00:15:34,336 --> 00:15:36,036
+We've fixed the default variant
+
+
+290
+00:15:36,256 --> 00:15:39,176
+to be something more reasonable
+-- variant #4 in this case --
+
+
+291
+00:15:39,176 --> 00:15:43,106
+by moving a different media
+play list to the first position
+
+
+292
+00:15:43,106 --> 00:15:44,286
+in the master playlist.
+
+
+293
+00:15:46,026 --> 00:15:47,966
+And if we look over on
+the right-hand side,
+
+
+294
+00:15:48,196 --> 00:15:51,236
+we fixed our timeout, so
+we're now processing the
+
+
+295
+00:15:51,236 --> 00:15:52,396
+entire playlist.
+
+
+296
+00:15:54,056 --> 00:15:57,736
+Now we had a should fix
+item about captions.
+
+
+297
+00:15:58,076 --> 00:16:00,516
+We fixed that by adding
+a subtitle playlist.
+
+
+298
+00:16:01,376 --> 00:16:05,146
+Now notice as a subtitle's
+rendition -- rendition #12 --
+
+
+299
+00:16:05,466 --> 00:16:07,806
+doesn't have a max
+or average rate.
+
+
+300
+00:16:08,896 --> 00:16:11,986
+That's because the subtitle
+playlist is not processed.
+
+
+301
+00:16:12,446 --> 00:16:15,656
+And we put an n/a over in
+the percent processed column
+
+
+302
+00:16:15,656 --> 00:16:17,896
+to remind us that
+this is in process.
+
+
+303
+00:16:19,466 --> 00:16:22,826
+But we still have
+one big must fix,
+
+
+304
+00:16:22,986 --> 00:16:25,176
+and that's no I-Frame playlist.
+
+
+305
+00:16:27,136 --> 00:16:32,146
+So how does the report change
+when we add I-Frame playlist in?
+
+
+306
+00:16:32,566 --> 00:16:35,486
+The first part looks the
+same, but let's scroll down.
+
+
+307
+00:16:36,696 --> 00:16:39,156
+Now, in addition to the
+other overview tables,
+
+
+308
+00:16:39,156 --> 00:16:41,026
+there's an I-Frame
+variant overview.
+
+
+309
+00:16:41,746 --> 00:16:43,996
+Now notice we're a little off
+
+
+310
+00:16:43,996 --> 00:16:45,836
+on our percent difference
+values here.
+
+
+311
+00:16:45,836 --> 00:16:47,716
+But these are well
+within the range.
+
+
+312
+00:16:48,076 --> 00:16:50,096
+Remember, that's +/- 10%.
+
+
+313
+00:16:51,646 --> 00:16:54,246
+Now let's talk about these
+two columns over here.
+
+
+314
+00:16:54,606 --> 00:16:56,446
+Scaled average and multiplier.
+
+
+315
+00:16:57,156 --> 00:17:01,276
+Scaled average is the affective
+worst case average data rate
+
+
+316
+00:17:01,276 --> 00:17:02,556
+of the I-Frame playlist.
+
+
+317
+00:17:03,646 --> 00:17:04,866
+Yeah, that's kind of a mouthful.
+
+
+318
+00:17:05,636 --> 00:17:06,866
+Remember that the measured,
+
+
+319
+00:17:06,866 --> 00:17:10,046
+average bit rate
+represents the data rate
+
+
+320
+00:17:10,675 --> 00:17:12,796
+at a 1 X playback speed.
+
+
+321
+00:17:13,165 --> 00:17:17,086
+But the whole point of I-Frames
+of Trick Play is to play back
+
+
+322
+00:17:17,086 --> 00:17:18,996
+at greater than 1 X speed.
+
+
+323
+00:17:19,526 --> 00:17:23,705
+Now the multiplier tells
+us the lowest playback rate
+
+
+324
+00:17:23,925 --> 00:17:26,165
+at which we will hit
+that worst case value.
+
+
+325
+00:17:27,286 --> 00:17:29,206
+Higher rates are
+going to be no worse,
+
+
+326
+00:17:29,206 --> 00:17:31,476
+because we will drop
+frames in order
+
+
+327
+00:17:31,476 --> 00:17:35,266
+to keep the actual displayed
+frame rate at a constant value.
+
+
+328
+00:17:36,036 --> 00:17:39,496
+What you should do with these
+values is compare the scaled
+
+
+329
+00:17:39,496 --> 00:17:43,836
+average data rate here, against
+the normal variant data rate
+
+
+330
+00:17:43,926 --> 00:17:45,316
+that has the same resolution.
+
+
+331
+00:17:46,446 --> 00:17:48,166
+These should be close in value,
+
+
+332
+00:17:48,166 --> 00:17:51,446
+or the I-Frame variant
+should be lower in value.
+
+
+333
+00:17:51,996 --> 00:17:55,936
+Otherwise, Trick Play could
+cause a drop in resolution.
+
+
+334
+00:17:59,216 --> 00:18:02,966
+Now in this report, I've
+also got another new column.
+
+
+335
+00:18:03,446 --> 00:18:07,276
+That's because I added the
+-- id option to HLS report.
+
+
+336
+00:18:07,876 --> 00:18:10,226
+Now as I mentioned before,
+
+
+337
+00:18:10,226 --> 00:18:12,966
+this helps you find the
+same data in the json file.
+
+
+338
+00:18:13,776 --> 00:18:17,676
+So let's look for this
+first one, data ID 16.
+
+
+339
+00:18:17,676 --> 00:18:20,346
+Which is our lowest
+resolution I-Frame playlist.
+
+
+340
+00:18:20,526 --> 00:18:21,936
+Let's look for that in the json.
+
+
+341
+00:18:24,296 --> 00:18:27,696
+So here's an abbreviated
+text view of the json.
+
+
+342
+00:18:27,956 --> 00:18:30,186
+The top level of the
+json is a dictionary.
+
+
+343
+00:18:30,636 --> 00:18:33,026
+And we're interested
+in the variance value.
+
+
+344
+00:18:33,386 --> 00:18:35,386
+Which is an array
+of dictionaries.
+
+
+345
+00:18:38,076 --> 00:18:42,066
+Now one of those dictionaries
+will have data ID 16.
+
+
+346
+00:18:42,856 --> 00:18:45,926
+And I want to note here
+
+
+347
+00:18:45,926 --> 00:18:48,206
+that these are not
+in order by data ID.
+
+
+348
+00:18:50,506 --> 00:18:53,086
+Now this one with data ID 16,
+
+
+349
+00:18:53,086 --> 00:18:57,036
+that's the json variant entry
+whose data matches the row
+
+
+350
+00:18:57,036 --> 00:18:57,836
+in the report.
+
+
+351
+00:18:57,836 --> 00:18:59,786
+That is the lowest
+I-Frame variant.
+
+
+352
+00:19:00,596 --> 00:19:02,146
+Now, I've skipped
+a lot of the data.
+
+
+353
+00:19:02,436 --> 00:19:05,096
+There's much more information
+than this slide shows.
+
+
+354
+00:19:06,026 --> 00:19:08,656
+Use your favorite tool for
+digging around json files,
+
+
+355
+00:19:08,656 --> 00:19:10,686
+or write yourself some
+special purpose tools.
+
+
+356
+00:19:11,316 --> 00:19:13,516
+Now, these json's
+can get very large.
+
+
+357
+00:19:13,516 --> 00:19:18,966
+It's not uncommon for them to
+be over 100,000 lines in size.
+
+
+358
+00:19:19,816 --> 00:19:23,506
+For our last example,
+we took that playlist
+
+
+359
+00:19:23,506 --> 00:19:26,946
+and we added multiple
+kinds of audio to it.
+
+
+360
+00:19:27,216 --> 00:19:29,006
+So the top looks pretty similar.
+
+
+361
+00:19:29,216 --> 00:19:32,986
+Let's scroll down and
+look at our renditions.
+
+
+362
+00:19:33,556 --> 00:19:36,026
+Now, rather than just
+that single, stereo audio,
+
+
+363
+00:19:36,026 --> 00:19:39,646
+we've added two multi-channel
+audio renditions as well.
+
+
+364
+00:19:40,216 --> 00:19:43,026
+One is AC-3 that
+is Dolby Digital.
+
+
+365
+00:19:43,236 --> 00:19:44,906
+That one's called the aud2.
+
+
+366
+00:19:45,746 --> 00:19:49,276
+And one is EC-3,
+Dolby Digital Plus.
+
+
+367
+00:19:50,176 --> 00:19:51,176
+One we call aud3.
+
+
+368
+00:19:51,596 --> 00:19:53,926
+So let's go up and look
+at our variance section.
+
+
+369
+00:19:55,926 --> 00:20:02,696
+Now, notice that because AC-3
+and EC-3 are not substitutable,
+
+
+370
+00:20:03,046 --> 00:20:05,836
+and neither are they
+substitutable with AAC,
+
+
+371
+00:20:06,236 --> 00:20:09,406
+each one has its
+own default variant.
+
+
+372
+00:20:10,626 --> 00:20:14,966
+That is, once we
+choose aud2, the AC-3,
+
+
+373
+00:20:15,046 --> 00:20:17,166
+we will default to variant #12.
+
+
+374
+00:20:17,486 --> 00:20:20,756
+Because that variant is the
+first one in the aud2 group
+
+
+375
+00:20:20,846 --> 00:20:22,466
+that appears in the
+master playlist.
+
+
+376
+00:20:23,926 --> 00:20:29,486
+Similarly, if we chose EC-3, we
+would default to variant #20.
+
+
+377
+00:20:30,436 --> 00:20:32,356
+Now notice there's
+a bitrate difference
+
+
+378
+00:20:32,406 --> 00:20:34,716
+between the aud2
+and aud3 variance.
+
+
+379
+00:20:34,766 --> 00:20:39,546
+For example, variant
+#9 and variant #17.
+
+
+380
+00:20:39,906 --> 00:20:42,976
+This is due to the different
+bitrates of the audio.
+
+
+381
+00:20:43,186 --> 00:20:44,966
+The bitrate you'll see here
+
+
+382
+00:20:44,966 --> 00:20:48,666
+for the variant is the
+combined bitrate including
+
+
+383
+00:20:48,666 --> 00:20:49,496
+the renditions.
+
+
+384
+00:20:51,206 --> 00:20:53,616
+Okay. That's it for my examples.
+
+
+385
+00:20:54,016 --> 00:20:56,616
+Where can you find some
+examples of your own to look at?
+
+
+386
+00:20:58,336 --> 00:21:01,046
+Well, there are three
+examples pointed to off
+
+
+387
+00:21:01,046 --> 00:21:02,166
+of the streaming page.
+
+
+388
+00:21:02,246 --> 00:21:05,256
+If you go to
+developer.apple.com/streaming,
+
+
+389
+00:21:05,626 --> 00:21:07,266
+there's a pointer to
+the examples page.
+
+
+390
+00:21:07,586 --> 00:21:10,396
+And you could dig the
+URLs out of this page.
+
+
+391
+00:21:11,896 --> 00:21:14,236
+Or, you could just read
+them on this slide.
+
+
+392
+00:21:15,346 --> 00:21:18,366
+The first two will have
+complaints when you validate.
+
+
+393
+00:21:18,556 --> 00:21:21,816
+That's because these streams
+were created a long time ago,
+
+
+394
+00:21:21,816 --> 00:21:23,826
+and we deliberately
+decided not to upgrade them.
+
+
+395
+00:21:24,286 --> 00:21:26,206
+But that third variant
+is a new one,
+
+
+396
+00:21:26,206 --> 00:21:27,766
+and should be almost perfect.
+
+
+397
+00:21:29,516 --> 00:21:32,096
+All right, it's time to wrap up.
+
+
+398
+00:21:33,246 --> 00:21:36,436
+Here are the only three things I
+absolutely want you to remember.
+
+
+399
+00:21:37,286 --> 00:21:40,566
+Obey the authoring spec.
+Validate, validate,
+
+
+400
+00:21:40,566 --> 00:21:41,986
+validate your streams.
+
+
+401
+00:21:42,586 --> 00:21:48,606
+And include a test stream
+URL when you submit your app.
+
+
+402
+00:21:49,076 --> 00:21:52,936
+For more information,
+go to the WWDC site,
+
+
+403
+00:21:52,936 --> 00:21:57,906
+and use this session's
+number, 510.
+
+
+404
+00:21:58,546 --> 00:22:01,306
+There's a lot of cool
+new stuff this year
+
+
+405
+00:22:01,306 --> 00:22:02,806
+in HTTP live streaming.
+
+
+406
+00:22:02,806 --> 00:22:07,776
+So I encourage you to
+attend or watch the talk,
+
+
+407
+00:22:07,776 --> 00:22:10,036
+What's New in HTTP
+Live Streaming.
+
+
+408
+00:22:10,426 --> 00:22:11,976
+Thank you, and have
+a great conference.
+

@@ -1,0 +1,5099 @@
+1
+00:00:07,516 --> 00:00:18,500
+[ Music ]
+
+
+2
+00:00:24,516 --> 00:00:27,526
+[ Applause ]
+
+
+3
+00:00:28,026 --> 00:00:28,776
+>> Good morning, everyone.
+
+
+4
+00:00:29,636 --> 00:00:31,066
+My name's Bruno Sommer.
+
+
+5
+00:00:31,066 --> 00:00:32,836
+I'm a game technologies
+engineer here at Apple,
+
+
+6
+00:00:32,836 --> 00:00:35,056
+and this is What's
+New in GameplayKit.
+
+
+7
+00:00:36,436 --> 00:00:38,716
+So last year, we
+introduced GameplayKit,
+
+
+8
+00:00:38,966 --> 00:00:40,686
+Apple's high-level
+gameplay framework,
+
+
+9
+00:00:41,056 --> 00:00:43,136
+and what GameplayKit
+is is a collection
+
+
+10
+00:00:43,136 --> 00:00:45,946
+of common architectural
+patterns, data structures,
+
+
+11
+00:00:46,246 --> 00:00:49,686
+and algorithms that enables our
+developers to make really great
+
+
+12
+00:00:49,686 --> 00:00:51,856
+and compelling gameplay
+in their games.
+
+
+13
+00:00:52,746 --> 00:00:56,306
+We want you guys to think about
+GameplayKit as your toolbox
+
+
+14
+00:00:56,306 --> 00:00:58,876
+for great gameplay, so
+regardless of the type
+
+
+15
+00:00:58,876 --> 00:01:01,566
+of game you're making, whether
+it's a platformer or an RPG
+
+
+16
+00:01:01,856 --> 00:01:04,855
+or a city builder, there's
+something you can find
+
+
+17
+00:01:04,855 --> 00:01:06,876
+in GameplayKit to make
+your life a little easier
+
+
+18
+00:01:07,136 --> 00:01:09,376
+and to make your gameplay
+a little stronger.
+
+
+19
+00:01:11,076 --> 00:01:12,866
+So last year when we
+introduced GameplayKit,
+
+
+20
+00:01:12,866 --> 00:01:14,486
+it was made up of
+seven major systems --
+
+
+21
+00:01:15,046 --> 00:01:17,666
+things like entities and
+components, state machines,
+
+
+22
+00:01:18,006 --> 00:01:19,546
+and our game quality
+random sources.
+
+
+23
+00:01:21,176 --> 00:01:23,186
+This year, we're making
+improvements to pathfinding,
+
+
+24
+00:01:23,696 --> 00:01:27,996
+agents, and game AI, and we're
+also introducing three new major
+
+
+25
+00:01:27,996 --> 00:01:29,276
+systems to GameplayKit.
+
+
+26
+00:01:29,446 --> 00:01:32,556
+We have a really powerful
+spatial partitioning system
+
+
+27
+00:01:32,766 --> 00:01:34,516
+that's going to let you get
+really great performance
+
+
+28
+00:01:34,516 --> 00:01:36,656
+out of runtime queries
+in your games.
+
+
+29
+00:01:37,076 --> 00:01:40,556
+You must have a really rich
+procedural generation system
+
+
+30
+00:01:40,556 --> 00:01:42,056
+that's going to let you
+make really compelling
+
+
+31
+00:01:42,056 --> 00:01:42,866
+runtime content.
+
+
+32
+00:01:43,376 --> 00:01:47,326
+And this year, we've also
+integrated GameplayKit
+
+
+33
+00:01:47,326 --> 00:01:49,516
+into our Xcode Game
+Editor, so now a lot
+
+
+34
+00:01:49,516 --> 00:01:51,596
+of the workflows previously
+that you could only do in code,
+
+
+35
+00:01:51,856 --> 00:01:53,686
+now you can do right in
+the Editor data side,
+
+
+36
+00:01:53,996 --> 00:01:55,206
+no recompile necessary.
+
+
+37
+00:01:55,836 --> 00:01:58,226
+So we have a lot to
+talk about today.
+
+
+38
+00:01:58,266 --> 00:02:01,466
+I'm going to jump right in
+with what's new in pathfinding.
+
+
+39
+00:02:03,176 --> 00:02:05,466
+So last year, we introduced
+our obstacle graphs.
+
+
+40
+00:02:05,546 --> 00:02:07,346
+These are our graph type
+that deals with a set
+
+
+41
+00:02:07,346 --> 00:02:10,246
+of impassable obstacles
+in your game world.
+
+
+42
+00:02:10,506 --> 00:02:12,586
+And under the hood, we use
+a line of sight algorithm
+
+
+43
+00:02:12,586 --> 00:02:14,966
+to map the passable area
+between those obstacles.
+
+
+44
+00:02:15,626 --> 00:02:17,616
+Now, this method
+is very powerful.
+
+
+45
+00:02:17,826 --> 00:02:20,796
+It results in really good
+quality paths, but especially
+
+
+46
+00:02:20,796 --> 00:02:23,126
+for larger game worlds and game
+worlds that have a large number
+
+
+47
+00:02:23,126 --> 00:02:25,806
+of obstacles, these can
+be really computationally
+
+
+48
+00:02:25,806 --> 00:02:27,586
+intensively to calculate
+
+
+49
+00:02:27,586 --> 00:02:29,146
+and really memory
+intensive to store.
+
+
+50
+00:02:30,266 --> 00:02:32,206
+So this year, we're providing
+you with an alternative.
+
+
+51
+00:02:32,266 --> 00:02:34,286
+We're introducing GKMeshGraph.
+
+
+52
+00:02:35,606 --> 00:02:37,466
+Now, this is very similar
+to our obstacle graphs.
+
+
+53
+00:02:37,466 --> 00:02:38,506
+Again, we're dealing with a set
+
+
+54
+00:02:38,506 --> 00:02:40,246
+of impassable obstacles
+in our game world.
+
+
+55
+00:02:40,636 --> 00:02:42,416
+But now instead of
+using line of sight
+
+
+56
+00:02:42,416 --> 00:02:44,886
+to calculate the passable
+areas between those obstacles,
+
+
+57
+00:02:44,886 --> 00:02:46,976
+we're actually going to
+triangulate that space.
+
+
+58
+00:02:47,146 --> 00:02:48,716
+We're going to make a
+triangle mesh out of it
+
+
+59
+00:02:49,186 --> 00:02:50,626
+such that every passable point
+
+
+60
+00:02:50,626 --> 00:02:52,596
+in your game world
+is represented on one
+
+
+61
+00:02:52,596 --> 00:02:53,746
+and only one triangle.
+
+
+62
+00:02:54,306 --> 00:02:57,676
+So this new triangulation
+method results, still results
+
+
+63
+00:02:57,676 --> 00:03:00,046
+in really good quality paths
+but has the added benefit
+
+
+64
+00:03:00,106 --> 00:03:01,656
+of being really fast
+to calculate
+
+
+65
+00:03:01,876 --> 00:03:03,266
+and really low overhead
+to store,
+
+
+66
+00:03:03,496 --> 00:03:05,176
+especially for really
+large game worlds.
+
+
+67
+00:03:06,716 --> 00:03:08,176
+In addition, you have
+a lot of flexibility
+
+
+68
+00:03:08,176 --> 00:03:10,806
+with where nodes get
+placed on these mesh graphs.
+
+
+69
+00:03:11,056 --> 00:03:13,776
+You can place them at triangle
+centers, triangle vertices,
+
+
+70
+00:03:13,926 --> 00:03:16,376
+and on triangle edges and
+all the combinations thereof.
+
+
+71
+00:03:16,676 --> 00:03:19,976
+Let's look at a quick
+code example
+
+
+72
+00:03:19,976 --> 00:03:22,156
+of what using a mesh graph
+looks like in GameplayKit,
+
+
+73
+00:03:22,446 --> 00:03:24,826
+and this is going to look
+very familiar to those of you
+
+
+74
+00:03:24,826 --> 00:03:26,036
+that have used our
+obstacle graphs.
+
+
+75
+00:03:26,036 --> 00:03:27,976
+They're solving the same
+problem, just different ways.
+
+
+76
+00:03:28,596 --> 00:03:31,426
+So here at the top, I'm going to
+go ahead and make my mesh graph.
+
+
+77
+00:03:31,636 --> 00:03:33,576
+I'm going to pass in
+a buffer radius of 10.
+
+
+78
+00:03:34,006 --> 00:03:36,536
+Recall that this buffer
+radius is related to the size
+
+
+79
+00:03:36,536 --> 00:03:38,446
+of your agents that are
+actually doing the pathfinding
+
+
+80
+00:03:38,446 --> 00:03:38,946
+in your world.
+
+
+81
+00:03:38,986 --> 00:03:41,126
+We're going to artificially
+increase the size
+
+
+82
+00:03:41,126 --> 00:03:42,416
+of your obstacles under the hood
+
+
+83
+00:03:42,736 --> 00:03:44,346
+to compensate for
+that agent size.
+
+
+84
+00:03:45,396 --> 00:03:47,496
+Here we're also going
+to pass in two points --
+
+
+85
+00:03:47,496 --> 00:03:49,156
+(0, 0) and (1000, 1000).
+
+
+86
+00:03:49,156 --> 00:03:50,596
+This is the span
+of my game world
+
+
+87
+00:03:50,596 --> 00:03:52,176
+that this mesh graph
+is going to represent.
+
+
+88
+00:03:52,596 --> 00:03:56,486
+Next, I'm going to set
+the triangulation mode
+
+
+89
+00:03:56,486 --> 00:03:57,286
+on my mesh graph.
+
+
+90
+00:03:57,666 --> 00:03:59,736
+This is that flexibility
+with where nodes get placed
+
+
+91
+00:03:59,736 --> 00:04:00,826
+that I was talking
+about earlier.
+
+
+92
+00:04:01,486 --> 00:04:04,076
+Here we're going to specify
+that I'd like nodes to be placed
+
+
+93
+00:04:04,076 --> 00:04:06,276
+at triangle vertices
+and on triangle centers.
+
+
+94
+00:04:06,746 --> 00:04:09,616
+And lastly, we're
+going to add our set
+
+
+95
+00:04:09,616 --> 00:04:10,896
+of obstacles into
+the mesh graph.
+
+
+96
+00:04:10,896 --> 00:04:13,026
+We have a set of obstacles
+associated with our game world.
+
+
+97
+00:04:13,026 --> 00:04:14,766
+Then we're going to
+call triangulate.
+
+
+98
+00:04:15,286 --> 00:04:17,456
+This actually commits those
+obstacles to the graph,
+
+
+99
+00:04:17,815 --> 00:04:19,856
+run the underlying
+triangulation algorithm,
+
+
+100
+00:04:20,096 --> 00:04:21,156
+and then we're good to go.
+
+
+101
+00:04:21,586 --> 00:04:27,066
+This graph is ready for use
+in pathfinding in our game.
+
+
+102
+00:04:27,266 --> 00:04:28,466
+So in addition to
+our mesh graphs,
+
+
+103
+00:04:28,466 --> 00:04:30,336
+this year we're introducing
+custom node classes
+
+
+104
+00:04:30,376 --> 00:04:31,026
+to pathfinding.
+
+
+105
+00:04:31,576 --> 00:04:33,866
+A number of our graphs
+automatically instantiate
+
+
+106
+00:04:33,866 --> 00:04:34,396
+their nodes.
+
+
+107
+00:04:34,646 --> 00:04:35,566
+That's our grid graphs,
+
+
+108
+00:04:35,636 --> 00:04:37,466
+our obstacle graphs,
+and our mesh graphs.
+
+
+109
+00:04:38,646 --> 00:04:39,826
+Now at initialization time,
+
+
+110
+00:04:39,826 --> 00:04:42,316
+you can optionally specify
+a custom node class for them
+
+
+111
+00:04:42,316 --> 00:04:43,376
+to instantiate instead.
+
+
+112
+00:04:44,046 --> 00:04:46,546
+And this is really useful if you
+need to attach any custom data
+
+
+113
+00:04:46,546 --> 00:04:48,696
+or logic to your nodes, which
+is sometimes useful depending
+
+
+114
+00:04:48,696 --> 00:04:50,706
+on the game you're
+trying to make.
+
+
+115
+00:04:51,226 --> 00:04:52,346
+We call the appropriate init()
+
+
+116
+00:04:52,346 --> 00:04:54,636
+when we would've generated
+our original node type.
+
+
+117
+00:04:55,386 --> 00:04:57,836
+And all these graph classes
+now support Objective-C
+
+
+118
+00:04:57,836 --> 00:04:59,996
+and Swift generics, so
+no casting is required
+
+
+119
+00:05:00,276 --> 00:05:01,656
+when you query your
+custom nodes.
+
+
+120
+00:05:02,336 --> 00:05:07,106
+So that's what's new in
+pathfinding this year.
+
+
+121
+00:05:07,206 --> 00:05:09,306
+Let's go ahead and move on
+on what's new in agents.
+
+
+122
+00:05:10,796 --> 00:05:14,706
+A little bit of a refresher on
+what agents are in GameplayKit.
+
+
+123
+00:05:14,706 --> 00:05:18,196
+They are autonomously moving
+entities controlled by a set
+
+
+124
+00:05:18,196 --> 00:05:20,506
+of goals and behaviors,
+and they're under a number
+
+
+125
+00:05:20,506 --> 00:05:22,406
+of realistic physical
+constraints --
+
+
+126
+00:05:22,406 --> 00:05:24,446
+things like velocity, mass,
+
+
+127
+00:05:24,936 --> 00:05:26,506
+obstacle avoidance,
+and path following.
+
+
+128
+00:05:26,506 --> 00:05:30,036
+On the right here, you see
+you have a number of goals
+
+
+129
+00:05:30,036 --> 00:05:32,126
+at your disposal to achieve
+the behavior you're looking
+
+
+130
+00:05:32,126 --> 00:05:32,866
+for in your game.
+
+
+131
+00:05:32,866 --> 00:05:34,846
+And this is things like
+seeking and avoiding
+
+
+132
+00:05:34,846 --> 00:05:36,746
+or wandering and fleeing.
+
+
+133
+00:05:37,306 --> 00:05:41,446
+So previously, agents
+were purely in 2D.
+
+
+134
+00:05:41,916 --> 00:05:43,056
+This year, we're
+excited to announce
+
+
+135
+00:05:43,056 --> 00:05:44,496
+that we're bringing
+them fully into 3D.
+
+
+136
+00:05:45,356 --> 00:05:49,426
+The class is GKAgent3D and the
+interface is extremely similar
+
+
+137
+00:05:49,426 --> 00:05:50,336
+to its 2D variant.
+
+
+138
+00:05:50,706 --> 00:05:53,656
+The key differences are that
+position is of course a float 3
+
+
+139
+00:05:54,196 --> 00:05:57,006
+and rotation is of course
+a flow 3 by 3 matrix.
+
+
+140
+00:05:57,376 --> 00:05:59,426
+And all the same goals and
+behaviors are supported.
+
+
+141
+00:06:00,726 --> 00:06:02,806
+So a couple things to note
+here with this transition.
+
+
+142
+00:06:02,876 --> 00:06:06,456
+GKPath has been changed to
+support both 2D and 3D points
+
+
+143
+00:06:06,456 --> 00:06:08,676
+with regards to our
+path following goals.
+
+
+144
+00:06:09,486 --> 00:06:12,366
+And with regards to obstacles
+in our obstacle avoidance goals,
+
+
+145
+00:06:12,366 --> 00:06:14,946
+those, if you're going to
+use those obstacles in 3D,
+
+
+146
+00:06:14,946 --> 00:06:16,286
+they still live on
+a single plane,
+
+
+147
+00:06:16,286 --> 00:06:18,316
+so you need to pick a plane
+that makes sense for your game.
+
+
+148
+00:06:18,316 --> 00:06:22,496
+So in addition to bringing
+our agents into 3D,
+
+
+149
+00:06:22,496 --> 00:06:24,656
+this year we're introducing
+behavior composition.
+
+
+150
+00:06:25,206 --> 00:06:27,606
+We have a new class
+GKCompositeBehavior that's a
+
+
+151
+00:06:27,606 --> 00:06:30,846
+subclass of GKBehavior,
+and this is a collection
+
+
+152
+00:06:30,846 --> 00:06:31,846
+of weighted behaviors.
+
+
+153
+00:06:31,846 --> 00:06:33,776
+This is really similar
+to the relationship
+
+
+154
+00:06:33,776 --> 00:06:36,096
+between behaviors
+and goals previously.
+
+
+155
+00:06:36,096 --> 00:06:37,886
+Behaviors are a weighted
+set of goals.
+
+
+156
+00:06:38,656 --> 00:06:40,596
+So these are fully nestable,
+
+
+157
+00:06:40,596 --> 00:06:42,916
+so now you can do really
+interesting nested behavior,
+
+
+158
+00:06:42,976 --> 00:06:45,976
+behaviors in your game, and
+this also makes them much easier
+
+
+159
+00:06:45,976 --> 00:06:47,516
+to maintain, especially
+if you're working
+
+
+160
+00:06:47,516 --> 00:06:49,866
+with a large number of
+behaviors in your game.
+
+
+161
+00:06:50,386 --> 00:06:53,216
+Let's take a look at
+a quick code example
+
+
+162
+00:06:53,216 --> 00:06:54,796
+of these composite
+behaviors in action.
+
+
+163
+00:06:55,296 --> 00:06:57,446
+At the top here, I'm going
+to make a flocking behavior
+
+
+164
+00:06:58,036 --> 00:07:00,906
+by combine an align, a
+cohere, and a separate goal.
+
+
+165
+00:07:01,366 --> 00:07:05,006
+Next, I have some obstacles
+and enemies in my game world
+
+
+166
+00:07:05,006 --> 00:07:06,786
+that I'd like my agents
+to avoid, so we're going
+
+
+167
+00:07:06,786 --> 00:07:09,946
+to make an avoidance behavior
+by combining an avoidObstacles
+
+
+168
+00:07:10,006 --> 00:07:11,066
+and an avoidEnemies goal.
+
+
+169
+00:07:11,486 --> 00:07:14,966
+Then I'm going to combine
+those two behaviors
+
+
+170
+00:07:14,966 --> 00:07:16,456
+into our new composite behavior,
+
+
+171
+00:07:16,456 --> 00:07:18,076
+effectively combining
+them into one.
+
+
+172
+00:07:18,536 --> 00:07:21,356
+And lastly, I'm going
+to make my agent,
+
+
+173
+00:07:21,636 --> 00:07:23,286
+I'm going to set my
+composite behavior
+
+
+174
+00:07:23,286 --> 00:07:26,106
+as the agent's behavior,
+and now we're good to go.
+
+
+175
+00:07:26,106 --> 00:07:27,516
+The next time we
+update this agent,
+
+
+176
+00:07:27,516 --> 00:07:29,666
+it's going to correctly
+simultaneously attempt
+
+
+177
+00:07:29,666 --> 00:07:32,106
+to achieve both of those
+sub-goals or sub-behaviors.
+
+
+178
+00:07:35,656 --> 00:07:37,556
+So that's what's new
+in agents this year.
+
+
+179
+00:07:37,766 --> 00:07:40,266
+Let's move on and talk about our
+new spatial partitioning system.
+
+
+180
+00:07:40,796 --> 00:07:44,306
+So a little bit of background
+
+
+181
+00:07:44,306 --> 00:07:46,756
+on why spatial partitioning
+might be important to your game.
+
+
+182
+00:07:47,116 --> 00:07:50,106
+A lot of times when we're going
+high-level gameplay programming,
+
+
+183
+00:07:50,616 --> 00:07:52,876
+we ask a lot of spatial
+questions about our game world,
+
+
+184
+00:07:53,346 --> 00:07:55,766
+things like, how many
+enemies are near the player?
+
+
+185
+00:07:55,766 --> 00:07:58,036
+Or where are all the
+items in my world?
+
+
+186
+00:07:58,576 --> 00:08:00,566
+Or what projectiles will
+hit the player this frame?
+
+
+187
+00:08:00,966 --> 00:08:04,246
+Now, especially for larger
+game worlds or game worlds
+
+
+188
+00:08:04,246 --> 00:08:07,476
+with a large number of game
+objects, answering these types
+
+
+189
+00:08:07,476 --> 00:08:08,726
+of questions can be expensive.
+
+
+190
+00:08:09,236 --> 00:08:12,566
+In gameplay programming, we
+often speed up these sorts
+
+
+191
+00:08:12,566 --> 00:08:14,086
+of spatial queries using a form
+
+
+192
+00:08:14,086 --> 00:08:16,176
+of caching called
+spatial partitioning.
+
+
+193
+00:08:16,786 --> 00:08:20,606
+So a little bit of an overview
+of what we're providing
+
+
+194
+00:08:20,606 --> 00:08:22,046
+with our spatial
+partitioning system.
+
+
+195
+00:08:22,456 --> 00:08:24,866
+This is a set of tree-like
+data structures that allows you
+
+
+196
+00:08:24,866 --> 00:08:26,506
+to cache your game
+objects spatially.
+
+
+197
+00:08:27,026 --> 00:08:29,096
+You add objects to these
+tree-like data structures
+
+
+198
+00:08:29,096 --> 00:08:30,486
+and they get grouped
+into hierarchies
+
+
+199
+00:08:30,486 --> 00:08:31,506
+and buckets under the hood.
+
+
+200
+00:08:31,506 --> 00:08:34,236
+And then future queries
+on these objects are made
+
+
+201
+00:08:34,236 --> 00:08:35,166
+implicitly faster.
+
+
+202
+00:08:36,155 --> 00:08:39,285
+This year, we're introducing
+three such data structures
+
+
+203
+00:08:39,285 --> 00:08:40,566
+for you spatial partitioning
+needs.
+
+
+204
+00:08:41,216 --> 00:08:43,936
+We have R-trees,
+quadtrees, and octrees.
+
+
+205
+00:08:44,446 --> 00:08:47,466
+Let's dive a little deeper
+into these data structures.
+
+
+206
+00:08:47,466 --> 00:08:48,526
+Let's talk about R-trees.
+
+
+207
+00:08:49,336 --> 00:08:52,596
+Now, what an R-tree is,
+it's a tree data structure
+
+
+208
+00:08:52,596 --> 00:08:54,526
+that has a number of
+hierarchical buckets.
+
+
+209
+00:08:55,276 --> 00:08:58,386
+Whenever you add an object
+to an R-tree, it gets fitted
+
+
+210
+00:08:58,386 --> 00:08:59,446
+into one of those buckets.
+
+
+211
+00:09:00,176 --> 00:09:02,906
+Now, all these buckets have
+a bounding box associated
+
+
+212
+00:09:02,906 --> 00:09:06,536
+with them that is the sum
+of the bounding box of all
+
+
+213
+00:09:06,536 --> 00:09:07,966
+of the children that
+are in that bucket.
+
+
+214
+00:09:08,426 --> 00:09:10,566
+Now, R-trees have a special rule
+
+
+215
+00:09:10,566 --> 00:09:13,006
+that when these buckets grow
+too large, they need to split,
+
+
+216
+00:09:13,246 --> 00:09:15,746
+and this is a user-configurable
+parameter
+
+
+217
+00:09:15,746 --> 00:09:17,356
+of just how large
+these buckets can grow.
+
+
+218
+00:09:17,996 --> 00:09:20,606
+And we have a number of
+strategies at our disposal
+
+
+219
+00:09:20,656 --> 00:09:22,356
+to decide how these
+buckets should split.
+
+
+220
+00:09:22,926 --> 00:09:25,516
+We can simply have them or we
+can try and optimize for linear
+
+
+221
+00:09:25,516 --> 00:09:28,186
+and quadratic distance
+or try and reduce overlap
+
+
+222
+00:09:28,186 --> 00:09:29,116
+of the resulting buckets.
+
+
+223
+00:09:29,736 --> 00:09:32,826
+I'm going to give you
+a quick visual example
+
+
+224
+00:09:32,826 --> 00:09:34,506
+of what building a
+simple R-tree looks like.
+
+
+225
+00:09:34,506 --> 00:09:36,526
+Let's say I have a space game
+
+
+226
+00:09:36,726 --> 00:09:38,146
+with some spaceships
+and some asteroids.
+
+
+227
+00:09:38,746 --> 00:09:40,596
+I'm going to add a
+spaceship to my R-tree.
+
+
+228
+00:09:41,146 --> 00:09:42,196
+It gets fitted to a bucket
+
+
+229
+00:09:42,196 --> 00:09:44,226
+and it's just simply the
+bounding box of that spaceship.
+
+
+230
+00:09:44,226 --> 00:09:47,026
+And then I'm going to add a
+couple asteroids to that bucket,
+
+
+231
+00:09:47,026 --> 00:09:50,076
+and you notice it grows larger
+to encapsulate those objects.
+
+
+232
+00:09:50,606 --> 00:09:53,906
+I've specified a rule in
+this particular R-tree
+
+
+233
+00:09:53,906 --> 00:09:55,706
+that these buckets need to
+split when they grow larger
+
+
+234
+00:09:55,706 --> 00:09:57,696
+than three objects, so
+I'm going to go ahead
+
+
+235
+00:09:57,696 --> 00:09:59,266
+and add a fourth
+object to that bucket.
+
+
+236
+00:09:59,516 --> 00:10:00,546
+We've grown too larger.
+
+
+237
+00:10:00,626 --> 00:10:01,506
+Now we need to split.
+
+
+238
+00:10:02,266 --> 00:10:04,326
+And we're just going to do a
+simple linear distance split,
+
+
+239
+00:10:04,426 --> 00:10:06,126
+and we end up with
+two resulting buckets.
+
+
+240
+00:10:06,496 --> 00:10:10,486
+Again, I'll add a couple objects
+to the bucket on the right.
+
+
+241
+00:10:12,076 --> 00:10:13,306
+We've grown too large.
+
+
+242
+00:10:13,306 --> 00:10:14,036
+We need to split.
+
+
+243
+00:10:14,036 --> 00:10:15,896
+And again, we'll do a
+linear split and end
+
+
+244
+00:10:15,896 --> 00:10:17,076
+up with two resulting buckets.
+
+
+245
+00:10:17,786 --> 00:10:20,646
+That's the gist of how
+R-trees work under the hood.
+
+
+246
+00:10:24,196 --> 00:10:26,516
+So let's move on and talk
+about quadtrees and octrees.
+
+
+247
+00:10:26,596 --> 00:10:28,626
+I'm going to address
+these singularly
+
+
+248
+00:10:28,626 --> 00:10:31,476
+because they're solving the same
+problem, just quadtrees live
+
+
+249
+00:10:31,476 --> 00:10:33,216
+in 2D and octrees live in 3D.
+
+
+250
+00:10:33,216 --> 00:10:34,286
+The interface is identical.
+
+
+251
+00:10:35,106 --> 00:10:37,656
+These are tree-like data
+structures that have a number
+
+
+252
+00:10:37,656 --> 00:10:40,616
+of levels and hierarchies,
+and at each level,
+
+
+253
+00:10:40,616 --> 00:10:42,056
+space is subdivided evenly.
+
+
+254
+00:10:42,056 --> 00:10:43,976
+Here on the right, I have
+an example of a quadtree.
+
+
+255
+00:10:44,526 --> 00:10:46,276
+And you see in the upper
+left, I've subdivided
+
+
+256
+00:10:46,276 --> 00:10:47,776
+that quadrant once, and then
+
+
+257
+00:10:47,776 --> 00:10:49,826
+in that new subdivided
+quadrant's upper left,
+
+
+258
+00:10:49,826 --> 00:10:50,826
+I've subdivided again.
+
+
+259
+00:10:51,346 --> 00:10:55,396
+So quadtrees and octrees have
+a max cell size associated
+
+
+260
+00:10:55,396 --> 00:10:58,046
+with them, and that controls
+just how deep these trees can
+
+
+261
+00:10:58,046 --> 00:11:00,216
+grow and just how small
+those cells can get.
+
+
+262
+00:11:00,906 --> 00:11:03,676
+Now, when you add an object
+to a quadtree and octtree,
+
+
+263
+00:11:03,676 --> 00:11:06,796
+it gets placed into the smallest
+cell that it fits in entirely.
+
+
+264
+00:11:07,616 --> 00:11:10,126
+And a small note on
+this maximum cell size,
+
+
+265
+00:11:10,126 --> 00:11:13,146
+this is really related, this
+value is particular important
+
+
+266
+00:11:13,146 --> 00:11:14,506
+to the performance gains
+you're going to see
+
+
+267
+00:11:14,506 --> 00:11:16,636
+out of these data structures,
+so you should pick a cell size,
+
+
+268
+00:11:17,246 --> 00:11:19,146
+or a max cell size that
+makes sense for your game.
+
+
+269
+00:11:19,146 --> 00:11:20,736
+Typically, this is
+on the order of some
+
+
+270
+00:11:20,736 --> 00:11:24,416
+of the smaller game
+objects in your game world.
+
+
+271
+00:11:24,556 --> 00:11:26,786
+Again, I'll give you a visual
+example of building a quadtree.
+
+
+272
+00:11:27,396 --> 00:11:29,186
+Same examples, spaceship
+and asteroids.
+
+
+273
+00:11:29,186 --> 00:11:30,866
+I'll insert a spaceship
+into our quadtree.
+
+
+274
+00:11:31,326 --> 00:11:34,206
+Gets placed into the lower
+left quadrant two levels down.
+
+
+275
+00:11:34,206 --> 00:11:37,106
+I'll add some bigger
+objects, and they get,
+
+
+276
+00:11:37,106 --> 00:11:38,156
+they live one level up.
+
+
+277
+00:11:39,646 --> 00:11:41,256
+Take special note of that
+asteroid on the left.
+
+
+278
+00:11:41,256 --> 00:11:43,506
+You see it sort of straddles
+the quadrant boundaries.
+
+
+279
+00:11:43,506 --> 00:11:44,766
+It's actually going
+to live one level
+
+
+280
+00:11:44,766 --> 00:11:47,376
+up because it doesn't fit neatly
+into either of those cells.
+
+
+281
+00:11:47,866 --> 00:11:50,616
+And lastly, I'll add
+some smaller objects,
+
+
+282
+00:11:50,616 --> 00:11:52,466
+and you see that they
+live three levels down.
+
+
+283
+00:11:52,996 --> 00:11:57,786
+So that's the gist of what's
+going on under the hood
+
+
+284
+00:11:57,976 --> 00:11:59,396
+when you use a quadtree
+or an octtree.
+
+
+285
+00:11:59,686 --> 00:12:03,236
+Let's look at a code example
+of a quadtree in action.
+
+
+286
+00:12:04,066 --> 00:12:06,316
+So at the top here, I'm
+going to make my quadtree.
+
+
+287
+00:12:06,376 --> 00:12:08,766
+I'm going to pass in a
+quad, which is the area
+
+
+288
+00:12:08,766 --> 00:12:10,996
+in my game world that I want
+this quad tree to represent.
+
+
+289
+00:12:11,076 --> 00:12:13,996
+Here we're going to cover the
+span between (0, 0) and (1000,
+
+
+290
+00:12:13,996 --> 00:12:15,676
+1000) in my game world.
+
+
+291
+00:12:16,216 --> 00:12:19,346
+I'm mostly going to specify
+a minimum cell size of 100.
+
+
+292
+00:12:19,346 --> 00:12:22,156
+No cell in this quadtree's going
+to be smaller than 100 units.
+
+
+293
+00:12:22,726 --> 00:12:25,816
+So I also have some
+enemies in my game world.
+
+
+294
+00:12:25,816 --> 00:12:27,606
+I'm going to go ahead and
+add them to my quadtree.
+
+
+295
+00:12:28,506 --> 00:12:30,176
+Notice here that all these
+enemies are associated
+
+
+296
+00:12:30,176 --> 00:12:31,156
+with a quad of their own.
+
+
+297
+00:12:31,376 --> 00:12:33,596
+This is where that enemy
+is in our game world
+
+
+298
+00:12:33,596 --> 00:12:35,626
+and where it's going to
+end up in our quadtree.
+
+
+299
+00:12:36,166 --> 00:12:39,996
+And lastly, I'm going to
+run a query on our quadtree.
+
+
+300
+00:12:40,046 --> 00:12:42,396
+I'm going to ask my quadtree
+to give me back all the objects
+
+
+301
+00:12:42,396 --> 00:12:46,216
+that are between (0, 0) and
+(1000, 1000) in that quadtree
+
+
+302
+00:12:46,216 --> 00:12:47,476
+and therefore in my game world.
+
+
+303
+00:12:47,836 --> 00:12:50,036
+And it just so happens that
+all three of these enemies are,
+
+
+304
+00:12:50,036 --> 00:12:52,386
+and I'm going to get all three
+of them back in my query.
+
+
+305
+00:12:52,916 --> 00:12:56,396
+So that's spatial
+partitioning in GameplayKit.
+
+
+306
+00:12:57,046 --> 00:12:59,346
+Let's move on and talk about our
+procedural generation system.
+
+
+307
+00:12:59,896 --> 00:13:03,106
+So a little bit of background
+
+
+308
+00:13:03,106 --> 00:13:05,346
+on why procedural generation
+might be important to you.
+
+
+309
+00:13:05,866 --> 00:13:09,426
+I'm sure we're all familiar
+with premade content in games.
+
+
+310
+00:13:09,516 --> 00:13:11,746
+This is things that we
+make before the game is run
+
+
+311
+00:13:11,746 --> 00:13:14,266
+or before the game even
+ships, and this is things
+
+
+312
+00:13:14,266 --> 00:13:16,666
+like artist design, or
+designer designed levels
+
+
+313
+00:13:16,896 --> 00:13:19,286
+or artist developed
+textures and characters.
+
+
+314
+00:13:19,986 --> 00:13:21,736
+And these are great assets.
+
+
+315
+00:13:21,736 --> 00:13:23,116
+They really work
+for a lot of games.
+
+
+316
+00:13:23,596 --> 00:13:26,366
+But for other types of
+games and particular genres,
+
+
+317
+00:13:27,286 --> 00:13:30,296
+you run into problems because
+these sort of assets are static.
+
+
+318
+00:13:30,416 --> 00:13:31,976
+They don't change at
+runtime very much.
+
+
+319
+00:13:32,306 --> 00:13:34,816
+So especially if I'm
+looking for a random feel,
+
+
+320
+00:13:34,816 --> 00:13:36,586
+every time I play my
+game, it feels new,
+
+
+321
+00:13:37,036 --> 00:13:39,706
+I can't really use these
+kinds of static assets.
+
+
+322
+00:13:40,466 --> 00:13:42,136
+So what I'm looking for
+is procedural content,
+
+
+323
+00:13:42,136 --> 00:13:44,036
+and this is things like
+randomly generated worlds,
+
+
+324
+00:13:44,336 --> 00:13:50,166
+procedurally generated
+textures or height maps.
+
+
+325
+00:13:50,346 --> 00:13:52,746
+So we're looking to make this
+procedural content in games.
+
+
+326
+00:13:53,386 --> 00:13:56,646
+What we're really looking for is
+a source of coherent randomness.
+
+
+327
+00:13:56,756 --> 00:13:59,356
+A lot of these random elements
+I'm trying to make are spatial
+
+
+328
+00:13:59,356 --> 00:14:02,716
+in nature, things like worlds
+and textures and height maps.
+
+
+329
+00:14:03,406 --> 00:14:05,096
+So we need a source
+of randomness
+
+
+330
+00:14:05,096 --> 00:14:06,206
+that makes sense spatially,
+
+
+331
+00:14:06,206 --> 00:14:09,236
+that actually has an underlying
+spatial pattern to it.
+
+
+332
+00:14:09,866 --> 00:14:10,776
+Now, you might say
+to yourself, well,
+
+
+333
+00:14:10,776 --> 00:14:12,516
+I can just use a random
+number generator, right?
+
+
+334
+00:14:12,626 --> 00:14:14,506
+I can pull some values
+from my RNG,
+
+
+335
+00:14:14,506 --> 00:14:16,706
+make my random content,
+and I'm good to go.
+
+
+336
+00:14:17,436 --> 00:14:19,036
+Anyone that's ever tried to do
+
+
+337
+00:14:19,036 --> 00:14:21,056
+that very quickly runs
+into some hurdles.
+
+
+338
+00:14:21,746 --> 00:14:24,306
+Outputs of RNGs tend to
+fluctuate very wildly.
+
+
+339
+00:14:24,306 --> 00:14:26,566
+It's difficult to have
+meaningful spatial relationships
+
+
+340
+00:14:26,566 --> 00:14:27,776
+between subsequent calls
+
+
+341
+00:14:28,446 --> 00:14:30,356
+and it's also very
+challenging to have determinism.
+
+
+342
+00:14:30,756 --> 00:14:32,406
+Every time I randomly
+generate my content,
+
+
+343
+00:14:32,406 --> 00:14:36,686
+I want it to appear the same
+way if I'm given the same seed.
+
+
+344
+00:14:37,276 --> 00:14:39,366
+So we're looking for this
+source of coherent randomness.
+
+
+345
+00:14:39,366 --> 00:14:42,006
+One such source of
+this is called noise.
+
+
+346
+00:14:43,446 --> 00:14:46,936
+Now, what noise is, it's a
+function that takes inputs
+
+
+347
+00:14:46,986 --> 00:14:48,186
+and gives output values,
+
+
+348
+00:14:48,636 --> 00:14:50,306
+but there's some rules
+to that relationship.
+
+
+349
+00:14:51,166 --> 00:14:53,716
+For small changes in input, I
+get small changes in output,
+
+
+350
+00:14:54,356 --> 00:14:56,816
+and for large changes
+in input, I get random
+
+
+351
+00:14:57,066 --> 00:15:00,356
+but still spatially
+meaningful changes in output.
+
+
+352
+00:15:00,356 --> 00:15:02,476
+There's some underlying
+pattern to this noise source.
+
+
+353
+00:15:03,416 --> 00:15:05,466
+And noise functions
+are also infinite
+
+
+354
+00:15:05,596 --> 00:15:07,016
+for the whole range of inputs.
+
+
+355
+00:15:07,196 --> 00:15:09,536
+It continues infinitely,
+and they're deterministic.
+
+
+356
+00:15:09,536 --> 00:15:11,396
+Given the same input, I
+always get the same output.
+
+
+357
+00:15:13,596 --> 00:15:16,246
+So once we have this noise
+function, we can then sample it
+
+
+358
+00:15:16,246 --> 00:15:18,736
+at intervals that are relevant
+for my game and for the type
+
+
+359
+00:15:18,736 --> 00:15:19,926
+of content I'm trying to make.
+
+
+360
+00:15:20,386 --> 00:15:21,916
+So if I'm trying to
+randomly generate a world,
+
+
+361
+00:15:21,916 --> 00:15:25,186
+this might be coordinates or
+tile indexes or biome indexes.
+
+
+362
+00:15:25,746 --> 00:15:27,366
+Or if I'm trying to
+randomly generate a texture,
+
+
+363
+00:15:27,366 --> 00:15:29,616
+this might be texels
+or pixels and so on.
+
+
+364
+00:15:30,136 --> 00:15:34,816
+So a little overview
+of what we're providing
+
+
+365
+00:15:34,816 --> 00:15:36,196
+with our procedural
+generation system
+
+
+366
+00:15:36,196 --> 00:15:38,046
+and our noise system in general.
+
+
+367
+00:15:38,636 --> 00:15:41,166
+You have a number of noise
+sources at your disposal
+
+
+368
+00:15:41,776 --> 00:15:44,066
+to sample and make meaningful
+content in your game,
+
+
+369
+00:15:44,066 --> 00:15:46,036
+and this is things
+like random-ish noise,
+
+
+370
+00:15:46,036 --> 00:15:47,816
+things like Perlin
+noise and Voronoi noise,
+
+
+371
+00:15:48,376 --> 00:15:50,896
+and also geometric noise
+sources, things like billows
+
+
+372
+00:15:50,896 --> 00:15:55,186
+and spheres, ridges and
+cylinders, and also some sources
+
+
+373
+00:15:55,186 --> 00:15:57,086
+of constant noise like
+the checkerboard pattern
+
+
+374
+00:15:57,086 --> 00:15:58,246
+or the constant noise function.
+
+
+375
+00:15:58,756 --> 00:16:02,966
+So you can then combine noise
+sources in a noise object
+
+
+376
+00:16:03,046 --> 00:16:05,036
+and perform a number of
+transformations on them.
+
+
+377
+00:16:05,746 --> 00:16:07,656
+And these are things like
+combining noise sources
+
+
+378
+00:16:07,656 --> 00:16:10,296
+or translating, scaling,
+rotating noise sources.
+
+
+379
+00:16:10,866 --> 00:16:13,976
+So once we've combined
+them in some meaningful way
+
+
+380
+00:16:14,416 --> 00:16:16,946
+into a noise object, we
+can then sample a region
+
+
+381
+00:16:16,946 --> 00:16:18,926
+of that underlying noise
+map, that noise function,
+
+
+382
+00:16:19,496 --> 00:16:23,676
+in a noise map, get our samples,
+and then make our game content.
+
+
+383
+00:16:24,126 --> 00:16:26,386
+So let's dig a little deeper.
+
+
+384
+00:16:26,386 --> 00:16:27,766
+Let's talk about
+our noise sources.
+
+
+385
+00:16:28,346 --> 00:16:30,836
+Now, all of our noise
+sources output values
+
+
+386
+00:16:30,836 --> 00:16:32,646
+between negative 1 and 1.
+
+
+387
+00:16:32,966 --> 00:16:34,946
+We'll talk a little bit
+more about this later.
+
+
+388
+00:16:35,646 --> 00:16:37,346
+And they all have parameters
+
+
+389
+00:16:37,346 --> 00:16:39,126
+to tweak their various
+noise outputs,
+
+
+390
+00:16:39,126 --> 00:16:42,236
+that underlying noise
+function, so for our more random
+
+
+391
+00:16:42,236 --> 00:16:45,086
+and coherent noises like Perlin
+and Voronoi, these can be seeded
+
+
+392
+00:16:45,456 --> 00:16:47,896
+with a GKRandomSource and they
+also have a number of parameters
+
+
+393
+00:16:47,896 --> 00:16:49,696
+on them to tweak their
+underlying pattern.
+
+
+394
+00:16:50,266 --> 00:16:52,906
+And for our more geometric noise
+sources, there's parameters
+
+
+395
+00:16:52,906 --> 00:16:56,016
+to alter their shapes, so the
+size of spheres and cylinders
+
+
+396
+00:16:56,616 --> 00:16:58,566
+or the frequency of
+ridges and billows.
+
+
+397
+00:16:59,086 --> 00:17:02,696
+So once we have some
+noise sources we like,
+
+
+398
+00:17:02,696 --> 00:17:04,756
+we can then combine them
+into a GKNoiseObject.
+
+
+399
+00:17:05,406 --> 00:17:09,455
+Now, this has all the functions
+necessary to transform, combine,
+
+
+400
+00:17:09,455 --> 00:17:12,705
+and modify our noise sources,
+and a lot of common mathematical
+
+
+401
+00:17:12,705 --> 00:17:14,296
+and logical operations
+are supported.
+
+
+402
+00:17:14,945 --> 00:17:16,955
+So if I'm trying to combine
+noise sources, I can add,
+
+
+403
+00:17:16,955 --> 00:17:19,915
+multiply, min or max,
+but if I'm trying
+
+
+404
+00:17:19,915 --> 00:17:23,026
+to transform a single noise map,
+I can scale, rotate, translate,
+
+
+405
+00:17:23,496 --> 00:17:25,496
+or I can modify it by
+taking the absolute value,
+
+
+406
+00:17:25,685 --> 00:17:27,296
+clamping, inverting.
+
+
+407
+00:17:29,106 --> 00:17:31,026
+So once we have our
+noise the way we like,
+
+
+408
+00:17:31,516 --> 00:17:34,296
+we can them sample a
+region of that noise,
+
+
+409
+00:17:34,296 --> 00:17:37,276
+that underlying noise
+function, using a GKNoiseMap.
+
+
+410
+00:17:37,736 --> 00:17:39,826
+You specify an origin
+and a size.
+
+
+411
+00:17:39,886 --> 00:17:41,936
+This is the region of
+that underlying noise map
+
+
+412
+00:17:41,936 --> 00:17:42,596
+that we're sampling.
+
+
+413
+00:17:43,066 --> 00:17:44,686
+And you also specify
+a sample count.
+
+
+414
+00:17:44,876 --> 00:17:47,386
+How many times do we sample that
+noise function in this region?
+
+
+415
+00:17:47,386 --> 00:17:49,606
+What's my fidelity at
+which I'm sampling?
+
+
+416
+00:17:50,566 --> 00:17:53,146
+So then once we have
+our region sampled,
+
+
+417
+00:17:53,146 --> 00:17:55,126
+we can then get the value
+at any given position
+
+
+418
+00:17:55,366 --> 00:17:58,206
+on that noise map, and again,
+the range is in negative 1 to 1
+
+
+419
+00:17:58,506 --> 00:17:59,386
+like I mentioned before.
+
+
+420
+00:17:59,926 --> 00:18:02,406
+And at runtime, you can
+optionally overwrite values
+
+
+421
+00:18:02,406 --> 00:18:04,016
+as needed if your
+game world changes.
+
+
+422
+00:18:04,016 --> 00:18:07,286
+So I realize that this
+is a lot to take in.
+
+
+423
+00:18:07,286 --> 00:18:09,036
+I think the best way
+to illustrate this is
+
+
+424
+00:18:09,036 --> 00:18:09,976
+with a visual example.
+
+
+425
+00:18:10,816 --> 00:18:13,566
+Let's say I wanted to randomly
+generate a world for my game,
+
+
+426
+00:18:14,066 --> 00:18:16,916
+and I want to model it
+after Earth's biomes.
+
+
+427
+00:18:16,916 --> 00:18:18,296
+I want it to have
+a realistic feel.
+
+
+428
+00:18:18,566 --> 00:18:22,736
+Deserts, forests, arctic
+zones, things like that.
+
+
+429
+00:18:23,536 --> 00:18:25,886
+One, this is one method you
+might use to accomplish that.
+
+
+430
+00:18:25,886 --> 00:18:27,936
+Here I've generated
+two Perlin noise maps,
+
+
+431
+00:18:28,466 --> 00:18:31,556
+and the one on the left I'm
+going to call a moisture map.
+
+
+432
+00:18:31,556 --> 00:18:34,146
+At any point in my game world,
+I can look into this map
+
+
+433
+00:18:34,146 --> 00:18:36,826
+and determine how wet or
+how dry my game world is.
+
+
+434
+00:18:37,486 --> 00:18:39,926
+And on the right, I have what
+I'm calling a temperature map.
+
+
+435
+00:18:39,926 --> 00:18:42,676
+At any point in my game world,
+I can look up into this map
+
+
+436
+00:18:43,076 --> 00:18:46,136
+and decide how hot or
+cold my game world is.
+
+
+437
+00:18:47,016 --> 00:18:49,396
+So some things to note here,
+and we'll come back to this.
+
+
+438
+00:18:49,396 --> 00:18:52,556
+On the moisture map, you
+see I have a very dry spot
+
+
+439
+00:18:52,556 --> 00:18:53,056
+on the right.
+
+
+440
+00:18:53,056 --> 00:18:54,186
+That's that black smudge.
+
+
+441
+00:18:54,236 --> 00:18:55,866
+And a very wet area on the left.
+
+
+442
+00:18:56,416 --> 00:18:58,136
+And again, these
+colors correspond
+
+
+443
+00:18:58,136 --> 00:18:59,326
+to that output I
+was talking about.
+
+
+444
+00:18:59,326 --> 00:19:01,066
+Here black is my negative 1's
+
+
+445
+00:19:01,926 --> 00:19:03,646
+and white is more
+of my positive 1's.
+
+
+446
+00:19:04,606 --> 00:19:06,916
+And on the right, notice I
+have an extremely cold spot
+
+
+447
+00:19:06,916 --> 00:19:07,376
+at the top.
+
+
+448
+00:19:07,376 --> 00:19:08,516
+That's that black smudge again.
+
+
+449
+00:19:08,516 --> 00:19:11,816
+And a very warm sort of
+right side of my noise map.
+
+
+450
+00:19:11,816 --> 00:19:15,176
+So I'm going to specify
+some rules
+
+
+451
+00:19:15,176 --> 00:19:16,496
+on how I actually combine these
+
+
+452
+00:19:16,496 --> 00:19:17,926
+in some meaningful
+way for my game.
+
+
+453
+00:19:18,726 --> 00:19:20,396
+Here I just have
+a simple 2D graph.
+
+
+454
+00:19:20,396 --> 00:19:22,356
+On the vertical axis,
+I have moisture,
+
+
+455
+00:19:23,016 --> 00:19:25,386
+and on the horizontal
+axis, I have temperature.
+
+
+456
+00:19:26,106 --> 00:19:28,966
+So I can use these rules
+to decide the intersection
+
+
+457
+00:19:28,966 --> 00:19:30,986
+of those two maps,
+so if I have a spot
+
+
+458
+00:19:30,986 --> 00:19:32,076
+that has a really
+high temperature
+
+
+459
+00:19:32,076 --> 00:19:33,606
+but really low moisture,
+I'm going to end
+
+
+460
+00:19:33,606 --> 00:19:34,596
+up with something like a desert.
+
+
+461
+00:19:35,636 --> 00:19:37,256
+Or if I have something with
+really high temperature
+
+
+462
+00:19:37,256 --> 00:19:38,406
+and really high moisture,
+I'm going to end
+
+
+463
+00:19:38,406 --> 00:19:39,686
+up with something
+like a rainforest.
+
+
+464
+00:19:40,326 --> 00:19:42,476
+And so there, and sort of
+on the colder end of things,
+
+
+465
+00:19:42,476 --> 00:19:44,186
+I have tundras and arctic zones.
+
+
+466
+00:19:44,446 --> 00:19:45,796
+And then in the middle,
+I have things
+
+
+467
+00:19:45,796 --> 00:19:48,146
+like the more temperate
+biomes, things like forests,
+
+
+468
+00:19:48,276 --> 00:19:50,136
+savannahs, and grasslands.
+
+
+469
+00:19:51,276 --> 00:19:52,906
+So using those two maps I made
+
+
+470
+00:19:52,996 --> 00:19:54,666
+and combining them
+using these rules,
+
+
+471
+00:19:54,696 --> 00:19:57,666
+I get something like this.
+
+
+472
+00:19:58,316 --> 00:20:00,626
+You see it has a nice,
+realistic feel to it,
+
+
+473
+00:20:01,086 --> 00:20:02,506
+and some things to note.
+
+
+474
+00:20:02,506 --> 00:20:04,646
+On the right, you see we have
+a really big desert that sort
+
+
+475
+00:20:04,646 --> 00:20:06,106
+of bleeds into some grasslands
+
+
+476
+00:20:06,106 --> 00:20:07,626
+and then bleeds into
+a forest area.
+
+
+477
+00:20:08,136 --> 00:20:10,886
+That corresponds with that
+dry spot on our moisture map
+
+
+478
+00:20:10,886 --> 00:20:12,836
+and that really warm spot
+on our temperature map.
+
+
+479
+00:20:13,096 --> 00:20:15,226
+And sort of on the upper left,
+
+
+480
+00:20:15,226 --> 00:20:17,706
+you see we have a really big
+tundra with some arctic spots.
+
+
+481
+00:20:18,236 --> 00:20:19,836
+Then on the upper right
+and the lower left,
+
+
+482
+00:20:20,336 --> 00:20:22,136
+we have some small
+rainforests corresponding
+
+
+483
+00:20:22,136 --> 00:20:24,056
+with really high temperatures
+and really high moisture.
+
+
+484
+00:20:24,596 --> 00:20:27,966
+So this is just a really
+basic example of some
+
+
+485
+00:20:27,966 --> 00:20:30,226
+of the cool stuff you can do
+with procedural generation.
+
+
+486
+00:20:30,226 --> 00:20:32,856
+Here we just used two simple
+noise maps, combined them
+
+
+487
+00:20:32,856 --> 00:20:34,106
+with some really simple rules,
+
+
+488
+00:20:34,246 --> 00:20:35,676
+and got some pretty
+decent output.
+
+
+489
+00:20:36,206 --> 00:20:40,216
+Now, I'd like to call my
+colleague Michael Brennan
+
+
+490
+00:20:40,216 --> 00:20:41,896
+up to tell you about
+what's new in game AI.
+
+
+491
+00:20:42,526 --> 00:20:42,806
+Michael?
+
+
+492
+00:20:43,516 --> 00:20:49,236
+[ Applause ]
+
+
+493
+00:20:49,736 --> 00:20:50,766
+>> Thank you, Bruno.
+
+
+494
+00:20:51,466 --> 00:20:52,396
+Hey, everyone.
+
+
+495
+00:20:52,626 --> 00:20:53,586
+I'm Michael Brennan.
+
+
+496
+00:20:53,586 --> 00:20:55,606
+I'm a game technologies
+engineer here at Apple,
+
+
+497
+00:20:56,146 --> 00:20:57,176
+and I'm really excited to share
+
+
+498
+00:20:57,176 --> 00:20:58,666
+with you today what
+we're bringing
+
+
+499
+00:20:58,666 --> 00:21:03,306
+to GameplayKit this
+year for game AI.
+
+
+500
+00:21:03,556 --> 00:21:04,816
+Last year with GameplayKit,
+
+
+501
+00:21:05,066 --> 00:21:06,736
+we introduced the
+Minmax strategist.
+
+
+502
+00:21:07,436 --> 00:21:10,106
+This is a great AI solution
+for all kinds of games
+
+
+503
+00:21:10,606 --> 00:21:13,836
+that guarantees an optimal
+search for your game state.
+
+
+504
+00:21:14,356 --> 00:21:17,466
+It guarantees this by
+having an exhaustive search
+
+
+505
+00:21:17,466 --> 00:21:19,556
+of that state space combined
+
+
+506
+00:21:20,036 --> 00:21:23,156
+with the scoring function you
+provide for every given state
+
+
+507
+00:21:23,156 --> 00:21:26,576
+in the game to give you the best
+possible move for your entity
+
+
+508
+00:21:26,576 --> 00:21:28,106
+to make at a certain point.
+
+
+509
+00:21:28,836 --> 00:21:30,216
+The exhaustive nature
+
+
+510
+00:21:30,216 --> 00:21:32,846
+of the Minmax strategist does
+make it a little bit prohibitive
+
+
+511
+00:21:32,846 --> 00:21:35,126
+to use for games with larger
+state spaces, however.
+
+
+512
+00:21:35,376 --> 00:21:37,156
+Games like Go or
+chess, for example.
+
+
+513
+00:21:38,616 --> 00:21:40,546
+That's why this year
+I'm excited to bring
+
+
+514
+00:21:40,546 --> 00:21:43,186
+with you the Monte
+Carlo strategist.
+
+
+515
+00:21:44,576 --> 00:21:46,656
+Monte Carlo strategist
+is a best first search
+
+
+516
+00:21:46,656 --> 00:21:49,716
+of the state space combined
+with the random sampling
+
+
+517
+00:21:49,716 --> 00:21:52,126
+of that state space
+to give a great move
+
+
+518
+00:21:52,376 --> 00:21:53,356
+for you opponent to make.
+
+
+519
+00:21:53,896 --> 00:21:59,916
+It does this by first selecting
+a player move using exploration
+
+
+520
+00:21:59,916 --> 00:22:03,686
+versus exploitation to choose
+that move, then simulating
+
+
+521
+00:22:03,686 --> 00:22:05,146
+out new games from that move
+
+
+522
+00:22:05,696 --> 00:22:07,426
+until it reaches
+an end condition --
+
+
+523
+00:22:07,856 --> 00:22:09,506
+either a win or a
+loss or a draw --
+
+
+524
+00:22:10,126 --> 00:22:12,296
+which then propagates
+back up the tree.
+
+
+525
+00:22:12,836 --> 00:22:19,056
+It doesn't guarantee the optimal
+move quite like Minmax does,
+
+
+526
+00:22:19,056 --> 00:22:21,746
+but it does converge
+on that optimal move.
+
+
+527
+00:22:23,636 --> 00:22:25,226
+Monte Carlo strategist is fast.
+
+
+528
+00:22:25,696 --> 00:22:28,576
+It guarantees a good
+performance for even games
+
+
+529
+00:22:28,736 --> 00:22:31,296
+with incredibly large state
+spaces like Go, for example.
+
+
+530
+00:22:32,416 --> 00:22:34,676
+And given that it only
+needs that end condition,
+
+
+531
+00:22:35,316 --> 00:22:37,236
+something your games
+probably already provide,
+
+
+532
+00:22:37,756 --> 00:22:39,396
+it's very simple to
+implement in your game.
+
+
+533
+00:22:39,396 --> 00:22:42,956
+And it is approximately
+optimal, so while it may miss
+
+
+534
+00:22:42,956 --> 00:22:46,736
+that optimal move Minmax would
+find, it is approximate to it
+
+
+535
+00:22:46,736 --> 00:22:49,286
+and it will converge on
+that move given the time.
+
+
+536
+00:22:51,766 --> 00:22:54,176
+Let's go over some of the
+elements you need to use
+
+
+537
+00:22:54,176 --> 00:22:56,276
+to incorporate this
+into your game.
+
+
+538
+00:22:56,916 --> 00:22:59,636
+With GKMonteCarloStrategist,
+you need to provide a budget.
+
+
+539
+00:23:00,226 --> 00:23:01,756
+This is the amount
+of times it'll do
+
+
+540
+00:23:01,756 --> 00:23:03,166
+that four steps we
+mentioned earlier.
+
+
+541
+00:23:03,946 --> 00:23:06,716
+And you need to provide
+an exploration parameter.
+
+
+542
+00:23:06,716 --> 00:23:10,326
+Now, this is a value between 0
+and 1 that states whether or not
+
+
+543
+00:23:10,436 --> 00:23:13,696
+on selecting a move you want
+to explore unvisited nodes
+
+
+544
+00:23:14,476 --> 00:23:17,266
+or whether you want it to
+exploit nodes it's visited
+
+
+545
+00:23:17,266 --> 00:23:18,396
+and found to be very winning.
+
+
+546
+00:23:18,396 --> 00:23:21,616
+And you need to provide
+the game model of course.
+
+
+547
+00:23:21,716 --> 00:23:22,856
+This is something
+you're familiar
+
+
+548
+00:23:22,856 --> 00:23:25,166
+with if you've used
+GKMinmaxStrategist in the past.
+
+
+549
+00:23:25,646 --> 00:23:28,226
+Now let's look at a
+brief code example.
+
+
+550
+00:23:29,626 --> 00:23:31,876
+So here we've got our
+game model, GoGameModel,
+
+
+551
+00:23:31,876 --> 00:23:33,126
+which we're going to
+hold a reference to,
+
+
+552
+00:23:33,716 --> 00:23:35,976
+and our Monte Carlo strategist,
+which we're going to initialize
+
+
+553
+00:23:35,976 --> 00:23:36,806
+and hold a reference to.
+
+
+554
+00:23:37,976 --> 00:23:40,076
+We're first going to set the
+Monte Carlo strategist game
+
+
+555
+00:23:40,076 --> 00:23:42,406
+model to point to our
+game model, and next,
+
+
+556
+00:23:43,376 --> 00:23:44,946
+we're going to give it a budget.
+
+
+557
+00:23:45,706 --> 00:23:46,766
+We're going to say around 100.
+
+
+558
+00:23:46,846 --> 00:23:48,496
+This means it'll do
+that four steps --
+
+
+559
+00:23:48,536 --> 00:23:50,656
+the simulating [inaudible]
+propagating -- 100 times.
+
+
+560
+00:23:51,536 --> 00:23:53,476
+And then we're going to set
+the exploration parameter to 1.
+
+
+561
+00:23:53,586 --> 00:23:55,896
+This means we want it
+to be very explorative.
+
+
+562
+00:23:56,436 --> 00:24:00,576
+And then we're just simply
+going to call for the best move
+
+
+563
+00:24:00,576 --> 00:24:04,616
+for our active player in that
+game state, find that best move,
+
+
+564
+00:24:04,616 --> 00:24:06,216
+and apply it back
+to our game model.
+
+
+565
+00:24:06,646 --> 00:24:07,346
+It's just that easy.
+
+
+566
+00:24:09,596 --> 00:24:11,876
+This year, I'm excited to tell
+you that we're also allowing you
+
+
+567
+00:24:11,876 --> 00:24:13,456
+to make your own
+custom strategist.
+
+
+568
+00:24:14,196 --> 00:24:16,856
+We implemented a new
+protocol called GKStrategist,
+
+
+569
+00:24:16,946 --> 00:24:19,676
+and you simply conform to
+it, giving the game model,
+
+
+570
+00:24:19,746 --> 00:24:21,706
+game model update,
+game model players,
+
+
+571
+00:24:22,926 --> 00:24:26,826
+and implementing find best move
+for player, and you can use this
+
+
+572
+00:24:26,826 --> 00:24:30,576
+like you would any other
+strategist we provide for you.
+
+
+573
+00:24:31,086 --> 00:24:33,996
+So that was what we were
+bringing to strategist.
+
+
+574
+00:24:33,996 --> 00:24:37,616
+Now let's talk about something
+else -- decision-making.
+
+
+575
+00:24:39,876 --> 00:24:42,096
+There are many ways to
+model logic in your game,
+
+
+576
+00:24:42,326 --> 00:24:44,526
+many of which GameplayKit
+already provides support for.
+
+
+577
+00:24:45,606 --> 00:24:46,446
+Your enemies need to be able
+
+
+578
+00:24:46,446 --> 00:24:49,196
+to make decisions considering
+the vast amounts of state,
+
+
+579
+00:24:49,196 --> 00:24:51,316
+and they need to be able to
+make these decisions quickly.
+
+
+580
+00:24:51,836 --> 00:24:55,386
+As you can see here, we have
+this little button jumping game.
+
+
+581
+00:24:56,236 --> 00:24:59,186
+Just in this simple game, your
+opponent would need to consider
+
+
+582
+00:24:59,186 --> 00:25:02,256
+where you are, where every other
+enemy is, where the buttons are,
+
+
+583
+00:25:02,716 --> 00:25:04,776
+who owns the buttons at
+the current point in time,
+
+
+584
+00:25:04,776 --> 00:25:07,026
+whether they're jumping,
+whether the enemies are jumping,
+
+
+585
+00:25:07,666 --> 00:25:08,686
+where they are in the level.
+
+
+586
+00:25:08,786 --> 00:25:09,986
+It's quite a lot of
+state to consider.
+
+
+587
+00:25:12,746 --> 00:25:15,956
+Decision trees are a simple
+method for making decisions.
+
+
+588
+00:25:16,626 --> 00:25:18,806
+They're a tree-like data
+structure which makes them easy
+
+
+589
+00:25:18,806 --> 00:25:22,116
+to visualize and debug, and
+they can be either handmade
+
+
+590
+00:25:22,116 --> 00:25:25,836
+or learned.
+
+
+591
+00:25:25,966 --> 00:25:28,806
+GKDecisionTree gives
+you a low overhead
+
+
+592
+00:25:28,966 --> 00:25:30,146
+for determining your action.
+
+
+593
+00:25:30,756 --> 00:25:33,806
+It's completely serializable and
+it's very flexible, allowing you
+
+
+594
+00:25:33,806 --> 00:25:36,396
+to make nodes that will
+make decisions that random
+
+
+595
+00:25:36,396 --> 00:25:39,496
+with certain weights
+for branches or by value
+
+
+596
+00:25:39,496 --> 00:25:41,256
+if a certain branch is a
+value like true or false
+
+
+597
+00:25:41,796 --> 00:25:43,486
+or by satisfying
+predicates even.
+
+
+598
+00:25:43,606 --> 00:25:45,776
+It's extremely flexible,
+allowing you to do a lot.
+
+
+599
+00:25:46,286 --> 00:25:50,176
+Let's go over a brief
+code example.
+
+
+600
+00:25:50,506 --> 00:25:52,506
+So as you can see here,
+we've got our tree.
+
+
+601
+00:25:52,506 --> 00:25:54,506
+We're going to initialize
+it with a root attribute,
+
+
+602
+00:25:54,866 --> 00:25:56,306
+asking if we're near the button.
+
+
+603
+00:25:56,306 --> 00:25:58,836
+And then we're going
+to grab a reference
+
+
+604
+00:25:58,836 --> 00:25:59,916
+to that root node for later.
+
+
+605
+00:26:00,316 --> 00:26:04,326
+After that, we're simply
+going to create branches off
+
+
+606
+00:26:04,326 --> 00:26:08,736
+of that root node -- one for
+if we are near that root,
+
+
+607
+00:26:08,776 --> 00:26:11,276
+that button, in which
+case we're going to jump,
+
+
+608
+00:26:11,276 --> 00:26:12,936
+and one if we're not
+near that button,
+
+
+609
+00:26:12,936 --> 00:26:14,486
+in which case we're
+going to want to wander.
+
+
+610
+00:26:14,906 --> 00:26:15,816
+And we're going to
+grab a reference
+
+
+611
+00:26:15,816 --> 00:26:16,916
+to that wander node as well.
+
+
+612
+00:26:16,916 --> 00:26:19,526
+With that wander node,
+
+
+613
+00:26:19,576 --> 00:26:21,606
+we're going to create
+a few branches --
+
+
+614
+00:26:21,786 --> 00:26:25,246
+one with a weight of 9 we're
+going to move left at that point
+
+
+615
+00:26:25,246 --> 00:26:26,646
+and one with a weight of 1
+we're going to move right.
+
+
+616
+00:26:26,646 --> 00:26:27,426
+Now, this is additive,
+
+
+617
+00:26:27,526 --> 00:26:31,266
+which means that for the left
+branch we move with the weight
+
+
+618
+00:26:31,266 --> 00:26:33,676
+of 9, that means it
+has a 90% chance given
+
+
+619
+00:26:33,676 --> 00:26:35,196
+that there's a total
+weight of 10 there,
+
+
+620
+00:26:35,746 --> 00:26:38,776
+and the right move has a
+10% chance of occurring.
+
+
+621
+00:26:40,536 --> 00:26:43,536
+Then we're simply going to pack
+the state into a dictionary
+
+
+622
+00:26:43,856 --> 00:26:46,006
+and pass it into
+findActionForAnswers method
+
+
+623
+00:26:46,006 --> 00:26:47,486
+on the tree to get our action.
+
+
+624
+00:26:49,276 --> 00:26:50,896
+Decision trees can
+also be modeled.
+
+
+625
+00:26:51,766 --> 00:26:53,326
+You simply supply
+the gameplay data,
+
+
+626
+00:26:53,396 --> 00:26:56,066
+and it will find the
+decision-making behavior
+
+
+627
+00:26:56,066 --> 00:26:58,196
+in that data and
+fit a decision tree
+
+
+628
+00:26:58,196 --> 00:26:59,826
+to that decision-making
+behavior.
+
+
+629
+00:27:00,196 --> 00:27:03,466
+As you can see here
+in our matrix,
+
+
+630
+00:27:03,466 --> 00:27:05,466
+we have a top row
+which is dark gray.
+
+
+631
+00:27:05,606 --> 00:27:06,676
+That's the attributes.
+
+
+632
+00:27:06,846 --> 00:27:09,166
+And the interior
+matrix is our examples.
+
+
+633
+00:27:09,326 --> 00:27:12,796
+That's what various points of
+the game look like for gameplay.
+
+
+634
+00:27:13,396 --> 00:27:15,866
+And on the right-hand side, we
+have the actions we performed.
+
+
+635
+00:27:16,546 --> 00:27:17,636
+That's simply what we did
+
+
+636
+00:27:17,636 --> 00:27:19,026
+at those various
+points in the gameplay.
+
+
+637
+00:27:19,196 --> 00:27:23,096
+You pass this into the
+constructor for GKDecisionTree
+
+
+638
+00:27:23,346 --> 00:27:24,846
+and it will fit a decision tree
+
+
+639
+00:27:25,356 --> 00:27:27,006
+to that gameplay
+data you've recorded.
+
+
+640
+00:27:27,506 --> 00:27:31,036
+Let's look at what this
+might look like in game.
+
+
+641
+00:27:32,786 --> 00:27:35,886
+So here we have my
+player, the light green
+
+
+642
+00:27:35,886 --> 00:27:37,156
+to turquoise colored player,
+
+
+643
+00:27:37,466 --> 00:27:39,126
+playing against the
+dark blue player using
+
+
+644
+00:27:39,126 --> 00:27:40,666
+that handmade decision
+tree we showed earlier.
+
+
+645
+00:27:41,196 --> 00:27:43,136
+As you can see, it's missing
+out on some of the things
+
+
+646
+00:27:43,136 --> 00:27:44,716
+that we're doing that
+make us perform well.
+
+
+647
+00:27:44,886 --> 00:27:48,706
+Let's look at a different
+example.
+
+
+648
+00:27:49,496 --> 00:27:52,126
+Here you'll see it
+behaves quite a lot more
+
+
+649
+00:27:52,126 --> 00:27:53,476
+like how we were
+behaving earlier.
+
+
+650
+00:27:54,376 --> 00:27:56,346
+Like I said, you just simply
+record your gameplay data,
+
+
+651
+00:27:56,626 --> 00:27:59,836
+pass it in, and you can model
+behaviors like you would use.
+
+
+652
+00:28:00,346 --> 00:28:03,296
+So that's what we're
+bringing this year
+
+
+653
+00:28:03,296 --> 00:28:04,676
+to game AI for GameplayKit.
+
+
+654
+00:28:05,186 --> 00:28:06,846
+It's awesome and I'm
+excited to share it with you,
+
+
+655
+00:28:07,176 --> 00:28:10,196
+and now I'd like to invite to
+the stage my colleague Sri Nair
+
+
+656
+00:28:10,196 --> 00:28:10,776
+to tell you more
+
+
+657
+00:28:10,776 --> 00:28:13,046
+about GameplayKit
+integration into Xcode.
+
+
+658
+00:28:13,806 --> 00:28:13,946
+Sri?
+
+
+659
+00:28:15,516 --> 00:28:18,326
+[ Applause ]
+
+
+660
+00:28:18,826 --> 00:28:19,326
+>> Thank you, Michael.
+
+
+661
+00:28:21,996 --> 00:28:22,846
+Hello, everyone.
+
+
+662
+00:28:22,846 --> 00:28:27,056
+My name is Sri Nair, and I'm a
+game technologies engineer here
+
+
+663
+00:28:27,056 --> 00:28:27,456
+at Apple.
+
+
+664
+00:28:28,026 --> 00:28:32,176
+So when we introduced
+GameplayKit last year,
+
+
+665
+00:28:32,886 --> 00:28:34,816
+it was exclusively
+driven by code.
+
+
+666
+00:28:35,666 --> 00:28:38,366
+You had to create the
+constructs, do the hook-up,
+
+
+667
+00:28:39,426 --> 00:28:41,946
+and tweak the properties and
+their values all in code.
+
+
+668
+00:28:43,376 --> 00:28:45,816
+And that can be inefficient
+for many obvious reasons,
+
+
+669
+00:28:47,376 --> 00:28:50,926
+so I'm happy to say that we
+are improving that situation
+
+
+670
+00:28:51,456 --> 00:28:53,816
+by introducing a more
+data-driven workflow
+
+
+671
+00:28:54,146 --> 00:28:57,166
+for GameplayKit by
+integrating it
+
+
+672
+00:28:57,166 --> 00:28:59,076
+with Xcode and SpriteKit Editor.
+
+
+673
+00:28:59,616 --> 00:29:04,686
+As you know, editor integration
+helps with [inaudible]
+
+
+674
+00:29:04,686 --> 00:29:06,666
+on your game features
+much faster.
+
+
+675
+00:29:07,836 --> 00:29:10,496
+They also help to separate
+your engineering workflow
+
+
+676
+00:29:10,496 --> 00:29:11,846
+from the design workflow.
+
+
+677
+00:29:12,396 --> 00:29:17,336
+So here are the four main
+features coming to the editor
+
+
+678
+00:29:17,336 --> 00:29:20,166
+to help accelerate your
+GameplayKit development.
+
+
+679
+00:29:21,056 --> 00:29:23,906
+Number one, entity
+and component editor.
+
+
+680
+00:29:24,786 --> 00:29:26,626
+Number two, navigation
+graph editor.
+
+
+681
+00:29:26,626 --> 00:29:29,106
+Number three, scene
+outline view.
+
+
+682
+00:29:30,016 --> 00:29:31,816
+And number four, state
+machine quick look.
+
+
+683
+00:29:33,006 --> 00:29:35,296
+Let's dive deeper into
+each one of these features.
+
+
+684
+00:29:35,946 --> 00:29:37,116
+What's the component editor?
+
+
+685
+00:29:38,296 --> 00:29:40,246
+Let's recall that an entity
+
+
+686
+00:29:40,246 --> 00:29:42,246
+and component system
+is a design pattern
+
+
+687
+00:29:42,246 --> 00:29:45,796
+where a game object is
+represented by entities
+
+
+688
+00:29:45,796 --> 00:29:48,616
+and their behavior is
+represented by smaller
+
+
+689
+00:29:48,616 --> 00:29:51,136
+and independent components.
+
+
+690
+00:29:52,156 --> 00:29:54,086
+And this provides for
+better structuring
+
+
+691
+00:29:54,086 --> 00:29:55,286
+and usability of code.
+
+
+692
+00:29:56,206 --> 00:30:00,336
+And they also tend to be easier
+to maintain and to extend.
+
+
+693
+00:30:01,366 --> 00:30:05,396
+So now with the component
+editor, you can assign entity
+
+
+694
+00:30:05,396 --> 00:30:08,146
+and components to your
+nodes right in the editor
+
+
+695
+00:30:09,936 --> 00:30:13,346
+and tweak the properties all
+in the editor that's providing
+
+
+696
+00:30:13,346 --> 00:30:15,736
+for an editor-based,
+data-driven workflow.
+
+
+697
+00:30:16,096 --> 00:30:21,416
+The editor is closely
+integrated with code
+
+
+698
+00:30:21,416 --> 00:30:22,726
+and supports auto-discovery
+
+
+699
+00:30:22,726 --> 00:30:24,916
+of component classes
+and properties.
+
+
+700
+00:30:25,616 --> 00:30:28,816
+For example, let's say you
+wrote a movement component class
+
+
+701
+00:30:29,316 --> 00:30:31,696
+that's derived from GKComponent,
+added a few properties,
+
+
+702
+00:30:32,286 --> 00:30:36,086
+and annotated with the newly
+introduced GKInspectableKeyword
+
+
+703
+00:30:36,606 --> 00:30:38,266
+for them to show up in the UI.
+
+
+704
+00:30:38,816 --> 00:30:44,066
+And the component editor will
+automatically detect these
+
+
+705
+00:30:44,066 --> 00:30:45,936
+components that you have
+added and show up in the UI,
+
+
+706
+00:30:45,936 --> 00:30:49,736
+and now you can simply select
+those components of your choice
+
+
+707
+00:30:49,736 --> 00:30:51,966
+and assign to the nodes.
+
+
+708
+00:30:52,106 --> 00:30:55,926
+Once you add the component, the
+properties are auto-populated
+
+
+709
+00:30:56,066 --> 00:30:58,546
+with the corresponding
+type of [inaudible],
+
+
+710
+00:30:58,546 --> 00:31:01,616
+and now you can adjust
+these properties
+
+
+711
+00:31:01,616 --> 00:31:04,616
+and preview the changes right
+in the editor without having
+
+
+712
+00:31:04,616 --> 00:31:08,006
+to quit the editor or recompile
+the code that's leading
+
+
+713
+00:31:08,006 --> 00:31:09,396
+to a much faster iteration.
+
+
+714
+00:31:09,936 --> 00:31:14,636
+And all of these updates
+are saved in a JKC
+
+
+715
+00:31:14,636 --> 00:31:16,706
+and under the SKS file.
+
+
+716
+00:31:18,196 --> 00:31:21,066
+And all the unchanged
+property values use the default
+
+
+717
+00:31:21,066 --> 00:31:22,316
+setting code.
+
+
+718
+00:31:23,456 --> 00:31:27,076
+The GKEntity to the
+nodes connection is made
+
+
+719
+00:31:27,296 --> 00:31:29,886
+under the hood through
+a GKSKComponent.
+
+
+720
+00:31:30,366 --> 00:31:34,476
+And the UI supports all
+the common property types,
+
+
+721
+00:31:34,906 --> 00:31:37,496
+such as float, int,
+bool, et cetera,
+
+
+722
+00:31:38,046 --> 00:31:41,286
+and that's component editor.
+
+
+723
+00:31:41,286 --> 00:31:43,946
+Now, let's move on to the
+navigation graph editor.
+
+
+724
+00:31:45,216 --> 00:31:47,866
+As Bruno mentioned earlier,
+navigation graphs known
+
+
+725
+00:31:47,866 --> 00:31:50,436
+as GKGraphs are used
+in pathfinding
+
+
+726
+00:31:51,066 --> 00:31:53,586
+to find an optimal way
+for an object to get
+
+
+727
+00:31:53,586 --> 00:31:56,746
+from point A to point B.
+
+
+728
+00:31:56,966 --> 00:31:59,066
+And with the navigation
+graph editor,
+
+
+729
+00:31:59,846 --> 00:32:02,186
+now you can create GKGraphs
+right in the editor.
+
+
+730
+00:32:03,546 --> 00:32:06,936
+You can add or edit
+nodes, make the connections
+
+
+731
+00:32:06,936 --> 00:32:10,706
+between them just by clicking
+and dragging in the same window.
+
+
+732
+00:32:12,116 --> 00:32:15,586
+And these GKGraphs are
+saved in the GKScene
+
+
+733
+00:32:15,716 --> 00:32:18,266
+that you can later retrieve in
+code and use for pathfinding.
+
+
+734
+00:32:21,206 --> 00:32:24,416
+I also want to mention a highly
+useful feature of we introduce
+
+
+735
+00:32:24,416 --> 00:32:27,216
+to SpriteKit Editor
+that's quite useful
+
+
+736
+00:32:27,216 --> 00:32:33,126
+for GameplayKit development as
+well called scene outline view.
+
+
+737
+00:32:33,336 --> 00:32:37,236
+It outlines the scene elements,
+their parent-child hierarchy.
+
+
+738
+00:32:38,976 --> 00:32:44,666
+Most standard operations are
+supported there like add, edit,
+
+
+739
+00:32:44,926 --> 00:32:47,536
+rearrange, delete, et cetera.
+
+
+740
+00:32:49,436 --> 00:32:53,526
+The navigation graphs you add
+in your scene also show up there
+
+
+741
+00:32:53,526 --> 00:32:56,596
+in the scene outline view.
+
+
+742
+00:32:56,806 --> 00:32:59,306
+It also can be used
+for locking the nodes
+
+
+743
+00:32:59,306 --> 00:33:00,986
+and changing the visibility.
+
+
+744
+00:33:01,436 --> 00:33:02,846
+It also comes with
+the context menu
+
+
+745
+00:33:02,846 --> 00:33:05,626
+for more selection-specific
+operations.
+
+
+746
+00:33:06,186 --> 00:33:06,696
+Quite handy.
+
+
+747
+00:33:06,696 --> 00:33:11,746
+And last but not least,
+state machine quick look.
+
+
+748
+00:33:12,256 --> 00:33:14,376
+So just to refresh,
+
+
+749
+00:33:14,376 --> 00:33:17,556
+we introduced GKStateMachine
+last year, and it allows you
+
+
+750
+00:33:17,556 --> 00:33:20,746
+to represent some kind of
+execution flow in your game.
+
+
+751
+00:33:21,486 --> 00:33:25,966
+And it has many applications in
+games such as in AI, animation,
+
+
+752
+00:33:25,966 --> 00:33:27,736
+UI, level sequencing, et cetera.
+
+
+753
+00:33:28,276 --> 00:33:32,236
+And up until this
+point, you had no way
+
+
+754
+00:33:32,236 --> 00:33:34,996
+of previewing what these
+state machine looked like.
+
+
+755
+00:33:36,066 --> 00:33:38,836
+It was quite hard to
+understand the connection
+
+
+756
+00:33:38,836 --> 00:33:40,966
+between the states,
+the execution flow,
+
+
+757
+00:33:41,006 --> 00:33:45,446
+or what state it is in
+currently, so to help with that,
+
+
+758
+00:33:45,446 --> 00:33:49,546
+we are integrating a state
+machine preview tool right
+
+
+759
+00:33:49,546 --> 00:33:52,136
+into Xcode Debugger's
+quick look feature.
+
+
+760
+00:33:53,556 --> 00:33:56,616
+This allows you to put break
+point in code where you want
+
+
+761
+00:33:56,616 --> 00:34:02,066
+to see the state machine and
+click on the quick look icon,
+
+
+762
+00:34:02,166 --> 00:34:04,176
+and it pops up a
+visual representation
+
+
+763
+00:34:04,176 --> 00:34:06,146
+of for your current
+state machine.
+
+
+764
+00:34:06,876 --> 00:34:08,936
+And it shows the states,
+the connection between them,
+
+
+765
+00:34:08,936 --> 00:34:10,656
+and the current state
+is highlighted as well.
+
+
+766
+00:34:11,206 --> 00:34:16,326
+Here are a few more
+examples of state machine
+
+
+767
+00:34:16,565 --> 00:34:17,985
+as seen in quick look.
+
+
+768
+00:34:18,396 --> 00:34:24,976
+And with that, I would like to
+demonstrate the editor-based
+
+
+769
+00:34:25,326 --> 00:34:26,646
+workflow of GameplayKit.
+
+
+770
+00:34:29,516 --> 00:34:34,295
+[ Applause ]
+
+
+771
+00:34:34,795 --> 00:34:40,166
+So here I have a, we're going
+to try to build a simple game
+
+
+772
+00:34:40,166 --> 00:34:43,846
+where a player picks up
+balloons, paint balloons,
+
+
+773
+00:34:43,846 --> 00:34:48,036
+and throws at an enemy
+that's simulated by game AI,
+
+
+774
+00:34:48,696 --> 00:34:51,335
+and enemy can do the same.
+
+
+775
+00:34:51,335 --> 00:34:54,065
+So we have a basic scene here.
+
+
+776
+00:34:54,065 --> 00:34:55,956
+As you can see in the
+scene outline view,
+
+
+777
+00:34:56,485 --> 00:35:00,446
+we have a background and a
+player, a bunch of balloons.
+
+
+778
+00:35:01,596 --> 00:35:04,266
+So first, we will try to add,
+
+
+779
+00:35:04,266 --> 00:35:07,406
+it's a pretty basic,
+no actions going on.
+
+
+780
+00:35:07,406 --> 00:35:11,616
+It's very static scene, so we'll
+start with adding some movement
+
+
+781
+00:35:11,616 --> 00:35:13,596
+to the player using
+the keyboard.
+
+
+782
+00:35:14,386 --> 00:35:17,766
+So for that, I have added a few
+components here, but we'll look
+
+
+783
+00:35:17,766 --> 00:35:20,256
+at the movement component
+that we talked about earlier
+
+
+784
+00:35:20,786 --> 00:35:24,636
+as a few properties that helps
+with movements such as speed,
+
+
+785
+00:35:25,446 --> 00:35:26,736
+friction, acceleration,
+et cetera.
+
+
+786
+00:35:27,296 --> 00:35:31,016
+And you have annotated
+that with the GKInspectable
+
+
+787
+00:35:31,016 --> 00:35:34,026
+so that you can treat those
+properties in the UI later.
+
+
+788
+00:35:35,236 --> 00:35:37,676
+Similarly, I have a
+player input component,
+
+
+789
+00:35:38,446 --> 00:35:45,246
+and we will assign these to the
+player by going to the scene
+
+
+790
+00:35:45,246 --> 00:35:47,856
+and looking in the
+component editor.
+
+
+791
+00:35:47,856 --> 00:35:50,646
+So on the inspector area
+on the right-hand side,
+
+
+792
+00:35:50,646 --> 00:35:52,886
+I have the newly
+introduced component editor.
+
+
+793
+00:35:53,566 --> 00:35:58,136
+Now, I can select the player
+and click on that plus button
+
+
+794
+00:35:58,136 --> 00:36:00,546
+to add these components
+to the node.
+
+
+795
+00:36:00,606 --> 00:36:04,436
+So we'll go ahead and add
+the player input component
+
+
+796
+00:36:04,946 --> 00:36:06,286
+and the movement component.
+
+
+797
+00:36:09,356 --> 00:36:13,066
+And we'll see what
+we get with that.
+
+
+798
+00:36:13,066 --> 00:36:15,806
+So I would expect
+the player to be able
+
+
+799
+00:36:16,396 --> 00:36:18,486
+to move with the keyboard.
+
+
+800
+00:36:18,486 --> 00:36:22,996
+That's great, so can
+move in all directions.
+
+
+801
+00:36:22,996 --> 00:36:25,956
+And except you can, you'll
+notice that it doesn't stop
+
+
+802
+00:36:25,956 --> 00:36:28,336
+at the boundaries because I
+haven't added any collision
+
+
+803
+00:36:28,336 --> 00:36:32,526
+to the player yet, but I do have
+a collision component added,
+
+
+804
+00:36:32,526 --> 00:36:36,296
+which essentially adds the
+physics body to the player node.
+
+
+805
+00:36:36,296 --> 00:36:41,596
+So I will go ahead and
+assign that to the player.
+
+
+806
+00:36:41,906 --> 00:36:45,246
+And while we are at it, I will
+also assign a fight component
+
+
+807
+00:36:45,246 --> 00:36:49,136
+that I added which allows you
+to pick up balloons and throw.
+
+
+808
+00:36:49,796 --> 00:36:53,626
+So let's see what
+that looks like.
+
+
+809
+00:36:56,986 --> 00:36:58,876
+Yay, now I can pick
+up the balloons,
+
+
+810
+00:36:59,196 --> 00:37:00,686
+and he's stopped
+at the boundaries.
+
+
+811
+00:37:00,686 --> 00:37:01,226
+That's awesome.
+
+
+812
+00:37:02,396 --> 00:37:04,996
+We'll go ahead and do the same
+to the enemy, so for that,
+
+
+813
+00:37:04,996 --> 00:37:09,116
+I had a game object, enemy
+object created in the scene,
+
+
+814
+00:37:09,116 --> 00:37:13,516
+but I had set it to invisible,
+so I'm going to enable it
+
+
+815
+00:37:13,896 --> 00:37:14,996
+in the scene outline view.
+
+
+816
+00:37:16,016 --> 00:37:19,566
+And go ahead and assign the
+components to the enemy.
+
+
+817
+00:37:19,686 --> 00:37:22,916
+So in this case, the difference
+is it's a enemy input component
+
+
+818
+00:37:22,916 --> 00:37:25,586
+so that it picks up the game AI
+rather than use the keyboard,
+
+
+819
+00:37:26,646 --> 00:37:31,236
+and similarly, movement
+component, collision component,
+
+
+820
+00:37:31,236 --> 00:37:32,576
+as well as the fight component.
+
+
+821
+00:37:33,046 --> 00:37:40,326
+And with that, I would
+expect the enemy also to pick
+
+
+822
+00:37:41,866 --> 00:37:46,776
+up the balloons and,
+yeah, he got me.
+
+
+823
+00:37:47,476 --> 00:37:50,346
+That was quite easy for
+him, but we're going
+
+
+824
+00:37:50,346 --> 00:37:52,396
+to make the gameplay a
+little bit more interesting
+
+
+825
+00:37:52,566 --> 00:37:58,366
+by dropping some balloons into
+the scene using a drawn object.
+
+
+826
+00:37:58,366 --> 00:38:05,056
+So I have a drawn object that I
+will make visible in the scene
+
+
+827
+00:38:05,416 --> 00:38:09,556
+and go ahead and add
+a drawn component,
+
+
+828
+00:38:09,596 --> 00:38:14,466
+which basically does the
+dropping of the balloon as well
+
+
+829
+00:38:14,466 --> 00:38:16,526
+as follow a certain path.
+
+
+830
+00:38:16,976 --> 00:38:20,606
+So I want to add a
+navigation graph to the scene,
+
+
+831
+00:38:21,006 --> 00:38:23,566
+and that's as simple as
+going into the object library
+
+
+832
+00:38:23,566 --> 00:38:26,166
+and typing in "nav graph."
+
+
+833
+00:38:26,166 --> 00:38:28,346
+Now, you can just simply drag
+
+
+834
+00:38:28,346 --> 00:38:31,196
+and drop the nav
+graph to the scene.
+
+
+835
+00:38:31,196 --> 00:38:35,006
+So we'll just make the
+navigation graph a little bigger
+
+
+836
+00:38:35,006 --> 00:38:37,006
+to demonstrate the feature.
+
+
+837
+00:38:38,106 --> 00:38:44,956
+So here's the navigation
+graph editor.
+
+
+838
+00:38:45,106 --> 00:38:48,086
+And while we are at it, we'll
+also change some properties.
+
+
+839
+00:38:49,176 --> 00:38:55,986
+We'll set the health to be 2
+and the movement for the player,
+
+
+840
+00:38:55,986 --> 00:38:59,876
+speed up a little,
+give some advantage
+
+
+841
+00:38:59,876 --> 00:39:02,466
+to the player a little bit,
+just a level 1, so, hey,
+
+
+842
+00:39:02,506 --> 00:39:03,336
+you got some advantage.
+
+
+843
+00:39:03,336 --> 00:39:07,066
+And enemy will get
+health of 2 as well.
+
+
+844
+00:39:11,886 --> 00:39:13,526
+And let's see what we have.
+
+
+845
+00:39:16,256 --> 00:39:19,456
+You know, you can see that the
+drone is dropping more balloons
+
+
+846
+00:39:19,626 --> 00:39:21,946
+that I can pick up and throw.
+
+
+847
+00:39:22,296 --> 00:39:28,586
+He got me and I got him
+once, but let's see.
+
+
+848
+00:39:28,846 --> 00:39:30,196
+Yay. All right.
+
+
+849
+00:39:31,076 --> 00:39:32,346
+I'm sure my son will have a lot
+
+
+850
+00:39:32,346 --> 00:39:34,206
+of fun playing this
+game [applause].
+
+
+851
+00:39:35,556 --> 00:39:40,106
+That pretty much demonstrates
+the new editor-based workflow
+
+
+852
+00:39:40,106 --> 00:39:40,916
+for GameplayKit.
+
+
+853
+00:39:41,456 --> 00:39:42,686
+Let's switch back to the slides.
+
+
+854
+00:39:43,596 --> 00:39:49,606
+So to recap the session,
+this year,
+
+
+855
+00:39:50,956 --> 00:39:53,216
+we have introduced
+many compelling
+
+
+856
+00:39:53,806 --> 00:39:55,376
+and useful features
+to GameplayKit.
+
+
+857
+00:39:55,916 --> 00:39:58,106
+In the beginning, Bruno talked
+
+
+858
+00:39:58,106 --> 00:40:00,516
+about the next spatial
+partitioning system
+
+
+859
+00:40:00,716 --> 00:40:02,546
+for efficient spatial
+queries in your game.
+
+
+860
+00:40:04,076 --> 00:40:06,006
+The new procedural
+generation system
+
+
+861
+00:40:06,006 --> 00:40:08,836
+for using various
+noise functions
+
+
+862
+00:40:08,836 --> 00:40:11,036
+to create more dynamic
+content in your game,
+
+
+863
+00:40:11,606 --> 00:40:14,106
+as well as improvements
+to existing systems
+
+
+864
+00:40:14,166 --> 00:40:16,586
+such as pathfinding and agents.
+
+
+865
+00:40:17,116 --> 00:40:21,466
+And Michael talked about
+the additions to game AI
+
+
+866
+00:40:21,816 --> 00:40:25,376
+with gameplay strategists
+and decision trees.
+
+
+867
+00:40:26,216 --> 00:40:30,706
+And I finally covered the newly
+introduced editor-based workflow
+
+
+868
+00:40:30,706 --> 00:40:32,536
+of GameplayKit for
+faster iteration.
+
+
+869
+00:40:33,726 --> 00:40:36,276
+I hope you find these features
+useful and we can't wait
+
+
+870
+00:40:36,276 --> 00:40:37,626
+to see what you come
+up with next.
+
+
+871
+00:40:38,036 --> 00:40:43,326
+And here is the URL for this
+session to check out for later.
+
+
+872
+00:40:43,576 --> 00:40:45,286
+Number 608 is the
+session number.
+
+
+873
+00:40:46,316 --> 00:40:50,526
+And here are a few sessions
+on related technologies
+
+
+874
+00:40:50,526 --> 00:40:51,946
+that you might be
+interested in attending.
+
+
+875
+00:40:51,946 --> 00:40:54,946
+What's New in SpriteKit,
+SceneKit, Rendering,
+
+
+876
+00:40:54,946 --> 00:40:57,796
+Game Center, and Game
+Technologies for Apple Watch.
+
+
+877
+00:40:59,396 --> 00:41:00,436
+Thank you for coming,
+
+
+878
+00:41:00,576 --> 00:41:02,296
+and we hope you enjoy the
+rest of your conference.
+
+
+879
+00:41:03,016 --> 00:41:05,000
+[ Applause ]
+

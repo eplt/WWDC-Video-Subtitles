@@ -1,0 +1,3846 @@
+1
+00:00:07,516 --> 00:00:19,500
+[ Music ]
+
+
+2
+00:00:29,516 --> 00:00:32,546
+[ Applause ]
+
+
+3
+00:00:33,046 --> 00:00:33,576
+>> Good afternoon.
+
+
+4
+00:00:35,086 --> 00:00:38,386
+So I'm going to talk to you
+this afternoon about how
+
+
+5
+00:00:38,386 --> 00:00:41,056
+to structure your programs
+with concurrent programming
+
+
+6
+00:00:41,056 --> 00:00:44,816
+and what we've done this year
+that's new in GCD in Swift 3.
+
+
+7
+00:00:45,656 --> 00:00:46,216
+My name is Matt.
+
+
+8
+00:00:46,816 --> 00:00:48,476
+I'm going to be joined
+later by Pierre.
+
+
+9
+00:00:49,476 --> 00:00:53,996
+We're both on the Darwin
+Runtime team here at Apple.
+
+
+10
+00:00:54,196 --> 00:00:56,936
+So when you create a new
+project, you're going
+
+
+11
+00:00:56,936 --> 00:00:59,366
+to have something that looks
+a little bit like this.
+
+
+12
+00:00:59,716 --> 00:01:00,816
+You have your application.
+
+
+13
+00:01:01,016 --> 00:01:03,376
+That application
+gets its main thread.
+
+
+14
+00:01:04,676 --> 00:01:08,316
+That main thread is responsible
+for running all of the code
+
+
+15
+00:01:08,316 --> 00:01:09,816
+that powers your user interface.
+
+
+16
+00:01:10,336 --> 00:01:16,426
+As you start to add code to
+your application, you're going
+
+
+17
+00:01:16,426 --> 00:01:19,316
+to find the performance of
+your application changes
+
+
+18
+00:01:19,316 --> 00:01:20,066
+quite drastically.
+
+
+19
+00:01:20,606 --> 00:01:24,316
+For instance, if you start to
+introduce large items of work,
+
+
+20
+00:01:24,316 --> 00:01:29,796
+say data transforms or image
+processing, on your main thread,
+
+
+21
+00:01:29,796 --> 00:01:32,416
+you're going to find
+that your user interface
+
+
+22
+00:01:32,736 --> 00:01:33,946
+suffers drastically.
+
+
+23
+00:01:34,786 --> 00:01:38,896
+On macOS, this can be the
+spinning wheel appearing.
+
+
+24
+00:01:39,146 --> 00:01:41,466
+On iOS, it could be
+something more subtle.
+
+
+25
+00:01:41,466 --> 00:01:42,906
+Your user interface
+will slow down,
+
+
+26
+00:01:42,906 --> 00:01:44,426
+or maybe even stop entirely.
+
+
+27
+00:01:44,766 --> 00:01:48,726
+So I'm going to take you
+through some basics on how
+
+
+28
+00:01:48,726 --> 00:01:51,416
+to struct your application to
+avoid this kind of problem.
+
+
+29
+00:01:51,616 --> 00:01:54,456
+And later on in the talk, Pierre
+is going to come and take you
+
+
+30
+00:01:54,456 --> 00:01:56,866
+through some more
+advanced topics.
+
+
+31
+00:01:57,556 --> 00:02:01,206
+So how do we deal with
+this kind of problem?
+
+
+32
+00:02:05,216 --> 00:02:07,456
+We have to start by
+introducing the idea
+
+
+33
+00:02:07,456 --> 00:02:08,985
+of concurrency to
+your application.
+
+
+34
+00:02:09,175 --> 00:02:12,336
+Concurrency allows multiple
+parts of your application
+
+
+35
+00:02:12,336 --> 00:02:13,636
+to run at the same time.
+
+
+36
+00:02:14,216 --> 00:02:17,116
+On our system, you achieve
+concurrency by creating threads.
+
+
+37
+00:02:17,926 --> 00:02:20,956
+A CPU core can execute one of
+your threads at any given time,
+
+
+38
+00:02:21,496 --> 00:02:23,966
+but the payoff for
+introducing concurrency,
+
+
+39
+00:02:24,116 --> 00:02:25,726
+the penalty for introducing
+concurrency
+
+
+40
+00:02:25,726 --> 00:02:28,226
+to your application is
+it's much more difficult
+
+
+41
+00:02:28,576 --> 00:02:29,916
+to maintain your thread safety.
+
+
+42
+00:02:30,406 --> 00:02:32,886
+The other threads that you've
+introduced can observe the
+
+
+43
+00:02:32,886 --> 00:02:35,716
+effects of you breaking your
+code invariants while you're
+
+
+44
+00:02:35,716 --> 00:02:37,296
+performing operations
+on other threads.
+
+
+45
+00:02:38,266 --> 00:02:39,966
+This becomes a bit of a problem.
+
+
+46
+00:02:41,456 --> 00:02:42,266
+So how can we help?
+
+
+47
+00:02:42,546 --> 00:02:45,926
+Well, GCD is the concurrency
+library on our platform.
+
+
+48
+00:02:46,336 --> 00:02:50,116
+It helps you write code,
+multi-threaded code that works
+
+
+49
+00:02:50,116 --> 00:02:51,866
+on everything from
+an Apple Watch
+
+
+50
+00:02:52,276 --> 00:02:53,796
+through all of our iOS devices.
+
+
+51
+00:02:54,306 --> 00:02:56,616
+Apple TVs and all
+the way up to a Mac.
+
+
+52
+00:02:57,996 --> 00:03:00,656
+So in order to help you
+with your concurrency,
+
+
+53
+00:03:00,656 --> 00:03:04,056
+we introduce some abstractions
+on top of threads themselves.
+
+
+54
+00:03:05,166 --> 00:03:08,206
+That is, dispatch
+queues and run loops.
+
+
+55
+00:03:08,506 --> 00:03:12,986
+A dispatch queue is a construct
+that allows you to submit items
+
+
+56
+00:03:12,986 --> 00:03:14,286
+of work to that queue.
+
+
+57
+00:03:14,546 --> 00:03:15,906
+In Swift, this is closures.
+
+
+58
+00:03:16,376 --> 00:03:19,366
+And dispatch will
+bring up a thread
+
+
+59
+00:03:20,266 --> 00:03:21,646
+and service that work for you.
+
+
+60
+00:03:22,076 --> 00:03:24,666
+And when dispatch is finished
+running all of the work
+
+
+61
+00:03:24,666 --> 00:03:26,056
+on that thread, it can tear
+
+
+62
+00:03:26,056 --> 00:03:28,036
+that worker thread
+down for you itself.
+
+
+63
+00:03:29,016 --> 00:03:32,046
+As I said before, you can
+also create your own threads,
+
+
+64
+00:03:33,056 --> 00:03:35,026
+and on those threads,
+you might run run loops.
+
+
+65
+00:03:35,216 --> 00:03:39,816
+And then finally, on the first
+slide we saw you get your main
+
+
+66
+00:03:39,816 --> 00:03:41,336
+thread, and the main
+thread is special.
+
+
+67
+00:03:41,526 --> 00:03:44,616
+It gets both a main run
+loop and a main queue.
+
+
+68
+00:03:45,776 --> 00:03:50,316
+So dispatch queues have two main
+ways that you can submit work
+
+
+69
+00:03:50,316 --> 00:03:53,536
+for them, the first of which
+is asynchronous execution.
+
+
+70
+00:03:54,366 --> 00:03:57,256
+This is where you can queue
+up multiple items of work
+
+
+71
+00:03:57,436 --> 00:04:00,656
+to your dispatch queue,
+and then dispatch, again,
+
+
+72
+00:04:01,066 --> 00:04:03,946
+will bring up a thread
+to execute that work.
+
+
+73
+00:04:04,636 --> 00:04:07,006
+Dispatch will one by
+one take items off
+
+
+74
+00:04:07,006 --> 00:04:08,046
+that queue and execute them.
+
+
+75
+00:04:12,076 --> 00:04:14,466
+And then when it's finished
+with all items on the queue,
+
+
+76
+00:04:14,616 --> 00:04:15,826
+the system will reclaim
+the thread
+
+
+77
+00:04:15,826 --> 00:04:16,685
+that it bought up for you.
+
+
+78
+00:04:17,146 --> 00:04:21,305
+The second mode of execution
+asynchronous execution.
+
+
+79
+00:04:22,236 --> 00:04:25,566
+This is where, for instance,
+if we have the same setup
+
+
+80
+00:04:25,566 --> 00:04:27,486
+as we had before,
+the dispatch queue
+
+
+81
+00:04:27,486 --> 00:04:28,646
+with some asynchronous work.
+
+
+82
+00:04:28,826 --> 00:04:32,206
+But you have your own
+thread, and that thread wants
+
+
+83
+00:04:32,206 --> 00:04:34,726
+to run code on that queue
+and wait for it to happen.
+
+
+84
+00:04:35,056 --> 00:04:38,766
+You can submit that work
+to the dispatch queue,
+
+
+85
+00:04:39,386 --> 00:04:40,546
+and then that's where
+it will block.
+
+
+86
+00:04:41,296 --> 00:04:43,536
+It will wait there until
+the item that you've asked
+
+
+87
+00:04:43,536 --> 00:04:44,986
+to execute has completed.
+
+
+88
+00:04:45,506 --> 00:04:47,846
+We might add some more
+asynchronous work to that queue,
+
+
+89
+00:04:47,846 --> 00:04:50,706
+and then dispatch will
+bring up a thread in order
+
+
+90
+00:04:50,706 --> 00:04:52,236
+to service the items
+on that queue.
+
+
+91
+00:04:52,826 --> 00:04:54,886
+Again, the asynchronous
+items will be executed there,
+
+
+92
+00:04:54,886 --> 00:04:57,846
+and then when it comes time
+to run the synchronous item
+
+
+93
+00:04:57,846 --> 00:04:58,726
+that you've asked to run.
+
+
+94
+00:04:59,456 --> 00:05:02,476
+The dispatch queue will pass
+control over to the thread
+
+
+95
+00:05:02,476 --> 00:05:06,646
+that was waiting, execute
+that item, and then control
+
+
+96
+00:05:06,646 --> 00:05:08,486
+of the dispatch queue
+will return back
+
+
+97
+00:05:08,556 --> 00:05:10,616
+to a worker thread
+controlled by dispatch.
+
+
+98
+00:05:11,396 --> 00:05:14,246
+It will continue to drain the
+rest of the items on that queue,
+
+
+99
+00:05:15,116 --> 00:05:17,926
+and then also reclaim the
+thread that it was using.
+
+
+100
+00:05:18,696 --> 00:05:21,016
+So now I've shown you how
+you actually submit work
+
+
+101
+00:05:21,136 --> 00:05:21,716
+to dispatch.
+
+
+102
+00:05:22,006 --> 00:05:24,566
+How do we use that to help
+us solve the problem we
+
+
+103
+00:05:24,566 --> 00:05:25,156
+had earlier?
+
+
+104
+00:05:26,236 --> 00:05:29,766
+What we want to do is get the
+work off your main thread that's
+
+
+105
+00:05:29,766 --> 00:05:32,276
+causing you to block
+your user interface,
+
+
+106
+00:05:32,516 --> 00:05:36,086
+and we do that by taking
+the transform that we had
+
+
+107
+00:05:36,086 --> 00:05:38,856
+on that main thread and
+running it on a different queue.
+
+
+108
+00:05:38,856 --> 00:05:42,996
+So you can take the
+transform, and you can back it
+
+
+109
+00:05:42,996 --> 00:05:43,996
+with a dispatch queue.
+
+
+110
+00:05:44,716 --> 00:05:46,776
+And now when you want
+to transform data,
+
+
+111
+00:05:47,166 --> 00:05:51,286
+you can move the value of that
+data to your transform code
+
+
+112
+00:05:51,896 --> 00:05:55,386
+on the other queue,
+transform it,
+
+
+113
+00:05:55,386 --> 00:05:56,956
+and then send it back
+to your main thread.
+
+
+114
+00:05:57,946 --> 00:05:59,036
+This allows you to perform
+
+
+115
+00:05:59,036 --> 00:06:02,516
+that work while the main thread
+is idle and servicing events.
+
+
+116
+00:06:03,526 --> 00:06:05,376
+So what does that look
+like in real code?
+
+
+117
+00:06:06,696 --> 00:06:07,866
+Well, it's really simple.
+
+
+118
+00:06:08,366 --> 00:06:10,876
+So first of all, you can
+create the dispatch queue
+
+
+119
+00:06:11,126 --> 00:06:13,836
+to submit your work to by just
+creating a DispatchQueue object.
+
+
+120
+00:06:14,096 --> 00:06:17,386
+It takes a label, and that
+label is visible in debugger
+
+
+121
+00:06:17,386 --> 00:06:18,736
+as you're writing
+your application.
+
+
+122
+00:06:20,536 --> 00:06:23,726
+Dispatch queues execute
+the work that you give them
+
+
+123
+00:06:23,726 --> 00:06:25,266
+in first in, first out order.
+
+
+124
+00:06:25,466 --> 00:06:27,686
+That is, the order that
+they were submitted
+
+
+125
+00:06:27,686 --> 00:06:29,986
+to the queue is the order that
+dispatch will run them in.
+
+
+126
+00:06:31,076 --> 00:06:34,346
+And then you can use the async
+method on your dispatch queue
+
+
+127
+00:06:34,636 --> 00:06:37,356
+to submit work to that queue.
+
+
+128
+00:06:38,086 --> 00:06:41,016
+So now that we've actually
+submitted our resize operation
+
+
+129
+00:06:41,016 --> 00:06:43,226
+here to a different
+queue, well how do we get
+
+
+130
+00:06:43,226 --> 00:06:44,246
+that back to the main thread?
+
+
+131
+00:06:45,366 --> 00:06:46,846
+That's very simple too.
+
+
+132
+00:06:47,256 --> 00:06:50,316
+The dispatch main queue
+services all of the items
+
+
+133
+00:06:50,316 --> 00:06:52,896
+that you execute on it on
+the main thread itself.
+
+
+134
+00:06:54,696 --> 00:06:58,016
+This means you can just
+call DispatchQueue main
+
+
+135
+00:06:58,156 --> 00:07:00,646
+and then call async
+on that main queue,
+
+
+136
+00:07:01,006 --> 00:07:02,296
+and that code will execute,
+
+
+137
+00:07:02,296 --> 00:07:04,626
+and you can update your
+user interface from there.
+
+
+138
+00:07:05,456 --> 00:07:08,566
+As you can see, it's very simple
+to chain work from one queue
+
+
+139
+00:07:08,566 --> 00:07:10,656
+to another queue and back
+to your main queue again.
+
+
+140
+00:07:11,126 --> 00:07:14,826
+So now we've seen how to
+get control of your code
+
+
+141
+00:07:14,826 --> 00:07:15,876
+and put it on different threads.
+
+
+142
+00:07:16,876 --> 00:07:18,966
+It comes at somewhat of a cost.
+
+
+143
+00:07:20,106 --> 00:07:23,816
+You have to control a
+concurrency in your application.
+
+
+144
+00:07:24,436 --> 00:07:28,896
+The thread pool that dispatch
+uses will limit the concurrency
+
+
+145
+00:07:29,036 --> 00:07:33,216
+you achieve in order to use all
+of the calls in your device.
+
+
+146
+00:07:34,516 --> 00:07:37,436
+However, when you
+block those threads,
+
+
+147
+00:07:37,436 --> 00:07:40,076
+if you wait for other parts of
+your application or you wait
+
+
+148
+00:07:40,076 --> 00:07:42,976
+in sys calls those
+worker threads
+
+
+149
+00:07:42,976 --> 00:07:45,346
+that are blocked can cause
+more worker threads to spawn.
+
+
+150
+00:07:45,516 --> 00:07:48,276
+Dispatch is trying to give you
+the concurrency you deserve
+
+
+151
+00:07:48,576 --> 00:07:51,696
+by giving you a new thread to
+continue executing code on.
+
+
+152
+00:07:52,556 --> 00:07:54,856
+This means it's very important
+to choose the right number
+
+
+153
+00:07:54,856 --> 00:07:57,786
+of dispatch queues to
+use to execute code.
+
+
+154
+00:07:58,346 --> 00:08:00,106
+Otherwise, you can
+block one thread.
+
+
+155
+00:08:00,826 --> 00:08:01,666
+Another thread will come up,
+
+
+156
+00:08:01,666 --> 00:08:03,996
+and you will block
+another one, and so on.
+
+
+157
+00:08:03,996 --> 00:08:06,476
+And this pattern is something
+that we call thread explosion.
+
+
+158
+00:08:07,266 --> 00:08:09,396
+We covered thread
+explosion and its problems
+
+
+159
+00:08:09,616 --> 00:08:11,956
+in last year's talk,
+Building Responsive
+
+
+160
+00:08:11,956 --> 00:08:13,286
+and Efficient Apps with GCD.
+
+
+161
+00:08:13,696 --> 00:08:18,206
+So I recommend you go back
+and watch that from last year.
+
+
+162
+00:08:20,476 --> 00:08:22,636
+So now we've seen how
+you do simple things,
+
+
+163
+00:08:22,636 --> 00:08:25,586
+like getting work off of the
+main thread onto another queue.
+
+
+164
+00:08:25,856 --> 00:08:27,916
+But how do we actually apply
+this to your application?
+
+
+165
+00:08:28,396 --> 00:08:32,296
+Well, if we go back to
+the system we had before,
+
+
+166
+00:08:32,525 --> 00:08:35,586
+what you want to do is identify
+areas of your application
+
+
+167
+00:08:35,806 --> 00:08:37,066
+with independent data flow.
+
+
+168
+00:08:37,436 --> 00:08:39,596
+So as we've seen, it
+might be image transform,
+
+
+169
+00:08:39,976 --> 00:08:41,206
+or you might have a database.
+
+
+170
+00:08:41,515 --> 00:08:44,816
+You want to take those
+areas, and split them
+
+
+171
+00:08:45,046 --> 00:08:48,186
+into distinct subsystems,
+and then you want
+
+
+172
+00:08:48,186 --> 00:08:51,246
+to back those subsystems
+with a dispatch queue each.
+
+
+173
+00:08:52,356 --> 00:08:54,856
+This will give each subsystem
+a queue to execute work
+
+
+174
+00:08:54,856 --> 00:08:57,936
+on independently without
+suffering from the problems
+
+
+175
+00:08:57,936 --> 00:08:59,806
+of having too many queues
+and too many threads.
+
+
+176
+00:09:00,346 --> 00:09:03,196
+And we saw a couple of
+slides ago how easy it is
+
+
+177
+00:09:03,196 --> 00:09:04,156
+to chain work together.
+
+
+178
+00:09:04,956 --> 00:09:08,176
+That is where you can
+async one block to another,
+
+
+179
+00:09:08,176 --> 00:09:09,456
+and then to another queue,
+
+
+180
+00:09:09,796 --> 00:09:11,286
+and then back to,
+say, the main queue.
+
+
+181
+00:09:12,126 --> 00:09:14,436
+But there's a second
+pattern I want to show you
+
+
+182
+00:09:14,436 --> 00:09:15,846
+that we feel is equally useful.
+
+
+183
+00:09:15,846 --> 00:09:19,096
+That is grouping work and
+waiting for that work to finish.
+
+
+184
+00:09:20,456 --> 00:09:22,376
+If you have a single
+thing that wants
+
+
+185
+00:09:22,376 --> 00:09:25,686
+to spawn multiple different
+works items, and you only want
+
+
+186
+00:09:25,686 --> 00:09:27,466
+to make progress if
+those work items,
+
+
+187
+00:09:27,526 --> 00:09:30,416
+when those work items is
+finished, well, you can do that.
+
+
+188
+00:09:31,316 --> 00:09:34,416
+And in order to do that,
+dispatch can help you.
+
+
+189
+00:09:35,446 --> 00:09:38,146
+So if we do back to the
+diagram we had before,
+
+
+190
+00:09:38,376 --> 00:09:42,486
+if the user interface spawns off
+three separate work items here,
+
+
+191
+00:09:43,466 --> 00:09:45,486
+you can create a dispatch group.
+
+
+192
+00:09:46,586 --> 00:09:49,116
+Dispatch groups are here
+to help you track work,
+
+
+193
+00:09:50,176 --> 00:09:53,036
+and they're very simple
+to create in Swift.
+
+
+194
+00:09:53,206 --> 00:09:55,256
+You just create a
+DispatchGroup object.
+
+
+195
+00:09:56,576 --> 00:10:01,476
+And now when you submit work to
+dispatch, you can add the group
+
+
+196
+00:10:01,776 --> 00:10:03,866
+as an optional parameter
+to your async call.
+
+
+197
+00:10:05,046 --> 00:10:07,636
+You can add more work to
+that group, and you can do it
+
+
+198
+00:10:07,636 --> 00:10:08,556
+to different queues,
+
+
+199
+00:10:08,876 --> 00:10:10,416
+but associate it
+with the same group.
+
+
+200
+00:10:10,616 --> 00:10:14,216
+And each time you
+submit work to the group,
+
+
+201
+00:10:14,536 --> 00:10:16,356
+the group will increment
+the counter of items
+
+
+202
+00:10:16,356 --> 00:10:17,696
+that it's expecting to complete.
+
+
+203
+00:10:19,816 --> 00:10:22,126
+Then finally, once you've
+submitted all your work,
+
+
+204
+00:10:22,666 --> 00:10:25,456
+you can ask the group
+to notify you when all
+
+
+205
+00:10:25,456 --> 00:10:27,246
+that work is finished,
+and you can tell it do
+
+
+206
+00:10:27,246 --> 00:10:30,456
+so on a queue that
+you've chosen.
+
+
+207
+00:10:30,986 --> 00:10:34,106
+So now one by one, these
+items will start to execute,
+
+
+208
+00:10:34,716 --> 00:10:37,766
+and as they execute the count
+
+
+209
+00:10:37,766 --> 00:10:40,196
+in the group will
+decrement every time a work
+
+
+210
+00:10:40,196 --> 00:10:41,056
+item completes.
+
+
+211
+00:10:41,716 --> 00:10:44,636
+And when, finally, the last
+work item has finished,
+
+
+212
+00:10:45,246 --> 00:10:48,106
+the group will go ahead and
+submit your notification block
+
+
+213
+00:10:48,386 --> 00:10:51,816
+to the queue that
+you've requested.
+
+
+214
+00:10:51,816 --> 00:10:54,636
+So here, we submitted
+the group, the block back
+
+
+215
+00:10:54,636 --> 00:10:57,546
+to the main queue, and it
+will run on the main thread.
+
+
+216
+00:10:58,076 --> 00:11:03,636
+Now there's a third pattern
+that I feel we should show.
+
+
+217
+00:11:04,286 --> 00:11:08,096
+These two have been asynchronous
+execution, and the third one is
+
+
+218
+00:11:08,146 --> 00:11:09,666
+to deal with synchronous
+execution.
+
+
+219
+00:11:10,196 --> 00:11:12,946
+You can use synchronous
+execution
+
+
+220
+00:11:13,286 --> 00:11:16,506
+to help you serialize
+state between subsystems.
+
+
+221
+00:11:17,716 --> 00:11:20,626
+Serial queues, dispatch
+queues are serial by natural.
+
+
+222
+00:11:21,566 --> 00:11:24,626
+And you can use this for its
+mutual exclusion properties.
+
+
+223
+00:11:24,976 --> 00:11:28,176
+That is, when you submit work
+synchronously to that queue,
+
+
+224
+00:11:28,436 --> 00:11:30,456
+you know the work that
+the subsystem is running
+
+
+225
+00:11:30,456 --> 00:11:32,416
+on that queue isn't
+running at the same time.
+
+
+226
+00:11:33,756 --> 00:11:36,436
+You can use this to build
+very simple accesses
+
+
+227
+00:11:36,436 --> 00:11:38,466
+to the thread safe
+that access properties
+
+
+228
+00:11:38,466 --> 00:11:40,556
+from your subsystem
+from other places.
+
+
+229
+00:11:41,166 --> 00:11:43,536
+So for instance, here
+you can call queue sync,
+
+
+230
+00:11:43,946 --> 00:11:45,956
+and you can return a
+value out of queue sync,
+
+
+231
+00:11:46,466 --> 00:11:49,436
+and we will capture that value
+on the queue, and then return it
+
+
+232
+00:11:49,436 --> 00:11:51,906
+to you as that work
+item completes.
+
+
+233
+00:11:52,376 --> 00:11:56,696
+However, you have to be
+careful when you start
+
+
+234
+00:11:56,696 --> 00:11:58,806
+to introduce this
+pattern, because you start
+
+
+235
+00:11:58,806 --> 00:12:01,746
+to introduce a lock ordering
+graph between your subsystems.
+
+
+236
+00:12:01,826 --> 00:12:03,986
+Now, what does that mean?
+
+
+237
+00:12:04,176 --> 00:12:07,686
+Well, if you have the subsystems
+that we had before, and you sync
+
+
+238
+00:12:07,686 --> 00:12:10,276
+from one place to another
+and then to another,
+
+
+239
+00:12:10,566 --> 00:12:13,486
+and then finally, you end up
+syncing back to the first one.
+
+
+240
+00:12:13,866 --> 00:12:15,066
+Well, now we have a deadlock.
+
+
+241
+00:12:16,226 --> 00:12:17,466
+Pierre's going to come and talk
+
+
+242
+00:12:17,466 --> 00:12:19,856
+about deadlocks later
+on in this talk.
+
+
+243
+00:12:27,046 --> 00:12:29,986
+So now we've seen a bit how
+to structure dispatch use
+
+
+244
+00:12:30,356 --> 00:12:31,756
+in your application as a whole.
+
+
+245
+00:12:31,936 --> 00:12:35,706
+How can we also apply it to
+your usage inside the subsystem?
+
+
+246
+00:12:36,486 --> 00:12:39,056
+Well, you can use dispatch
+to classify the work
+
+
+247
+00:12:39,056 --> 00:12:41,256
+that you submit, and to do so,
+
+
+248
+00:12:41,256 --> 00:12:44,586
+we need to introduce
+quality of service classes.
+
+
+249
+00:12:45,116 --> 00:12:48,116
+These are classes that provide
+an explicit classification
+
+
+250
+00:12:48,156 --> 00:12:50,046
+of the work that you are
+submitting to dispatch.
+
+
+251
+00:12:50,636 --> 00:12:54,136
+So it allows you as the
+developer to indicate the intent
+
+
+252
+00:12:54,136 --> 00:12:56,006
+of the code that you are
+submitting to dispatch.
+
+
+253
+00:12:56,476 --> 00:13:00,116
+And dispatch can use that to
+affect how it executes the code
+
+
+254
+00:13:00,116 --> 00:13:01,656
+that you've given us.
+
+
+255
+00:13:02,036 --> 00:13:04,016
+That is, the code
+could be executed
+
+
+256
+00:13:04,016 --> 00:13:05,226
+at a different CPU priority,
+
+
+257
+00:13:05,416 --> 00:13:07,706
+different IO scheduling
+priority, and so on.
+
+
+258
+00:13:08,296 --> 00:13:12,246
+And we covered QoS in detail in
+the same talk from last year,
+
+
+259
+00:13:12,246 --> 00:13:14,326
+Building Responsive and
+Efficient Apps with GCD.
+
+
+260
+00:13:15,296 --> 00:13:17,436
+So how do we actually
+use the QoS classes?
+
+
+261
+00:13:18,866 --> 00:13:20,796
+Well, it's as simple
+as it was before.
+
+
+262
+00:13:21,316 --> 00:13:23,956
+You can pass the
+QoS class to async
+
+
+263
+00:13:24,036 --> 00:13:25,246
+as another optional parameter.
+
+
+264
+00:13:25,246 --> 00:13:27,996
+So here, we're submitting
+background work to our queue.
+
+
+265
+00:13:29,166 --> 00:13:33,016
+And if you come along later
+and submit queue out work
+
+
+266
+00:13:33,016 --> 00:13:36,036
+at a higher QoS, dispatch will
+help you resolve the priority
+
+
+267
+00:13:36,036 --> 00:13:36,996
+inversion that's created.
+
+
+268
+00:13:37,656 --> 00:13:41,066
+That is, it will raise the
+items in front of your work
+
+
+269
+00:13:41,246 --> 00:13:43,616
+on the dispatch queue
+to the higher QoS just
+
+
+270
+00:13:44,606 --> 00:13:46,546
+so that they execute quicker
+
+
+271
+00:13:46,546 --> 00:13:48,786
+and you actually get
+your item executed
+
+
+272
+00:13:48,786 --> 00:13:50,196
+through as quickly
+as you expected.
+
+
+273
+00:13:51,206 --> 00:13:53,196
+However, it's important
+to note at this point,
+
+
+274
+00:13:53,646 --> 00:13:55,536
+this doesn't help your
+work jump the line.
+
+
+275
+00:13:55,756 --> 00:13:58,516
+All that does here is elevate
+all the work in front of you,
+
+
+276
+00:13:58,516 --> 00:14:01,406
+so it executes as quickly as
+the work that you've submitted.
+
+
+277
+00:14:02,646 --> 00:14:06,106
+And then you can also
+create dispatch queues
+
+
+278
+00:14:06,366 --> 00:14:08,086
+that have a specific QoS class.
+
+
+279
+00:14:08,486 --> 00:14:09,846
+This is very helpful,
+for instance,
+
+
+280
+00:14:10,156 --> 00:14:12,936
+if you have background work
+that you always want to execute
+
+
+281
+00:14:12,936 --> 00:14:14,926
+at background, you
+can create a queue
+
+
+282
+00:14:15,116 --> 00:14:16,806
+that executes all
+that as background.
+
+
+283
+00:14:16,806 --> 00:14:18,826
+And when you submit
+work to that queue,
+
+
+284
+00:14:19,076 --> 00:14:21,006
+that's the QoS that we'll get.
+
+
+285
+00:14:21,756 --> 00:14:26,726
+So on a more granular
+level, when you async
+
+
+286
+00:14:27,616 --> 00:14:30,676
+to a dispatch queue, it
+captures the execution context
+
+
+287
+00:14:30,676 --> 00:14:31,806
+at the point where you async.
+
+
+288
+00:14:32,916 --> 00:14:35,136
+Now, execution context
+means things like QoS.
+
+
+289
+00:14:35,646 --> 00:14:37,766
+It also means the login
+context that you currently have.
+
+
+290
+00:14:38,826 --> 00:14:41,336
+But if you want more
+control over this,
+
+
+291
+00:14:41,606 --> 00:14:45,346
+you can use DispatchWorkItem
+to create items
+
+
+292
+00:14:45,556 --> 00:14:47,646
+where you have more control
+over how they execute.
+
+
+293
+00:14:49,006 --> 00:14:52,886
+For instance, here we're
+creating a work item
+
+
+294
+00:14:53,076 --> 00:14:57,206
+with assignCurrentContext,
+and that takes the QoS
+
+
+295
+00:14:57,206 --> 00:15:00,696
+of the execution context at the
+time you create the work item,
+
+
+296
+00:15:00,906 --> 00:15:02,576
+rather than the time
+that you submit it
+
+
+297
+00:15:02,576 --> 00:15:03,466
+to your dispatch queue.
+
+
+298
+00:15:04,506 --> 00:15:07,366
+This means you can create
+that item, save it for later,
+
+
+299
+00:15:07,366 --> 00:15:10,066
+and when you do finally
+execute it, we will submit it
+
+
+300
+00:15:10,066 --> 00:15:12,616
+to dispatch with the properties
+of when you created it.
+
+
+301
+00:15:13,336 --> 00:15:14,986
+And now while we're
+talking about work item,
+
+
+302
+00:15:15,246 --> 00:15:17,816
+there's another part that's very
+useful for DispatchWorkItem,
+
+
+303
+00:15:18,186 --> 00:15:20,106
+and that is waiting
+for them to complete.
+
+
+304
+00:15:20,186 --> 00:15:24,876
+You can use the wait method on
+DispatchWorkItem to indicate
+
+
+305
+00:15:24,876 --> 00:15:26,636
+to dispatch that you
+need that work item
+
+
+306
+00:15:26,636 --> 00:15:28,436
+to complete before
+you can make progress.
+
+
+307
+00:15:30,956 --> 00:15:33,486
+Dispatch will respond by
+elevating the priority
+
+
+308
+00:15:33,486 --> 00:15:35,936
+of work ahead of
+it up to that QoS,
+
+
+309
+00:15:35,936 --> 00:15:38,046
+like it did with priority
+inversions before.
+
+
+310
+00:15:38,046 --> 00:15:43,956
+And it can do this because
+the DispatchWorkItem knows
+
+
+311
+00:15:43,956 --> 00:15:46,316
+where it was submitted, which
+queue you want to run it on.
+
+
+312
+00:15:46,616 --> 00:15:49,756
+And therefore, dispatch knows
+which queue it has to elevate
+
+
+313
+00:15:49,886 --> 00:15:51,696
+in order to get your
+work item completed.
+
+
+314
+00:15:52,146 --> 00:15:56,156
+And it's very important to
+note that, because waiting
+
+
+315
+00:15:56,156 --> 00:15:58,656
+on Semaphores and
+Groups don't store this
+
+
+316
+00:15:58,656 --> 00:15:59,776
+ownership information.
+
+
+317
+00:16:00,096 --> 00:16:02,806
+This means if you wait on
+a semaphore, it isn't going
+
+
+318
+00:16:02,806 --> 00:16:05,446
+to cause the things in front
+of your semaphore signal
+
+
+319
+00:16:05,626 --> 00:16:06,786
+to execute any quicker.
+
+
+320
+00:16:07,466 --> 00:16:09,756
+And now I'd like to invite
+Pierre on to the stage.
+
+
+321
+00:16:09,836 --> 00:16:12,436
+He's going to take you through
+more about synchronization.
+
+
+322
+00:16:13,516 --> 00:16:19,646
+[ Applause ]
+
+
+323
+00:16:20,146 --> 00:16:20,566
+>> Thank you, Matt.
+
+
+324
+00:16:22,596 --> 00:16:25,976
+So with Matt, we've
+seen how to use dispatch
+
+
+325
+00:16:26,096 --> 00:16:28,096
+from the perspective
+of your app.
+
+
+326
+00:16:28,316 --> 00:16:30,796
+I will walk you through more
+details about what it means
+
+
+327
+00:16:31,056 --> 00:16:32,816
+from the perspective
+of your objects now.
+
+
+328
+00:16:33,946 --> 00:16:35,956
+But first, a note about Swift.
+
+
+329
+00:16:39,336 --> 00:16:42,536
+Synchronization is not part
+of the language as of Swift 3.
+
+
+330
+00:16:44,196 --> 00:16:47,826
+You only have one grand key
+from the language today,
+
+
+331
+00:16:47,826 --> 00:16:50,126
+which is that your
+global viables are
+
+
+332
+00:16:50,126 --> 00:16:51,416
+initialized atomically.
+
+
+333
+00:16:52,526 --> 00:16:55,106
+But what you don't have is
+
+
+334
+00:16:55,106 --> 00:16:59,516
+that your class properties are
+not atomic, and lazy properties
+
+
+335
+00:16:59,516 --> 00:17:01,296
+of your classes aren't
+atomic either.
+
+
+336
+00:17:01,826 --> 00:17:05,016
+What that means is that if
+you're calling these properties
+
+
+337
+00:17:05,016 --> 00:17:07,415
+in our initialize
+context at the same time,
+
+
+338
+00:17:07,836 --> 00:17:10,516
+your lazy initializer
+may actually run twice.
+
+
+339
+00:17:11,705 --> 00:17:13,096
+So you have to synchronize.
+
+
+340
+00:17:14,326 --> 00:17:17,766
+The language doesn't give us
+really a lot of tools today,
+
+
+341
+00:17:18,175 --> 00:17:21,226
+but that doesn't mean that
+races aren't a problem.
+
+
+342
+00:17:22,226 --> 00:17:26,886
+There is no such thing
+as a benign race.
+
+
+343
+00:17:27,435 --> 00:17:31,756
+What that means for you is
+
+
+344
+00:17:31,756 --> 00:17:34,166
+that if you forget a
+synchronization point,
+
+
+345
+00:17:34,626 --> 00:17:37,976
+you will end up with crashes
+or corrupting the data
+
+
+346
+00:17:37,976 --> 00:17:40,236
+of the user of your apps.
+
+
+347
+00:17:41,496 --> 00:17:44,646
+I invite you to go
+watch the talk
+
+
+348
+00:17:44,646 --> 00:17:45,976
+that happened earlier this week
+
+
+349
+00:17:45,976 --> 00:17:49,906
+about T San, which
+is a sanitizer.
+
+
+350
+00:17:50,746 --> 00:17:53,766
+Which is a tool that
+helps you find out where
+
+
+351
+00:17:53,766 --> 00:17:56,476
+in your app you're missing
+proper synchronization.
+
+
+352
+00:17:56,726 --> 00:18:01,816
+So what do we use
+for synchronization?
+
+
+353
+00:18:02,876 --> 00:18:05,166
+Traditionally you
+would use a lock.
+
+
+354
+00:18:05,956 --> 00:18:10,086
+And in Swift, since you have
+the entire Darwin module
+
+
+355
+00:18:10,086 --> 00:18:13,796
+at your disposition, you will
+actually see the struct based
+
+
+356
+00:18:13,876 --> 00:18:15,346
+traditional C locks.
+
+
+357
+00:18:15,986 --> 00:18:18,936
+However, Swift assumes
+that anything
+
+
+358
+00:18:18,936 --> 00:18:22,066
+that is taught can be
+moved, and that doesn't work
+
+
+359
+00:18:22,256 --> 00:18:24,276
+with a mutex or with a lock.
+
+
+360
+00:18:24,656 --> 00:18:26,366
+So we really discourage you
+
+
+361
+00:18:26,366 --> 00:18:28,906
+from using these kind
+of locks from Swift.
+
+
+362
+00:18:32,056 --> 00:18:37,466
+If you want to a traditional
+lock, what you can use, however,
+
+
+363
+00:18:37,466 --> 00:18:41,326
+is Foundation.Lock, because
+unlike the traditional struct
+
+
+364
+00:18:41,326 --> 00:18:44,876
+based C locks, it's a class,
+and it's not prone to any
+
+
+365
+00:18:44,916 --> 00:18:46,766
+of the problems I
+mentioned earlier.
+
+
+366
+00:18:46,766 --> 00:18:49,966
+However, suddenly that means
+
+
+367
+00:18:49,966 --> 00:18:51,496
+that you're locating
+your next object,
+
+
+368
+00:18:51,686 --> 00:18:53,466
+which may be undesirable
+for you.
+
+
+369
+00:18:54,186 --> 00:18:56,716
+And if you want something
+that's smaller and that looks
+
+
+370
+00:18:56,716 --> 00:19:00,096
+like the locks that you have
+in C, then you have to call
+
+
+371
+00:19:00,096 --> 00:19:04,236
+into Objective-C and introduce
+a base class in Objective-C
+
+
+372
+00:19:04,236 --> 00:19:06,236
+that has your lock as an ivar.
+
+
+373
+00:19:07,626 --> 00:19:10,486
+And then you will expose
+a lock and unlock methods
+
+
+374
+00:19:10,576 --> 00:19:14,246
+and a try lock if you need it
+as well that you will be able
+
+
+375
+00:19:14,246 --> 00:19:18,856
+to call from Swift when you
+will subclass this class.
+
+
+376
+00:19:20,406 --> 00:19:24,556
+You will notice on that slide
+we're using unfair lock.
+
+
+377
+00:19:24,816 --> 00:19:26,926
+It's a new API that
+we introduced.
+
+
+378
+00:19:26,926 --> 00:19:29,676
+It's not prone to
+pirate invasions.
+
+
+379
+00:19:30,006 --> 00:19:33,566
+It doesn't spin, unlike the
+spin lock that we duplicated.
+
+
+380
+00:19:34,536 --> 00:19:38,026
+It's most important
+to come back to life.
+
+
+381
+00:19:38,676 --> 00:19:43,106
+That being said, this is a GCD
+talk, so what we encourage you
+
+
+382
+00:19:43,106 --> 00:19:46,806
+to do is to use dispatch queues
+for synchronization purposes.
+
+
+383
+00:19:47,996 --> 00:19:50,946
+The first reason why is that
+these are significantly easier
+
+
+384
+00:19:50,946 --> 00:19:54,566
+to misuse than a
+traditional lock.
+
+
+385
+00:19:55,046 --> 00:19:57,746
+Your code will run
+in a scoped way,
+
+
+386
+00:19:57,746 --> 00:20:00,036
+which means that you
+cannot forget to unlock.
+
+
+387
+00:20:01,106 --> 00:20:03,916
+The other thing is that
+queues actually are way better
+
+
+388
+00:20:03,916 --> 00:20:06,976
+integrated with the run time
+in Xcode in debugging tools.
+
+
+389
+00:20:08,596 --> 00:20:12,066
+So how do we use
+queues to synchronize?
+
+
+390
+00:20:12,286 --> 00:20:15,196
+I will walk you through
+a problem
+
+
+391
+00:20:15,376 --> 00:20:17,966
+of implementing an
+atomic property.
+
+
+392
+00:20:19,106 --> 00:20:23,926
+So here we have this object
+that has an internal state
+
+
+393
+00:20:24,426 --> 00:20:26,816
+that we want to access
+in a safe way.
+
+
+394
+00:20:26,876 --> 00:20:29,666
+We will use a queue
+to synchronize.
+
+
+395
+00:20:30,816 --> 00:20:33,406
+How do we write our
+getter and our setter?
+
+
+396
+00:20:34,626 --> 00:20:35,456
+The getter is just
+
+
+397
+00:20:35,456 --> 00:20:38,976
+about returning this
+internal state with sync.
+
+
+398
+00:20:40,056 --> 00:20:41,536
+It gives us mutual exclusion.
+
+
+399
+00:20:41,746 --> 00:20:43,086
+Matt talked about this earlier.
+
+
+400
+00:20:43,086 --> 00:20:45,866
+And the setter is as simple.
+
+
+401
+00:20:46,086 --> 00:20:49,176
+You will just set your new
+state and the other protection
+
+
+402
+00:20:49,266 --> 00:20:50,546
+of sync and your queue.
+
+
+403
+00:20:51,806 --> 00:20:55,096
+This pattern is pretty simple,
+and you can actually extend it
+
+
+404
+00:20:55,176 --> 00:20:59,686
+to products significantly
+more complex in variants.
+
+
+405
+00:21:00,236 --> 00:21:02,306
+I told you that queues
+are better integrated
+
+
+406
+00:21:02,306 --> 00:21:04,786
+with your debugging tools.
+
+
+407
+00:21:04,786 --> 00:21:06,606
+They also have more features.
+
+
+408
+00:21:07,166 --> 00:21:10,226
+And new in this release, we
+let you express preconditions.
+
+
+409
+00:21:11,526 --> 00:21:14,296
+It lets you express that you
+have invariants in your code
+
+
+410
+00:21:14,616 --> 00:21:17,796
+that really need to hang
+on that given queue,
+
+
+411
+00:21:18,366 --> 00:21:20,566
+and you had that this way.
+
+
+412
+00:21:22,126 --> 00:21:24,296
+A dispatch precondition
+that you're on that queue.
+
+
+413
+00:21:25,376 --> 00:21:27,586
+Sometimes the opposite
+is actually useful.
+
+
+414
+00:21:27,756 --> 00:21:31,536
+You want to make sure that a
+given piece of code never runs
+
+
+415
+00:21:31,536 --> 00:21:34,336
+on that queue, because you
+know you may synchronize
+
+
+416
+00:21:34,336 --> 00:21:38,556
+with that queue, and you express
+this this way, a precondition
+
+
+417
+00:21:39,446 --> 00:21:40,386
+that you're not in the queue.
+
+
+418
+00:21:41,676 --> 00:21:45,606
+So that's about synchronization,
+synchronizing your state.
+
+
+419
+00:21:47,176 --> 00:21:49,846
+And as Matt said
+earlier, it's way better
+
+
+420
+00:21:49,846 --> 00:21:52,696
+if you can just organize
+your application in a way
+
+
+421
+00:21:52,696 --> 00:21:54,196
+that your passing
+values are hung
+
+
+422
+00:21:54,196 --> 00:21:56,376
+that don't need synchronization
+in the first place.
+
+
+423
+00:21:57,026 --> 00:22:00,396
+However, in real life code, you
+need some objects to be accessed
+
+
+424
+00:22:00,396 --> 00:22:02,076
+from simple, obvious subsystems.
+
+
+425
+00:22:02,876 --> 00:22:06,346
+What that means is that
+all these subsystems have a
+
+
+426
+00:22:06,346 --> 00:22:08,726
+reference in these
+objects, and getting rid
+
+
+427
+00:22:08,726 --> 00:22:12,646
+of them actually
+can be a challenge.
+
+
+428
+00:22:14,166 --> 00:22:18,336
+I will now walk you through
+a four-step state mission
+
+
+429
+00:22:19,046 --> 00:22:22,116
+that will help you get
+this height and not end
+
+
+430
+00:22:22,116 --> 00:22:25,516
+up with weird crashes that
+are hard to reproduce.
+
+
+431
+00:22:27,356 --> 00:22:31,666
+Your state machine starts
+with first thing setup.
+
+
+432
+00:22:31,996 --> 00:22:33,916
+Setup is about creating
+the object
+
+
+433
+00:22:34,106 --> 00:22:42,166
+and giving it the property you
+need it to have for its purpose.
+
+
+434
+00:22:42,166 --> 00:22:45,066
+Second, you will want
+to activate this object.
+
+
+435
+00:22:45,526 --> 00:22:48,306
+What that means is that you
+actually make this object be
+
+
+436
+00:22:48,306 --> 00:22:49,826
+known to other subsystems.
+
+
+437
+00:22:50,076 --> 00:22:53,386
+You start using it in
+a more concurrent world
+
+
+438
+00:22:53,386 --> 00:22:54,956
+in performance duties.
+
+
+439
+00:22:56,306 --> 00:22:57,666
+And then the hard part starts.
+
+
+440
+00:22:57,666 --> 00:22:59,166
+You want to get rid
+of that object.
+
+
+441
+00:22:59,516 --> 00:23:02,356
+And so the third
+step is invalidation.
+
+
+442
+00:23:05,096 --> 00:23:09,566
+Invalidation is about making
+sure that all the parts,
+
+
+443
+00:23:09,566 --> 00:23:12,486
+all your subsystems know that
+this object is going away
+
+
+444
+00:23:12,946 --> 00:23:15,506
+so that, fourth, it
+gets deallocated.
+
+
+445
+00:23:16,086 --> 00:23:17,236
+So let's look back.
+
+
+446
+00:23:17,806 --> 00:23:21,626
+Setup, activation,
+invalidation, deallocation.
+
+
+447
+00:23:22,306 --> 00:23:29,076
+This is quite abstract,
+so we will walk
+
+
+448
+00:23:29,076 --> 00:23:31,996
+through a more concrete example
+that I hope you will relate to.
+
+
+449
+00:23:32,626 --> 00:23:35,956
+Let's go back to the application
+that Matt introduced earlier
+
+
+450
+00:23:36,636 --> 00:23:39,306
+and focus on two
+of the subsystems.
+
+
+451
+00:23:40,546 --> 00:23:42,916
+First, we have our
+user interface,
+
+
+452
+00:23:43,246 --> 00:23:48,166
+which will handle stuff such
+as the title bar of your app.
+
+
+453
+00:23:48,396 --> 00:23:52,246
+And I will assume that you
+are able to observe some kind
+
+
+454
+00:23:52,246 --> 00:23:55,736
+of state changes in your
+subsystems so that here,
+
+
+455
+00:23:55,736 --> 00:23:58,316
+for example, for our
+data transform subsystem,
+
+
+456
+00:23:58,706 --> 00:24:00,756
+when it starts performing
+some work,
+
+
+457
+00:24:00,756 --> 00:24:03,706
+we present a visual
+indication to the user.
+
+
+458
+00:24:04,636 --> 00:24:08,986
+And then when the data transform
+subsystem stops doing any work,
+
+
+459
+00:24:08,986 --> 00:24:10,626
+that visual indication
+goes away.
+
+
+460
+00:24:11,766 --> 00:24:15,196
+So how do we implement
+that BusyController?
+
+
+461
+00:24:16,256 --> 00:24:19,416
+So we remember the
+first step is setup.
+
+
+462
+00:24:19,566 --> 00:24:23,536
+Setup is about you picking
+the properties that you want
+
+
+463
+00:24:23,626 --> 00:24:26,096
+for your code, and the
+animation, and all that.
+
+
+464
+00:24:26,196 --> 00:24:27,536
+That's really up to you.
+
+
+465
+00:24:28,886 --> 00:24:31,486
+Then we'll want to
+start using that object,
+
+
+466
+00:24:32,156 --> 00:24:34,026
+and that's activation.
+
+
+467
+00:24:34,146 --> 00:24:35,036
+We activate it.
+
+
+468
+00:24:35,526 --> 00:24:36,986
+What does that mean
+for our controller?
+
+
+469
+00:24:37,706 --> 00:24:38,726
+What that means is that we want
+
+
+470
+00:24:38,726 --> 00:24:41,556
+to start receiving these
+state notifications,
+
+
+471
+00:24:41,626 --> 00:24:44,266
+state changes notifications,
+so we will register
+
+
+472
+00:24:44,266 --> 00:24:48,686
+with that subsystem, and
+ask for the notifications
+
+
+473
+00:24:48,686 --> 00:24:49,936
+to be received on
+the main queue.
+
+
+474
+00:24:49,936 --> 00:24:54,806
+We're doing UI we want to
+handle the logic there.
+
+
+475
+00:24:55,026 --> 00:24:58,706
+Now that it's activated,
+well, that's your code.
+
+
+476
+00:24:59,046 --> 00:24:59,956
+That you want to do.
+
+
+477
+00:24:59,956 --> 00:25:00,946
+That's your animation.
+
+
+478
+00:25:00,946 --> 00:25:04,686
+That's your very nice
+UI for your application.
+
+
+479
+00:25:06,016 --> 00:25:08,146
+But then, there are
+some parts of your app
+
+
+480
+00:25:08,146 --> 00:25:10,296
+that maybe don't need
+that visual indication,
+
+
+481
+00:25:10,476 --> 00:25:13,606
+or that maybe don't use the
+data transform subsystem,
+
+
+482
+00:25:13,606 --> 00:25:17,326
+and you want to reclaim the
+resources of that controller,
+
+
+483
+00:25:17,356 --> 00:25:20,026
+and you want to get rid of it.
+
+
+484
+00:25:20,246 --> 00:25:22,766
+It's very tempting
+to say, "Okay,
+
+
+485
+00:25:23,006 --> 00:25:25,216
+the main thread is
+the only subsystem
+
+
+486
+00:25:25,216 --> 00:25:27,156
+that really owns
+this BusyController,
+
+
+487
+00:25:27,156 --> 00:25:31,856
+so I will get rid of it
+like this," and just deinit,
+
+
+488
+00:25:32,306 --> 00:25:33,996
+and register it from
+the subsystem,
+
+
+489
+00:25:33,996 --> 00:25:35,136
+and hope for the best.
+
+
+490
+00:25:36,286 --> 00:25:38,276
+That doesn't work,
+and I will walk you
+
+
+491
+00:25:38,406 --> 00:25:40,436
+through two examples of why.
+
+
+492
+00:25:41,696 --> 00:25:43,906
+So let's step back a bit.
+
+
+493
+00:25:44,356 --> 00:25:47,136
+Our BusyController is
+reference from your UI,
+
+
+494
+00:25:47,136 --> 00:25:49,526
+from the main queue and
+your user interface.
+
+
+495
+00:25:50,396 --> 00:25:52,246
+However, when we registered it
+
+
+496
+00:25:52,716 --> 00:25:56,036
+with the data transform
+subsystems, it was very likely
+
+
+497
+00:25:56,336 --> 00:25:59,116
+that reference was taken
+from the data structure
+
+
+498
+00:25:59,326 --> 00:26:02,656
+onto this object, which means
+that when we're getting rid
+
+
+499
+00:26:02,656 --> 00:26:05,106
+of the reference that
+the main thread has,
+
+
+500
+00:26:06,696 --> 00:26:10,906
+there's still one left, which
+means that deinit doesn't run,
+
+
+501
+00:26:10,906 --> 00:26:13,016
+which means that it
+get unregistered,
+
+
+502
+00:26:13,016 --> 00:26:14,336
+it doesn't get collected,
+
+
+503
+00:26:14,336 --> 00:26:17,486
+and you end up with
+abandoned memory.
+
+
+504
+00:26:18,916 --> 00:26:21,506
+However, you're very
+skilled developers,
+
+
+505
+00:26:21,546 --> 00:26:23,186
+and you know how to fix that.
+
+
+506
+00:26:23,186 --> 00:26:26,106
+Weak references, and I
+will say yes, you're right.
+
+
+507
+00:26:26,936 --> 00:26:28,476
+However, that's not
+the end of that story,
+
+
+508
+00:26:29,186 --> 00:26:33,116
+because this is not really
+what an app looks like.
+
+
+509
+00:26:33,566 --> 00:26:36,186
+The graph object is
+significantly more complex.
+
+
+510
+00:26:36,886 --> 00:26:39,626
+It's not uncommon to have
+objects that hold references
+
+
+511
+00:26:39,626 --> 00:26:41,316
+and a whole bunch
+of other objects,
+
+
+512
+00:26:41,756 --> 00:26:46,986
+such as this octopus
+object right here.
+
+
+513
+00:26:48,726 --> 00:26:50,806
+We will continue getting rid
+
+
+514
+00:26:50,806 --> 00:26:52,326
+of that reference
+from the main thread.
+
+
+515
+00:26:52,326 --> 00:26:55,196
+And unlike before, this
+is not abandoned memory,
+
+
+516
+00:26:55,196 --> 00:26:58,166
+because this octopus object
+knows it has this reference.
+
+
+517
+00:26:59,216 --> 00:27:02,896
+But then, if we get rid of that
+octopus object from the context
+
+
+518
+00:27:02,896 --> 00:27:06,626
+of the data transform
+subsystem, what will happen?
+
+
+519
+00:27:06,866 --> 00:27:09,416
+It will get rid of that
+reference that it has
+
+
+520
+00:27:09,416 --> 00:27:12,276
+on the BusyController,
+which, remember,
+
+
+521
+00:27:12,276 --> 00:27:16,456
+will run beyond discretion,
+because that's what deinit does.
+
+
+522
+00:27:17,506 --> 00:27:20,306
+And then you have a problem,
+because it's very likely
+
+
+523
+00:27:20,306 --> 00:27:22,516
+that to do that you
+need to synchronize
+
+
+524
+00:27:22,516 --> 00:27:25,376
+with the dispatch queue that
+owns that data structure.
+
+
+525
+00:27:25,996 --> 00:27:34,016
+And you guessed it, we
+end up with a deadlock.
+
+
+526
+00:27:34,016 --> 00:27:36,596
+Actually, that bug is so common
+
+
+527
+00:27:37,276 --> 00:27:40,826
+that we've made it an
+assertion, new in this release.
+
+
+528
+00:27:40,826 --> 00:27:48,386
+If you run that code on the
+last release, it will assert,
+
+
+529
+00:27:48,836 --> 00:27:52,066
+and on OS X or in the simulator,
+
+
+530
+00:27:52,416 --> 00:27:55,576
+the crash report you get
+actually will have an
+
+
+531
+00:27:55,576 --> 00:27:57,526
+application specific information
+
+
+532
+00:27:57,766 --> 00:28:00,636
+that actually points you toward
+the actual problem you have,
+
+
+533
+00:28:00,846 --> 00:28:02,116
+so that you can fix it easily.
+
+
+534
+00:28:03,086 --> 00:28:05,346
+Okay, so now we know
+we really don't want
+
+
+535
+00:28:05,346 --> 00:28:06,646
+to unregister from deinit.
+
+
+536
+00:28:06,786 --> 00:28:09,866
+How do we fix that?
+
+
+537
+00:28:10,076 --> 00:28:14,056
+We fix that by having our
+third step, invalidation,
+
+
+538
+00:28:14,056 --> 00:28:15,836
+be an explicit function call.
+
+
+539
+00:28:16,256 --> 00:28:20,626
+And under this invalidation,
+we do this in registration.
+
+
+540
+00:28:23,516 --> 00:28:28,026
+Also, since we have
+preconditions, let's use them,
+
+
+541
+00:28:28,136 --> 00:28:30,056
+because this object,
+this BusyController,
+
+
+542
+00:28:30,056 --> 00:28:32,626
+really should be managed from
+the main thread, and you want
+
+
+543
+00:28:32,626 --> 00:28:35,466
+to make sure that users of
+your API do that properly.
+
+
+544
+00:28:35,966 --> 00:28:37,986
+So you will want to
+have a precondition
+
+
+545
+00:28:37,986 --> 00:28:40,426
+that this only happens
+on the main thread,
+
+
+546
+00:28:40,426 --> 00:28:42,246
+or the main queue, even.
+
+
+547
+00:28:42,686 --> 00:28:46,786
+But that's not quite it.
+
+
+548
+00:28:47,496 --> 00:28:48,976
+We have a last problem.
+
+
+549
+00:28:49,536 --> 00:28:52,636
+Remember, this all
+happens on the main thread,
+
+
+550
+00:28:53,546 --> 00:28:56,626
+and you have this subsystem,
+the data transform subsystem,
+
+
+551
+00:28:56,866 --> 00:29:00,006
+who is sending you
+still state transitions,
+
+
+552
+00:29:00,766 --> 00:29:02,816
+and you may have some
+that are still happening
+
+
+553
+00:29:02,816 --> 00:29:04,046
+at the time you're invalidating.
+
+
+554
+00:29:04,536 --> 00:29:05,536
+How do we resolve that?
+
+
+555
+00:29:06,266 --> 00:29:10,346
+Well, you want to track
+invalidation as a real state.
+
+
+556
+00:29:11,156 --> 00:29:12,016
+And what does that mean?
+
+
+557
+00:29:13,166 --> 00:29:14,486
+Well, just what it is.
+
+
+558
+00:29:14,926 --> 00:29:18,776
+You want to track invalidation,
+for example, here, as a Boolean
+
+
+559
+00:29:18,846 --> 00:29:21,036
+in your object, and you
+remember when you did.
+
+
+560
+00:29:21,996 --> 00:29:26,736
+At the same time, let's
+throw in more preconditions,
+
+
+561
+00:29:27,106 --> 00:29:28,946
+and make sure, enforce,
+
+
+562
+00:29:29,026 --> 00:29:30,756
+that before your
+object is deallocated,
+
+
+563
+00:29:30,756 --> 00:29:32,556
+it has been properly
+invalidated.
+
+
+564
+00:29:32,556 --> 00:29:33,836
+It will help you find bugs.
+
+
+565
+00:29:35,726 --> 00:29:36,786
+Why is it interesting?
+
+
+566
+00:29:37,026 --> 00:29:41,976
+Because now, in your code
+that handles the notification
+
+
+567
+00:29:41,976 --> 00:29:44,276
+for the state transitions,
+we can observe
+
+
+568
+00:29:44,276 --> 00:29:46,536
+that the object was invalidated
+
+
+569
+00:29:46,536 --> 00:29:48,756
+and actually drop the
+notification on the floor
+
+
+570
+00:29:48,756 --> 00:29:54,056
+and update the UI in a
+way that would be open.
+
+
+571
+00:29:54,266 --> 00:29:56,866
+Okay, that was quite
+the complex example.
+
+
+572
+00:29:57,536 --> 00:30:00,406
+However, I hope that you
+will now go look back
+
+
+573
+00:30:00,406 --> 00:30:03,476
+at your applications and your
+code, and try to find places
+
+
+574
+00:30:03,476 --> 00:30:06,346
+where this pattern will help
+you reduce the complexity
+
+
+575
+00:30:06,346 --> 00:30:08,686
+of your code, and
+maybe remove bugs.
+
+
+576
+00:30:09,586 --> 00:30:12,886
+It should also not
+surprise you that,
+
+
+577
+00:30:12,926 --> 00:30:18,176
+given that we're giving you
+this advice, that GCD objects,
+
+
+578
+00:30:18,236 --> 00:30:21,476
+whose purpose in life is
+to be used concurrently,
+
+
+579
+00:30:21,476 --> 00:30:23,486
+follow exactly the same pattern.
+
+
+580
+00:30:25,176 --> 00:30:33,346
+So let's look at the GCD
+object with that in mind.
+
+
+581
+00:30:34,716 --> 00:30:37,436
+So we remember the
+first step is setup.
+
+
+582
+00:30:37,886 --> 00:30:40,586
+Setup for dispatch objects
+is all the things you can do
+
+
+583
+00:30:40,586 --> 00:30:43,326
+when you build the object and
+all the attributes you can pass.
+
+
+584
+00:30:43,576 --> 00:30:46,456
+Matt already showed labels
+and queue attributes earlier.
+
+
+585
+00:30:46,546 --> 00:30:50,726
+And here, we also have
+a dispatch resource
+
+
+586
+00:30:51,026 --> 00:30:53,756
+where we monitor all the
+[inaudible] attributes.
+
+
+587
+00:30:54,716 --> 00:30:56,906
+Sources also have handlers,
+
+
+588
+00:30:57,436 --> 00:30:59,706
+and the event handler
+particularly is the code
+
+
+589
+00:30:59,706 --> 00:31:03,656
+that will run when the resource
+that your monitoring fires,
+
+
+590
+00:31:03,656 --> 00:31:04,856
+and that is events pending.
+
+
+591
+00:31:05,786 --> 00:31:08,406
+For the resource that
+we have here, well,
+
+
+592
+00:31:08,406 --> 00:31:10,346
+that's when there is
+data taken available.
+
+
+593
+00:31:10,956 --> 00:31:14,746
+Once you've set up your
+object and it's ready to go,
+
+
+594
+00:31:14,746 --> 00:31:19,486
+you want to use it
+and activate it.
+
+
+595
+00:31:20,936 --> 00:31:22,576
+New in this release, we've made
+
+
+596
+00:31:22,876 --> 00:31:26,866
+that step an API
+[inaudible] called activate.
+
+
+597
+00:31:27,816 --> 00:31:30,016
+It used to be that
+for dispatch sources,
+
+
+598
+00:31:30,106 --> 00:31:32,766
+the initial resume had
+exactly that meaning.
+
+
+599
+00:31:33,326 --> 00:31:35,756
+We've actually now
+made suspension
+
+
+600
+00:31:36,296 --> 00:31:38,836
+and activation be two
+separate concepts.
+
+
+601
+00:31:39,596 --> 00:31:43,056
+Also in resume activate can
+be called several times,
+
+
+602
+00:31:43,096 --> 00:31:44,896
+and it only acts once.
+
+
+603
+00:31:46,676 --> 00:31:49,046
+The contract however is that
+once you've called activate,
+
+
+604
+00:31:49,046 --> 00:31:51,876
+you won't mutate the properties
+of your objects anymore.
+
+
+605
+00:31:54,196 --> 00:31:59,766
+We've also found that creating
+queues the way you use sources,
+
+
+606
+00:32:00,186 --> 00:32:02,596
+creating them initially
+inactive is useful,
+
+
+607
+00:32:03,006 --> 00:32:06,646
+and we've added a new attribute
+that lets you exactly do that,
+
+
+608
+00:32:06,646 --> 00:32:09,456
+and is actually named
+initiallyInactive.
+
+
+609
+00:32:10,316 --> 00:32:13,026
+Once the queue is created, you
+can pass it around, finish,
+
+
+610
+00:32:13,346 --> 00:32:18,246
+configure it the way you like,
+and finally, activate it.
+
+
+611
+00:32:19,066 --> 00:32:22,746
+Many of the dispatch objects
+don't really need explicit
+
+
+612
+00:32:22,746 --> 00:32:25,076
+invalidation, such
+as groups or queues,
+
+
+613
+00:32:25,396 --> 00:32:27,856
+because they become
+inactive by the sheer fact
+
+
+614
+00:32:27,856 --> 00:32:28,966
+of you stopping using them.
+
+
+615
+00:32:30,286 --> 00:32:32,236
+However, the story is quite
+different from sources,
+
+
+616
+00:32:32,236 --> 00:32:35,706
+and sources have an
+explicit invalidation.
+
+
+617
+00:32:35,876 --> 00:32:36,686
+It's called Cancel.
+
+
+618
+00:32:37,756 --> 00:32:41,856
+Cancellation in sources does
+the thing that you'd expect,
+
+
+619
+00:32:41,856 --> 00:32:43,676
+which is that you
+stop getting events
+
+
+620
+00:32:43,866 --> 00:32:44,876
+for the thing you're monitoring.
+
+
+621
+00:32:45,956 --> 00:32:48,096
+But it's not only that it does.
+
+
+622
+00:32:48,446 --> 00:32:50,616
+The second thing it
+does is that if you set
+
+
+623
+00:32:50,616 --> 00:32:54,656
+up a cancellation handler on
+your source, such as here,
+
+
+624
+00:32:55,856 --> 00:32:58,736
+it will run on the target of
+the queue at cancellation time.
+
+
+625
+00:33:00,226 --> 00:33:04,496
+It is actually where you want
+to get rid of the resource
+
+
+626
+00:33:04,536 --> 00:33:07,396
+that you're monitoring,
+such as closing [inaudible]
+
+
+627
+00:33:07,396 --> 00:33:08,156
+frame memory.
+
+
+628
+00:33:08,736 --> 00:33:14,426
+Last, but not least,
+cancellation for sources is
+
+
+629
+00:33:14,426 --> 00:33:16,576
+when your handlers
+are destroyed.
+
+
+630
+00:33:17,546 --> 00:33:19,196
+Handlers are closures.
+
+
+631
+00:33:19,506 --> 00:33:22,276
+They capture via subjects
+maybe even the source itself.
+
+
+632
+00:33:23,036 --> 00:33:24,766
+They can be part of
+the reading cycle.
+
+
+633
+00:33:25,336 --> 00:33:30,956
+Calling cancellation is how you
+can break that reading cycle.
+
+
+634
+00:33:31,606 --> 00:33:40,046
+It's why it's very important
+to always cancel your sources.
+
+
+635
+00:33:40,696 --> 00:33:46,556
+So you remember a bit earlier,
+we added a lot of preconditions
+
+
+636
+00:33:46,556 --> 00:33:48,856
+in our code, because
+we want to make sure
+
+
+637
+00:33:49,616 --> 00:33:53,086
+that concurrently used
+objects are always used
+
+
+638
+00:33:53,166 --> 00:33:54,616
+in a way that you can expect.
+
+
+639
+00:33:56,096 --> 00:33:57,396
+Dispatch is no different,
+
+
+640
+00:33:57,796 --> 00:34:00,556
+and expects that at the time
+your object gets deallocated,
+
+
+641
+00:34:00,556 --> 00:34:01,666
+it's in a different state,
+
+
+642
+00:34:02,846 --> 00:34:05,386
+and dispatch expects
+two things from you.
+
+
+643
+00:34:05,926 --> 00:34:08,386
+First, that your
+objects are active.
+
+
+644
+00:34:09,065 --> 00:34:13,036
+And second, that they
+are not suspended.
+
+
+645
+00:34:13,936 --> 00:34:17,366
+The reason why is that being
+suspended or inactive means
+
+
+646
+00:34:17,436 --> 00:34:20,565
+that you as a developer
+don't think that it's safe
+
+
+647
+00:34:20,565 --> 00:34:23,716
+to run the code associated with
+it, but we need to run code
+
+
+648
+00:34:23,775 --> 00:34:24,856
+to get rid of the object.
+
+
+649
+00:34:31,045 --> 00:34:37,686
+Okay. So we've seen today how
+you can think about your app
+
+
+650
+00:34:37,686 --> 00:34:42,005
+in terms of data flows and how
+you should use that to divide it
+
+
+651
+00:34:42,005 --> 00:34:45,565
+into fairly independent
+subsystems that use value type
+
+
+652
+00:34:46,406 --> 00:34:49,065
+for communication purposes.
+
+
+653
+00:34:49,616 --> 00:34:52,926
+If you need to synchronize
+state,
+
+
+654
+00:34:53,606 --> 00:34:58,026
+we also showed you how you can
+use Dispatch Queues to do that.
+
+
+655
+00:34:58,246 --> 00:35:00,656
+And finally, when you
+have objects that are used
+
+
+656
+00:35:01,016 --> 00:35:05,056
+in a very heavily concurrent
+world, how to use activation
+
+
+657
+00:35:05,056 --> 00:35:07,386
+and invalidation to
+get this pattern right.
+
+
+658
+00:35:08,726 --> 00:35:14,436
+Here is a link that will show
+you more resources associated
+
+
+659
+00:35:14,436 --> 00:35:15,016
+with this talk.
+
+
+660
+00:35:15,976 --> 00:35:19,856
+And a few related sessions
+that, if you're interested
+
+
+661
+00:35:19,856 --> 00:35:22,676
+with dispatch, you
+should probably check out,
+
+
+662
+00:35:22,676 --> 00:35:24,686
+because they are
+really interesting.
+
+
+663
+00:35:25,796 --> 00:35:26,526
+And that's it.
+
+
+664
+00:35:26,716 --> 00:35:29,436
+It was Concurrency with GCD.
+
+
+665
+00:35:30,508 --> 00:35:32,508
+[ Applause ]
+

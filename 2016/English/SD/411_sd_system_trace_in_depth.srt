@@ -1,0 +1,5413 @@
+1
+00:00:08,516 --> 00:00:17,500
+[ Music ]
+
+
+2
+00:00:21,516 --> 00:00:29,546
+[ Applause ]
+
+
+3
+00:00:30,046 --> 00:00:30,456
+>> Good morning.
+
+
+4
+00:00:30,456 --> 00:00:33,176
+This is session 411,
+System Trace in Depth.
+
+
+5
+00:00:33,356 --> 00:00:34,206
+My name is Chad Woolf.
+
+
+6
+00:00:34,206 --> 00:00:35,396
+>> And I'm Joe Grzywacz.
+
+
+7
+00:00:36,116 --> 00:00:38,226
+>> And we are performance
+tools engineers for Apple.
+
+
+8
+00:00:39,366 --> 00:00:41,496
+Now in last year's In Depth
+session we covered the
+
+
+9
+00:00:41,496 --> 00:00:42,256
+Time Profiler.
+
+
+10
+00:00:42,726 --> 00:00:44,876
+And we showed you how to analyze
+your applications all the way
+
+
+11
+00:00:44,876 --> 00:00:46,206
+down to the disassembly level.
+
+
+12
+00:00:46,286 --> 00:00:47,576
+And our goal, then,
+was to show you how
+
+
+13
+00:00:47,576 --> 00:00:49,246
+to make your code
+as fast as possible.
+
+
+14
+00:00:49,426 --> 00:00:52,976
+Now at some point you may want
+to run that optimized code
+
+
+15
+00:00:52,976 --> 00:00:56,206
+on multiple CPUs in order
+to get even more work done.
+
+
+16
+00:00:56,286 --> 00:00:59,636
+But as you do this, you also
+increase the system load.
+
+
+17
+00:01:00,216 --> 00:01:01,916
+Now as the system
+load increases,
+
+
+18
+00:01:01,916 --> 00:01:05,146
+a couple of second-order effects
+creep in, such as increases
+
+
+19
+00:01:05,146 --> 00:01:07,886
+in preemption, lock contention,
+and virtual memory activity.
+
+
+20
+00:01:08,126 --> 00:01:10,376
+Now any one of these
+three things is enough
+
+
+21
+00:01:10,376 --> 00:01:12,546
+to potentially offset the
+gains that you had made
+
+
+22
+00:01:12,696 --> 00:01:13,916
+when you were doing
+your time profiling.
+
+
+23
+00:01:14,866 --> 00:01:16,546
+So in today's session,
+we're going to show you how
+
+
+24
+00:01:16,546 --> 00:01:19,966
+to use system trace to analyze
+the second-order effects.
+
+
+25
+00:01:20,416 --> 00:01:21,316
+And we're going to show you how
+
+
+26
+00:01:21,316 --> 00:01:23,636
+to efficiently load the
+system while still maintaining
+
+
+27
+00:01:23,636 --> 00:01:24,796
+optimum performance.
+
+
+28
+00:01:24,796 --> 00:01:27,516
+So our session's going
+to look like this today.
+
+
+29
+00:01:27,516 --> 00:01:29,136
+We're going to talk a little
+bit about system trace
+
+
+30
+00:01:29,136 --> 00:01:30,956
+and why it applies to
+application developers.
+
+
+31
+00:01:31,316 --> 00:01:33,546
+And then Joe and I are going to
+walk you through system trace.
+
+
+32
+00:01:33,686 --> 00:01:35,236
+We're also going to talk a
+little bit about threading,
+
+
+33
+00:01:35,536 --> 00:01:37,896
+signposts, some a little
+bit on virtual memory,
+
+
+34
+00:01:38,476 --> 00:01:39,966
+and show you some
+best practices on how
+
+
+35
+00:01:39,966 --> 00:01:41,336
+to get the most out
+of the tools.
+
+
+36
+00:01:42,736 --> 00:01:44,986
+So why system trace for
+application developers?
+
+
+37
+00:01:45,456 --> 00:01:47,996
+Well, when your application
+becomes front and center
+
+
+38
+00:01:47,996 --> 00:01:51,326
+on the device, from the users'
+perspective that is the system.
+
+
+39
+00:01:52,186 --> 00:01:54,126
+They don't see your
+application as a peer
+
+
+40
+00:01:54,126 --> 00:01:56,176
+with all these system
+services and daemons contending
+
+
+41
+00:01:56,176 --> 00:01:58,956
+for shared resources
+like CPU time and memory.
+
+
+42
+00:01:59,526 --> 00:02:00,366
+They just see your app.
+
+
+43
+00:02:00,366 --> 00:02:02,776
+And so if your app
+stutters do to a flurry
+
+
+44
+00:02:02,776 --> 00:02:05,216
+of virtual memory
+activity or due
+
+
+45
+00:02:05,216 --> 00:02:07,356
+to maybe a misprioritized
+thread, they're going to come
+
+
+46
+00:02:07,356 --> 00:02:09,056
+to you looking for a fix.
+
+
+47
+00:02:09,056 --> 00:02:10,586
+So that's the bad news.
+
+
+48
+00:02:11,796 --> 00:02:14,356
+The good news is that when
+your app is front and center
+
+
+49
+00:02:14,356 --> 00:02:17,356
+on the device, it is the most
+important thing on the device.
+
+
+50
+00:02:17,916 --> 00:02:19,816
+So the operating system knows
+this, and it's going to give you
+
+
+51
+00:02:19,816 --> 00:02:22,196
+as much CPU time and memory
+as it can possibly spare.
+
+
+52
+00:02:22,946 --> 00:02:24,976
+So when we talk about
+tuning with system trace,
+
+
+53
+00:02:25,106 --> 00:02:27,226
+we're not really talking about
+tuning the system, we're talking
+
+
+54
+00:02:27,226 --> 00:02:28,466
+about tuning your application
+
+
+55
+00:02:28,856 --> 00:02:30,296
+to use the resources
+that it's been given.
+
+
+56
+00:02:31,256 --> 00:02:33,716
+Now system trace is a
+template in Instruments.
+
+
+57
+00:02:33,716 --> 00:02:35,676
+It works great in all
+four of our platforms.
+
+
+58
+00:02:36,546 --> 00:02:38,676
+And when you take a recording
+with it, it puts the kernel
+
+
+59
+00:02:38,676 --> 00:02:40,006
+into a special tracing mode
+
+
+60
+00:02:40,626 --> 00:02:43,956
+that records all the scheduling
+activity, system calls,
+
+
+61
+00:02:44,466 --> 00:02:46,236
+and virtual memory
+operations that are occurring.
+
+
+62
+00:02:46,976 --> 00:02:49,076
+Now this can accumulate
+over time.
+
+
+63
+00:02:49,076 --> 00:02:50,006
+It could be a lot of data.
+
+
+64
+00:02:50,286 --> 00:02:52,686
+So one of the changes we
+made in Instruments 8 is
+
+
+65
+00:02:52,686 --> 00:02:55,096
+that we put the template into
+Windowed Mode by default.
+
+
+66
+00:02:55,096 --> 00:02:56,926
+And what that means
+is that we keep
+
+
+67
+00:02:56,926 --> 00:02:58,966
+about the last five seconds
+worth of data around.
+
+
+68
+00:02:59,506 --> 00:03:02,216
+And the advantage here
+is that you can take --
+
+
+69
+00:03:02,366 --> 00:03:04,646
+you can start your recording,
+setup your application,
+
+
+70
+00:03:04,946 --> 00:03:06,166
+take as long as you
+need to get it
+
+
+71
+00:03:06,166 --> 00:03:07,556
+to reproduce the
+performance problem,
+
+
+72
+00:03:07,796 --> 00:03:10,296
+and when that performance
+problem reproduces, you hit stop
+
+
+73
+00:03:10,296 --> 00:03:12,366
+and you get that last
+five seconds worth
+
+
+74
+00:03:12,366 --> 00:03:13,306
+of actionable data.
+
+
+75
+00:03:14,016 --> 00:03:16,316
+Now this is what five seconds
+worth of data can look like.
+
+
+76
+00:03:16,486 --> 00:03:18,096
+These traces can
+get pretty dense.
+
+
+77
+00:03:18,596 --> 00:03:20,876
+We found it's very
+useful if you're able
+
+
+78
+00:03:20,876 --> 00:03:22,956
+to correlate this data with some
+
+
+79
+00:03:22,956 --> 00:03:25,016
+of the high-level activities
+inside your application,
+
+
+80
+00:03:25,526 --> 00:03:27,466
+such as am I updating
+a table view,
+
+
+81
+00:03:27,596 --> 00:03:29,526
+did I have a download
+going on in the background,
+
+
+82
+00:03:29,596 --> 00:03:30,646
+maybe am I updating a graph.
+
+
+83
+00:03:30,646 --> 00:03:31,976
+Those kind of high level things.
+
+
+84
+00:03:32,806 --> 00:03:35,686
+So this year in Instruments
+8 we included the Points
+
+
+85
+00:03:35,686 --> 00:03:36,486
+of Interest instrument.
+
+
+86
+00:03:37,666 --> 00:03:40,166
+Now the Points of Interest
+instrument is essentially a
+
+
+87
+00:03:40,166 --> 00:03:42,976
+blank canvas where you tell
+Instruments what you consider
+
+
+88
+00:03:42,976 --> 00:03:45,366
+interesting and we'll put it
+up there on the graph for you.
+
+
+89
+00:03:46,316 --> 00:03:48,836
+Now you do this using
+Signposts from within your code.
+
+
+90
+00:03:50,216 --> 00:03:52,056
+And Signposts have been
+released for a while,
+
+
+91
+00:03:52,216 --> 00:03:54,956
+but we used to have -- the
+way you used to get to it was
+
+
+92
+00:03:55,026 --> 00:03:57,696
+to call this direct system call
+and you had to dig these macros
+
+
+93
+00:03:57,696 --> 00:03:59,286
+out of these header files
+and put it altogether.
+
+
+94
+00:03:59,286 --> 00:04:01,096
+And it was kind of clunky.
+
+
+95
+00:04:01,776 --> 00:04:05,466
+Now on top of it being clucky
+in today's SWIFT world,
+
+
+96
+00:04:05,466 --> 00:04:06,676
+it just simply doesn't work.
+
+
+97
+00:04:06,836 --> 00:04:08,976
+So what we're going to do
+is deprecate that approach.
+
+
+98
+00:04:09,936 --> 00:04:12,006
+But we have added in the new
+operating system these nice
+
+
+99
+00:04:12,006 --> 00:04:14,026
+functions to do the
+exact same thing.
+
+
+100
+00:04:14,156 --> 00:04:16,065
+And they're kdebug signpost.
+
+
+101
+00:04:16,065 --> 00:04:18,696
+So they work great from
+C, Objective C, C++,
+
+
+102
+00:04:18,696 --> 00:04:19,836
+and now SWIFT as well.
+
+
+103
+00:04:21,356 --> 00:04:22,836
+So to get started,
+the easiest way is
+
+
+104
+00:04:22,836 --> 00:04:24,446
+to drop a point event
+on a timeline.
+
+
+105
+00:04:24,446 --> 00:04:26,236
+That's one of those
+little red lollipops.
+
+
+106
+00:04:26,596 --> 00:04:29,926
+And the way you do that
+is invoke kdebug signpost
+
+
+107
+00:04:30,096 --> 00:04:31,236
+and that's it.
+
+
+108
+00:04:31,236 --> 00:04:32,256
+So inside of our Mouse Down,
+
+
+109
+00:04:32,256 --> 00:04:33,706
+every time we hit our
+Mouse Down, you'll see one
+
+
+110
+00:04:33,706 --> 00:04:35,426
+of these appear on the timeline.
+
+
+111
+00:04:36,126 --> 00:04:37,406
+Now it does take
+a few arguments.
+
+
+112
+00:04:37,466 --> 00:04:40,606
+The first one is a code that's
+just some arbitrary integer
+
+
+113
+00:04:40,606 --> 00:04:42,686
+between 0 and 16383.
+
+
+114
+00:04:42,916 --> 00:04:44,596
+And it helps you
+identify your Signpost.
+
+
+115
+00:04:45,506 --> 00:04:47,376
+The next four arguments
+are integers as well
+
+
+116
+00:04:47,376 --> 00:04:48,426
+and can be anything you want.
+
+
+117
+00:04:48,596 --> 00:04:50,656
+By default Instruments will just
+pass that right up to the UI.
+
+
+118
+00:04:50,656 --> 00:04:53,606
+Now you can name these things.
+
+
+119
+00:04:53,606 --> 00:04:55,446
+Just got to toggle over to
+the configuration section
+
+
+120
+00:04:55,446 --> 00:04:58,536
+of the Instrument and
+add to the Table View.
+
+
+121
+00:04:58,536 --> 00:05:01,636
+And so we have our code
+5 now being Mouse Down.
+
+
+122
+00:05:01,726 --> 00:05:04,836
+So next time I take a recording,
+I can see that those Points
+
+
+123
+00:05:04,836 --> 00:05:06,276
+of Interest are now Mouse Downs.
+
+
+124
+00:05:07,486 --> 00:05:08,536
+Now if you like Points
+of Interest,
+
+
+125
+00:05:08,536 --> 00:05:10,056
+you'll also like
+Regions of Interest.
+
+
+126
+00:05:10,056 --> 00:05:12,826
+They're basically the same
+thing, but they work for states
+
+
+127
+00:05:12,826 --> 00:05:15,106
+and actions or things that
+occur over a period of time.
+
+
+128
+00:05:15,106 --> 00:05:17,666
+Now it's a little bit more
+complicated because instead
+
+
+129
+00:05:17,666 --> 00:05:18,876
+of one call you do have two.
+
+
+130
+00:05:18,876 --> 00:05:20,336
+You got a start and an end.
+
+
+131
+00:05:20,826 --> 00:05:23,576
+And you also have a pairing
+rule that's in Instruments.
+
+
+132
+00:05:24,076 --> 00:05:25,896
+Now by default it's a
+very simple pairing rule.
+
+
+133
+00:05:25,896 --> 00:05:27,556
+It just uses the
+code, so all you have
+
+
+134
+00:05:27,556 --> 00:05:31,996
+to do is supply the same code
+in both the start and the end.
+
+
+135
+00:05:31,996 --> 00:05:33,506
+Now we know that
+that's not going to work
+
+
+136
+00:05:33,506 --> 00:05:35,526
+for all applications because
+some applications have
+
+
+137
+00:05:35,526 --> 00:05:38,526
+to issue a flurry of starts
+followed by a flurry of ends.
+
+
+138
+00:05:38,916 --> 00:05:40,096
+And what that can be --
+
+
+139
+00:05:40,096 --> 00:05:43,466
+inside Instruments there
+can be some ambiguity in how
+
+
+140
+00:05:43,466 --> 00:05:44,416
+to pair those things up.
+
+
+141
+00:05:45,016 --> 00:05:46,626
+So we do allow you to
+change the pairing rule.
+
+
+142
+00:05:46,936 --> 00:05:48,136
+Come down here to
+the Configuration.
+
+
+143
+00:05:48,996 --> 00:05:52,426
+You can select Code and First
+Argument or Code and Thread.
+
+
+144
+00:05:53,766 --> 00:05:56,826
+So Code and First Argument
+means that both your start
+
+
+145
+00:05:56,826 --> 00:05:59,736
+and end have to have the same
+code and same first argument.
+
+
+146
+00:06:00,396 --> 00:06:02,356
+So in this example what
+we've done is started a bunch
+
+
+147
+00:06:02,356 --> 00:06:03,956
+of URL downloads in parallel,
+
+
+148
+00:06:04,386 --> 00:06:07,276
+and we've used the URL
+download task pointer
+
+
+149
+00:06:07,366 --> 00:06:08,566
+as a first argument.
+
+
+150
+00:06:08,566 --> 00:06:11,176
+So now you can see
+these parallel downloads
+
+
+151
+00:06:11,296 --> 00:06:12,246
+on the Instruments timeline.
+
+
+152
+00:06:12,716 --> 00:06:15,046
+If you use Code and Thread,
+
+
+153
+00:06:15,876 --> 00:06:19,426
+you have to issue
+the same code start
+
+
+154
+00:06:19,426 --> 00:06:20,566
+and end on the same thread.
+
+
+155
+00:06:20,566 --> 00:06:22,346
+And here's an example
+of that happening.
+
+
+156
+00:06:22,526 --> 00:06:24,456
+But you can see it's
+happening with inside
+
+
+157
+00:06:24,456 --> 00:06:25,606
+of a dispatch apply block.
+
+
+158
+00:06:25,926 --> 00:06:30,076
+So now we have four Regions
+of Interest on the graph
+
+
+159
+00:06:30,076 --> 00:06:32,566
+that are -- we've got one for
+each thread or a worker thread.
+
+
+160
+00:06:34,476 --> 00:06:36,226
+Now so far, the Regions
+
+
+161
+00:06:36,226 --> 00:06:37,576
+of Interest you've seen
+have all been read.
+
+
+162
+00:06:37,576 --> 00:06:38,476
+It's all monochromatic.
+
+
+163
+00:06:38,716 --> 00:06:40,626
+But if you're willing to
+sacrifice your last argument,
+
+
+164
+00:06:40,626 --> 00:06:42,926
+you can come over here
+and check this box
+
+
+165
+00:06:42,926 --> 00:06:45,026
+that says use the last
+argument for color.
+
+
+166
+00:06:46,556 --> 00:06:48,786
+And in your fourth argument,
+you just need to supply one
+
+
+167
+00:06:48,786 --> 00:06:51,346
+of these enumerations
+between 0 and 4,
+
+
+168
+00:06:51,346 --> 00:06:53,096
+and those are the five
+basic colors in Instruments.
+
+
+169
+00:06:53,166 --> 00:06:56,346
+And in this example when
+my download task completes
+
+
+170
+00:06:56,346 --> 00:06:57,996
+successfully, I've
+colored it green.
+
+
+171
+00:06:58,416 --> 00:07:01,386
+And if it completes with
+an error, I color it red.
+
+
+172
+00:07:01,456 --> 00:07:02,716
+So you can see very
+clearly a difference
+
+
+173
+00:07:02,716 --> 00:07:04,196
+between pass and fail.
+
+
+174
+00:07:05,916 --> 00:07:07,136
+So now when we put
+this altogether,
+
+
+175
+00:07:07,136 --> 00:07:10,126
+you can see how it's much
+easier to correlate that big,
+
+
+176
+00:07:10,126 --> 00:07:11,356
+complicated trace I showed you
+
+
+177
+00:07:11,356 --> 00:07:14,356
+with the high level
+activity in your application.
+
+
+178
+00:07:15,176 --> 00:07:16,256
+So for example, you can see
+
+
+179
+00:07:16,256 --> 00:07:18,346
+that this flurry activity
+was actually created
+
+
+180
+00:07:18,806 --> 00:07:20,576
+by our download tasks.
+
+
+181
+00:07:21,626 --> 00:07:23,756
+So let's talk about our
+demo application today.
+
+
+182
+00:07:23,756 --> 00:07:26,386
+We're going to be
+looking at an app we wrote
+
+
+183
+00:07:26,386 --> 00:07:28,966
+for you guys called Graphasaurus
+2, it's the spiritual successor
+
+
+184
+00:07:28,966 --> 00:07:31,426
+to Graphasaurus from
+last year's session.
+
+
+185
+00:07:31,926 --> 00:07:33,006
+But just like last
+year's session,
+
+
+186
+00:07:33,006 --> 00:07:34,906
+we're going to be looking
+at real-world problems.
+
+
+187
+00:07:35,116 --> 00:07:36,546
+So these are problems
+that we encountered
+
+
+188
+00:07:36,606 --> 00:07:38,156
+when we were tuning
+Instruments 8.
+
+
+189
+00:07:38,696 --> 00:07:40,206
+And we decided to
+just include them
+
+
+190
+00:07:40,206 --> 00:07:41,836
+in an iOS application for demo.
+
+
+191
+00:07:42,686 --> 00:07:43,896
+There is a new graphing style.
+
+
+192
+00:07:43,946 --> 00:07:46,066
+This looks more like the state
+graphing style that you see
+
+
+193
+00:07:46,066 --> 00:07:47,406
+in Instruments because
+that's something
+
+
+194
+00:07:47,406 --> 00:07:48,956
+that we're tuning this year.
+
+
+195
+00:07:49,966 --> 00:07:51,926
+And another difference from
+last year is that we're going
+
+
+196
+00:07:51,926 --> 00:07:55,046
+to assume that our code is --
+has already been time profiled,
+
+
+197
+00:07:55,046 --> 00:07:57,336
+and it's already optimal
+given the constraints we have.
+
+
+198
+00:07:57,746 --> 00:07:58,626
+And just like last year,
+
+
+199
+00:07:58,626 --> 00:08:00,146
+we're going to be
+generating our graphs
+
+
+200
+00:08:00,146 --> 00:08:01,916
+on the CPU using core graphics.
+
+
+201
+00:08:03,306 --> 00:08:06,696
+Now, what we did is we
+did some initial timing.
+
+
+202
+00:08:07,286 --> 00:08:09,426
+And we found that to generate
+all four of these graphs.
+
+
+203
+00:08:09,426 --> 00:08:11,406
+It was going to take about
+20 milliseconds in total.
+
+
+204
+00:08:11,406 --> 00:08:13,836
+And that's in the worst case
+when everything's zoomed out.
+
+
+205
+00:08:14,756 --> 00:08:17,466
+Now that is larger than
+our 16 millisecond deadline
+
+
+206
+00:08:17,466 --> 00:08:19,346
+if we wanted to hit
+60 frames per second.
+
+
+207
+00:08:19,346 --> 00:08:21,346
+So we decided that
+we needed to try
+
+
+208
+00:08:21,346 --> 00:08:22,776
+to introduce some parallelism.
+
+
+209
+00:08:23,366 --> 00:08:25,626
+Because what we know
+is that all four
+
+
+210
+00:08:25,626 --> 00:08:27,116
+of these graphs can be
+generated independently.
+
+
+211
+00:08:27,116 --> 00:08:29,816
+And they take about five
+milliseconds in the worst case.
+
+
+212
+00:08:30,006 --> 00:08:32,846
+So we're thinking if throw
+all this work at dispatch
+
+
+213
+00:08:32,846 --> 00:08:36,166
+and we have perfect scalability,
+then our two-core iPad
+
+
+214
+00:08:36,166 --> 00:08:38,645
+over here should be able to
+cut that work down in half.
+
+
+215
+00:08:39,756 --> 00:08:41,986
+To see how we did, show you
+how to use system trace.
+
+
+216
+00:08:41,986 --> 00:08:43,405
+I'm going to turn
+it over to Joe.
+
+
+217
+00:08:43,405 --> 00:08:44,035
+>> Thank you, Chad.
+
+
+218
+00:08:45,516 --> 00:08:49,566
+[ Applause ]
+
+
+219
+00:08:50,066 --> 00:08:50,806
+All right, so what
+you're looking
+
+
+220
+00:08:50,806 --> 00:08:52,776
+at here is a Quick Time mirror
+
+
+221
+00:08:52,776 --> 00:08:54,646
+of the iPad Pro I'm
+playing with here.
+
+
+222
+00:08:54,646 --> 00:08:56,526
+So you can see just
+like in Instruments,
+
+
+223
+00:08:56,526 --> 00:08:58,606
+you can pan around
+nice and smooth.
+
+
+224
+00:08:59,026 --> 00:09:01,036
+But when I eventually
+pinch out a punch,
+
+
+225
+00:09:01,276 --> 00:09:04,246
+the animation gets just a little
+bit stuttery way out here.
+
+
+226
+00:09:04,246 --> 00:09:06,856
+It's not awful, but
+it could be better.
+
+
+227
+00:09:07,416 --> 00:09:09,966
+So what I want to do now
+is figure out why that is.
+
+
+228
+00:09:10,076 --> 00:09:12,806
+So let's go to it here to Xcode.
+
+
+229
+00:09:12,806 --> 00:09:15,896
+And let's click and hold on the
+Run button and choose Profile.
+
+
+230
+00:09:16,966 --> 00:09:18,716
+So that'll build your
+application release mode.
+
+
+231
+00:09:19,196 --> 00:09:20,406
+Install it on the device.
+
+
+232
+00:09:20,906 --> 00:09:23,416
+And then Instruments will come
+up with its template chooser
+
+
+233
+00:09:23,416 --> 00:09:24,996
+where you decide how
+you want to profile.
+
+
+234
+00:09:25,766 --> 00:09:26,856
+I'm going to go ahead
+and double click
+
+
+235
+00:09:26,856 --> 00:09:28,136
+on the System Trace template.
+
+
+236
+00:09:29,336 --> 00:09:33,376
+And now from here before I
+start recording, I went ahead
+
+
+237
+00:09:33,376 --> 00:09:35,956
+and added some of the kdebug
+signpost start and end points
+
+
+238
+00:09:35,956 --> 00:09:37,016
+to my code ahead of time.
+
+
+239
+00:09:37,366 --> 00:09:39,326
+And so I want to configure
+how those will appear inside
+
+
+240
+00:09:39,326 --> 00:09:39,956
+of Instruments.
+
+
+241
+00:09:40,366 --> 00:09:42,246
+And so you do that down
+here in the lower right
+
+
+242
+00:09:43,156 --> 00:09:44,186
+in the Record settings.
+
+
+243
+00:09:44,356 --> 00:09:47,356
+And first off, I did want to
+use my first argument for color,
+
+
+244
+00:09:47,696 --> 00:09:50,526
+so I put some unique numbers
+inside of my kdebug signpost.
+
+
+245
+00:09:51,116 --> 00:09:54,276
+And I added three
+different codes.
+
+
+246
+00:09:54,386 --> 00:09:58,276
+Code 0 is CADisplayLink.
+
+
+247
+00:09:58,716 --> 00:10:01,616
+So that's that 60 hertz timer
+that's driving the animation.
+
+
+248
+00:10:01,806 --> 00:10:03,786
+So basically this region
+will correspond approximately
+
+
+249
+00:10:03,786 --> 00:10:06,086
+to my frame time because this is
+where I do all of my rendering.
+
+
+250
+00:10:07,356 --> 00:10:11,446
+Next is Code 1, and that
+is, I'll call it CreatePath.
+
+
+251
+00:10:11,516 --> 00:10:13,306
+So this one I'm actually
+creating the CG paths,
+
+
+252
+00:10:13,396 --> 00:10:15,356
+the rectangles and the
+labels that are going
+
+
+253
+00:10:15,356 --> 00:10:16,686
+to be appearing on the screen.
+
+
+254
+00:10:17,656 --> 00:10:21,326
+Finally Code 2 is
+called RenderGraph.
+
+
+255
+00:10:21,326 --> 00:10:23,856
+So that's when I take those CG
+paths and actually render them
+
+
+256
+00:10:23,856 --> 00:10:26,876
+into a CG bitmap context and
+then display them on the screen.
+
+
+257
+00:10:28,156 --> 00:10:30,366
+Finally, since my code's going
+to be running in parallel
+
+
+258
+00:10:30,416 --> 00:10:33,006
+and they're going to be emitting
+the same two codes here,
+
+
+259
+00:10:33,236 --> 00:10:35,176
+I need to tell Instruments
+how to differentiate them.
+
+
+260
+00:10:35,216 --> 00:10:37,296
+And in this case, the
+thread is good enough
+
+
+261
+00:10:37,296 --> 00:10:38,686
+since it'll be running
+on different threads.
+
+
+262
+00:10:39,466 --> 00:10:41,346
+All right, so I did
+all that configuration.
+
+
+263
+00:10:41,346 --> 00:10:42,696
+I don't want to be
+doing this again
+
+
+264
+00:10:42,696 --> 00:10:44,336
+and again every time
+I come to Instruments.
+
+
+265
+00:10:44,806 --> 00:10:47,296
+So we go to file and
+choose Save As Template.
+
+
+266
+00:10:47,896 --> 00:10:49,586
+I'll give it a descriptive name.
+
+
+267
+00:10:51,516 --> 00:10:53,976
+Graphasaurus System
+Trace and hit Save.
+
+
+268
+00:10:54,576 --> 00:10:57,046
+And now let's say you close this
+document, you close Instruments,
+
+
+269
+00:10:57,046 --> 00:10:59,086
+you come back a week
+later, whenever you get
+
+
+270
+00:10:59,086 --> 00:11:02,506
+to the template chooser,
+move over to the Custom tab,
+
+
+271
+00:11:03,386 --> 00:11:04,816
+there's your template
+ready to go.
+
+
+272
+00:11:05,566 --> 00:11:06,956
+You don't have to redo
+your configuration.
+
+
+273
+00:11:07,556 --> 00:11:08,266
+Just hit record.
+
+
+274
+00:11:09,446 --> 00:11:11,126
+Now Instruments is going
+to wait for me to kind
+
+
+275
+00:11:11,126 --> 00:11:12,226
+of reproduce the problem here.
+
+
+276
+00:11:12,226 --> 00:11:14,566
+So I'm just going to pinch out,
+just like you saw me do before.
+
+
+277
+00:11:15,556 --> 00:11:17,016
+Pinch out where it
+gets to the problem.
+
+
+278
+00:11:17,266 --> 00:11:19,216
+And then I'm going to just
+reproduce that problem
+
+
+279
+00:11:19,216 --> 00:11:22,136
+for a couple of seconds so that
+it fills that window buffer
+
+
+280
+00:11:22,136 --> 00:11:23,346
+with the data I'm interested in.
+
+
+281
+00:11:23,746 --> 00:11:25,396
+And once I do that,
+I stop the recording.
+
+
+282
+00:11:26,036 --> 00:11:28,296
+So now Instruments
+will go download all
+
+
+283
+00:11:28,296 --> 00:11:30,956
+of that data off the device
+and then begin to analyze it.
+
+
+284
+00:11:31,286 --> 00:11:32,856
+And since this was a
+Windowed Mode recording,
+
+
+285
+00:11:32,856 --> 00:11:34,156
+you only get those
+last few seconds.
+
+
+286
+00:11:34,586 --> 00:11:36,816
+Make sure that when you
+reproduce the problem,
+
+
+287
+00:11:36,936 --> 00:11:38,336
+you stop the recording
+right afterwards.
+
+
+288
+00:11:38,646 --> 00:11:40,526
+Otherwise, newer events are
+going to come in and kind
+
+
+289
+00:11:40,526 --> 00:11:42,426
+of push out the stuff you
+were actually interested in.
+
+
+290
+00:11:43,826 --> 00:11:46,706
+So we'll wait here for
+Instruments to finish analyzing.
+
+
+291
+00:11:50,656 --> 00:11:54,356
+And there we go.
+
+
+292
+00:11:54,716 --> 00:11:56,306
+So we're looking at a
+whole bunch of stuff here.
+
+
+293
+00:11:56,986 --> 00:11:58,936
+So let's make this
+a little bit larger
+
+
+294
+00:11:58,936 --> 00:12:00,006
+so we can see what's going on.
+
+
+295
+00:12:00,946 --> 00:12:03,096
+All right, so this first
+selected instrument that's the
+
+
+296
+00:12:03,096 --> 00:12:04,606
+new Points of Interest
+Instrument.
+
+
+297
+00:12:05,006 --> 00:12:07,496
+So let's zoom in on a
+section here randomly and kind
+
+
+298
+00:12:07,496 --> 00:12:10,086
+of see what we're looking at.
+
+
+299
+00:12:10,086 --> 00:12:13,246
+So now we can see there's
+all those codes I created.
+
+
+300
+00:12:13,246 --> 00:12:15,716
+I see DisplayLink, the
+CreatePath, the RenderGraph.
+
+
+301
+00:12:15,916 --> 00:12:17,126
+And it looks like I'd expect.
+
+
+302
+00:12:17,126 --> 00:12:19,726
+I have my big blue
+CADisplayLink time here.
+
+
+303
+00:12:20,096 --> 00:12:23,276
+And inside there's four pairs
+of the green and purple create
+
+
+304
+00:12:23,276 --> 00:12:24,516
+and rendering those graphs.
+
+
+305
+00:12:24,836 --> 00:12:25,726
+And so that looks good.
+
+
+306
+00:12:26,326 --> 00:12:28,976
+But when I mouse
+over to this region,
+
+
+307
+00:12:29,146 --> 00:12:31,756
+you get a little tool tip
+showing you those arguments you
+
+
+308
+00:12:31,756 --> 00:12:33,496
+provided along with
+the duration.
+
+
+309
+00:12:33,836 --> 00:12:36,526
+And I'm actually running here
+close to 30 milliseconds.
+
+
+310
+00:12:36,526 --> 00:12:39,136
+So it's about half of the
+speed I want to be running at.
+
+
+311
+00:12:39,136 --> 00:12:39,806
+So that's not good.
+
+
+312
+00:12:40,706 --> 00:12:41,926
+But this was just one frame.
+
+
+313
+00:12:41,926 --> 00:12:42,806
+I rendered a ton.
+
+
+314
+00:12:43,056 --> 00:12:44,676
+So what does it look
+like in aggregate?
+
+
+315
+00:12:44,916 --> 00:12:47,886
+Well, we come down here and
+look at this detail table.
+
+
+316
+00:12:48,206 --> 00:12:50,206
+This is currently showing
+us a time sorted list
+
+
+317
+00:12:50,206 --> 00:12:51,206
+of all those regions.
+
+
+318
+00:12:51,506 --> 00:12:53,536
+So you could look through
+this huge list here and look
+
+
+319
+00:12:53,536 --> 00:12:54,986
+at the arguments and et cetera.
+
+
+320
+00:12:55,646 --> 00:12:58,946
+But we did a table here that
+aggregates that for you.
+
+
+321
+00:12:59,166 --> 00:13:01,986
+It's called the KDebug Interval
+Signposts by Code table.
+
+
+322
+00:13:02,846 --> 00:13:05,136
+And when I select that
+here's all the codes
+
+
+323
+00:13:05,136 --> 00:13:06,376
+that Graphasaurus 2 emitted.
+
+
+324
+00:13:07,026 --> 00:13:09,026
+And we can see here's
+my CADisplayLink.
+
+
+325
+00:13:09,166 --> 00:13:12,976
+I rendered 152 frames, and
+on average, they were taking
+
+
+326
+00:13:12,976 --> 00:13:14,426
+about 28 milliseconds.
+
+
+327
+00:13:14,426 --> 00:13:16,116
+So yeah, in average,
+I'm not running so well.
+
+
+328
+00:13:16,176 --> 00:13:17,636
+You can see the min, the max,
+
+
+329
+00:13:17,636 --> 00:13:19,186
+the standard deviation
+that sort of thing.
+
+
+330
+00:13:19,876 --> 00:13:22,276
+You can dive in with this
+focus button next to the code.
+
+
+331
+00:13:22,276 --> 00:13:25,556
+And now that'll give you a
+table of all of that data.
+
+
+332
+00:13:25,556 --> 00:13:26,886
+Those are all the
+events that happened
+
+
+333
+00:13:26,886 --> 00:13:28,486
+that were my CADisplayLink
+events.
+
+
+334
+00:13:29,366 --> 00:13:31,456
+So I'm going to -- from
+here you could sort them
+
+
+335
+00:13:31,456 --> 00:13:33,116
+by anything you want,
+different arguments,
+
+
+336
+00:13:33,116 --> 00:13:35,086
+whatever is important
+in your application.
+
+
+337
+00:13:35,416 --> 00:13:36,876
+Here I just want to
+sort them by duration.
+
+
+338
+00:13:37,926 --> 00:13:40,476
+And then what I'm going
+to do is, I don't know,
+
+
+339
+00:13:40,476 --> 00:13:43,116
+I'm going to pick one of
+these ones here somewhere
+
+
+340
+00:13:43,116 --> 00:13:45,556
+in the middle, and now
+what I want to point out is
+
+
+341
+00:13:45,556 --> 00:13:47,086
+when I click on one
+of these rows,
+
+
+342
+00:13:47,396 --> 00:13:49,036
+the graph view up above shifted.
+
+
+343
+00:13:49,656 --> 00:13:51,596
+And what happened was it went
+
+
+344
+00:13:51,696 --> 00:13:55,636
+and it made the region
+I'm interested in visible.
+
+
+345
+00:13:55,966 --> 00:13:56,546
+Here it is.
+
+
+346
+00:13:56,986 --> 00:13:59,106
+And it put this blue
+inspection head
+
+
+347
+00:13:59,106 --> 00:14:00,106
+at the beginning of that region.
+
+
+348
+00:14:00,106 --> 00:14:01,726
+So you kind of correlate
+the thing you clicked
+
+
+349
+00:14:01,726 --> 00:14:04,036
+on in the bottom with where it
+is up above in the track view.
+
+
+350
+00:14:04,826 --> 00:14:05,966
+So now I'm looking
+at this frame.
+
+
+351
+00:14:06,476 --> 00:14:09,976
+You can also control-click
+on that row
+
+
+352
+00:14:10,076 --> 00:14:11,356
+and choose set time filter.
+
+
+353
+00:14:11,956 --> 00:14:13,406
+And what that'll do
+is gray out everything
+
+
+354
+00:14:13,406 --> 00:14:15,426
+in the detail view that's
+outside of that time range,
+
+
+355
+00:14:15,526 --> 00:14:17,816
+and it does the same up in
+the track view up above.
+
+
+356
+00:14:17,816 --> 00:14:19,656
+So you can use that to kind
+of filter out your data
+
+
+357
+00:14:19,656 --> 00:14:22,236
+that you're interested in
+or here just use it as kind
+
+
+358
+00:14:22,236 --> 00:14:24,726
+of a visual cue at the
+frame you're looking at.
+
+
+359
+00:14:24,786 --> 00:14:25,826
+So now that I've done that.
+
+
+360
+00:14:26,416 --> 00:14:27,646
+I'm looking at this frame.
+
+
+361
+00:14:27,776 --> 00:14:30,096
+I can see that my
+CADisplayLink started here.
+
+
+362
+00:14:30,096 --> 00:14:30,796
+It ended here.
+
+
+363
+00:14:30,796 --> 00:14:32,896
+But I don't really know
+why it looks like this.
+
+
+364
+00:14:32,956 --> 00:14:35,196
+All this is telling you is
+when it started, when it ended.
+
+
+365
+00:14:35,546 --> 00:14:37,156
+You don't know if your
+application was doing work,
+
+
+366
+00:14:37,256 --> 00:14:38,126
+if it went to sleep.
+
+
+367
+00:14:38,326 --> 00:14:39,956
+You can't tell from this graph.
+
+
+368
+00:14:40,016 --> 00:14:41,246
+So we need to dive in deeper.
+
+
+369
+00:14:42,436 --> 00:14:44,736
+Here in the top right of
+Instruments in the toolbar,
+
+
+370
+00:14:45,186 --> 00:14:47,386
+we're currently on the
+Instruments strategy,
+
+
+371
+00:14:47,386 --> 00:14:50,076
+which is those list of all the
+instruments in this template.
+
+
+372
+00:14:50,076 --> 00:14:52,926
+You could click here
+on this thread data
+
+
+373
+00:14:52,996 --> 00:14:54,546
+to see all the threads
+in your application.
+
+
+374
+00:14:55,266 --> 00:14:58,086
+Alternatively, let's say we
+were already down here looking
+
+
+375
+00:14:58,086 --> 00:14:59,366
+at a thread in our detail view.
+
+
+376
+00:14:59,816 --> 00:15:03,066
+If you option-click, you'll see
+you get these hyperlink kind
+
+
+377
+00:15:03,066 --> 00:15:04,456
+of style that you
+can click on that
+
+
+378
+00:15:04,796 --> 00:15:06,606
+and choose Reveal
+in Thread Strategy.
+
+
+379
+00:15:07,196 --> 00:15:08,956
+So that'll jump you
+to the Thread Strategy
+
+
+380
+00:15:08,996 --> 00:15:11,486
+and preselect that
+thread for you.
+
+
+381
+00:15:12,036 --> 00:15:14,466
+So we can see here, make
+this a little bit larger.
+
+
+382
+00:15:16,146 --> 00:15:17,706
+It selected the main
+thread for us.
+
+
+383
+00:15:18,196 --> 00:15:19,776
+And if I look at
+this, there's a couple
+
+
+384
+00:15:19,776 --> 00:15:22,086
+of other dispatch worker
+threads that are running.
+
+
+385
+00:15:22,286 --> 00:15:25,296
+And these two in particular,
+this one right here
+
+
+386
+00:15:25,296 --> 00:15:27,226
+and the one below it,
+are doing a lot of work.
+
+
+387
+00:15:27,876 --> 00:15:31,196
+These are all those red
+dots that are showing up.
+
+
+388
+00:15:32,196 --> 00:15:36,006
+So if I option drag to zoom
+in on one of those regions,
+
+
+389
+00:15:36,586 --> 00:15:38,446
+we can actually start
+to see what those are
+
+
+390
+00:15:38,666 --> 00:15:39,526
+by hovering over them.
+
+
+391
+00:15:40,456 --> 00:15:43,206
+Here, this is a ulock wake
+system call, so it's waking
+
+
+392
+00:15:43,206 --> 00:15:44,076
+up from some sort of lock.
+
+
+393
+00:15:44,476 --> 00:15:47,906
+Here's a ulock wait system call,
+so it's waiting on some lock.
+
+
+394
+00:15:48,176 --> 00:15:49,976
+And if you keep hovering over
+them, you're actually going
+
+
+395
+00:15:49,976 --> 00:15:51,166
+to see that pattern repeating.
+
+
+396
+00:15:51,166 --> 00:15:53,606
+There's a lot of this ulock
+wait and waking going on.
+
+
+397
+00:15:54,336 --> 00:15:57,346
+So if you click, you'll set that
+inspection head at that point.
+
+
+398
+00:15:57,826 --> 00:16:00,156
+And if you come down here
+to what we call the threads
+
+
+399
+00:16:00,156 --> 00:16:03,106
+and narrative view,
+down here in this table,
+
+
+400
+00:16:03,496 --> 00:16:06,706
+it'll actually show you in that
+table kind of where I clicked
+
+
+401
+00:16:06,706 --> 00:16:08,736
+up above, what was going on
+in the thread at this time.
+
+
+402
+00:16:08,736 --> 00:16:09,926
+All right, this is a list
+
+
+403
+00:16:09,926 --> 00:16:11,956
+of everything this thread
+was doing, kind of a story
+
+
+404
+00:16:11,956 --> 00:16:12,836
+of this thread's life.
+
+
+405
+00:16:13,236 --> 00:16:15,136
+So here we can see one
+of those wait calls.
+
+
+406
+00:16:15,226 --> 00:16:16,956
+Okay, well where
+did that happen?
+
+
+407
+00:16:17,556 --> 00:16:20,826
+Whenever possible Instruments is
+going to take a backtrace along
+
+
+408
+00:16:20,826 --> 00:16:22,006
+with those system events.
+
+
+409
+00:16:22,556 --> 00:16:24,886
+And you can find those
+over here on the right
+
+
+410
+00:16:25,336 --> 00:16:26,956
+in the Extended Detail View.
+
+
+411
+00:16:28,056 --> 00:16:32,816
+So we can see I have some SWIFT
+code building paths and inside
+
+
+412
+00:16:32,816 --> 00:16:35,476
+of it it's actually creating
+an NSAttributedString.
+
+
+413
+00:16:36,076 --> 00:16:39,196
+Okay, and down below
+that a couple frames is
+
+
+414
+00:16:39,196 --> 00:16:40,236
+where it's taking that lock.
+
+
+415
+00:16:40,986 --> 00:16:43,436
+Kind of unexpected, wasn't
+expecting a lock inside
+
+
+416
+00:16:43,436 --> 00:16:45,306
+of NSAttributedString,
+but there it is.
+
+
+417
+00:16:45,696 --> 00:16:47,616
+So what are the ramifications
+of that?
+
+
+418
+00:16:48,176 --> 00:16:50,396
+Let's go back over to the
+threads narrative view
+
+
+419
+00:16:50,396 --> 00:16:51,126
+and see what happens.
+
+
+420
+00:16:51,586 --> 00:16:55,626
+So it took us 109 microseconds
+just to take that lock.
+
+
+421
+00:16:55,626 --> 00:16:57,956
+And then we blocked for
+another 6 microseconds.
+
+
+422
+00:16:58,476 --> 00:17:00,896
+What's really cool this
+year is now it'll show you
+
+
+423
+00:17:01,116 --> 00:17:03,276
+which thread made
+your thread runnable.
+
+
+424
+00:17:03,276 --> 00:17:05,516
+So basically who released that
+lock so that you could take it.
+
+
+425
+00:17:05,516 --> 00:17:07,326
+And we can see that
+it was made runnable
+
+
+426
+00:17:07,326 --> 00:17:12,576
+by a Graphasaurus
+thread 0x8468b.
+
+
+427
+00:17:12,576 --> 00:17:16,236
+Okay. And we can see that even
+after that lock was released,
+
+
+428
+00:17:16,665 --> 00:17:19,376
+we still waiting another 98
+microseconds before we actually
+
+
+429
+00:17:19,376 --> 00:17:20,136
+give a CPU back.
+
+
+430
+00:17:20,606 --> 00:17:23,516
+All right, let's look at what
+that other thread was doing.
+
+
+431
+00:17:23,516 --> 00:17:25,726
+Why did he release that lock?
+
+
+432
+00:17:25,726 --> 00:17:28,056
+Option click on that, choose
+reveal and thread strategy.
+
+
+433
+00:17:28,836 --> 00:17:32,436
+That'll select that other thread
+up above, and then down below
+
+
+434
+00:17:32,436 --> 00:17:34,826
+in the narrative view, we'll
+see what thread was doing
+
+
+435
+00:17:34,826 --> 00:17:35,366
+at that time.
+
+
+436
+00:17:35,716 --> 00:17:37,776
+And we can see he was
+calling ulock wake.
+
+
+437
+00:17:37,986 --> 00:17:39,396
+So he was releasing that lock.
+
+
+438
+00:17:39,806 --> 00:17:40,396
+That makes sense.
+
+
+439
+00:17:40,396 --> 00:17:43,066
+So we can kind of see that we
+have these two threads running
+
+
+440
+00:17:43,066 --> 00:17:45,776
+in parallel, except they're kind
+of contending over this lock.
+
+
+441
+00:17:45,956 --> 00:17:47,036
+And so they're doing a bunch
+
+
+442
+00:17:47,036 --> 00:17:49,236
+of things besides
+actually just running.
+
+
+443
+00:17:49,916 --> 00:17:53,966
+Another way to see that
+is up in this track view.
+
+
+444
+00:17:54,876 --> 00:17:57,466
+We have those thread
+states visible here.
+
+
+445
+00:17:57,516 --> 00:17:58,556
+Let me make this a
+little bit larger.
+
+
+446
+00:17:58,926 --> 00:18:00,676
+So if you hover over
+the thread states,
+
+
+447
+00:18:00,826 --> 00:18:02,436
+you'll see it was
+running for this period
+
+
+448
+00:18:02,436 --> 00:18:03,566
+of time, 64 microseconds.
+
+
+449
+00:18:03,566 --> 00:18:06,046
+Then it was blocked
+for a little while.
+
+
+450
+00:18:06,376 --> 00:18:08,336
+Then it was runnable
+for kind of a long time,
+
+
+451
+00:18:08,336 --> 00:18:09,696
+so that means it's
+not actually running.
+
+
+452
+00:18:09,696 --> 00:18:11,486
+And then finally it runs.
+
+
+453
+00:18:11,686 --> 00:18:13,276
+And if we kept digging
+around, looking around,
+
+
+454
+00:18:13,276 --> 00:18:15,246
+we would see this pattern
+repeating over and over again.
+
+
+455
+00:18:15,866 --> 00:18:18,616
+And so what becomes clear is
+these two threads are fighting
+
+
+456
+00:18:18,616 --> 00:18:19,166
+over this lock.
+
+
+457
+00:18:19,576 --> 00:18:21,696
+And I'm creating a whole bunch
+of strings during this time.
+
+
+458
+00:18:22,566 --> 00:18:24,926
+So if this is taking so much
+time and is so important,
+
+
+459
+00:18:25,126 --> 00:18:27,046
+why don't I see that
+in the time profiler?
+
+
+460
+00:18:27,566 --> 00:18:29,246
+Well, truth be told if
+you go back and look
+
+
+461
+00:18:29,246 --> 00:18:30,666
+at the time profiler,
+it does show up.
+
+
+462
+00:18:31,006 --> 00:18:32,926
+But it's only like four
+or five percent or so.
+
+
+463
+00:18:32,926 --> 00:18:34,746
+It didn't really stick
+out as a giant red flag.
+
+
+464
+00:18:35,146 --> 00:18:36,756
+And a big reason for that is
+
+
+465
+00:18:36,756 --> 00:18:38,646
+because these threads are
+spending a lot of time
+
+
+466
+00:18:38,646 --> 00:18:40,156
+in the blocked and
+runnable states.
+
+
+467
+00:18:40,156 --> 00:18:42,496
+And time profiler only
+samples what's actually running
+
+
+468
+00:18:42,496 --> 00:18:45,046
+on a CPU, so it's not
+going to show up there.
+
+
+469
+00:18:45,636 --> 00:18:49,116
+And so what I need to do to fix
+this problem is realize, well,
+
+
+470
+00:18:49,116 --> 00:18:52,136
+I'm just putting some attributed
+strings onto a state graph.
+
+
+471
+00:18:52,136 --> 00:18:54,546
+There's not that many states
+that need to be displayed.
+
+
+472
+00:18:54,906 --> 00:18:56,966
+I should just cash them ahead
+of time, and then look them
+
+
+473
+00:18:56,966 --> 00:18:58,116
+up in a dictionary lock free.
+
+
+474
+00:18:58,476 --> 00:19:00,566
+And everything should
+run a lot more smoothly.
+
+
+475
+00:19:00,906 --> 00:19:03,106
+And to show you what that
+looks like, back over to Chad.
+
+
+476
+00:19:04,516 --> 00:19:10,546
+[ Applause ]
+
+
+477
+00:19:11,046 --> 00:19:13,406
+>> Okay, so what Joe is
+seeing is a textbook Lock
+
+
+478
+00:19:13,406 --> 00:19:14,206
+Contention pattern.
+
+
+479
+00:19:14,276 --> 00:19:16,766
+And this is where we have
+two threads now working away.
+
+
+480
+00:19:16,766 --> 00:19:19,536
+And they're contending for
+a shared resource somewhere
+
+
+481
+00:19:19,536 --> 00:19:21,596
+in the attributed string
+lock creation code.
+
+
+482
+00:19:21,596 --> 00:19:23,876
+Now even though we're
+only holding that lock
+
+
+483
+00:19:23,876 --> 00:19:25,136
+for a few microseconds,
+
+
+484
+00:19:25,166 --> 00:19:28,726
+the performance impact is much
+more significant than that.
+
+
+485
+00:19:28,726 --> 00:19:29,896
+And Joe showed you
+that a little bit.
+
+
+486
+00:19:29,896 --> 00:19:31,846
+But I want to talk about
+it just a little bit more.
+
+
+487
+00:19:33,356 --> 00:19:35,886
+So when your thread is in
+the running state that means
+
+
+488
+00:19:35,926 --> 00:19:37,506
+that the thread is on the CPU.
+
+
+489
+00:19:37,836 --> 00:19:39,136
+It's running its full stride,
+
+
+490
+00:19:39,136 --> 00:19:40,676
+and all of those
+performance optimizations
+
+
+491
+00:19:40,676 --> 00:19:42,966
+that you were making with a time
+profiler are now paying off.
+
+
+492
+00:19:43,306 --> 00:19:45,666
+Now at some point, you
+do call into ulock wake,
+
+
+493
+00:19:45,936 --> 00:19:46,966
+and then some short period
+
+
+494
+00:19:46,966 --> 00:19:49,476
+after that it puts the
+thread into the block state.
+
+
+495
+00:19:49,756 --> 00:19:53,206
+And so what's happening here is
+ulock wait system call realizes
+
+
+496
+00:19:53,286 --> 00:19:56,176
+that that lock is being
+held by another thread,
+
+
+497
+00:19:56,176 --> 00:19:59,196
+and so it asks the kernel
+to take you off the CPU
+
+
+498
+00:19:59,496 --> 00:20:01,596
+and put you back when
+that thread or --
+
+
+499
+00:20:01,596 --> 00:20:03,086
+sorry, when that lock
+is actually acquired.
+
+
+500
+00:20:03,766 --> 00:20:06,446
+Now 3.42 microseconds
+later that does happen.
+
+
+501
+00:20:06,496 --> 00:20:07,826
+We do go into the
+runnable state.
+
+
+502
+00:20:08,666 --> 00:20:10,026
+But now when we're in
+the runnable state,
+
+
+503
+00:20:10,096 --> 00:20:11,366
+this is the amount
+of time it takes us
+
+
+504
+00:20:11,366 --> 00:20:13,006
+to get back onto the CPU.
+
+
+505
+00:20:13,786 --> 00:20:15,306
+Now if you'll notice we're
+in the runnable state
+
+
+506
+00:20:15,306 --> 00:20:16,566
+for about 7 microseconds.
+
+
+507
+00:20:16,566 --> 00:20:18,776
+That's nearly twice
+the amount of time
+
+
+508
+00:20:18,776 --> 00:20:20,506
+that that lock was
+actually contended.
+
+
+509
+00:20:20,736 --> 00:20:22,406
+So we're getting a
+significant amount of overhead.
+
+
+510
+00:20:23,196 --> 00:20:25,806
+Now another way to look at this
+quantitatively is you can go
+
+
+511
+00:20:25,806 --> 00:20:28,116
+into the thread strategy,
+select the thread,
+
+
+512
+00:20:28,546 --> 00:20:30,926
+create a time filter selection
+the way that Joe showed you,
+
+
+513
+00:20:31,466 --> 00:20:33,966
+and then change the detail
+section from the narrative
+
+
+514
+00:20:33,966 --> 00:20:35,136
+over here to the thread summary.
+
+
+515
+00:20:35,136 --> 00:20:38,636
+And what that will show you
+is the total time spent per
+
+
+516
+00:20:38,636 --> 00:20:39,306
+thread state.
+
+
+517
+00:20:39,446 --> 00:20:41,016
+In this particular example,
+
+
+518
+00:20:41,016 --> 00:20:42,686
+we can see that our
+thread was only running
+
+
+519
+00:20:42,686 --> 00:20:44,236
+about 82 percent of the time.
+
+
+520
+00:20:45,136 --> 00:20:46,106
+Now what that means is
+
+
+521
+00:20:46,106 --> 00:20:48,196
+that we're still getting some
+benefit from the multicore.
+
+
+522
+00:20:48,196 --> 00:20:50,646
+We are getting some work
+done, but our scaling is not
+
+
+523
+00:20:50,646 --> 00:20:53,846
+that linear scaling, perfect
+scaling that we were hoping for.
+
+
+524
+00:20:54,176 --> 00:20:56,226
+We are still wasting
+a little bit of time.
+
+
+525
+00:20:56,946 --> 00:21:00,736
+Now when Joe makes the fix
+that he was talking about,
+
+
+526
+00:21:00,736 --> 00:21:02,316
+what's going to happen -- well,
+two things are going to happen.
+
+
+527
+00:21:02,316 --> 00:21:05,216
+The first one is that the update
+graph regions, they're going
+
+
+528
+00:21:05,216 --> 00:21:07,366
+to get a little shorter
+because we are doing less work
+
+
+529
+00:21:07,366 --> 00:21:08,816
+when we're caching
+these strings.
+
+
+530
+00:21:09,286 --> 00:21:10,106
+But more importantly,
+
+
+531
+00:21:10,426 --> 00:21:12,716
+that thread is no running a
+hundred percent of the time.
+
+
+532
+00:21:12,996 --> 00:21:14,746
+So you're going to get
+that perfect scalability.
+
+
+533
+00:21:14,866 --> 00:21:16,946
+So if you add a -- so if you
+double the number of CPUs,
+
+
+534
+00:21:16,946 --> 00:21:18,976
+you're going to half the amount
+of time that that code takes.
+
+
+535
+00:21:18,976 --> 00:21:19,766
+And that's great.
+
+
+536
+00:21:20,106 --> 00:21:21,806
+So if you have a fix like that,
+
+
+537
+00:21:21,806 --> 00:21:23,006
+you should definitely
+try to take it.
+
+
+538
+00:21:24,516 --> 00:21:25,656
+Now let's talk about preemption.
+
+
+539
+00:21:25,656 --> 00:21:28,386
+We didn't get to see any
+preemption in our examples here,
+
+
+540
+00:21:28,386 --> 00:21:30,216
+it is something that shows
+
+
+541
+00:21:30,216 --> 00:21:31,786
+up quite frequently
+in a system trace.
+
+
+542
+00:21:32,436 --> 00:21:35,306
+And what preemption is is
+an involuntary removable
+
+
+543
+00:21:35,306 --> 00:21:37,586
+of your thread from the CPU.
+
+
+544
+00:21:38,926 --> 00:21:42,076
+So some other higher
+priority work was needed --
+
+
+545
+00:21:42,076 --> 00:21:42,996
+needed the CPUs.
+
+
+546
+00:21:42,996 --> 00:21:43,916
+There were none available,
+
+
+547
+00:21:44,256 --> 00:21:45,716
+and so your thread
+had to be removed.
+
+
+548
+00:21:46,476 --> 00:21:48,146
+Now there's an exception
+to that.
+
+
+549
+00:21:48,146 --> 00:21:49,906
+There is a voluntary
+form of preemption
+
+
+550
+00:21:49,906 --> 00:21:51,276
+that you might see
+from time to time.
+
+
+551
+00:21:51,716 --> 00:21:53,336
+And that occurs inside
+of a spin lock.
+
+
+552
+00:21:53,506 --> 00:21:55,776
+When a spin lock realizes it's
+not making any more forward
+
+
+553
+00:21:55,776 --> 00:21:58,566
+progress, it can call into
+the thread switch system call
+
+
+554
+00:21:59,186 --> 00:22:01,156
+and essentially yield
+its quantum of time
+
+
+555
+00:22:01,156 --> 00:22:02,436
+over the holder of the lock.
+
+
+556
+00:22:03,496 --> 00:22:05,686
+And so what that looks
+like in system trace
+
+
+557
+00:22:05,686 --> 00:22:07,516
+in the thread narrative
+is you'll see it called a
+
+
+558
+00:22:07,516 --> 00:22:08,346
+thread switch.
+
+
+559
+00:22:08,756 --> 00:22:11,666
+And then the preemption
+narrative after it will say
+
+
+560
+00:22:11,666 --> 00:22:13,706
+that it was yielding
+the CPU rather
+
+
+561
+00:22:13,706 --> 00:22:15,996
+than being I think
+removed from the CPU.
+
+
+562
+00:22:16,206 --> 00:22:19,286
+So another lighter weight form
+
+
+563
+00:22:19,286 --> 00:22:21,556
+of preemption is called
+the interrupted state.
+
+
+564
+00:22:21,556 --> 00:22:23,946
+And the interrupted state is
+when your thread is running
+
+
+565
+00:22:23,946 --> 00:22:28,526
+on a CPU and that CPU has to
+handle a hardware interrupt.
+
+
+566
+00:22:28,986 --> 00:22:30,346
+So your thread is suspended.
+
+
+567
+00:22:30,506 --> 00:22:32,906
+The interrupt handler runs, and
+then your thread is resumed.
+
+
+568
+00:22:33,186 --> 00:22:35,536
+Now at this point, the priority
+of your thread doesn't matter.
+
+
+569
+00:22:35,536 --> 00:22:36,686
+You can have the
+highest priority.
+
+
+570
+00:22:36,686 --> 00:22:37,846
+It really won't matter.
+
+
+571
+00:22:38,186 --> 00:22:40,446
+The interrupt will
+always take precedence.
+
+
+572
+00:22:40,446 --> 00:22:43,116
+Now the good news is that
+these are typically brief,
+
+
+573
+00:22:43,116 --> 00:22:44,246
+a couple of microseconds.
+
+
+574
+00:22:44,246 --> 00:22:46,976
+And typically they won't add
+up to contribute to any sort
+
+
+575
+00:22:46,976 --> 00:22:48,706
+of performance problem
+inside your application.
+
+
+576
+00:22:48,946 --> 00:22:51,636
+But they do show up, so that's
+why I wanted to present them.
+
+
+577
+00:22:51,946 --> 00:22:52,876
+Now another nice feature
+
+
+578
+00:22:52,876 --> 00:22:55,836
+of Instruments 8 is called a
+new System Load instrument.
+
+
+579
+00:22:55,836 --> 00:23:00,086
+And what that instrument does
+is helps you identify hotspots
+
+
+580
+00:23:00,466 --> 00:23:02,226
+in your system trace that
+could be contributing
+
+
+581
+00:23:02,226 --> 00:23:04,276
+to dropped frames, for example.
+
+
+582
+00:23:04,526 --> 00:23:06,026
+Now it does that in two ways.
+
+
+583
+00:23:06,026 --> 00:23:07,856
+The first way is this
+bottom table view.
+
+
+584
+00:23:07,856 --> 00:23:10,136
+And this shows you a picture
+
+
+585
+00:23:10,266 --> 00:23:12,466
+of what the scheduling
+state look like.
+
+
+586
+00:23:12,466 --> 00:23:13,536
+All of the threads
+that were ready
+
+
+587
+00:23:13,536 --> 00:23:16,376
+to run underneath the
+blue inspection line.
+
+
+588
+00:23:17,516 --> 00:23:19,076
+So you can tell that
+at that moment
+
+
+589
+00:23:19,076 --> 00:23:20,646
+in time, we had three threads.
+
+
+590
+00:23:20,736 --> 00:23:23,106
+One was a kernel thread and
+two are a Graphasaurus threads.
+
+
+591
+00:23:23,106 --> 00:23:23,976
+And these are the threads
+
+
+592
+00:23:23,976 --> 00:23:25,856
+that were not blocked
+and trying to run.
+
+
+593
+00:23:26,156 --> 00:23:28,426
+You can see the core
+assignments for those as well.
+
+
+594
+00:23:28,736 --> 00:23:32,086
+Now the other feature of this
+instrument is called the User
+
+
+595
+00:23:32,086 --> 00:23:33,676
+Interactive Load Average graph.
+
+
+596
+00:23:34,396 --> 00:23:35,376
+And what this is is a --
+
+
+597
+00:23:35,376 --> 00:23:38,116
+each one of these bars
+represents a 10 millisecond
+
+
+598
+00:23:38,116 --> 00:23:38,796
+window of time.
+
+
+599
+00:23:38,796 --> 00:23:42,686
+And the height of the bar is the
+average number of active threads
+
+
+600
+00:23:42,846 --> 00:23:44,146
+in that 10 millisecond period.
+
+
+601
+00:23:44,546 --> 00:23:47,376
+So that's threads that are
+either running, runnable,
+
+
+602
+00:23:47,666 --> 00:23:48,956
+preempted, or interrupted.
+
+
+603
+00:23:49,206 --> 00:23:50,456
+Essentially threads
+that are not blocked.
+
+
+604
+00:23:51,346 --> 00:23:53,786
+Now since it's the User
+Interactive Load Average,
+
+
+605
+00:23:53,786 --> 00:23:56,366
+we only include threads that
+have a priority greater to
+
+
+606
+00:23:56,366 --> 00:23:58,996
+or equal to 33 because
+those are the --
+
+
+607
+00:23:58,996 --> 00:24:01,466
+those are the threads with a
+priority that could interfere
+
+
+608
+00:24:01,826 --> 00:24:03,956
+with the user interactive
+quality of service class.
+
+
+609
+00:24:04,826 --> 00:24:06,586
+Now to make it stand out
+a little bit more clearly,
+
+
+610
+00:24:06,876 --> 00:24:08,806
+when the thread bars
+turn orange that means
+
+
+611
+00:24:08,806 --> 00:24:11,486
+that your load average has
+exceeded the number of cores
+
+
+612
+00:24:11,486 --> 00:24:12,736
+on that particular device.
+
+
+613
+00:24:12,946 --> 00:24:15,176
+So wherever you see
+a burst of orange,
+
+
+614
+00:24:15,436 --> 00:24:17,886
+you can see that that's a
+frame drop waiting to happen.
+
+
+615
+00:24:17,886 --> 00:24:21,406
+So you might want to zoom in
+to those particular regions
+
+
+616
+00:24:21,406 --> 00:24:23,226
+that are orange, make
+sure that the threads
+
+
+617
+00:24:23,226 --> 00:24:24,726
+that you have running
+are balanced
+
+
+618
+00:24:24,726 --> 00:24:26,086
+at the right quality
+of service level.
+
+
+619
+00:24:28,046 --> 00:24:29,886
+Now when Joe makes this
+fix we're going to end
+
+
+620
+00:24:29,886 --> 00:24:30,736
+up with a little
+bit more head room.
+
+
+621
+00:24:30,736 --> 00:24:32,226
+We're going to be able
+to add a new feature.
+
+
+622
+00:24:32,306 --> 00:24:35,136
+And that new feature are these
+hover labels, very similar
+
+
+623
+00:24:35,136 --> 00:24:36,766
+to the hover labels that
+you see in Instruments,
+
+
+624
+00:24:37,066 --> 00:24:39,176
+except on Graphasaurus
+you do a long press.
+
+
+625
+00:24:39,176 --> 00:24:41,156
+And then the hover labels
+follow your fingertip.
+
+
+626
+00:24:41,696 --> 00:24:42,776
+So to show how that
+feature is going,
+
+
+627
+00:24:42,776 --> 00:24:44,476
+I'm going to turn
+it back over to Joe.
+
+
+628
+00:24:45,516 --> 00:24:49,646
+[ Applause ]
+
+
+629
+00:24:50,146 --> 00:24:50,736
+>> Thanks, Chad.
+
+
+630
+00:24:51,216 --> 00:24:53,626
+So yeah, so I added the
+NSAttributedString fix,
+
+
+631
+00:24:53,626 --> 00:24:55,406
+went back to 60 frames
+per second looked good,
+
+
+632
+00:24:55,936 --> 00:24:58,086
+added the new generation
+of tool tips work,
+
+
+633
+00:24:58,086 --> 00:24:59,626
+and things got slow again.
+
+
+634
+00:24:59,626 --> 00:25:02,166
+You can kind of tell there's a
+couple frames here dropping here
+
+
+635
+00:25:02,166 --> 00:25:02,456
+and there.
+
+
+636
+00:25:02,676 --> 00:25:03,916
+So looked in at time profiler,
+
+
+637
+00:25:04,346 --> 00:25:06,106
+wasn't anything obvious
+that I could remove.
+
+
+638
+00:25:06,106 --> 00:25:07,676
+There wasn't any extra
+work I was doing.
+
+
+639
+00:25:08,026 --> 00:25:09,516
+So I went back and
+took the system trace
+
+
+640
+00:25:09,516 --> 00:25:10,386
+that you're looking at here.
+
+
+641
+00:25:11,156 --> 00:25:12,816
+Before I took that
+trace, I went ahead
+
+
+642
+00:25:12,816 --> 00:25:15,276
+and added a new Signpost code,
+number 3, and that's going
+
+
+643
+00:25:15,306 --> 00:25:16,826
+to represent my GenToolTips
+work.
+
+
+644
+00:25:16,826 --> 00:25:19,036
+And you'll see that
+show up in red up above.
+
+
+645
+00:25:19,846 --> 00:25:23,376
+So let's zoom in on one
+of these sections here.
+
+
+646
+00:25:26,436 --> 00:25:30,836
+All right, so we can see
+here's my new red bars,
+
+
+647
+00:25:30,836 --> 00:25:31,956
+these GenToolTips.
+
+
+648
+00:25:32,346 --> 00:25:33,366
+And so it's important
+for me to kind
+
+
+649
+00:25:33,366 --> 00:25:35,126
+of describe how my
+algorithm works here.
+
+
+650
+00:25:35,526 --> 00:25:38,106
+Basically whenever this
+CADisplayLink region starts,
+
+
+651
+00:25:38,376 --> 00:25:39,906
+for every single
+graph on the scene,
+
+
+652
+00:25:39,956 --> 00:25:42,506
+I go and do a dispatch
+async of all the render work
+
+
+653
+00:25:42,806 --> 00:25:44,526
+for that graph and
+I dispatch async
+
+
+654
+00:25:44,526 --> 00:25:47,056
+to go generate the tool tip
+dictionary, look up stuff.
+
+
+655
+00:25:47,916 --> 00:25:50,396
+And I do that for every
+single graph on the scene.
+
+
+656
+00:25:50,846 --> 00:25:54,306
+But then I had kind of a clever
+realization that in order
+
+
+657
+00:25:54,306 --> 00:25:56,896
+to kind of call my rendering
+complete, I don't actually need
+
+
+658
+00:25:56,896 --> 00:25:59,066
+to wait for the tool
+tip stuff to finish.
+
+
+659
+00:25:59,376 --> 00:26:02,416
+And so I do a dispatch group
+wait on just the render work.
+
+
+660
+00:26:02,756 --> 00:26:05,086
+And we can see that actually
+kind of worked here pretty well.
+
+
+661
+00:26:05,206 --> 00:26:06,426
+Here's my start of my frame.
+
+
+662
+00:26:06,426 --> 00:26:07,596
+The CADisplayLink time.
+
+
+663
+00:26:07,596 --> 00:26:10,196
+We can see some of those
+tooltips working here.
+
+
+664
+00:26:10,486 --> 00:26:11,736
+Let me scroll over to the right.
+
+
+665
+00:26:11,736 --> 00:26:13,006
+You can see actually
+one of them here.
+
+
+666
+00:26:13,006 --> 00:26:14,466
+Actually, barely
+doesn't even start
+
+
+667
+00:26:14,466 --> 00:26:15,816
+until my render frame is done.
+
+
+668
+00:26:15,816 --> 00:26:17,006
+So it looks like
+I did a good job.
+
+
+669
+00:26:17,006 --> 00:26:18,276
+I can give myself
+a pat on the back.
+
+
+670
+00:26:18,276 --> 00:26:19,146
+That looks nice.
+
+
+671
+00:26:19,676 --> 00:26:24,226
+However, when I look at my
+CADisplayLink time here,
+
+
+672
+00:26:25,366 --> 00:26:28,526
+it's taking 17.4 milliseconds.
+
+
+673
+00:26:28,606 --> 00:26:31,716
+Pretty close, but it's
+not my 16.6 that I want.
+
+
+674
+00:26:32,386 --> 00:26:34,506
+So again, that was just
+one of the regions.
+
+
+675
+00:26:34,506 --> 00:26:36,896
+Let's look at what we
+were doing in aggregate.
+
+
+676
+00:26:37,196 --> 00:26:39,826
+Let's go back to that KDebug
+Interval Signpost by Code table.
+
+
+677
+00:26:40,596 --> 00:26:42,646
+Here we can see our
+CADisplayLinks.
+
+
+678
+00:26:42,646 --> 00:26:44,276
+I did about 260.
+
+
+679
+00:26:44,276 --> 00:26:47,276
+That's more than we did the
+last time, so that sounds good.
+
+
+680
+00:26:47,746 --> 00:26:49,856
+Sixteen milliseconds on average.
+
+
+681
+00:26:49,856 --> 00:26:51,696
+That's actually less
+than my 16.6.
+
+
+682
+00:26:51,696 --> 00:26:53,466
+So that actually
+sounds pretty decent.
+
+
+683
+00:26:53,866 --> 00:26:57,106
+However, this max is still
+sitting here at about 19.27.
+
+
+684
+00:26:57,676 --> 00:26:59,936
+And if we look at all
+the individual events,
+
+
+685
+00:27:01,406 --> 00:27:03,946
+let's sort this by duration
+from longest to shortest,
+
+
+686
+00:27:04,396 --> 00:27:06,046
+we can see here's
+that one at 19.
+
+
+687
+00:27:06,166 --> 00:27:07,876
+There's a bunch in the 18s.
+
+
+688
+00:27:07,876 --> 00:27:09,766
+There's some here in the 17s.
+
+
+689
+00:27:09,766 --> 00:27:10,996
+A lot in the 17s.
+
+
+690
+00:27:10,996 --> 00:27:12,076
+More in these upper 16s.
+
+
+691
+00:27:12,326 --> 00:27:13,586
+So we still have
+a number of frames
+
+
+692
+00:27:13,586 --> 00:27:15,076
+that are actually
+rendering too slowly.
+
+
+693
+00:27:15,486 --> 00:27:17,686
+Not by much, but
+they're still too slow.
+
+
+694
+00:27:17,686 --> 00:27:19,246
+That means we're going
+to be dropping frames.
+
+
+695
+00:27:20,086 --> 00:27:22,106
+So this time, where
+do we go from here?
+
+
+696
+00:27:22,106 --> 00:27:25,556
+We could go back to diving down
+into the thread strategy looking
+
+
+697
+00:27:25,556 --> 00:27:27,926
+at all our threads and the
+system calls and VM events
+
+
+698
+00:27:27,926 --> 00:27:29,416
+and thread events and
+all sorts of things.
+
+
+699
+00:27:29,916 --> 00:27:34,256
+But whenever possible, well
+this system trace template has a
+
+
+700
+00:27:34,256 --> 00:27:36,926
+bunch of instruments up here,
+and they kind of give you sort
+
+
+701
+00:27:36,926 --> 00:27:39,296
+of like higher level aggregate
+information that's kind
+
+
+702
+00:27:39,296 --> 00:27:41,056
+of useful to look at that first.
+
+
+703
+00:27:41,056 --> 00:27:44,066
+So before you go diving down
+into the 100,000 plus events,
+
+
+704
+00:27:44,066 --> 00:27:46,396
+take a look at these
+higher level aggregates.
+
+
+705
+00:27:46,776 --> 00:27:49,106
+And so what I'm going to
+do is let's take a look
+
+
+706
+00:27:49,106 --> 00:27:50,666
+at this User Interactive
+Load graph.
+
+
+707
+00:27:50,666 --> 00:27:52,376
+That's part of that
+System Load instrument.
+
+
+708
+00:27:53,796 --> 00:27:57,826
+And let's go ahead and zoom
+out here to snap track to fit,
+
+
+709
+00:27:57,826 --> 00:28:00,026
+so we can see all the data
+again back on the screen.
+
+
+710
+00:28:01,016 --> 00:28:04,206
+And when we've done that, I'm
+going to zoom in over here.
+
+
+711
+00:28:05,136 --> 00:28:07,836
+You can see there's a fair
+bit of orange in this graph.
+
+
+712
+00:28:08,016 --> 00:28:08,946
+Make this a little bit larger.
+
+
+713
+00:28:08,946 --> 00:28:11,826
+So you can see there's a
+fair bit of orange up there,
+
+
+714
+00:28:11,826 --> 00:28:14,586
+which means we have more user
+interactive threads running
+
+
+715
+00:28:14,586 --> 00:28:15,406
+than we have cores, right.
+
+
+716
+00:28:15,406 --> 00:28:17,046
+These are threads that are
+saying, I have a lot of work
+
+
+717
+00:28:17,046 --> 00:28:20,226
+to do, and I need to do it now.
+
+
+718
+00:28:20,336 --> 00:28:21,476
+Give me a CPU.
+
+
+719
+00:28:21,476 --> 00:28:22,866
+Well, we're running out of CPUs
+
+
+720
+00:28:22,866 --> 00:28:25,356
+and that's why our
+graph here is orange.
+
+
+721
+00:28:25,356 --> 00:28:27,976
+So let's zoom on one
+of these large regions
+
+
+722
+00:28:28,016 --> 00:28:29,036
+of orange over here.
+
+
+723
+00:28:29,946 --> 00:28:32,536
+You can tell what the value is
+just by hovering over a region.
+
+
+724
+00:28:33,406 --> 00:28:34,236
+Zoom in a little bit.
+
+
+725
+00:28:34,716 --> 00:28:37,486
+So we can see this particular
+10 millisecond bucket,
+
+
+726
+00:28:37,486 --> 00:28:40,146
+on average there's about
+2.84 user interactive threads
+
+
+727
+00:28:40,146 --> 00:28:42,766
+that we're trying to run,
+again, on a dual-core machine,
+
+
+728
+00:28:42,766 --> 00:28:46,186
+so about .8 threads
+are lacking CPU time.
+
+
+729
+00:28:46,516 --> 00:28:47,606
+And that's why that's orange.
+
+
+730
+00:28:47,986 --> 00:28:50,016
+And we can see on
+average, there's a lot
+
+
+731
+00:28:50,016 --> 00:28:52,146
+of regions here that
+are too big.
+
+
+732
+00:28:52,146 --> 00:28:53,046
+Here actually it's four.
+
+
+733
+00:28:53,046 --> 00:28:55,886
+We were trying to run twice as
+many threads as we have cores.
+
+
+734
+00:28:56,276 --> 00:28:58,436
+So let's look at that
+region in more detail.
+
+
+735
+00:28:58,436 --> 00:29:01,546
+So let me scooch this
+over so you can see this.
+
+
+736
+00:29:02,216 --> 00:29:05,346
+As Chad mentioned, you can see
+what threads you're actually
+
+
+737
+00:29:05,346 --> 00:29:08,216
+trying to run in that
+period by click and holding
+
+
+738
+00:29:08,216 --> 00:29:10,256
+in the ruler view up
+here, and you can move
+
+
+739
+00:29:10,256 --> 00:29:11,676
+that blue inspection
+head back and forth
+
+
+740
+00:29:11,676 --> 00:29:14,326
+and Instruments will tell you
+which threads we're trying
+
+
+741
+00:29:14,326 --> 00:29:16,976
+to run during that
+instant of time.
+
+
+742
+00:29:17,606 --> 00:29:19,756
+And if we come down
+and look at this table,
+
+
+743
+00:29:19,756 --> 00:29:20,996
+I'll sort it by the priority.
+
+
+744
+00:29:21,546 --> 00:29:23,276
+We can see, I looked right here
+
+
+745
+00:29:23,276 --> 00:29:27,786
+and there are two Graphasaurus
+threads that are running, cool.
+
+
+746
+00:29:28,016 --> 00:29:30,646
+There's actually two location D
+threads that are trying to run
+
+
+747
+00:29:30,646 --> 00:29:31,906
+at a slightly lower priority.
+
+
+748
+00:29:32,206 --> 00:29:33,866
+And that's part of
+being on a real system.
+
+
+749
+00:29:33,866 --> 00:29:35,386
+You're going to see
+system daemons coming in
+
+
+750
+00:29:35,386 --> 00:29:36,436
+and trying to do their work.
+
+
+751
+00:29:36,706 --> 00:29:37,566
+But it's okay.
+
+
+752
+00:29:37,566 --> 00:29:39,386
+They're running on a slightly
+lower priority than my stuff,
+
+
+753
+00:29:39,386 --> 00:29:40,886
+so I still have the
+CPU, looks good.
+
+
+754
+00:29:41,396 --> 00:29:44,156
+I do, however, have this
+third thread that's running
+
+
+755
+00:29:44,156 --> 00:29:47,066
+at the same time, well, trying
+to run at the same time.
+
+
+756
+00:29:47,066 --> 00:29:48,886
+And he's not getting
+any CPU resources.
+
+
+757
+00:29:49,846 --> 00:29:51,816
+And I know what these
+threads are.
+
+
+758
+00:29:51,936 --> 00:29:53,506
+The two of them are
+my render work.
+
+
+759
+00:29:53,506 --> 00:29:54,836
+And then I have the third
+thread that's trying
+
+
+760
+00:29:54,836 --> 00:29:56,346
+to do my generation
+of tool tips.
+
+
+761
+00:29:56,816 --> 00:29:58,566
+And so what's happening is one
+
+
+762
+00:29:58,566 --> 00:30:00,136
+of them is not able
+to get a CPU.
+
+
+763
+00:30:01,156 --> 00:30:02,906
+And we can kind of
+see this again.
+
+
+764
+00:30:02,906 --> 00:30:04,606
+If we look at, say,
+one of our frames.
+
+
+765
+00:30:04,796 --> 00:30:06,846
+Let's go back up to that
+Points of Interest Region.
+
+
+766
+00:30:06,846 --> 00:30:08,686
+You know, we could see
+
+
+767
+00:30:08,686 --> 00:30:11,196
+that we're doing our rendering
+here inside of our frame,
+
+
+768
+00:30:11,396 --> 00:30:12,826
+and the generation
+of tool tips happen,
+
+
+769
+00:30:12,826 --> 00:30:15,026
+so it gets a little
+bit of CPU time here.
+
+
+770
+00:30:15,426 --> 00:30:18,276
+But what it's doing is when
+it does get that CPU time,
+
+
+771
+00:30:18,276 --> 00:30:19,646
+it's taking away
+from my rendering.
+
+
+772
+00:30:20,236 --> 00:30:23,116
+And so basically I've kind
+of misprioritized my work
+
+
+773
+00:30:23,116 --> 00:30:25,746
+because when I stop and
+think about it, well,
+
+
+774
+00:30:25,746 --> 00:30:27,496
+I need that rendering
+to happen right now.
+
+
+775
+00:30:27,706 --> 00:30:29,886
+Being at that user interactive
+level makes perfect sense
+
+
+776
+00:30:29,886 --> 00:30:32,476
+because I want it to be nice and
+smooth and 60 frames per second.
+
+
+777
+00:30:33,106 --> 00:30:35,886
+But these tool tips, they're
+not quite as high priority.
+
+
+778
+00:30:35,886 --> 00:30:37,716
+I do want them done
+quickly because as soon
+
+
+779
+00:30:37,716 --> 00:30:39,166
+as that user long
+presses on that screen,
+
+
+780
+00:30:39,166 --> 00:30:39,986
+I want them to show up.
+
+
+781
+00:30:40,686 --> 00:30:42,896
+But they're not really as
+important as that render work.
+
+
+782
+00:30:43,076 --> 00:30:44,536
+And you can see it
+pretty clearly here.
+
+
+783
+00:30:44,536 --> 00:30:46,726
+They are definitely taking
+away some of that time
+
+
+784
+00:30:46,726 --> 00:30:49,746
+that CPU resources from
+this render work that's now
+
+
+785
+00:30:49,746 --> 00:30:50,386
+being delayed.
+
+
+786
+00:30:50,386 --> 00:30:51,806
+And that's what's
+helping kind of drag
+
+
+787
+00:30:51,806 --> 00:30:53,276
+out that CADisplayLink time.
+
+
+788
+00:30:54,126 --> 00:30:57,546
+So the fix for that is
+actually simple in this case.
+
+
+789
+00:30:57,606 --> 00:30:58,706
+Let's go over to Xcode.
+
+
+790
+00:30:59,036 --> 00:31:00,646
+So I have this view
+controller class.
+
+
+791
+00:31:00,696 --> 00:31:03,006
+And one of the things it does
+is it creates a tool tip queue.
+
+
+792
+00:31:03,526 --> 00:31:05,766
+We can see that created
+right down here.
+
+
+793
+00:31:05,766 --> 00:31:08,046
+This is where I do
+all my tool tip work.
+
+
+794
+00:31:08,426 --> 00:31:10,046
+And it's created with
+a couple attributes.
+
+
+795
+00:31:10,046 --> 00:31:11,796
+One is, you know, it's
+concurrent, so good,
+
+
+796
+00:31:11,796 --> 00:31:13,786
+they can run on multiple
+CPUs if they're available.
+
+
+797
+00:31:14,256 --> 00:31:16,726
+And it's set for the user
+interactive QOS class.
+
+
+798
+00:31:16,726 --> 00:31:19,096
+And that's that same QOS class
+
+
+799
+00:31:19,096 --> 00:31:20,286
+that my render work
+is happening,
+
+
+800
+00:31:20,286 --> 00:31:21,926
+so they're all contending
+for resources.
+
+
+801
+00:31:22,476 --> 00:31:25,176
+So like we said, it's not
+actually as important,
+
+
+802
+00:31:25,176 --> 00:31:26,556
+so I'm going to change
+that class.
+
+
+803
+00:31:27,016 --> 00:31:28,466
+You can read about the
+different classes right
+
+
+804
+00:31:28,466 --> 00:31:29,056
+in the header file.
+
+
+805
+00:31:29,056 --> 00:31:31,826
+I'm going to take it a
+couple of notches down and go
+
+
+806
+00:31:31,826 --> 00:31:33,606
+with the utility level class.
+
+
+807
+00:31:33,866 --> 00:31:36,296
+And what that'll do is give
+that CPU prioritization
+
+
+808
+00:31:36,296 --> 00:31:38,856
+to do my rendering work, and
+then when there is a little bit
+
+
+809
+00:31:38,856 --> 00:31:40,936
+of CPU time at the end
+of the frame or whenever,
+
+
+810
+00:31:41,226 --> 00:31:42,466
+then the tool tips will run.
+
+
+811
+00:31:42,516 --> 00:31:44,086
+And they're still at a high
+enough priority that when
+
+
+812
+00:31:44,086 --> 00:31:46,486
+that user taps on the screen,
+they should be ready to go.
+
+
+813
+00:31:47,056 --> 00:31:49,196
+And so to show you what that
+looks like, back over to Chad.
+
+
+814
+00:31:50,516 --> 00:31:55,866
+[ Applause ]
+
+
+815
+00:31:56,366 --> 00:31:58,256
+>> Okay, so when
+Joe makes that fix,
+
+
+816
+00:31:58,256 --> 00:31:59,646
+the graph's going
+to look like this.
+
+
+817
+00:31:59,646 --> 00:32:02,696
+We're going to notice that our
+CADisplayLink times have come
+
+
+818
+00:32:02,696 --> 00:32:05,526
+down to about 12.7
+milliseconds on average,
+
+
+819
+00:32:05,626 --> 00:32:06,726
+which is much better
+than before.
+
+
+820
+00:32:07,246 --> 00:32:10,206
+But even better still is
+that our max duration is only
+
+
+821
+00:32:10,206 --> 00:32:12,956
+about 14.6 milliseconds.
+
+
+822
+00:32:13,296 --> 00:32:15,406
+So we're not dropping any
+frames, and we're well
+
+
+823
+00:32:15,406 --> 00:32:17,806
+within our 16 millisecond
+deadline.
+
+
+824
+00:32:18,806 --> 00:32:22,386
+Now we're doing that in
+spite of also continuing
+
+
+825
+00:32:22,386 --> 00:32:23,326
+to overload the system.
+
+
+826
+00:32:23,326 --> 00:32:24,166
+If you think about it,
+
+
+827
+00:32:24,406 --> 00:32:26,646
+we are still running
+three different threads.
+
+
+828
+00:32:27,246 --> 00:32:29,656
+But because we've correctly
+prioritized the work,
+
+
+829
+00:32:29,656 --> 00:32:31,966
+our Gen Tool Tips
+code is running
+
+
+830
+00:32:31,966 --> 00:32:33,226
+down here at priority four.
+
+
+831
+00:32:33,226 --> 00:32:34,986
+So that's going to
+stay out of the way
+
+
+832
+00:32:34,986 --> 00:32:36,696
+of the User Interactive code.
+
+
+833
+00:32:37,106 --> 00:32:39,936
+So we're still getting a
+lot of work done on the CPU.
+
+
+834
+00:32:39,936 --> 00:32:41,946
+We still have a very
+high system load.
+
+
+835
+00:32:42,366 --> 00:32:43,966
+But at the same time,
+
+
+836
+00:32:43,966 --> 00:32:46,886
+we're still getting a perfectly
+smooth user experience.
+
+
+837
+00:32:48,296 --> 00:32:49,956
+So what is Quality
+of Service, really?
+
+
+838
+00:32:50,006 --> 00:32:52,286
+Quality of Service, in case
+you hadn't seen it yet,
+
+
+839
+00:32:52,286 --> 00:32:56,106
+is an attribute that you attach
+to blocks, queues, and threads.
+
+
+840
+00:32:56,486 --> 00:32:59,826
+And it's basically an expression
+to the kernel about how much
+
+
+841
+00:32:59,826 --> 00:33:02,336
+of the system resources you're
+willing to devote to getting
+
+
+842
+00:33:02,336 --> 00:33:04,476
+that particular piece
+of work done quickly.
+
+
+843
+00:33:04,976 --> 00:33:06,256
+Now the different Quality
+
+
+844
+00:33:06,256 --> 00:33:09,606
+of Service classes can
+constrain the priority range.
+
+
+845
+00:33:09,606 --> 00:33:12,016
+So you can see that our
+utility classes put it
+
+
+846
+00:33:12,016 --> 00:33:13,236
+down into a priority of four,
+
+
+847
+00:33:13,236 --> 00:33:15,306
+so in our User Interactive
+code is running
+
+
+848
+00:33:15,306 --> 00:33:16,756
+in the high 30s, high 40s.
+
+
+849
+00:33:17,546 --> 00:33:20,796
+But the Quality of Service
+classes can also throttle things
+
+
+850
+00:33:20,796 --> 00:33:23,136
+like IO and also
+the CPU frequency
+
+
+851
+00:33:23,136 --> 00:33:24,266
+that the code is running at.
+
+
+852
+00:33:24,956 --> 00:33:27,196
+So when you pick a Quality
+of Service for your code,
+
+
+853
+00:33:27,456 --> 00:33:29,586
+make sure that you look through
+the documentation very carefully
+
+
+854
+00:33:29,586 --> 00:33:31,416
+and make sure that
+it matches the kind
+
+
+855
+00:33:31,416 --> 00:33:32,336
+of work that you're doing.
+
+
+856
+00:33:33,326 --> 00:33:35,446
+Now another thing that
+can affect the performance
+
+
+857
+00:33:35,446 --> 00:33:37,516
+of your application is
+virtual memory faults.
+
+
+858
+00:33:37,756 --> 00:33:40,816
+They do get a little
+worse under load
+
+
+859
+00:33:40,816 --> 00:33:42,286
+as memory pressure increases.
+
+
+860
+00:33:42,766 --> 00:33:44,776
+But the good news is
+they are manageable.
+
+
+861
+00:33:46,006 --> 00:33:48,686
+Now System Trace has all the
+tools that you need in order
+
+
+862
+00:33:48,686 --> 00:33:50,126
+to analyze virtual
+memory faults.
+
+
+863
+00:33:50,426 --> 00:33:53,016
+Inside the thread strategy,
+virtual memory faults appear
+
+
+864
+00:33:53,016 --> 00:33:54,276
+as these little blue capsules.
+
+
+865
+00:33:54,836 --> 00:33:58,126
+Inside the thread narrative it
+reports virtual memory faults
+
+
+866
+00:33:58,126 --> 00:34:00,106
+and even attaches a
+backtrace on where
+
+
+867
+00:34:00,106 --> 00:34:02,116
+that fault was resolved
+inside your code.
+
+
+868
+00:34:02,676 --> 00:34:05,716
+Now we also have an
+instrument that's dedicated
+
+
+869
+00:34:05,716 --> 00:34:07,486
+to analyzing virtual
+memory faults.
+
+
+870
+00:34:07,486 --> 00:34:09,356
+So for example, you can see
+
+
+871
+00:34:09,686 --> 00:34:11,676
+where your code is
+more susceptible
+
+
+872
+00:34:11,676 --> 00:34:13,795
+to one type of fault or another.
+
+
+873
+00:34:13,795 --> 00:34:15,376
+So for example, maybe
+you have code
+
+
+874
+00:34:15,755 --> 00:34:19,315
+that is experiencing more zero
+fills or more copy on writes.
+
+
+875
+00:34:19,746 --> 00:34:21,956
+Now the next thing
+you need to know
+
+
+876
+00:34:21,956 --> 00:34:24,525
+about virtual memory faults
+is that the fault occurs
+
+
+877
+00:34:24,525 --> 00:34:26,876
+on access rather
+than allocation.
+
+
+878
+00:34:27,226 --> 00:34:29,856
+So you can ask for a large
+allocation from the kernel,
+
+
+879
+00:34:29,856 --> 00:34:33,266
+let's say 500 meg, but
+you don't actually back
+
+
+880
+00:34:33,466 --> 00:34:35,335
+that with physical memory
+until you start touching
+
+
+881
+00:34:35,335 --> 00:34:38,326
+or accessing the pages of that
+allocation in your process.
+
+
+882
+00:34:38,326 --> 00:34:41,436
+So it's something to think about
+when you're allocating memory.
+
+
+883
+00:34:41,545 --> 00:34:44,806
+The other thing that's
+important to know
+
+
+884
+00:34:44,806 --> 00:34:47,255
+about virtual memory faults is
+that they are resolved inline.
+
+
+885
+00:34:47,596 --> 00:34:49,505
+So there's no explicit
+call that you need to make
+
+
+886
+00:34:49,505 --> 00:34:51,815
+to resolve a virtual
+memory fault.
+
+
+887
+00:34:52,295 --> 00:34:55,966
+All you need to do is touch any
+byte inside a page that's marked
+
+
+888
+00:34:56,266 --> 00:34:59,396
+as requiring a fault, and
+the kernel will take control
+
+
+889
+00:34:59,396 --> 00:35:01,766
+of your thread, resolve
+the fault,
+
+
+890
+00:35:01,806 --> 00:35:03,426
+and then give you control back.
+
+
+891
+00:35:03,706 --> 00:35:06,546
+And so when you see those blue
+capsules in your System Trace
+
+
+892
+00:35:06,586 --> 00:35:08,816
+on the thread strategy that's
+exactly what's happening.
+
+
+893
+00:35:09,206 --> 00:35:12,776
+So what do you do about
+virtual memory faults inside
+
+
+894
+00:35:12,776 --> 00:35:13,386
+your application?
+
+
+895
+00:35:14,566 --> 00:35:16,336
+Well the easiest thing
+to do -- excuse me.
+
+
+896
+00:35:16,896 --> 00:35:19,426
+The easiest thing to do is
+just simply absorb them.
+
+
+897
+00:35:20,106 --> 00:35:22,586
+What I mean by that is leave
+enough room inside your
+
+
+898
+00:35:22,586 --> 00:35:26,686
+performance budget where you
+can handle a certain amount
+
+
+899
+00:35:26,686 --> 00:35:29,336
+of virtual memory faults
+before you run your deadlines.
+
+
+900
+00:35:29,816 --> 00:35:31,856
+This will make you more
+resilient under a load.
+
+
+901
+00:35:31,856 --> 00:35:34,446
+So as memory pressure increases,
+if your budgets are big enough
+
+
+902
+00:35:34,446 --> 00:35:35,296
+and you have enough slack,
+
+
+903
+00:35:35,906 --> 00:35:37,866
+you won't notice the
+difference in your performance.
+
+
+904
+00:35:38,306 --> 00:35:41,266
+Now we realize that some
+people do not have these kinds
+
+
+905
+00:35:41,266 --> 00:35:43,786
+of lax deadlines in terms
+of their UI generation.
+
+
+906
+00:35:44,626 --> 00:35:47,476
+So another alternative is
+to try to do the faulting
+
+
+907
+00:35:47,476 --> 00:35:48,666
+on a background thread.
+
+
+908
+00:35:49,026 --> 00:35:51,156
+So let's say you have
+a game, for example,
+
+
+909
+00:35:51,516 --> 00:35:53,886
+and your player is coming
+to the end of level one
+
+
+910
+00:35:53,886 --> 00:35:55,426
+and they're going to
+transition to level two.
+
+
+911
+00:35:55,656 --> 00:35:58,736
+Well, what you might
+do is dispatch async
+
+
+912
+00:35:58,736 --> 00:36:02,926
+to a background queue and then
+touch the pages for the content
+
+
+913
+00:36:02,926 --> 00:36:04,496
+of level two on that
+background queue.
+
+
+914
+00:36:04,856 --> 00:36:07,646
+And then by the time your
+rendering thread comes
+
+
+915
+00:36:07,646 --> 00:36:10,026
+around to pick up that
+new content there will be
+
+
+916
+00:36:10,026 --> 00:36:10,596
+no stutter.
+
+
+917
+00:36:11,376 --> 00:36:14,716
+Now, we'll have to give you a
+warning here on this approach.
+
+
+918
+00:36:14,816 --> 00:36:16,366
+Make sure you only
+touch the pages
+
+
+919
+00:36:16,366 --> 00:36:17,776
+that you're absolutely
+going to use.
+
+
+920
+00:36:17,776 --> 00:36:20,446
+Because if you start touching
+more of the pages than you need,
+
+
+921
+00:36:20,446 --> 00:36:22,446
+then you're actually going
+to make the problem worse.
+
+
+922
+00:36:22,966 --> 00:36:27,206
+And that about does it
+for today's session.
+
+
+923
+00:36:27,206 --> 00:36:29,106
+We think that the System
+Trace makes a great companion
+
+
+924
+00:36:29,106 --> 00:36:30,176
+to the Time Profiler.
+
+
+925
+00:36:30,256 --> 00:36:32,586
+The Time Profiler helps
+you make your code fast,
+
+
+926
+00:36:32,766 --> 00:36:34,736
+but System Trace
+allows your application
+
+
+927
+00:36:34,736 --> 00:36:36,656
+to scale better under
+a higher load.
+
+
+928
+00:36:36,656 --> 00:36:40,186
+We encourage you to try a System
+Trace out on your own apps.
+
+
+929
+00:36:40,186 --> 00:36:42,406
+We know that when we try
+it against Instruments,
+
+
+930
+00:36:42,406 --> 00:36:44,366
+we always find something
+that's worth fixing.
+
+
+931
+00:36:44,366 --> 00:36:47,636
+And if you've used System Trace
+in the past, we invite you
+
+
+932
+00:36:47,636 --> 00:36:50,376
+to come back to Instruments
+8 and give it another look
+
+
+933
+00:36:50,376 --> 00:36:52,256
+because we've done
+some major improvements
+
+
+934
+00:36:52,256 --> 00:36:54,256
+to both the approachability
+and the power of the tool.
+
+
+935
+00:36:54,256 --> 00:36:57,066
+We think it'll make a great
+addition to your toolbox.
+
+
+936
+00:36:57,796 --> 00:37:01,336
+For more information,
+here's our link Session 411.
+
+
+937
+00:37:02,326 --> 00:37:03,676
+We have some related
+sessions today
+
+
+938
+00:37:03,676 --> 00:37:06,406
+that happened also happened
+during the week and on Friday.
+
+
+939
+00:37:07,186 --> 00:37:07,946
+Enjoy the rest of your morning.
+

@@ -1,0 +1,4139 @@
+1
+00:00:06,516 --> 00:00:17,500
+[ Music ]
+
+
+2
+00:00:21,516 --> 00:00:24,276
+[ Applause ]
+
+
+3
+00:00:24,776 --> 00:00:25,436
+>> Good afternoon.
+
+
+4
+00:00:28,346 --> 00:00:30,166
+Hi. My name is Matthew
+Ricketson.
+
+
+5
+00:00:30,736 --> 00:00:34,106
+I'm a software engineer working
+on UIKit, and today we're going
+
+
+6
+00:00:34,106 --> 00:00:38,396
+to talk about Focus
+Interaction on tvOS.
+
+
+7
+00:00:39,016 --> 00:00:42,696
+Last year we introduced
+tvOS, a great new platform
+
+
+8
+00:00:42,886 --> 00:00:44,556
+for building apps on Apple TV.
+
+
+9
+00:00:46,306 --> 00:00:48,796
+And whether you're building
+a brand new app for Apple TV
+
+
+10
+00:00:49,146 --> 00:00:52,636
+or looking to port an existing
+app over from another platform,
+
+
+11
+00:00:53,146 --> 00:00:54,276
+it's immediately obvious
+
+
+12
+00:00:54,376 --> 00:00:56,926
+that Apple TV is unlike
+other Apple devices.
+
+
+13
+00:00:58,046 --> 00:01:02,256
+There's no touchscreen on a TV
+or a mouse because these forms
+
+
+14
+00:01:02,256 --> 00:01:04,215
+of user input just
+don't make sense
+
+
+15
+00:01:04,215 --> 00:01:05,546
+in a living room environment.
+
+
+16
+00:01:06,186 --> 00:01:10,866
+Instead, we use this, a
+remote, like the Siri Remote,
+
+
+17
+00:01:11,246 --> 00:01:13,926
+in order to control
+Apple TV from a distance.
+
+
+18
+00:01:15,056 --> 00:01:18,386
+The Siri Remote and Apple TV
+have been designed together
+
+
+19
+00:01:18,856 --> 00:01:21,046
+to provide the best
+navigation experience.
+
+
+20
+00:01:21,566 --> 00:01:26,046
+But Apple TV also supports
+many other input devices,
+
+
+21
+00:01:26,556 --> 00:01:29,096
+like game controllers,
+Bluetooth keyboards,
+
+
+22
+00:01:29,096 --> 00:01:31,486
+and the new remote app.
+
+
+23
+00:01:32,036 --> 00:01:35,276
+And sometimes users might feel
+more comfortable using one
+
+
+24
+00:01:35,276 --> 00:01:39,316
+of these other input devices in
+order to control their Apple TV,
+
+
+25
+00:01:39,926 --> 00:01:42,396
+and tvOS helps you
+support all of these
+
+
+26
+00:01:42,786 --> 00:01:46,046
+through a user interaction
+model that we call Focus.
+
+
+27
+00:01:46,386 --> 00:01:51,636
+With Focus interaction, users
+indirectly control the UI
+
+
+28
+00:01:52,236 --> 00:01:54,616
+through a single focused
+user interface element
+
+
+29
+00:01:55,226 --> 00:01:56,296
+and they can move focus
+
+
+30
+00:01:56,346 --> 00:01:58,946
+around the screen
+using any input device.
+
+
+31
+00:02:00,456 --> 00:02:05,006
+Users will expect that your
+apps are optimized toward great
+
+
+32
+00:02:05,006 --> 00:02:06,016
+with Focus interaction.
+
+
+33
+00:02:06,916 --> 00:02:10,566
+And to help with that, UIKit
+provides built-in focus behavior
+
+
+34
+00:02:10,566 --> 00:02:14,446
+for all of its standard
+controls; however,
+
+
+35
+00:02:14,476 --> 00:02:17,576
+you may also want to customize
+the focus behavior in your apps
+
+
+36
+00:02:17,576 --> 00:02:19,086
+in order to take them
+to the next level
+
+
+37
+00:02:19,086 --> 00:02:21,466
+and provide an even
+better user experience.
+
+
+38
+00:02:21,966 --> 00:02:24,896
+And for that, UIKit
+exposes a Focus API.
+
+
+39
+00:02:25,746 --> 00:02:30,016
+Now today's talk is
+about that Focus API
+
+
+40
+00:02:30,276 --> 00:02:31,936
+and we split it into two parts.
+
+
+41
+00:02:32,336 --> 00:02:34,596
+First, we're going to
+dive into what's new
+
+
+42
+00:02:34,596 --> 00:02:36,656
+in the Focus API
+this year in tvOS 10.
+
+
+43
+00:02:36,656 --> 00:02:40,926
+And then in the second part
+of the talk, we're going to go
+
+
+44
+00:02:40,926 --> 00:02:43,736
+into an extended case study
+on how to build a custom,
+
+
+45
+00:02:44,106 --> 00:02:46,716
+fully focusable control
+completely from scratch.
+
+
+46
+00:02:47,286 --> 00:02:49,066
+This is a great demo
+that will show you how
+
+
+47
+00:02:49,066 --> 00:02:51,876
+to get started building
+unique interaction experiences
+
+
+48
+00:02:51,876 --> 00:02:54,516
+in your tvOS apps.
+
+
+49
+00:02:54,516 --> 00:02:55,906
+Now a quick note
+before we get started.
+
+
+50
+00:02:56,696 --> 00:02:59,576
+We're going to assume that you
+have at least some familiarity
+
+
+51
+00:02:59,626 --> 00:03:01,836
+with the Focus API
+and the basic concepts
+
+
+52
+00:03:02,156 --> 00:03:04,126
+of how Focus works on tvOS.
+
+
+53
+00:03:04,536 --> 00:03:07,416
+But even if you're new to
+the platform, don't worry.
+
+
+54
+00:03:08,166 --> 00:03:10,416
+You can still generally
+follow along, and at the end
+
+
+55
+00:03:10,416 --> 00:03:12,736
+of the talk today, we'll call
+out some useful resources
+
+
+56
+00:03:13,056 --> 00:03:18,286
+to help you get started with
+building apps for Apple TV.
+
+
+57
+00:03:19,476 --> 00:03:25,256
+So what's new in tvOS 10 and to
+start, we've added some new APIs
+
+
+58
+00:03:26,126 --> 00:03:28,556
+to enhance the preferred
+focus system.
+
+
+59
+00:03:28,646 --> 00:03:33,056
+Now as a quick review, when
+we talk about preferred focus,
+
+
+60
+00:03:33,336 --> 00:03:35,236
+we mean the process
+of determining
+
+
+61
+00:03:35,236 --> 00:03:38,966
+where Focus should show
+up after a Focus update.
+
+
+62
+00:03:39,696 --> 00:03:41,256
+Whenever Focus updates,
+
+
+63
+00:03:41,326 --> 00:03:44,746
+for example when your app first
+launches, the Focus engine needs
+
+
+64
+00:03:44,746 --> 00:03:46,646
+to know where focus
+should be directed to.
+
+
+65
+00:03:47,356 --> 00:03:48,906
+It does this by asking your app
+
+
+66
+00:03:49,886 --> 00:03:52,036
+where it prefers
+Focus gets directed.
+
+
+67
+00:03:52,886 --> 00:03:54,696
+Let's look at a specific
+example.
+
+
+68
+00:03:55,836 --> 00:03:59,216
+When your app first launches,
+the Focus engine is going to try
+
+
+69
+00:03:59,216 --> 00:04:01,466
+to figure out where Focus
+should show up by default,
+
+
+70
+00:04:02,016 --> 00:04:05,156
+and it's going to start by
+looking at the focus environment
+
+
+71
+00:04:05,546 --> 00:04:06,816
+that we're updating Focus to.
+
+
+72
+00:04:07,056 --> 00:04:08,826
+And when our app first
+launches, that's the window.
+
+
+73
+00:04:09,476 --> 00:04:12,936
+In this case, the Focus engine
+will ask the window what's its
+
+
+74
+00:04:12,966 --> 00:04:14,416
+preferred Focus view is.
+
+
+75
+00:04:15,186 --> 00:04:17,055
+The window delegates
+this responsibility
+
+
+76
+00:04:17,055 --> 00:04:18,326
+to its root view controller,
+
+
+77
+00:04:18,886 --> 00:04:22,416
+which could also return some
+other view in the hierarchy
+
+
+78
+00:04:22,606 --> 00:04:24,086
+as its preferred Focus view.
+
+
+79
+00:04:24,956 --> 00:04:26,196
+The Focus engine will then ask
+
+
+80
+00:04:26,196 --> 00:04:28,296
+that view what its
+preferred Focus view is
+
+
+81
+00:04:28,296 --> 00:04:30,286
+and it will continue
+following down this chain
+
+
+82
+00:04:30,766 --> 00:04:33,296
+until it reaches the end, which
+is the last focusable view
+
+
+83
+00:04:33,296 --> 00:04:36,776
+that it found as the new
+Focus view on screen.
+
+
+84
+00:04:37,736 --> 00:04:40,716
+Leveraging the Preferred
+Focus System is important
+
+
+85
+00:04:40,716 --> 00:04:42,756
+to provide a good
+user experience
+
+
+86
+00:04:42,936 --> 00:04:44,636
+in complex apps, especially.
+
+
+87
+00:04:44,636 --> 00:04:48,176
+So that focus is directed to
+the correct parts of the screen
+
+
+88
+00:04:48,236 --> 00:04:49,646
+at the appropriate times.
+
+
+89
+00:04:50,196 --> 00:04:54,456
+In tvOS 10, we're
+providing a new property
+
+
+90
+00:04:54,456 --> 00:04:58,376
+that allows your apps to
+easily express complex Focus
+
+
+91
+00:04:58,446 --> 00:05:01,536
+preferences and the name of this
+property is appropriately called
+
+
+92
+00:05:01,936 --> 00:05:04,336
+Preferred Focus Environments
+declared
+
+
+93
+00:05:04,336 --> 00:05:07,806
+in the UIFocusEnvironment
+protocol and it returns an array
+
+
+94
+00:05:07,806 --> 00:05:09,976
+of objects that also conform to
+the UIFocusEnvironment protocol.
+
+
+95
+00:05:10,246 --> 00:05:13,876
+And this property has
+two primary benefits.
+
+
+96
+00:05:14,366 --> 00:05:19,246
+First, by returning objects that
+conform to UIFocusEnvironment,
+
+
+97
+00:05:20,216 --> 00:05:23,726
+you can specify that focus be
+directed to any environment
+
+
+98
+00:05:23,726 --> 00:05:26,556
+on screen, not just views but
+also view controllers directly.
+
+
+99
+00:05:27,766 --> 00:05:29,756
+The second benefit
+of this property is
+
+
+100
+00:05:29,756 --> 00:05:32,486
+that it returns an array of
+these focus environments,
+
+
+101
+00:05:32,986 --> 00:05:35,696
+which allows you to specify
+an ordered list of preferences
+
+
+102
+00:05:36,216 --> 00:05:39,266
+and this enables complex,
+multipart-preferences
+
+
+103
+00:05:39,266 --> 00:05:41,206
+to be expressed much
+more concisely.
+
+
+104
+00:05:42,326 --> 00:05:46,286
+And there's a specific pattern
+where we can see this happening
+
+
+105
+00:05:46,906 --> 00:05:49,146
+that Preferred Focus
+is commonly used
+
+
+106
+00:05:49,146 --> 00:05:51,556
+in which is custom
+container view controllers.
+
+
+107
+00:05:51,736 --> 00:05:55,586
+Let's look at an
+example of that.
+
+
+108
+00:05:56,566 --> 00:05:58,776
+Say we have an app with a
+structure that looks like this.
+
+
+109
+00:05:59,486 --> 00:06:01,156
+We have a container
+view controller
+
+
+110
+00:06:01,386 --> 00:06:03,466
+with two child view controllers.
+
+
+111
+00:06:04,826 --> 00:06:06,966
+In this example, we want
+our container to prefer
+
+
+112
+00:06:06,966 --> 00:06:09,976
+that focus show up in the left
+child view controller first,
+
+
+113
+00:06:10,766 --> 00:06:13,396
+but if that's not possible,
+focus should be directed
+
+
+114
+00:06:13,396 --> 00:06:14,946
+to its right child
+view controller.
+
+
+115
+00:06:15,796 --> 00:06:19,276
+And we can express this logic
+very concisely using the new
+
+
+116
+00:06:19,466 --> 00:06:21,236
+preferredFocusEnvironments
+property.
+
+
+117
+00:06:22,356 --> 00:06:25,726
+Here, we override
+preferredFocusEnvironments
+
+
+118
+00:06:25,906 --> 00:06:29,026
+to return an array of both
+children with the left child
+
+
+119
+00:06:29,026 --> 00:06:30,676
+as the first item in the array.
+
+
+120
+00:06:32,466 --> 00:06:33,816
+This is great because
+we don't have
+
+
+121
+00:06:33,816 --> 00:06:36,396
+to check ourselves whether
+the left child view controller
+
+
+122
+00:06:36,396 --> 00:06:37,986
+actually contains
+anything focusable.
+
+
+123
+00:06:37,986 --> 00:06:39,186
+We don't have to know anything
+
+
+124
+00:06:39,186 --> 00:06:41,116
+about the contents
+of that controller.
+
+
+125
+00:06:41,846 --> 00:06:44,126
+We just tell the Focus engine
+what our preferences are
+
+
+126
+00:06:44,336 --> 00:06:47,566
+and it takes care of
+the hard work for us.
+
+
+127
+00:06:47,686 --> 00:06:49,246
+So if our left child
+view controller
+
+
+128
+00:06:49,246 --> 00:06:52,356
+in this example happened to
+not contain anything focusable,
+
+
+129
+00:06:52,726 --> 00:06:54,506
+the Focus engine will
+automatically fall back
+
+
+130
+00:06:54,906 --> 00:06:56,706
+to that right child
+view controller instead.
+
+
+131
+00:06:56,706 --> 00:06:59,786
+And in this example, maybe it
+does find something focusable.
+
+
+132
+00:07:00,346 --> 00:07:03,546
+So the
+preferredFocusEnvironments
+
+
+133
+00:07:03,576 --> 00:07:06,376
+property helps us to express
+these preferences much more
+
+
+134
+00:07:06,376 --> 00:07:07,456
+clearly and concisely,
+
+
+135
+00:07:08,156 --> 00:07:11,006
+and if the first item doesn't
+produce anything focusable,
+
+
+136
+00:07:11,006 --> 00:07:16,146
+we can easily fall back to the
+other environments in the list.
+
+
+137
+00:07:16,146 --> 00:07:17,686
+Next up, we have
+another enhancement
+
+
+138
+00:07:17,686 --> 00:07:19,836
+to the Preferred Focus
+System and this is
+
+
+139
+00:07:19,836 --> 00:07:23,496
+for more specific use case
+involving restoring Focus
+
+
+140
+00:07:23,716 --> 00:07:25,376
+after view controller
+transitions.
+
+
+141
+00:07:26,726 --> 00:07:30,186
+So before we introduce the API,
+let's first look at an example
+
+
+142
+00:07:30,186 --> 00:07:33,546
+to illustrate what exactly
+we mean by focus restoration.
+
+
+143
+00:07:34,016 --> 00:07:38,326
+Say we have an app
+that looks like this.
+
+
+144
+00:07:38,726 --> 00:07:41,526
+It's a simple view controller
+with a menu of buttons.
+
+
+145
+00:07:41,906 --> 00:07:44,126
+And our root view
+controller has preferred
+
+
+146
+00:07:44,126 --> 00:07:46,886
+that by default we want our
+first button to become focused.
+
+
+147
+00:07:47,066 --> 00:07:49,156
+It did this using the
+preferredFocusEnvironments
+
+
+148
+00:07:49,156 --> 00:07:51,516
+property that we just looked at.
+
+
+149
+00:07:51,866 --> 00:07:54,886
+Now suppose the user moves to
+the last button in the list
+
+
+150
+00:07:55,296 --> 00:07:56,386
+and selects that button
+
+
+151
+00:07:56,796 --> 00:07:58,586
+to present a detail
+view controller.
+
+
+152
+00:07:59,096 --> 00:08:02,516
+In that case we're
+interested in is
+
+
+153
+00:08:02,516 --> 00:08:04,806
+when this detail view
+controller gets dismissed.
+
+
+154
+00:08:06,326 --> 00:08:09,746
+After the dismissal, focus
+needs to be restored back
+
+
+155
+00:08:10,246 --> 00:08:11,596
+to our root view controller.
+
+
+156
+00:08:13,436 --> 00:08:15,306
+Now the user would
+probably expect
+
+
+157
+00:08:15,946 --> 00:08:18,126
+that focus gets restored
+back to the button
+
+
+158
+00:08:18,216 --> 00:08:20,326
+that was last focused,
+before our presentation,
+
+
+159
+00:08:20,506 --> 00:08:22,636
+which is the last
+button in our list.
+
+
+160
+00:08:23,926 --> 00:08:26,276
+However, if we ask our
+root view controller
+
+
+161
+00:08:26,276 --> 00:08:29,136
+at this time what its preferred
+focus environments are,
+
+
+162
+00:08:29,626 --> 00:08:31,836
+it would still direct us to
+that first default button.
+
+
+163
+00:08:33,376 --> 00:08:36,316
+And so instead, the Focus engine
+automatically remembers the last
+
+
+164
+00:08:36,316 --> 00:08:40,645
+focus item for us so that after
+the transition is complete,
+
+
+165
+00:08:40,686 --> 00:08:43,556
+it automatically restores
+focus to that last button
+
+
+166
+00:08:43,655 --> 00:08:45,406
+that the user would expect.
+
+
+167
+00:08:46,516 --> 00:08:48,996
+This is behavior that
+existed in tvOS 9.
+
+
+168
+00:08:51,396 --> 00:08:54,236
+While this is almost always
+the behavior that both the user
+
+
+169
+00:08:54,236 --> 00:08:57,496
+and often the developer
+expects, there are some cases
+
+
+170
+00:08:57,496 --> 00:08:59,796
+where you might want to
+restore focus to some other part
+
+
+171
+00:08:59,796 --> 00:09:00,886
+of your user interface.
+
+
+172
+00:09:02,166 --> 00:09:05,096
+Suppose for example that while
+our detail view is presented,
+
+
+173
+00:09:05,286 --> 00:09:07,466
+our app's underlying
+data model changed
+
+
+174
+00:09:07,466 --> 00:09:10,096
+so that the last button
+now represents a completely
+
+
+175
+00:09:10,096 --> 00:09:12,486
+different action or data
+item that it did previously.
+
+
+176
+00:09:13,056 --> 00:09:16,446
+In that case the user might not
+expect focus be automatically
+
+
+177
+00:09:16,446 --> 00:09:18,166
+restored back to that last item.
+
+
+178
+00:09:19,526 --> 00:09:21,646
+In that case, we
+want the Focus engine
+
+
+179
+00:09:22,256 --> 00:09:25,326
+to use your view controller's
+preferred focus environments
+
+
+180
+00:09:25,866 --> 00:09:28,516
+in order to determine where
+focus should be restored to.
+
+
+181
+00:09:28,856 --> 00:09:30,576
+And in tvOS 10, we're
+providing an API
+
+
+182
+00:09:30,876 --> 00:09:33,566
+that allows you to do just that.
+
+
+183
+00:09:33,896 --> 00:09:36,636
+It's called
+restoresFocusAfterTransition.
+
+
+184
+00:09:37,036 --> 00:09:40,706
+It's a Boolean property
+defined on UIViewController
+
+
+185
+00:09:41,656 --> 00:09:42,936
+and the way it works
+is very simple.
+
+
+186
+00:09:43,816 --> 00:09:47,126
+If set to true, the view
+controller will use the
+
+
+187
+00:09:47,126 --> 00:09:47,916
+default behavior.
+
+
+188
+00:09:47,916 --> 00:09:49,496
+It'll tell the Focus engine
+
+
+189
+00:09:49,736 --> 00:09:53,326
+to use its default behavior
+restoring focus to the last item
+
+
+190
+00:09:53,326 --> 00:09:55,266
+that was focused before
+the transition occurred.
+
+
+191
+00:09:56,576 --> 00:09:58,056
+If set to false, however,
+
+
+192
+00:09:58,126 --> 00:10:00,736
+then the Focus engine will
+instead consult your view
+
+
+193
+00:10:00,736 --> 00:10:02,776
+controller's
+preferredFocusEnvironments
+
+
+194
+00:10:03,436 --> 00:10:05,476
+giving your app a
+chance to control
+
+
+195
+00:10:05,476 --> 00:10:06,976
+where focus gets
+directed to on screen.
+
+
+196
+00:10:07,046 --> 00:10:11,966
+The property is set to
+true by default to maintain
+
+
+197
+00:10:12,166 --> 00:10:13,626
+that previous default behavior
+
+
+198
+00:10:14,856 --> 00:10:16,806
+and it affects view
+controller presentation,
+
+
+199
+00:10:16,806 --> 00:10:17,756
+like we just talked about,
+
+
+200
+00:10:18,276 --> 00:10:22,046
+but other common built-in view
+controller transitions as well
+
+
+201
+00:10:22,666 --> 00:10:26,676
+such as navigation pops and
+moving focus back and forth
+
+
+202
+00:10:26,676 --> 00:10:28,536
+between your view
+controller and the tab bar.
+
+
+203
+00:10:29,966 --> 00:10:31,956
+We recommend that when
+using this property,
+
+
+204
+00:10:32,526 --> 00:10:36,546
+set it always be true or always
+be false so that focus updates
+
+
+205
+00:10:36,546 --> 00:10:37,616
+within your view controllers
+
+
+206
+00:10:37,616 --> 00:10:41,396
+in a consistent and
+predictable way.
+
+
+207
+00:10:41,826 --> 00:10:43,836
+We really hope that this
+property will help you solve
+
+
+208
+00:10:43,836 --> 00:10:46,606
+some of those tricky edge cases
+that you found in your app.
+
+
+209
+00:10:48,956 --> 00:10:50,936
+To show you how to use
+both of these properties
+
+
+210
+00:10:50,936 --> 00:10:52,876
+that we just talked
+about, I'd like to invite
+
+
+211
+00:10:52,876 --> 00:10:54,626
+up my colleague Brandon
+for a quick demo.
+
+
+212
+00:10:56,516 --> 00:10:59,500le
+[ Applause ]
+
+
+213
+00:11:06,636 --> 00:11:07,176
+>> Hi, everyone.
+
+
+214
+00:11:07,466 --> 00:11:09,446
+My name is Brandon and I'm
+here today to show you how
+
+
+215
+00:11:09,446 --> 00:11:10,596
+to take advantage of some
+
+
+216
+00:11:10,596 --> 00:11:14,006
+of the new Focus APIs
+available in tvOS 10.
+
+
+217
+00:11:14,756 --> 00:11:17,386
+So I've been working on
+a simple calendar app
+
+
+218
+00:11:17,386 --> 00:11:19,116
+and it's coming along
+pretty well so far.
+
+
+219
+00:11:19,896 --> 00:11:23,456
+You can view your events for a
+given week and you can switch
+
+
+220
+00:11:23,456 --> 00:11:25,546
+between weeks using the
+next and previous buttons.
+
+
+221
+00:11:26,556 --> 00:11:28,976
+Now when the app
+launches, we initially focus
+
+
+222
+00:11:28,976 --> 00:11:30,036
+on the previous button
+
+
+223
+00:11:30,736 --> 00:11:33,286
+when I think it would
+actually be a better experience
+
+
+224
+00:11:33,286 --> 00:11:35,186
+if we focused on the
+user's next event.
+
+
+225
+00:11:35,326 --> 00:11:37,356
+So let's go modify
+our app to do that.
+
+
+226
+00:11:38,086 --> 00:11:41,756
+So to direct focus, we need
+
+
+227
+00:11:41,756 --> 00:11:43,636
+to override the
+preferredFocusEnvironments
+
+
+228
+00:11:43,636 --> 00:11:44,086
+property.
+
+
+229
+00:11:45,336 --> 00:11:47,826
+This returns an array
+of UIFocusEnvironment
+
+
+230
+00:11:47,826 --> 00:11:49,576
+for the focus engine
+to search to search.
+
+
+231
+00:11:50,026 --> 00:11:52,816
+We'll start by adding our
+upcoming events for the rest
+
+
+232
+00:11:52,816 --> 00:11:53,836
+of the week to our array.
+
+
+233
+00:11:54,516 --> 00:11:57,246
+If we have no more upcoming
+events, then we want focus
+
+
+234
+00:11:57,306 --> 00:11:58,686
+to default to the next button.
+
+
+235
+00:11:58,986 --> 00:12:00,546
+So we'll add that to
+our array as well.
+
+
+236
+00:12:01,676 --> 00:12:02,966
+Now let's run this,
+see if it works.
+
+
+237
+00:12:11,196 --> 00:12:14,116
+All right, so this time when
+the app launched, we're focused
+
+
+238
+00:12:14,116 --> 00:12:16,446
+on the super secret party I'm
+hosting after this session.
+
+
+239
+00:12:17,196 --> 00:12:19,846
+Now, I wonder what would happen
+if I canceled this party.
+
+
+240
+00:12:20,466 --> 00:12:21,826
+When an event is canceled,
+
+
+241
+00:12:21,956 --> 00:12:24,136
+it becomes grayed
+out and unfocusable.
+
+
+242
+00:12:25,106 --> 00:12:27,776
+So I would expect focus would
+just go to our next event,
+
+
+243
+00:12:27,776 --> 00:12:29,566
+which is a tvOS lab
+tomorrow morning.
+
+
+244
+00:12:30,206 --> 00:12:31,846
+But a good developer
+always tests their code.
+
+
+245
+00:12:31,846 --> 00:12:32,936
+So let's go try this out.
+
+
+246
+00:12:32,936 --> 00:12:36,546
+So I'm going to go
+to my AppDelegate
+
+
+247
+00:12:36,586 --> 00:12:40,976
+and cancel my not-so-secret
+party and rerun this app.
+
+
+248
+00:12:47,776 --> 00:12:51,006
+All right, just as we
+expected, when the app launched,
+
+
+249
+00:12:51,006 --> 00:12:52,376
+we're focused on the tvOS lab.
+
+
+250
+00:12:53,166 --> 00:12:55,406
+So because our first
+preferred focus environment was
+
+
+251
+00:12:55,676 --> 00:12:57,986
+unfocusable, the Focus
+engine just moved
+
+
+252
+00:12:57,986 --> 00:12:59,486
+to our next preferred
+focus environment.
+
+
+253
+00:13:00,006 --> 00:13:02,536
+We didn't have to modify
+any of our code to do that.
+
+
+254
+00:13:02,536 --> 00:13:04,666
+The Focus engine
+handled it for us.
+
+
+255
+00:13:05,446 --> 00:13:07,876
+Now if you want to view
+the details for an event,
+
+
+256
+00:13:07,956 --> 00:13:09,896
+you can select it to
+bring up the Details page.
+
+
+257
+00:13:10,506 --> 00:13:12,336
+From here, you can swipe
+left to right to go
+
+
+258
+00:13:12,336 --> 00:13:13,766
+to the next or previous event.
+
+
+259
+00:13:13,766 --> 00:13:17,406
+I received some bug
+reports from beta testers
+
+
+260
+00:13:17,496 --> 00:13:20,766
+that when they exit this view,
+the focus isn't on the event
+
+
+261
+00:13:20,766 --> 00:13:22,066
+that was just selected.
+
+
+262
+00:13:22,396 --> 00:13:24,316
+So in this case, we've
+selected the bash.
+
+
+263
+00:13:24,666 --> 00:13:26,196
+So if I menu out, I would expect
+
+
+264
+00:13:26,196 --> 00:13:29,386
+that we would be
+focused on the bash.
+
+
+265
+00:13:29,586 --> 00:13:32,106
+Instead, we're still
+focused on the tvOS lab,
+
+
+266
+00:13:32,236 --> 00:13:34,886
+which is our first available
+preferred focus environment.
+
+
+267
+00:13:35,626 --> 00:13:38,026
+So all we need to do is update
+our preferredFocusEnvironments
+
+
+268
+00:13:38,026 --> 00:13:39,916
+code to return our
+selected event
+
+
+269
+00:13:40,406 --> 00:13:42,606
+as our preferred
+focus environment.
+
+
+270
+00:13:43,296 --> 00:13:45,646
+So let's go back to our
+CalendarViewController,
+
+
+271
+00:13:46,086 --> 00:13:49,226
+and I have the selectedEventView
+property here which keeps track
+
+
+272
+00:13:49,226 --> 00:13:51,466
+of the selected event when
+we're in the Details page.
+
+
+273
+00:13:52,096 --> 00:13:54,976
+So if this property
+exists, I'll return it
+
+
+274
+00:13:54,976 --> 00:13:56,846
+as my first preferred
+focus environment.
+
+
+275
+00:13:56,926 --> 00:13:59,546
+All right, let's run
+this, see if it works.
+
+
+276
+00:14:05,866 --> 00:14:09,266
+Okay. So I'll select the
+tvOS lab, move the selection
+
+
+277
+00:14:09,266 --> 00:14:11,266
+to the bash, and then menu out,
+
+
+278
+00:14:12,076 --> 00:14:14,146
+and we're still focused
+on the tvOS lab.
+
+
+279
+00:14:14,206 --> 00:14:17,186
+And I'm remembering now
+that Matt mentioned earlier
+
+
+280
+00:14:17,186 --> 00:14:18,906
+in the session that by default,
+
+
+281
+00:14:18,906 --> 00:14:20,626
+the Focus engine
+does not consult your
+
+
+282
+00:14:20,626 --> 00:14:23,106
+preferredFocusEnvironments
+when restoring
+
+
+283
+00:14:23,106 --> 00:14:24,956
+from a view controller.
+
+
+284
+00:14:25,546 --> 00:14:26,746
+So to change that behavior,
+
+
+285
+00:14:27,146 --> 00:14:29,696
+we need to set the
+restoresFocusAfterTransition
+
+
+286
+00:14:29,696 --> 00:14:30,786
+property to false.
+
+
+287
+00:14:30,936 --> 00:14:34,836
+So let's go do that in our
+[inaudible] coder method
+
+
+288
+00:14:35,396 --> 00:14:36,946
+and rerun the app,
+see if it works now.
+
+
+289
+00:14:43,816 --> 00:14:46,436
+All right, we'll select
+our tvOS lab event again,
+
+
+290
+00:14:47,136 --> 00:14:49,356
+move our selection to
+the bash, and menu out.
+
+
+291
+00:14:49,916 --> 00:14:52,076
+Awesome, so now we're
+focused on the bash,
+
+
+292
+00:14:52,076 --> 00:14:53,486
+which is exactly what we wanted.
+
+
+293
+00:14:54,796 --> 00:14:56,756
+So by using the
+preferredFocusEnvironments
+
+
+294
+00:14:56,936 --> 00:14:59,246
+and restoresFocusAfterTransition
+properties,
+
+
+295
+00:14:59,316 --> 00:15:02,196
+we're able to provide a much
+better experience to our users.
+
+
+296
+00:15:02,806 --> 00:15:03,976
+Now I'd like to invite
+Matt back up on stage.
+
+
+297
+00:15:04,516 --> 00:15:09,736
+[ Applause ]
+
+
+298
+00:15:10,236 --> 00:15:10,796
+>> Thanks, Brandon.
+
+
+299
+00:15:11,616 --> 00:15:12,556
+That was a really great demo.
+
+
+300
+00:15:13,276 --> 00:15:14,916
+Using these two new properties,
+
+
+301
+00:15:14,916 --> 00:15:17,616
+we hope that you can reduce the
+complexity of code in your apps
+
+
+302
+00:15:18,206 --> 00:15:20,226
+and also provide a
+better user experience.
+
+
+303
+00:15:22,276 --> 00:15:26,476
+Now, next up I'm really
+excited to announce
+
+
+304
+00:15:27,026 --> 00:15:30,096
+that we're bringing focus
+interaction support directly
+
+
+305
+00:15:30,166 --> 00:15:31,026
+into SpriteKit.
+
+
+306
+00:15:32,636 --> 00:15:35,996
+Prior to tvOS 10,
+SpriteKit developers had
+
+
+307
+00:15:35,996 --> 00:15:38,316
+to manually implement
+focus interaction
+
+
+308
+00:15:38,396 --> 00:15:41,646
+in their SpriteKit games
+by manually keeping track
+
+
+309
+00:15:41,646 --> 00:15:45,656
+of their own state and
+handling user events directly.
+
+
+310
+00:15:46,226 --> 00:15:50,736
+But now in tvOS 10, we're
+extending the Focus API,
+
+
+311
+00:15:51,576 --> 00:15:53,686
+the same API you're
+used to in UIKit,
+
+
+312
+00:15:54,066 --> 00:15:57,226
+to also support your
+SpriteKit games.
+
+
+313
+00:15:58,476 --> 00:16:04,746
+But first, what would
+this be useful for?
+
+
+314
+00:16:04,856 --> 00:16:08,366
+Well the first and most obvious
+use case for focus interaction
+
+
+315
+00:16:08,556 --> 00:16:10,996
+in games is game menus.
+
+
+316
+00:16:12,156 --> 00:16:16,126
+Your users will expect
+that menus in games feel
+
+
+317
+00:16:16,126 --> 00:16:19,866
+and behave similar to
+menus in other system apps.
+
+
+318
+00:16:21,036 --> 00:16:25,106
+The Focus Interaction model also
+makes sense for board games,
+
+
+319
+00:16:25,596 --> 00:16:28,206
+where users navigate around
+a two-dimensional game board
+
+
+320
+00:16:28,666 --> 00:16:31,816
+and select items on that game
+board, maybe move those around.
+
+
+321
+00:16:32,066 --> 00:16:35,146
+And in fact, Focus Interaction
+makes sense for any type of game
+
+
+322
+00:16:35,756 --> 00:16:38,876
+where selection is a
+core gameplay mechanic.
+
+
+323
+00:16:39,686 --> 00:16:41,126
+And in any of this use cases,
+
+
+324
+00:16:41,196 --> 00:16:44,096
+again users will expect
+navigation and selection
+
+
+325
+00:16:44,416 --> 00:16:46,686
+to feel similar to the
+system focus behavior.
+
+
+326
+00:16:47,246 --> 00:16:51,226
+Otherwise, your app might feel
+weird or broken, unintuitive.
+
+
+327
+00:16:51,766 --> 00:16:57,706
+And so to help with that, we've
+extended the same Focus API
+
+
+328
+00:16:57,706 --> 00:17:02,196
+that you're used to in UIKit to
+now also work with SpriteKit.
+
+
+329
+00:17:02,446 --> 00:17:05,096
+This is a shared API,
+and what this means is
+
+
+330
+00:17:05,096 --> 00:17:09,756
+that SKNodes are now able to
+opt in to becoming focusable
+
+
+331
+00:17:10,556 --> 00:17:12,195
+and taking advantage of all
+
+
+332
+00:17:12,195 --> 00:17:14,546
+of the Focus engine's
+built-in capabilities.
+
+
+333
+00:17:16,106 --> 00:17:19,346
+UIKit and SpriteKit have been
+integrated to allow focus
+
+
+334
+00:17:19,346 --> 00:17:21,915
+to move freely between
+your views and your nodes
+
+
+335
+00:17:21,955 --> 00:17:24,165
+so you don't have to handle
+those use cases yourself.
+
+
+336
+00:17:26,256 --> 00:17:30,896
+So how exactly does this work?
+
+
+337
+00:17:31,086 --> 00:17:34,766
+First, let's review how
+Focus works for UIViews.
+
+
+338
+00:17:35,386 --> 00:17:39,196
+Prior to tvOS 10, UIViews were
+the only user interface elements
+
+
+339
+00:17:39,256 --> 00:17:41,016
+that were capable
+of becoming focused,
+
+
+340
+00:17:41,256 --> 00:17:43,796
+and they defined their
+focus ability using the
+
+
+341
+00:17:43,796 --> 00:17:45,746
+canBecomeFocused property.
+
+
+342
+00:17:47,806 --> 00:17:52,716
+UIViews also conform to the
+UIFocusEnvironment protocol.
+
+
+343
+00:17:53,526 --> 00:17:56,576
+And this allows views to get
+focus update notifications
+
+
+344
+00:17:56,576 --> 00:17:58,766
+and also control the
+behavior of focus
+
+
+345
+00:17:58,766 --> 00:18:00,206
+within their subview hierarchy.
+
+
+346
+00:18:00,956 --> 00:18:04,986
+So to support SpriteKit
+focus, we're going to want
+
+
+347
+00:18:04,986 --> 00:18:07,856
+to bring these same
+capabilities to SKNodes
+
+
+348
+00:18:08,286 --> 00:18:10,106
+and we've made some
+changes to support that.
+
+
+349
+00:18:10,676 --> 00:18:12,626
+We're abstracting
+these same capabilities
+
+
+350
+00:18:12,626 --> 00:18:15,686
+out into their own protocol
+that we call UIFocusItem.
+
+
+351
+00:18:16,206 --> 00:18:20,786
+This protocol defines both
+that canBecomeFocused property
+
+
+352
+00:18:21,676 --> 00:18:24,566
+and conformance to the
+UIFocusEnvironment protocol.
+
+
+353
+00:18:26,496 --> 00:18:30,876
+Next, we refactored
+UIView and extended SKNode
+
+
+354
+00:18:31,056 --> 00:18:32,886
+to conform to this new protocol.
+
+
+355
+00:18:33,776 --> 00:18:35,906
+And this allows both
+UIView and SKNode
+
+
+356
+00:18:35,906 --> 00:18:40,696
+to share these exact same API
+while not requiring any changes
+
+
+357
+00:18:40,696 --> 00:18:43,046
+in your existing UIKit code.
+
+
+358
+00:18:44,356 --> 00:18:46,846
+We've also made additions to
+other parts of the Focus API
+
+
+359
+00:18:47,066 --> 00:18:50,556
+in order to take advantage of
+this new UIFocusItem protocol.
+
+
+360
+00:18:51,936 --> 00:18:54,856
+First, let's look at the
+UIFocusUpdateContext class,
+
+
+361
+00:18:55,396 --> 00:18:58,066
+which provides contextual
+information during focus
+
+
+362
+00:18:58,066 --> 00:18:59,496
+update notifications.
+
+
+363
+00:19:00,866 --> 00:19:03,546
+In order to support focus
+updates to SpriteKit nodes,
+
+
+364
+00:19:03,776 --> 00:19:06,816
+we're introducing two new
+UIFocusItem based properties:
+
+
+365
+00:19:07,476 --> 00:19:10,186
+previouslyFocusedItem
+and nextFocusedItem,
+
+
+366
+00:19:10,886 --> 00:19:14,016
+and these tell you which items
+are involved in the update.
+
+
+367
+00:19:14,946 --> 00:19:17,526
+We've made a similar
+change to UIScreen,
+
+
+368
+00:19:17,896 --> 00:19:21,196
+introducing a new focusedItem
+property that returns an object
+
+
+369
+00:19:21,196 --> 00:19:23,916
+to type UIFocusItem and
+this allows your app
+
+
+370
+00:19:24,116 --> 00:19:29,596
+to query what the current focus
+item is at any given time.
+
+
+371
+00:19:29,936 --> 00:19:32,476
+Now there's one more API
+change worth mentioning
+
+
+372
+00:19:32,476 --> 00:19:34,156
+but it requires a little
+bit more background.
+
+
+373
+00:19:34,986 --> 00:19:39,346
+In tvOS 9, the UIFocusItem
+protocol defined the
+
+
+374
+00:19:39,346 --> 00:19:41,126
+preferredFocusView property.
+
+
+375
+00:19:41,126 --> 00:19:46,076
+And prior to tvOS 10, this was
+how apps defined their focus
+
+
+376
+00:19:46,076 --> 00:19:48,386
+preferences, like we were
+talking about earlier.
+
+
+377
+00:19:49,536 --> 00:19:51,656
+But you can probably
+see a problem with this,
+
+
+378
+00:19:51,956 --> 00:19:54,246
+which is that it
+returns a type of UIView.
+
+
+379
+00:19:54,726 --> 00:19:58,216
+And if we're going to support
+SpriteKit, we're going to need
+
+
+380
+00:19:58,276 --> 00:20:00,576
+to define focus preferences
+to our SKNodes.
+
+
+381
+00:20:00,576 --> 00:20:01,976
+And so this isn't going to work.
+
+
+382
+00:20:02,176 --> 00:20:07,336
+But luckily, earlier
+in the talk,
+
+
+383
+00:20:07,816 --> 00:20:10,006
+we introduced this new
+preferredFocusEnvironments
+
+
+384
+00:20:10,386 --> 00:20:12,196
+property, which does
+the same thing.
+
+
+385
+00:20:12,516 --> 00:20:15,656
+But because it returns an array
+of UIFocusEnvironment objects
+
+
+386
+00:20:15,656 --> 00:20:19,316
+and now SKNode conforms to the
+UIFocusEnvironment protocol,
+
+
+387
+00:20:20,576 --> 00:20:22,836
+we can now define focus
+preferences to views,
+
+
+388
+00:20:22,976 --> 00:20:26,566
+view controller, SKNodes,
+any object that conforms
+
+
+389
+00:20:26,566 --> 00:20:27,706
+to UIFocusEnvironment.
+
+
+390
+00:20:28,476 --> 00:20:30,506
+And this makes defining
+focus preferences
+
+
+391
+00:20:30,506 --> 00:20:33,026
+in your environments
+much easier and concise.
+
+
+392
+00:20:34,256 --> 00:20:36,776
+And because
+preferredFocusEnvironments takes
+
+
+393
+00:20:36,776 --> 00:20:39,166
+care of all the use cases
+for preferredFocusView does
+
+
+394
+00:20:39,166 --> 00:20:40,856
+but also provides
+these other benefits
+
+
+395
+00:20:40,976 --> 00:20:43,446
+that we've talked about,
+in tvOS 10 we're going
+
+
+396
+00:20:43,446 --> 00:20:44,956
+to deprecate preferredFocusView.
+
+
+397
+00:20:45,546 --> 00:20:49,036
+So if you're currently
+using preferredFocusView
+
+
+398
+00:20:49,036 --> 00:20:52,106
+in your applications,
+we recommend upgrading
+
+
+399
+00:20:52,106 --> 00:20:54,246
+to preferredFocusEnvironments
+instead.
+
+
+400
+00:20:55,476 --> 00:20:57,066
+We think this will really help.
+
+
+401
+00:20:58,336 --> 00:21:01,336
+So that's Focus Interaction
+support in SpriteKit.
+
+
+402
+00:21:02,126 --> 00:21:05,546
+Focus API now supports generic
+focus items using this new
+
+
+403
+00:21:05,546 --> 00:21:07,036
+UIFocusItem protocol.
+
+
+404
+00:21:07,756 --> 00:21:10,626
+Both UIView and SKNode
+conform to this protocol.
+
+
+405
+00:21:11,516 --> 00:21:13,736
+And for SpriteKit
+developers, you can now opt
+
+
+406
+00:21:13,736 --> 00:21:15,906
+in to supporting focus
+to take advantage
+
+
+407
+00:21:16,256 --> 00:21:18,316
+of all the Focus
+engine's capabilities.
+
+
+408
+00:21:18,986 --> 00:21:22,376
+For UIKit developers that don't
+use SpriteKit in their apps,
+
+
+409
+00:21:23,076 --> 00:21:24,336
+there are no changes required.
+
+
+410
+00:21:24,546 --> 00:21:26,876
+The view-based API
+with the one exception
+
+
+411
+00:21:26,876 --> 00:21:30,766
+of preferredFocusView is still
+available for your convenience.
+
+
+412
+00:21:31,586 --> 00:21:34,556
+We do encourage you, however,
+to start using this new API
+
+
+413
+00:21:34,736 --> 00:21:37,946
+in your code to take advantage
+
+
+414
+00:21:38,046 --> 00:21:41,276
+of more generic and
+future features.
+
+
+415
+00:21:43,216 --> 00:21:46,906
+For more details on exactly
+what you need to do in order opt
+
+
+416
+00:21:46,906 --> 00:21:48,826
+in to focus support in
+your SpriteKit games,
+
+
+417
+00:21:49,446 --> 00:21:51,006
+we recommend watching
+the What's New
+
+
+418
+00:21:51,006 --> 00:21:53,426
+in SpriteKit session happening
+this week, where they go
+
+
+419
+00:21:53,426 --> 00:21:56,556
+into more detail on exactly
+what you need to do to opt in.
+
+
+420
+00:21:57,576 --> 00:22:01,086
+So that's Focus Interaction
+support for SpriteKit.
+
+
+421
+00:22:01,526 --> 00:22:06,546
+And that concludes our overview
+of what's new in tvOS 10.
+
+
+422
+00:22:06,546 --> 00:22:10,136
+And so for the next part of our
+talk, we're going to go in-depth
+
+
+423
+00:22:10,216 --> 00:22:11,486
+with a case study on how
+
+
+424
+00:22:11,486 --> 00:22:13,926
+to build a fully custom,
+focusable control.
+
+
+425
+00:22:15,236 --> 00:22:16,306
+And for our example today,
+
+
+426
+00:22:16,306 --> 00:22:19,106
+we're going to use a
+five-star rating control.
+
+
+427
+00:22:20,716 --> 00:22:23,856
+Now we've already done some work
+and we've built a first draft
+
+
+428
+00:22:23,856 --> 00:22:27,076
+of this control and I'd
+like to show that to you.
+
+
+429
+00:22:27,156 --> 00:22:31,206
+We just used the normal UIButton
+class and presented the rating
+
+
+430
+00:22:31,466 --> 00:22:32,666
+as the title of the button.
+
+
+431
+00:22:32,896 --> 00:22:35,536
+If you select the button,
+it'll bump up the rating,
+
+
+432
+00:22:35,536 --> 00:22:36,776
+and if you keep selecting
+the button,
+
+
+433
+00:22:36,776 --> 00:22:38,656
+it'll cycle through all
+the available ratings.
+
+
+434
+00:22:39,166 --> 00:22:42,206
+Now this is okay.
+
+
+435
+00:22:43,266 --> 00:22:46,636
+It gives us the functionality
+that we need, but we really want
+
+
+436
+00:22:46,636 --> 00:22:47,896
+to take our app to
+the next level.
+
+
+437
+00:22:48,096 --> 00:22:51,126
+And this control, it's
+good but it's not very fun.
+
+
+438
+00:22:51,126 --> 00:22:52,786
+It's not very interactive.
+
+
+439
+00:22:53,426 --> 00:22:56,096
+And so we thought long and
+hard about this and we came
+
+
+440
+00:22:56,096 --> 00:22:58,846
+up with a new design and
+this is what that looks like.
+
+
+441
+00:22:59,976 --> 00:23:02,246
+That's a lot better.
+
+
+442
+00:23:02,596 --> 00:23:04,656
+Instead of just saying
+one-star or two-star,
+
+
+443
+00:23:04,866 --> 00:23:07,836
+we now visually indicate our
+rating using actual stars.
+
+
+444
+00:23:08,376 --> 00:23:10,976
+When you select the control,
+you go into an editing mode,
+
+
+445
+00:23:10,976 --> 00:23:12,666
+where you can use
+the Focus system
+
+
+446
+00:23:13,246 --> 00:23:15,696
+to change our rating
+between the stars.
+
+
+447
+00:23:15,696 --> 00:23:17,766
+And when we're done, we
+just press Select again
+
+
+448
+00:23:17,836 --> 00:23:19,706
+and we exit editing mode.
+
+
+449
+00:23:20,306 --> 00:23:22,996
+This is a great example of
+a control that is optimized
+
+
+450
+00:23:22,996 --> 00:23:25,066
+for focus interaction and
+we're going to walk you
+
+
+451
+00:23:25,066 --> 00:23:27,016
+through building this
+control completely
+
+
+452
+00:23:27,016 --> 00:23:28,706
+from scratch using
+the Focus API.
+
+
+453
+00:23:29,416 --> 00:23:31,486
+And for that, I'm going to hand
+things back over to Brandon.
+
+
+454
+00:23:32,516 --> 00:23:35,500
+[ Applause ]
+
+
+455
+00:23:42,496 --> 00:23:44,556
+All right, thanks, Matt.
+
+
+456
+00:23:44,696 --> 00:23:46,646
+So I have a project here
+
+
+457
+00:23:47,106 --> 00:23:50,436
+which contains our simple button
+control, but it doesn't look
+
+
+458
+00:23:50,796 --> 00:23:52,326
+as nice as the one
+Matt just showed us.
+
+
+459
+00:23:52,416 --> 00:23:53,396
+So let's just delete that.
+
+
+460
+00:23:54,516 --> 00:23:56,156
+Let's go ahead and
+drag in a view
+
+
+461
+00:23:56,956 --> 00:23:59,896
+to represent our new control.
+
+
+462
+00:23:59,896 --> 00:24:04,216
+We'll set up some constraints
+on it quickly, so 100 points
+
+
+463
+00:24:04,216 --> 00:24:07,956
+from the top, a width
+of 650, a height of 150,
+
+
+464
+00:24:09,576 --> 00:24:14,246
+and we'll center it
+horizontally in our container.
+
+
+465
+00:24:14,466 --> 00:24:17,726
+Great. Now I've already
+created a rating control class
+
+
+466
+00:24:17,836 --> 00:24:20,046
+to represent this
+control, so let's assign
+
+
+467
+00:24:20,046 --> 00:24:21,136
+that as a views class.
+
+
+468
+00:24:21,946 --> 00:24:25,926
+And let's go check out
+this rating control class.
+
+
+469
+00:24:27,856 --> 00:24:29,816
+We chose a subclass
+from UIControl
+
+
+470
+00:24:29,816 --> 00:24:32,306
+because it provides a lot of
+functionality to us for free.
+
+
+471
+00:24:32,306 --> 00:24:35,836
+For example, it determines if
+the control can become focused
+
+
+472
+00:24:35,836 --> 00:24:39,206
+or not based on its
+enabled state; however,
+
+
+473
+00:24:39,336 --> 00:24:41,686
+it doesn't have a
+focus/unfocused appearance.
+
+
+474
+00:24:41,686 --> 00:24:42,986
+We have to provide
+that ourselves.
+
+
+475
+00:24:42,986 --> 00:24:45,846
+So let's go do that.
+
+
+476
+00:24:45,986 --> 00:24:48,696
+We'll start by adding a corner
+radius and a background color
+
+
+477
+00:24:49,356 --> 00:24:52,836
+and then we'll override
+didUpdateFocus in context
+
+
+478
+00:24:52,836 --> 00:24:54,996
+with coordinator to
+provide both a focus
+
+
+479
+00:24:54,996 --> 00:24:55,986
+and unfocused appearance.
+
+
+480
+00:24:55,986 --> 00:24:59,476
+So if the next focus
+item is our control,
+
+
+481
+00:24:59,476 --> 00:25:02,426
+then we'll configure the focus
+appearance, which just consists
+
+
+482
+00:25:02,426 --> 00:25:04,366
+of scaling the view,
+adding a shadow,
+
+
+483
+00:25:04,366 --> 00:25:05,816
+and changing the
+background color.
+
+
+484
+00:25:06,846 --> 00:25:09,166
+If the previously focused
+item is our control,
+
+
+485
+00:25:09,596 --> 00:25:12,006
+then we'll configure the
+unfocused view or appearance,
+
+
+486
+00:25:12,466 --> 00:25:14,276
+which just rests all
+of our properties.
+
+
+487
+00:25:14,976 --> 00:25:16,386
+Now before I run this,
+
+
+488
+00:25:16,626 --> 00:25:18,626
+I also want to add motion
+effects to our control.
+
+
+489
+00:25:19,286 --> 00:25:22,076
+Motion effects makes your
+app feel more responsive
+
+
+490
+00:25:22,386 --> 00:25:24,906
+and helps the user find
+the focus item on screen.
+
+
+491
+00:25:25,546 --> 00:25:28,646
+So to do that, I'll
+create a motionEffectGroup
+
+
+492
+00:25:28,646 --> 00:25:31,956
+to add horizontal and vertical
+motion when I move my finger
+
+
+493
+00:25:31,956 --> 00:25:32,866
+around the touch surface.
+
+
+494
+00:25:34,166 --> 00:25:36,836
+Now I need to go back, and when
+our control becomes focused,
+
+
+495
+00:25:37,596 --> 00:25:41,116
+I will add the motion effect,
+and when it becomes unfocused,
+
+
+496
+00:25:41,226 --> 00:25:43,216
+I will remove the motion effect.
+
+
+497
+00:25:43,966 --> 00:25:45,156
+Now I make all these changes
+
+
+498
+00:25:45,196 --> 00:25:47,466
+within addCoordinatedAnimations
+block.
+
+
+499
+00:25:47,816 --> 00:25:51,206
+This way, our property
+changes are in sync
+
+
+500
+00:25:51,206 --> 00:25:52,516
+with our focus animations.
+
+
+501
+00:25:52,516 --> 00:25:54,976
+So let's see how this looks.
+
+
+502
+00:26:04,186 --> 00:26:07,126
+All right, so what we've done
+
+
+503
+00:26:07,126 --> 00:26:10,576
+so far is create a very basic
+control which has both a focus
+
+
+504
+00:26:10,576 --> 00:26:13,266
+and unfocused appearance
+and has motion effects.
+
+
+505
+00:26:13,266 --> 00:26:15,526
+So it moves when I move my
+finger on the touch surface.
+
+
+506
+00:26:16,376 --> 00:26:18,936
+But this is supposed to be
+a five-star rating control
+
+
+507
+00:26:18,936 --> 00:26:20,336
+and we don't have any stars yet.
+
+
+508
+00:26:20,936 --> 00:26:25,326
+So let's go add those.
+
+
+509
+00:26:25,556 --> 00:26:27,186
+So first we need to
+add some properties
+
+
+510
+00:26:27,296 --> 00:26:28,406
+to store our control state.
+
+
+511
+00:26:29,476 --> 00:26:31,466
+And then in our awakeFromNib
+function,
+
+
+512
+00:26:33,196 --> 00:26:37,616
+we'll add a horizontal stackView
+and add five stars to that.
+
+
+513
+00:26:37,616 --> 00:26:41,356
+I've already created the star
+classes to save some time,
+
+
+514
+00:26:41,396 --> 00:26:42,506
+but if you're following along,
+
+
+515
+00:26:42,506 --> 00:26:45,126
+I configured their focus
+appearance using the same
+
+
+516
+00:26:45,126 --> 00:26:46,366
+process that we just saw.
+
+
+517
+00:26:46,366 --> 00:26:50,596
+Now when the user selects the
+control, I want them to be able
+
+
+518
+00:26:50,596 --> 00:26:51,666
+to edit the current rating.
+
+
+519
+00:26:52,376 --> 00:26:54,546
+So I'll add a
+selectGestureRecognizer
+
+
+520
+00:26:54,946 --> 00:26:55,876
+to our control.
+
+
+521
+00:26:55,876 --> 00:26:59,226
+And when that's triggered,
+I'll toggle the editing state
+
+
+522
+00:26:59,226 --> 00:27:00,426
+and request a focus update.
+
+
+523
+00:27:01,686 --> 00:27:02,956
+When a focus update happens,
+
+
+524
+00:27:02,996 --> 00:27:04,796
+it consults our
+preferredFocusEnvironments.
+
+
+525
+00:27:05,016 --> 00:27:06,286
+So we'll override that property.
+
+
+526
+00:27:06,696 --> 00:27:09,986
+And if we're editing,
+we'll return our starViews
+
+
+527
+00:27:09,986 --> 00:27:11,486
+as our
+preferredFocusEnvironments.
+
+
+528
+00:27:12,276 --> 00:27:14,706
+Otherwise, we'll just return
+our super implementation.
+
+
+529
+00:27:14,706 --> 00:27:17,566
+Let's run this, see
+how it looks.
+
+
+530
+00:27:22,326 --> 00:27:26,876
+Okay, so this time
+when our app launched,
+
+
+531
+00:27:26,876 --> 00:27:29,516
+we have some stars
+in our control.
+
+
+532
+00:27:29,516 --> 00:27:32,406
+And when I select the control,
+focus moves to the first star
+
+
+533
+00:27:32,406 --> 00:27:35,296
+within the control; however,
+I'm not actually able
+
+
+534
+00:27:35,296 --> 00:27:37,466
+to move focus to
+the other stars.
+
+
+535
+00:27:38,296 --> 00:27:40,686
+This is because there's some
+space between the stars.
+
+
+536
+00:27:40,686 --> 00:27:43,636
+So when we try to move focus
+to the right, we actually end
+
+
+537
+00:27:43,636 --> 00:27:46,626
+up focusing on our control,
+which just directs focus back
+
+
+538
+00:27:46,626 --> 00:27:49,106
+to our first star using
+preferredFocusEnvironments.
+
+
+539
+00:27:49,636 --> 00:27:52,916
+So to fix this, we want to
+make sure our control is not
+
+
+540
+00:27:52,916 --> 00:27:54,546
+focusable when we're editing.
+
+
+541
+00:27:55,146 --> 00:27:58,416
+So let's override
+canBecomeFocused
+
+
+542
+00:27:58,486 --> 00:28:02,126
+and we'll return false if our
+control is currently editing.
+
+
+543
+00:28:02,126 --> 00:28:05,946
+So let's run this, see
+if that fixes things.
+
+
+544
+00:28:11,516 --> 00:28:13,006
+All right, that's much better.
+
+
+545
+00:28:13,316 --> 00:28:15,426
+So now I'll able to move
+focus between the stars.
+
+
+546
+00:28:16,436 --> 00:28:19,526
+But it's difficult to tell
+what the current rating is
+
+
+547
+00:28:19,526 --> 00:28:21,536
+because we don't provide
+any visual feedback.
+
+
+548
+00:28:22,126 --> 00:28:25,226
+So to do that, we need to
+update the current rating
+
+
+549
+00:28:25,226 --> 00:28:26,516
+when our focus changes.
+
+
+550
+00:28:27,466 --> 00:28:30,986
+So let's go back to our
+didUpdateFocus function,
+
+
+551
+00:28:31,726 --> 00:28:33,776
+and at the bottom,
+if we're editing,
+
+
+552
+00:28:34,486 --> 00:28:36,476
+we'll set the current
+rating based on the index
+
+
+553
+00:28:36,696 --> 00:28:38,166
+of the currently
+focused starView.
+
+
+554
+00:28:38,616 --> 00:28:42,376
+And let's go back up to
+our current rating property
+
+
+555
+00:28:42,956 --> 00:28:46,466
+and we'll tie that directly
+
+
+556
+00:28:46,466 --> 00:28:48,896
+to the isSelected
+property on the starViews.
+
+
+557
+00:28:49,156 --> 00:28:51,866
+And this property just sets the
+background color on the stars.
+
+
+558
+00:28:51,866 --> 00:28:53,976
+So let's see how that looks.
+
+
+559
+00:29:02,096 --> 00:29:07,076
+Okay, so now when I select
+the control, it's easy to tell
+
+
+560
+00:29:07,076 --> 00:29:08,146
+that the first star is selected.
+
+
+561
+00:29:08,146 --> 00:29:11,926
+And when I move focus, all the
+star select remain selected.
+
+
+562
+00:29:12,006 --> 00:29:14,056
+So it's easy to tell what
+the current rating is.
+
+
+563
+00:29:15,066 --> 00:29:17,226
+So this is pretty good
+but it's not great yet.
+
+
+564
+00:29:18,346 --> 00:29:20,776
+Right now I'm able to move
+focus outside the control,
+
+
+565
+00:29:21,606 --> 00:29:22,686
+and I don't want
+to be able to do
+
+
+566
+00:29:22,686 --> 00:29:24,496
+that when I'm editing
+the current rating.
+
+
+567
+00:29:25,446 --> 00:29:27,646
+Also, when I select the control,
+
+
+568
+00:29:27,886 --> 00:29:30,266
+we always reset the current
+rating back to one star.
+
+
+569
+00:29:30,266 --> 00:29:32,946
+I think it would be better
+if we kept the current rating
+
+
+570
+00:29:32,946 --> 00:29:35,046
+and just focused on
+the last selected star.
+
+
+571
+00:29:35,796 --> 00:29:37,416
+So let's go make those changes.
+
+
+572
+00:29:40,436 --> 00:29:44,616
+So we'll start by overriding
+the shouldUpdateFocus
+
+
+573
+00:29:44,716 --> 00:29:45,936
+to restrict focus movement.
+
+
+574
+00:29:46,626 --> 00:29:50,266
+So if we're editing and the
+next focus item is not one
+
+
+575
+00:29:50,266 --> 00:29:52,386
+of our star views,
+then we'll return false
+
+
+576
+00:29:52,386 --> 00:29:56,156
+to say no, focus can't move.
+
+
+577
+00:29:56,386 --> 00:29:59,476
+Also, in our
+preferredFocusEnvironments code,
+
+
+578
+00:29:59,476 --> 00:30:05,336
+we want to return our last
+selected star if we're editing
+
+
+579
+00:30:05,336 --> 00:30:07,326
+and the current rating
+is greater than zero.
+
+
+580
+00:30:07,906 --> 00:30:09,916
+So this way we don't reset
+the current rating every time.
+
+
+581
+00:30:11,636 --> 00:30:12,956
+Let's run this one more
+time, see how it looks.
+
+
+582
+00:30:20,716 --> 00:30:22,606
+Okay, now I'm no longer able
+
+
+583
+00:30:22,606 --> 00:30:24,656
+to move focus outside
+of the control.
+
+
+584
+00:30:24,656 --> 00:30:28,336
+And when I select a control, the
+current rating stays the same
+
+
+585
+00:30:28,716 --> 00:30:30,686
+and we just focus on
+the last selected star.
+
+
+586
+00:30:31,816 --> 00:30:33,706
+So that completes
+our custom control.
+
+
+587
+00:30:34,006 --> 00:30:36,606
+By utilizing the Focus
+APIs, we were able
+
+
+588
+00:30:36,606 --> 00:30:39,116
+to create a pretty complex
+yet very useful control.
+
+
+589
+00:30:39,656 --> 00:30:41,836
+Now I'd like to invite
+Matt back up on stage.
+
+
+590
+00:30:42,516 --> 00:30:47,676
+[ Applause ]
+
+
+591
+00:30:48,176 --> 00:30:48,776
+>> Thanks, Brandon.
+
+
+592
+00:30:49,436 --> 00:30:51,476
+I rate that demo
+with five stars.
+
+
+593
+00:30:54,226 --> 00:30:58,966
+Okay, we chose that demo
+because it was a great example
+
+
+594
+00:30:58,966 --> 00:31:02,096
+of using many different parts
+of the Focus API in order
+
+
+595
+00:31:02,096 --> 00:31:05,126
+to create a rich focus
+interaction experience.
+
+
+596
+00:31:06,006 --> 00:31:09,116
+And there are just a couple
+parts of the implementation
+
+
+597
+00:31:09,216 --> 00:31:11,746
+that Brandon showed us that
+I want to highlight again
+
+
+598
+00:31:11,746 --> 00:31:12,926
+because they're important
+
+
+599
+00:31:12,926 --> 00:31:15,036
+for really creating a
+great user experience.
+
+
+600
+00:31:16,096 --> 00:31:19,316
+The first tip we have is
+to subclass UIControl.
+
+
+601
+00:31:19,866 --> 00:31:23,436
+UIControl provides a lot of
+basic functionality for free,
+
+
+602
+00:31:23,786 --> 00:31:26,646
+for instance, as Brandon said,
+defining the focusability
+
+
+603
+00:31:26,646 --> 00:31:29,756
+of your controls based on
+its IsEnabled property.
+
+
+604
+00:31:31,096 --> 00:31:33,196
+So when you're building
+custom controls,
+
+
+605
+00:31:34,296 --> 00:31:36,276
+you should also subclass
+from UIControl.
+
+
+606
+00:31:38,396 --> 00:31:41,846
+We also used the focus
+animation coordinator in order
+
+
+607
+00:31:41,846 --> 00:31:45,276
+to define our focus-related
+animation changes
+
+
+608
+00:31:45,276 --> 00:31:46,976
+when changing our focus state.
+
+
+609
+00:31:48,026 --> 00:31:50,296
+This is also really
+important for making sure
+
+
+610
+00:31:50,296 --> 00:31:52,166
+that our focus animations
+stay in sync
+
+
+611
+00:31:52,436 --> 00:31:54,966
+with other focus animations
+happening in other parts
+
+
+612
+00:31:54,966 --> 00:31:55,926
+of the user interface.
+
+
+613
+00:31:56,326 --> 00:31:59,706
+And we do this to make sure
+that focus naturally flows
+
+
+614
+00:31:59,706 --> 00:32:01,926
+around the screen when
+the user is moving
+
+
+615
+00:32:01,926 --> 00:32:03,096
+between different controls.
+
+
+616
+00:32:03,546 --> 00:32:05,476
+So when you're defining
+animations
+
+
+617
+00:32:05,476 --> 00:32:06,786
+for your focus appearance,
+
+
+618
+00:32:07,136 --> 00:32:09,636
+please use the focus
+animation coordinator.
+
+
+619
+00:32:10,206 --> 00:32:14,746
+And the last tip is
+to use motion effects.
+
+
+620
+00:32:15,266 --> 00:32:17,056
+Brandon showed us how
+to use motion effects
+
+
+621
+00:32:17,476 --> 00:32:19,406
+to create a little
+bit of movement
+
+
+622
+00:32:19,566 --> 00:32:23,816
+when you place your thumb on the
+Siri Remote and do a little bit
+
+
+623
+00:32:23,816 --> 00:32:25,896
+of movement but not enough
+to actually move focus.
+
+
+624
+00:32:27,496 --> 00:32:29,456
+You can use the UIMotionEffect's
+API
+
+
+625
+00:32:29,836 --> 00:32:32,136
+to implement this
+behavior very easily.
+
+
+626
+00:32:33,226 --> 00:32:36,046
+This is important because
+it allows your users
+
+
+627
+00:32:36,046 --> 00:32:38,056
+to get this direct
+connection to your app
+
+
+628
+00:32:38,336 --> 00:32:40,686
+so that they get
+immediate feedback as soon
+
+
+629
+00:32:40,686 --> 00:32:42,436
+as they start using
+the Siri Remote.
+
+
+630
+00:32:43,246 --> 00:32:46,076
+It also helps the user
+locate focus on the screen
+
+
+631
+00:32:46,076 --> 00:32:48,036
+so that they can sit down
+in front of their TV,
+
+
+632
+00:32:48,396 --> 00:32:49,816
+wiggle the remote around,
+
+
+633
+00:32:50,206 --> 00:32:53,006
+and immediately the
+focus element pops out.
+
+
+634
+00:32:54,276 --> 00:32:57,206
+Before we wrap us, just
+a few notes on testing.
+
+
+635
+00:32:57,996 --> 00:33:03,046
+The first is to point out that
+not all input devices have the
+
+
+636
+00:33:03,046 --> 00:33:04,256
+same capabilities.
+
+
+637
+00:33:04,256 --> 00:33:06,286
+And this is definitely
+important when it comes
+
+
+638
+00:33:06,286 --> 00:33:07,796
+to testing your custom controls.
+
+
+639
+00:33:08,336 --> 00:33:11,746
+Now the good news is that
+if you use the Focus API
+
+
+640
+00:33:12,196 --> 00:33:15,076
+to build your custom controls,
+like we did in this demo,
+
+
+641
+00:33:15,416 --> 00:33:18,346
+then your control should work
+with any of the input devices
+
+
+642
+00:33:18,346 --> 00:33:20,456
+that we talked about
+earlier: Game controllers,
+
+
+643
+00:33:20,456 --> 00:33:25,536
+Bluetooth keyboards, the Siri
+Remote, all of those other ones.
+
+
+644
+00:33:25,696 --> 00:33:28,836
+But not all these input devices
+have the same capabilities
+
+
+645
+00:33:29,056 --> 00:33:31,126
+so that if your custom
+control relies
+
+
+646
+00:33:31,226 --> 00:33:34,526
+on some custom event handling
+or gesture recognition,
+
+
+647
+00:33:34,526 --> 00:33:36,496
+for example, let's say
+
+
+648
+00:33:36,756 --> 00:33:40,176
+for example you're
+using the Siri Remote
+
+
+649
+00:33:40,176 --> 00:33:42,866
+which generates touch events
+from its touch surface
+
+
+650
+00:33:43,346 --> 00:33:46,526
+and you're using that
+to drive some capability
+
+
+651
+00:33:46,526 --> 00:33:47,686
+within your custom control,
+
+
+652
+00:33:48,176 --> 00:33:50,316
+well if a user is using
+a Bluetooth keyboard,
+
+
+653
+00:33:50,436 --> 00:33:52,106
+they can't generate
+those touch events.
+
+
+654
+00:33:52,466 --> 00:33:55,016
+And so you'll have to do
+some extra work to make sure
+
+
+655
+00:33:55,016 --> 00:33:58,216
+that your control can behave
+correctly and be functional
+
+
+656
+00:33:58,486 --> 00:34:00,686
+for all users, in
+all situations.
+
+
+657
+00:34:01,226 --> 00:34:03,606
+And so definitely
+test custom controls
+
+
+658
+00:34:03,606 --> 00:34:08,116
+that use custom event handling
+with different input devices.
+
+
+659
+00:34:08,356 --> 00:34:11,186
+Try out a Bluetooth keyboard,
+pick up a game controller,
+
+
+660
+00:34:11,636 --> 00:34:14,315
+very important to maintaining
+a good user experience.
+
+
+661
+00:34:15,516 --> 00:34:18,696
+And finally, please,
+please test your controls
+
+
+662
+00:34:18,696 --> 00:34:19,636
+with accessibility.
+
+
+663
+00:34:19,886 --> 00:34:23,295
+The good news here is that the
+Focus engine again does some
+
+
+664
+00:34:23,295 --> 00:34:23,956
+work for you.
+
+
+665
+00:34:24,106 --> 00:34:28,606
+For example, if the user wants
+a high-contrast user interface,
+
+
+666
+00:34:29,036 --> 00:34:31,886
+the Focus engine will
+helpfully put an extra ring
+
+
+667
+00:34:32,176 --> 00:34:34,545
+around the currently focused
+item to really make it pop
+
+
+668
+00:34:34,545 --> 00:34:36,856
+out on the screen and
+make it easier to see.
+
+
+669
+00:34:37,936 --> 00:34:40,815
+But for other accessibility
+features, such as VoiceOver,
+
+
+670
+00:34:41,216 --> 00:34:43,735
+you're going to have the do
+the same kinds of custom work
+
+
+671
+00:34:43,735 --> 00:34:45,676
+that you're used to
+on iOS to make sure
+
+
+672
+00:34:45,676 --> 00:34:47,906
+that your controls
+behave well on tvOS.
+
+
+673
+00:34:49,016 --> 00:34:53,235
+And so please test your controls
+with features like VoiceOver
+
+
+674
+00:34:53,636 --> 00:34:56,815
+to make sure that they behavior
+really well in all situations.
+
+
+675
+00:34:57,986 --> 00:35:01,336
+So that's our talk today.
+
+
+676
+00:35:01,656 --> 00:35:03,626
+We introduced two
+new API properties,
+
+
+677
+00:35:03,626 --> 00:35:07,156
+preferredFocusEnvironments and
+restoresFocusAfterTransition
+
+
+678
+00:35:07,476 --> 00:35:10,316
+to help manage preferred
+focus in your app.
+
+
+679
+00:35:10,466 --> 00:35:12,936
+We also announced the new
+focus interaction support
+
+
+680
+00:35:13,026 --> 00:35:16,516
+for SpriteKit and we think this
+will really help reduce the
+
+
+681
+00:35:16,516 --> 00:35:18,106
+complexity of your
+SpriteKit games.
+
+
+682
+00:35:18,106 --> 00:35:21,756
+And finally, we took you through
+an in-depth case study on how
+
+
+683
+00:35:21,756 --> 00:35:25,036
+to build a custom focusable
+control using our five star
+
+
+684
+00:35:25,036 --> 00:35:25,746
+rating control.
+
+
+685
+00:35:26,676 --> 00:35:28,236
+Now before we leave today,
+
+
+686
+00:35:28,706 --> 00:35:30,716
+we'd like to mention some
+great online resources
+
+
+687
+00:35:30,756 --> 00:35:31,666
+to help you learn more.
+
+
+688
+00:35:33,006 --> 00:35:34,516
+Specifically, you
+should definitely check
+
+
+689
+00:35:34,516 --> 00:35:36,806
+out the Apple TV
+Tech Talks from 2016.
+
+
+690
+00:35:37,566 --> 00:35:39,976
+These cover -- these are
+our videos available online.
+
+
+691
+00:35:39,976 --> 00:35:43,586
+They cover a wide array
+of topics that are good
+
+
+692
+00:35:43,586 --> 00:35:46,296
+for people getting new to
+the platform but also good
+
+
+693
+00:35:46,296 --> 00:35:48,976
+if you've had some experience
+building for tvOS already.
+
+
+694
+00:35:49,846 --> 00:35:53,356
+Specifically, there's one
+section, Focus-Driven Interfaces
+
+
+695
+00:35:53,356 --> 00:35:56,256
+with UIKit that goes
+more in-depth into some
+
+
+696
+00:35:56,256 --> 00:35:58,216
+of the more basic
+aspects of the Focus API,
+
+
+697
+00:35:58,976 --> 00:36:02,416
+some of the basic concepts,
+an in-depth overview of some
+
+
+698
+00:36:02,416 --> 00:36:04,306
+of the parts of the API
+that we didn't cover today.
+
+
+699
+00:36:05,166 --> 00:36:07,716
+It talks about some best
+practices and also tools
+
+
+700
+00:36:07,716 --> 00:36:10,326
+and debugging support, which
+we have available to help you
+
+
+701
+00:36:10,326 --> 00:36:11,246
+with building your apps.
+
+
+702
+00:36:11,856 --> 00:36:14,096
+You can find these
+talks here at this URL.
+
+
+703
+00:36:14,496 --> 00:36:17,996
+And for more information
+on today's session,
+
+
+704
+00:36:18,526 --> 00:36:20,756
+you can go to this URL to
+get some helpful resources.
+
+
+705
+00:36:20,826 --> 00:36:23,266
+There are some other
+related sessions this week
+
+
+706
+00:36:23,266 --> 00:36:24,186
+that you should check out.
+
+
+707
+00:36:24,716 --> 00:36:26,916
+If you're building games
+with SpriteKit, definitely go
+
+
+708
+00:36:26,916 --> 00:36:29,726
+to the What's New in SpriteKit
+session, where we also talk
+
+
+709
+00:36:29,726 --> 00:36:32,676
+about how to specifically
+opt in your SpriteKit games
+
+
+710
+00:36:32,776 --> 00:36:36,836
+for focus support and then also
+check out the What's New in tvOS
+
+
+711
+00:36:36,836 --> 00:36:39,096
+in Mastering UIKit
+on tvOS sessions
+
+
+712
+00:36:39,426 --> 00:36:41,586
+to really take your UIKit
+apps to the next level.
+
+
+713
+00:36:42,336 --> 00:36:43,866
+And of course, have
+a great conference.
+
+
+714
+00:36:43,996 --> 00:36:44,736
+Thank you for coming today.
+

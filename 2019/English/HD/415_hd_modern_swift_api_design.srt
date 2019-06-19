@@ -1,0 +1,7234 @@
+1
+00:00:00,516 --> 00:00:05,000
+[ Music ]
+
+
+2
+00:00:07,516 --> 00:00:11,500
+[ Applause ]
+
+
+3
+00:00:12,786 --> 00:00:13,366
+>> Hi, everybody.
+
+
+4
+00:00:14,736 --> 00:00:15,946
+I'm Ben. And together with my
+
+
+5
+00:00:15,946 --> 00:00:17,066
+colleague Doug, we're going to
+
+
+6
+00:00:17,066 --> 00:00:19,136
+talk to you about API design in
+
+
+7
+00:00:19,136 --> 00:00:19,496
+Swift.
+
+
+8
+00:00:20,326 --> 00:00:21,786
+So, with the introduction of
+
+
+9
+00:00:21,786 --> 00:00:24,136
+both binary and module stability
+
+
+10
+00:00:24,536 --> 00:00:26,096
+we're really excited that for
+
+
+11
+00:00:26,096 --> 00:00:27,746
+the first time we can introduce
+
+
+12
+00:00:28,126 --> 00:00:29,586
+frameworks that make full use of
+
+
+13
+00:00:29,586 --> 00:00:31,176
+Swift to provide rich,
+
+
+14
+00:00:31,436 --> 00:00:33,406
+efficient, and easy to use APIs
+
+
+15
+00:00:33,406 --> 00:00:36,006
+as part of Apple's SDK.
+
+
+16
+00:00:36,556 --> 00:00:37,956
+Now, we've learned a few things
+
+
+17
+00:00:38,076 --> 00:00:39,566
+as part of designing these APIs
+
+
+18
+00:00:39,566 --> 00:00:40,506
+that we want to talk to you
+
+
+19
+00:00:40,506 --> 00:00:40,986
+about today.
+
+
+20
+00:00:40,986 --> 00:00:43,116
+So, we're going to cover a
+
+
+21
+00:00:43,116 --> 00:00:44,746
+couple of fundamental concepts
+
+
+22
+00:00:45,606 --> 00:00:47,396
+and understand how they affect
+
+
+23
+00:00:47,396 --> 00:00:48,306
+your API designs.
+
+
+24
+00:00:48,746 --> 00:00:49,516
+And then we're going to take a
+
+
+25
+00:00:49,516 --> 00:00:51,066
+deep dive into some of the new
+
+
+26
+00:00:51,066 --> 00:00:53,516
+features in Swift 5.1 and see
+
+
+27
+00:00:53,516 --> 00:00:54,996
+how they can help you make your
+
+
+28
+00:00:54,996 --> 00:00:56,476
+APIs more expressive.
+
+
+29
+00:00:57,406 --> 00:00:58,246
+Along the way we're going to
+
+
+30
+00:00:58,246 --> 00:00:59,976
+show you some examples from some
+
+
+31
+00:00:59,976 --> 00:01:01,486
+of our latest Swift frameworks,
+
+
+32
+00:01:01,756 --> 00:01:03,796
+including SwiftUI and
+
+
+33
+00:01:04,036 --> 00:01:04,686
+RealityKit.
+
+
+34
+00:01:06,496 --> 00:01:08,476
+Now, we talked about API design
+
+
+35
+00:01:08,476 --> 00:01:08,926
+before.
+
+
+36
+00:01:09,116 --> 00:01:11,096
+In particular, in 2016, when we
+
+
+37
+00:01:11,096 --> 00:01:13,276
+introduced the Swift API Design
+
+
+38
+00:01:13,276 --> 00:01:13,856
+Guidelines.
+
+
+39
+00:01:14,546 --> 00:01:15,926
+And these were available on the
+
+
+40
+00:01:15,926 --> 00:01:17,106
+Swift.org website.
+
+
+41
+00:01:17,466 --> 00:01:18,626
+And they contain some really
+
+
+42
+00:01:18,626 --> 00:01:21,076
+useful advice around how to name
+
+
+43
+00:01:21,166 --> 00:01:22,046
+and document your API.
+
+
+44
+00:01:22,086 --> 00:01:24,256
+But I'm not going to recap here
+
+
+45
+00:01:24,786 --> 00:01:26,186
+except to say that if there's
+
+
+46
+00:01:26,186 --> 00:01:27,306
+one message they're trying to
+
+
+47
+00:01:27,306 --> 00:01:30,466
+achieve, it's this: Clarity at
+
+
+48
+00:01:30,466 --> 00:01:32,406
+the point of use is your most
+
+
+49
+00:01:32,406 --> 00:01:34,136
+important goal as an API
+
+
+50
+00:01:34,196 --> 00:01:34,606
+designer.
+
+
+51
+00:01:35,166 --> 00:01:37,096
+You want to make it so that when
+
+
+52
+00:01:37,096 --> 00:01:39,116
+you read code using your API
+
+
+53
+00:01:39,736 --> 00:01:40,886
+it's obvious what it's doing.
+
+
+54
+00:01:41,756 --> 00:01:43,506
+And you want to make it easy for
+
+
+55
+00:01:43,626 --> 00:01:45,146
+your API to be used correctly.
+
+
+56
+00:01:46,136 --> 00:01:48,696
+And good naming and readability
+
+
+57
+00:01:48,696 --> 00:01:50,016
+is a critical part of this.
+
+
+58
+00:01:50,756 --> 00:01:53,036
+And there's one new thing around
+
+
+59
+00:01:53,036 --> 00:01:53,886
+naming that we want to talk
+
+
+60
+00:01:53,886 --> 00:01:55,366
+about, which is that going
+
+
+61
+00:01:55,366 --> 00:01:57,146
+forward, we're not going to be
+
+
+62
+00:01:57,146 --> 00:01:59,366
+using prefixes in the Swift
+
+
+63
+00:01:59,366 --> 00:02:00,986
+types in our Swift-only APIs.
+
+
+64
+00:02:00,986 --> 00:02:04,136
+Now, this really helps give
+
+
+65
+00:02:04,266 --> 00:02:06,956
+these APIs a much cleaner, more
+
+
+66
+00:02:07,016 --> 00:02:07,766
+readable feel.
+
+
+67
+00:02:07,766 --> 00:02:11,756
+Now, in C and Objective-C, we
+
+
+68
+00:02:11,756 --> 00:02:13,866
+had to use prefixes because
+
+
+69
+00:02:14,026 --> 00:02:15,816
+every symbol was in the global
+
+
+70
+00:02:15,816 --> 00:02:17,546
+name space with no good way to
+
+
+71
+00:02:17,546 --> 00:02:18,346
+disambiguate.
+
+
+72
+00:02:19,376 --> 00:02:20,766
+And for that reason, both Apple
+
+
+73
+00:02:21,036 --> 00:02:22,966
+and developers had to stick to a
+
+
+74
+00:02:22,966 --> 00:02:24,456
+really strict prefixing
+
+
+75
+00:02:24,456 --> 00:02:24,946
+convention.
+
+
+76
+00:02:25,736 --> 00:02:27,386
+And for consistency, we're going
+
+
+77
+00:02:27,386 --> 00:02:29,406
+to keep using prefixes on the
+
+
+78
+00:02:29,406 --> 00:02:31,536
+Swift versions of APIs that also
+
+
+79
+00:02:31,536 --> 00:02:32,686
+have an equivalent in
+
+
+80
+00:02:32,686 --> 00:02:33,446
+Objective-C.
+
+
+81
+00:02:35,516 --> 00:02:37,626
+But Swift's module system does
+
+
+82
+00:02:37,626 --> 00:02:40,106
+allow for disambiguation by
+
+
+83
+00:02:40,106 --> 00:02:41,556
+prepending the module name in
+
+
+84
+00:02:41,556 --> 00:02:42,256
+front of the type.
+
+
+85
+00:02:42,256 --> 00:02:44,046
+And for this reason, the
+
+
+86
+00:02:44,046 --> 00:02:45,396
+standard library has never had
+
+
+87
+00:02:45,396 --> 00:02:46,076
+prefixes.
+
+
+88
+00:02:46,356 --> 00:02:47,816
+And many of you have found that
+
+
+89
+00:02:47,876 --> 00:02:48,986
+you could drop them from your
+
+
+90
+00:02:48,986 --> 00:02:49,926
+Swift frameworks, too.
+
+
+91
+00:02:50,496 --> 00:02:53,886
+And bear in mind that you do
+
+
+92
+00:02:53,886 --> 00:02:55,326
+still have to be a little bit
+
+
+93
+00:02:55,326 --> 00:02:56,986
+careful even then.
+
+
+94
+00:02:57,996 --> 00:02:59,966
+A very general name will cause
+
+
+95
+00:02:59,966 --> 00:03:01,776
+your users to have to manually
+
+
+96
+00:03:01,776 --> 00:03:03,336
+disambiguate in the case of
+
+
+97
+00:03:03,336 --> 00:03:04,046
+conflicts.
+
+
+98
+00:03:04,926 --> 00:03:06,846
+And always remember clarity at
+
+
+99
+00:03:06,846 --> 00:03:07,776
+the point of use.
+
+
+100
+00:03:08,736 --> 00:03:10,266
+A general name from a specific
+
+
+101
+00:03:10,266 --> 00:03:11,856
+framework can look a little bit
+
+
+102
+00:03:11,856 --> 00:03:13,496
+confusing when you see it out of
+
+
+103
+00:03:13,536 --> 00:03:14,166
+context.
+
+
+104
+00:03:14,626 --> 00:03:17,686
+Now, we're going to talk about a
+
+
+105
+00:03:17,686 --> 00:03:19,116
+couple of topics: Values and
+
+
+106
+00:03:19,116 --> 00:03:20,956
+references and protocols and
+
+
+107
+00:03:20,956 --> 00:03:21,476
+generics.
+
+
+108
+00:03:21,926 --> 00:03:23,216
+And then we're going to cover
+
+
+109
+00:03:23,216 --> 00:03:24,656
+our two new features, key path
+
+
+110
+00:03:24,656 --> 00:03:26,626
+member lookup and property
+
+
+111
+00:03:26,626 --> 00:03:27,126
+wrappers.
+
+
+112
+00:03:28,096 --> 00:03:29,356
+So let's start by talking a bit
+
+
+113
+00:03:29,356 --> 00:03:30,896
+about values and references.
+
+
+114
+00:03:31,016 --> 00:03:32,416
+First a very quick recap.
+
+
+115
+00:03:32,666 --> 00:03:34,616
+Swift has three basic concepts
+
+
+116
+00:03:34,616 --> 00:03:36,856
+for creating a type: Classes,
+
+
+117
+00:03:37,096 --> 00:03:38,426
+Structs, and Enums.
+
+
+118
+00:03:39,776 --> 00:03:41,456
+Classes are reference types.
+
+
+119
+00:03:41,456 --> 00:03:42,236
+And that means when you have a
+
+
+120
+00:03:42,236 --> 00:03:44,076
+variable, it just refers to the
+
+
+121
+00:03:44,076 --> 00:03:45,496
+object that actually holds the
+
+
+122
+00:03:45,496 --> 00:03:46,006
+values.
+
+
+123
+00:03:46,796 --> 00:03:48,266
+And when you copy it, you're
+
+
+124
+00:03:48,266 --> 00:03:50,006
+just copying that reference.
+
+
+125
+00:03:50,466 --> 00:03:51,726
+And that means that when you
+
+
+126
+00:03:51,726 --> 00:03:53,066
+change a value through the
+
+
+127
+00:03:53,066 --> 00:03:55,416
+reference, you're changing the
+
+
+128
+00:03:55,416 --> 00:03:57,086
+same object to which both
+
+
+129
+00:03:57,086 --> 00:03:57,976
+variables refer.
+
+
+130
+00:03:59,436 --> 00:04:00,756
+And so they both see the change.
+
+
+131
+00:04:01,296 --> 00:04:04,926
+Structs and Enums, on the other
+
+
+132
+00:04:04,926 --> 00:04:06,446
+hand, are value types.
+
+
+133
+00:04:06,446 --> 00:04:07,356
+And when you copy them, they
+
+
+134
+00:04:07,476 --> 00:04:09,556
+copy their entire contents.
+
+
+135
+00:04:09,946 --> 00:04:11,196
+And that means that when you
+
+
+136
+00:04:11,196 --> 00:04:12,626
+make a change, you're just
+
+
+137
+00:04:12,626 --> 00:04:14,036
+changing that one copy.
+
+
+138
+00:04:15,086 --> 00:04:16,866
+Now, using value types in your
+
+
+139
+00:04:16,866 --> 00:04:18,416
+API can bring a lot of benefits
+
+
+140
+00:04:18,486 --> 00:04:20,055
+in terms of clarity at the point
+
+
+141
+00:04:20,055 --> 00:04:20,555
+of use.
+
+
+142
+00:04:20,995 --> 00:04:21,846
+If you know you're getting a
+
+
+143
+00:04:21,846 --> 00:04:24,166
+fresh, unique copy every time,
+
+
+144
+00:04:24,556 --> 00:04:25,746
+then you don't need to worry
+
+
+145
+00:04:25,746 --> 00:04:27,206
+about where the value came from
+
+
+146
+00:04:27,436 --> 00:04:29,006
+and whether somebody has a
+
+
+147
+00:04:29,006 --> 00:04:30,126
+reference to it still where they
+
+
+148
+00:04:30,126 --> 00:04:31,246
+might change it behind your
+
+
+149
+00:04:31,246 --> 00:04:31,556
+back.
+
+
+150
+00:04:32,426 --> 00:04:34,426
+You don't need, for example, to
+
+
+151
+00:04:34,426 --> 00:04:36,346
+make a defensive copy.
+
+
+152
+00:04:36,346 --> 00:04:37,686
+Now, given this, a common
+
+
+153
+00:04:37,686 --> 00:04:38,866
+question comes up, which is:
+
+
+154
+00:04:39,066 --> 00:04:40,966
+Should I be using a reference or
+
+
+155
+00:04:40,966 --> 00:04:43,336
+a value type in my particular
+
+
+156
+00:04:43,336 --> 00:04:43,956
+piece of code?
+
+
+157
+00:04:44,276 --> 00:04:45,986
+And every use case is different.
+
+
+158
+00:04:45,986 --> 00:04:47,646
+So there are no hard rules here.
+
+
+159
+00:04:48,036 --> 00:04:49,006
+But here's some general
+
+
+160
+00:04:49,006 --> 00:04:50,686
+guidance, which is that in
+
+
+161
+00:04:50,686 --> 00:04:52,856
+general, you should prefer using
+
+
+162
+00:04:52,856 --> 00:04:54,716
+Structs over classes unless you
+
+
+163
+00:04:54,716 --> 00:04:56,066
+have a good reason for using a
+
+
+164
+00:04:56,066 --> 00:04:56,496
+class.
+
+
+165
+00:04:57,216 --> 00:04:58,736
+If you default to using a class
+
+
+166
+00:04:58,736 --> 00:04:59,996
+whenever you create a type, try
+
+
+167
+00:04:59,996 --> 00:05:01,086
+flipping that default in your
+
+
+168
+00:05:01,086 --> 00:05:02,386
+code going forward and see how
+
+
+169
+00:05:02,386 --> 00:05:02,886
+you get on.
+
+
+170
+00:05:03,956 --> 00:05:05,496
+Now, classes still play a
+
+
+171
+00:05:05,496 --> 00:05:06,896
+critical role in Swift.
+
+
+172
+00:05:07,426 --> 00:05:08,956
+They're essential if you need to
+
+
+173
+00:05:09,076 --> 00:05:10,786
+manage resources through
+
+
+174
+00:05:10,786 --> 00:05:11,656
+reference counting.
+
+
+175
+00:05:12,146 --> 00:05:13,316
+Though often you'll want to wrap
+
+
+176
+00:05:13,536 --> 00:05:14,976
+that class inside a struct, as
+
+
+177
+00:05:14,976 --> 00:05:15,706
+we'll see shortly.
+
+
+178
+00:05:16,896 --> 00:05:18,816
+They're also a useful construct
+
+
+179
+00:05:18,816 --> 00:05:20,316
+if something is fundamentally
+
+
+180
+00:05:20,316 --> 00:05:22,046
+stored and shared.
+
+
+181
+00:05:22,836 --> 00:05:24,826
+And importantly, if your type
+
+
+182
+00:05:24,826 --> 00:05:26,046
+has identity.
+
+
+183
+00:05:26,196 --> 00:05:28,316
+And that notion of identity is
+
+
+184
+00:05:28,316 --> 00:05:29,656
+separate from its value.
+
+
+185
+00:05:30,386 --> 00:05:32,106
+That's often a sign that a class
+
+
+186
+00:05:32,106 --> 00:05:33,566
+might make sense.
+
+
+187
+00:05:34,766 --> 00:05:36,796
+Now, a good place where we had
+
+
+188
+00:05:36,796 --> 00:05:38,806
+to make this decision was in
+
+
+189
+00:05:38,876 --> 00:05:39,646
+RealityKit.
+
+
+190
+00:05:40,526 --> 00:05:42,506
+RealityKit's API revolves around
+
+
+191
+00:05:42,506 --> 00:05:44,016
+these things called entities.
+
+
+192
+00:05:44,636 --> 00:05:46,896
+And these represent objects that
+
+
+193
+00:05:46,896 --> 00:05:48,276
+appear in scenes.
+
+
+194
+00:05:48,686 --> 00:05:50,656
+And they are stored centrally
+
+
+195
+00:05:50,656 --> 00:05:52,156
+inside RealityKit's engine.
+
+
+196
+00:05:52,156 --> 00:05:53,356
+And they have identity.
+
+
+197
+00:05:54,086 --> 00:05:55,776
+And when you manipulate a scene
+
+
+198
+00:05:55,836 --> 00:05:57,956
+by changing an object's
+
+
+199
+00:05:57,956 --> 00:06:00,336
+appearance or moving them
+
+
+200
+00:06:00,336 --> 00:06:01,946
+around, then you're manipulating
+
+
+201
+00:06:01,946 --> 00:06:04,126
+objects directly in that engine.
+
+
+202
+00:06:04,546 --> 00:06:05,666
+You can think of the reference
+
+
+203
+00:06:05,666 --> 00:06:08,706
+types as like handles into the
+
+
+204
+00:06:08,706 --> 00:06:10,226
+actual object stored within
+
+
+205
+00:06:10,346 --> 00:06:11,076
+RealityKit.
+
+
+206
+00:06:11,556 --> 00:06:13,106
+So this is a perfect use for a
+
+
+207
+00:06:13,106 --> 00:06:13,846
+reference type.
+
+
+208
+00:06:14,536 --> 00:06:17,446
+But the attributes of those
+
+
+209
+00:06:17,446 --> 00:06:19,546
+entities, such as their location
+
+
+210
+00:06:19,546 --> 00:06:21,676
+or orientation in a scene, those
+
+
+211
+00:06:21,676 --> 00:06:23,636
+are modeled as value types.
+
+
+212
+00:06:24,396 --> 00:06:25,276
+Now, let's have a look at how
+
+
+213
+00:06:25,276 --> 00:06:26,096
+this looks in code.
+
+
+214
+00:06:26,896 --> 00:06:28,416
+So let's say we want to create
+
+
+215
+00:06:28,776 --> 00:06:30,546
+this scene here.
+
+
+216
+00:06:31,146 --> 00:06:33,646
+So, we would first create a
+
+
+217
+00:06:33,646 --> 00:06:34,406
+material type.
+
+
+218
+00:06:34,916 --> 00:06:36,906
+And then we'd create two boxes
+
+
+219
+00:06:36,906 --> 00:06:38,286
+out of it.
+
+
+220
+00:06:38,416 --> 00:06:39,576
+And then we need to anchor them
+
+
+221
+00:06:39,576 --> 00:06:40,426
+within the scene.
+
+
+222
+00:06:41,196 --> 00:06:42,476
+And then, once we've done this,
+
+
+223
+00:06:42,576 --> 00:06:43,796
+we can manipulate the scene
+
+
+224
+00:06:43,836 --> 00:06:45,896
+directly using code so we can
+
+
+225
+00:06:46,086 --> 00:06:47,486
+move the smaller box up along
+
+
+226
+00:06:47,486 --> 00:06:48,286
+the y-axis.
+
+
+227
+00:06:48,336 --> 00:06:50,926
+Or rotate the larger box by 45
+
+
+228
+00:06:50,926 --> 00:06:51,426
+degrees.
+
+
+229
+00:06:51,836 --> 00:06:53,096
+And as we're performing these
+
+
+230
+00:06:53,096 --> 00:06:54,776
+operations on these reference
+
+
+231
+00:06:54,776 --> 00:06:56,096
+types, we're directly
+
+
+232
+00:06:56,096 --> 00:06:57,296
+manipulating the scene.
+
+
+233
+00:06:57,296 --> 00:06:59,056
+And this feels fairly intuitive.
+
+
+234
+00:07:00,376 --> 00:07:02,676
+Now, supposing then want to do
+
+
+235
+00:07:02,676 --> 00:07:03,786
+what we've got here, which is to
+
+
+236
+00:07:03,786 --> 00:07:04,616
+make one of the boxes a
+
+
+237
+00:07:04,616 --> 00:07:05,276
+different color.
+
+
+238
+00:07:05,816 --> 00:07:07,006
+One way we might do that is by
+
+
+239
+00:07:07,046 --> 00:07:10,526
+changing the material color to
+
+
+240
+00:07:10,526 --> 00:07:11,066
+be red.
+
+
+241
+00:07:11,886 --> 00:07:14,576
+Now, what do I expect, as a user
+
+
+242
+00:07:14,576 --> 00:07:16,056
+of this API, to happen at this
+
+
+243
+00:07:16,056 --> 00:07:16,366
+point?
+
+
+244
+00:07:17,206 --> 00:07:19,556
+Should both boxes change because
+
+
+245
+00:07:19,776 --> 00:07:21,026
+I've changed the variable they
+
+
+246
+00:07:21,026 --> 00:07:22,186
+were both created out of?
+
+
+247
+00:07:23,066 --> 00:07:24,516
+Or should only the subsequent
+
+
+248
+00:07:24,516 --> 00:07:26,706
+box that I create make use of
+
+
+249
+00:07:26,706 --> 00:07:27,396
+this new change?
+
+
+250
+00:07:27,796 --> 00:07:29,526
+That is, should material act
+
+
+251
+00:07:29,836 --> 00:07:32,156
+like a reference type or a value
+
+
+252
+00:07:32,156 --> 00:07:32,446
+type?
+
+
+253
+00:07:33,216 --> 00:07:35,666
+And either model would be a
+
+
+254
+00:07:35,736 --> 00:07:37,166
+reasonable design for an API.
+
+
+255
+00:07:37,166 --> 00:07:39,636
+The benefit of using value types
+
+
+256
+00:07:39,636 --> 00:07:40,766
+for this, though, is that if
+
+
+257
+00:07:40,766 --> 00:07:41,966
+there's a long distance in your
+
+
+258
+00:07:42,036 --> 00:07:43,776
+code between when you first
+
+
+259
+00:07:43,776 --> 00:07:45,176
+created and used the material
+
+
+260
+00:07:45,176 --> 00:07:46,666
+type and when you change it,
+
+
+261
+00:07:47,226 --> 00:07:48,536
+then you might forget that you
+
+
+262
+00:07:48,536 --> 00:07:49,526
+had used it previously.
+
+
+263
+00:07:49,526 --> 00:07:50,976
+And you might end up changing a
+
+
+264
+00:07:50,976 --> 00:07:51,816
+part of the scene that you
+
+
+265
+00:07:51,816 --> 00:07:52,766
+didn't expect.
+
+
+266
+00:07:53,596 --> 00:07:54,726
+And so for that reason,
+
+
+267
+00:07:54,726 --> 00:07:56,086
+RealityKit does choose to make
+
+
+268
+00:07:56,116 --> 00:07:57,946
+material a value type.
+
+
+269
+00:07:58,926 --> 00:08:00,316
+But reference semantics also
+
+
+270
+00:08:00,316 --> 00:08:01,956
+make sense for other APIs like
+
+
+271
+00:08:01,956 --> 00:08:03,246
+we've seen with entities.
+
+
+272
+00:08:04,236 --> 00:08:06,666
+What's important is that your
+
+
+273
+00:08:06,666 --> 00:08:09,906
+API has an easy to explain model
+
+
+274
+00:08:10,066 --> 00:08:12,536
+for how things behave and why.
+
+
+275
+00:08:13,246 --> 00:08:16,006
+And most importantly, how that
+
+
+276
+00:08:16,006 --> 00:08:17,636
+behavior works should not be
+
+
+277
+00:08:17,636 --> 00:08:19,676
+driven by incidental
+
+
+278
+00:08:19,676 --> 00:08:21,556
+implementation details of the
+
+
+279
+00:08:21,556 --> 00:08:22,056
+types.
+
+
+280
+00:08:22,296 --> 00:08:22,896
+But instead should be a
+
+
+281
+00:08:22,896 --> 00:08:24,686
+conscious choice based on the
+
+
+282
+00:08:24,686 --> 00:08:25,296
+use cases.
+
+
+283
+00:08:26,626 --> 00:08:27,736
+So, what do I mean by an
+
+
+284
+00:08:27,736 --> 00:08:28,896
+accidental implementation
+
+
+285
+00:08:28,896 --> 00:08:29,236
+detail?
+
+
+286
+00:08:29,236 --> 00:08:30,966
+Well, let's have a look at an
+
+
+287
+00:08:30,966 --> 00:08:32,096
+example type.
+
+
+288
+00:08:32,426 --> 00:08:33,765
+Let's say a material type.
+
+
+289
+00:08:33,996 --> 00:08:36,836
+And I want it to act like a
+
+
+290
+00:08:36,836 --> 00:08:38,296
+value, so I make it a struct.
+
+
+291
+00:08:38,506 --> 00:08:39,635
+And I give it a couple of simple
+
+
+292
+00:08:39,635 --> 00:08:41,106
+properties such as roughness.
+
+
+293
+00:08:41,106 --> 00:08:43,006
+And then I give it a texture
+
+
+294
+00:08:43,006 --> 00:08:43,476
+property.
+
+
+295
+00:08:43,856 --> 00:08:45,376
+And let's say that that texture
+
+
+296
+00:08:45,376 --> 00:08:46,536
+property needs to manage
+
+
+297
+00:08:46,536 --> 00:08:48,056
+resources with reference
+
+
+298
+00:08:48,056 --> 00:08:48,486
+counting.
+
+
+299
+00:08:48,486 --> 00:08:50,816
+So I decide to make it a class.
+
+
+300
+00:08:52,106 --> 00:08:53,906
+Now, we said a moment ago that
+
+
+301
+00:08:53,906 --> 00:08:55,246
+when you make a copy of a value
+
+
+302
+00:08:55,246 --> 00:08:56,936
+type, you copy all of its stored
+
+
+303
+00:08:56,936 --> 00:08:57,426
+properties.
+
+
+304
+00:08:58,086 --> 00:08:59,196
+But that when you copy a
+
+
+305
+00:08:59,196 --> 00:09:00,926
+reference type, you're just
+
+
+306
+00:09:00,926 --> 00:09:02,376
+copying that reference.
+
+
+307
+00:09:03,226 --> 00:09:04,936
+And so when you make a copy of
+
+
+308
+00:09:04,936 --> 00:09:06,776
+this material type, what will
+
+
+309
+00:09:06,776 --> 00:09:08,296
+end up happening is that they
+
+
+310
+00:09:08,296 --> 00:09:09,656
+make a copy of the reference.
+
+
+311
+00:09:09,686 --> 00:09:10,996
+And so the two types end up
+
+
+312
+00:09:11,226 --> 00:09:13,186
+sharing the same texture object.
+
+
+313
+00:09:14,576 --> 00:09:16,096
+Now, whether that's okay or not
+
+
+314
+00:09:16,626 --> 00:09:17,356
+really depends on the
+
+
+315
+00:09:17,356 --> 00:09:18,726
+implementation of texture.
+
+
+316
+00:09:19,106 --> 00:09:21,016
+If textures are immutable, then
+
+
+317
+00:09:21,016 --> 00:09:21,966
+it's perfectly fine.
+
+
+318
+00:09:21,966 --> 00:09:23,576
+In fact, it's pretty desirable
+
+
+319
+00:09:23,576 --> 00:09:24,696
+from a sharing perspective.
+
+
+320
+00:09:26,066 --> 00:09:27,326
+But if texture were
+
+
+321
+00:09:27,326 --> 00:09:28,996
+fundamentally a mutable type,
+
+
+322
+00:09:29,806 --> 00:09:30,876
+then what I've created here is
+
+
+323
+00:09:30,876 --> 00:09:32,116
+actually slightly strange.
+
+
+324
+00:09:32,116 --> 00:09:33,256
+It behaves neither like a
+
+
+325
+00:09:33,256 --> 00:09:35,016
+reference, nor a value.
+
+
+326
+00:09:35,426 --> 00:09:37,076
+I can make changes to properties
+
+
+327
+00:09:37,236 --> 00:09:37,886
+on the struct.
+
+
+328
+00:09:38,936 --> 00:09:40,276
+And it just affects one of the
+
+
+329
+00:09:40,276 --> 00:09:40,826
+variables.
+
+
+330
+00:09:40,856 --> 00:09:43,086
+But if I make changes through
+
+
+331
+00:09:43,086 --> 00:09:46,286
+the texture reference to the
+
+
+332
+00:09:46,286 --> 00:09:48,296
+object, then it affects both
+
+
+333
+00:09:48,296 --> 00:09:48,846
+variables.
+
+
+334
+00:09:49,066 --> 00:09:49,936
+And this can be really
+
+
+335
+00:09:49,936 --> 00:09:51,416
+surprising for users of your
+
+
+336
+00:09:51,416 --> 00:09:51,736
+API.
+
+
+337
+00:09:51,736 --> 00:09:53,336
+And probably more confusing than
+
+
+338
+00:09:53,336 --> 00:09:54,296
+if you had just stuck with
+
+
+339
+00:09:54,356 --> 00:09:56,006
+reference semantics all the way
+
+
+340
+00:09:56,006 --> 00:09:56,356
+through.
+
+
+341
+00:09:56,936 --> 00:09:59,466
+And so here we need to make a
+
+
+342
+00:09:59,466 --> 00:10:01,896
+really key distinction between
+
+
+343
+00:10:01,896 --> 00:10:03,906
+value and reference types,
+
+
+344
+00:10:04,306 --> 00:10:06,856
+Structs versus classes, and
+
+
+345
+00:10:06,856 --> 00:10:08,836
+value and reference semantics,
+
+
+346
+00:10:09,116 --> 00:10:10,836
+how the type behaves.
+
+
+347
+00:10:12,376 --> 00:10:13,916
+Just because something is a
+
+
+348
+00:10:13,916 --> 00:10:15,146
+value type, like a struct,
+
+
+349
+00:10:15,286 --> 00:10:16,856
+doesn't necessarily meant that
+
+
+350
+00:10:16,856 --> 00:10:18,826
+you automatically get value
+
+
+351
+00:10:18,826 --> 00:10:20,266
+behavior from it.
+
+
+352
+00:10:20,496 --> 00:10:22,006
+One way that you might not, not
+
+
+353
+00:10:22,006 --> 00:10:23,386
+the only way, but a common way,
+
+
+354
+00:10:23,866 --> 00:10:25,966
+is if you include a mutable
+
+
+355
+00:10:26,376 --> 00:10:27,826
+reference type as part of its
+
+
+356
+00:10:27,866 --> 00:10:28,616
+public API.
+
+
+357
+00:10:28,616 --> 00:10:31,086
+So the first question if you
+
+
+358
+00:10:31,086 --> 00:10:32,176
+wanted something to behave like
+
+
+359
+00:10:32,176 --> 00:10:33,456
+a value is: Are any of the
+
+
+360
+00:10:33,456 --> 00:10:35,486
+reference it exposes mutable?
+
+
+361
+00:10:36,686 --> 00:10:38,416
+And bear in mind, this isn't
+
+
+362
+00:10:38,416 --> 00:10:39,466
+always obvious.
+
+
+363
+00:10:40,056 --> 00:10:41,446
+If we were dealing with a
+
+
+364
+00:10:41,446 --> 00:10:43,696
+non-final class, then what you
+
+
+365
+00:10:43,696 --> 00:10:46,046
+might actually have is a mutable
+
+
+366
+00:10:46,226 --> 00:10:47,036
+subclass.
+
+
+367
+00:10:47,436 --> 00:10:49,536
+Luckily there are lots of
+
+
+368
+00:10:49,536 --> 00:10:51,436
+techniques we have to avoid
+
+
+369
+00:10:51,436 --> 00:10:52,496
+problems like this.
+
+
+370
+00:10:53,616 --> 00:10:55,986
+So the easiest one is to do what
+
+
+371
+00:10:55,986 --> 00:10:56,946
+we've always done with reference
+
+
+372
+00:10:56,946 --> 00:10:58,016
+types, which is to make a
+
+
+373
+00:10:58,016 --> 00:10:58,956
+defensive copy.
+
+
+374
+00:10:59,316 --> 00:11:00,846
+So we could switch our texture
+
+
+375
+00:11:00,846 --> 00:11:02,396
+stored property to be private.
+
+
+376
+00:11:03,476 --> 00:11:05,526
+And then instead have a computed
+
+
+377
+00:11:05,526 --> 00:11:05,966
+property.
+
+
+378
+00:11:06,296 --> 00:11:08,816
+And inside the setter, we just
+
+
+379
+00:11:08,816 --> 00:11:10,346
+make a copy of the texture
+
+
+380
+00:11:10,346 --> 00:11:10,726
+object.
+
+
+381
+00:11:11,286 --> 00:11:12,996
+And this avoids the mutable
+
+
+382
+00:11:12,996 --> 00:11:14,226
+subclass problem.
+
+
+383
+00:11:15,176 --> 00:11:16,396
+But, it doesn't solve the
+
+
+384
+00:11:16,396 --> 00:11:17,566
+problem if texture is
+
+
+385
+00:11:17,566 --> 00:11:19,506
+fundamentally a mutable type
+
+
+386
+00:11:20,036 --> 00:11:21,366
+because you could still mutate
+
+
+387
+00:11:21,366 --> 00:11:22,426
+it just through the getter
+
+
+388
+00:11:22,426 --> 00:11:22,916
+property.
+
+
+389
+00:11:22,976 --> 00:11:24,166
+That's how references work.
+
+
+390
+00:11:25,036 --> 00:11:26,806
+And so let's consider another
+
+
+391
+00:11:26,806 --> 00:11:29,886
+option, which is to not expose
+
+
+392
+00:11:29,886 --> 00:11:31,436
+the reference type at all.
+
+
+393
+00:11:31,766 --> 00:11:34,326
+And instead, to just expose the
+
+
+394
+00:11:34,326 --> 00:11:36,346
+properties we want on the object
+
+
+395
+00:11:36,866 --> 00:11:38,526
+as computed properties on our
+
+
+396
+00:11:38,526 --> 00:11:40,046
+material value type.
+
+
+397
+00:11:41,006 --> 00:11:42,676
+So, we can create a computed
+
+
+398
+00:11:42,676 --> 00:11:43,156
+property.
+
+
+399
+00:11:43,156 --> 00:11:44,496
+And in the getter, we just
+
+
+400
+00:11:44,496 --> 00:11:45,916
+forward on to the relevant
+
+
+401
+00:11:45,916 --> 00:11:46,846
+property of the object.
+
+
+402
+00:11:47,486 --> 00:11:50,196
+But in the setter, we can first
+
+
+403
+00:11:50,196 --> 00:11:53,106
+check if the object is known to
+
+
+404
+00:11:53,106 --> 00:11:54,226
+be uniquely referenced.
+
+
+405
+00:11:54,476 --> 00:11:56,836
+And if it's not, at that point
+
+
+406
+00:11:57,006 --> 00:11:59,026
+we can make a full copy of the
+
+
+407
+00:11:59,026 --> 00:12:01,226
+texture object before going on
+
+
+408
+00:12:01,226 --> 00:12:02,446
+and making our mutation.
+
+
+409
+00:12:03,556 --> 00:12:05,516
+By adding this one line to check
+
+
+410
+00:12:05,516 --> 00:12:06,756
+for uniqueness, we've
+
+
+411
+00:12:06,756 --> 00:12:09,216
+implemented full copy-on-write
+
+
+412
+00:12:09,396 --> 00:12:10,906
+value semantics while still
+
+
+413
+00:12:10,906 --> 00:12:12,276
+exposing the properties we want
+
+
+414
+00:12:12,566 --> 00:12:14,326
+on our reference type.
+
+
+415
+00:12:16,556 --> 00:12:17,996
+So next, let's talk a bit about
+
+
+416
+00:12:17,996 --> 00:12:19,546
+protocols and generics.
+
+
+417
+00:12:20,276 --> 00:12:21,976
+So, we've seen how value types
+
+
+418
+00:12:22,166 --> 00:12:24,676
+can add clarity at the point of
+
+
+419
+00:12:24,676 --> 00:12:25,856
+use to your API.
+
+
+420
+00:12:26,686 --> 00:12:28,356
+But, value types aren't new.
+
+
+421
+00:12:28,356 --> 00:12:30,306
+We've had types like CGPoint or
+
+
+422
+00:12:30,376 --> 00:12:32,366
+CGrect in Objective-C all along.
+
+
+423
+00:12:33,036 --> 00:12:33,786
+So what's different?
+
+
+424
+00:12:33,836 --> 00:12:35,646
+Well, what's different in Swift
+
+
+425
+00:12:36,036 --> 00:12:37,236
+is the ability to apply
+
+
+426
+00:12:37,436 --> 00:12:39,896
+protocols to Structs and Enums
+
+
+427
+00:12:40,506 --> 00:12:41,966
+as well as just classes.
+
+
+428
+00:12:42,506 --> 00:12:43,976
+And that means you can share
+
+
+429
+00:12:43,976 --> 00:12:45,726
+code across a variety of types
+
+
+430
+00:12:46,036 --> 00:12:47,016
+using generics.
+
+
+431
+00:12:47,816 --> 00:12:49,376
+And so if you feel you need to
+
+
+432
+00:12:49,376 --> 00:12:50,406
+share some code between
+
+
+433
+00:12:50,406 --> 00:12:51,586
+different types, don't feel like
+
+
+434
+00:12:51,586 --> 00:12:53,576
+you have to create a class
+
+
+435
+00:12:53,576 --> 00:12:55,466
+hierarchy with a base class that
+
+
+436
+00:12:55,466 --> 00:12:57,106
+has that shared functionality.
+
+
+437
+00:12:58,286 --> 00:13:00,756
+Instead, as the saying goes, in
+
+
+438
+00:13:00,756 --> 00:13:02,876
+Swift, start with a protocol.
+
+
+439
+00:13:04,176 --> 00:13:06,906
+But, that doesn't mean that when
+
+
+440
+00:13:06,906 --> 00:13:08,596
+you open up XCode and you've got
+
+
+441
+00:13:08,596 --> 00:13:09,816
+an empty source file you type
+
+
+442
+00:13:09,816 --> 00:13:11,036
+the keyword "protocol" as your
+
+
+443
+00:13:11,036 --> 00:13:12,356
+first thing.
+
+
+444
+00:13:12,986 --> 00:13:14,766
+In Swift API design, like any
+
+
+445
+00:13:14,766 --> 00:13:16,606
+Swift design, first explore the
+
+
+446
+00:13:16,606 --> 00:13:18,546
+use case with concrete types.
+
+
+447
+00:13:18,546 --> 00:13:20,376
+And understand what code it is
+
+
+448
+00:13:20,376 --> 00:13:21,466
+that you want to share when you
+
+
+449
+00:13:21,466 --> 00:13:23,686
+find yourself repeating multiple
+
+
+450
+00:13:23,686 --> 00:13:25,086
+functions on different types.
+
+
+451
+00:13:25,706 --> 00:13:27,516
+And then factor that shared code
+
+
+452
+00:13:27,516 --> 00:13:29,196
+out using generics.
+
+
+453
+00:13:30,106 --> 00:13:32,026
+Now, that might mean creating
+
+
+454
+00:13:32,026 --> 00:13:32,906
+new protocols.
+
+
+455
+00:13:33,336 --> 00:13:35,616
+But first, consider composing
+
+
+456
+00:13:35,616 --> 00:13:37,516
+what you need out of existing
+
+
+457
+00:13:37,516 --> 00:13:38,186
+protocols.
+
+
+458
+00:13:38,296 --> 00:13:39,096
+And when you're designing
+
+
+459
+00:13:39,096 --> 00:13:40,446
+protocols, make sure that they
+
+
+460
+00:13:40,446 --> 00:13:41,426
+are composable.
+
+
+461
+00:13:42,106 --> 00:13:44,876
+And as an alternative to
+
+
+462
+00:13:44,876 --> 00:13:46,866
+creating a protocol, consider
+
+
+463
+00:13:47,376 --> 00:13:49,506
+creating a generic type instead.
+
+
+464
+00:13:50,456 --> 00:13:51,896
+So let's have a look at some
+
+
+465
+00:13:51,896 --> 00:13:53,256
+examples that show some of these
+
+
+466
+00:13:53,256 --> 00:13:53,816
+different things.
+
+
+467
+00:13:54,466 --> 00:13:56,316
+So, let's say I wanted to create
+
+
+468
+00:13:56,316 --> 00:13:57,236
+a geometry API.
+
+
+469
+00:13:57,546 --> 00:13:59,206
+And as part of that, I wanted to
+
+
+470
+00:13:59,206 --> 00:14:01,516
+create operations on geometric
+
+
+471
+00:14:01,516 --> 00:14:02,036
+vectors.
+
+
+472
+00:14:02,036 --> 00:14:05,186
+I might start off by creating a
+
+
+473
+00:14:05,186 --> 00:14:06,706
+protocol for a geometric vector.
+
+
+474
+00:14:07,086 --> 00:14:08,096
+And I could give it the
+
+
+475
+00:14:08,096 --> 00:14:09,156
+operations that I want to
+
+
+476
+00:14:09,156 --> 00:14:11,816
+define, like dot product or the
+
+
+477
+00:14:11,816 --> 00:14:13,356
+distance between two vectors.
+
+
+478
+00:14:15,726 --> 00:14:17,556
+Now, I need to store the
+
+
+479
+00:14:17,556 --> 00:14:18,636
+dimensions of the vector.
+
+
+480
+00:14:18,636 --> 00:14:21,176
+So I might make my geometric
+
+
+481
+00:14:21,176 --> 00:14:23,656
+vector refine the SIMD protocol.
+
+
+482
+00:14:23,956 --> 00:14:25,226
+If you're not already familiar
+
+
+483
+00:14:25,226 --> 00:14:26,326
+with SIMD types, they're
+
+
+484
+00:14:26,326 --> 00:14:27,466
+basically like kind of
+
+
+485
+00:14:27,466 --> 00:14:28,616
+homogenous tuples that can
+
+
+486
+00:14:28,616 --> 00:14:30,016
+very efficiently perform
+
+
+487
+00:14:30,016 --> 00:14:32,256
+calculations on every element at
+
+
+488
+00:14:32,256 --> 00:14:32,816
+once.
+
+
+489
+00:14:33,656 --> 00:14:34,836
+And they've got a lot great new
+
+
+490
+00:14:34,836 --> 00:14:36,246
+features in Swift 5.1.
+
+
+491
+00:14:36,676 --> 00:14:38,186
+And they're perfect for doing
+
+
+492
+00:14:38,276 --> 00:14:39,346
+geometry calculations.
+
+
+493
+00:14:39,776 --> 00:14:40,696
+So, we're going to store our
+
+
+494
+00:14:40,696 --> 00:14:42,166
+dimensions in that base SIMD
+
+
+495
+00:14:42,166 --> 00:14:42,656
+type.
+
+
+496
+00:14:42,656 --> 00:14:44,086
+And we'll also want to constrain
+
+
+497
+00:14:44,086 --> 00:14:46,636
+it to only work on scalar SIMDs
+
+
+498
+00:14:46,896 --> 00:14:47,526
+so that we can do the
+
+
+499
+00:14:47,526 --> 00:14:49,716
+calculations we want.
+
+
+500
+00:14:49,926 --> 00:14:50,896
+Now, once we've defined this
+
+
+501
+00:14:50,896 --> 00:14:52,476
+protocol, we could then go and
+
+
+502
+00:14:52,476 --> 00:14:53,396
+implement default
+
+
+503
+00:14:53,396 --> 00:14:55,066
+implementations for all of the
+
+
+504
+00:14:55,066 --> 00:14:56,266
+operations we want to do on
+
+
+505
+00:14:56,266 --> 00:14:56,816
+vectors.
+
+
+506
+00:14:57,706 --> 00:14:59,796
+And then we want to give a
+
+
+507
+00:14:59,796 --> 00:15:02,716
+conformance to this protocol to
+
+
+508
+00:15:02,946 --> 00:15:04,046
+each of the types that we want
+
+
+509
+00:15:04,046 --> 00:15:05,616
+to get these new capabilities.
+
+
+510
+00:15:06,286 --> 00:15:08,586
+And this three-step process of
+
+
+511
+00:15:08,826 --> 00:15:10,666
+defining the protocol, giving it
+
+
+512
+00:15:10,666 --> 00:15:12,346
+a default implementation, and
+
+
+513
+00:15:12,346 --> 00:15:13,696
+then adding a conformance to
+
+
+514
+00:15:13,696 --> 00:15:15,016
+multiple types, it's actually
+
+
+515
+00:15:15,056 --> 00:15:15,906
+kind of tedious.
+
+
+516
+00:15:16,316 --> 00:15:17,436
+And it's worth taking a step
+
+
+517
+00:15:17,436 --> 00:15:18,516
+back for a second and saying:
+
+
+518
+00:15:19,076 --> 00:15:20,566
+Was the protocol really
+
+
+519
+00:15:20,566 --> 00:15:21,296
+necessary?
+
+
+520
+00:15:22,136 --> 00:15:23,756
+The fact that none of these
+
+
+521
+00:15:23,756 --> 00:15:25,276
+conformances actually have their
+
+
+522
+00:15:25,276 --> 00:15:27,476
+own custom implementation is
+
+
+523
+00:15:27,476 --> 00:15:28,986
+actually kind of a warning sign
+
+
+524
+00:15:29,086 --> 00:15:30,366
+that maybe the protocol isn't
+
+
+525
+00:15:30,366 --> 00:15:30,786
+useful.
+
+
+526
+00:15:30,966 --> 00:15:31,946
+There's no per type
+
+
+527
+00:15:31,976 --> 00:15:33,186
+customization going on.
+
+
+528
+00:15:33,586 --> 00:15:34,916
+And in fact, this operation
+
+
+529
+00:15:34,916 --> 00:15:36,456
+works on every different kind of
+
+
+530
+00:15:36,456 --> 00:15:37,136
+SIMD type.
+
+
+531
+00:15:38,156 --> 00:15:39,906
+So, is the protocol really
+
+
+532
+00:15:39,906 --> 00:15:40,696
+giving us anything?
+
+
+533
+00:15:42,146 --> 00:15:43,506
+If we take a step back, and
+
+
+534
+00:15:43,506 --> 00:15:45,116
+instead of writing our default
+
+
+535
+00:15:45,116 --> 00:15:46,116
+implementation on our new
+
+
+536
+00:15:46,116 --> 00:15:48,856
+protocol, we just write it as an
+
+
+537
+00:15:48,856 --> 00:15:51,296
+extension directly on the SIMD
+
+
+538
+00:15:51,296 --> 00:15:52,136
+protocol with the same
+
+
+539
+00:15:52,136 --> 00:15:54,316
+constraints, then we're done.
+
+
+540
+00:15:54,366 --> 00:15:55,836
+In this single page of code
+
+
+541
+00:15:56,056 --> 00:15:57,746
+we've automatically given all of
+
+
+542
+00:15:57,746 --> 00:15:59,776
+the capabilities we need to all
+
+
+543
+00:15:59,776 --> 00:16:01,086
+of the SIMD types that contain
+
+
+544
+00:16:01,086 --> 00:16:01,616
+floats.
+
+
+545
+00:16:03,406 --> 00:16:04,846
+It might feel tempting sometimes
+
+
+546
+00:16:04,846 --> 00:16:06,236
+to create this elaborate
+
+
+547
+00:16:06,236 --> 00:16:08,046
+hierarchy of protocols and to
+
+
+548
+00:16:08,046 --> 00:16:09,796
+classify the different types
+
+
+549
+00:16:09,866 --> 00:16:10,916
+into this hierarchy.
+
+
+550
+00:16:11,416 --> 00:16:12,986
+But this sort of type zoology,
+
+
+551
+00:16:12,986 --> 00:16:14,536
+which it feels satisfying, isn't
+
+
+552
+00:16:14,536 --> 00:16:16,106
+always necessary.
+
+
+553
+00:16:17,186 --> 00:16:19,226
+And there's also a practical
+
+
+554
+00:16:19,226 --> 00:16:20,076
+consideration here.
+
+
+555
+00:16:20,706 --> 00:16:22,646
+This simpler extension-based
+
+
+556
+00:16:22,646 --> 00:16:24,246
+approach without the protocol is
+
+
+557
+00:16:24,246 --> 00:16:25,886
+a lot easier for the compiler to
+
+
+558
+00:16:25,886 --> 00:16:26,566
+process.
+
+
+559
+00:16:27,186 --> 00:16:28,276
+And your binary sites will be
+
+
+560
+00:16:28,276 --> 00:16:29,486
+smaller without a bunch of
+
+
+561
+00:16:29,486 --> 00:16:30,816
+unnecessary protocol witness
+
+
+562
+00:16:30,816 --> 00:16:31,436
+tables in it.
+
+
+563
+00:16:32,746 --> 00:16:34,056
+In fact, we've found that on
+
+
+564
+00:16:34,146 --> 00:16:36,006
+very large projects, with a
+
+
+565
+00:16:36,006 --> 00:16:38,186
+large number of complex protocol
+
+
+566
+00:16:38,186 --> 00:16:40,686
+types, we could significantly
+
+
+567
+00:16:40,686 --> 00:16:42,296
+improve the compile time of
+
+
+568
+00:16:42,296 --> 00:16:45,306
+those applications by taking
+
+
+569
+00:16:45,306 --> 00:16:46,636
+this simplification approach and
+
+
+570
+00:16:46,636 --> 00:16:47,406
+reducing the number of
+
+
+571
+00:16:47,406 --> 00:16:48,056
+protocols.
+
+
+572
+00:16:50,186 --> 00:16:52,856
+Now, this extension approach is
+
+
+573
+00:16:52,856 --> 00:16:54,046
+good for a small number of
+
+
+574
+00:16:54,046 --> 00:16:54,576
+helpers.
+
+
+575
+00:16:54,946 --> 00:16:56,296
+But it does hit a scalability
+
+
+576
+00:16:56,296 --> 00:16:57,596
+problem when you're designing a
+
+
+577
+00:16:57,596 --> 00:16:58,416
+fuller API.
+
+
+578
+00:16:58,416 --> 00:17:01,516
+Earlier when we're thinking
+
+
+579
+00:17:01,516 --> 00:17:03,676
+about creating a protocol, we
+
+
+580
+00:17:03,676 --> 00:17:05,636
+said that we'd define geometric
+
+
+581
+00:17:05,636 --> 00:17:07,836
+vector and make it refine SIMD,
+
+
+582
+00:17:08,136 --> 00:17:09,636
+which we'd use for our storage.
+
+
+583
+00:17:10,455 --> 00:17:11,846
+But is that really right?
+
+
+584
+00:17:11,976 --> 00:17:14,336
+Is this an Is-a relationship?
+
+
+585
+00:17:14,336 --> 00:17:16,046
+Can we really say a geometric
+
+
+586
+00:17:16,046 --> 00:17:18,415
+vector "is a" SIMD type?
+
+
+587
+00:17:18,415 --> 00:17:20,786
+I mean, some operations make
+
+
+588
+00:17:20,786 --> 00:17:21,096
+sense.
+
+
+589
+00:17:21,096 --> 00:17:22,836
+You can add and subtract
+
+
+590
+00:17:22,836 --> 00:17:23,326
+vectors.
+
+
+591
+00:17:23,965 --> 00:17:24,776
+But others don't.
+
+
+592
+00:17:24,776 --> 00:17:26,546
+You can't multiply two vectors
+
+
+593
+00:17:26,546 --> 00:17:27,296
+by each other.
+
+
+594
+00:17:27,296 --> 00:17:29,826
+Or add the number 1 to a vector.
+
+
+595
+00:17:29,826 --> 00:17:31,886
+But these operations are
+
+
+596
+00:17:31,886 --> 00:17:33,736
+available on all SIMD types.
+
+
+597
+00:17:33,946 --> 00:17:35,266
+And have other definitions that
+
+
+598
+00:17:35,266 --> 00:17:37,276
+do make sense in other contexts.
+
+
+599
+00:17:37,276 --> 00:17:38,626
+Just not in the context of
+
+
+600
+00:17:38,676 --> 00:17:39,206
+geometry.
+
+
+601
+00:17:40,326 --> 00:17:41,986
+And so if we were designing an
+
+
+602
+00:17:41,986 --> 00:17:43,856
+API that would be easy to use,
+
+
+603
+00:17:44,126 --> 00:17:45,316
+then we might consider another
+
+
+604
+00:17:45,316 --> 00:17:46,586
+option, which is instead of an
+
+
+605
+00:17:46,586 --> 00:17:48,906
+Is-a relationship to implement
+
+
+606
+00:17:48,906 --> 00:17:50,366
+as a has-a relationship.
+
+
+607
+00:17:50,856 --> 00:17:53,236
+That is, to wrap a SIMD value
+
+
+608
+00:17:53,676 --> 00:17:55,256
+inside a generic struct.
+
+
+609
+00:17:55,866 --> 00:17:57,666
+So we could create instead a
+
+
+610
+00:17:57,666 --> 00:17:59,506
+struct of geometric vector.
+
+
+611
+00:17:59,786 --> 00:18:02,096
+And we make it generic over our
+
+
+612
+00:18:02,096 --> 00:18:03,936
+SIMD storage type so that it can
+
+
+613
+00:18:03,936 --> 00:18:05,816
+handle any floating point type
+
+
+614
+00:18:06,086 --> 00:18:07,226
+and any different number of
+
+
+615
+00:18:07,226 --> 00:18:07,736
+dimensions.
+
+
+616
+00:18:08,366 --> 00:18:11,166
+And then once we've done this,
+
+
+617
+00:18:11,166 --> 00:18:13,086
+we have much more fine-grained
+
+
+618
+00:18:13,086 --> 00:18:15,116
+control over exactly what API we
+
+
+619
+00:18:15,116 --> 00:18:16,586
+expose on our new type.
+
+
+620
+00:18:17,566 --> 00:18:19,956
+So we can define addition of two
+
+
+621
+00:18:19,956 --> 00:18:20,926
+vectors to each other.
+
+
+622
+00:18:21,296 --> 00:18:23,096
+But not addition of a single
+
+
+623
+00:18:23,096 --> 00:18:24,126
+number to a vector.
+
+
+624
+00:18:24,416 --> 00:18:26,556
+Or we can define multiplication
+
+
+625
+00:18:27,056 --> 00:18:29,156
+of a vector by a scaling factor,
+
+
+626
+00:18:29,156 --> 00:18:31,386
+but not multiplication of two
+
+
+627
+00:18:31,386 --> 00:18:33,196
+vectors by each other.
+
+
+628
+00:18:35,286 --> 00:18:36,946
+And we can still use generic
+
+
+629
+00:18:36,946 --> 00:18:37,546
+extensions.
+
+
+630
+00:18:37,546 --> 00:18:39,376
+So our implementations of dot
+
+
+631
+00:18:39,426 --> 00:18:41,226
+product and distance remain
+
+
+632
+00:18:41,226 --> 00:18:42,256
+pretty much the same as they did
+
+
+633
+00:18:42,256 --> 00:18:42,676
+before.
+
+
+634
+00:18:43,306 --> 00:18:45,876
+Now, we've actually used this
+
+
+635
+00:18:45,876 --> 00:18:47,006
+technique within the standard
+
+
+636
+00:18:47,006 --> 00:18:47,796
+library.
+
+
+637
+00:18:47,796 --> 00:18:49,906
+For example, we just have one
+
+
+638
+00:18:49,906 --> 00:18:50,966
+SIMD protocol.
+
+
+639
+00:18:51,166 --> 00:18:53,406
+And then we have Structs that
+
+
+640
+00:18:53,406 --> 00:18:54,766
+are generic that represent each
+
+
+641
+00:18:54,766 --> 00:18:56,716
+of the different sizes of SIMD
+
+
+642
+00:18:56,716 --> 00:18:56,996
+type.
+
+
+643
+00:18:57,466 --> 00:19:00,676
+Notice that there's no SIMD2 or
+
+
+644
+00:19:00,716 --> 00:19:02,016
+SIMD3 protocol here.
+
+
+645
+00:19:02,016 --> 00:19:02,966
+They wouldn't necessarily add
+
+
+646
+00:19:02,966 --> 00:19:03,616
+much value.
+
+
+647
+00:19:04,626 --> 00:19:06,166
+Users can still write generic
+
+
+648
+00:19:06,166 --> 00:19:08,216
+code for a specific size of SIMD
+
+
+649
+00:19:08,756 --> 00:19:11,136
+by extending, say, the SIMD3
+
+
+650
+00:19:11,136 --> 00:19:12,846
+type with the cross product
+
+
+651
+00:19:12,846 --> 00:19:14,146
+operation you would only want to
+
+
+652
+00:19:14,146 --> 00:19:16,146
+define on three-dimensional SIMD
+
+
+653
+00:19:17,046 --> 00:19:17,176
+types.
+
+
+654
+00:19:17,856 --> 00:19:19,486
+So hopefully this gives you a
+
+
+655
+00:19:19,486 --> 00:19:21,376
+feel for how generic types can
+
+
+656
+00:19:21,376 --> 00:19:22,966
+be just as powerful and
+
+
+657
+00:19:22,966 --> 00:19:25,096
+extensible as protocols can be.
+
+
+658
+00:19:25,906 --> 00:19:27,236
+Now, we're still using the power
+
+
+659
+00:19:27,236 --> 00:19:28,006
+of protocols here.
+
+
+660
+00:19:28,976 --> 00:19:30,106
+We have our floating point
+
+
+661
+00:19:30,106 --> 00:19:31,896
+protocol constraining the scalar
+
+
+662
+00:19:31,896 --> 00:19:33,666
+type on the generic SIMD that
+
+
+663
+00:19:33,666 --> 00:19:34,776
+gives us the building blocks
+
+
+664
+00:19:34,776 --> 00:19:38,726
+that we need to write this code.
+
+
+665
+00:19:39,276 --> 00:19:40,796
+Now, we could write this same
+
+
+666
+00:19:40,796 --> 00:19:42,656
+cross product operation on our
+
+
+667
+00:19:42,656 --> 00:19:43,856
+geometric vector type.
+
+
+668
+00:19:44,426 --> 00:19:45,706
+But when we do, the
+
+
+669
+00:19:45,706 --> 00:19:47,276
+implementation looks a little
+
+
+670
+00:19:47,276 --> 00:19:48,116
+bit ugly.
+
+
+671
+00:19:48,606 --> 00:19:49,486
+Because we keep having to
+
+
+672
+00:19:49,536 --> 00:19:51,006
+indirect through the value
+
+
+673
+00:19:51,006 --> 00:19:52,356
+storage in order to get at the
+
+
+674
+00:19:52,356 --> 00:19:54,156
+x, y, and z coordinates.
+
+
+675
+00:19:54,496 --> 00:19:56,046
+And so it would be nice if we
+
+
+676
+00:19:56,046 --> 00:19:56,806
+could clean this up.
+
+
+677
+00:19:57,246 --> 00:19:58,616
+Now, obviously we could just
+
+
+678
+00:19:58,616 --> 00:19:59,946
+write computed properties on our
+
+
+679
+00:19:59,946 --> 00:20:01,516
+vector type for x, y, and z.
+
+
+680
+00:20:01,576 --> 00:20:02,896
+But there's actually a new
+
+
+681
+00:20:02,896 --> 00:20:05,846
+feature in Swift 5.1 called Key
+
+
+682
+00:20:05,846 --> 00:20:07,876
+Path Member Lookup that allows
+
+
+683
+00:20:07,876 --> 00:20:09,696
+you to write a single subscript
+
+
+684
+00:20:09,696 --> 00:20:11,446
+operation that exposes multiple
+
+
+685
+00:20:11,636 --> 00:20:13,766
+different computed properties on
+
+
+686
+00:20:13,766 --> 00:20:15,286
+a type all in one go.
+
+
+687
+00:20:15,286 --> 00:20:18,096
+And so we could use this if we
+
+
+688
+00:20:18,096 --> 00:20:20,426
+chose to, if it made sense, to
+
+
+689
+00:20:20,426 --> 00:20:22,256
+expose all of the properties on
+
+
+690
+00:20:22,256 --> 00:20:25,266
+SIMD on our geometric vector all
+
+
+691
+00:20:25,266 --> 00:20:25,836
+in one swoop.
+
+
+692
+00:20:26,396 --> 00:20:27,366
+Let's have a look at how we'd do
+
+
+693
+00:20:27,366 --> 00:20:27,536
+that.
+
+
+694
+00:20:28,506 --> 00:20:31,296
+So first we tag our geometric
+
+
+695
+00:20:31,296 --> 00:20:32,646
+vector type with the dynamic
+
+
+696
+00:20:32,706 --> 00:20:33,886
+member lookup attribute.
+
+
+697
+00:20:34,686 --> 00:20:37,936
+And then next, the compiler will
+
+
+698
+00:20:37,936 --> 00:20:39,146
+prompt us to write a special
+
+
+699
+00:20:39,236 --> 00:20:40,546
+dynamic member subscript.
+
+
+700
+00:20:41,136 --> 00:20:44,516
+And this subscript takes a key
+
+
+701
+00:20:44,866 --> 00:20:44,966
+path.
+
+
+702
+00:20:44,966 --> 00:20:46,206
+And the effect of implementing
+
+
+703
+00:20:46,206 --> 00:20:47,746
+this subscript is that any
+
+
+704
+00:20:47,806 --> 00:20:49,606
+property that is accessible via
+
+
+705
+00:20:49,606 --> 00:20:52,096
+that key path automatically is
+
+
+706
+00:20:52,096 --> 00:20:53,826
+exposed as a computed property
+
+
+707
+00:20:54,256 --> 00:20:56,436
+on our geometric vector type.
+
+
+708
+00:20:56,946 --> 00:20:58,336
+So in our case, we want to take
+
+
+709
+00:20:58,386 --> 00:21:00,556
+a key path into the SIMD storage
+
+
+710
+00:21:00,556 --> 00:21:02,086
+type and have it return a
+
+
+711
+00:21:02,086 --> 00:21:02,496
+scalar.
+
+
+712
+00:21:02,956 --> 00:21:04,336
+And then we just use that key
+
+
+713
+00:21:04,336 --> 00:21:05,766
+path to forward on and retrieve
+
+
+714
+00:21:05,766 --> 00:21:08,076
+the value from our value storage
+
+
+715
+00:21:08,076 --> 00:21:08,516
+and return it.
+
+
+716
+00:21:08,516 --> 00:21:11,076
+And once we've done this,
+
+
+717
+00:21:11,156 --> 00:21:12,946
+automatically our geometric
+
+
+718
+00:21:12,946 --> 00:21:13,826
+vector gets all of the
+
+
+719
+00:21:13,826 --> 00:21:15,216
+properties that SIMD has.
+
+
+720
+00:21:16,036 --> 00:21:17,806
+So for example, it gets the x,
+
+
+721
+00:21:17,806 --> 00:21:18,816
+y, and z coordinates.
+
+
+722
+00:21:18,996 --> 00:21:20,036
+And they even appear in
+
+
+723
+00:21:20,036 --> 00:21:21,646
+autocompletion in Xcode.
+
+
+724
+00:21:22,646 --> 00:21:24,386
+And if you tried this feature in
+
+
+725
+00:21:24,386 --> 00:21:25,446
+Swift 5 when it was
+
+
+726
+00:21:25,446 --> 00:21:27,066
+string-based, the difference
+
+
+727
+00:21:27,066 --> 00:21:28,526
+here is that this version is
+
+
+728
+00:21:28,526 --> 00:21:29,876
+completely type safe.
+
+
+729
+00:21:30,556 --> 00:21:31,586
+And a lot more of it is done at
+
+
+730
+00:21:31,586 --> 00:21:34,806
+compile time.
+
+
+731
+00:21:35,046 --> 00:21:36,016
+Now that we have access to the
+
+
+732
+00:21:36,016 --> 00:21:37,306
+x, y, and z properties, we can
+
+
+733
+00:21:37,306 --> 00:21:38,916
+clean up the implementation of
+
+
+734
+00:21:39,346 --> 00:21:41,176
+our cross product operation
+
+
+735
+00:21:41,486 --> 00:21:41,936
+quite a bit.
+
+
+736
+00:21:42,436 --> 00:21:44,466
+There, that's much nicer.
+
+
+737
+00:21:44,756 --> 00:21:45,996
+Now, this dynamic member
+
+
+738
+00:21:46,296 --> 00:21:48,266
+capability is not just useful
+
+
+739
+00:21:48,266 --> 00:21:49,606
+for forwarding onto properties.
+
+
+740
+00:21:49,606 --> 00:21:51,626
+You can also put complex logic
+
+
+741
+00:21:51,626 --> 00:21:52,436
+into the subscript.
+
+
+742
+00:21:52,436 --> 00:21:53,916
+So, let's look at one more
+
+
+743
+00:21:53,916 --> 00:21:54,376
+example.
+
+
+744
+00:21:54,986 --> 00:21:57,536
+Let's go back to our example
+
+
+745
+00:21:57,536 --> 00:21:59,576
+from earlier where we exposed a
+
+
+746
+00:21:59,576 --> 00:22:01,296
+specific property from texture
+
+
+747
+00:22:01,636 --> 00:22:03,036
+with copy on write value
+
+
+748
+00:22:03,036 --> 00:22:03,616
+semantics.
+
+
+749
+00:22:04,146 --> 00:22:05,296
+Now, this works for one
+
+
+750
+00:22:05,296 --> 00:22:05,746
+property.
+
+
+751
+00:22:05,746 --> 00:22:07,106
+But it would be unfortunate if
+
+
+752
+00:22:07,106 --> 00:22:08,646
+we had to write this same code
+
+
+753
+00:22:08,646 --> 00:22:09,566
+every single time.
+
+
+754
+00:22:10,606 --> 00:22:11,846
+What if it wanted to expose all
+
+
+755
+00:22:11,846 --> 00:22:13,726
+of the properties on texture as
+
+
+756
+00:22:13,926 --> 00:22:15,476
+properties on our material type
+
+
+757
+00:22:15,786 --> 00:22:16,996
+with copy-on-write semantics?
+
+
+758
+00:22:16,996 --> 00:22:18,296
+Well, we can do it with dynamic
+
+
+759
+00:22:18,296 --> 00:22:18,896
+member lookup.
+
+
+760
+00:22:19,766 --> 00:22:21,696
+So first we add to the dynamic
+
+
+761
+00:22:21,696 --> 00:22:23,456
+member attribute to our type.
+
+
+762
+00:22:24,986 --> 00:22:26,926
+And then we implement the
+
+
+763
+00:22:26,926 --> 00:22:27,946
+subscript operation.
+
+
+764
+00:22:27,946 --> 00:22:29,496
+And we're going to make it take
+
+
+765
+00:22:29,666 --> 00:22:30,926
+a writable key path because we
+
+
+766
+00:22:30,926 --> 00:22:32,846
+want to be able to both get and
+
+
+767
+00:22:32,846 --> 00:22:33,856
+set the properties.
+
+
+768
+00:22:34,816 --> 00:22:35,866
+And we're going to make it
+
+
+769
+00:22:36,066 --> 00:22:37,346
+generic on the return type
+
+
+770
+00:22:37,616 --> 00:22:38,636
+because we want to get any
+
+
+771
+00:22:38,636 --> 00:22:40,366
+different type out of the
+
+
+772
+00:22:40,366 --> 00:22:40,806
+texture.
+
+
+773
+00:22:41,376 --> 00:22:44,006
+And then we implement the getter
+
+
+774
+00:22:44,006 --> 00:22:44,526
+and setter.
+
+
+775
+00:22:44,666 --> 00:22:45,896
+In the getter, we just forward
+
+
+776
+00:22:45,896 --> 00:22:46,956
+on like we did before.
+
+
+777
+00:22:47,576 --> 00:22:49,506
+But in the setter, before we do
+
+
+778
+00:22:49,506 --> 00:22:51,696
+our mutation, we add the unique
+
+
+779
+00:22:51,696 --> 00:22:53,846
+referencing check and full copy
+
+
+780
+00:22:53,846 --> 00:22:54,256
+of texture.
+
+
+781
+00:22:55,036 --> 00:22:57,056
+And by doing this, in one
+
+
+782
+00:22:57,056 --> 00:22:58,606
+subscript method that's not too
+
+
+783
+00:22:58,606 --> 00:23:00,416
+long, we expose every single
+
+
+784
+00:23:00,416 --> 00:23:02,726
+property on texture with full
+
+
+785
+00:23:02,726 --> 00:23:04,606
+copy-on-write semantics on our
+
+
+786
+00:23:04,606 --> 00:23:05,416
+material type.
+
+
+787
+00:23:06,036 --> 00:23:07,526
+And this is a really useful way
+
+
+788
+00:23:07,526 --> 00:23:08,936
+to get value semantics out of
+
+
+789
+00:23:08,936 --> 00:23:09,996
+your types.
+
+
+790
+00:23:11,916 --> 00:23:14,286
+This new feature has lots of
+
+
+791
+00:23:14,286 --> 00:23:15,126
+different applications.
+
+
+792
+00:23:15,126 --> 00:23:16,616
+And it actually composes really
+
+
+793
+00:23:16,616 --> 00:23:18,856
+well with a new feature in 5.1
+
+
+794
+00:23:19,126 --> 00:23:20,436
+called Property Wrappers that
+
+
+795
+00:23:20,436 --> 00:23:21,826
+Doug is going to you about next.
+
+
+796
+00:23:22,366 --> 00:23:22,586
+Doug.
+
+
+797
+00:23:23,516 --> 00:23:30,356
+[ Applause ]
+
+
+798
+00:23:30,856 --> 00:23:31,446
+>> Thank you, Ben.
+
+
+799
+00:23:32,926 --> 00:23:36,416
+So, Swift is designed for clear
+
+
+800
+00:23:36,416 --> 00:23:38,566
+concise code and to build
+
+
+801
+00:23:38,566 --> 00:23:40,846
+expressive APIs, right?
+
+
+802
+00:23:40,886 --> 00:23:42,066
+It's also there for code reuse.
+
+
+803
+00:23:42,066 --> 00:23:42,826
+We've been talking about
+
+
+804
+00:23:42,896 --> 00:23:44,956
+generics and protocols.
+
+
+805
+00:23:44,956 --> 00:23:46,106
+And they're there so you can
+
+
+806
+00:23:46,406 --> 00:23:48,766
+create generic code, so for your
+
+
+807
+00:23:48,766 --> 00:23:50,636
+functions, for your types, that
+
+
+808
+00:23:50,636 --> 00:23:51,476
+can be reused.
+
+
+809
+00:23:51,866 --> 00:23:54,026
+So property wrappers is a new
+
+
+810
+00:23:54,026 --> 00:23:55,766
+feature in Swift 5.1.
+
+
+811
+00:23:56,486 --> 00:23:58,066
+And the idea behind property
+
+
+812
+00:23:58,066 --> 00:23:59,796
+wrappers is to effectively get
+
+
+813
+00:23:59,796 --> 00:24:01,566
+code reuse out of the computed
+
+
+814
+00:24:01,566 --> 00:24:02,456
+properties you write.
+
+
+815
+00:24:03,456 --> 00:24:05,706
+Things like this large pile of
+
+
+816
+00:24:05,746 --> 00:24:06,376
+code here.
+
+
+817
+00:24:07,486 --> 00:24:10,266
+And what is going on here?
+
+
+818
+00:24:10,266 --> 00:24:12,936
+So, all we tried to do was
+
+
+819
+00:24:13,356 --> 00:24:15,526
+expose a public property, right?
+
+
+820
+00:24:16,276 --> 00:24:16,946
+And here we have it.
+
+
+821
+00:24:16,946 --> 00:24:17,976
+We just want an image property
+
+
+822
+00:24:17,976 --> 00:24:18,526
+that's public.
+
+
+823
+00:24:18,916 --> 00:24:20,256
+But we don't want all of our
+
+
+824
+00:24:20,606 --> 00:24:22,236
+users, our clients, to be able
+
+
+825
+00:24:22,236 --> 00:24:23,616
+to go and write whatever value
+
+
+826
+00:24:23,616 --> 00:24:23,966
+in there.
+
+
+827
+00:24:24,226 --> 00:24:25,676
+We want to describe some policy.
+
+
+828
+00:24:25,746 --> 00:24:27,016
+So it's a computed property.
+
+
+829
+00:24:27,326 --> 00:24:29,616
+And our actual storage is back
+
+
+830
+00:24:29,616 --> 00:24:31,116
+here in this internal image
+
+
+831
+00:24:31,116 --> 00:24:32,056
+storage property.
+
+
+832
+00:24:32,646 --> 00:24:34,106
+All the access to that storage
+
+
+833
+00:24:34,366 --> 00:24:36,416
+is gated through the getters and
+
+
+834
+00:24:36,416 --> 00:24:36,926
+setters.
+
+
+835
+00:24:37,636 --> 00:24:39,566
+This is a lot of code.
+
+
+836
+00:24:39,706 --> 00:24:40,686
+You've had a few seconds with
+
+
+837
+00:24:40,686 --> 00:24:40,926
+it.
+
+
+838
+00:24:41,396 --> 00:24:42,256
+Some of you have probably
+
+
+839
+00:24:42,256 --> 00:24:43,556
+recognized what this is.
+
+
+840
+00:24:44,446 --> 00:24:45,966
+It's a really long-winded way to
+
+
+841
+00:24:45,966 --> 00:24:48,436
+say this is just a lazy variable
+
+
+842
+00:24:48,696 --> 00:24:49,176
+image.
+
+
+843
+00:24:50,616 --> 00:24:52,446
+Now, this is so much better.
+
+
+844
+00:24:53,696 --> 00:24:55,216
+It's one line of code instead of
+
+
+845
+00:24:55,276 --> 00:24:57,316
+two properties with a mess of
+
+
+846
+00:24:57,456 --> 00:24:58,816
+sort of policy logic for
+
+
+847
+00:24:58,816 --> 00:24:59,436
+accessing.
+
+
+848
+00:24:59,936 --> 00:25:02,256
+And we have this nice modifier
+
+
+849
+00:25:02,376 --> 00:25:04,626
+"lazy" there to tell you here's
+
+
+850
+00:25:04,626 --> 00:25:06,146
+what the actual semantics are.
+
+
+851
+00:25:07,266 --> 00:25:07,996
+This is important.
+
+
+852
+00:25:07,996 --> 00:25:08,936
+It's better documenting.
+
+
+853
+00:25:08,936 --> 00:25:09,866
+It's easier to read.
+
+
+854
+00:25:10,776 --> 00:25:11,826
+That's why "lazy" has been in
+
+
+855
+00:25:11,826 --> 00:25:13,376
+the language since Swift 1.
+
+
+856
+00:25:14,136 --> 00:25:18,856
+Now, the problem is, this is one
+
+
+857
+00:25:19,256 --> 00:25:20,746
+instance of a more general
+
+
+858
+00:25:20,786 --> 00:25:21,226
+problem.
+
+
+859
+00:25:21,346 --> 00:25:23,306
+So, let's take a look at another
+
+
+860
+00:25:23,306 --> 00:25:24,556
+example here, the code
+
+
+861
+00:25:24,556 --> 00:25:24,996
+structure.
+
+
+862
+00:25:25,716 --> 00:25:26,856
+Basically identical.
+
+
+863
+00:25:28,006 --> 00:25:29,746
+But the policy, what's actually
+
+
+864
+00:25:29,746 --> 00:25:30,986
+implemented here in the getter
+
+
+865
+00:25:30,986 --> 00:25:32,556
+and setter, is different.
+
+
+866
+00:25:32,856 --> 00:25:33,956
+So if you're looking through the
+
+
+867
+00:25:33,956 --> 00:25:35,646
+logic here, you see this is sort
+
+
+868
+00:25:35,646 --> 00:25:37,396
+of a late initialization
+
+
+869
+00:25:37,396 --> 00:25:37,836
+pattern.
+
+
+870
+00:25:37,836 --> 00:25:39,476
+You have to set this thing once,
+
+
+871
+00:25:40,236 --> 00:25:41,956
+or initialize it once before you
+
+
+872
+00:25:41,956 --> 00:25:42,436
+can read it.
+
+
+873
+00:25:42,436 --> 00:25:43,456
+Otherwise you get a failure.
+
+
+874
+00:25:43,456 --> 00:25:45,006
+This is a fairly common thing.
+
+
+875
+00:25:46,206 --> 00:25:47,196
+This kind of code shows up in a
+
+
+876
+00:25:47,196 --> 00:25:47,916
+lot of places.
+
+
+877
+00:25:48,456 --> 00:25:50,816
+We couldn't go and extend Swift
+
+
+878
+00:25:50,816 --> 00:25:52,676
+with another language feature
+
+
+879
+00:25:53,226 --> 00:25:55,296
+that attacks this one problem.
+
+
+880
+00:25:56,266 --> 00:25:57,326
+But really, we want to solve
+
+
+881
+00:25:57,326 --> 00:25:58,476
+this more generally, because we
+
+
+882
+00:25:58,476 --> 00:25:59,606
+want people to be able to build
+
+
+883
+00:25:59,606 --> 00:26:00,906
+libraries of these things, where
+
+
+884
+00:26:00,906 --> 00:26:02,026
+they have the notion of
+
+
+885
+00:26:02,026 --> 00:26:03,476
+separating the policy for
+
+
+886
+00:26:03,476 --> 00:26:05,356
+accessing a value out.
+
+
+887
+00:26:05,986 --> 00:26:07,716
+And so this is the idea behind
+
+
+888
+00:26:07,716 --> 00:26:09,076
+property wrappers, to eliminate
+
+
+889
+00:26:09,076 --> 00:26:10,936
+this boilerplate and get more
+
+
+890
+00:26:10,936 --> 00:26:12,356
+expressive APIs.
+
+
+891
+00:26:13,556 --> 00:26:14,656
+So, they look a little like
+
+
+892
+00:26:14,656 --> 00:26:15,006
+this.
+
+
+893
+00:26:15,716 --> 00:26:17,706
+And the idea here is we want to
+
+
+894
+00:26:17,706 --> 00:26:19,296
+capture the notion of you're
+
+
+895
+00:26:19,296 --> 00:26:20,206
+declaring a property.
+
+
+896
+00:26:20,206 --> 00:26:22,236
+So here it is this public text
+
+
+897
+00:26:22,236 --> 00:26:26,316
+variable, and applying the late
+
+
+898
+00:26:26,316 --> 00:26:28,136
+initialized property wrapper to
+
+
+899
+00:26:28,136 --> 00:26:29,876
+give it a particular set of
+
+
+900
+00:26:29,876 --> 00:26:30,936
+semantics, to give it a
+
+
+901
+00:26:30,936 --> 00:26:32,176
+particular policy.
+
+
+902
+00:26:33,696 --> 00:26:35,266
+Now, this at-LateInitialized,
+
+
+903
+00:26:35,266 --> 00:26:36,686
+this is a custom attribute.
+
+
+904
+00:26:36,686 --> 00:26:37,906
+It's a new notion that we're
+
+
+905
+00:26:37,906 --> 00:26:38,986
+using a bit in Swift.
+
+
+906
+00:26:39,406 --> 00:26:41,496
+And essentially, it's saying:
+
+
+907
+00:26:41,686 --> 00:26:42,836
+Apply this late initialized
+
+
+908
+00:26:42,836 --> 00:26:43,686
+pattern, whatever it is.
+
+
+909
+00:26:43,686 --> 00:26:44,406
+We'll get back to that in a
+
+
+910
+00:26:44,406 --> 00:26:44,876
+moment.
+
+
+911
+00:26:45,516 --> 00:26:47,316
+But just from the code
+
+
+912
+00:26:47,316 --> 00:26:49,116
+perspective, this is a whole lot
+
+
+913
+00:26:49,116 --> 00:26:49,726
+like lazy.
+
+
+914
+00:26:49,726 --> 00:26:51,046
+And it's giving us all the same
+
+
+915
+00:26:51,106 --> 00:26:52,166
+benefits as lazy.
+
+
+916
+00:26:52,736 --> 00:26:53,786
+We've gotten rid of all that
+
+
+917
+00:26:53,866 --> 00:26:54,506
+boilerplate.
+
+
+918
+00:26:55,516 --> 00:26:57,796
+But also we've documented at the
+
+
+919
+00:26:57,886 --> 00:26:58,866
+point where we declare this
+
+
+920
+00:26:58,866 --> 00:26:59,916
+thing, what are the actual
+
+
+921
+00:26:59,916 --> 00:27:00,426
+semantics.
+
+
+922
+00:27:00,426 --> 00:27:01,996
+This is far easier to read and
+
+
+923
+00:27:01,996 --> 00:27:04,126
+reason about than that mess of
+
+
+924
+00:27:04,126 --> 00:27:04,406
+code.
+
+
+925
+00:27:05,386 --> 00:27:05,986
+All right.
+
+
+926
+00:27:06,506 --> 00:27:07,626
+Enough talking about this one
+
+
+927
+00:27:07,626 --> 00:27:08,466
+little line of code.
+
+
+928
+00:27:08,636 --> 00:27:09,916
+Let's see what LateInitialized
+
+
+929
+00:27:09,916 --> 00:27:10,866
+actually looks like.
+
+
+930
+00:27:11,776 --> 00:27:13,206
+And what you'll see here it's a
+
+
+931
+00:27:13,206 --> 00:27:13,816
+bit of code.
+
+
+932
+00:27:13,816 --> 00:27:15,386
+But it's the same code we just
+
+
+933
+00:27:15,446 --> 00:27:15,976
+saw.
+
+
+934
+00:27:15,976 --> 00:27:17,936
+It's the same policy pattern
+
+
+935
+00:27:18,276 --> 00:27:20,076
+behind late initialization.
+
+
+936
+00:27:21,136 --> 00:27:22,466
+You've got the getter and setter
+
+
+937
+00:27:22,466 --> 00:27:22,776
+here.
+
+
+938
+00:27:22,956 --> 00:27:24,306
+The set is just updating the
+
+
+939
+00:27:24,306 --> 00:27:24,846
+storage.
+
+
+940
+00:27:24,876 --> 00:27:25,876
+The getter is checking to make
+
+
+941
+00:27:25,876 --> 00:27:27,376
+sure we've set it at least once,
+
+
+942
+00:27:27,376 --> 00:27:28,276
+and then returning the value
+
+
+943
+00:27:28,276 --> 00:27:28,916
+when we have.
+
+
+944
+00:27:29,716 --> 00:27:30,416
+Fairly direct.
+
+
+945
+00:27:31,176 --> 00:27:33,476
+Now, what makes this simple
+
+
+946
+00:27:33,476 --> 00:27:35,716
+generic type interesting is that
+
+
+947
+00:27:35,756 --> 00:27:37,216
+it is a property wrapper.
+
+
+948
+00:27:37,686 --> 00:27:39,196
+It's indicated as such by the
+
+
+949
+00:27:39,306 --> 00:27:40,786
+property wrapper attribute here
+
+
+950
+00:27:40,786 --> 00:27:41,256
+at the top.
+
+
+951
+00:27:42,376 --> 00:27:43,606
+Now, what that's doing is it's
+
+
+952
+00:27:43,606 --> 00:27:45,396
+enabling the custom attribute
+
+
+953
+00:27:45,396 --> 00:27:47,086
+syntax to say we can apply this
+
+
+954
+00:27:47,086 --> 00:27:49,086
+thing to some other property.
+
+
+955
+00:27:49,936 --> 00:27:50,986
+Now, with the property wrapper
+
+
+956
+00:27:50,986 --> 00:27:52,356
+attribute come a couple of
+
+
+957
+00:27:52,356 --> 00:27:52,936
+requirements.
+
+
+958
+00:27:53,096 --> 00:27:55,036
+The main one is to have this
+
+
+959
+00:27:55,286 --> 00:27:56,406
+value property.
+
+
+960
+00:27:57,056 --> 00:27:58,776
+This is where all the policy is
+
+
+961
+00:27:58,776 --> 00:27:59,336
+implemented.
+
+
+962
+00:27:59,386 --> 00:28:01,146
+So all accesses to a late
+
+
+963
+00:28:01,146 --> 00:28:02,436
+initialized property go through
+
+
+964
+00:28:02,436 --> 00:28:02,686
+here.
+
+
+965
+00:28:03,876 --> 00:28:05,386
+And we can see that the actual
+
+
+966
+00:28:05,386 --> 00:28:06,836
+notation is finding some
+
+
+967
+00:28:06,836 --> 00:28:08,356
+extracted notion of what late
+
+
+968
+00:28:08,356 --> 00:28:09,416
+initialized is.
+
+
+969
+00:28:10,156 --> 00:28:11,166
+The other interesting thing in
+
+
+970
+00:28:11,166 --> 00:28:12,756
+this particular example is that
+
+
+971
+00:28:12,756 --> 00:28:14,706
+we've declared an initializer
+
+
+972
+00:28:14,706 --> 00:28:15,956
+that takes no parameters.
+
+
+973
+00:28:17,716 --> 00:28:19,016
+Now, this is optional with the
+
+
+974
+00:28:19,016 --> 00:28:19,756
+property wrapper.
+
+
+975
+00:28:19,906 --> 00:28:21,506
+But when you have it there, what
+
+
+976
+00:28:21,506 --> 00:28:22,756
+it's saying is that properties
+
+
+977
+00:28:22,756 --> 00:28:24,516
+that are applying this wrapper
+
+
+978
+00:28:25,036 --> 00:28:26,806
+get implicit initialization for
+
+
+979
+00:28:26,806 --> 00:28:28,056
+free going through this
+
+
+980
+00:28:28,056 --> 00:28:29,136
+particular initializer.
+
+
+981
+00:28:32,076 --> 00:28:32,166
+>> Okay.
+
+
+982
+00:28:33,986 --> 00:28:35,116
+Let's actually use this thing.
+
+
+983
+00:28:35,426 --> 00:28:37,006
+So, when you use a property
+
+
+984
+00:28:37,006 --> 00:28:38,176
+wrapper by applying it to a
+
+
+985
+00:28:38,176 --> 00:28:39,886
+particular property, the
+
+
+986
+00:28:39,886 --> 00:28:41,546
+compiler is going to translate
+
+
+987
+00:28:41,546 --> 00:28:44,466
+that code into two separate
+
+
+988
+00:28:44,466 --> 00:28:44,856
+properties.
+
+
+989
+00:28:44,856 --> 00:28:46,876
+We're essentially expanding out
+
+
+990
+00:28:46,876 --> 00:28:48,076
+into that pattern we saw in the
+
+
+991
+00:28:48,076 --> 00:28:48,716
+beginning here.
+
+
+992
+00:28:49,426 --> 00:28:51,416
+So you have the backing storage
+
+
+993
+00:28:51,416 --> 00:28:53,346
+property with this $ prefix.
+
+
+994
+00:28:53,346 --> 00:28:55,826
+So $text. And the type of this
+
+
+995
+00:28:56,116 --> 00:28:57,776
+is an instance of the property
+
+
+996
+00:28:57,776 --> 00:28:58,396
+wrapper type.
+
+
+997
+00:28:58,456 --> 00:28:59,276
+So now we have a late
+
+
+998
+00:28:59,276 --> 00:29:00,806
+initialized string.
+
+
+999
+00:29:01,826 --> 00:29:03,246
+That's providing the storage.
+
+
+1000
+00:29:04,616 --> 00:29:05,976
+It's going to be initialized
+
+
+1001
+00:29:06,256 --> 00:29:08,236
+implicitly by the compiler by
+
+
+1002
+00:29:08,236 --> 00:29:09,646
+calling that no parameter
+
+
+1003
+00:29:09,646 --> 00:29:10,956
+initializer that we just talked
+
+
+1004
+00:29:10,956 --> 00:29:11,256
+about.
+
+
+1005
+00:29:11,586 --> 00:29:12,836
+Because it's there, now we get
+
+
+1006
+00:29:12,836 --> 00:29:13,996
+implicit initialization.
+
+
+1007
+00:29:14,546 --> 00:29:15,776
+And late initialize is free to
+
+
+1008
+00:29:15,776 --> 00:29:16,586
+do whatever it wants.
+
+
+1009
+00:29:16,866 --> 00:29:18,706
+As you might recall, it set the
+
+
+1010
+00:29:18,706 --> 00:29:19,666
+storage to nil.
+
+
+1011
+00:29:21,136 --> 00:29:21,966
+The other thing that the
+
+
+1012
+00:29:21,966 --> 00:29:23,596
+compiler is doing here is it's
+
+
+1013
+00:29:23,596 --> 00:29:26,076
+translating text into a computed
+
+
+1014
+00:29:26,076 --> 00:29:26,526
+property.
+
+
+1015
+00:29:27,286 --> 00:29:28,706
+And so the getter it's going to
+
+
+1016
+00:29:28,706 --> 00:29:31,066
+create is accessing $text.
+
+
+1017
+00:29:31,506 --> 00:29:33,776
+And then retrieving the value
+
+
+1018
+00:29:33,776 --> 00:29:36,056
+out of $text by calling the
+
+
+1019
+00:29:36,056 --> 00:29:36,926
+getter for value.
+
+
+1020
+00:29:36,976 --> 00:29:39,346
+And we do the same thing for the
+
+
+1021
+00:29:39,346 --> 00:29:41,016
+setter, writing the new value
+
+
+1022
+00:29:41,236 --> 00:29:42,686
+into $text.value.
+
+
+1023
+00:29:43,026 --> 00:29:44,756
+And so this is what allows your
+
+
+1024
+00:29:44,756 --> 00:29:46,356
+property wrapper type to have
+
+
+1025
+00:29:46,356 --> 00:29:47,496
+its own storage, however it
+
+
+1026
+00:29:47,496 --> 00:29:48,296
+wants to store it, either
+
+
+1027
+00:29:48,296 --> 00:29:49,416
+locally or somewhere else.
+
+
+1028
+00:29:49,986 --> 00:29:52,796
+And then enforce whatever policy
+
+
+1029
+00:29:52,796 --> 00:29:54,886
+you should have about accessing
+
+
+1030
+00:29:54,886 --> 00:29:56,566
+that data through the getter and
+
+
+1031
+00:29:56,566 --> 00:29:57,386
+setter value.
+
+
+1032
+00:29:58,756 --> 00:30:00,656
+So overall, this is really nice.
+
+
+1033
+00:30:00,656 --> 00:30:02,576
+We've teased apart the policy,
+
+
+1034
+00:30:02,736 --> 00:30:04,236
+put it in one place in the late
+
+
+1035
+00:30:04,236 --> 00:30:06,316
+initialized wrapper from the
+
+
+1036
+00:30:06,316 --> 00:30:07,736
+application of that policy,
+
+
+1037
+00:30:07,966 --> 00:30:10,156
+which we can do on any number of
+
+
+1038
+00:30:10,156 --> 00:30:11,466
+different properties of whatever
+
+
+1039
+00:30:11,466 --> 00:30:14,006
+types we want, making it far
+
+
+1040
+00:30:14,006 --> 00:30:14,986
+simpler and having less
+
+
+1041
+00:30:14,986 --> 00:30:15,506
+boilerplate.
+
+
+1042
+00:30:17,196 --> 00:30:18,896
+So, let's take a look at another
+
+
+1043
+00:30:18,896 --> 00:30:19,316
+example.
+
+
+1044
+00:30:20,236 --> 00:30:21,546
+Ben was talking a bit about
+
+
+1045
+00:30:21,546 --> 00:30:23,276
+value and reference semantics.
+
+
+1046
+00:30:23,866 --> 00:30:24,606
+Now, when you're dealing with
+
+
+1047
+00:30:24,606 --> 00:30:26,196
+reference semantics and mutable
+
+
+1048
+00:30:26,196 --> 00:30:27,516
+state, you're going to find
+
+
+1049
+00:30:27,516 --> 00:30:28,866
+yourself doing defensive copying
+
+
+1050
+00:30:28,866 --> 00:30:29,436
+at some point.
+
+
+1051
+00:30:30,046 --> 00:30:31,486
+Of course, we could manually do
+
+
+1052
+00:30:31,486 --> 00:30:32,866
+that wherever we need it.
+
+
+1053
+00:30:32,866 --> 00:30:34,086
+But why not go and build a
+
+
+1054
+00:30:34,086 --> 00:30:35,036
+property wrapper for it?
+
+
+1055
+00:30:35,506 --> 00:30:38,506
+So, here the property wrapper,
+
+
+1056
+00:30:38,506 --> 00:30:40,146
+the shape of it, is basically
+
+
+1057
+00:30:40,146 --> 00:30:41,526
+the same as we've seen before.
+
+
+1058
+00:30:41,526 --> 00:30:42,546
+It had some kind of storage.
+
+
+1059
+00:30:42,546 --> 00:30:43,786
+And it has a value property.
+
+
+1060
+00:30:44,306 --> 00:30:45,636
+All of the policy for this
+
+
+1061
+00:30:45,676 --> 00:30:47,906
+property wrapper is here in the
+
+
+1062
+00:30:47,906 --> 00:30:48,276
+setter.
+
+
+1063
+00:30:48,536 --> 00:30:49,766
+When we get a new value, go
+
+
+1064
+00:30:49,766 --> 00:30:50,836
+ahead and copy the value.
+
+
+1065
+00:30:51,216 --> 00:30:52,876
+And since we're using NSCopying
+
+
+1066
+00:30:52,876 --> 00:30:54,906
+to do our copies, it just goes
+
+
+1067
+00:30:54,906 --> 00:30:56,436
+ahead and calls that copy method
+
+
+1068
+00:30:56,436 --> 00:30:57,166
+and does the cast.
+
+
+1069
+00:30:58,516 --> 00:30:59,736
+The other interesting thing with
+
+
+1070
+00:30:59,736 --> 00:31:02,246
+defensive copying is it provides
+
+
+1071
+00:31:02,246 --> 00:31:04,196
+an initial value initializer.
+
+
+1072
+00:31:04,816 --> 00:31:06,086
+This is like that no-parameter
+
+
+1073
+00:31:06,086 --> 00:31:06,746
+initializer.
+
+
+1074
+00:31:06,746 --> 00:31:08,086
+You don't have to have it in
+
+
+1075
+00:31:08,086 --> 00:31:08,996
+your property wrapper.
+
+
+1076
+00:31:09,436 --> 00:31:11,546
+But when it's there, it lets you
+
+
+1077
+00:31:11,546 --> 00:31:13,976
+provide a default value on any
+
+
+1078
+00:31:13,976 --> 00:31:15,076
+property that's wrapped with
+
+
+1079
+00:31:15,076 --> 00:31:15,926
+this property wrapper.
+
+
+1080
+00:31:16,336 --> 00:31:18,026
+That default gets fed into this
+
+
+1081
+00:31:18,026 --> 00:31:18,776
+initializer.
+
+
+1082
+00:31:19,106 --> 00:31:20,406
+And we can enforce whatever
+
+
+1083
+00:31:20,406 --> 00:31:21,376
+policy we want on
+
+
+1084
+00:31:21,376 --> 00:31:22,206
+initialization.
+
+
+1085
+00:31:22,826 --> 00:31:24,116
+In our case, it's the same as
+
+
+1086
+00:31:24,116 --> 00:31:25,076
+the set policy.
+
+
+1087
+00:31:25,356 --> 00:31:27,766
+We want to go ahead and create a
+
+
+1088
+00:31:27,766 --> 00:31:30,926
+copy defensively and assign that
+
+
+1089
+00:31:33,296 --> 00:31:34,376
+a result then.
+
+
+1090
+00:31:35,206 --> 00:31:35,946
+Let's take a look.
+
+
+1091
+00:31:36,436 --> 00:31:38,636
+So, if we go define some
+
+
+1092
+00:31:38,636 --> 00:31:40,116
+defensive copying UIBezierPath.
+
+
+1093
+00:31:40,956 --> 00:31:41,716
+What's going to happen?
+
+
+1094
+00:31:41,716 --> 00:31:43,036
+Well, the compiler is going to
+
+
+1095
+00:31:43,306 --> 00:31:44,956
+translate this into the two
+
+
+1096
+00:31:44,956 --> 00:31:45,896
+different definitions.
+
+
+1097
+00:31:46,256 --> 00:31:46,976
+We're going to have an
+
+
+1098
+00:31:46,976 --> 00:31:48,756
+initializer here first.
+
+
+1099
+00:31:49,386 --> 00:31:51,256
+So here, whenever we create this
+
+
+1100
+00:31:51,256 --> 00:31:53,006
+path, it has a default of the
+
+
+1101
+00:31:53,006 --> 00:31:54,366
+UIBezierPath.
+
+
+1102
+00:31:54,886 --> 00:31:56,056
+Just an empty instance that's
+
+
+1103
+00:31:56,086 --> 00:31:56,536
+created.
+
+
+1104
+00:31:56,956 --> 00:31:58,366
+And then when we go ahead and
+
+
+1105
+00:31:58,366 --> 00:32:00,056
+explode this out into multiple
+
+
+1106
+00:32:00,056 --> 00:32:01,826
+properties, there's the backing
+
+
+1107
+00:32:01,826 --> 00:32:03,186
+stored property, $path.
+
+
+1108
+00:32:03,856 --> 00:32:04,646
+And notice how we're
+
+
+1109
+00:32:04,646 --> 00:32:05,326
+initializing it.
+
+
+1110
+00:32:05,406 --> 00:32:06,936
+We're feeding the initial value
+
+
+1111
+00:32:06,936 --> 00:32:09,026
+that the user gave into the
+
+
+1112
+00:32:09,026 --> 00:32:11,576
+initial value initializer so it
+
+
+1113
+00:32:11,576 --> 00:32:12,756
+can be defensively copied.
+
+
+1114
+00:32:13,566 --> 00:32:14,556
+The getter and setter look
+
+
+1115
+00:32:14,556 --> 00:32:15,376
+exactly the same.
+
+
+1116
+00:32:15,376 --> 00:32:16,376
+We're just going through
+
+
+1117
+00:32:16,376 --> 00:32:18,466
+$path.value for both get and
+
+
+1118
+00:32:18,466 --> 00:32:18,686
+set.
+
+
+1119
+00:32:19,836 --> 00:32:21,666
+Now, this is of course the right
+
+
+1120
+00:32:21,666 --> 00:32:22,616
+semantics by default.
+
+
+1121
+00:32:22,616 --> 00:32:24,106
+Defensive copying should go
+
+
+1122
+00:32:24,106 --> 00:32:24,846
+ahead and copy.
+
+
+1123
+00:32:25,486 --> 00:32:26,786
+In this case, well we know
+
+
+1124
+00:32:26,786 --> 00:32:27,936
+something about our default
+
+
+1125
+00:32:27,936 --> 00:32:28,356
+value.
+
+
+1126
+00:32:28,516 --> 00:32:29,546
+It's creating a new object.
+
+
+1127
+00:32:29,716 --> 00:32:30,846
+Why would we go and copy that
+
+
+1128
+00:32:30,876 --> 00:32:31,086
+thing?
+
+
+1129
+00:32:31,486 --> 00:32:33,606
+So, let's optimize this a little
+
+
+1130
+00:32:33,606 --> 00:32:34,766
+bit just because we can.
+
+
+1131
+00:32:35,796 --> 00:32:36,766
+So we can extend defensive
+
+
+1132
+00:32:36,796 --> 00:32:37,286
+copying.
+
+
+1133
+00:32:37,326 --> 00:32:37,956
+It's just a type.
+
+
+1134
+00:32:38,046 --> 00:32:39,066
+There's nothing magical about
+
+
+1135
+00:32:39,066 --> 00:32:39,966
+this type other than the fact
+
+
+1136
+00:32:39,966 --> 00:32:40,906
+that it's behaving like a
+
+
+1137
+00:32:40,906 --> 00:32:42,226
+property wrapper when used that
+
+
+1138
+00:32:42,226 --> 00:32:42,466
+way.
+
+
+1139
+00:32:42,946 --> 00:32:44,176
+And so we can give it this
+
+
+1140
+00:32:44,246 --> 00:32:45,686
+withoutCopying initializer.
+
+
+1141
+00:32:46,286 --> 00:32:49,516
+When we want to use that, we can
+
+
+1142
+00:32:49,516 --> 00:32:50,936
+go ahead and write an
+
+
+1143
+00:32:50,936 --> 00:32:52,246
+initializer for our type.
+
+
+1144
+00:32:53,256 --> 00:32:54,796
+And what we're doing here is
+
+
+1145
+00:32:54,796 --> 00:32:57,666
+we're assigning to $path to call
+
+
+1146
+00:32:57,666 --> 00:32:59,586
+the defensive withoutCopying
+
+
+1147
+00:32:59,586 --> 00:33:01,416
+initializer so we can avoid that
+
+
+1148
+00:33:01,416 --> 00:33:02,056
+extra copy.
+
+
+1149
+00:33:03,146 --> 00:33:04,256
+So there's really nothing more
+
+
+1150
+00:33:04,256 --> 00:33:06,076
+magic that's going on here.
+
+
+1151
+00:33:06,266 --> 00:33:08,206
+$path is just a stored property.
+
+
+1152
+00:33:08,256 --> 00:33:09,516
+It's only magical in the sense
+
+
+1153
+00:33:09,516 --> 00:33:11,136
+that the compiler generated it
+
+
+1154
+00:33:11,246 --> 00:33:13,586
+for you as part of applying this
+
+
+1155
+00:33:13,586 --> 00:33:14,896
+property wrapper pattern.
+
+
+1156
+00:33:15,456 --> 00:33:16,766
+But you can go and treat it like
+
+
+1157
+00:33:16,766 --> 00:33:18,766
+a normal variable whenever you
+
+
+1158
+00:33:18,766 --> 00:33:20,436
+want, including setting up your
+
+
+1159
+00:33:20,436 --> 00:33:21,256
+own initialization.
+
+
+1160
+00:33:21,866 --> 00:33:24,056
+Now, this is a little bit
+
+
+1161
+00:33:24,256 --> 00:33:25,396
+boilerplatey, still.
+
+
+1162
+00:33:25,396 --> 00:33:26,476
+It's unfortunate that we had to
+
+
+1163
+00:33:26,476 --> 00:33:27,446
+write that initializer.
+
+
+1164
+00:33:27,516 --> 00:33:28,256
+So there's one other
+
+
+1165
+00:33:28,256 --> 00:33:29,356
+initialization form that you
+
+
+1166
+00:33:29,356 --> 00:33:29,816
+might see.
+
+
+1167
+00:33:30,546 --> 00:33:32,786
+And that is that when you are
+
+
+1168
+00:33:32,786 --> 00:33:34,126
+declaring the customer
+
+
+1169
+00:33:34,156 --> 00:33:34,926
+attribute, so
+
+
+1170
+00:33:34,926 --> 00:33:36,446
+at-DefensiveCopying, you can
+
+
+1171
+00:33:36,446 --> 00:33:37,826
+actually initialize right there
+
+
+1172
+00:33:37,826 --> 00:33:39,056
+in the properties declaration
+
+
+1173
+00:33:39,206 --> 00:33:40,266
+with whatever you want.
+
+
+1174
+00:33:40,686 --> 00:33:42,636
+So here we can go and call the
+
+
+1175
+00:33:42,636 --> 00:33:44,186
+withoutCopying initializer to
+
+
+1176
+00:33:44,186 --> 00:33:45,446
+initialize the backing storage
+
+
+1177
+00:33:45,446 --> 00:33:47,296
+property with exactly what we
+
+
+1178
+00:33:47,296 --> 00:33:47,606
+want.
+
+
+1179
+00:33:47,966 --> 00:33:48,806
+It's one nice little
+
+
+1180
+00:33:48,806 --> 00:33:49,536
+declaration.
+
+
+1181
+00:33:49,936 --> 00:33:51,236
+And you get the benefits of
+
+
+1182
+00:33:51,236 --> 00:33:52,386
+getting the default in the
+
+
+1183
+00:33:52,386 --> 00:33:54,076
+memorize initializers for free,
+
+
+1184
+00:33:54,076 --> 00:33:54,326
+still.
+
+
+1185
+00:33:56,436 --> 00:33:57,016
+All right.
+
+
+1186
+00:33:58,046 --> 00:34:00,016
+So, property wrappers are
+
+
+1187
+00:34:00,016 --> 00:34:01,576
+actually fairly powerful.
+
+
+1188
+00:34:01,836 --> 00:34:03,756
+They abstract away this notion
+
+
+1189
+00:34:03,756 --> 00:34:06,326
+of policy to access your data.
+
+
+1190
+00:34:06,536 --> 00:34:07,886
+So you can decide how your data
+
+
+1191
+00:34:07,886 --> 00:34:08,416
+is stored.
+
+
+1192
+00:34:08,656 --> 00:34:09,886
+And you can decide how your data
+
+
+1193
+00:34:09,886 --> 00:34:10,626
+is accessed.
+
+
+1194
+00:34:11,106 --> 00:34:12,766
+And all your users need to do
+
+
+1195
+00:34:12,766 --> 00:34:14,016
+with your property wrapper is
+
+
+1196
+00:34:14,156 --> 00:34:15,846
+use that custom attribute syntax
+
+
+1197
+00:34:16,266 --> 00:34:17,366
+to tie into your system.
+
+
+1198
+00:34:17,616 --> 00:34:19,616
+So as we've been developing
+
+
+1199
+00:34:19,616 --> 00:34:20,906
+property wrappers, we've found a
+
+
+1200
+00:34:20,906 --> 00:34:22,755
+lot of different uses for them
+
+
+1201
+00:34:23,335 --> 00:34:24,716
+all around this sort of general
+
+
+1202
+00:34:24,716 --> 00:34:26,496
+notion of data access.
+
+
+1203
+00:34:27,246 --> 00:34:28,525
+So for example, you may have
+
+
+1204
+00:34:28,525 --> 00:34:29,886
+seen the user defaults example.
+
+
+1205
+00:34:30,306 --> 00:34:31,525
+And here's where we're setting
+
+
+1206
+00:34:31,525 --> 00:34:32,626
+up a relationship between a
+
+
+1207
+00:34:32,626 --> 00:34:34,246
+well-typed property here in
+
+
+1208
+00:34:34,246 --> 00:34:35,795
+Swift that you just referred to
+
+
+1209
+00:34:35,795 --> 00:34:37,466
+as a Bool and some
+
+
+1210
+00:34:37,466 --> 00:34:38,726
+stringly-typed entity.
+
+
+1211
+00:34:39,045 --> 00:34:40,085
+So we describe in the
+
+
+1212
+00:34:40,085 --> 00:34:41,636
+construction arguments exactly
+
+
+1213
+00:34:41,815 --> 00:34:43,476
+how to go ahead and access that
+
+
+1214
+00:34:43,476 --> 00:34:43,815
+thing.
+
+
+1215
+00:34:44,246 --> 00:34:46,255
+And all of the logic for dealing
+
+
+1216
+00:34:46,255 --> 00:34:47,926
+with user defaults, that's over
+
+
+1217
+00:34:47,926 --> 00:34:49,505
+in this user default property
+
+
+1218
+00:34:50,005 --> 00:34:50,136
+wrapper.
+
+
+1219
+00:34:51,076 --> 00:34:53,196
+So we built thread-specific.
+
+
+1220
+00:34:53,196 --> 00:34:54,036
+If you want thread local
+
+
+1221
+00:34:54,036 --> 00:34:54,446
+storage.
+
+
+1222
+00:34:55,356 --> 00:34:55,966
+You can apply the
+
+
+1223
+00:34:55,966 --> 00:34:56,886
+thread-specific property
+
+
+1224
+00:34:56,886 --> 00:34:57,206
+wrapper.
+
+
+1225
+00:34:57,296 --> 00:34:58,426
+All the details of dealing with
+
+
+1226
+00:34:58,426 --> 00:35:00,176
+the system's thread-specific
+
+
+1227
+00:35:00,176 --> 00:35:01,466
+storage are there in the
+
+
+1228
+00:35:01,466 --> 00:35:02,376
+property wrapper once.
+
+
+1229
+00:35:02,556 --> 00:35:03,796
+You can just think of this thing
+
+
+1230
+00:35:03,906 --> 00:35:05,766
+like a local memory pool.
+
+
+1231
+00:35:06,756 --> 00:35:08,326
+And also, from the Swift
+
+
+1232
+00:35:08,326 --> 00:35:09,106
+community, as we've been
+
+
+1233
+00:35:09,106 --> 00:35:10,636
+building this feature, we found
+
+
+1234
+00:35:11,376 --> 00:35:13,026
+that this actually works really
+
+
+1235
+00:35:13,026 --> 00:35:14,226
+well for describing command line
+
+
+1236
+00:35:14,226 --> 00:35:14,696
+arguments.
+
+
+1237
+00:35:14,696 --> 00:35:15,496
+If you're building a command
+
+
+1238
+00:35:15,496 --> 00:35:17,376
+line tool with a library out
+
+
+1239
+00:35:17,376 --> 00:35:18,906
+there that uses this kind of
+
+
+1240
+00:35:19,256 --> 00:35:20,476
+shorthand syntax, just say,
+
+
+1241
+00:35:20,476 --> 00:35:21,926
+well, I want a minimum value.
+
+
+1242
+00:35:22,106 --> 00:35:23,016
+Here's how I describe the
+
+
+1243
+00:35:23,016 --> 00:35:23,426
+option.
+
+
+1244
+00:35:24,156 --> 00:35:25,276
+Here's the strings that the user
+
+
+1245
+00:35:25,276 --> 00:35:26,406
+passes, where they're short,
+
+
+1246
+00:35:26,406 --> 00:35:27,516
+what the documentation is.
+
+
+1247
+00:35:27,596 --> 00:35:28,776
+All the extra stuff that you
+
+
+1248
+00:35:28,776 --> 00:35:31,026
+need to very, very succinctly
+
+
+1249
+00:35:31,026 --> 00:35:32,426
+declare your command line
+
+
+1250
+00:35:32,426 --> 00:35:32,936
+options.
+
+
+1251
+00:35:33,636 --> 00:35:34,666
+There's a ton of really cool
+
+
+1252
+00:35:34,666 --> 00:35:35,916
+stuff that we can do with
+
+
+1253
+00:35:35,916 --> 00:35:37,046
+property wrappers because we
+
+
+1254
+00:35:37,046 --> 00:35:38,756
+have this nice, clean syntax for
+
+
+1255
+00:35:38,756 --> 00:35:39,616
+factoring stuff out.
+
+
+1256
+00:35:40,816 --> 00:35:42,456
+Now, as you probably noticed
+
+
+1257
+00:35:42,456 --> 00:35:44,386
+from another session, we use
+
+
+1258
+00:35:44,386 --> 00:35:46,086
+property wrappers extensively
+
+
+1259
+00:35:46,386 --> 00:35:48,636
+throughout SwiftUI to describe
+
+
+1260
+00:35:48,636 --> 00:35:50,536
+the data dependencies of your
+
+
+1261
+00:35:50,536 --> 00:35:50,906
+view.
+
+
+1262
+00:35:52,016 --> 00:35:54,116
+And there's several of these
+
+
+1263
+00:35:54,116 --> 00:35:55,326
+different property wrappers that
+
+
+1264
+00:35:55,326 --> 00:35:56,896
+exist within Swift UI.
+
+
+1265
+00:35:57,036 --> 00:35:58,556
+So here we have State for
+
+
+1266
+00:35:58,556 --> 00:35:59,806
+introducing view local state.
+
+
+1267
+00:36:00,186 --> 00:36:01,716
+We have Binding for a sort of
+
+
+1268
+00:36:01,716 --> 00:36:02,986
+first class reference out to
+
+
+1269
+00:36:02,986 --> 00:36:04,236
+state that's somewhere else.
+
+
+1270
+00:36:04,516 --> 00:36:05,036
+You've probably seen
+
+
+1271
+00:36:05,036 --> 00:36:06,176
+Environment, an environment
+
+
+1272
+00:36:06,176 --> 00:36:06,586
+object.
+
+
+1273
+00:36:07,676 --> 00:36:08,816
+All of these things are property
+
+
+1274
+00:36:08,816 --> 00:36:09,206
+wrappers.
+
+
+1275
+00:36:09,206 --> 00:36:10,636
+And the really nice thing about
+
+
+1276
+00:36:10,636 --> 00:36:12,196
+describing them that way in
+
+
+1277
+00:36:12,196 --> 00:36:15,216
+Swift is that you're stating
+
+
+1278
+00:36:15,216 --> 00:36:17,216
+your policy for where this data
+
+
+1279
+00:36:17,216 --> 00:36:19,326
+is and how it's accessed in one
+
+
+1280
+00:36:19,326 --> 00:36:20,506
+place in the declaration.
+
+
+1281
+00:36:21,106 --> 00:36:22,306
+But when you go and build your
+
+
+1282
+00:36:22,306 --> 00:36:24,586
+view, you don't care about that.
+
+
+1283
+00:36:24,716 --> 00:36:25,766
+You don't care where the data
+
+
+1284
+00:36:25,766 --> 00:36:26,386
+is.
+
+
+1285
+00:36:26,556 --> 00:36:27,966
+It's managed by the system for
+
+
+1286
+00:36:27,966 --> 00:36:28,136
+you.
+
+
+1287
+00:36:28,926 --> 00:36:30,536
+You just can refer to the
+
+
+1288
+00:36:30,536 --> 00:36:32,216
+particular slide I'm on in my
+
+
+1289
+00:36:32,216 --> 00:36:32,806
+keynote deck.
+
+
+1290
+00:36:33,536 --> 00:36:34,266
+Pull out its number.
+
+
+1291
+00:36:34,716 --> 00:36:35,696
+If you want to go and edit
+
+
+1292
+00:36:35,696 --> 00:36:38,426
+something, you can use $ and get
+
+
+1293
+00:36:39,376 --> 00:36:41,726
+back at the actual binding.
+
+
+1294
+00:36:42,776 --> 00:36:45,996
+So, all of the logic for dealing
+
+
+1295
+00:36:45,996 --> 00:36:47,736
+with the data and watching for
+
+
+1296
+00:36:47,776 --> 00:36:49,096
+change updates and maybe even
+
+
+1297
+00:36:49,096 --> 00:36:50,256
+storing the data on the side,
+
+
+1298
+00:36:50,476 --> 00:36:51,946
+that's all handled off in the
+
+
+1299
+00:36:51,946 --> 00:36:53,256
+policy in the property wrapper
+
+
+1300
+00:36:53,256 --> 00:36:53,696
+types.
+
+
+1301
+00:36:53,976 --> 00:36:55,026
+You don't have to think about
+
+
+1302
+00:36:55,026 --> 00:36:55,116
+it.
+
+
+1303
+00:36:55,336 --> 00:36:56,766
+You just worry about working
+
+
+1304
+00:36:56,766 --> 00:36:57,626
+with your actual data.
+
+
+1305
+00:36:58,306 --> 00:37:00,136
+Now, there's one thing that's a
+
+
+1306
+00:37:00,136 --> 00:37:01,486
+little bit interesting on this
+
+
+1307
+00:37:01,486 --> 00:37:01,796
+slide.
+
+
+1308
+00:37:02,436 --> 00:37:04,906
+So, there's $slide.title.
+
+
+1309
+00:37:05,546 --> 00:37:06,736
+We're passing down so we can
+
+
+1310
+00:37:06,876 --> 00:37:08,266
+edit the slide title in a text
+
+
+1311
+00:37:08,266 --> 00:37:08,506
+field.
+
+
+1312
+00:37:09,986 --> 00:37:12,256
+$slide -- well, we've seen that
+
+
+1313
+00:37:12,256 --> 00:37:12,566
+before.
+
+
+1314
+00:37:12,646 --> 00:37:14,066
+That's the backing storage
+
+
+1315
+00:37:14,066 --> 00:37:14,486
+property.
+
+
+1316
+00:37:14,486 --> 00:37:15,356
+That's what the compiler is
+
+
+1317
+00:37:15,356 --> 00:37:16,836
+synthesizing on our behalf
+
+
+1318
+00:37:17,176 --> 00:37:19,546
+because we applied the binding
+
+
+1319
+00:37:19,546 --> 00:37:20,436
+property wrapper here.
+
+
+1320
+00:37:21,826 --> 00:37:23,236
+But that's a binding.
+
+
+1321
+00:37:23,686 --> 00:37:24,676
+It doesn't have a title.
+
+
+1322
+00:37:26,066 --> 00:37:27,306
+Title is something that's part
+
+
+1323
+00:37:27,306 --> 00:37:28,096
+of my data model.
+
+
+1324
+00:37:28,096 --> 00:37:29,096
+I have a slide data model.
+
+
+1325
+00:37:29,186 --> 00:37:29,646
+What gives?
+
+
+1326
+00:37:30,086 --> 00:37:32,426
+So, this is actually a
+
+
+1327
+00:37:32,426 --> 00:37:34,446
+combination of both property
+
+
+1328
+00:37:34,446 --> 00:37:36,716
+wrappers and the key path member
+
+
+1329
+00:37:36,716 --> 00:37:38,636
+lookup feature that Ben talked
+
+
+1330
+00:37:38,636 --> 00:37:39,226
+about earlier.
+
+
+1331
+00:37:39,806 --> 00:37:42,256
+And so, let's actually focus in
+
+
+1332
+00:37:42,306 --> 00:37:43,896
+on binding, the thing that's in
+
+
+1333
+00:37:43,896 --> 00:37:45,526
+Swift UI and provides this first
+
+
+1334
+00:37:45,526 --> 00:37:46,816
+class reference.
+
+
+1335
+00:37:47,136 --> 00:37:49,646
+First and foremost, binding is a
+
+
+1336
+00:37:49,646 --> 00:37:50,416
+property wrapper.
+
+
+1337
+00:37:50,946 --> 00:37:53,736
+So, it has the standard value.
+
+
+1338
+00:37:53,736 --> 00:37:55,166
+It's parameterized over any type
+
+
+1339
+00:37:55,166 --> 00:37:56,056
+because you can have a binding
+
+
+1340
+00:37:56,056 --> 00:37:56,786
+to anything.
+
+
+1341
+00:37:57,096 --> 00:37:59,046
+It has whatever the access
+
+
+1342
+00:37:59,046 --> 00:37:59,416
+pattern is.
+
+
+1343
+00:37:59,416 --> 00:38:00,106
+It doesn't matter.
+
+
+1344
+00:38:00,276 --> 00:38:02,456
+We don't know what it is because
+
+
+1345
+00:38:02,456 --> 00:38:03,466
+it's handled by the framework
+
+
+1346
+00:38:03,466 --> 00:38:04,426
+for us.
+
+
+1347
+00:38:04,536 --> 00:38:07,646
+But, binding also supports key
+
+
+1348
+00:38:07,646 --> 00:38:09,306
+path member lookup with this
+
+
+1349
+00:38:09,346 --> 00:38:10,496
+generic subscript.
+
+
+1350
+00:38:11,766 --> 00:38:12,716
+These generic subscripts are
+
+
+1351
+00:38:12,766 --> 00:38:13,506
+kind of a mouthful.
+
+
+1352
+00:38:13,566 --> 00:38:14,486
+And we don't have to know what
+
+
+1353
+00:38:14,486 --> 00:38:15,756
+the implementation is, but we
+
+
+1354
+00:38:15,756 --> 00:38:16,466
+should look at the type
+
+
+1355
+00:38:16,466 --> 00:38:17,606
+signature a little more closely
+
+
+1356
+00:38:17,606 --> 00:38:18,676
+because it is interesting.
+
+
+1357
+00:38:19,096 --> 00:38:21,006
+So, what we're taking in is a
+
+
+1358
+00:38:21,006 --> 00:38:21,476
+key path.
+
+
+1359
+00:38:21,986 --> 00:38:24,096
+It's rooted at our particular
+
+
+1360
+00:38:24,266 --> 00:38:24,966
+value type.
+
+
+1361
+00:38:24,966 --> 00:38:26,766
+So the thing that we're binding,
+
+
+1362
+00:38:27,006 --> 00:38:30,656
+like a slide, and accessing any
+
+
+1363
+00:38:30,656 --> 00:38:32,856
+property within that particular
+
+
+1364
+00:38:32,996 --> 00:38:33,466
+entity.
+
+
+1365
+00:38:34,186 --> 00:38:36,076
+Now, returning is not a value
+
+
+1366
+00:38:36,076 --> 00:38:38,176
+that's referring to like
+
+
+1367
+00:38:38,176 --> 00:38:39,146
+something in there.
+
+
+1368
+00:38:39,396 --> 00:38:41,256
+We're returning a new binding
+
+
+1369
+00:38:41,666 --> 00:38:43,426
+that is focused in on just one
+
+
+1370
+00:38:43,426 --> 00:38:45,976
+particular property of the outer
+
+
+1371
+00:38:45,976 --> 00:38:47,836
+binding, still maintaining that
+
+
+1372
+00:38:47,836 --> 00:38:48,936
+data dependency there.
+
+
+1373
+00:38:52,806 --> 00:38:53,836
+So, how does this work in
+
+
+1374
+00:38:53,836 --> 00:38:54,356
+practice.
+
+
+1375
+00:38:54,356 --> 00:38:56,556
+Well, we had our slide, which is
+
+
+1376
+00:38:56,556 --> 00:38:57,776
+a binding into one of our slide
+
+
+1377
+00:38:57,776 --> 00:38:58,206
+types.
+
+
+1378
+00:38:58,916 --> 00:39:00,696
+And primarily we think about
+
+
+1379
+00:39:00,696 --> 00:39:01,526
+this as the value.
+
+
+1380
+00:39:01,526 --> 00:39:02,636
+So we can refer to slide, we get
+
+
+1381
+00:39:02,636 --> 00:39:03,496
+an instance of slide.
+
+
+1382
+00:39:03,496 --> 00:39:04,986
+We can refer to slide.title and
+
+
+1383
+00:39:04,986 --> 00:39:06,406
+get an instance of that string.
+
+
+1384
+00:39:06,676 --> 00:39:07,626
+All the while tracking
+
+
+1385
+00:39:08,186 --> 00:39:10,176
+modifications behind the scenes.
+
+
+1386
+00:39:10,756 --> 00:39:13,376
+If we enter $Slide, well, we get
+
+
+1387
+00:39:13,436 --> 00:39:14,846
+that binding instance to the
+
+
+1388
+00:39:14,846 --> 00:39:15,336
+slide.
+
+
+1389
+00:39:15,946 --> 00:39:19,506
+When we enter $slide.title, well
+
+
+1390
+00:39:19,506 --> 00:39:20,626
+now we're looking for a property
+
+
+1391
+00:39:20,626 --> 00:39:22,316
+that's not there on binding, so
+
+
+1392
+00:39:22,316 --> 00:39:24,056
+the compiler's rewriting this
+
+
+1393
+00:39:24,126 --> 00:39:26,266
+into a use of the dynamic number
+
+
+1394
+00:39:26,266 --> 00:39:28,696
+subscript, passing in a key path
+
+
+1395
+00:39:29,216 --> 00:39:30,276
+to slide.title.
+
+
+1396
+00:39:31,536 --> 00:39:33,126
+The way this is resolved is one
+
+
+1397
+00:39:33,126 --> 00:39:34,586
+of these focused bindings
+
+
+1398
+00:39:34,866 --> 00:39:37,846
+pointing into the string
+
+
+1399
+00:39:37,956 --> 00:39:39,776
+property within the previous
+
+
+1400
+00:39:39,806 --> 00:39:40,826
+binding following all the data
+
+
+1401
+00:39:40,826 --> 00:39:41,706
+dependencies throughout.
+
+
+1402
+00:39:42,656 --> 00:39:44,946
+And so, if we step away from the
+
+
+1403
+00:39:44,946 --> 00:39:46,246
+language mechanism that we've
+
+
+1404
+00:39:46,246 --> 00:39:48,136
+been focusing on and sort of
+
+
+1405
+00:39:48,136 --> 00:39:49,286
+look at the high level code that
+
+
+1406
+00:39:49,286 --> 00:39:51,246
+we did here, it's really nice.
+
+
+1407
+00:39:51,246 --> 00:39:52,416
+We established our data
+
+
+1408
+00:39:52,416 --> 00:39:54,096
+dependency using this custom
+
+
+1409
+00:39:54,096 --> 00:39:54,876
+attribute in the property
+
+
+1410
+00:39:54,876 --> 00:39:55,216
+wrapper.
+
+
+1411
+00:39:55,976 --> 00:39:57,086
+We have primary access to our
+
+
+1412
+00:39:57,086 --> 00:39:59,276
+data very easily to go read it
+
+
+1413
+00:39:59,276 --> 00:39:59,906
+or modify it.
+
+
+1414
+00:39:59,906 --> 00:40:01,546
+And if we want a pass down a
+
+
+1415
+00:40:01,546 --> 00:40:02,536
+first class reference through
+
+
+1416
+00:40:02,536 --> 00:40:04,506
+our binding, we put this prefix
+
+
+1417
+00:40:04,506 --> 00:40:05,796
+of $ at the front of it.
+
+
+1418
+00:40:05,876 --> 00:40:06,806
+And the effect we get is we
+
+
+1419
+00:40:06,806 --> 00:40:07,836
+always get to pass down a
+
+
+1420
+00:40:07,836 --> 00:40:09,886
+binding to some other view.
+
+
+1421
+00:40:11,616 --> 00:40:15,416
+So, we've talked about a couple
+
+
+1422
+00:40:15,416 --> 00:40:16,146
+of different topics.
+
+
+1423
+00:40:16,146 --> 00:40:17,586
+We talked about value semantics
+
+
+1424
+00:40:17,646 --> 00:40:19,556
+and reference semantics, when to
+
+
+1425
+00:40:19,556 --> 00:40:21,096
+use each of them and how to make
+
+
+1426
+00:40:21,096 --> 00:40:21,936
+them work together.
+
+
+1427
+00:40:23,076 --> 00:40:24,116
+We've talked about the use of
+
+
+1428
+00:40:24,116 --> 00:40:25,596
+generics and protocols.
+
+
+1429
+00:40:26,336 --> 00:40:27,376
+And remember, protocols are
+
+
+1430
+00:40:27,376 --> 00:40:28,476
+extremely powerful.
+
+
+1431
+00:40:28,596 --> 00:40:30,686
+But use them for code reuse.
+
+
+1432
+00:40:30,686 --> 00:40:31,716
+That's what they're there for.
+
+
+1433
+00:40:32,086 --> 00:40:33,606
+Not for classification and
+
+
+1434
+00:40:33,606 --> 00:40:34,966
+building big hierarchies because
+
+
+1435
+00:40:34,966 --> 00:40:35,696
+those are going to get in your
+
+
+1436
+00:40:35,696 --> 00:40:35,906
+way.
+
+
+1437
+00:40:35,986 --> 00:40:37,706
+You're not going to need it.
+
+
+1438
+00:40:37,996 --> 00:40:39,776
+And finally, we went into a
+
+
+1439
+00:40:39,776 --> 00:40:41,326
+little deep dive into the
+
+
+1440
+00:40:41,326 --> 00:40:43,526
+property wrappers language
+
+
+1441
+00:40:43,526 --> 00:40:45,746
+feature and how we can use it to
+
+
+1442
+00:40:45,796 --> 00:40:47,186
+abstract access to data.
+
+
+1443
+00:40:48,476 --> 00:40:48,776
+All right.
+
+
+1444
+00:40:48,876 --> 00:40:49,846
+Thank you very much.
+
+
+1445
+00:40:50,416 --> 00:40:51,816
+Come see us in the labs if you'd
+
+
+1446
+00:40:51,816 --> 00:40:53,466
+like to chat about any of these.
+
+
+1447
+00:40:54,516 --> 00:40:59,500
+[ Applause ]
+

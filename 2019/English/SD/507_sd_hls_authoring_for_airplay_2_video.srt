@@ -1,0 +1,1044 @@
+1
+00:00:01,516 --> 00:00:05,776
+[ Music ]
+
+
+2
+00:00:06,276 --> 00:00:08,116
+>> Hi, my name is Eryk Vershen.
+
+
+3
+00:00:08,316 --> 00:00:09,826
+I'm an engineer on the HLS
+
+
+4
+00:00:09,826 --> 00:00:10,676
+Streaming Team.
+
+
+5
+00:00:11,336 --> 00:00:12,906
+Let's get started talking about
+
+
+6
+00:00:12,906 --> 00:00:14,656
+HLS Authoring for AirPlay 2
+
+
+7
+00:00:14,656 --> 00:00:15,186
+Video.
+
+
+8
+00:00:17,106 --> 00:00:19,016
+Ever since we introduced AirPlay
+
+
+9
+00:00:19,016 --> 00:00:21,136
+on iOS users have enjoyed
+
+
+10
+00:00:21,136 --> 00:00:22,996
+AirPlaying video to their Apple
+
+
+11
+00:00:22,996 --> 00:00:26,216
+TVs and starting this year we're
+
+
+12
+00:00:26,216 --> 00:00:27,546
+expanding that support
+
+
+13
+00:00:27,546 --> 00:00:29,926
+dramatically with AirPlay built
+
+
+14
+00:00:29,926 --> 00:00:31,456
+directly into TVs.
+
+
+15
+00:00:32,896 --> 00:00:35,906
+Apple TV and AirPlay capable TVs
+
+
+16
+00:00:36,256 --> 00:00:37,736
+both provide the highest quality
+
+
+17
+00:00:37,736 --> 00:00:39,196
+video playback experience.
+
+
+18
+00:00:40,326 --> 00:00:41,496
+You may remember that we have
+
+
+19
+00:00:41,496 --> 00:00:43,406
+some specific requirements for
+
+
+20
+00:00:43,406 --> 00:00:45,476
+content delivered to tvOS and
+
+
+21
+00:00:45,476 --> 00:00:46,246
+Apple TV.
+
+
+22
+00:00:46,826 --> 00:00:48,956
+These AirPlay capable TVs are a
+
+
+23
+00:00:48,956 --> 00:00:50,676
+new class of devices so they
+
+
+24
+00:00:50,676 --> 00:00:52,096
+have their own requirements.
+
+
+25
+00:00:53,636 --> 00:00:55,076
+We have a simple agenda.
+
+
+26
+00:00:55,076 --> 00:00:56,886
+I'll cover the new requirements
+
+
+27
+00:00:56,936 --> 00:00:58,596
+and then I'll talk about changes
+
+
+28
+00:00:58,596 --> 00:01:00,296
+we made to the validation tools
+
+
+29
+00:01:00,296 --> 00:01:01,816
+to help you check for issues.
+
+
+30
+00:01:04,316 --> 00:01:06,606
+We released a new version of the
+
+
+31
+00:01:06,606 --> 00:01:08,206
+HLS authoring specification
+
+
+32
+00:01:08,206 --> 00:01:09,676
+recently that talks about the
+
+
+33
+00:01:09,676 --> 00:01:11,376
+additional requirements for
+
+
+34
+00:01:11,376 --> 00:01:12,076
+AirPlay 2.
+
+
+35
+00:01:14,356 --> 00:01:15,996
+Here is a condensed list.
+
+
+36
+00:01:16,116 --> 00:01:18,136
+Don't worry about absorbing this
+
+
+37
+00:01:18,136 --> 00:01:18,856
+list right now.
+
+
+38
+00:01:18,856 --> 00:01:20,366
+I'll devote a whole slide to
+
+
+39
+00:01:20,366 --> 00:01:21,266
+each line item.
+
+
+40
+00:01:21,846 --> 00:01:25,346
+Let's look at the details.
+
+
+41
+00:01:25,346 --> 00:01:26,536
+You need to synchronize the
+
+
+42
+00:01:26,536 --> 00:01:27,576
+different variants.
+
+
+43
+00:01:27,866 --> 00:01:29,346
+This makes switching easier.
+
+
+44
+00:01:30,146 --> 00:01:31,626
+If these color bars represent
+
+
+45
+00:01:31,626 --> 00:01:32,576
+different variants on a
+
+
+46
+00:01:32,576 --> 00:01:35,806
+timeline, what we want to do is
+
+
+47
+00:01:35,806 --> 00:01:37,756
+make them all line up nicely.
+
+
+48
+00:01:38,086 --> 00:01:39,856
+We are recommending that you use
+
+
+49
+00:01:39,856 --> 00:01:41,526
+at least millisecond precision
+
+
+50
+00:01:42,426 --> 00:01:44,186
+and as always your video
+
+
+51
+00:01:44,186 --> 00:01:46,206
+segments should start with IDR
+
+
+52
+00:01:46,206 --> 00:01:46,856
+frames.
+
+
+53
+00:01:48,296 --> 00:01:49,756
+You also want to avoid most
+
+
+54
+00:01:49,756 --> 00:01:51,246
+changes of discontinuities.
+
+
+55
+00:01:51,426 --> 00:01:53,396
+For example, do not switch
+
+
+56
+00:01:53,396 --> 00:01:56,296
+between HEVC and H.264 or
+
+
+57
+00:01:56,296 --> 00:01:58,196
+between AAC and Dolby Digital.
+
+
+58
+00:01:59,156 --> 00:02:01,146
+These TVs aren't able to switch
+
+
+59
+00:02:01,146 --> 00:02:03,076
+as seamlessly as iOS or Apple
+
+
+60
+00:02:03,076 --> 00:02:03,576
+TV.
+
+
+61
+00:02:04,786 --> 00:02:06,116
+You can change your frame rate
+
+
+62
+00:02:06,116 --> 00:02:07,286
+but not arbitrarily.
+
+
+63
+00:02:07,556 --> 00:02:09,306
+No switching between 25 frame
+
+
+64
+00:02:09,306 --> 00:02:10,515
+per second and 30.
+
+
+65
+00:02:13,606 --> 00:02:15,146
+You also want each codec to
+
+
+66
+00:02:15,146 --> 00:02:16,596
+provide a good set of variance
+
+
+67
+00:02:16,596 --> 00:02:17,416
+on its own.
+
+
+68
+00:02:18,076 --> 00:02:19,646
+These TVs will stick with the
+
+
+69
+00:02:19,646 --> 00:02:20,696
+codec they start with.
+
+
+70
+00:02:21,156 --> 00:02:23,116
+So, in particular, don't try to
+
+
+71
+00:02:23,116 --> 00:02:25,166
+use H.264 just for low
+
+
+72
+00:02:25,166 --> 00:02:27,276
+resolution video and HEVC for
+
+
+73
+00:02:27,276 --> 00:02:28,486
+high-resolution video.
+
+
+74
+00:02:29,026 --> 00:02:30,766
+That works on other devices but
+
+
+75
+00:02:30,766 --> 00:02:31,406
+not here.
+
+
+76
+00:02:32,526 --> 00:02:33,766
+You should, of course, be using
+
+
+77
+00:02:33,766 --> 00:02:34,946
+I-frame variance.
+
+
+78
+00:02:34,946 --> 00:02:36,716
+They make fast-forward, rewind
+
+
+79
+00:02:36,716 --> 00:02:38,066
+and seeking more effective.
+
+
+80
+00:02:38,686 --> 00:02:40,186
+Because these devices don't want
+
+
+81
+00:02:40,186 --> 00:02:41,706
+to switch codecs you need to
+
+
+82
+00:02:41,706 --> 00:02:43,416
+have a set of I-frame variance
+
+
+83
+00:02:43,416 --> 00:02:44,946
+matching the codec of the normal
+
+
+84
+00:02:44,946 --> 00:02:45,436
+video.
+
+
+85
+00:02:48,276 --> 00:02:49,676
+The encryption requirements
+
+
+86
+00:02:49,676 --> 00:02:51,226
+listed here aren't really
+
+
+87
+00:02:51,226 --> 00:02:53,216
+specific to AirPlay 2, but we
+
+
+88
+00:02:53,216 --> 00:02:54,266
+wanted to call them out.
+
+
+89
+00:02:55,466 --> 00:02:57,066
+The common encryption standard
+
+
+90
+00:02:57,066 --> 00:02:58,906
+recommends 10% partial
+
+
+91
+00:02:58,906 --> 00:02:59,446
+encryption.
+
+
+92
+00:02:59,996 --> 00:03:01,676
+With FairPlay we are requiring
+
+
+93
+00:03:01,676 --> 00:03:03,456
+it; other patterns will not
+
+
+94
+00:03:03,456 --> 00:03:03,866
+work.
+
+
+95
+00:03:04,916 --> 00:03:06,446
+For sample encryption there are
+
+
+96
+00:03:06,446 --> 00:03:07,506
+two ways to market.
+
+
+97
+00:03:08,066 --> 00:03:10,836
+The CMAF way with an senc box
+
+
+98
+00:03:11,076 --> 00:03:12,586
+and the ISO base media file
+
+
+99
+00:03:12,586 --> 00:03:14,926
+format way with a pair of saio
+
+
+100
+00:03:14,926 --> 00:03:16,726
+and saiz boxes.
+
+
+101
+00:03:17,056 --> 00:03:18,706
+We prefer the second form, but
+
+
+102
+00:03:18,706 --> 00:03:19,746
+you can provide both.
+
+
+103
+00:03:21,726 --> 00:03:23,156
+Lastly, some miscellaneous
+
+
+104
+00:03:23,156 --> 00:03:23,866
+requirements.
+
+
+105
+00:03:24,376 --> 00:03:25,846
+If you want to provide HDR
+
+
+106
+00:03:25,846 --> 00:03:27,456
+content, your best bet is to
+
+
+107
+00:03:27,456 --> 00:03:29,206
+provide multiple formats.
+
+
+108
+00:03:29,206 --> 00:03:30,956
+For example, Dolby Vision and
+
+
+109
+00:03:30,956 --> 00:03:33,536
+HDR 10 as TVs may support only
+
+
+110
+00:03:33,536 --> 00:03:37,256
+one of the formats, use WebVTT
+
+
+111
+00:03:37,256 --> 00:03:40,096
+for subtitles and we are now
+
+
+112
+00:03:40,096 --> 00:03:41,916
+recommending MIME types for all
+
+
+113
+00:03:41,916 --> 00:03:42,606
+your content.
+
+
+114
+00:03:42,766 --> 00:03:44,426
+Let's go into little more detail
+
+
+115
+00:03:44,426 --> 00:03:45,006
+about that.
+
+
+116
+00:03:46,166 --> 00:03:48,196
+We've had a MIME type for HLS
+
+
+117
+00:03:48,196 --> 00:03:49,556
+playlist for a long time.
+
+
+118
+00:03:50,116 --> 00:03:51,656
+The MIME types we are suggesting
+
+
+119
+00:03:51,656 --> 00:03:53,296
+for video and audio are what you
+
+
+120
+00:03:53,296 --> 00:03:54,076
+might expect.
+
+
+121
+00:03:55,126 --> 00:03:56,756
+Notice we are using text/plain
+
+
+122
+00:03:56,756 --> 00:03:58,626
+for WebVTT even though the
+
+
+123
+00:03:58,626 --> 00:04:01,576
+WebVTT spec says text/VTT.
+
+
+124
+00:04:01,576 --> 00:04:04,846
+However, the text VTT type was
+
+
+125
+00:04:04,846 --> 00:04:06,796
+not registered with the IANA and
+
+
+126
+00:04:06,966 --> 00:04:08,796
+will be rejected by some
+
+
+127
+00:04:08,796 --> 00:04:09,366
+clients.
+
+
+128
+00:04:09,586 --> 00:04:11,886
+So use text/plain instead.
+
+
+129
+00:04:14,136 --> 00:04:15,386
+Here's a list of some of the
+
+
+130
+00:04:15,386 --> 00:04:16,896
+less common MIME types.
+
+
+131
+00:04:17,196 --> 00:04:18,875
+Now the last 2 on this list are
+
+
+132
+00:04:18,875 --> 00:04:20,446
+not applicable to AirPlay 2
+
+
+133
+00:04:20,446 --> 00:04:21,116
+content.
+
+
+134
+00:04:21,326 --> 00:04:22,476
+I've listed them because we are
+
+
+135
+00:04:22,476 --> 00:04:24,026
+recommending MIME types for all
+
+
+136
+00:04:24,026 --> 00:04:25,866
+content not just AirPlay 2.
+
+
+137
+00:04:26,366 --> 00:04:30,146
+Let's turn to how you can check
+
+
+138
+00:04:30,146 --> 00:04:30,906
+your streams.
+
+
+139
+00:04:33,676 --> 00:04:34,776
+Remember that there are two
+
+
+140
+00:04:34,776 --> 00:04:36,936
+tools for HLS validation.
+
+
+141
+00:04:37,566 --> 00:04:39,036
+These tools are complementary.
+
+
+142
+00:04:39,416 --> 00:04:41,796
+Mediastreamvalidator is checking
+
+
+143
+00:04:41,796 --> 00:04:44,296
+against the HLS specification.
+
+
+144
+00:04:44,296 --> 00:04:45,786
+HLSreport on the other hand is
+
+
+145
+00:04:45,786 --> 00:04:47,136
+checking against the authoring
+
+
+146
+00:04:47,136 --> 00:04:47,986
+specification.
+
+
+147
+00:04:48,586 --> 00:04:50,296
+You should always be using both
+
+
+148
+00:04:50,296 --> 00:04:50,856
+tools.
+
+
+149
+00:04:51,186 --> 00:04:52,596
+I suggest you make a script that
+
+
+150
+00:04:52,596 --> 00:04:53,656
+runs them as a pair.
+
+
+151
+00:04:55,356 --> 00:04:56,916
+We've made an important change
+
+
+152
+00:04:56,916 --> 00:04:58,016
+to HLSreport.
+
+
+153
+00:04:58,596 --> 00:05:00,086
+Formerly you had to run it
+
+
+154
+00:05:00,086 --> 00:05:02,206
+multiple times with the dash os
+
+
+155
+00:05:02,206 --> 00:05:03,556
+option if you wanted to check
+
+
+156
+00:05:03,556 --> 00:05:05,836
+the rules for iOS and TVOS.
+
+
+157
+00:05:06,706 --> 00:05:08,676
+Now it checks all rule sets by
+
+
+158
+00:05:08,676 --> 00:05:10,456
+default including the rules for
+
+
+159
+00:05:10,456 --> 00:05:11,216
+AirPlay 2.
+
+
+160
+00:05:12,446 --> 00:05:14,346
+The rule set option is there to
+
+
+161
+00:05:14,346 --> 00:05:15,726
+modify the sets you check but
+
+
+162
+00:05:15,726 --> 00:05:17,206
+most of you won't need to use
+
+
+163
+00:05:17,206 --> 00:05:17,366
+it.
+
+
+164
+00:05:17,366 --> 00:05:19,586
+And while the OS option does
+
+
+165
+00:05:19,586 --> 00:05:21,156
+still work, you should stop
+
+
+166
+00:05:21,156 --> 00:05:21,706
+using it.
+
+
+167
+00:05:23,656 --> 00:05:25,376
+Let's look at how the output
+
+
+168
+00:05:25,376 --> 00:05:27,116
+from HLSreport has changed.
+
+
+169
+00:05:27,116 --> 00:05:30,326
+Notice that the title line now
+
+
+170
+00:05:30,326 --> 00:05:32,056
+shows all the rule sets that
+
+
+171
+00:05:32,056 --> 00:05:32,656
+were checked.
+
+
+172
+00:05:34,856 --> 00:05:37,126
+The rules portion is now grouped
+
+
+173
+00:05:37,126 --> 00:05:38,886
+into sections for each rule set.
+
+
+174
+00:05:39,656 --> 00:05:40,736
+Here we have the general
+
+
+175
+00:05:40,736 --> 00:05:41,456
+requirements.
+
+
+176
+00:05:42,026 --> 00:05:43,696
+There can be Must Fix and Should
+
+
+177
+00:05:43,696 --> 00:05:45,766
+Fix subsections for each rule
+
+
+178
+00:05:45,766 --> 00:05:46,116
+set.
+
+
+179
+00:05:48,006 --> 00:05:49,576
+Now farther down in the output
+
+
+180
+00:05:49,576 --> 00:05:51,366
+we have the iOS requirements.
+
+
+181
+00:05:51,526 --> 00:05:54,096
+I want you to notice that rule
+
+
+182
+00:05:54,096 --> 00:05:56,136
+10 above here the last general
+
+
+183
+00:05:56,136 --> 00:05:58,166
+rule is marked as Should Fix.
+
+
+184
+00:05:58,886 --> 00:06:01,666
+Whereas here in the AirPlay 2
+
+
+185
+00:06:01,666 --> 00:06:03,566
+section the same rule is a Must
+
+
+186
+00:06:03,566 --> 00:06:03,926
+Fix.
+
+
+187
+00:06:04,536 --> 00:06:07,966
+If there are no rule violations
+
+
+188
+00:06:07,966 --> 00:06:09,516
+for a section or subsection,
+
+
+189
+00:06:09,676 --> 00:06:10,956
+then that section or subsection
+
+
+190
+00:06:10,956 --> 00:06:11,586
+is dropped.
+
+
+191
+00:06:12,156 --> 00:06:13,876
+For example, this stream has no
+
+
+192
+00:06:13,876 --> 00:06:15,566
+Should F ixes for AirPlay 2.
+
+
+193
+00:06:17,716 --> 00:06:19,656
+The main points to take away are
+
+
+194
+00:06:19,846 --> 00:06:21,496
+we added new requirements for
+
+
+195
+00:06:21,496 --> 00:06:22,726
+AirPlay 2 devices.
+
+
+196
+00:06:23,476 --> 00:06:25,456
+Remember to use HLSreport so you
+
+
+197
+00:06:25,456 --> 00:06:26,616
+check against the authoring
+
+
+198
+00:06:26,616 --> 00:06:27,466
+specification.
+
+
+199
+00:06:27,956 --> 00:06:30,496
+And HLSreport now checks all
+
+
+200
+00:06:30,496 --> 00:06:31,906
+rule sets by default.
+
+
+201
+00:06:33,796 --> 00:06:36,006
+This is session 507 so you know
+
+
+202
+00:06:36,006 --> 00:06:37,276
+where to go for more info.
+
+
+203
+00:06:37,776 --> 00:06:39,066
+We'll have links there to the
+
+
+204
+00:06:39,066 --> 00:06:40,446
+authoring specification to the
+
+
+205
+00:06:40,446 --> 00:06:42,086
+tools and to other information
+
+
+206
+00:06:42,086 --> 00:06:43,126
+about HLS.
+
+
+207
+00:06:44,196 --> 00:06:45,316
+Thanks for your attention.
+
+
+208
+00:06:45,316 --> 00:06:46,456
+Have a great rest of the
+
+
+209
+00:06:46,456 --> 00:06:46,946
+conference.
+

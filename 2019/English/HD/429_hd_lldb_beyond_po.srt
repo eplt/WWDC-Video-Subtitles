@@ -1,0 +1,3429 @@
+1
+00:00:00,506 --> 00:00:04,500
+[ Music ]
+
+
+2
+00:00:07,626 --> 00:00:10,016
+>> Hello, my name is Davide and
+
+
+3
+00:00:10,016 --> 00:00:11,066
+I am an engineer on the
+
+
+4
+00:00:11,066 --> 00:00:12,826
+Debugging Technologies Team at
+
+
+5
+00:00:12,826 --> 00:00:13,126
+Apple.
+
+
+6
+00:00:13,866 --> 00:00:15,166
+I'm here with my colleague
+
+
+7
+00:00:15,166 --> 00:00:15,686
+Jonas.
+
+
+8
+00:00:16,306 --> 00:00:18,326
+You might be familiar with po, a
+
+
+9
+00:00:18,476 --> 00:00:20,576
+way to print variables in LLDB.
+
+
+10
+00:00:21,286 --> 00:00:23,426
+Today, we will talk about it and
+
+
+11
+00:00:23,426 --> 00:00:24,696
+how it works.
+
+
+12
+00:00:24,846 --> 00:00:26,846
+We will also present other ways
+
+
+13
+00:00:26,846 --> 00:00:28,286
+to look at the variables in your
+
+
+14
+00:00:28,286 --> 00:00:30,006
+source code together with
+
+
+15
+00:00:30,006 --> 00:00:32,906
+powerful mechanisms to format
+
+
+16
+00:00:33,786 --> 00:00:34,286
+the output.
+
+
+17
+00:00:34,286 --> 00:00:36,726
+LLDB is the debugger that powers
+
+
+18
+00:00:36,726 --> 00:00:38,256
+the variable view in Xcode.
+
+
+19
+00:00:39,426 --> 00:00:40,816
+You can see the variables you
+
+
+20
+00:00:40,816 --> 00:00:42,466
+define and their types there.
+
+
+21
+00:00:43,236 --> 00:00:45,086
+While debugging in Xcode, you
+
+
+22
+00:00:45,086 --> 00:00:47,016
+can also directly send commands
+
+
+23
+00:00:47,076 --> 00:00:49,156
+and interact with LLDB through
+
+
+24
+00:00:49,156 --> 00:00:50,866
+the console in the bottom right
+
+
+25
+00:00:50,866 --> 00:00:51,526
+of the window.
+
+
+26
+00:00:52,416 --> 00:00:53,946
+This includes the ability to
+
+
+27
+00:00:53,946 --> 00:00:55,176
+print the values of the
+
+
+28
+00:00:55,176 --> 00:00:56,516
+variables to defining your
+
+
+29
+00:00:56,516 --> 00:00:58,026
+source code while you're
+
+
+30
+00:00:58,026 --> 00:00:59,386
+investigating a bug in your
+
+
+31
+00:00:59,386 --> 00:01:00,076
+application.
+
+
+32
+00:01:00,576 --> 00:01:02,926
+LLDB offer several ways to
+
+
+33
+00:01:02,926 --> 00:01:04,025
+accomplish this task.
+
+
+34
+00:01:04,426 --> 00:01:05,756
+Each of which comes with a
+
+
+35
+00:01:05,756 --> 00:01:07,306
+different set of trade-offs.
+
+
+36
+00:01:07,596 --> 00:01:08,516
+Let's look at them.
+
+
+37
+00:01:09,236 --> 00:01:11,456
+As an example, suppose we have a
+
+
+38
+00:01:11,456 --> 00:01:13,266
+struct that represents a Trip,
+
+
+39
+00:01:13,736 --> 00:01:15,616
+consisting of a name and a list
+
+
+40
+00:01:15,616 --> 00:01:16,576
+of destinations.
+
+
+41
+00:01:17,126 --> 00:01:18,516
+Let's go on a cruise around the
+
+
+42
+00:01:18,516 --> 00:01:19,336
+Mediterranean.
+
+
+43
+00:01:20,886 --> 00:01:22,236
+The first command we are going
+
+
+44
+00:01:22,236 --> 00:01:25,296
+to explore is po, which you can
+
+
+45
+00:01:25,296 --> 00:01:27,266
+think as of standing for print
+
+
+46
+00:01:27,266 --> 00:01:28,306
+object description.
+
+
+47
+00:01:28,476 --> 00:01:30,316
+When we use this command, what
+
+
+48
+00:01:30,316 --> 00:01:32,276
+we get in return is the object
+
+
+49
+00:01:32,276 --> 00:01:34,366
+description which is a textual
+
+
+50
+00:01:34,366 --> 00:01:36,266
+representation of an instance of
+
+
+51
+00:01:36,266 --> 00:01:36,816
+your type.
+
+
+52
+00:01:37,496 --> 00:01:39,106
+The system runtime provides a
+
+
+53
+00:01:39,106 --> 00:01:41,426
+default one but it's possible to
+
+
+54
+00:01:41,426 --> 00:01:42,246
+customize it.
+
+
+55
+00:01:43,126 --> 00:01:44,766
+We can do this by adding a
+
+
+56
+00:01:44,766 --> 00:01:46,116
+conformance to the
+
+
+57
+00:01:46,116 --> 00:01:48,096
+CustomDebugStringConvertible
+
+
+58
+00:01:48,096 --> 00:01:48,726
+protocol.
+
+
+59
+00:01:48,726 --> 00:01:51,426
+This requires having a single
+
+
+60
+00:01:51,426 --> 00:01:52,706
+property called the
+
+
+61
+00:01:52,706 --> 00:01:53,806
+debugDescription.
+
+
+62
+00:01:54,996 --> 00:01:57,056
+Now, if we print the object
+
+
+63
+00:01:57,056 --> 00:01:58,586
+description in the debugger,
+
+
+64
+00:01:59,076 --> 00:02:00,356
+we'll see the description we
+
+
+65
+00:02:00,356 --> 00:02:02,356
+provided instead of the default
+
+
+66
+00:02:02,356 --> 00:02:02,616
+one.
+
+
+67
+00:02:03,556 --> 00:02:04,786
+The change only affects the
+
+
+68
+00:02:04,786 --> 00:02:06,086
+top-level description.
+
+
+69
+00:02:06,086 --> 00:02:08,996
+If you need to modify the
+
+
+70
+00:02:08,996 --> 00:02:10,596
+substructure, check the
+
+
+71
+00:02:10,596 --> 00:02:11,796
+documentation for the
+
+
+72
+00:02:11,796 --> 00:02:13,586
+CustomerReflectable protocol.
+
+
+73
+00:02:14,406 --> 00:02:15,716
+This can also be done for
+
+
+74
+00:02:15,716 --> 00:02:17,496
+Objective-C objects by
+
+
+75
+00:02:17,496 --> 00:02:18,896
+implementing the description
+
+
+76
+00:02:18,896 --> 00:02:19,406
+method.
+
+
+77
+00:02:20,856 --> 00:02:23,306
+But po does more than just print
+
+
+78
+00:02:23,306 --> 00:02:23,976
+variables.
+
+
+79
+00:02:24,246 --> 00:02:26,406
+For example, you can take the
+
+
+80
+00:02:26,406 --> 00:02:28,226
+name of our cruise and compute
+
+
+81
+00:02:28,226 --> 00:02:30,606
+an uppercase version of it or
+
+
+82
+00:02:30,606 --> 00:02:32,396
+get an alphabetically sorted
+
+
+83
+00:02:32,396 --> 00:02:33,396
+array of the cruise
+
+
+84
+00:02:33,396 --> 00:02:34,236
+destinations.
+
+
+85
+00:02:35,216 --> 00:02:37,496
+In general, it can evaluate
+
+
+86
+00:02:37,496 --> 00:02:38,996
+arbitrary expressions.
+
+
+87
+00:02:39,376 --> 00:02:41,076
+So, anything that would compile
+
+
+88
+00:02:41,076 --> 00:02:42,876
+at a given prompt in the program
+
+
+89
+00:02:43,286 --> 00:02:44,826
+can be passed as an argument to
+
+
+90
+00:02:44,826 --> 00:02:45,456
+the comment.
+
+
+91
+00:02:46,836 --> 00:02:49,356
+In fact, po is actually an alias
+
+
+92
+00:02:49,356 --> 00:02:51,156
+for a command called expression
+
+
+93
+00:02:51,626 --> 00:02:53,216
+with an argument for printing
+
+
+94
+00:02:53,216 --> 00:02:54,256
+the object description.
+
+
+95
+00:02:54,316 --> 00:02:57,566
+LECC and LLDB are a convenient
+
+
+96
+00:02:57,566 --> 00:02:59,686
+way to save keystrokes.
+
+
+97
+00:02:59,746 --> 00:03:01,776
+If you wanted to implement po
+
+
+98
+00:03:01,776 --> 00:03:04,006
+yourself, for example, you could
+
+
+99
+00:03:04,006 --> 00:03:05,126
+use command alias.
+
+
+100
+00:03:05,306 --> 00:03:07,256
+Specify your own command name as
+
+
+101
+00:03:07,256 --> 00:03:08,946
+the first argument, and then
+
+
+102
+00:03:08,946 --> 00:03:10,336
+follow with the command you want
+
+
+103
+00:03:10,336 --> 00:03:10,976
+to alias.
+
+
+104
+00:03:11,306 --> 00:03:13,476
+Once that's defined, you can use
+
+
+105
+00:03:13,476 --> 00:03:15,096
+it like any other commands in
+
+
+106
+00:03:15,096 --> 00:03:15,636
+LLDB.
+
+
+107
+00:03:17,186 --> 00:03:18,996
+Now that we know what po can do,
+
+
+108
+00:03:19,236 --> 00:03:20,726
+let's take a deeper look at how
+
+
+109
+00:03:20,726 --> 00:03:21,306
+it works.
+
+
+110
+00:03:22,256 --> 00:03:24,026
+Let's go through the steps that
+
+
+111
+00:03:24,026 --> 00:03:25,626
+po has to perform to deliver a
+
+
+112
+00:03:25,626 --> 00:03:25,976
+value.
+
+
+113
+00:03:26,486 --> 00:03:28,406
+To provide the full expressivity
+
+
+114
+00:03:28,406 --> 00:03:29,696
+of the language you are using
+
+
+115
+00:03:30,076 --> 00:03:32,306
+LLDB doesn't parse and evaluate
+
+
+116
+00:03:32,306 --> 00:03:33,916
+the expression itself.
+
+
+117
+00:03:34,146 --> 00:03:36,566
+Instead, it starts by generating
+
+
+118
+00:03:36,566 --> 00:03:38,156
+a piece of source code that can
+
+
+119
+00:03:38,156 --> 00:03:39,886
+be compiled from the expression
+
+
+120
+00:03:39,886 --> 00:03:41,716
+you gave it, similar to the
+
+
+121
+00:03:41,716 --> 00:03:42,946
+snippet shown here.
+
+
+122
+00:03:43,396 --> 00:03:45,456
+Then it uses the embedded Swift
+
+
+123
+00:03:45,456 --> 00:03:47,306
+and claim compilers to compile
+
+
+124
+00:03:47,306 --> 00:03:50,016
+the code which gets executed in
+
+
+125
+00:03:50,016 --> 00:03:51,376
+the context of your debugged
+
+
+126
+00:03:51,376 --> 00:03:51,896
+program.
+
+
+127
+00:03:52,616 --> 00:03:54,636
+Once the execution is complete,
+
+
+128
+00:03:55,146 --> 00:03:57,196
+LLDB has to access the resulting
+
+
+129
+00:03:57,196 --> 00:03:57,536
+value.
+
+
+130
+00:03:59,716 --> 00:04:01,266
+From there you need to get the
+
+
+131
+00:04:01,266 --> 00:04:02,256
+object description.
+
+
+132
+00:04:02,616 --> 00:04:04,636
+To do this, LLDB wraps the
+
+
+133
+00:04:04,636 --> 00:04:06,606
+previous result in another piece
+
+
+134
+00:04:06,606 --> 00:04:07,366
+of source code.
+
+
+135
+00:04:08,026 --> 00:04:09,986
+This also gets compiled and
+
+
+136
+00:04:09,986 --> 00:04:11,656
+executed in the context of your
+
+
+137
+00:04:11,656 --> 00:04:13,316
+debug process.
+
+
+138
+00:04:13,316 --> 00:04:15,056
+The result of this execution is
+
+
+139
+00:04:15,056 --> 00:04:17,646
+a string that LLDB will display
+
+
+140
+00:04:17,646 --> 00:04:19,435
+as the result of the po command.
+
+
+141
+00:04:19,796 --> 00:04:21,435
+Po is only the first of the
+
+
+142
+00:04:21,435 --> 00:04:22,956
+three ways we are presenting to
+
+
+143
+00:04:22,956 --> 00:04:24,526
+print variables in LLDB.
+
+
+144
+00:04:24,926 --> 00:04:26,166
+Let's look at the others.
+
+
+145
+00:04:26,606 --> 00:04:28,176
+The second way to print
+
+
+146
+00:04:28,176 --> 00:04:30,026
+variables in an LLDB is the
+
+
+147
+00:04:30,026 --> 00:04:30,706
+p-command.
+
+
+148
+00:04:31,316 --> 00:04:32,896
+You can think of it as print
+
+
+149
+00:04:33,116 --> 00:04:34,746
+without the object description.
+
+
+150
+00:04:35,356 --> 00:04:36,746
+Let's look at its output.
+
+
+151
+00:04:37,576 --> 00:04:38,986
+The first thing to notice is
+
+
+152
+00:04:38,986 --> 00:04:40,356
+that the representation is
+
+
+153
+00:04:40,356 --> 00:04:41,946
+slightly different from the one
+
+
+154
+00:04:41,946 --> 00:04:44,006
+provided by po, but it is
+
+
+155
+00:04:44,006 --> 00:04:45,926
+equivalent in that it contains
+
+
+156
+00:04:45,926 --> 00:04:47,006
+the same information.
+
+
+157
+00:04:47,766 --> 00:04:49,176
+The second thing to notice is
+
+
+158
+00:04:49,176 --> 00:04:50,776
+that the resulting value has
+
+
+159
+00:04:50,776 --> 00:04:53,716
+been given a name, $R0.
+
+
+160
+00:04:53,866 --> 00:04:55,396
+This is a special convention in
+
+
+161
+00:04:55,396 --> 00:04:55,976
+LLDB.
+
+
+162
+00:04:56,686 --> 00:04:58,576
+The result of each expression is
+
+
+163
+00:04:58,576 --> 00:05:00,476
+given an incrementing name, such
+
+
+164
+00:05:00,476 --> 00:05:02,726
+as $R1 and $R2.
+
+
+165
+00:05:02,726 --> 00:05:05,156
+And this name can be used in
+
+
+166
+00:05:05,156 --> 00:05:06,786
+later expressions in LLDB.
+
+
+167
+00:05:07,516 --> 00:05:10,576
+You can refer to $R0 the same
+
+
+168
+00:05:10,576 --> 00:05:12,196
+way as any other variable in
+
+
+169
+00:05:12,196 --> 00:05:12,976
+your project.
+
+
+170
+00:05:13,496 --> 00:05:15,256
+You can, for example, print the
+
+
+171
+00:05:15,256 --> 00:05:16,376
+fields of destruction.
+
+
+172
+00:05:17,156 --> 00:05:19,316
+Similar to po, p is not a
+
+
+173
+00:05:19,316 --> 00:05:21,156
+first-class command in LLDB.
+
+
+174
+00:05:21,606 --> 00:05:22,966
+It's just an alias for the
+
+
+175
+00:05:22,966 --> 00:05:25,356
+expression command, but without
+
+
+176
+00:05:25,356 --> 00:05:27,686
+the -- object description after
+
+
+177
+00:05:28,586 --> 00:05:28,756
+it.
+
+
+178
+00:05:28,756 --> 00:05:30,386
+As we previously did with po,
+
+
+179
+00:05:30,756 --> 00:05:32,586
+let's look at how po works under
+
+
+180
+00:05:32,586 --> 00:05:33,056
+the hood.
+
+
+181
+00:05:35,166 --> 00:05:36,736
+Since p doesn't have to get the
+
+
+182
+00:05:36,736 --> 00:05:38,306
+description, it doesn't have to
+
+
+183
+00:05:38,306 --> 00:05:39,176
+do as much work.
+
+
+184
+00:05:39,846 --> 00:05:41,936
+You may recall this diagram from
+
+
+185
+00:05:41,936 --> 00:05:43,396
+the earlier description of po.
+
+
+186
+00:05:43,966 --> 00:05:45,746
+In fact, the first part
+
+
+187
+00:05:46,086 --> 00:05:47,636
+compiling and evaluating the
+
+
+188
+00:05:47,636 --> 00:05:49,656
+expression is exactly the same
+
+
+189
+00:05:49,656 --> 00:05:50,636
+for both commands.
+
+
+190
+00:05:51,266 --> 00:05:52,826
+But once it gets the results
+
+
+191
+00:05:53,266 --> 00:05:55,436
+LLDB perform a step name dynamic
+
+
+192
+00:05:55,436 --> 00:05:56,726
+type resolution on it.
+
+
+193
+00:05:57,486 --> 00:05:58,856
+Let's describe it with more
+
+
+194
+00:05:58,856 --> 00:05:59,436
+details.
+
+
+195
+00:06:00,146 --> 00:06:01,896
+In order to do that, we have to
+
+
+196
+00:06:01,896 --> 00:06:04,066
+modify our code example a bit.
+
+
+197
+00:06:04,446 --> 00:06:05,176
+Let's see how.
+
+
+198
+00:06:06,356 --> 00:06:08,096
+We change our Trip struct to
+
+
+199
+00:06:08,296 --> 00:06:09,916
+conform to a protocol name
+
+
+200
+00:06:09,916 --> 00:06:10,566
+activity.
+
+
+201
+00:06:11,666 --> 00:06:12,956
+In Swift, the static
+
+
+202
+00:06:12,956 --> 00:06:14,466
+representation of a type in the
+
+
+203
+00:06:14,466 --> 00:06:16,326
+source code and the dynamic type
+
+
+204
+00:06:16,326 --> 00:06:17,726
+at the runtime, aren't
+
+
+205
+00:06:17,726 --> 00:06:18,896
+necessarily the same.
+
+
+206
+00:06:18,986 --> 00:06:21,796
+For example, a variable might be
+
+
+207
+00:06:21,796 --> 00:06:23,396
+declared using a protocol of
+
+
+208
+00:06:23,396 --> 00:06:24,066
+this type.
+
+
+209
+00:06:25,006 --> 00:06:27,386
+In this example, the static type
+
+
+210
+00:06:27,386 --> 00:06:28,486
+of cruise's Activity.
+
+
+211
+00:06:29,156 --> 00:06:31,216
+But at runtime, the variable
+
+
+212
+00:06:31,216 --> 00:06:32,986
+will have an instance of type
+
+
+213
+00:06:32,986 --> 00:06:35,126
+Trip which is the dynamic time.
+
+
+214
+00:06:35,126 --> 00:06:38,046
+If we print the value of cruise,
+
+
+215
+00:06:38,046 --> 00:06:39,856
+we get back an object of type
+
+
+216
+00:06:39,856 --> 00:06:42,446
+Trip because LLDB retell results
+
+
+217
+00:06:42,446 --> 00:06:44,176
+metadata to display the most
+
+
+218
+00:06:44,176 --> 00:06:45,616
+accurate type for a given
+
+
+219
+00:06:45,616 --> 00:06:47,116
+variable at a given program
+
+
+220
+00:06:47,116 --> 00:06:47,466
+point.
+
+
+221
+00:06:47,466 --> 00:06:49,626
+This is what we call dynamic
+
+
+222
+00:06:49,626 --> 00:06:50,586
+type resolution.
+
+
+223
+00:06:51,096 --> 00:06:53,466
+With the p-command, dynamic type
+
+
+224
+00:06:53,466 --> 00:06:55,796
+resolution is only performed on
+
+
+225
+00:06:55,796 --> 00:06:57,146
+the result of the expression.
+
+
+226
+00:06:57,826 --> 00:06:59,346
+Let's say we want to access one
+
+
+227
+00:06:59,346 --> 00:07:00,386
+of the field of cruise.
+
+
+228
+00:07:01,006 --> 00:07:02,966
+When LLDB tries to evaluate this
+
+
+229
+00:07:02,966 --> 00:07:05,016
+expression through p, it sees
+
+
+230
+00:07:05,016 --> 00:07:06,676
+that cruise is an object of type
+
+
+231
+00:07:06,676 --> 00:07:08,536
+Activity and doesn't have a
+
+
+232
+00:07:08,536 --> 00:07:09,506
+member called name.
+
+
+233
+00:07:09,776 --> 00:07:11,596
+The evaluation fails with an
+
+
+234
+00:07:11,596 --> 00:07:11,886
+error.
+
+
+235
+00:07:12,576 --> 00:07:14,476
+This happens because if you
+
+
+236
+00:07:14,476 --> 00:07:16,936
+remember, LLDB compiles code
+
+
+237
+00:07:16,936 --> 00:07:18,736
+where running p and the only
+
+
+238
+00:07:18,736 --> 00:07:20,616
+type it sees is the one in your
+
+
+239
+00:07:20,616 --> 00:07:22,326
+source code, the static one.
+
+
+240
+00:07:23,196 --> 00:07:24,616
+It's the same thing as typing
+
+
+241
+00:07:24,616 --> 00:07:26,506
+the expression cruise.name in
+
+
+242
+00:07:26,506 --> 00:07:27,406
+your source code.
+
+
+243
+00:07:27,836 --> 00:07:29,536
+The static compiler will reject
+
+
+244
+00:07:29,536 --> 00:07:30,336
+it with an error.
+
+
+245
+00:07:30,696 --> 00:07:32,956
+If you want to evaluate the
+
+
+246
+00:07:32,956 --> 00:07:34,846
+expression without errors, you
+
+
+247
+00:07:34,846 --> 00:07:36,536
+need to first cast the object
+
+
+248
+00:07:36,536 --> 00:07:39,136
+explicitly to its dynamic type
+
+
+249
+00:07:39,136 --> 00:07:40,596
+and then access the field on the
+
+
+250
+00:07:40,596 --> 00:07:41,116
+result.
+
+
+251
+00:07:41,586 --> 00:07:42,916
+This is true both for the
+
+
+252
+00:07:42,916 --> 00:07:44,626
+debugger and your source code.
+
+
+253
+00:07:46,526 --> 00:07:48,636
+P is not yet done with its work.
+
+
+254
+00:07:48,636 --> 00:07:50,936
+After it performed dynamic type
+
+
+255
+00:07:50,936 --> 00:07:53,516
+resolution on the result, LLDB
+
+
+256
+00:07:53,516 --> 00:07:55,236
+passes the resulting object to
+
+
+257
+00:07:55,236 --> 00:07:57,396
+the formatter subsystem which is
+
+
+258
+00:07:57,396 --> 00:07:59,306
+the part of LLDB responsible for
+
+
+259
+00:07:59,306 --> 00:08:01,286
+printing a human readable
+
+
+260
+00:08:01,286 --> 00:08:02,556
+description of objects.
+
+
+261
+00:08:02,916 --> 00:08:04,026
+Let's dive into it.
+
+
+262
+00:08:05,096 --> 00:08:06,986
+To show how formatters work,
+
+
+263
+00:08:07,226 --> 00:08:08,626
+we're going to display their
+
+
+264
+00:08:08,626 --> 00:08:09,666
+input and output.
+
+
+265
+00:08:10,196 --> 00:08:12,056
+Here's what that string looks
+
+
+266
+00:08:12,056 --> 00:08:13,916
+like if there was no formatter
+
+
+267
+00:08:13,916 --> 00:08:14,676
+for the type.
+
+
+268
+00:08:15,586 --> 00:08:17,386
+If you want to try yourself, you
+
+
+269
+00:08:17,386 --> 00:08:19,616
+can pass the -- raw option to p.
+
+
+270
+00:08:19,616 --> 00:08:22,406
+Standard library types even
+
+
+271
+00:08:22,406 --> 00:08:23,996
+simple ones like strings and
+
+
+272
+00:08:23,996 --> 00:08:25,446
+integers have complex
+
+
+273
+00:08:25,446 --> 00:08:27,286
+representation because they are
+
+
+274
+00:08:27,286 --> 00:08:28,956
+highly optimized for speed and
+
+
+275
+00:08:28,956 --> 00:08:29,426
+size.
+
+
+276
+00:08:29,526 --> 00:08:32,176
+After the formatter operates in
+
+
+277
+00:08:32,176 --> 00:08:34,336
+it a string looks exactly as you
+
+
+278
+00:08:34,336 --> 00:08:35,696
+expect, a sequence of
+
+
+279
+00:08:35,696 --> 00:08:37,606
+characters.
+
+
+280
+00:08:37,606 --> 00:08:40,025
+LLDB knows about a bunch of
+
+
+281
+00:08:40,025 --> 00:08:41,936
+commonly used types and provides
+
+
+282
+00:08:41,936 --> 00:08:43,145
+formatters for them.
+
+
+283
+00:08:43,796 --> 00:08:45,766
+You can also write for customize
+
+
+284
+00:08:45,766 --> 00:08:46,416
+formatters.
+
+
+285
+00:08:46,676 --> 00:08:48,166
+We'll talk about it shortly.
+
+
+286
+00:08:49,236 --> 00:08:51,466
+We talk about p and po.
+
+
+287
+00:08:52,226 --> 00:08:53,986
+We are now going to describe the
+
+
+288
+00:08:53,986 --> 00:08:55,676
+third way to print variables in
+
+
+289
+00:08:55,676 --> 00:08:57,636
+LLDB, the v-command.
+
+
+290
+00:08:59,126 --> 00:09:01,506
+The output of v is exactly the
+
+
+291
+00:09:01,506 --> 00:09:03,916
+same as p as it also relies on
+
+
+292
+00:09:03,916 --> 00:09:05,626
+the formatter we just described.
+
+
+293
+00:09:06,866 --> 00:09:08,516
+As with the other two commands,
+
+
+294
+00:09:08,616 --> 00:09:10,846
+v is just an alias we introduced
+
+
+295
+00:09:10,846 --> 00:09:13,596
+in Xcode 10.2 for the frame
+
+
+296
+00:09:13,596 --> 00:09:14,566
+variable command.
+
+
+297
+00:09:14,926 --> 00:09:16,716
+Unlike the other two mechanisms,
+
+
+298
+00:09:16,966 --> 00:09:18,696
+the v-command doesn't compile
+
+
+299
+00:09:18,696 --> 00:09:20,476
+and execute code at all which
+
+
+300
+00:09:20,476 --> 00:09:22,246
+makes it very fast.
+
+
+301
+00:09:22,246 --> 00:09:24,726
+Since v is not compiling code,
+
+
+302
+00:09:24,726 --> 00:09:26,816
+it does its own syntax which
+
+
+303
+00:09:26,816 --> 00:09:28,636
+will not necessarily be the same
+
+
+304
+00:09:28,636 --> 00:09:29,486
+as the language you are
+
+
+305
+00:09:29,486 --> 00:09:30,096
+debugging.
+
+
+306
+00:09:30,666 --> 00:09:33,096
+For example, it used the dot and
+
+
+307
+00:09:33,096 --> 00:09:35,316
+subscript operators to access
+
+
+308
+00:09:35,316 --> 00:09:36,106
+fields over time.
+
+
+309
+00:09:36,646 --> 00:09:38,156
+But it won't perform overload
+
+
+310
+00:09:38,156 --> 00:09:39,906
+the resolution and computed
+
+
+311
+00:09:39,906 --> 00:09:41,906
+properties cannot be evaluated
+
+
+312
+00:09:42,526 --> 00:09:44,316
+since that would require code to
+
+
+313
+00:09:44,316 --> 00:09:45,266
+be executed.
+
+
+314
+00:09:46,026 --> 00:09:48,866
+You can use p or po if you need
+
+
+315
+00:09:48,866 --> 00:09:49,226
+those.
+
+
+316
+00:09:49,696 --> 00:09:52,206
+As you can guess, v works fairly
+
+
+317
+00:09:52,206 --> 00:09:53,716
+differently from the other two
+
+
+318
+00:09:53,716 --> 00:09:55,026
+mechanisms for printing
+
+
+319
+00:09:55,026 --> 00:09:55,726
+variables.
+
+
+320
+00:09:56,196 --> 00:09:58,016
+Let's go ahead and clarify some
+
+
+321
+00:09:58,016 --> 00:09:58,646
+details.
+
+
+322
+00:09:59,286 --> 00:10:00,746
+In our grand tradition of
+
+
+323
+00:10:00,746 --> 00:10:02,766
+diagrams here is one for v.
+
+
+324
+00:10:03,446 --> 00:10:04,926
+We want to print a variable.
+
+
+325
+00:10:05,336 --> 00:10:07,816
+To do so, v first consults the
+
+
+326
+00:10:07,816 --> 00:10:09,376
+program state to locate the
+
+
+327
+00:10:09,376 --> 00:10:10,356
+variable in memory.
+
+
+328
+00:10:10,836 --> 00:10:12,886
+Then it reads the value of the
+
+
+329
+00:10:12,886 --> 00:10:13,996
+variable from memory.
+
+
+330
+00:10:14,376 --> 00:10:16,146
+Then it performs dynamic type
+
+
+331
+00:10:16,146 --> 00:10:17,156
+resolution on it.
+
+
+332
+00:10:17,506 --> 00:10:19,306
+If the user asked to access
+
+
+333
+00:10:19,306 --> 00:10:21,646
+subfields, it repeats the step
+
+
+334
+00:10:21,786 --> 00:10:23,176
+for each of the subfields
+
+
+335
+00:10:23,416 --> 00:10:24,846
+performing dynamic type
+
+
+336
+00:10:24,846 --> 00:10:26,226
+resolution at each round.
+
+
+337
+00:10:26,786 --> 00:10:29,176
+Once it's done, it passes the
+
+
+338
+00:10:29,176 --> 00:10:30,866
+result to the data formatter
+
+
+339
+00:10:30,866 --> 00:10:31,616
+subsystem.
+
+
+340
+00:10:32,356 --> 00:10:34,336
+The fact that v performs dynamic
+
+
+341
+00:10:34,336 --> 00:10:35,956
+type resolution potentially
+
+
+342
+00:10:35,956 --> 00:10:38,206
+multiple times is an important
+
+
+343
+00:10:38,206 --> 00:10:40,176
+detail to remember and the big
+
+
+344
+00:10:40,176 --> 00:10:42,286
+difference in the way p and v
+
+
+345
+00:10:42,286 --> 00:10:43,226
+operates.
+
+
+346
+00:10:43,226 --> 00:10:44,826
+The formatter indeed performs
+
+
+347
+00:10:44,826 --> 00:10:46,416
+dynamic type resolution only
+
+
+348
+00:10:46,416 --> 00:10:46,846
+once.
+
+
+349
+00:10:46,846 --> 00:10:48,796
+Let's look at the scenario where
+
+
+350
+00:10:48,796 --> 00:10:49,726
+these matters.
+
+
+351
+00:10:51,146 --> 00:10:53,146
+We are back to our example where
+
+
+352
+00:10:53,146 --> 00:10:54,666
+p was failing to access the
+
+
+353
+00:10:54,666 --> 00:10:55,546
+member of cruise.
+
+
+354
+00:10:56,266 --> 00:10:57,766
+By performing dynamic type
+
+
+355
+00:10:57,766 --> 00:10:59,396
+resolution at each step of the
+
+
+356
+00:10:59,396 --> 00:11:01,716
+interpretation, v is able to
+
+
+357
+00:11:01,716 --> 00:11:03,136
+understand that cruise is an
+
+
+358
+00:11:03,136 --> 00:11:05,576
+object of type Trip and access
+
+
+359
+00:11:05,576 --> 00:11:06,696
+its field in memory.
+
+
+360
+00:11:06,946 --> 00:11:09,516
+This is a scenario where v is
+
+
+361
+00:11:09,516 --> 00:11:11,206
+strictly more powerful than p
+
+
+362
+00:11:11,366 --> 00:11:13,016
+and allows you to look at your
+
+
+363
+00:11:13,016 --> 00:11:14,796
+types where p doesn't or without
+
+
+364
+00:11:14,796 --> 00:11:15,886
+an explicit cast.
+
+
+365
+00:11:17,126 --> 00:11:18,606
+We are done describing the three
+
+
+366
+00:11:18,606 --> 00:11:20,226
+different ways for printing
+
+
+367
+00:11:20,226 --> 00:11:21,506
+variables in LLDB.
+
+
+368
+00:11:23,356 --> 00:11:24,986
+Let's have a recap and the
+
+
+369
+00:11:24,986 --> 00:11:27,046
+side-by-side comparison of how
+
+
+370
+00:11:27,046 --> 00:11:29,556
+the po, p and v commands differ.
+
+
+371
+00:11:30,466 --> 00:11:32,116
+The first point we want to make
+
+
+372
+00:11:32,116 --> 00:11:33,856
+is about how objects are
+
+
+373
+00:11:33,856 --> 00:11:34,556
+presented.
+
+
+374
+00:11:35,326 --> 00:11:37,366
+The po command uses the object
+
+
+375
+00:11:37,366 --> 00:11:39,636
+description, whereas the p and v
+
+
+376
+00:11:39,636 --> 00:11:42,066
+commands use the data formatters
+
+
+377
+00:11:42,066 --> 00:11:43,226
+to display the object.
+
+
+378
+00:11:43,916 --> 00:11:45,476
+We also want to remember how our
+
+
+379
+00:11:45,476 --> 00:11:46,686
+results are computed.
+
+
+380
+00:11:47,376 --> 00:11:48,886
+Both po and p compile
+
+
+381
+00:11:48,886 --> 00:11:50,676
+expressions and have access to
+
+
+382
+00:11:50,676 --> 00:11:51,546
+the full language.
+
+
+383
+00:11:52,136 --> 00:11:54,276
+V instead has its own syntax
+
+
+384
+00:11:54,366 --> 00:11:56,436
+interprets the expression and
+
+
+385
+00:11:56,436 --> 00:11:58,366
+performs dynamic type resolution
+
+
+386
+00:11:58,366 --> 00:11:59,346
+for each step of the
+
+
+387
+00:11:59,346 --> 00:12:00,216
+interpretation.
+
+
+388
+00:12:02,176 --> 00:12:04,516
+We mentioned earlier that LLDB
+
+
+389
+00:12:04,516 --> 00:12:06,336
+formatting can be customized.
+
+
+390
+00:12:06,686 --> 00:12:08,706
+To talk more about that, here is
+
+
+391
+00:12:08,706 --> 00:12:09,786
+my colleague Jonas.
+
+
+392
+00:12:10,236 --> 00:12:12,996
+>> Hi, I'm Jonas, and I'm also
+
+
+393
+00:12:12,996 --> 00:12:14,266
+an engineer on the Debugging
+
+
+394
+00:12:14,266 --> 00:12:15,186
+Technologies Team.
+
+
+395
+00:12:16,026 --> 00:12:18,096
+In LLDB, data formatter is
+
+
+396
+00:12:18,096 --> 00:12:19,556
+defined how variables are
+
+
+397
+00:12:19,556 --> 00:12:20,856
+displayed in the debugger.
+
+
+398
+00:12:22,436 --> 00:12:24,086
+There are building formatters
+
+
+399
+00:12:24,086 --> 00:12:25,086
+for common types.
+
+
+400
+00:12:25,476 --> 00:12:27,456
+For instance, when using the
+
+
+401
+00:12:27,456 --> 00:12:28,906
+v-commands, we can print the
+
+
+402
+00:12:28,906 --> 00:12:30,866
+destinations of our cruise and
+
+
+403
+00:12:30,866 --> 00:12:32,396
+the array elements are displayed
+
+
+404
+00:12:32,396 --> 00:12:33,376
+in a readable format.
+
+
+405
+00:12:34,336 --> 00:12:36,136
+Usually, the default formatter
+
+
+406
+00:12:36,136 --> 00:12:37,816
+works great for both the user
+
+
+407
+00:12:37,816 --> 00:12:39,586
+defined types and for types
+
+
+408
+00:12:39,586 --> 00:12:40,516
+coming from the standard
+
+
+409
+00:12:40,516 --> 00:12:40,936
+library.
+
+
+410
+00:12:41,676 --> 00:12:43,256
+But sometimes you might want to
+
+
+411
+00:12:43,256 --> 00:12:45,196
+tweak an existing formatter or
+
+
+412
+00:12:45,196 --> 00:12:46,126
+to find one yourself.
+
+
+413
+00:12:47,836 --> 00:12:49,636
+And you can, because data
+
+
+414
+00:12:49,636 --> 00:12:51,836
+formatters in LLDB are fully
+
+
+415
+00:12:51,836 --> 00:12:52,536
+extensible.
+
+
+416
+00:12:53,216 --> 00:12:54,596
+Every type can have its own
+
+
+417
+00:12:54,596 --> 00:12:55,446
+representation.
+
+
+418
+00:12:56,096 --> 00:12:57,106
+To help you customize that
+
+
+419
+00:12:57,106 --> 00:12:59,376
+representation, LLDB offers
+
+
+420
+00:12:59,376 --> 00:13:01,996
+filters, summaries and synthetic
+
+
+421
+00:13:01,996 --> 00:13:02,416
+children.
+
+
+422
+00:13:04,266 --> 00:13:05,826
+Filters are used to limit the
+
+
+423
+00:13:05,826 --> 00:13:07,616
+output of existing formatters.
+
+
+424
+00:13:08,166 --> 00:13:09,676
+Right now, our Trip only has a
+
+
+425
+00:13:09,676 --> 00:13:11,476
+few destinations but as the
+
+
+426
+00:13:11,476 --> 00:13:13,216
+number increases, the output
+
+
+427
+00:13:13,256 --> 00:13:14,186
+could become cluttered.
+
+
+428
+00:13:15,626 --> 00:13:17,236
+By adding a filter, we can
+
+
+429
+00:13:17,236 --> 00:13:19,026
+specify that we only want to see
+
+
+430
+00:13:19,026 --> 00:13:19,766
+the Trips name.
+
+
+431
+00:13:20,786 --> 00:13:22,246
+This not only affects the output
+
+
+432
+00:13:22,246 --> 00:13:23,536
+of the formatter in the console,
+
+
+433
+00:13:23,536 --> 00:13:25,196
+but also the variables here in
+
+
+434
+00:13:25,196 --> 00:13:25,626
+Xcode.
+
+
+435
+00:13:26,546 --> 00:13:27,896
+Let's remove the filter again
+
+
+436
+00:13:27,986 --> 00:13:29,026
+before moving on.
+
+
+437
+00:13:30,616 --> 00:13:32,136
+Summaries provide a string
+
+
+438
+00:13:32,136 --> 00:13:33,296
+representation of a type.
+
+
+439
+00:13:33,656 --> 00:13:34,996
+To give information about that
+
+
+440
+00:13:34,996 --> 00:13:36,976
+type at a glance, their data
+
+
+441
+00:13:36,976 --> 00:13:38,476
+formatter equivalent of the
+
+
+442
+00:13:38,476 --> 00:13:39,756
+description that you would
+
+
+443
+00:13:39,756 --> 00:13:41,186
+implement for use with po.
+
+
+444
+00:13:41,716 --> 00:13:43,646
+As with filters, they also
+
+
+445
+00:13:43,646 --> 00:13:44,766
+affect the variables view in
+
+
+446
+00:13:44,766 --> 00:13:45,166
+Xcode.
+
+
+447
+00:13:46,166 --> 00:13:47,406
+While the members of our Trip
+
+
+448
+00:13:47,406 --> 00:13:48,906
+all have summaries, the Trip
+
+
+449
+00:13:48,906 --> 00:13:49,676
+itself does not.
+
+
+450
+00:13:50,006 --> 00:13:50,936
+Let's change that.
+
+
+451
+00:13:52,536 --> 00:13:53,856
+A good summary would be the
+
+
+452
+00:13:53,856 --> 00:13:55,416
+first and last destination.
+
+
+453
+00:13:56,216 --> 00:13:57,616
+The summary string can contain
+
+
+454
+00:13:57,616 --> 00:13:59,346
+regular text and special
+
+
+455
+00:13:59,346 --> 00:14:01,346
+variables that access fields of
+
+
+456
+00:14:01,346 --> 00:14:02,336
+the time being printed.
+
+
+457
+00:14:03,086 --> 00:14:04,236
+These variables start with a
+
+
+458
+00:14:04,236 --> 00:14:05,796
+dollar sign and are wrapped in
+
+
+459
+00:14:05,796 --> 00:14:06,676
+curly braces.
+
+
+460
+00:14:07,276 --> 00:14:08,746
+They use the same syntax as the
+
+
+461
+00:14:08,746 --> 00:14:09,456
+v-commands.
+
+
+462
+00:14:10,186 --> 00:14:11,646
+The current type for which the
+
+
+463
+00:14:11,646 --> 00:14:13,836
+summary is defined is access as
+
+
+464
+00:14:13,836 --> 00:14:14,186
+var.
+
+
+465
+00:14:14,966 --> 00:14:17,176
+The summary uses var.name to
+
+
+466
+00:14:17,176 --> 00:14:18,726
+access the Trips name and
+
+
+467
+00:14:18,726 --> 00:14:20,546
+var.destinations to access its
+
+
+468
+00:14:20,546 --> 00:14:21,326
+destinations.
+
+
+469
+00:14:22,526 --> 00:14:23,626
+But there's a problem with the
+
+
+470
+00:14:23,626 --> 00:14:24,136
+summary.
+
+
+471
+00:14:24,556 --> 00:14:26,126
+It only works for Trips that
+
+
+472
+00:14:26,126 --> 00:14:27,156
+contain exactly three
+
+
+473
+00:14:27,156 --> 00:14:27,946
+destinations.
+
+
+474
+00:14:28,636 --> 00:14:29,936
+Because formatters can't access
+
+
+475
+00:14:29,936 --> 00:14:31,306
+computed variables like the
+
+
+476
+00:14:31,306 --> 00:14:32,896
+count of an array, we have to
+
+
+477
+00:14:32,896 --> 00:14:34,346
+hard-code the index of the last
+
+
+478
+00:14:34,346 --> 00:14:34,696
+element.
+
+
+479
+00:14:36,416 --> 00:14:37,836
+Fortunately, there's another
+
+
+480
+00:14:37,836 --> 00:14:39,556
+powerful tool available to us.
+
+
+481
+00:14:40,046 --> 00:14:41,686
+We can also define summaries in
+
+
+482
+00:14:41,686 --> 00:14:42,176
+Python.
+
+
+483
+00:14:43,046 --> 00:14:44,286
+Python formatters can do
+
+
+484
+00:14:44,286 --> 00:14:46,336
+arbitrary computations and they
+
+
+485
+00:14:46,336 --> 00:14:48,056
+have full access to LLDB's
+
+
+486
+00:14:48,146 --> 00:14:50,376
+scripting bridge API which
+
+
+487
+00:14:50,376 --> 00:14:52,006
+provides several objects for
+
+
+488
+00:14:52,006 --> 00:14:53,296
+accessing the state of the
+
+
+489
+00:14:53,296 --> 00:14:54,316
+current debug session.
+
+
+490
+00:14:54,596 --> 00:14:58,026
+The target is the program that's
+
+
+491
+00:14:58,026 --> 00:14:59,136
+currently being debugged.
+
+
+492
+00:14:59,696 --> 00:15:02,326
+The process, thread, and frame
+
+
+493
+00:15:02,326 --> 00:15:03,496
+provides access to the
+
+
+494
+00:15:03,496 --> 00:15:04,566
+corresponding runtime
+
+
+495
+00:15:04,566 --> 00:15:05,296
+information.
+
+
+496
+00:15:06,266 --> 00:15:08,946
+Values of variables, registers,
+
+
+497
+00:15:09,036 --> 00:15:11,176
+or expressions are represented
+
+
+498
+00:15:11,176 --> 00:15:12,856
+by the SB value class.
+
+
+499
+00:15:13,346 --> 00:15:14,316
+These are particularly
+
+
+500
+00:15:14,316 --> 00:15:15,606
+interesting to the data
+
+
+501
+00:15:15,606 --> 00:15:17,426
+formatters because they are used
+
+
+502
+00:15:17,426 --> 00:15:18,906
+to navigate types and their
+
+
+503
+00:15:18,906 --> 00:15:19,656
+values.
+
+
+504
+00:15:20,306 --> 00:15:21,086
+Check out the online
+
+
+505
+00:15:21,086 --> 00:15:22,986
+documentation for more details.
+
+
+506
+00:15:25,016 --> 00:15:26,636
+Starting with Xcode 11,
+
+
+507
+00:15:26,786 --> 00:15:28,196
+scripting uses Python 3.
+
+
+508
+00:15:28,926 --> 00:15:30,216
+If you have existing Python 2
+
+
+509
+00:15:30,216 --> 00:15:31,836
+scripts, check out the Xcode
+
+
+510
+00:15:31,836 --> 00:15:33,046
+release notes for more
+
+
+511
+00:15:33,046 --> 00:15:34,426
+information on transitioning to
+
+
+512
+00:15:34,426 --> 00:15:35,006
+Python 3.
+
+
+513
+00:15:35,546 --> 00:15:39,586
+Let's explore the LLDB API.
+
+
+514
+00:15:40,746 --> 00:15:42,306
+Executing the script commands
+
+
+515
+00:15:42,436 --> 00:15:43,876
+drops this into an interactive
+
+
+516
+00:15:43,906 --> 00:15:45,106
+Python interpreter.
+
+
+517
+00:15:45,976 --> 00:15:47,696
+The current frame is accessible
+
+
+518
+00:15:47,696 --> 00:15:49,526
+to the lldb.frame variable.
+
+
+519
+00:15:50,096 --> 00:15:51,466
+This returns an SBFrame
+
+
+520
+00:15:51,466 --> 00:15:52,056
+instance.
+
+
+521
+00:15:52,746 --> 00:15:53,876
+We know that the current frame
+
+
+522
+00:15:53,876 --> 00:15:54,996
+contains a variable named
+
+
+523
+00:15:54,996 --> 00:15:55,506
+cruise.
+
+
+524
+00:15:56,046 --> 00:15:58,096
+So, we can go ahead and use find
+
+
+525
+00:15:58,096 --> 00:16:00,056
+variable to obtain its SB value.
+
+
+526
+00:16:01,006 --> 00:16:02,396
+Since these objects power the
+
+
+527
+00:16:02,396 --> 00:16:03,806
+data formatters under the hood,
+
+
+528
+00:16:04,326 --> 00:16:05,766
+it is no surprise that printing
+
+
+529
+00:16:05,766 --> 00:16:07,256
+them looks identical to the
+
+
+530
+00:16:07,256 --> 00:16:08,726
+corresponding data formatter
+
+
+531
+00:16:08,766 --> 00:16:09,276
+outputs.
+
+
+532
+00:16:11,366 --> 00:16:13,126
+We also know that cruise has
+
+
+533
+00:16:13,126 --> 00:16:14,636
+member named destinations.
+
+
+534
+00:16:14,926 --> 00:16:16,486
+We can access it by calling
+
+
+535
+00:16:16,486 --> 00:16:17,686
+GetChildMemberWithName.
+
+
+536
+00:16:18,736 --> 00:16:20,646
+The result is another SB value
+
+
+537
+00:16:20,906 --> 00:16:22,416
+that represents the destinations
+
+
+538
+00:16:22,416 --> 00:16:22,696
+array.
+
+
+539
+00:16:23,136 --> 00:16:25,936
+Let's try to mimic our earlier
+
+
+540
+00:16:25,936 --> 00:16:28,146
+formatter using Python, this
+
+
+541
+00:16:28,146 --> 00:16:29,316
+time without hard coding the
+
+
+542
+00:16:29,316 --> 00:16:30,566
+index of the last element.
+
+
+543
+00:16:31,396 --> 00:16:33,166
+We can use GetNumChildren on the
+
+
+544
+00:16:33,166 --> 00:16:35,166
+destinations SB value to get the
+
+
+545
+00:16:35,166 --> 00:16:36,106
+number of elements.
+
+
+546
+00:16:36,836 --> 00:16:38,606
+With GetChildAtIndex, we can
+
+
+547
+00:16:38,606 --> 00:16:40,616
+access the first element and the
+
+
+548
+00:16:40,616 --> 00:16:41,376
+last element.
+
+
+549
+00:16:42,336 --> 00:16:43,756
+Notice that the printed values
+
+
+550
+00:16:43,756 --> 00:16:44,766
+are context sensitive.
+
+
+551
+00:16:45,356 --> 00:16:46,646
+They contain the index in the
+
+
+552
+00:16:46,646 --> 00:16:46,976
+array.
+
+
+553
+00:16:47,726 --> 00:16:49,406
+SB value instances maintain the
+
+
+554
+00:16:49,406 --> 00:16:50,726
+context of their parent
+
+
+555
+00:16:50,726 --> 00:16:51,186
+relation.
+
+
+556
+00:16:52,556 --> 00:16:53,876
+Now, we can put everything
+
+
+557
+00:16:53,876 --> 00:16:55,296
+together in a single string.
+
+
+558
+00:16:55,796 --> 00:16:57,486
+The results, however, it's not
+
+
+559
+00:16:57,486 --> 00:16:59,236
+exactly what we want, by
+
+
+560
+00:16:59,236 --> 00:17:01,596
+printing, begin and end, we get
+
+
+561
+00:17:01,596 --> 00:17:03,096
+descriptions of the SB value
+
+
+562
+00:17:03,096 --> 00:17:03,746
+objects.
+
+
+563
+00:17:04,146 --> 00:17:05,695
+What we really want here are
+
+
+564
+00:17:05,695 --> 00:17:06,465
+their summaries.
+
+
+565
+00:17:07,096 --> 00:17:08,915
+We can use GetSummary to
+
+
+566
+00:17:08,915 --> 00:17:10,756
+retrieve the formatted value and
+
+
+567
+00:17:10,756 --> 00:17:11,476
+use that instead.
+
+
+568
+00:17:12,106 --> 00:17:13,886
+Now, the result is place only
+
+
+569
+00:17:13,886 --> 00:17:14,876
+the destination strings
+
+
+570
+00:17:14,876 --> 00:17:15,476
+themselves.
+
+
+571
+00:17:15,886 --> 00:17:18,276
+Let's put everything together.
+
+
+572
+00:17:18,586 --> 00:17:20,026
+Formatters can be defined
+
+
+573
+00:17:20,026 --> 00:17:21,726
+directly in the debugger console
+
+
+574
+00:17:22,116 --> 00:17:23,695
+or you can use a file and load
+
+
+575
+00:17:23,695 --> 00:17:24,546
+it into LLDB.
+
+
+576
+00:17:25,226 --> 00:17:26,516
+In this case, we'll create a
+
+
+577
+00:17:26,516 --> 00:17:27,986
+file called Trip.py.
+
+
+578
+00:17:28,926 --> 00:17:30,066
+When defining a provider in a
+
+
+579
+00:17:30,066 --> 00:17:31,646
+file instead of using the
+
+
+580
+00:17:31,646 --> 00:17:32,706
+current frame to access the
+
+
+581
+00:17:32,706 --> 00:17:34,556
+variable we want to display the
+
+
+582
+00:17:34,556 --> 00:17:36,256
+SB value is passed as an input
+
+
+583
+00:17:36,256 --> 00:17:37,526
+parameter to a function.
+
+
+584
+00:17:38,606 --> 00:17:40,006
+The rest of the implementation
+
+
+585
+00:17:40,096 --> 00:17:41,836
+is pretty much identical to what
+
+
+586
+00:17:41,836 --> 00:17:42,566
+we did before.
+
+
+587
+00:17:43,576 --> 00:17:44,866
+Another advantage of using
+
+
+588
+00:17:44,866 --> 00:17:46,546
+Python to define the formatter
+
+
+589
+00:17:46,826 --> 00:17:47,976
+is that we have control flow.
+
+
+590
+00:17:48,706 --> 00:17:50,356
+If the trip has no destinations,
+
+
+591
+00:17:50,576 --> 00:17:51,876
+we can just sprint that it's an
+
+
+592
+00:17:51,876 --> 00:17:52,356
+empty trip.
+
+
+593
+00:17:53,286 --> 00:17:54,586
+We get the summary for the first
+
+
+594
+00:17:54,586 --> 00:17:56,476
+and last destination and return
+
+
+595
+00:17:56,476 --> 00:17:57,166
+to summary string.
+
+
+596
+00:17:58,846 --> 00:18:00,136
+Now, we need to load our new
+
+
+597
+00:18:00,136 --> 00:18:02,086
+summary provider into LLDB.
+
+
+598
+00:18:02,646 --> 00:18:04,166
+This is done using the command
+
+
+599
+00:18:04,166 --> 00:18:05,396
+script import command.
+
+
+600
+00:18:06,266 --> 00:18:08,166
+Next, we need to specify that
+
+
+601
+00:18:08,166 --> 00:18:09,616
+our new formatter is the one to
+
+
+602
+00:18:09,616 --> 00:18:11,106
+use for the Trip type.
+
+
+603
+00:18:11,586 --> 00:18:13,346
+Using type summary add and
+
+
+604
+00:18:13,346 --> 00:18:14,406
+providing the type to be
+
+
+605
+00:18:14,406 --> 00:18:15,976
+formatted, and the provider
+
+
+606
+00:18:15,976 --> 00:18:16,856
+function to use.
+
+
+607
+00:18:17,676 --> 00:18:18,946
+It's important to use the fully
+
+
+608
+00:18:18,946 --> 00:18:20,016
+qualified type here.
+
+
+609
+00:18:20,746 --> 00:18:22,456
+With everything hooked up v now
+
+
+610
+00:18:22,456 --> 00:18:24,136
+uses the Python summary provider
+
+
+611
+00:18:24,286 --> 00:18:25,416
+to print a cruise object.
+
+
+612
+00:18:27,066 --> 00:18:28,396
+Not only does the summary show
+
+
+613
+00:18:28,396 --> 00:18:29,926
+up in the console, it is also
+
+
+614
+00:18:29,926 --> 00:18:31,446
+displayed in Xcode's Variable
+
+
+615
+00:18:31,446 --> 00:18:31,686
+View.
+
+
+616
+00:18:32,126 --> 00:18:34,316
+We've talked about filters and
+
+
+617
+00:18:34,316 --> 00:18:34,946
+summaries.
+
+
+618
+00:18:35,256 --> 00:18:36,536
+The final way to customize the
+
+
+619
+00:18:36,536 --> 00:18:38,086
+display of your type is with
+
+
+620
+00:18:38,086 --> 00:18:39,016
+synthetic children.
+
+
+621
+00:18:39,776 --> 00:18:41,006
+These make it possible to
+
+
+622
+00:18:41,006 --> 00:18:42,706
+customize what kind of children
+
+
+623
+00:18:42,706 --> 00:18:44,826
+your type exposes, such as when
+
+
+624
+00:18:44,826 --> 00:18:45,946
+you expend to type in the
+
+
+625
+00:18:45,946 --> 00:18:47,356
+variables view in Xcode.
+
+
+626
+00:18:48,146 --> 00:18:49,996
+In Python, each child has an SB
+
+
+627
+00:18:49,996 --> 00:18:51,796
+value, and each can have its own
+
+
+628
+00:18:51,796 --> 00:18:52,246
+summary.
+
+
+629
+00:18:54,386 --> 00:18:55,676
+Defining your own synthetic
+
+
+630
+00:18:55,676 --> 00:18:57,326
+child provider is similar to
+
+
+631
+00:18:57,326 --> 00:18:58,726
+defining a summary provider.
+
+
+632
+00:18:59,056 --> 00:19:00,476
+But instead of a function you
+
+
+633
+00:19:00,476 --> 00:19:01,926
+define a class that implements
+
+
+634
+00:19:01,926 --> 00:19:02,756
+certain methods.
+
+
+635
+00:19:03,446 --> 00:19:05,306
+In addition to init, you provide
+
+
+636
+00:19:05,306 --> 00:19:06,576
+a method to get the total number
+
+
+637
+00:19:06,576 --> 00:19:08,266
+of children, the synthetic
+
+
+638
+00:19:08,266 --> 00:19:09,736
+children themselves, and an
+
+
+639
+00:19:09,736 --> 00:19:10,856
+index for a given name.
+
+
+640
+00:19:11,616 --> 00:19:12,686
+A full example of this is
+
+
+641
+00:19:12,686 --> 00:19:14,376
+available in the resources link
+
+
+642
+00:19:14,376 --> 00:19:15,076
+from this session.
+
+
+643
+00:19:17,996 --> 00:19:19,596
+Just like before, use command
+
+
+644
+00:19:19,596 --> 00:19:21,156
+script import to load the Python
+
+
+645
+00:19:21,156 --> 00:19:22,666
+source code into LLDB.
+
+
+646
+00:19:23,336 --> 00:19:24,966
+In this case, we already loaded
+
+
+647
+00:19:24,966 --> 00:19:26,576
+this file earlier and running
+
+
+648
+00:19:26,576 --> 00:19:27,936
+the command again will reload
+
+
+649
+00:19:27,936 --> 00:19:28,366
+the file.
+
+
+650
+00:19:29,956 --> 00:19:31,746
+To specify the formatter, to use
+
+
+651
+00:19:31,746 --> 00:19:33,706
+for synthetic children use type
+
+
+652
+00:19:33,706 --> 00:19:35,396
+synthetic add and provide the
+
+
+653
+00:19:35,396 --> 00:19:36,926
+type to be formatted and the
+
+
+654
+00:19:36,926 --> 00:19:37,796
+class to use.
+
+
+655
+00:19:39,486 --> 00:19:40,786
+After going through the effort
+
+
+656
+00:19:40,856 --> 00:19:42,096
+of defining our own custom
+
+
+657
+00:19:42,096 --> 00:19:43,766
+providers, we don't want to lose
+
+
+658
+00:19:43,766 --> 00:19:45,016
+them at the end of our debug
+
+
+659
+00:19:45,016 --> 00:19:45,376
+session.
+
+
+660
+00:19:46,206 --> 00:19:47,266
+Any command you type in the
+
+
+661
+00:19:47,266 --> 00:19:49,666
+console can be persisted in the
+
+
+662
+00:19:49,666 --> 00:19:51,406
+.lldbinit file in your home
+
+
+663
+00:19:51,406 --> 00:19:51,926
+directory.
+
+
+664
+00:19:52,706 --> 00:19:53,936
+This file gets automatically
+
+
+665
+00:19:53,936 --> 00:19:55,276
+loaded at the beginning of your
+
+
+666
+00:19:55,276 --> 00:19:55,986
+debug session.
+
+
+667
+00:19:58,636 --> 00:20:00,716
+LLDB has a variety of features
+
+
+668
+00:20:00,716 --> 00:20:02,096
+to help you see the state of
+
+
+669
+00:20:02,096 --> 00:20:03,376
+your program while debugging.
+
+
+670
+00:20:03,956 --> 00:20:06,716
+Use v, p, or po to print
+
+
+671
+00:20:06,716 --> 00:20:08,236
+variables, depending on whether
+
+
+672
+00:20:08,236 --> 00:20:09,456
+you just need to display its
+
+
+673
+00:20:09,456 --> 00:20:11,406
+value, execute code or get the
+
+
+674
+00:20:11,406 --> 00:20:12,676
+object description.
+
+
+675
+00:20:13,536 --> 00:20:14,906
+Customize or define your own
+
+
+676
+00:20:14,906 --> 00:20:16,926
+data formatters, using filters,
+
+
+677
+00:20:17,096 --> 00:20:18,806
+string summaries, and synthetic
+
+
+678
+00:20:18,806 --> 00:20:19,246
+children.
+
+
+679
+00:20:19,986 --> 00:20:21,746
+Finally, if you have scripts
+
+
+680
+00:20:21,746 --> 00:20:23,686
+written in Python 2, update them
+
+
+681
+00:20:23,686 --> 00:20:25,306
+to be compatible with Python 3.
+
+
+682
+00:20:25,696 --> 00:20:27,116
+The version used by LLDB
+
+
+683
+00:20:27,336 --> 00:20:28,766
+starting in Xcode 11.
+
+
+684
+00:20:30,826 --> 00:20:32,446
+For more information, check out
+
+
+685
+00:20:32,446 --> 00:20:33,786
+the page for this session on
+
+
+686
+00:20:33,786 --> 00:20:35,186
+developer.apple.com.
+

@@ -1,0 +1,6879 @@
+1
+00:00:00,506 --> 00:00:04,516
+[ Music ]
+
+
+2
+00:00:05,516 --> 00:00:12,796
+[ Applause ]
+
+
+3
+00:00:13,296 --> 00:00:14,916
+>> Hi. I'm Roberto from the
+
+
+4
+00:00:14,916 --> 00:00:16,245
+Software Battery Life Team here
+
+
+5
+00:00:16,245 --> 00:00:17,776
+at Apple, and I'm really excited
+
+
+6
+00:00:17,776 --> 00:00:19,326
+to talk to you guys today about
+
+
+7
+00:00:19,326 --> 00:00:20,916
+advances in App Background
+
+
+8
+00:00:20,916 --> 00:00:21,436
+Execution.
+
+
+9
+00:00:23,526 --> 00:00:26,196
+Users love apps, and they love
+
+
+10
+00:00:26,196 --> 00:00:27,556
+apps because of the many great
+
+
+11
+00:00:27,556 --> 00:00:28,886
+experiences that they enable.
+
+
+12
+00:00:29,526 --> 00:00:30,526
+Some of these are in the
+
+
+13
+00:00:30,526 --> 00:00:31,686
+foreground when the user is
+
+
+14
+00:00:31,686 --> 00:00:33,806
+actively using the app, and some
+
+
+15
+00:00:33,806 --> 00:00:35,216
+of these are in the background
+
+
+16
+00:00:35,306 --> 00:00:36,926
+and require background execution
+
+
+17
+00:00:36,926 --> 00:00:37,866
+in order to be possible.
+
+
+18
+00:00:38,686 --> 00:00:39,666
+So, if we come up with a list of
+
+
+19
+00:00:39,666 --> 00:00:40,746
+what might require background
+
+
+20
+00:00:40,746 --> 00:00:42,586
+execution, we might come up with
+
+
+21
+00:00:42,586 --> 00:00:44,256
+something like this, things like
+
+
+22
+00:00:44,526 --> 00:00:46,506
+navigation or accessory
+
+
+23
+00:00:46,506 --> 00:00:48,676
+communication or maybe periodic
+
+
+24
+00:00:48,676 --> 00:00:49,546
+updates and downloads.
+
+
+25
+00:00:49,976 --> 00:00:51,836
+And at Apple, we design APIs
+
+
+26
+00:00:51,836 --> 00:00:53,686
+that give background execution
+
+
+27
+00:00:53,686 --> 00:00:55,436
+to enable these use cases and
+
+
+28
+00:00:55,436 --> 00:00:55,996
+experiences.
+
+
+29
+00:00:57,516 --> 00:00:59,076
+So, today, we'll talk about
+
+
+30
+00:00:59,076 --> 00:01:00,586
+background execution, give a
+
+
+31
+00:01:00,586 --> 00:01:02,466
+general overview, then talk
+
+
+32
+00:01:02,466 --> 00:01:03,556
+about some best practices to
+
+
+33
+00:01:03,556 --> 00:01:05,766
+follow, and finally, my
+
+
+34
+00:01:05,766 --> 00:01:06,846
+colleague, Thomas, will come up
+
+
+35
+00:01:06,846 --> 00:01:08,076
+to introduce a new background
+
+
+36
+00:01:08,076 --> 00:01:09,636
+task framework that offers new
+
+
+37
+00:01:09,786 --> 00:01:10,736
+background execution
+
+
+38
+00:01:10,766 --> 00:01:11,366
+opportunities.
+
+
+39
+00:01:11,906 --> 00:01:14,766
+Let's begin with an overview of
+
+
+40
+00:01:14,766 --> 00:01:15,656
+background execution.
+
+
+41
+00:01:16,006 --> 00:01:18,496
+We can begin by answering the
+
+
+42
+00:01:18,496 --> 00:01:20,006
+question of what is background
+
+
+43
+00:01:20,006 --> 00:01:20,556
+execution?
+
+
+44
+00:01:20,636 --> 00:01:21,536
+What do we mean?
+
+
+45
+00:01:21,706 --> 00:01:23,596
+So, when we think of background,
+
+
+46
+00:01:23,596 --> 00:01:24,566
+it can mean many things.
+
+
+47
+00:01:24,566 --> 00:01:26,446
+Background threads or background
+
+
+48
+00:01:26,446 --> 00:01:27,946
+queues, but when we're talking
+
+
+49
+00:01:27,946 --> 00:01:29,186
+about background execution,
+
+
+50
+00:01:29,186 --> 00:01:30,186
+we're talking about the app
+
+
+51
+00:01:30,186 --> 00:01:32,866
+running or executing code while
+
+
+52
+00:01:32,866 --> 00:01:34,176
+it's not in the foreground.
+
+
+53
+00:01:35,076 --> 00:01:36,736
+So, looking at this diagram,
+
+
+54
+00:01:37,046 --> 00:01:38,646
+we're talking about that third
+
+
+55
+00:01:38,646 --> 00:01:40,476
+box where the app is running in
+
+
+56
+00:01:40,476 --> 00:01:41,866
+the background but it's not
+
+
+57
+00:01:41,866 --> 00:01:45,096
+necessarily visible to the user.
+
+
+58
+00:01:45,376 --> 00:01:47,476
+Now, why do we enter this state?
+
+
+59
+00:01:47,916 --> 00:01:49,446
+It really boils down to two
+
+
+60
+00:01:49,446 --> 00:01:49,846
+ways.
+
+
+61
+00:01:50,666 --> 00:01:52,236
+The first is a request by the
+
+
+62
+00:01:52,386 --> 00:01:52,736
+app.
+
+
+63
+00:01:53,086 --> 00:01:54,606
+This applies to more generic
+
+
+64
+00:01:54,606 --> 00:01:56,246
+background execution where the
+
+
+65
+00:01:56,246 --> 00:01:57,956
+app wants to perform some work
+
+
+66
+00:01:58,336 --> 00:01:59,526
+and it makes a request to the
+
+
+67
+00:01:59,526 --> 00:01:59,956
+system.
+
+
+68
+00:02:00,626 --> 00:02:01,566
+You can think of something like
+
+
+69
+00:02:01,696 --> 00:02:04,296
+downloads or periodic updates or
+
+
+70
+00:02:04,296 --> 00:02:05,706
+maybe finishing some foreground
+
+
+71
+00:02:05,706 --> 00:02:05,876
+work.
+
+
+72
+00:02:06,976 --> 00:02:08,265
+The second way is through
+
+
+73
+00:02:08,265 --> 00:02:10,786
+specific event triggers where
+
+
+74
+00:02:11,066 --> 00:02:12,906
+the app gets background time in
+
+
+75
+00:02:12,906 --> 00:02:14,446
+order to respond to something
+
+
+76
+00:02:14,446 --> 00:02:16,186
+that happened in the world.
+
+
+77
+00:02:16,956 --> 00:02:18,596
+For example, maybe the user
+
+
+78
+00:02:18,596 --> 00:02:20,626
+entered some foreign region or
+
+
+79
+00:02:20,846 --> 00:02:21,876
+maybe there was some new health
+
+
+80
+00:02:21,876 --> 00:02:22,986
+data that your app needed to be
+
+
+81
+00:02:22,986 --> 00:02:23,576
+made aware of.
+
+
+82
+00:02:25,956 --> 00:02:26,806
+And when running in the
+
+
+83
+00:02:26,806 --> 00:02:28,666
+background, we care deeply about
+
+
+84
+00:02:28,666 --> 00:02:30,136
+user experience, so there are
+
+
+85
+00:02:30,136 --> 00:02:31,546
+many important factors we
+
+
+86
+00:02:31,546 --> 00:02:32,876
+consider when we design APIs to
+
+
+87
+00:02:33,146 --> 00:02:34,166
+support these use cases.
+
+
+88
+00:02:34,796 --> 00:02:35,756
+And I want to highlight three of
+
+
+89
+00:02:35,756 --> 00:02:36,000
+these.
+
+
+90
+00:02:37,646 --> 00:02:41,616
+Power, performance, and privacy.
+
+
+91
+00:02:41,616 --> 00:02:44,876
+So, let's start with power.
+
+
+92
+00:02:45,696 --> 00:02:47,236
+Whenever your app is running in
+
+
+93
+00:02:47,236 --> 00:02:48,266
+the foreground or the
+
+
+94
+00:02:48,266 --> 00:02:50,376
+background, it's using power,
+
+
+95
+00:02:50,876 --> 00:02:52,466
+and over time, this drains
+
+
+96
+00:02:52,466 --> 00:02:53,906
+energy and can drain battery.
+
+
+97
+00:02:55,346 --> 00:02:56,766
+To visualize this, let's take a
+
+
+98
+00:02:56,766 --> 00:02:57,236
+timeline.
+
+
+99
+00:02:57,686 --> 00:02:58,896
+The left might be the start of
+
+
+100
+00:02:58,896 --> 00:03:00,446
+the day when the sun rises, and
+
+
+101
+00:03:00,446 --> 00:03:01,766
+the right might be the end of
+
+
+102
+00:03:01,766 --> 00:03:03,256
+the day, and maybe the user
+
+
+103
+00:03:03,256 --> 00:03:04,466
+decides to plug in their device
+
+
+104
+00:03:04,466 --> 00:03:06,686
+towards the end of the day, and
+
+
+105
+00:03:06,686 --> 00:03:07,746
+we have that green charging
+
+
+106
+00:03:07,746 --> 00:03:08,786
+region to represent that.
+
+
+107
+00:03:09,506 --> 00:03:11,186
+So, we can plot the times our
+
+
+108
+00:03:11,186 --> 00:03:12,476
+app runs in the foreground in
+
+
+109
+00:03:12,476 --> 00:03:13,856
+these lightly shaded rectangles,
+
+
+110
+00:03:14,396 --> 00:03:15,986
+and we can plot the time the app
+
+
+111
+00:03:15,986 --> 00:03:17,076
+runs in the background in these
+
+
+112
+00:03:17,076 --> 00:03:18,276
+darkly shaded rectangles.
+
+
+113
+00:03:19,206 --> 00:03:21,376
+If we run for longer, then we'll
+
+
+114
+00:03:21,376 --> 00:03:22,416
+drain more battery.
+
+
+115
+00:03:22,956 --> 00:03:24,556
+If we run for less time, we'll
+
+
+116
+00:03:24,556 --> 00:03:25,286
+drain less battery.
+
+
+117
+00:03:26,416 --> 00:03:28,626
+And so, when we design APIs, we
+
+
+118
+00:03:28,676 --> 00:03:29,606
+focus on the right amount of
+
+
+119
+00:03:29,606 --> 00:03:31,326
+time to run to support specific
+
+
+120
+00:03:31,326 --> 00:03:32,506
+use cases while maintaining
+
+
+121
+00:03:32,506 --> 00:03:34,006
+great battery life, and when
+
+
+122
+00:03:34,006 --> 00:03:35,696
+using these APIs, think about
+
+
+123
+00:03:35,696 --> 00:03:37,386
+how to be efficient and alert
+
+
+124
+00:03:37,386 --> 00:03:38,576
+the system when you're done
+
+
+125
+00:03:38,576 --> 00:03:40,226
+doing work by calling completion
+
+
+126
+00:03:40,226 --> 00:03:40,616
+handlers.
+
+
+127
+00:03:41,036 --> 00:03:42,316
+That way, if the system gave
+
+
+128
+00:03:42,316 --> 00:03:43,846
+your app time to run, you can
+
+
+129
+00:03:43,846 --> 00:03:45,186
+tell the system, hey, I'm done a
+
+
+130
+00:03:45,186 --> 00:03:45,806
+little early.
+
+
+131
+00:03:45,806 --> 00:03:47,466
+It can suspend your app, and
+
+
+132
+00:03:47,466 --> 00:03:48,676
+you'll stop consuming the user's
+
+
+133
+00:03:48,676 --> 00:03:49,036
+battery.
+
+
+134
+00:03:50,516 --> 00:03:52,106
+Next, we have performance.
+
+
+135
+00:03:52,696 --> 00:03:54,396
+We want our system to perform as
+
+
+136
+00:03:54,466 --> 00:03:55,526
+smoothly as possible.
+
+
+137
+00:03:56,136 --> 00:03:58,206
+This means that we want fast app
+
+
+138
+00:03:58,206 --> 00:04:00,066
+launches and responsive UI, and
+
+
+139
+00:04:00,066 --> 00:04:01,276
+this is especially important
+
+
+140
+00:04:01,276 --> 00:04:01,936
+when we're running in the
+
+
+141
+00:04:01,936 --> 00:04:02,436
+background.
+
+
+142
+00:04:02,526 --> 00:04:05,116
+And the reason is that while we
+
+
+143
+00:04:05,116 --> 00:04:06,726
+may be tempted to think that
+
+
+144
+00:04:07,156 --> 00:04:08,646
+there's only one app running
+
+
+145
+00:04:09,246 --> 00:04:10,586
+over the course of the day,
+
+
+146
+00:04:10,586 --> 00:04:13,116
+there actually are multiple apps
+
+
+147
+00:04:13,116 --> 00:04:14,246
+running at different points in
+
+
+148
+00:04:14,246 --> 00:04:15,896
+time in the foreground and the
+
+
+149
+00:04:15,896 --> 00:04:16,386
+background.
+
+
+150
+00:04:17,565 --> 00:04:18,946
+And when we overlay this, we can
+
+
+151
+00:04:18,946 --> 00:04:19,995
+see that our app may be running
+
+
+152
+00:04:19,995 --> 00:04:21,336
+in the background while another
+
+
+153
+00:04:21,336 --> 00:04:22,916
+app is running in the foreground
+
+
+154
+00:04:23,286 --> 00:04:24,596
+or multiple apps can be running
+
+
+155
+00:04:24,596 --> 00:04:25,736
+in the background when an app is
+
+
+156
+00:04:25,736 --> 00:04:26,506
+running in the foreground.
+
+
+157
+00:04:26,916 --> 00:04:29,356
+And so when we design APIs, we
+
+
+158
+00:04:29,356 --> 00:04:31,356
+think about setting smart CPU
+
+
+159
+00:04:31,356 --> 00:04:33,066
+and memory limits to minimize
+
+
+160
+00:04:33,126 --> 00:04:35,066
+the impact on other usage, and
+
+
+161
+00:04:35,066 --> 00:04:36,856
+when using these APIs, you
+
+
+162
+00:04:36,856 --> 00:04:37,946
+should be aware of what these
+
+
+163
+00:04:37,946 --> 00:04:39,356
+limits are so that you don't
+
+
+164
+00:04:39,356 --> 00:04:40,416
+affect what the user is actively
+
+
+165
+00:04:40,416 --> 00:04:41,926
+doing but more importantly so
+
+
+166
+00:04:41,926 --> 00:04:42,886
+that the system doesn't
+
+
+167
+00:04:42,886 --> 00:04:44,166
+terminate your app, and then
+
+
+168
+00:04:44,166 --> 00:04:45,356
+when you launch in the future,
+
+
+169
+00:04:45,356 --> 00:04:46,686
+you might be slower to launch.
+
+
+170
+00:04:48,196 --> 00:04:50,486
+The last important factor is
+
+
+171
+00:04:50,556 --> 00:04:51,126
+privacy.
+
+
+172
+00:04:51,526 --> 00:04:53,366
+Users are really sensitive and
+
+
+173
+00:04:53,366 --> 00:04:54,786
+really care about their personal
+
+
+174
+00:04:54,786 --> 00:04:55,076
+data.
+
+
+175
+00:04:55,746 --> 00:04:57,766
+And, while they may be aware of
+
+
+176
+00:04:57,766 --> 00:04:59,036
+all the times that the app is
+
+
+177
+00:04:59,036 --> 00:05:00,186
+running in the foreground and
+
+
+178
+00:05:00,186 --> 00:05:01,566
+expected to have access to
+
+
+179
+00:05:01,566 --> 00:05:02,976
+certain pieces of information,
+
+
+180
+00:05:03,546 --> 00:05:05,246
+they may not be as aware of all
+
+
+181
+00:05:05,246 --> 00:05:06,516
+the times the app is running in
+
+
+182
+00:05:06,516 --> 00:05:07,116
+the background.
+
+
+183
+00:05:08,116 --> 00:05:09,836
+And so, when we design APIs,
+
+
+184
+00:05:09,836 --> 00:05:10,556
+this means that we have
+
+
+185
+00:05:10,626 --> 00:05:12,376
+different APIs for different use
+
+
+186
+00:05:12,406 --> 00:05:14,706
+cases, each with their own set
+
+
+187
+00:05:14,706 --> 00:05:16,116
+to a specific set of data that
+
+
+188
+00:05:16,116 --> 00:05:17,326
+it needs to support that.
+
+
+189
+00:05:17,326 --> 00:05:19,116
+And when using these APIs, think
+
+
+190
+00:05:19,116 --> 00:05:20,346
+about how to be transparent to
+
+
+191
+00:05:20,346 --> 00:05:23,216
+the user and let them know which
+
+
+192
+00:05:23,216 --> 00:05:24,326
+pieces of data you're using.
+
+
+193
+00:05:25,616 --> 00:05:26,636
+So, those were the three
+
+
+194
+00:05:26,636 --> 00:05:27,626
+important considerations to
+
+
+195
+00:05:27,626 --> 00:05:28,836
+consider in background
+
+
+196
+00:05:28,836 --> 00:05:29,386
+execution.
+
+
+197
+00:05:29,776 --> 00:05:31,966
+Power, performance, and privacy.
+
+
+198
+00:05:32,066 --> 00:05:34,066
+And when we go back to our list
+
+
+199
+00:05:34,066 --> 00:05:35,896
+of use cases, these different
+
+
+200
+00:05:35,896 --> 00:05:37,506
+use cases translate into
+
+
+201
+00:05:37,506 --> 00:05:39,566
+different APIs, each with a
+
+
+202
+00:05:39,566 --> 00:05:41,206
+different set of requirements to
+
+
+203
+00:05:41,206 --> 00:05:42,596
+achieve the desired behavior
+
+
+204
+00:05:42,906 --> 00:05:44,476
+while maintaining a great user
+
+
+205
+00:05:44,476 --> 00:05:44,976
+experience.
+
+
+206
+00:05:45,586 --> 00:05:48,306
+So now that we have a general
+
+
+207
+00:05:48,306 --> 00:05:49,686
+overview, let's dive into some
+
+
+208
+00:05:49,686 --> 00:05:51,226
+best practices to follow for
+
+
+209
+00:05:51,226 --> 00:05:53,246
+some specific modes and talk
+
+
+210
+00:05:53,246 --> 00:05:56,376
+about changes to APIs.
+
+
+211
+00:05:56,376 --> 00:05:58,706
+So, to do so, let's take a
+
+
+212
+00:05:58,706 --> 00:05:59,776
+messaging app.
+
+
+213
+00:05:59,776 --> 00:06:00,456
+It might have core
+
+
+214
+00:06:00,456 --> 00:06:02,216
+functionality, like sending
+
+
+215
+00:06:02,216 --> 00:06:04,606
+messages or making phone calls,
+
+
+216
+00:06:04,886 --> 00:06:05,896
+and then it might have some
+
+
+217
+00:06:05,896 --> 00:06:07,456
+bonus features like allowing the
+
+
+218
+00:06:07,456 --> 00:06:09,866
+user to mute a chatty thread or
+
+
+219
+00:06:10,166 --> 00:06:11,566
+downloading past attachments.
+
+
+220
+00:06:12,186 --> 00:06:13,546
+And so now, I'll go through each
+
+
+221
+00:06:13,546 --> 00:06:15,226
+of these four and talk about
+
+
+222
+00:06:15,226 --> 00:06:16,376
+which API we would use to
+
+
+223
+00:06:16,376 --> 00:06:17,036
+accomplish this.
+
+
+224
+00:06:18,346 --> 00:06:19,916
+The first is sending messages.
+
+
+225
+00:06:20,556 --> 00:06:22,106
+Sending messages is a core
+
+
+226
+00:06:22,106 --> 00:06:23,236
+functionality of your app.
+
+
+227
+00:06:23,726 --> 00:06:24,866
+If I'm sending a message to my
+
+
+228
+00:06:24,866 --> 00:06:25,936
+friend, I want it to be
+
+
+229
+00:06:25,936 --> 00:06:27,436
+delivered right now, not a day
+
+
+230
+00:06:27,436 --> 00:06:28,546
+from now or a week from now.
+
+
+231
+00:06:29,716 --> 00:06:31,056
+And so the user expects that
+
+
+232
+00:06:31,056 --> 00:06:32,336
+this will complete immediately.
+
+
+233
+00:06:33,266 --> 00:06:35,366
+And while this may usually be
+
+
+234
+00:06:35,366 --> 00:06:37,326
+very quick, sometimes this might
+
+
+235
+00:06:37,326 --> 00:06:38,036
+not be the case.
+
+
+236
+00:06:38,536 --> 00:06:39,986
+Maybe the network's congested or
+
+
+237
+00:06:39,986 --> 00:06:41,156
+maybe the backend servers are
+
+
+238
+00:06:41,156 --> 00:06:42,716
+slow, and it might take
+
+
+239
+00:06:42,716 --> 00:06:43,716
+additional time to send the
+
+
+240
+00:06:43,716 --> 00:06:44,046
+message.
+
+
+241
+00:06:44,886 --> 00:06:46,166
+And in this additional time, the
+
+
+242
+00:06:46,166 --> 00:06:47,926
+user might even leave the app or
+
+
+243
+00:06:48,026 --> 00:06:49,156
+put their phone down and lock
+
+
+244
+00:06:49,156 --> 00:06:49,256
+it.
+
+
+245
+00:06:49,436 --> 00:06:51,836
+And so, we need a way to protect
+
+
+246
+00:06:51,836 --> 00:06:53,126
+the completion of this task.
+
+
+247
+00:06:53,786 --> 00:06:54,926
+We need to make sure that our
+
+
+248
+00:06:54,926 --> 00:06:56,446
+message finishes sending so that
+
+
+249
+00:06:56,446 --> 00:06:57,556
+the user doesn't come back to
+
+
+250
+00:06:57,556 --> 00:06:59,706
+the app and realize, hey, why
+
+
+251
+00:06:59,706 --> 00:07:00,846
+didn't my message send to my
+
+
+252
+00:07:00,846 --> 00:07:01,136
+friend.
+
+
+253
+00:07:01,716 --> 00:07:03,796
+The API to use for this is
+
+
+254
+00:07:03,796 --> 00:07:04,936
+background task completion.
+
+
+255
+00:07:06,026 --> 00:07:07,366
+This gives apps additional run
+
+
+256
+00:07:07,366 --> 00:07:09,286
+time to run in the background
+
+
+257
+00:07:09,286 --> 00:07:10,276
+before being suspended.
+
+
+258
+00:07:10,866 --> 00:07:12,206
+To do it, you call UI
+
+
+259
+00:07:12,266 --> 00:07:13,606
+Application Begin Background
+
+
+260
+00:07:13,606 --> 00:07:15,806
+Task or you call Process Info
+
+
+261
+00:07:15,806 --> 00:07:17,346
+Perform Expiring Activity if
+
+
+262
+00:07:17,346 --> 00:07:17,856
+you're running from an
+
+
+263
+00:07:17,856 --> 00:07:18,296
+extension.
+
+
+264
+00:07:18,986 --> 00:07:20,736
+And again, this is to complete
+
+
+265
+00:07:20,736 --> 00:07:22,056
+work that started in the
+
+
+266
+00:07:22,056 --> 00:07:22,566
+foreground.
+
+
+267
+00:07:22,796 --> 00:07:24,696
+So, other examples might include
+
+
+268
+00:07:24,696 --> 00:07:26,686
+saving files to disk or
+
+
+269
+00:07:26,846 --> 00:07:28,326
+completing any user-initiated
+
+
+270
+00:07:28,326 --> 00:07:28,836
+requests.
+
+
+271
+00:07:29,276 --> 00:07:30,376
+So, let's take a look at what
+
+
+272
+00:07:30,376 --> 00:07:31,566
+this might look like in code for
+
+
+273
+00:07:31,566 --> 00:07:32,936
+our sending messages example.
+
+
+274
+00:07:34,196 --> 00:07:35,876
+Here, we have our send message
+
+
+275
+00:07:35,876 --> 00:07:36,216
+function.
+
+
+276
+00:07:36,816 --> 00:07:39,566
+In it, after we establish our
+
+
+277
+00:07:39,566 --> 00:07:41,566
+send operation, we call Begin
+
+
+278
+00:07:41,566 --> 00:07:42,326
+Background Task.
+
+
+279
+00:07:42,726 --> 00:07:44,086
+This lets the system know that,
+
+
+280
+00:07:44,086 --> 00:07:45,816
+hey, we're starting a task that
+
+
+281
+00:07:45,816 --> 00:07:46,966
+even if the user backgrounds the
+
+
+282
+00:07:46,966 --> 00:07:48,696
+app, let us continue running to
+
+
+283
+00:07:48,696 --> 00:07:49,926
+finish it.
+
+
+284
+00:07:50,836 --> 00:07:52,606
+Then, when we finish sending the
+
+
+285
+00:07:52,606 --> 00:07:54,476
+message, in our completion
+
+
+286
+00:07:54,476 --> 00:07:56,556
+block, we'll let the system know
+
+
+287
+00:07:56,686 --> 00:07:58,106
+to end the background task.
+
+
+288
+00:07:58,316 --> 00:07:59,326
+We don't need time anymore.
+
+
+289
+00:07:59,776 --> 00:08:00,626
+This is for cases when the
+
+
+290
+00:08:00,686 --> 00:08:01,716
+system might have given us time,
+
+
+291
+00:08:01,716 --> 00:08:02,656
+the user backgrounds the app,
+
+
+292
+00:08:02,656 --> 00:08:03,866
+and we're done, and we can tell
+
+
+293
+00:08:03,866 --> 00:08:05,376
+the system to suspend us so that
+
+
+294
+00:08:05,376 --> 00:08:06,376
+we stop draining the user's
+
+
+295
+00:08:06,376 --> 00:08:07,736
+battery or potentially affect
+
+
+296
+00:08:07,736 --> 00:08:08,396
+their performance.
+
+
+297
+00:08:09,326 --> 00:08:10,146
+And there's one last thing I
+
+
+298
+00:08:10,146 --> 00:08:10,686
+want to highlight.
+
+
+299
+00:08:10,686 --> 00:08:13,226
+There are some cases where maybe
+
+
+300
+00:08:13,226 --> 00:08:14,246
+the system gives you additional
+
+
+301
+00:08:14,246 --> 00:08:15,656
+time, but conditions were so
+
+
+302
+00:08:15,656 --> 00:08:17,376
+bad, maybe it was so congested
+
+
+303
+00:08:17,776 --> 00:08:19,086
+that even with the additional
+
+
+304
+00:08:19,086 --> 00:08:20,236
+time we didn't finish.
+
+
+305
+00:08:20,606 --> 00:08:22,226
+And so, we have an expiration
+
+
+306
+00:08:22,226 --> 00:08:23,696
+handler for that, and the system
+
+
+307
+00:08:23,696 --> 00:08:25,036
+will call the expiration handler
+
+
+308
+00:08:25,036 --> 00:08:25,826
+at this point in time.
+
+
+309
+00:08:26,286 --> 00:08:27,896
+So, in this case, we post the
+
+
+310
+00:08:27,896 --> 00:08:29,406
+user notification to the user, a
+
+
+311
+00:08:29,406 --> 00:08:31,596
+local banner saying hey, hop
+
+
+312
+00:08:31,596 --> 00:08:32,775
+back into the app, because the
+
+
+313
+00:08:32,775 --> 00:08:34,326
+message didn't send.
+
+
+314
+00:08:34,996 --> 00:08:36,976
+So, to recap, when we're sending
+
+
+315
+00:08:36,976 --> 00:08:38,265
+messages, we want to protect
+
+
+316
+00:08:38,265 --> 00:08:39,905
+that it sends by using
+
+
+317
+00:08:39,905 --> 00:08:42,515
+background task completions, and
+
+
+318
+00:08:42,515 --> 00:08:43,826
+we want to make sure we start it
+
+
+319
+00:08:43,986 --> 00:08:45,116
+based on the user action.
+
+
+320
+00:08:45,476 --> 00:08:46,636
+We don't want to wait until we
+
+
+321
+00:08:46,636 --> 00:08:47,796
+enter the background to call
+
+
+322
+00:08:47,796 --> 00:08:49,426
+begin background task, because
+
+
+323
+00:08:49,426 --> 00:08:51,426
+if we do so, then we're limiting
+
+
+324
+00:08:51,426 --> 00:08:52,206
+the amount of time we're
+
+
+325
+00:08:52,206 --> 00:08:53,446
+actively trying to send it
+
+
+326
+00:08:53,446 --> 00:08:54,656
+before the system may suspend
+
+
+327
+00:08:54,656 --> 00:08:55,000
+our app.
+
+
+328
+00:08:56,556 --> 00:08:58,106
+So, now that we've talked about
+
+
+329
+00:08:58,106 --> 00:08:59,556
+sending messages, let's talk
+
+
+330
+00:08:59,556 --> 00:09:00,266
+about phone calls.
+
+
+331
+00:09:01,766 --> 00:09:04,396
+So, I may want to message my
+
+
+332
+00:09:04,396 --> 00:09:06,226
+friends all the time, but
+
+
+333
+00:09:06,226 --> 00:09:07,236
+sometimes you just want to get
+
+
+334
+00:09:07,236 --> 00:09:08,976
+on the phone and quickly hop in
+
+
+335
+00:09:09,436 --> 00:09:11,266
+a phone call and tell them
+
+
+336
+00:09:11,266 --> 00:09:12,266
+something so you don't have to
+
+
+337
+00:09:12,266 --> 00:09:12,746
+type it out.
+
+
+338
+00:09:13,516 --> 00:09:15,166
+There's an API for this, and
+
+
+339
+00:09:15,166 --> 00:09:17,096
+it's VoIP push notifications.
+
+
+340
+00:09:17,776 --> 00:09:19,206
+This is a special type of push
+
+
+341
+00:09:19,456 --> 00:09:21,096
+that launches your app and gives
+
+
+342
+00:09:21,096 --> 00:09:22,186
+it run time so that you can
+
+
+343
+00:09:22,186 --> 00:09:23,776
+present to the user the fact
+
+
+344
+00:09:23,776 --> 00:09:24,856
+that they're being called, and
+
+
+345
+00:09:24,856 --> 00:09:26,026
+the user can answer a phone
+
+
+346
+00:09:26,026 --> 00:09:26,166
+call.
+
+
+347
+00:09:27,596 --> 00:09:29,696
+To register for this, you simply
+
+
+348
+00:09:29,696 --> 00:09:32,806
+set the VoIP push type in your
+
+
+349
+00:09:33,096 --> 00:09:35,046
+PK push registry when you
+
+
+350
+00:09:35,046 --> 00:09:37,656
+register for your VoIP pushes.
+
+
+351
+00:09:39,646 --> 00:09:41,766
+And new this year, it's very
+
+
+352
+00:09:41,766 --> 00:09:43,006
+important that you know that you
+
+
+353
+00:09:43,006 --> 00:09:46,016
+must report incoming calls with
+
+
+354
+00:09:46,016 --> 00:09:46,756
+CallKit in the
+
+
+355
+00:09:46,756 --> 00:09:49,016
+didReceiveIncomingPush callback
+
+
+356
+00:09:49,206 --> 00:09:50,646
+or your app will be terminated.
+
+
+357
+00:09:51,176 --> 00:09:53,316
+And, if you repeatedly do this,
+
+
+358
+00:09:53,396 --> 00:09:55,036
+or if you repeatedly fail not to
+
+
+359
+00:09:55,036 --> 00:09:56,506
+report an incoming call, the
+
+
+360
+00:09:56,506 --> 00:09:57,876
+system may stop launching your
+
+
+361
+00:09:57,876 --> 00:09:59,586
+app for VoIP pushes altogether.
+
+
+362
+00:10:00,726 --> 00:10:01,876
+So, let's take a look at how we
+
+
+363
+00:10:01,876 --> 00:10:03,826
+might adapt to this change in
+
+
+364
+00:10:03,826 --> 00:10:04,086
+code.
+
+
+365
+00:10:05,226 --> 00:10:06,646
+Here, we have our
+
+
+366
+00:10:06,676 --> 00:10:08,276
+didReceiveIncomingPush callback,
+
+
+367
+00:10:08,276 --> 00:10:11,356
+and in it, we see that if the
+
+
+368
+00:10:11,396 --> 00:10:13,146
+push type is VoIP, we'll use the
+
+
+369
+00:10:13,146 --> 00:10:14,246
+information from our push
+
+
+370
+00:10:14,276 --> 00:10:16,256
+payload to populate a CX call
+
+
+371
+00:10:16,256 --> 00:10:18,806
+update object, and then we
+
+
+372
+00:10:18,896 --> 00:10:20,506
+report a new incoming call using
+
+
+373
+00:10:20,506 --> 00:10:22,000
+our CX provider.
+
+
+374
+00:10:24,756 --> 00:10:26,236
+And so, you need to make sure
+
+
+375
+00:10:26,236 --> 00:10:27,276
+that you report your incoming
+
+
+376
+00:10:27,276 --> 00:10:28,476
+calls before that method
+
+
+377
+00:10:28,476 --> 00:10:31,066
+returns, or your system, the
+
+
+378
+00:10:31,066 --> 00:10:32,686
+system will kill your app.
+
+
+379
+00:10:32,876 --> 00:10:34,286
+A couple other tips you might
+
+
+380
+00:10:34,286 --> 00:10:36,546
+want to take note of is that if
+
+
+381
+00:10:36,546 --> 00:10:37,986
+you include your caller info in
+
+
+382
+00:10:37,986 --> 00:10:39,146
+the push payload, then you'll
+
+
+383
+00:10:39,146 --> 00:10:40,176
+have all the information you
+
+
+384
+00:10:40,176 --> 00:10:41,536
+need to quickly present that
+
+
+385
+00:10:41,536 --> 00:10:43,466
+incoming call UI, and so try to
+
+
+386
+00:10:43,466 --> 00:10:44,556
+include as much information as
+
+
+387
+00:10:44,556 --> 00:10:46,226
+possible so that you can present
+
+
+388
+00:10:46,376 --> 00:10:49,386
+as rich of a UI as possible.
+
+
+389
+00:10:49,486 --> 00:10:51,406
+Second, make sure that you set
+
+
+390
+00:10:51,406 --> 00:10:53,106
+an apns-expiration on your push
+
+
+391
+00:10:53,356 --> 00:10:54,896
+to 0 or something small.
+
+
+392
+00:10:56,006 --> 00:10:57,506
+In this way, the user won't
+
+
+393
+00:10:57,506 --> 00:10:59,616
+receive a push minutes later for
+
+
+394
+00:10:59,616 --> 00:11:00,596
+a call that is no longer
+
+
+395
+00:11:00,596 --> 00:11:01,016
+dialing.
+
+
+396
+00:11:01,846 --> 00:11:03,796
+So, for example, if someone
+
+
+397
+00:11:03,796 --> 00:11:05,646
+called my device, and the push
+
+
+398
+00:11:05,646 --> 00:11:07,536
+took two minutes to send, then I
+
+
+399
+00:11:07,536 --> 00:11:08,576
+wouldn't want to report an
+
+
+400
+00:11:08,576 --> 00:11:09,736
+incoming call once the push
+
+
+401
+00:11:09,736 --> 00:11:10,966
+comes in two minutes later
+
+
+402
+00:11:11,356 --> 00:11:12,886
+because that person is probably
+
+
+403
+00:11:12,886 --> 00:11:13,776
+not dialing anymore.
+
+
+404
+00:11:14,106 --> 00:11:15,716
+So, if we set the expiration to
+
+
+405
+00:11:15,716 --> 00:11:17,326
+0, which means deliver
+
+
+406
+00:11:17,326 --> 00:11:18,896
+immediately or fail or something
+
+
+407
+00:11:18,896 --> 00:11:20,176
+on the order of a few seconds,
+
+
+408
+00:11:20,446 --> 00:11:21,726
+then we know that if the device
+
+
+409
+00:11:21,726 --> 00:11:23,326
+is receiving a push, it's still
+
+
+410
+00:11:23,326 --> 00:11:24,216
+for a phone call that's
+
+
+411
+00:11:24,216 --> 00:11:24,556
+relevant.
+
+
+412
+00:11:25,986 --> 00:11:27,696
+And, it's important to note that
+
+
+413
+00:11:27,696 --> 00:11:29,216
+if you prefer a banner, you can
+
+
+414
+00:11:29,216 --> 00:11:30,936
+always just use standard pushes
+
+
+415
+00:11:30,936 --> 00:11:32,676
+instead of the full-- and that
+
+
+416
+00:11:32,676 --> 00:11:33,596
+way you don't have to a full
+
+
+417
+00:11:33,596 --> 00:11:34,756
+screen in call UI.
+
+
+418
+00:11:35,276 --> 00:11:36,656
+And you can use a notification
+
+
+419
+00:11:36,656 --> 00:11:37,996
+service extension if you need to
+
+
+420
+00:11:37,996 --> 00:11:39,056
+modify the content of your
+
+
+421
+00:11:39,056 --> 00:11:39,356
+pushes.
+
+
+422
+00:11:39,606 --> 00:11:41,176
+For example, if you needed to
+
+
+423
+00:11:42,456 --> 00:11:42,576
+[inaudible] them.
+
+
+424
+00:11:42,776 --> 00:11:44,346
+So that was VoIP pushes and
+
+
+425
+00:11:44,346 --> 00:11:44,926
+phone calls.
+
+
+426
+00:11:45,336 --> 00:11:46,716
+Now let's talk about muted
+
+
+427
+00:11:46,716 --> 00:11:47,106
+threads.
+
+
+428
+00:11:48,616 --> 00:11:50,276
+So, when a user has a messaging
+
+
+429
+00:11:50,276 --> 00:11:51,546
+app, they might be messaging a
+
+
+430
+00:11:51,546 --> 00:11:52,636
+lot of different friends or a
+
+
+431
+00:11:52,636 --> 00:11:53,546
+lot of different groups of
+
+
+432
+00:11:53,546 --> 00:11:55,186
+friends, and some of these
+
+
+433
+00:11:55,186 --> 00:11:56,956
+threads can get pretty chatty,
+
+
+434
+00:11:56,956 --> 00:11:58,306
+and the user might not want an
+
+
+435
+00:11:58,306 --> 00:12:00,096
+alert for that specific thread.
+
+
+436
+00:12:00,636 --> 00:12:02,706
+But, the content may still be
+
+
+437
+00:12:02,706 --> 00:12:03,256
+relevant.
+
+
+438
+00:12:03,256 --> 00:12:04,596
+It may still be nice to have.
+
+
+439
+00:12:04,896 --> 00:12:06,286
+When the user hops back into the
+
+
+440
+00:12:06,286 --> 00:12:07,316
+app, they want to be able to see
+
+
+441
+00:12:07,316 --> 00:12:07,726
+the message.
+
+
+442
+00:12:08,016 --> 00:12:09,326
+They just don't want to be told
+
+
+443
+00:12:09,326 --> 00:12:10,596
+every time the message is coming
+
+
+444
+00:12:10,596 --> 00:12:11,816
+in by having their device
+
+
+445
+00:12:11,816 --> 00:12:12,216
+vibrate.
+
+
+446
+00:12:13,106 --> 00:12:14,386
+And so we need a way to alert
+
+
+447
+00:12:14,386 --> 00:12:16,416
+the device but not the user
+
+
+448
+00:12:16,866 --> 00:12:18,746
+about content being available.
+
+
+449
+00:12:19,966 --> 00:12:21,496
+To do so, you should use
+
+
+450
+00:12:21,496 --> 00:12:22,396
+background pushes.
+
+
+451
+00:12:23,676 --> 00:12:24,886
+Background pushes are a
+
+
+452
+00:12:24,886 --> 00:12:26,146
+mechanism to tell the device
+
+
+453
+00:12:26,246 --> 00:12:27,506
+that new data is available
+
+
+454
+00:12:27,746 --> 00:12:29,096
+without alerting the user.
+
+
+455
+00:12:30,616 --> 00:12:32,236
+To use these, you just send a
+
+
+456
+00:12:32,236 --> 00:12:33,576
+push with the content available
+
+
+457
+00:12:33,576 --> 00:12:36,046
+flag set to 1 without an alert,
+
+
+458
+00:12:36,046 --> 00:12:37,196
+a sound, or a badge.
+
+
+459
+00:12:37,866 --> 00:12:38,796
+And then the system will
+
+
+460
+00:12:38,796 --> 00:12:40,176
+intelligently decide when to
+
+
+461
+00:12:40,176 --> 00:12:41,446
+launch the app to download the
+
+
+462
+00:12:41,446 --> 00:12:44,146
+content based on power and
+
+
+463
+00:12:44,146 --> 00:12:45,526
+performance impacts and trying
+
+
+464
+00:12:45,526 --> 00:12:46,206
+to minimize that.
+
+
+465
+00:12:46,556 --> 00:12:47,736
+So, to look at this on a
+
+
+466
+00:12:47,736 --> 00:12:48,986
+timeline, it might look
+
+
+467
+00:12:48,986 --> 00:12:49,896
+something like this.
+
+
+468
+00:12:50,636 --> 00:12:51,876
+The user might foreground the
+
+
+469
+00:12:51,876 --> 00:12:53,356
+app and decide to mute a
+
+
+470
+00:12:53,356 --> 00:12:54,426
+specific thread.
+
+
+471
+00:12:54,696 --> 00:12:56,026
+Then at some point in the
+
+
+472
+00:12:56,026 --> 00:12:57,466
+future, someone might message
+
+
+473
+00:12:57,466 --> 00:12:58,936
+that thread, and a background
+
+
+474
+00:12:58,936 --> 00:12:59,876
+push will be received by the
+
+
+475
+00:12:59,876 --> 00:13:00,236
+device.
+
+
+476
+00:13:01,356 --> 00:13:03,056
+Sometime after that, the app
+
+
+477
+00:13:03,056 --> 00:13:04,426
+will be launched and get some
+
+
+478
+00:13:04,426 --> 00:13:06,056
+run time to fetch that content,
+
+
+479
+00:13:06,766 --> 00:13:08,066
+and then when the user comes
+
+
+480
+00:13:08,066 --> 00:13:09,556
+back to the app later on in the
+
+
+481
+00:13:09,556 --> 00:13:11,616
+day and foregrounds it, the user
+
+
+482
+00:13:11,616 --> 00:13:12,866
+will open the thread and see
+
+
+483
+00:13:12,866 --> 00:13:14,316
+that the content is right there.
+
+
+484
+00:13:14,926 --> 00:13:16,346
+And, there's some very important
+
+
+485
+00:13:16,346 --> 00:13:17,196
+new things with background
+
+
+486
+00:13:17,196 --> 00:13:18,256
+pushes too.
+
+
+487
+00:13:19,186 --> 00:13:21,346
+You must set the apns-priority
+
+
+488
+00:13:21,346 --> 00:13:23,446
+to 5 or your app will not
+
+
+489
+00:13:23,446 --> 00:13:26,926
+launch, and you should also set
+
+
+490
+00:13:26,926 --> 00:13:27,966
+the apns push type to
+
+
+491
+00:13:27,966 --> 00:13:28,556
+background.
+
+
+492
+00:13:28,826 --> 00:13:30,986
+This is required for watchOS but
+
+
+493
+00:13:30,986 --> 00:13:32,986
+we highly recommend it for all
+
+
+494
+00:13:32,986 --> 00:13:33,586
+platforms.
+
+
+495
+00:13:33,926 --> 00:13:35,296
+And if you want more information
+
+
+496
+00:13:35,296 --> 00:13:37,476
+about pushes on watchOS, you can
+
+
+497
+00:13:37,476 --> 00:13:38,706
+see the creating independent
+
+
+498
+00:13:38,706 --> 00:13:39,866
+watch app session from
+
+
+499
+00:13:39,866 --> 00:13:40,296
+yesterday.
+
+
+500
+00:13:40,946 --> 00:13:45,076
+So to recap, for muted threads,
+
+
+501
+00:13:45,286 --> 00:13:46,906
+use background pushes as a best
+
+
+502
+00:13:46,906 --> 00:13:47,846
+effort way to download the
+
+
+503
+00:13:47,846 --> 00:13:50,826
+content, and in cases where
+
+
+504
+00:13:50,826 --> 00:13:52,436
+maybe the app didn't runtime
+
+
+505
+00:13:52,436 --> 00:13:53,906
+after the background push was
+
+
+506
+00:13:53,906 --> 00:13:55,396
+received, you can always just
+
+
+507
+00:13:55,396 --> 00:13:56,846
+download that content when the
+
+
+508
+00:13:56,846 --> 00:13:58,196
+app re-enters the foreground.
+
+
+509
+00:13:58,196 --> 00:14:01,386
+Now, let's talk about
+
+
+510
+00:14:01,386 --> 00:14:02,706
+downloading past attachments.
+
+
+511
+00:14:03,346 --> 00:14:05,966
+Say the user signs into their
+
+
+512
+00:14:05,966 --> 00:14:09,016
+account, and it's a new device.
+
+
+513
+00:14:09,776 --> 00:14:11,316
+There might be some content that
+
+
+514
+00:14:11,316 --> 00:14:12,406
+they immediately want from their
+
+
+515
+00:14:12,406 --> 00:14:13,736
+account, like their conversation
+
+
+516
+00:14:13,736 --> 00:14:15,336
+list or some recent messages.
+
+
+517
+00:14:16,736 --> 00:14:17,786
+But there might be a bunch of
+
+
+518
+00:14:17,786 --> 00:14:19,766
+older content that it would be
+
+
+519
+00:14:19,766 --> 00:14:20,566
+nice if you didn't have to
+
+
+520
+00:14:20,566 --> 00:14:21,886
+download it right when the user
+
+
+521
+00:14:21,886 --> 00:14:22,396
+was in the app.
+
+
+522
+00:14:23,686 --> 00:14:25,856
+To visualize this, why download
+
+
+523
+00:14:25,856 --> 00:14:26,706
+it while the user is in the
+
+
+524
+00:14:26,766 --> 00:14:28,286
+foreground and potentially
+
+
+525
+00:14:28,286 --> 00:14:29,906
+impact their performance or
+
+
+526
+00:14:29,906 --> 00:14:31,936
+battery life when we could do it
+
+
+527
+00:14:31,936 --> 00:14:33,286
+at some point when the device is
+
+
+528
+00:14:33,286 --> 00:14:34,406
+charging and idle.
+
+
+529
+00:14:35,936 --> 00:14:37,416
+The way to do this is to use a
+
+
+530
+00:14:37,416 --> 00:14:38,866
+discretionary background URL
+
+
+531
+00:14:38,866 --> 00:14:39,196
+session.
+
+
+532
+00:14:40,066 --> 00:14:42,046
+This allows the system to defer
+
+
+533
+00:14:42,046 --> 00:14:43,566
+a download until a better time,
+
+
+534
+00:14:44,146 --> 00:14:45,896
+and it's an API that allows you
+
+
+535
+00:14:45,896 --> 00:14:47,956
+to pass more information so that
+
+
+536
+00:14:47,956 --> 00:14:49,126
+it can be smarter about
+
+
+537
+00:14:49,126 --> 00:14:49,696
+scheduling it.
+
+
+538
+00:14:50,476 --> 00:14:52,486
+To use it, you simply set up a
+
+
+539
+00:14:52,486 --> 00:14:53,806
+background URL session the way
+
+
+540
+00:14:53,806 --> 00:14:55,886
+you would normally, and then you
+
+
+541
+00:14:55,886 --> 00:14:57,446
+set your discretionary flag to
+
+
+542
+00:14:57,446 --> 00:14:57,806
+true.
+
+
+543
+00:14:58,376 --> 00:15:00,346
+Let's take a look at some of
+
+
+544
+00:15:00,346 --> 00:15:01,796
+those additional information
+
+
+545
+00:15:01,796 --> 00:15:02,686
+that you might be able to pass
+
+
+546
+00:15:02,686 --> 00:15:03,676
+in so that the system can be
+
+
+547
+00:15:03,676 --> 00:15:04,066
+smarter.
+
+
+548
+00:15:05,596 --> 00:15:06,856
+You can pass in timeout
+
+
+549
+00:15:06,856 --> 00:15:07,276
+intervals.
+
+
+550
+00:15:07,606 --> 00:15:09,016
+Maybe you don't want it to keep
+
+
+551
+00:15:09,016 --> 00:15:09,826
+attempting to download
+
+
+552
+00:15:09,826 --> 00:15:11,056
+something, so you want to bound
+
+
+553
+00:15:11,056 --> 00:15:11,776
+how long it does it.
+
+
+554
+00:15:13,186 --> 00:15:14,596
+You could pass in an earliest
+
+
+555
+00:15:14,596 --> 00:15:15,186
+begin date.
+
+
+556
+00:15:15,416 --> 00:15:16,266
+Maybe you don't want to do an
+
+
+557
+00:15:16,266 --> 00:15:17,816
+upload or a download until some
+
+
+558
+00:15:17,816 --> 00:15:18,726
+point later in the future.
+
+
+559
+00:15:19,366 --> 00:15:21,346
+And, you can pass in an expected
+
+
+560
+00:15:21,346 --> 00:15:23,106
+workload size so that the system
+
+
+561
+00:15:23,106 --> 00:15:25,606
+knows how much work it should
+
+
+562
+00:15:25,606 --> 00:15:27,026
+expect to do when it runs your
+
+
+563
+00:15:27,026 --> 00:15:28,000
+download.
+
+
+564
+00:15:30,346 --> 00:15:31,986
+So, when you're downloading past
+
+
+565
+00:15:31,986 --> 00:15:33,576
+attachments, you want to defer
+
+
+566
+00:15:33,576 --> 00:15:35,296
+the work if possible to minimize
+
+
+567
+00:15:35,296 --> 00:15:37,606
+the user-visible impact, and we
+
+
+568
+00:15:37,606 --> 00:15:39,106
+can apply the same principles to
+
+
+569
+00:15:39,106 --> 00:15:40,406
+any deferrable download or
+
+
+570
+00:15:40,406 --> 00:15:40,786
+upload.
+
+
+571
+00:15:41,106 --> 00:15:42,166
+So, maybe you have some
+
+
+572
+00:15:42,166 --> 00:15:43,226
+analytics you want to batch
+
+
+573
+00:15:43,226 --> 00:15:44,566
+together and upload at a better
+
+
+574
+00:15:44,566 --> 00:15:45,836
+time, or maybe you have some
+
+
+575
+00:15:45,836 --> 00:15:47,256
+photos the user took that you
+
+
+576
+00:15:47,256 --> 00:15:48,346
+want to back up later on.
+
+
+577
+00:15:49,806 --> 00:15:51,646
+So, to recap, we had a messaging
+
+
+578
+00:15:51,646 --> 00:15:52,876
+app, and it features some core
+
+
+579
+00:15:52,876 --> 00:15:53,496
+functionality.
+
+
+580
+00:15:53,986 --> 00:15:55,436
+You can send messages, make
+
+
+581
+00:15:55,436 --> 00:15:57,336
+phone calls, allow the user to
+
+
+582
+00:15:57,336 --> 00:15:58,356
+mute threads, and you can
+
+
+583
+00:15:58,356 --> 00:15:59,436
+download past attachments.
+
+
+584
+00:15:59,956 --> 00:16:01,746
+And we used a different API to
+
+
+585
+00:16:01,746 --> 00:16:02,666
+accomplish each of these.
+
+
+586
+00:16:02,976 --> 00:16:04,066
+We used a background task
+
+
+587
+00:16:04,066 --> 00:16:05,516
+completion to guard that our
+
+
+588
+00:16:05,516 --> 00:16:06,696
+message would send even if the
+
+
+589
+00:16:06,696 --> 00:16:07,466
+user left the app.
+
+
+590
+00:16:07,856 --> 00:16:09,326
+We used VoIP pushes as a way to
+
+
+591
+00:16:09,326 --> 00:16:10,256
+enable phone calls.
+
+
+592
+00:16:10,646 --> 00:16:12,596
+We used background pushes as a
+
+
+593
+00:16:12,596 --> 00:16:14,286
+best effort way to give the app
+
+
+594
+00:16:14,286 --> 00:16:15,896
+runtime to respond to new
+
+
+595
+00:16:15,896 --> 00:16:17,176
+content, and we used a
+
+
+596
+00:16:17,176 --> 00:16:18,746
+discretionary URL session to
+
+
+597
+00:16:18,746 --> 00:16:19,846
+download attachments at the
+
+
+598
+00:16:19,846 --> 00:16:20,336
+right time.
+
+
+599
+00:16:21,606 --> 00:16:22,516
+But there are still many other
+
+
+600
+00:16:22,516 --> 00:16:23,736
+uses cases that are not
+
+
+601
+00:16:23,736 --> 00:16:24,716
+currently covered by our
+
+
+602
+00:16:24,716 --> 00:16:26,296
+existing modes, and so I'd like
+
+
+603
+00:16:26,296 --> 00:16:27,456
+to invite my colleague, Thomas,
+
+
+604
+00:16:27,456 --> 00:16:29,126
+up to introduce a new background
+
+
+605
+00:16:29,126 --> 00:16:30,276
+mode and framework designed
+
+
+606
+00:16:30,276 --> 00:16:31,346
+specifically for these use
+
+
+607
+00:16:31,346 --> 00:16:31,666
+cases.
+
+
+608
+00:16:32,106 --> 00:16:32,816
+Thanks everyone.
+
+
+609
+00:16:32,981 --> 00:16:34,981
+[ Applause ]
+
+
+610
+00:16:35,146 --> 00:16:35,716
+>> Thanks, Roberto.
+
+
+611
+00:16:36,776 --> 00:16:38,076
+So let's talk about these use
+
+
+612
+00:16:38,076 --> 00:16:38,436
+cases.
+
+
+613
+00:16:39,716 --> 00:16:41,706
+These are things like actively
+
+
+614
+00:16:41,706 --> 00:16:43,186
+syncing state with the server,
+
+
+615
+00:16:43,616 --> 00:16:45,386
+cleaning up your databases, or
+
+
+616
+00:16:45,386 --> 00:16:46,766
+backing up data to the Cloud.
+
+
+617
+00:16:47,256 --> 00:16:48,316
+These are deferrable,
+
+
+618
+00:16:48,476 --> 00:16:50,386
+maintenance-type tasks that
+
+
+619
+00:16:50,586 --> 00:16:51,926
+ideally you would want to do in
+
+
+620
+00:16:51,926 --> 00:16:53,546
+the background in order not to
+
+
+621
+00:16:53,546 --> 00:16:55,526
+impact foreground user activity.
+
+
+622
+00:16:56,336 --> 00:16:58,016
+And what we see today, is that
+
+
+623
+00:16:58,016 --> 00:16:59,436
+apps are doing this kind of work
+
+
+624
+00:16:59,706 --> 00:17:00,766
+right as they enter the
+
+
+625
+00:17:00,766 --> 00:17:02,416
+background, and over the course
+
+
+626
+00:17:02,416 --> 00:17:04,165
+of an entire day, that can
+
+
+627
+00:17:04,165 --> 00:17:05,086
+really add up.
+
+
+628
+00:17:06,266 --> 00:17:07,136
+So, what if you could take all
+
+
+629
+00:17:07,136 --> 00:17:08,476
+that work and defer it to later,
+
+
+630
+00:17:08,786 --> 00:17:10,346
+perhaps when the device is on
+
+
+631
+00:17:10,346 --> 00:17:11,816
+charger and otherwise idle?
+
+
+632
+00:17:12,986 --> 00:17:14,406
+That's what we're introducing
+
+
+633
+00:17:14,406 --> 00:17:15,846
+this year with a brand-new
+
+
+634
+00:17:15,846 --> 00:17:17,586
+background mode and framework to
+
+
+635
+00:17:17,586 --> 00:17:19,126
+go along with it that we call
+
+
+636
+00:17:19,126 --> 00:17:20,096
+background tasks.
+
+
+637
+00:17:20,736 --> 00:17:22,175
+Background tasks let's you
+
+
+638
+00:17:22,175 --> 00:17:23,546
+schedule work to do in the
+
+
+639
+00:17:23,546 --> 00:17:24,935
+background later.
+
+
+640
+00:17:26,386 --> 00:17:28,986
+We're making it available on
+
+
+641
+00:17:29,236 --> 00:17:32,256
+iOS, iPadOS, tvOS, and iPad apps
+
+
+642
+00:17:32,256 --> 00:17:32,806
+on the Mac.
+
+
+643
+00:17:33,946 --> 00:17:35,796
+And not only are we introducing
+
+
+644
+00:17:35,796 --> 00:17:37,526
+this new background mode we call
+
+
+645
+00:17:37,526 --> 00:17:38,956
+background processing tasks,
+
+
+646
+00:17:39,496 --> 00:17:40,426
+we're also taking this
+
+
+647
+00:17:40,426 --> 00:17:42,076
+opportunity to refine the
+
+
+648
+00:17:42,076 --> 00:17:44,196
+existing API for background app
+
+
+649
+00:17:44,276 --> 00:17:44,876
+refresh.
+
+
+650
+00:17:45,316 --> 00:17:47,936
+So, let's talk about the new
+
+
+651
+00:17:47,936 --> 00:17:48,616
+background mode.
+
+
+652
+00:17:49,386 --> 00:17:51,256
+Background processing tasks give
+
+
+653
+00:17:51,256 --> 00:17:52,816
+your apps several minutes of
+
+
+654
+00:17:52,816 --> 00:17:54,706
+runtime at system friendly times
+
+
+655
+00:17:55,236 --> 00:17:57,006
+so you can do that deferrable
+
+
+656
+00:17:57,006 --> 00:17:58,446
+maintenance-level work I
+
+
+657
+00:17:58,446 --> 00:17:59,966
+mentioned earlier as well as
+
+
+658
+00:17:59,966 --> 00:18:01,826
+entirely new things, such as
+
+
+659
+00:18:01,906 --> 00:18:04,246
+on-device, Core ML, training and
+
+
+660
+00:18:04,246 --> 00:18:05,386
+inference in the background,
+
+
+661
+00:18:05,576 --> 00:18:06,666
+which you can learn about in
+
+
+662
+00:18:06,666 --> 00:18:07,500
+their session.
+
+
+663
+00:18:09,296 --> 00:18:10,896
+CPU Monitor is a feature in our
+
+
+664
+00:18:10,896 --> 00:18:12,536
+systems that automatically
+
+
+665
+00:18:12,536 --> 00:18:13,766
+terminates apps that use too
+
+
+666
+00:18:13,766 --> 00:18:15,306
+many CPU cycles in the
+
+
+667
+00:18:15,306 --> 00:18:17,166
+background in order to protect
+
+
+668
+00:18:17,476 --> 00:18:18,336
+user's battery life.
+
+
+669
+00:18:18,716 --> 00:18:20,626
+For the first time ever, we're
+
+
+670
+00:18:20,626 --> 00:18:22,206
+giving you the ability to turn
+
+
+671
+00:18:22,206 --> 00:18:23,786
+that off for the duration of
+
+
+672
+00:18:23,786 --> 00:18:25,356
+your processing task so you can
+
+
+673
+00:18:25,356 --> 00:18:26,616
+take full advantage of the
+
+
+674
+00:18:26,616 --> 00:18:28,316
+hardware while the device is
+
+
+675
+00:18:28,316 --> 00:18:28,766
+plugged in.
+
+
+676
+00:18:29,346 --> 00:18:32,106
+And finally, we'll make sure
+
+
+677
+00:18:32,106 --> 00:18:33,726
+that you're eligible to run
+
+
+678
+00:18:33,726 --> 00:18:35,356
+these tasks as long as you
+
+
+679
+00:18:35,356 --> 00:18:36,766
+request them when your app is
+
+
+680
+00:18:36,766 --> 00:18:38,796
+foreground or if your app has
+
+
+681
+00:18:38,796 --> 00:18:40,036
+been recently used in the
+
+
+682
+00:18:40,036 --> 00:18:40,516
+foreground.
+
+
+683
+00:18:41,006 --> 00:18:45,076
+Next, I'd like to talk about the
+
+
+684
+00:18:45,076 --> 00:18:46,996
+new API for background app
+
+
+685
+00:18:47,096 --> 00:18:47,666
+refresh.
+
+
+686
+00:18:48,756 --> 00:18:50,586
+This is a new API, but it has
+
+
+687
+00:18:50,696 --> 00:18:51,896
+the same policies as the
+
+
+688
+00:18:51,896 --> 00:18:53,446
+existing one, which means your
+
+
+689
+00:18:53,556 --> 00:18:55,116
+app will get 30 seconds of run
+
+
+690
+00:18:55,116 --> 00:18:56,796
+time, each time it's launched,
+
+
+691
+00:18:57,096 --> 00:18:58,766
+to fetch new content and keep
+
+
+692
+00:18:58,766 --> 00:19:00,076
+itself up to date throughout the
+
+
+693
+00:19:00,076 --> 00:19:00,330
+day.
+
+
+694
+00:19:02,366 --> 00:19:04,076
+How often your app is launched
+
+
+695
+00:19:04,076 --> 00:19:06,006
+and at what times depends on how
+
+
+696
+00:19:06,006 --> 00:19:07,566
+the user has historically used
+
+
+697
+00:19:07,566 --> 00:19:07,916
+your app.
+
+
+698
+00:19:08,966 --> 00:19:11,016
+So, if the user typically uses
+
+
+699
+00:19:11,016 --> 00:19:12,896
+your app in the morning, the
+
+
+700
+00:19:12,956 --> 00:19:14,806
+afternoon, and the evening, the
+
+
+701
+00:19:15,026 --> 00:19:16,356
+system will learn this pattern
+
+
+702
+00:19:16,356 --> 00:19:17,566
+and start launching your app
+
+
+703
+00:19:17,716 --> 00:19:19,406
+shortly before those times so
+
+
+704
+00:19:19,406 --> 00:19:21,046
+you have an opportunity to get
+
+
+705
+00:19:21,046 --> 00:19:22,826
+the content you need.
+
+
+706
+00:19:23,026 --> 00:19:24,976
+This also means that an app that
+
+
+707
+00:19:24,976 --> 00:19:26,726
+isn't used as frequently may not
+
+
+708
+00:19:26,726 --> 00:19:29,936
+launch as frequently as well.
+
+
+709
+00:19:30,136 --> 00:19:31,586
+As I mentioned, this is the new
+
+
+710
+00:19:31,586 --> 00:19:33,486
+API for background app refresh,
+
+
+711
+00:19:33,716 --> 00:19:34,736
+so we're deprecating the
+
+
+712
+00:19:34,736 --> 00:19:36,456
+existing ones on UI Application
+
+
+713
+00:19:36,716 --> 00:19:37,216
+seen here.
+
+
+714
+00:19:38,216 --> 00:19:39,586
+These APIs will continue the
+
+
+715
+00:19:39,586 --> 00:19:41,266
+work the same way they do today
+
+
+716
+00:19:41,476 --> 00:19:45,026
+on iOS, iPadOS, and tvOS devices
+
+
+717
+00:19:45,346 --> 00:19:46,496
+but they're not supported on
+
+
+718
+00:19:46,496 --> 00:19:48,246
+Mac, so make sure to adopt
+
+
+719
+00:19:48,246 --> 00:19:49,806
+background tasks for background
+
+
+720
+00:19:49,806 --> 00:19:51,566
+app refresh on Mac.
+
+
+721
+00:19:53,706 --> 00:19:55,026
+Let's take a look at how this
+
+
+722
+00:19:55,026 --> 00:19:55,816
+API works.
+
+
+723
+00:19:56,916 --> 00:19:58,416
+Let's say we have an app and a
+
+
+724
+00:19:58,416 --> 00:19:59,536
+couple of extensions that's
+
+
+725
+00:19:59,536 --> 00:19:59,976
+contained within.
+
+
+726
+00:20:00,736 --> 00:20:02,926
+The primary object that you will
+
+
+727
+00:20:02,926 --> 00:20:04,796
+be interacting with is the BG
+
+
+728
+00:20:04,796 --> 00:20:06,156
+Task Scheduler.
+
+
+729
+00:20:07,506 --> 00:20:09,556
+The BG Task Scheduler is your
+
+
+730
+00:20:09,556 --> 00:20:11,106
+interface to the systems
+
+
+731
+00:20:11,106 --> 00:20:13,156
+intelligent, dynamic activity
+
+
+732
+00:20:13,156 --> 00:20:14,646
+scheduler that constantly
+
+
+733
+00:20:14,646 --> 00:20:16,106
+monitors various system
+
+
+734
+00:20:16,106 --> 00:20:18,016
+conditions including battery
+
+
+735
+00:20:18,016 --> 00:20:20,186
+level, app usage, network
+
+
+736
+00:20:20,186 --> 00:20:23,056
+connectivity, and more.
+
+
+737
+00:20:23,246 --> 00:20:24,926
+While your app is running, you
+
+
+738
+00:20:24,926 --> 00:20:26,616
+can request that it be woken up
+
+
+739
+00:20:26,616 --> 00:20:27,636
+later to do work in the
+
+
+740
+00:20:27,636 --> 00:20:28,126
+background.
+
+
+741
+00:20:28,826 --> 00:20:30,596
+To do so, you'll create an
+
+
+742
+00:20:30,596 --> 00:20:32,776
+instance of a BG task request
+
+
+743
+00:20:32,776 --> 00:20:35,476
+object that corresponds to the
+
+
+744
+00:20:35,476 --> 00:20:36,476
+type of task you would like to
+
+
+745
+00:20:36,476 --> 00:20:36,976
+perform.
+
+
+746
+00:20:37,436 --> 00:20:39,326
+In this case, we want to do a
+
+
+747
+00:20:39,326 --> 00:20:41,326
+background app refresh so I made
+
+
+748
+00:20:41,456 --> 00:20:43,386
+a BG app refresh task request.
+
+
+749
+00:20:44,256 --> 00:20:45,286
+And we submit that to the
+
+
+750
+00:20:45,286 --> 00:20:45,756
+scheduler.
+
+
+751
+00:20:46,356 --> 00:20:48,726
+If you have several types of
+
+
+752
+00:20:48,726 --> 00:20:50,016
+tasks you want to do, you can
+
+
+753
+00:20:50,016 --> 00:20:51,366
+submit multiple requests.
+
+
+754
+00:20:51,706 --> 00:20:53,106
+In this case, we also want to do
+
+
+755
+00:20:53,106 --> 00:20:54,886
+some database cleanup, so I'm
+
+
+756
+00:20:54,886 --> 00:20:56,466
+going to make a BG processing
+
+
+757
+00:20:56,466 --> 00:20:57,966
+task request and submit it as
+
+
+758
+00:20:57,966 --> 00:20:59,000
+well.
+
+
+759
+00:21:00,256 --> 00:21:02,086
+You can also submit requests
+
+
+760
+00:21:02,296 --> 00:21:03,686
+from an extension while it's
+
+
+761
+00:21:03,686 --> 00:21:03,976
+running.
+
+
+762
+00:21:05,126 --> 00:21:06,886
+So, if our keyboard extension
+
+
+763
+00:21:06,886 --> 00:21:08,496
+wants to do some learning based
+
+
+764
+00:21:08,496 --> 00:21:10,186
+on the user's typing habits, it
+
+
+765
+00:21:10,186 --> 00:21:11,776
+can create a BG processing task
+
+
+766
+00:21:11,776 --> 00:21:13,256
+request and submit it too.
+
+
+767
+00:21:14,176 --> 00:21:15,506
+As you can see, you can have
+
+
+768
+00:21:15,506 --> 00:21:17,586
+multiple pending BG processing
+
+
+769
+00:21:17,586 --> 00:21:19,796
+task requests, each representing
+
+
+770
+00:21:20,006 --> 00:21:22,336
+a specific task you would like
+
+
+771
+00:21:22,336 --> 00:21:24,186
+your app to do.
+
+
+772
+00:21:24,426 --> 00:21:25,696
+Now the scheduler knows about
+
+
+773
+00:21:25,696 --> 00:21:27,056
+all the tasks our app would like
+
+
+774
+00:21:27,056 --> 00:21:29,616
+to do, and when all the
+
+
+775
+00:21:29,616 --> 00:21:31,256
+necessary system conditions and
+
+
+776
+00:21:31,256 --> 00:21:33,206
+policies are satisfied, it's
+
+
+777
+00:21:33,206 --> 00:21:35,366
+going to fulfill that task by
+
+
+778
+00:21:35,366 --> 00:21:36,646
+waking up your app and launching
+
+
+779
+00:21:36,646 --> 00:21:38,506
+it into the background and
+
+
+780
+00:21:38,506 --> 00:21:40,676
+deliver it a BG task object
+
+
+781
+00:21:40,916 --> 00:21:42,396
+corresponding to that task you
+
+
+782
+00:21:42,396 --> 00:21:43,026
+should perform.
+
+
+783
+00:21:43,706 --> 00:21:45,486
+In this case, we got a BG app
+
+
+784
+00:21:45,486 --> 00:21:47,616
+refresh task, so we can now
+
+
+785
+00:21:47,616 --> 00:21:48,816
+perform a background app
+
+
+786
+00:21:48,856 --> 00:21:50,786
+refresh, fetch content, and
+
+
+787
+00:21:50,786 --> 00:21:51,356
+update our UI.
+
+
+788
+00:21:52,476 --> 00:21:53,866
+When we're done, we're going to
+
+
+789
+00:21:53,866 --> 00:21:56,066
+call set task completed, and
+
+
+790
+00:21:56,066 --> 00:21:57,376
+that's going to mark the task
+
+
+791
+00:21:57,376 --> 00:21:58,786
+complete and allow your app to
+
+
+792
+00:21:58,786 --> 00:21:59,500
+suspend.
+
+
+793
+00:22:00,476 --> 00:22:02,456
+Depending on how you configure
+
+
+794
+00:22:02,626 --> 00:22:04,216
+the BG task request and on
+
+
+795
+00:22:04,216 --> 00:22:05,366
+various system conditions and
+
+
+796
+00:22:05,366 --> 00:22:07,226
+policies, we may choose to
+
+
+797
+00:22:07,226 --> 00:22:08,856
+launch your app for multiple
+
+
+798
+00:22:08,856 --> 00:22:10,216
+tasks at the same time.
+
+
+799
+00:22:11,036 --> 00:22:12,746
+So, in this case, our app is
+
+
+800
+00:22:12,746 --> 00:22:14,966
+launched and delivered both BG
+
+
+801
+00:22:14,966 --> 00:22:16,756
+processing tasks requested
+
+
+802
+00:22:16,756 --> 00:22:17,176
+earlier.
+
+
+803
+00:22:18,556 --> 00:22:19,686
+When your app is launched, it's
+
+
+804
+00:22:19,686 --> 00:22:21,556
+given a finite amount of time to
+
+
+805
+00:22:21,556 --> 00:22:22,746
+complete the work it's given,
+
+
+806
+00:22:22,916 --> 00:22:24,566
+and that time is allotted per
+
+
+807
+00:22:24,566 --> 00:22:26,746
+launch, not per task, so you
+
+
+808
+00:22:26,746 --> 00:22:28,226
+should be prepared to
+
+
+809
+00:22:28,226 --> 00:22:29,686
+concurrently handle all the
+
+
+810
+00:22:29,686 --> 00:22:31,066
+tasks you're given in the time
+
+
+811
+00:22:31,066 --> 00:22:31,446
+allotted.
+
+
+812
+00:22:32,246 --> 00:22:34,016
+Also, note that that processing
+
+
+813
+00:22:34,016 --> 00:22:36,066
+task requested from the keyboard
+
+
+814
+00:22:36,066 --> 00:22:37,796
+extension was delivered to the
+
+
+815
+00:22:37,796 --> 00:22:39,706
+main app, and that's because
+
+
+816
+00:22:40,026 --> 00:22:41,956
+it's always the main containing
+
+
+817
+00:22:41,956 --> 00:22:43,536
+app that is launched to handle
+
+
+818
+00:22:43,536 --> 00:22:45,026
+background tasks, never
+
+
+819
+00:22:45,026 --> 00:22:45,566
+extensions.
+
+
+820
+00:22:46,156 --> 00:22:49,206
+When your app is done doing the
+
+
+821
+00:22:49,206 --> 00:22:50,686
+necessary work in call set task
+
+
+822
+00:22:50,686 --> 00:22:52,446
+completed on all of the BG task
+
+
+823
+00:22:52,446 --> 00:22:53,926
+objects it's given, it'll
+
+
+824
+00:22:53,926 --> 00:22:54,356
+suspend.
+
+
+825
+00:22:55,086 --> 00:22:56,766
+So that's a high-level overview
+
+
+826
+00:22:56,906 --> 00:22:58,266
+of how to use the background
+
+
+827
+00:22:58,266 --> 00:22:58,766
+task API.
+
+
+828
+00:22:59,386 --> 00:23:01,336
+You create and submit BG task
+
+
+829
+00:23:01,336 --> 00:23:02,976
+requests to the BG task
+
+
+830
+00:23:02,976 --> 00:23:04,966
+scheduler, wait for the system
+
+
+831
+00:23:04,966 --> 00:23:05,866
+to launch your app into the
+
+
+832
+00:23:05,866 --> 00:23:07,396
+background, perform the
+
+
+833
+00:23:07,396 --> 00:23:09,116
+necessary work, and then call
+
+
+834
+00:23:09,286 --> 00:23:11,176
+set task completed on the BG
+
+
+835
+00:23:11,176 --> 00:23:11,966
+task objects.
+
+
+836
+00:23:12,916 --> 00:23:14,276
+And to walk you through how you
+
+
+837
+00:23:14,276 --> 00:23:15,156
+would implement this in your
+
+
+838
+00:23:15,156 --> 00:23:16,396
+app, I'd like to step you
+
+
+839
+00:23:16,396 --> 00:23:17,926
+through a demo.
+
+
+840
+00:23:18,516 --> 00:23:23,796
+[ Applause ]
+
+
+841
+00:23:24,296 --> 00:23:25,926
+So this is our app.
+
+
+842
+00:23:25,926 --> 00:23:27,296
+It's called Color Feed, and it's
+
+
+843
+00:23:27,296 --> 00:23:29,006
+a typical social media type app
+
+
+844
+00:23:29,336 --> 00:23:31,186
+except instead of a feed of
+
+
+845
+00:23:31,246 --> 00:23:32,686
+photos, you get a feed of the
+
+
+846
+00:23:32,686 --> 00:23:33,876
+latest trending colors.
+
+
+847
+00:23:34,446 --> 00:23:36,526
+And what you can see is that I
+
+
+848
+00:23:36,526 --> 00:23:37,876
+can scroll through and see what
+
+
+849
+00:23:37,876 --> 00:23:39,536
+the latest colors are at various
+
+
+850
+00:23:39,536 --> 00:23:40,306
+points in time.
+
+
+851
+00:23:40,956 --> 00:23:42,386
+So, what I would really like to
+
+
+852
+00:23:42,386 --> 00:23:44,166
+do is make sure that my app can
+
+
+853
+00:23:44,166 --> 00:23:45,446
+keep itself up to date and
+
+
+854
+00:23:45,446 --> 00:23:46,836
+refresh itself throughout the
+
+
+855
+00:23:46,836 --> 00:23:48,076
+day without the user having to
+
+
+856
+00:23:48,076 --> 00:23:49,276
+go in and manually do that.
+
+
+857
+00:23:49,746 --> 00:23:51,276
+And the perfect tool for this is
+
+
+858
+00:23:51,276 --> 00:23:52,296
+background app refresh.
+
+
+859
+00:23:52,486 --> 00:23:53,666
+So, I'll implement it with
+
+
+860
+00:23:53,666 --> 00:23:54,466
+background tasks.
+
+
+861
+00:23:55,896 --> 00:23:57,356
+The first thing you need to do
+
+
+862
+00:23:57,796 --> 00:23:59,906
+is add the required keys to your
+
+
+863
+00:23:59,906 --> 00:24:01,416
+info.plist to declare your
+
+
+864
+00:24:01,416 --> 00:24:03,286
+support for background tasks and
+
+
+865
+00:24:03,316 --> 00:24:04,336
+background app refresh.
+
+
+866
+00:24:04,946 --> 00:24:06,956
+So, I'm going to go here into my
+
+
+867
+00:24:06,956 --> 00:24:09,556
+project settings, click on the
+
+
+868
+00:24:09,786 --> 00:24:13,496
+target for my app, and go into
+
+
+869
+00:24:13,496 --> 00:24:14,876
+the signing and capabilities
+
+
+870
+00:24:15,026 --> 00:24:15,330
+tab.
+
+
+871
+00:24:16,586 --> 00:24:18,206
+I'm going to click the plus sign
+
+
+872
+00:24:18,246 --> 00:24:20,416
+and add a new capability for
+
+
+873
+00:24:20,416 --> 00:24:21,346
+background modes.
+
+
+874
+00:24:21,996 --> 00:24:25,386
+As you can see, it added this
+
+
+875
+00:24:25,386 --> 00:24:26,606
+new section, and we need to
+
+
+876
+00:24:26,606 --> 00:24:27,886
+choose the right background mode
+
+
+877
+00:24:28,016 --> 00:24:29,126
+for this type of task.
+
+
+878
+00:24:29,586 --> 00:24:30,886
+In this case, for background app
+
+
+879
+00:24:30,886 --> 00:24:32,366
+refresh, the box is labeled
+
+
+880
+00:24:32,436 --> 00:24:34,046
+background fetch, just like with
+
+
+881
+00:24:34,046 --> 00:24:34,536
+the old API.
+
+
+882
+00:24:34,886 --> 00:24:35,896
+So, I'll go ahead and check
+
+
+883
+00:24:36,376 --> 00:24:36,500
+that.
+
+
+884
+00:24:38,046 --> 00:24:39,606
+Next, I'm going to head into my
+
+
+885
+00:24:39,746 --> 00:24:41,516
+ask info.plist file and I'm
+
+
+886
+00:24:41,516 --> 00:24:46,136
+going to click the plus sign to
+
+
+887
+00:24:46,136 --> 00:24:46,946
+add a new key.
+
+
+888
+00:24:47,496 --> 00:24:50,416
+This key is called permitted
+
+
+889
+00:24:50,506 --> 00:24:51,776
+background task scheduler
+
+
+890
+00:24:51,776 --> 00:24:52,376
+identifiers.
+
+
+891
+00:24:52,986 --> 00:24:54,786
+And it's an array of strings.
+
+
+892
+00:24:55,406 --> 00:24:57,286
+So, each string in this array
+
+
+893
+00:24:57,426 --> 00:24:59,256
+uniquely identifies a specific
+
+
+894
+00:24:59,256 --> 00:25:01,296
+task your app wants to do, and
+
+
+895
+00:25:01,456 --> 00:25:02,566
+it should be unique within your
+
+
+896
+00:25:02,566 --> 00:25:02,796
+app.
+
+
+897
+00:25:03,246 --> 00:25:04,716
+We recommend using reverse DNS
+
+
+898
+00:25:04,826 --> 00:25:06,416
+notation to avoid conflicts with
+
+
+899
+00:25:06,416 --> 00:25:07,676
+any third-party frameworks you
+
+
+900
+00:25:07,676 --> 00:25:08,836
+may be using.
+
+
+901
+00:25:09,616 --> 00:25:11,646
+So, here, I'm going to expand
+
+
+902
+00:25:11,646 --> 00:25:12,936
+that array and click the plus
+
+
+903
+00:25:12,936 --> 00:25:14,156
+sign to add a new string.
+
+
+904
+00:25:14,946 --> 00:25:16,066
+And I'll call it
+
+
+905
+00:25:16,256 --> 00:25:20,796
+com.colorfeed.refresh and hit
+
+
+906
+00:25:20,796 --> 00:25:21,036
+save.
+
+
+907
+00:25:22,346 --> 00:25:23,986
+Next, I need to actually
+
+
+908
+00:25:23,986 --> 00:25:25,486
+implement the code to handle
+
+
+909
+00:25:25,486 --> 00:25:26,496
+when my app is launched.
+
+
+910
+00:25:26,886 --> 00:25:28,066
+So, I'm going to do that in my
+
+
+911
+00:25:28,066 --> 00:25:28,656
+app delegate.
+
+
+912
+00:25:29,896 --> 00:25:32,786
+I'll head into my app delegate
+
+
+913
+00:25:32,786 --> 00:25:34,146
+file, and the first thing I need
+
+
+914
+00:25:34,146 --> 00:25:35,416
+to do is import background
+
+
+915
+00:25:35,416 --> 00:25:36,000
+tasks.
+
+
+916
+00:25:39,666 --> 00:25:40,006
+All right.
+
+
+917
+00:25:41,096 --> 00:25:43,346
+So, the next step is to tell the
+
+
+918
+00:25:43,346 --> 00:25:44,686
+system what you want to do when
+
+
+919
+00:25:44,686 --> 00:25:45,916
+you get launched, and you do
+
+
+920
+00:25:45,916 --> 00:25:47,686
+this by registering a launch
+
+
+921
+00:25:47,686 --> 00:25:49,606
+handler before your application
+
+
+922
+00:25:49,606 --> 00:25:50,446
+finishes launching.
+
+
+923
+00:25:51,196 --> 00:25:53,576
+So, in my application did finish
+
+
+924
+00:25:53,576 --> 00:25:54,796
+launching with options method,
+
+
+925
+00:25:55,546 --> 00:25:59,356
+I'm going to call BG task
+
+
+926
+00:25:59,586 --> 00:26:01,986
+scheduler shared, register for
+
+
+927
+00:26:01,986 --> 00:26:03,776
+task with identifier and then
+
+
+928
+00:26:03,776 --> 00:26:06,186
+pass in that same identifier I
+
+
+929
+00:26:06,186 --> 00:26:07,456
+just put into the info.plist.
+
+
+930
+00:26:08,696 --> 00:26:10,296
+The next parameter is a dispatch
+
+
+931
+00:26:10,296 --> 00:26:11,926
+queue, which is what my handler
+
+
+932
+00:26:11,926 --> 00:26:13,246
+will be called on, and I can
+
+
+933
+00:26:13,246 --> 00:26:14,636
+specify a queue that I'm using
+
+
+934
+00:26:14,796 --> 00:26:15,826
+if I want to synchronize with
+
+
+935
+00:26:15,826 --> 00:26:17,076
+other things in my app.
+
+
+936
+00:26:17,406 --> 00:26:19,196
+Or, I can pass in nil, and the
+
+
+937
+00:26:19,196 --> 00:26:20,756
+system will create a background
+
+
+938
+00:26:20,756 --> 00:26:22,516
+serial queue for me.
+
+
+939
+00:26:23,156 --> 00:26:25,246
+The next parameter is the actual
+
+
+940
+00:26:25,246 --> 00:26:26,326
+launch handler, which is what
+
+
+941
+00:26:26,326 --> 00:26:27,866
+will be called when my app is
+
+
+942
+00:26:27,866 --> 00:26:28,786
+launched for the task.
+
+
+943
+00:26:29,506 --> 00:26:31,086
+As you can see, it takes one
+
+
+944
+00:26:31,086 --> 00:26:32,766
+parameter of type BG task.
+
+
+945
+00:26:34,076 --> 00:26:36,026
+What I'm going to do is I'm
+
+
+946
+00:26:36,026 --> 00:26:38,896
+going to call a method I'll
+
+
+947
+00:26:38,896 --> 00:26:40,786
+write called handle app refresh
+
+
+948
+00:26:41,066 --> 00:26:43,396
+and downcast that BG task object
+
+
+949
+00:26:43,626 --> 00:26:45,966
+to a BG app refresh task since
+
+
+950
+00:26:45,966 --> 00:26:47,076
+this is used for background app
+
+
+951
+00:26:47,076 --> 00:26:47,566
+refreshes.
+
+
+952
+00:26:48,446 --> 00:26:49,856
+I'm going to go ahead and write
+
+
+953
+00:26:49,856 --> 00:26:51,056
+that handle app refresh method
+
+
+954
+00:26:51,806 --> 00:26:52,000
+now.
+
+
+955
+00:26:54,616 --> 00:26:56,236
+Here, I've written all the code
+
+
+956
+00:26:56,236 --> 00:26:57,926
+I need to actually perform the
+
+
+957
+00:26:57,926 --> 00:26:58,976
+background app refresh.
+
+
+958
+00:26:59,246 --> 00:27:00,366
+It's going to fetch the latest
+
+
+959
+00:27:00,366 --> 00:27:02,046
+content from the server, update
+
+
+960
+00:27:02,046 --> 00:27:03,686
+my database, and update my UI.
+
+
+961
+00:27:04,666 --> 00:27:05,946
+But to integrate this with
+
+
+962
+00:27:05,946 --> 00:27:07,836
+background tasks, there are two
+
+
+963
+00:27:07,836 --> 00:27:08,786
+things I need to do.
+
+
+964
+00:27:09,656 --> 00:27:11,166
+The first is to handle
+
+
+965
+00:27:11,166 --> 00:27:11,926
+expiration.
+
+
+966
+00:27:12,506 --> 00:27:14,116
+Your task is given a limited
+
+
+967
+00:27:14,116 --> 00:27:17,086
+amount of time to finish, so
+
+
+968
+00:27:17,346 --> 00:27:18,756
+when your time is almost out,
+
+
+969
+00:27:18,856 --> 00:27:19,946
+we'll warn you and give you a
+
+
+970
+00:27:19,946 --> 00:27:20,936
+chance to quickly wrap
+
+
+971
+00:27:20,936 --> 00:27:22,106
+everything up and complete your
+
+
+972
+00:27:22,106 --> 00:27:22,346
+work.
+
+
+973
+00:27:23,016 --> 00:27:24,816
+The system may also choose to
+
+
+974
+00:27:24,816 --> 00:27:26,846
+terminate your task early in
+
+
+975
+00:27:26,846 --> 00:27:28,466
+case the system decides the
+
+
+976
+00:27:28,466 --> 00:27:29,376
+conditions are no longer
+
+
+977
+00:27:29,376 --> 00:27:30,546
+sufficient for you to run your
+
+
+978
+00:27:31,736 --> 00:27:31,896
+task.
+
+
+979
+00:27:32,136 --> 00:27:34,016
+So what I'm going to do is set
+
+
+980
+00:27:34,016 --> 00:27:37,036
+an expiration handler on the
+
+
+981
+00:27:37,036 --> 00:27:38,696
+task, and in the expiration
+
+
+982
+00:27:38,696 --> 00:27:40,336
+handler, I'm going to call
+
+
+983
+00:27:40,336 --> 00:27:41,736
+cancel all operations on my
+
+
+984
+00:27:41,736 --> 00:27:43,086
+operation queue, and that's
+
+
+985
+00:27:43,086 --> 00:27:44,656
+going to stop all the work I'm
+
+
+986
+00:27:44,656 --> 00:27:45,966
+doing and cancel any work that I
+
+
+987
+00:27:45,966 --> 00:27:47,466
+haven't even started yet.
+
+
+988
+00:27:48,196 --> 00:27:50,546
+The next thing I need to do is
+
+
+989
+00:27:50,546 --> 00:27:53,326
+to call set task completed on
+
+
+990
+00:27:53,326 --> 00:27:54,766
+the task when I'm done with my
+
+
+991
+00:27:54,766 --> 00:27:55,000
+work.
+
+
+992
+00:27:56,286 --> 00:27:58,016
+I need to do this even if the
+
+
+993
+00:27:58,016 --> 00:27:59,296
+expiration handler has been
+
+
+994
+00:27:59,296 --> 00:27:59,676
+called.
+
+
+995
+00:28:00,706 --> 00:28:02,926
+And if I fail to do this, the
+
+
+996
+00:28:02,926 --> 00:28:04,346
+system may actually terminate my
+
+
+997
+00:28:04,346 --> 00:28:06,336
+app, and that will impact launch
+
+
+998
+00:28:06,336 --> 00:28:07,146
+performance later, and I
+
+
+999
+00:28:07,146 --> 00:28:07,996
+definitely don't want to do
+
+
+1000
+00:28:07,996 --> 00:28:08,196
+that.
+
+
+1001
+00:28:08,656 --> 00:28:11,216
+So, what I'm going to do is I'm
+
+
+1002
+00:28:11,216 --> 00:28:14,666
+going to say that when my last
+
+
+1003
+00:28:14,666 --> 00:28:16,396
+operation in that queue is
+
+
+1004
+00:28:16,396 --> 00:28:18,266
+complete, I'm going to call set
+
+
+1005
+00:28:18,266 --> 00:28:19,786
+task completed, and I'm taking
+
+
+1006
+00:28:19,786 --> 00:28:20,916
+advantage of the fact that
+
+
+1007
+00:28:21,086 --> 00:28:22,516
+operations always call their
+
+
+1008
+00:28:22,516 --> 00:28:24,116
+completion block regardless if
+
+
+1009
+00:28:24,116 --> 00:28:25,416
+they were cancelled early or
+
+
+1010
+00:28:25,416 --> 00:28:26,816
+they finish normally, and I'm
+
+
+1011
+00:28:26,816 --> 00:28:28,376
+using that to determine if my
+
+
+1012
+00:28:28,376 --> 00:28:29,816
+task completed successfully or
+
+
+1013
+00:28:30,406 --> 00:28:30,500
+not.
+
+
+1014
+00:28:31,136 --> 00:28:31,906
+All right.
+
+
+1015
+00:28:31,906 --> 00:28:34,116
+So the last step is to actually
+
+
+1016
+00:28:34,116 --> 00:28:36,616
+schedule a BG task request, and
+
+
+1017
+00:28:36,686 --> 00:28:38,246
+I'm going to do that when my app
+
+
+1018
+00:28:38,296 --> 00:28:39,556
+enters the background because
+
+
+1019
+00:28:39,556 --> 00:28:40,696
+that's when the user has stopped
+
+
+1020
+00:28:40,696 --> 00:28:41,286
+using my app.
+
+
+1021
+00:28:41,626 --> 00:28:42,656
+So, I'll go ahead and write that
+
+
+1022
+00:28:42,656 --> 00:28:43,000
+now.
+
+
+1023
+00:28:47,386 --> 00:28:49,086
+As you can see, I'm calling a
+
+
+1024
+00:28:49,086 --> 00:28:50,176
+method I just wrote called
+
+
+1025
+00:28:50,176 --> 00:28:51,696
+schedule app refresh, and my
+
+
+1026
+00:28:51,696 --> 00:28:53,176
+application did enter background
+
+
+1027
+00:28:53,176 --> 00:28:53,496
+method.
+
+
+1028
+00:28:53,796 --> 00:28:55,876
+And here, I'm creating a BG app
+
+
+1029
+00:28:55,976 --> 00:28:57,956
+refresh task request object and
+
+
+1030
+00:28:57,956 --> 00:28:59,756
+passing in again that same
+
+
+1031
+00:28:59,756 --> 00:29:00,396
+identifier.
+
+
+1032
+00:29:00,396 --> 00:29:03,606
+I then submit to that request to
+
+
+1033
+00:29:03,606 --> 00:29:05,016
+the being task scheduler.
+
+
+1034
+00:29:06,446 --> 00:29:07,776
+There's one additional property
+
+
+1035
+00:29:07,976 --> 00:29:09,516
+I want to call out on the being
+
+
+1036
+00:29:09,516 --> 00:29:11,596
+task request object, and that's
+
+
+1037
+00:29:11,786 --> 00:29:12,756
+earliest begin date.
+
+
+1038
+00:29:13,446 --> 00:29:14,816
+This is how you can specify a
+
+
+1039
+00:29:14,816 --> 00:29:16,096
+start delay for your task.
+
+
+1040
+00:29:16,546 --> 00:29:18,026
+So, in this case, I'm saying
+
+
+1041
+00:29:18,316 --> 00:29:20,126
+don't start app refresh, don't
+
+
+1042
+00:29:20,126 --> 00:29:22,376
+start refreshing my app until at
+
+
+1043
+00:29:22,376 --> 00:29:23,686
+least 15 minutes from when I
+
+
+1044
+00:29:23,686 --> 00:29:25,106
+schedule it, and this lets me
+
+
+1045
+00:29:25,106 --> 00:29:26,636
+get the same behavior as with
+
+
+1046
+00:29:26,636 --> 00:29:28,426
+the old set minimum background
+
+
+1047
+00:29:28,426 --> 00:29:29,266
+fetch interval API.
+
+
+1048
+00:29:29,906 --> 00:29:32,366
+So, I schedule my task, but
+
+
+1049
+00:29:32,786 --> 00:29:34,006
+there's actually one more thing
+
+
+1050
+00:29:34,096 --> 00:29:35,646
+I'll probably want to do.
+
+
+1051
+00:29:36,646 --> 00:29:39,096
+Because every single BG task
+
+
+1052
+00:29:39,096 --> 00:29:40,326
+request object corresponds to
+
+
+1053
+00:29:40,326 --> 00:29:42,906
+exactly one launch, right now if
+
+
+1054
+00:29:42,906 --> 00:29:44,026
+my app gets launched for a
+
+
+1055
+00:29:44,026 --> 00:29:45,616
+background app refresh, it won't
+
+
+1056
+00:29:45,616 --> 00:29:46,776
+get launched again until the
+
+
+1057
+00:29:46,776 --> 00:29:48,126
+user enters and then leaves my
+
+
+1058
+00:29:48,126 --> 00:29:48,386
+app.
+
+
+1059
+00:29:48,856 --> 00:29:49,606
+But I don't want that.
+
+
+1060
+00:29:49,606 --> 00:29:50,816
+I want it to keep refreshing
+
+
+1061
+00:29:50,996 --> 00:29:51,596
+throughout the day.
+
+
+1062
+00:29:51,926 --> 00:29:54,026
+So, all I have to do is call
+
+
+1063
+00:29:54,146 --> 00:29:55,706
+schedule app refresh in my
+
+
+1064
+00:29:55,706 --> 00:29:56,396
+handle method.
+
+
+1065
+00:29:57,216 --> 00:29:58,316
+So, I'll schedule another
+
+
+1066
+00:29:58,316 --> 00:29:59,826
+request as soon as I get launch
+
+
+1067
+00:29:59,826 --> 00:30:00,546
+for an existing one.
+
+
+1068
+00:30:01,416 --> 00:30:02,326
+And that's it.
+
+
+1069
+00:30:02,326 --> 00:30:03,636
+That's all the code I need to
+
+
+1070
+00:30:03,636 --> 00:30:04,996
+write to handle background app
+
+
+1071
+00:30:04,996 --> 00:30:06,906
+refresh in my app.
+
+
+1072
+00:30:07,196 --> 00:30:08,716
+But, as I'm using my app and I'm
+
+
+1073
+00:30:08,716 --> 00:30:11,226
+scrolling through, I'm seeing
+
+
+1074
+00:30:11,226 --> 00:30:12,346
+that there are like a lot of
+
+
+1075
+00:30:12,346 --> 00:30:13,826
+entries from a really long time
+
+
+1076
+00:30:13,826 --> 00:30:15,136
+ago, things that are probably
+
+
+1077
+00:30:15,136 --> 00:30:16,286
+not relevant to the user
+
+
+1078
+00:30:16,286 --> 00:30:17,716
+anymore, and just taking up disk
+
+
+1079
+00:30:17,716 --> 00:30:17,976
+space.
+
+
+1080
+00:30:17,976 --> 00:30:19,606
+So it would be really great if
+
+
+1081
+00:30:19,606 --> 00:30:21,096
+we could clean our database up
+
+
+1082
+00:30:21,136 --> 00:30:23,056
+for the user, and the best tool
+
+
+1083
+00:30:23,056 --> 00:30:25,306
+for that is BG processing tasks.
+
+
+1084
+00:30:25,536 --> 00:30:26,556
+So, I'll go ahead and implement
+
+
+1085
+00:30:26,556 --> 00:30:27,156
+that as well.
+
+
+1086
+00:30:28,516 --> 00:30:29,856
+Just like before, I'm going to
+
+
+1087
+00:30:29,856 --> 00:30:31,036
+head into my project settings,
+
+
+1088
+00:30:32,036 --> 00:30:33,116
+the signing and capabilities
+
+
+1089
+00:30:33,116 --> 00:30:35,736
+tab, and this time, in
+
+
+1090
+00:30:35,736 --> 00:30:37,196
+background modes, I'm going to
+
+
+1091
+00:30:37,196 --> 00:30:38,256
+make sure to check the
+
+
+1092
+00:30:38,256 --> 00:30:39,846
+background processing checkbox.
+
+
+1093
+00:30:40,376 --> 00:30:45,526
+I'll go into my info.plist and
+
+
+1094
+00:30:46,756 --> 00:30:48,506
+hit the plus sign to add a new
+
+
+1095
+00:30:48,506 --> 00:30:49,046
+identifier.
+
+
+1096
+00:30:49,736 --> 00:30:50,806
+This one I'll call
+
+
+1097
+00:30:50,806 --> 00:30:56,296
+com.colorfeed.dbcleaning and hit
+
+
+1098
+00:30:56,296 --> 00:30:56,866
+save.
+
+
+1099
+00:30:57,576 --> 00:30:59,826
+Then, just like before, I'll go
+
+
+1100
+00:30:59,826 --> 00:31:02,316
+into my app delegate and call
+
+
+1101
+00:31:02,316 --> 00:31:03,676
+register again.
+
+
+1102
+00:31:06,636 --> 00:31:08,716
+Here, it's the same call I made
+
+
+1103
+00:31:08,716 --> 00:31:10,126
+earlier, except I'm passing in
+
+
+1104
+00:31:10,126 --> 00:31:12,686
+the new identifier, and I'm
+
+
+1105
+00:31:12,686 --> 00:31:14,936
+calling handle database cleaning
+
+
+1106
+00:31:15,116 --> 00:31:16,366
+and down casting to BG
+
+
+1107
+00:31:16,366 --> 00:31:17,686
+processing task instead.
+
+
+1108
+00:31:18,596 --> 00:31:19,986
+I'll go ahead and implement
+
+
+1109
+00:31:19,986 --> 00:31:20,976
+handle database cleaning now.
+
+
+1110
+00:31:27,246 --> 00:31:28,336
+I've already integrated this
+
+
+1111
+00:31:28,336 --> 00:31:30,486
+code with background tasks, and
+
+
+1112
+00:31:30,486 --> 00:31:31,836
+what it does is it just deletes
+
+
+1113
+00:31:31,836 --> 00:31:32,916
+everything that's older than the
+
+
+1114
+00:31:32,916 --> 00:31:33,426
+past day.
+
+
+1115
+00:31:34,266 --> 00:31:35,756
+As you can see, I make sure to
+
+
+1116
+00:31:35,756 --> 00:31:37,156
+set an expiration handler and
+
+
+1117
+00:31:37,156 --> 00:31:39,726
+cancel all my operations, and I
+
+
+1118
+00:31:39,726 --> 00:31:41,176
+make sure to call set task
+
+
+1119
+00:31:41,176 --> 00:31:42,836
+completed with success when I'm
+
+
+1120
+00:31:42,836 --> 00:31:42,976
+done.
+
+
+1121
+00:31:44,036 --> 00:31:45,266
+One thing I am doing differently
+
+
+1122
+00:31:45,266 --> 00:31:47,066
+here is I'm keeping track of the
+
+
+1123
+00:31:47,066 --> 00:31:48,606
+last time I successfully cleaned
+
+
+1124
+00:31:48,606 --> 00:31:49,236
+my database.
+
+
+1125
+00:31:49,796 --> 00:31:52,736
+I'm doing this because when I
+
+
+1126
+00:31:52,736 --> 00:31:54,246
+schedule my task, I want to be
+
+
+1127
+00:31:54,246 --> 00:31:55,836
+conscientious of how I'm using
+
+
+1128
+00:31:55,836 --> 00:31:56,906
+the system's resources.
+
+
+1129
+00:31:57,106 --> 00:31:58,536
+I don't want to schedule a
+
+
+1130
+00:31:58,536 --> 00:31:59,896
+database cleaning task every
+
+
+1131
+00:31:59,896 --> 00:32:01,336
+time the user leaves my app if
+
+
+1132
+00:32:01,336 --> 00:32:02,586
+my database doesn't actually
+
+
+1133
+00:32:02,586 --> 00:32:03,666
+need to be cleaned.
+
+
+1134
+00:32:03,956 --> 00:32:05,486
+So, what I'm going to do is
+
+
+1135
+00:32:05,486 --> 00:32:07,436
+write a method called schedule
+
+
+1136
+00:32:07,436 --> 00:32:09,606
+database cleaning if needed.
+
+
+1137
+00:32:11,256 --> 00:32:13,176
+And here, I'm just checking that
+
+
+1138
+00:32:13,406 --> 00:32:14,806
+if it hasn't been at least a
+
+
+1139
+00:32:14,806 --> 00:32:16,306
+week since I last cleaned it,
+
+
+1140
+00:32:16,386 --> 00:32:17,936
+don't do anything and bail out
+
+
+1141
+00:32:17,936 --> 00:32:18,396
+immediately.
+
+
+1142
+00:32:19,316 --> 00:32:20,596
+Otherwise, I'll go ahead and
+
+
+1143
+00:32:20,596 --> 00:32:21,556
+schedule that request.
+
+
+1144
+00:32:22,146 --> 00:32:23,736
+I'll create a BG processing task
+
+
+1145
+00:32:23,736 --> 00:32:25,756
+request and pass it that same
+
+
+1146
+00:32:25,756 --> 00:32:26,826
+identifier I did before.
+
+
+1147
+00:32:27,426 --> 00:32:29,386
+There are some additional
+
+
+1148
+00:32:29,386 --> 00:32:31,046
+properties on the BG processing
+
+
+1149
+00:32:31,046 --> 00:32:32,176
+task request you may want to be
+
+
+1150
+00:32:32,176 --> 00:32:32,566
+aware of.
+
+
+1151
+00:32:33,326 --> 00:32:35,396
+The first is requires network
+
+
+1152
+00:32:35,396 --> 00:32:37,066
+connectivity, and this actually
+
+
+1153
+00:32:37,066 --> 00:32:37,876
+defaults to false.
+
+
+1154
+00:32:38,506 --> 00:32:39,766
+You should make sure to set this
+
+
+1155
+00:32:39,766 --> 00:32:41,576
+to true if you actually require
+
+
+1156
+00:32:41,736 --> 00:32:42,866
+network connectivity for your
+
+
+1157
+00:32:42,866 --> 00:32:44,826
+task because otherwise we may
+
+
+1158
+00:32:44,826 --> 00:32:46,116
+launch your task at a time where
+
+
+1159
+00:32:46,116 --> 00:32:47,346
+there is no network and you
+
+
+1160
+00:32:47,346 --> 00:32:48,456
+won't be able to do much work.
+
+
+1161
+00:32:49,186 --> 00:32:50,116
+In our case, we're doing some
+
+
+1162
+00:32:50,116 --> 00:32:51,836
+local database maintenance, so
+
+
+1163
+00:32:51,836 --> 00:32:52,986
+we can just leave this as false.
+
+
+1164
+00:32:53,406 --> 00:32:56,156
+The next is requires external
+
+
+1165
+00:32:56,196 --> 00:32:56,596
+power.
+
+
+1166
+00:32:57,846 --> 00:32:59,506
+Now, depending on the specific
+
+
+1167
+00:32:59,536 --> 00:33:01,306
+type of device and various
+
+
+1168
+00:33:01,306 --> 00:33:02,676
+system conditions and policies,
+
+
+1169
+00:33:03,046 --> 00:33:05,006
+we may tend to launch apps while
+
+
+1170
+00:33:05,236 --> 00:33:06,066
+they're plugged in and on
+
+
+1171
+00:33:06,066 --> 00:33:06,936
+charger anyway.
+
+
+1172
+00:33:07,606 --> 00:33:10,216
+However, if you require, if you
+
+
+1173
+00:33:10,216 --> 00:33:11,846
+are requiring yourself to do
+
+
+1174
+00:33:11,966 --> 00:33:13,716
+intensive work and use a lot of
+
+
+1175
+00:33:13,716 --> 00:33:15,666
+resources, we highly recommend
+
+
+1176
+00:33:15,856 --> 00:33:17,006
+that you set this to true so
+
+
+1177
+00:33:17,006 --> 00:33:18,146
+that you can preserve your
+
+
+1178
+00:33:18,146 --> 00:33:19,086
+user's battery life.
+
+
+1179
+00:33:19,676 --> 00:33:21,596
+Setting this to true is also how
+
+
+1180
+00:33:21,596 --> 00:33:23,306
+you'll disable CPU monitor for
+
+
+1181
+00:33:23,306 --> 00:33:24,566
+CPU intensive tasks.
+
+
+1182
+00:33:25,116 --> 00:33:26,786
+And that's it.
+
+
+1183
+00:33:26,906 --> 00:33:28,046
+I'm going to go ahead and submit
+
+
+1184
+00:33:28,046 --> 00:33:28,916
+that request through the
+
+
+1185
+00:33:28,916 --> 00:33:30,356
+scheduler, and I'm going to do
+
+
+1186
+00:33:30,356 --> 00:33:32,746
+that, if I need to, when my
+
+
+1187
+00:33:32,746 --> 00:33:33,736
+application enters the
+
+
+1188
+00:33:33,736 --> 00:33:34,176
+background.
+
+
+1189
+00:33:35,576 --> 00:33:36,626
+So that's all the code I need to
+
+
+1190
+00:33:36,626 --> 00:33:37,856
+write to handle both background
+
+
+1191
+00:33:37,966 --> 00:33:39,436
+app refresh and background
+
+
+1192
+00:33:39,436 --> 00:33:40,326
+processing tasks.
+
+
+1193
+00:33:41,066 --> 00:33:41,936
+But how do I know this all
+
+
+1194
+00:33:41,936 --> 00:33:42,466
+works?
+
+
+1195
+00:33:43,056 --> 00:33:44,516
+I'd like to think I'm perfect
+
+
+1196
+00:33:44,516 --> 00:33:46,946
+program, but that's obviously
+
+
+1197
+00:33:46,946 --> 00:33:47,846
+not always the case.
+
+
+1198
+00:33:48,226 --> 00:33:50,686
+So, the best way to test this
+
+
+1199
+00:33:50,756 --> 00:33:52,486
+end to end is to live on your
+
+
+1200
+00:33:52,486 --> 00:33:53,726
+device and use it like a user
+
+
+1201
+00:33:53,726 --> 00:33:55,116
+would, and that will make sure
+
+
+1202
+00:33:55,116 --> 00:33:56,506
+that you can get the time and
+
+
+1203
+00:33:56,506 --> 00:33:57,696
+policies that you need for your
+
+
+1204
+00:33:57,696 --> 00:33:58,816
+specific task.
+
+
+1205
+00:33:59,376 --> 00:34:01,076
+But, we also know that you don't
+
+
+1206
+00:34:01,076 --> 00:34:02,146
+have time to just sit there and
+
+
+1207
+00:34:02,146 --> 00:34:04,116
+wait when you're coding, so we
+
+
+1208
+00:34:04,176 --> 00:34:05,236
+added a couple of methods you
+
+
+1209
+00:34:05,236 --> 00:34:07,196
+can call in a debugger to debug
+
+
+1210
+00:34:07,196 --> 00:34:08,876
+your use of background tasks,
+
+
+1211
+00:34:09,025 --> 00:34:09,985
+and let me demonstrate that for
+
+
+1212
+00:34:09,985 --> 00:34:10,346
+you now.
+
+
+1213
+00:34:11,286 --> 00:34:12,766
+I'm going to build and run this
+
+
+1214
+00:34:12,766 --> 00:34:14,536
+new version of background tasks
+
+
+1215
+00:34:14,536 --> 00:34:14,936
+onto my iPhone.
+
+
+1216
+00:34:21,206 --> 00:34:23,286
+As you see, it launched, and now
+
+
+1217
+00:34:23,286 --> 00:34:24,295
+I'm going to send it into the
+
+
+1218
+00:34:24,295 --> 00:34:26,576
+background to make sure that my
+
+
+1219
+00:34:26,576 --> 00:34:27,676
+task requests are scheduled.
+
+
+1220
+00:34:28,596 --> 00:34:30,366
+I'll bring it back, and here,
+
+
+1221
+00:34:30,706 --> 00:34:32,306
+I'm going to click the pause
+
+
+1222
+00:34:32,335 --> 00:34:35,356
+button right here on the bottom.
+
+
+1223
+00:34:35,516 --> 00:34:36,696
+This will enter the debugger.
+
+
+1224
+00:34:37,966 --> 00:34:39,246
+And I can see the console right
+
+
+1225
+00:34:39,246 --> 00:34:39,446
+here.
+
+
+1226
+00:34:40,416 --> 00:34:41,775
+What I'm going to do is I'm
+
+
+1227
+00:34:41,775 --> 00:34:42,835
+going to paste in the command
+
+
+1228
+00:34:42,996 --> 00:34:43,726
+that's available in our
+
+
+1229
+00:34:43,726 --> 00:34:45,466
+documentation so no need to
+
+
+1230
+00:34:45,466 --> 00:34:46,045
+write this down.
+
+
+1231
+00:34:47,266 --> 00:34:49,406
+Here, all I have to do is
+
+
+1232
+00:34:49,406 --> 00:34:51,076
+replace the word task identifier
+
+
+1233
+00:34:51,266 --> 00:34:52,496
+with the identifier of the task
+
+
+1234
+00:34:52,496 --> 00:34:53,235
+I want to simulate.
+
+
+1235
+00:34:53,456 --> 00:34:54,876
+I want to test background app
+
+
+1236
+00:34:54,876 --> 00:34:56,146
+refresh, so I'll type in
+
+
+1237
+00:34:56,146 --> 00:34:58,326
+com.colorfeed.refresh.
+
+
+1238
+00:34:58,966 --> 00:35:00,196
+But the steps are the same for
+
+
+1239
+00:35:00,196 --> 00:35:01,276
+my processing task as well.
+
+
+1240
+00:35:02,186 --> 00:35:04,706
+I'll hit enter, and as you can
+
+
+1241
+00:35:04,706 --> 00:35:06,066
+see, the system has recognized
+
+
+1242
+00:35:06,066 --> 00:35:07,356
+that I want to simulate a launch
+
+
+1243
+00:35:07,576 --> 00:35:08,566
+for my background app refresh
+
+
+1244
+00:35:09,346 --> 00:35:09,486
+task.
+
+
+1245
+00:35:10,486 --> 00:35:11,786
+I'll hit the play button right
+
+
+1246
+00:35:11,786 --> 00:35:12,000
+here.
+
+
+1247
+00:35:15,356 --> 00:35:17,516
+And as you can see, the system
+
+
+1248
+00:35:17,516 --> 00:35:18,896
+is starting my app refresh task,
+
+
+1249
+00:35:18,896 --> 00:35:19,956
+and my app is actively
+
+
+1250
+00:35:19,956 --> 00:35:21,486
+refreshing, and I can see that
+
+
+1251
+00:35:21,486 --> 00:35:21,966
+it's working.
+
+
+1252
+00:35:22,596 --> 00:35:24,406
+I'm going to hit pause again,
+
+
+1253
+00:35:25,016 --> 00:35:26,666
+and this time I'll make sure
+
+
+1254
+00:35:26,856 --> 00:35:28,196
+that expiration works as well,
+
+
+1255
+00:35:28,236 --> 00:35:29,126
+because that's equally
+
+
+1256
+00:35:29,126 --> 00:35:29,656
+important.
+
+
+1257
+00:35:30,576 --> 00:35:31,816
+What I'm going to do is I'm
+
+
+1258
+00:35:31,816 --> 00:35:33,526
+going to enter that same command
+
+
+1259
+00:35:34,116 --> 00:35:35,576
+except this time I'm going to
+
+
+1260
+00:35:35,576 --> 00:35:36,946
+replace the word launch with
+
+
+1261
+00:35:36,946 --> 00:35:39,126
+expiration and hit enter.
+
+
+1262
+00:35:40,596 --> 00:35:41,586
+As you can see, the system
+
+
+1263
+00:35:41,586 --> 00:35:42,646
+recognized that I made this
+
+
+1264
+00:35:42,646 --> 00:35:44,486
+request, and when I hit play,
+
+
+1265
+00:35:44,906 --> 00:35:46,346
+you should see that my app has
+
+
+1266
+00:35:46,346 --> 00:35:47,696
+successfully stopped refreshing,
+
+
+1267
+00:35:47,896 --> 00:35:49,436
+recognized that it expired, and
+
+
+1268
+00:35:49,436 --> 00:35:50,456
+mark the task complete.
+
+
+1269
+00:35:51,186 --> 00:35:53,146
+So, I know now that my app has
+
+
+1270
+00:35:53,256 --> 00:35:54,736
+both successfully implemented
+
+
+1271
+00:35:54,886 --> 00:35:56,556
+and tested background app
+
+
+1272
+00:35:56,556 --> 00:35:57,666
+refresh and background
+
+
+1273
+00:35:57,896 --> 00:35:59,826
+processing tasks with background
+
+
+1274
+00:35:59,826 --> 00:36:00,330
+tasks.
+
+
+1275
+00:36:01,516 --> 00:36:05,546
+[ Applause ]
+
+
+1276
+00:36:06,046 --> 00:36:06,396
+Thank you.
+
+
+1277
+00:36:07,576 --> 00:36:08,336
+There are some additional
+
+
+1278
+00:36:08,336 --> 00:36:09,686
+considerations that you may want
+
+
+1279
+00:36:09,686 --> 00:36:11,056
+to be aware of when you use our
+
+
+1280
+00:36:11,056 --> 00:36:11,366
+framework.
+
+
+1281
+00:36:12,596 --> 00:36:14,686
+First, be aware of how you set
+
+
+1282
+00:36:14,686 --> 00:36:16,036
+earliest begin date, and don't
+
+
+1283
+00:36:16,036 --> 00:36:17,256
+set it too far in the future.
+
+
+1284
+00:36:17,926 --> 00:36:18,936
+If you set it too far in the
+
+
+1285
+00:36:18,936 --> 00:36:20,456
+future and the user doesn't come
+
+
+1286
+00:36:20,456 --> 00:36:21,516
+back to your app in the
+
+
+1287
+00:36:21,516 --> 00:36:23,266
+meantime, we may choose to not
+
+
+1288
+00:36:23,266 --> 00:36:24,836
+launch your task at all, and
+
+
+1289
+00:36:24,836 --> 00:36:26,356
+that's just to protect users
+
+
+1290
+00:36:26,356 --> 00:36:28,356
+expectations and privacy.
+
+
+1291
+00:36:28,746 --> 00:36:30,446
+A user that doesn't use your app
+
+
+1292
+00:36:30,446 --> 00:36:32,106
+for months does not expect that
+
+
+1293
+00:36:32,106 --> 00:36:33,186
+it suddenly starts running in
+
+
+1294
+00:36:33,186 --> 00:36:33,736
+the background.
+
+
+1295
+00:36:34,156 --> 00:36:36,046
+So, we recommend that you keep
+
+
+1296
+00:36:36,046 --> 00:36:37,936
+earliest begin date, your delays
+
+
+1297
+00:36:37,936 --> 00:36:39,976
+we earliest begin date, down to
+
+
+1298
+00:36:39,976 --> 00:36:41,426
+a week or less.
+
+
+1299
+00:36:42,616 --> 00:36:45,026
+Next, make sure that any files
+
+
+1300
+00:36:45,026 --> 00:36:46,136
+you need to access during a
+
+
+1301
+00:36:46,136 --> 00:36:48,096
+processing task are accessible
+
+
+1302
+00:36:48,096 --> 00:36:49,106
+when the device is locked
+
+
+1303
+00:36:49,546 --> 00:36:50,446
+because that's the time when
+
+
+1304
+00:36:50,446 --> 00:36:51,566
+we'll typically launch your
+
+
+1305
+00:36:51,566 --> 00:36:51,756
+task.
+
+
+1306
+00:36:53,026 --> 00:36:54,416
+We do guarantee that we won't
+
+
+1307
+00:36:54,416 --> 00:36:55,876
+start your task until the user
+
+
+1308
+00:36:55,986 --> 00:36:57,606
+first unlocks their device, so
+
+
+1309
+00:36:57,606 --> 00:36:58,766
+make sure any files you need to
+
+
+1310
+00:36:58,766 --> 00:37:00,856
+access are at most file
+
+
+1311
+00:37:00,856 --> 00:37:02,796
+protection type complete until
+
+
+1312
+00:37:02,886 --> 00:37:04,286
+first user authentication.
+
+
+1313
+00:37:04,876 --> 00:37:07,996
+We showed you how to implement
+
+
+1314
+00:37:07,996 --> 00:37:09,116
+background app refresh in a
+
+
+1315
+00:37:09,116 --> 00:37:11,116
+traditional single-window UIKit
+
+
+1316
+00:37:11,116 --> 00:37:13,066
+app, but as you know, this year
+
+
+1317
+00:37:13,066 --> 00:37:14,546
+we're introducing multiwindow
+
+
+1318
+00:37:14,546 --> 00:37:16,156
+apps with a UIScene API.
+
+
+1319
+00:37:16,766 --> 00:37:18,906
+If you're adopting that API, you
+
+
+1320
+00:37:18,906 --> 00:37:20,656
+should make sure to call UI
+
+
+1321
+00:37:20,736 --> 00:37:22,556
+application request scene
+
+
+1322
+00:37:22,556 --> 00:37:23,966
+session refresh at the
+
+
+1323
+00:37:23,966 --> 00:37:25,676
+appropriate time to tell the
+
+
+1324
+00:37:25,676 --> 00:37:27,706
+system that the snapshot in the
+
+
+1325
+00:37:27,706 --> 00:37:28,366
+app [inaudible] needs to be
+
+
+1326
+00:37:28,366 --> 00:37:28,846
+updated.
+
+
+1327
+00:37:29,156 --> 00:37:30,406
+And you can find out details
+
+
+1328
+00:37:30,406 --> 00:37:31,436
+about this in their
+
+
+1329
+00:37:31,436 --> 00:37:32,096
+documentation.
+
+
+1330
+00:37:32,736 --> 00:37:34,856
+And finally,
+
+
+1331
+00:37:35,356 --> 00:37:37,376
+BGTaskScheduler.submit is a
+
+
+1332
+00:37:37,376 --> 00:37:39,426
+blocking, synchronous call, and
+
+
+1333
+00:37:39,426 --> 00:37:40,826
+we designed it that way because
+
+
+1334
+00:37:40,826 --> 00:37:42,186
+that simplifies adoption when
+
+
+1335
+00:37:42,186 --> 00:37:43,226
+you're scheduling, when you
+
+
+1336
+00:37:43,226 --> 00:37:44,636
+enter the background, which is
+
+
+1337
+00:37:44,636 --> 00:37:45,416
+the common case.
+
+
+1338
+00:37:46,126 --> 00:37:47,446
+However, if you plan on
+
+
+1339
+00:37:47,446 --> 00:37:49,296
+scheduling during more
+
+
+1340
+00:37:49,296 --> 00:37:51,096
+performance-sensitive scenarios
+
+
+1341
+00:37:51,536 --> 00:37:52,886
+such as when the app is being
+
+
+1342
+00:37:52,886 --> 00:37:54,366
+launched, you'll want to make
+
+
+1343
+00:37:54,366 --> 00:37:55,686
+sure to call it on a background
+
+
+1344
+00:37:55,686 --> 00:37:57,156
+queue so you don't block the
+
+
+1345
+00:37:57,156 --> 00:37:58,736
+main thread and impede your
+
+
+1346
+00:37:58,736 --> 00:37:59,660
+launch performance.
+
+
+1347
+00:38:01,856 --> 00:38:02,536
+All right.
+
+
+1348
+00:38:02,916 --> 00:38:04,466
+So, to sum up what we talked
+
+
+1349
+00:38:04,466 --> 00:38:04,956
+about today.
+
+
+1350
+00:38:06,416 --> 00:38:07,966
+Be really thoughtful about how
+
+
+1351
+00:38:07,966 --> 00:38:09,276
+you use your time in the
+
+
+1352
+00:38:09,276 --> 00:38:11,026
+background and keep in mind, the
+
+
+1353
+00:38:11,026 --> 00:38:12,876
+same things we do when we design
+
+
+1354
+00:38:12,876 --> 00:38:14,586
+our APIs, things like power,
+
+
+1355
+00:38:14,866 --> 00:38:16,766
+performance, and privacy.
+
+
+1356
+00:38:17,306 --> 00:38:20,316
+Make sure to use the right
+
+
+1357
+00:38:20,406 --> 00:38:21,806
+background mode to accomplish
+
+
+1358
+00:38:21,806 --> 00:38:23,206
+the exact thing you want to do
+
+
+1359
+00:38:23,296 --> 00:38:24,906
+and enable the exact user
+
+
+1360
+00:38:24,906 --> 00:38:26,000
+experience you want.
+
+
+1361
+00:38:28,046 --> 00:38:30,096
+And finally, use a new
+
+
+1362
+00:38:30,096 --> 00:38:31,866
+background task API to schedule
+
+
+1363
+00:38:31,866 --> 00:38:32,886
+work to do in the background
+
+
+1364
+00:38:32,886 --> 00:38:33,256
+later.
+
+
+1365
+00:38:33,656 --> 00:38:35,876
+Use BG app refresh task to keep
+
+
+1366
+00:38:35,876 --> 00:38:37,106
+your app content up to date
+
+
+1367
+00:38:37,106 --> 00:38:38,526
+throughout the day and BG
+
+
+1368
+00:38:38,526 --> 00:38:40,456
+processing task to do deferrable
+
+
+1369
+00:38:40,456 --> 00:38:42,346
+maintenance-level work when the
+
+
+1370
+00:38:42,346 --> 00:38:46,556
+device is idle and on charger.
+
+
+1371
+00:38:46,696 --> 00:38:48,626
+For more information, stop by
+
+
+1372
+00:38:48,626 --> 00:38:50,886
+our labs or visit our session
+
+
+1373
+00:38:50,886 --> 00:38:52,036
+website, for links to
+
+
+1374
+00:38:52,036 --> 00:38:53,716
+documentation and sample code.
+
+
+1375
+00:38:53,716 --> 00:38:53,976
+Thank you.
+
+
+1376
+00:38:54,516 --> 00:38:59,500
+[ Applause ]
+

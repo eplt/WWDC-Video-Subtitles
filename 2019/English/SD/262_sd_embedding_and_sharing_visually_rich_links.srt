@@ -1,0 +1,1064 @@
+1
+00:00:01,516 --> 00:00:05,826
+[ Music ]
+
+
+2
+00:00:06,326 --> 00:00:08,306
+>> Hi, I'm Tim Horton from the
+
+
+3
+00:00:08,306 --> 00:00:09,646
+Safari and WebKit Team.
+
+
+4
+00:00:10,426 --> 00:00:11,706
+I'm here to show you how to
+
+
+5
+00:00:11,706 --> 00:00:13,516
+present rich links in your app.
+
+
+6
+00:00:14,836 --> 00:00:17,306
+In iOS 10 and macOS Sierra, we
+
+
+7
+00:00:17,306 --> 00:00:18,546
+introduced rich links in
+
+
+8
+00:00:18,546 --> 00:00:20,376
+messages as a way to make URLs
+
+
+9
+00:00:20,376 --> 00:00:23,396
+more beautiful and more useful.
+
+
+10
+00:00:23,396 --> 00:00:24,506
+In order to maximize the
+
+
+11
+00:00:24,506 --> 00:00:25,356
+benefit, we built
+
+
+12
+00:00:25,356 --> 00:00:26,676
+specializations for certain
+
+
+13
+00:00:26,676 --> 00:00:28,326
+kinds of links.
+
+
+14
+00:00:28,326 --> 00:00:30,176
+This includes things like inline
+
+
+15
+00:00:30,176 --> 00:00:31,446
+video and audio playback, a
+
+
+16
+00:00:31,446 --> 00:00:33,756
+special presentation for Tweets
+
+
+17
+00:00:34,086 --> 00:00:35,296
+including those with multiple
+
+
+18
+00:00:35,296 --> 00:00:37,286
+images and many other things
+
+
+19
+00:00:37,396 --> 00:00:38,556
+like Apple Maps links.
+
+
+20
+00:00:41,566 --> 00:00:45,276
+This year iOS 13 and macOS 10.15
+
+
+21
+00:00:45,276 --> 00:00:47,166
+bring new APIs that allow you to
+
+
+22
+00:00:47,166 --> 00:00:48,686
+present rich links in your own
+
+
+23
+00:00:48,686 --> 00:00:50,516
+apps so that you get those same
+
+
+24
+00:00:50,516 --> 00:00:51,946
+benefits with a minimal amount
+
+
+25
+00:00:51,946 --> 00:00:52,356
+of work.
+
+
+26
+00:00:53,276 --> 00:00:54,686
+In this video, we're going to
+
+
+27
+00:00:54,686 --> 00:00:56,586
+follow the development of this
+
+
+28
+00:00:56,586 --> 00:00:58,356
+very simple recipe book marking
+
+
+29
+00:00:58,356 --> 00:01:00,566
+app as we progressively adopt
+
+
+30
+00:01:00,566 --> 00:01:01,866
+features of the new link
+
+
+31
+00:01:01,866 --> 00:01:03,596
+presentation framework to go
+
+
+32
+00:01:03,596 --> 00:01:05,525
+from a bland list of URLs to a
+
+
+33
+00:01:05,525 --> 00:01:07,686
+rich grid of links like this in
+
+
+34
+00:01:07,686 --> 00:01:08,376
+no time at all.
+
+
+35
+00:01:10,396 --> 00:01:11,716
+To achieve this I'm going to
+
+
+36
+00:01:11,716 --> 00:01:13,326
+cover 3 topics.
+
+
+37
+00:01:13,326 --> 00:01:15,296
+First, how to present metadata
+
+
+38
+00:01:15,296 --> 00:01:16,296
+given a URL.
+
+
+39
+00:01:16,406 --> 00:01:19,096
+Second, how to easily present
+
+
+40
+00:01:19,096 --> 00:01:20,586
+that metadata to the user.
+
+
+41
+00:01:21,286 --> 00:01:23,506
+And third, how to use fetched
+
+
+42
+00:01:23,506 --> 00:01:24,966
+metadata to accelerate the
+
+
+43
+00:01:24,966 --> 00:01:26,396
+presentation of the new Share
+
+
+44
+00:01:26,396 --> 00:01:28,806
+Sheet experience in iOS 13.
+
+
+45
+00:01:30,426 --> 00:01:31,986
+So let's start with retrieving
+
+
+46
+00:01:31,986 --> 00:01:32,416
+metadata.
+
+
+47
+00:01:34,396 --> 00:01:36,276
+In the recipe app, let's say
+
+
+48
+00:01:36,276 --> 00:01:37,546
+that you already have some
+
+
+49
+00:01:37,546 --> 00:01:39,496
+mechanism for users to get URLs
+
+
+50
+00:01:39,496 --> 00:01:40,226
+into the app.
+
+
+51
+00:01:41,226 --> 00:01:42,496
+You could just present them in a
+
+
+52
+00:01:42,496 --> 00:01:44,556
+table and call it quits, but
+
+
+53
+00:01:44,556 --> 00:01:46,046
+URLs are not very user-friendly
+
+
+54
+00:01:46,276 --> 00:01:47,666
+and in this case, it's quite
+
+
+55
+00:01:47,666 --> 00:01:48,846
+hard to distinguish between
+
+
+56
+00:01:48,846 --> 00:01:48,966
+them.
+
+
+57
+00:01:49,996 --> 00:01:51,326
+You could instead ask the user
+
+
+58
+00:01:51,326 --> 00:01:52,936
+for a title for each link, but
+
+
+59
+00:01:52,986 --> 00:01:54,266
+we can make it even easier.
+
+
+60
+00:01:55,686 --> 00:01:57,686
+Using the new link presentation
+
+
+61
+00:01:57,686 --> 00:01:59,936
+framework it's very easy to use
+
+
+62
+00:01:59,966 --> 00:02:02,286
+the LP metadata provider class
+
+
+63
+00:02:02,726 --> 00:02:04,376
+to retrieve rich metadata from
+
+
+64
+00:02:04,376 --> 00:02:04,926
+the website.
+
+
+65
+00:02:04,926 --> 00:02:07,646
+You just pass it the URL and it
+
+
+66
+00:02:07,646 --> 00:02:10,026
+returns you an LPLinkMetadata
+
+
+67
+00:02:10,026 --> 00:02:11,836
+object with a representative
+
+
+68
+00:02:11,836 --> 00:02:13,596
+title in any media that is
+
+
+69
+00:02:13,596 --> 00:02:14,066
+available.
+
+
+70
+00:02:14,066 --> 00:02:17,256
+Let's see what this looks like.
+
+
+71
+00:02:17,606 --> 00:02:19,376
+First you create an
+
+
+72
+00:02:19,376 --> 00:02:22,266
+LPMetadataProvider and then call
+
+
+73
+00:02:22,266 --> 00:02:23,956
+startFetchingMetadata with the
+
+
+74
+00:02:23,956 --> 00:02:26,786
+URL you're interested in.
+
+
+75
+00:02:26,786 --> 00:02:27,936
+When the completion handler is
+
+
+76
+00:02:27,936 --> 00:02:29,336
+called, be sure to check the
+
+
+77
+00:02:29,336 --> 00:02:29,766
+error.
+
+
+78
+00:02:30,146 --> 00:02:32,056
+If the server doesn't respond or
+
+
+79
+00:02:32,056 --> 00:02:34,296
+is too slow or your user doesn't
+
+
+80
+00:02:34,296 --> 00:02:35,436
+have a network connection, the
+
+
+81
+00:02:35,756 --> 00:02:37,456
+metadata fetched can fail.
+
+
+82
+00:02:37,456 --> 00:02:40,396
+Finally, you use the metadata
+
+
+83
+00:02:40,396 --> 00:02:41,346
+for whatever you want.
+
+
+84
+00:02:42,066 --> 00:02:42,936
+We'll come back to this in a
+
+
+85
+00:02:42,936 --> 00:02:43,306
+moment.
+
+
+86
+00:02:44,916 --> 00:02:46,456
+Before we continue there are a
+
+
+87
+00:02:46,456 --> 00:02:48,136
+few things to keep in mind when
+
+
+88
+00:02:48,136 --> 00:02:49,966
+using metadataProvider and
+
+
+89
+00:02:49,966 --> 00:02:51,226
+LinkMetadata.
+
+
+90
+00:02:51,716 --> 00:02:53,436
+First, the resultant metadata
+
+
+91
+00:02:53,436 --> 00:02:54,906
+object can include any of a
+
+
+92
+00:02:54,906 --> 00:02:58,166
+title, icon, image or video or
+
+
+93
+00:02:58,166 --> 00:02:59,376
+none at all if the site doesn't
+
+
+94
+00:02:59,376 --> 00:03:00,086
+specify any.
+
+
+95
+00:03:00,846 --> 00:03:02,726
+It is also serializable within a
+
+
+96
+00:03:02,726 --> 00:03:03,526
+secure coding.
+
+
+97
+00:03:04,126 --> 00:03:05,356
+This is important because
+
+
+98
+00:03:05,356 --> 00:03:06,946
+LPMetadataProvider hits the
+
+
+99
+00:03:06,946 --> 00:03:08,766
+Internet to do its job and you
+
+
+100
+00:03:08,766 --> 00:03:10,606
+don't want to do that work nor
+
+
+101
+00:03:10,606 --> 00:03:11,916
+make your users pay that data
+
+
+102
+00:03:11,916 --> 00:03:14,076
+and performance cost every time
+
+
+103
+00:03:14,076 --> 00:03:15,246
+you present the same link.
+
+
+104
+00:03:15,706 --> 00:03:16,966
+You should cache retrieved
+
+
+105
+00:03:16,966 --> 00:03:18,726
+metadata locally as much as
+
+
+106
+00:03:18,726 --> 00:03:19,306
+possible.
+
+
+107
+00:03:20,586 --> 00:03:23,056
+Also, you can fetch metadata for
+
+
+108
+00:03:23,056 --> 00:03:25,486
+local file URLs in which case
+
+
+109
+00:03:25,486 --> 00:03:26,996
+the new QuickLook thumbnailing
+
+
+110
+00:03:26,996 --> 00:03:29,316
+API will be used to retrieve a
+
+
+111
+00:03:29,316 --> 00:03:30,656
+representative thumbnail for the
+
+
+112
+00:03:30,656 --> 00:03:31,716
+file, if possible.
+
+
+113
+00:03:33,806 --> 00:03:35,296
+Now let's talk about how to put
+
+
+114
+00:03:35,296 --> 00:03:37,136
+the metadata we retrieve to use
+
+
+115
+00:03:37,136 --> 00:03:38,546
+by presenting it in our app.
+
+
+116
+00:03:39,946 --> 00:03:40,996
+Once again, it's
+
+
+117
+00:03:40,996 --> 00:03:41,696
+straightforward.
+
+
+118
+00:03:41,896 --> 00:03:43,176
+You can just take the object
+
+
+119
+00:03:43,176 --> 00:03:44,706
+from earlier and create an
+
+
+120
+00:03:44,706 --> 00:03:45,726
+LPLinkView with it.
+
+
+121
+00:03:48,416 --> 00:03:49,256
+It's that simple.
+
+
+122
+00:03:51,816 --> 00:03:53,506
+Let's return to the recipe app
+
+
+123
+00:03:53,506 --> 00:03:55,366
+and put LPLinkViews inside our
+
+
+124
+00:03:55,366 --> 00:03:56,366
+table view cells.
+
+
+125
+00:03:57,846 --> 00:03:58,486
+Much better.
+
+
+126
+00:03:59,056 --> 00:04:00,226
+Now you have a very familiar
+
+
+127
+00:04:00,226 --> 00:04:01,586
+presentation that makes each
+
+
+128
+00:04:01,586 --> 00:04:03,146
+recipe easy to identify at a
+
+
+129
+00:04:03,146 --> 00:04:04,836
+glance.
+
+
+130
+00:04:04,836 --> 00:04:06,476
+LPLinkView has an intrinsic
+
+
+131
+00:04:06,476 --> 00:04:08,556
+size, but it also responds to
+
+
+132
+00:04:08,556 --> 00:04:10,726
+size that fits with the ideal
+
+
+133
+00:04:10,726 --> 00:04:12,486
+size to use given a constraining
+
+
+134
+00:04:12,486 --> 00:04:14,586
+size and we'll try to present
+
+
+135
+00:04:14,586 --> 00:04:15,806
+something reasonable when laid
+
+
+136
+00:04:15,806 --> 00:04:17,486
+out at any size.
+
+
+137
+00:04:18,726 --> 00:04:20,065
+The last thing I'm going to talk
+
+
+138
+00:04:20,065 --> 00:04:21,416
+about is how to make use of
+
+
+139
+00:04:21,416 --> 00:04:23,366
+LinkMetadata to accelerate the
+
+
+140
+00:04:23,366 --> 00:04:24,776
+presentation of the new Share
+
+
+141
+00:04:24,776 --> 00:04:26,966
+Sheet experience in iOS 13.
+
+
+142
+00:04:28,496 --> 00:04:29,946
+For existing apps that share
+
+
+143
+00:04:29,946 --> 00:04:31,426
+URLs, the Share Sheet will
+
+
+144
+00:04:31,426 --> 00:04:32,786
+automatically present a preview
+
+
+145
+00:04:32,786 --> 00:04:33,716
+of the link at the top of the
+
+
+146
+00:04:33,716 --> 00:04:34,196
+card.
+
+
+147
+00:04:35,026 --> 00:04:36,706
+However, this requires reaching
+
+
+148
+00:04:36,706 --> 00:04:37,946
+out to the server to retrieve
+
+
+149
+00:04:37,946 --> 00:04:39,966
+metadata once the Share Sheet is
+
+
+150
+00:04:39,966 --> 00:04:40,546
+presented.
+
+
+151
+00:04:41,046 --> 00:04:42,536
+So the title and icon show up
+
+
+152
+00:04:42,536 --> 00:04:44,406
+asynchronously.
+
+
+153
+00:04:44,446 --> 00:04:45,596
+Let's watch that again.
+
+
+154
+00:04:45,906 --> 00:04:47,556
+Keep a close eye on the Share
+
+
+155
+00:04:47,556 --> 00:04:48,256
+Sheet's header.
+
+
+156
+00:04:48,736 --> 00:04:52,606
+If you already have an
+
+
+157
+00:04:52,606 --> 00:04:54,846
+LPLinkMetadata object for URL,
+
+
+158
+00:04:55,476 --> 00:04:56,596
+you should just pass it to the
+
+
+159
+00:04:56,596 --> 00:04:58,266
+Share Sheet and the preview will
+
+
+160
+00:04:58,266 --> 00:04:59,836
+appear instantly without loading
+
+
+161
+00:04:59,836 --> 00:05:00,506
+from the network.
+
+
+162
+00:05:01,196 --> 00:05:02,266
+You can use the new
+
+
+163
+00:05:02,346 --> 00:05:04,136
+activityViewControllerLink
+
+
+164
+00:05:04,136 --> 00:05:05,826
+Metadata method on your
+
+
+165
+00:05:05,826 --> 00:05:06,626
+implementation of
+
+
+166
+00:05:06,626 --> 00:05:09,276
+UIActivityItemSource and just
+
+
+167
+00:05:09,276 --> 00:05:10,816
+return the metadata object.
+
+
+168
+00:05:10,816 --> 00:05:13,386
+Let's look at the difference in
+
+
+169
+00:05:13,386 --> 00:05:14,816
+our recipe app if we provide the
+
+
+170
+00:05:14,816 --> 00:05:16,196
+data that we already use in the
+
+
+171
+00:05:16,196 --> 00:05:16,686
+table view.
+
+
+172
+00:05:18,406 --> 00:05:20,056
+Much nicer.
+
+
+173
+00:05:20,206 --> 00:05:21,706
+It's also good to note that if
+
+
+174
+00:05:21,706 --> 00:05:22,966
+the user chooses to share to
+
+
+175
+00:05:22,966 --> 00:05:25,046
+messages the same metadata is
+
+
+176
+00:05:25,046 --> 00:05:26,196
+passed directly through
+
+
+177
+00:05:26,386 --> 00:05:27,826
+providing a smooth and seamless
+
+
+178
+00:05:27,826 --> 00:05:29,616
+experience with no unnecessary
+
+
+179
+00:05:29,616 --> 00:05:29,966
+loading.
+
+
+180
+00:05:31,086 --> 00:05:31,846
+One last thing.
+
+
+181
+00:05:32,446 --> 00:05:33,976
+Say your app already has a
+
+
+182
+00:05:33,976 --> 00:05:35,776
+database of recipes with titles
+
+
+183
+00:05:35,776 --> 00:05:37,206
+and images that weren't fetched
+
+
+184
+00:05:37,206 --> 00:05:38,226
+by linked presentation.
+
+
+185
+00:05:38,846 --> 00:05:40,356
+You don't have to re-fetch the
+
+
+186
+00:05:40,356 --> 00:05:42,056
+metadata from the Internet in
+
+
+187
+00:05:42,056 --> 00:05:43,216
+order to accelerate the Share
+
+
+188
+00:05:43,216 --> 00:05:44,986
+Sheet or to present a rich link.
+
+
+189
+00:05:45,646 --> 00:05:47,216
+Instead, you can just fill in
+
+
+190
+00:05:47,216 --> 00:05:48,696
+the fields of LPLinkMetadata
+
+
+191
+00:05:48,696 --> 00:05:50,696
+yourself from your pre-existing
+
+
+192
+00:05:50,696 --> 00:05:51,406
+source of data.
+
+
+193
+00:05:52,196 --> 00:05:53,436
+You simply create an
+
+
+194
+00:05:53,436 --> 00:05:55,706
+LPLinkMetadata object and fill
+
+
+195
+00:05:55,706 --> 00:05:57,496
+in at least the original URL and
+
+
+196
+00:05:57,496 --> 00:05:59,396
+URL fields plus whatever
+
+
+197
+00:05:59,396 --> 00:06:01,366
+additional information you have.
+
+
+198
+00:06:03,066 --> 00:06:05,346
+So our 3 key takeaways today are
+
+
+199
+00:06:05,956 --> 00:06:07,946
+you can use LP metadata provider
+
+
+200
+00:06:08,116 --> 00:06:10,286
+to fetch rich metadata for URL
+
+
+201
+00:06:10,596 --> 00:06:12,366
+in order to provide more context
+
+
+202
+00:06:12,366 --> 00:06:13,796
+about arbitrary URLs.
+
+
+203
+00:06:14,576 --> 00:06:16,026
+You should use LP link view to
+
+
+204
+00:06:16,026 --> 00:06:17,716
+present links in your app in a
+
+
+205
+00:06:17,716 --> 00:06:19,116
+way that is both beautiful and
+
+
+206
+00:06:19,116 --> 00:06:21,156
+consistent with the system and
+
+
+207
+00:06:21,156 --> 00:06:22,366
+you should prefetch or use
+
+
+208
+00:06:22,366 --> 00:06:24,216
+existing LPLinkMetadata to
+
+
+209
+00:06:24,216 --> 00:06:25,506
+accelerate the Share Sheet
+
+
+210
+00:06:25,506 --> 00:06:26,486
+preview in your app.
+
+
+211
+00:06:27,546 --> 00:06:29,106
+For more information visit
+
+
+212
+00:06:29,146 --> 00:06:30,806
+developer.apple.com.
+
+
+213
+00:06:32,076 --> 00:06:33,756
+Thank you for your time.
+

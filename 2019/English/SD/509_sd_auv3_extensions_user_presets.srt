@@ -1,0 +1,829 @@
+1
+00:00:00,506 --> 00:00:04,500
+[ Music ]
+
+
+2
+00:00:07,716 --> 00:00:09,136
+>> Hello everyone, and welcome
+
+
+3
+00:00:09,136 --> 00:00:11,076
+to our session about user preset
+
+
+4
+00:00:11,076 --> 00:00:12,566
+support for audio units.
+
+
+5
+00:00:13,096 --> 00:00:14,876
+My name is Bela Balazs, and I'm
+
+
+6
+00:00:14,876 --> 00:00:16,236
+an engineer on the Core Audio
+
+
+7
+00:00:16,236 --> 00:00:17,096
+software team.
+
+
+8
+00:00:17,546 --> 00:00:18,726
+Today we would like to talk
+
+
+9
+00:00:18,726 --> 00:00:19,886
+about a some of our new APIs
+
+
+10
+00:00:19,996 --> 00:00:21,386
+regarding the handling of audio
+
+
+11
+00:00:21,386 --> 00:00:22,376
+unit presets.
+
+
+12
+00:00:24,096 --> 00:00:25,656
+First, let's start with this.
+
+
+13
+00:00:25,906 --> 00:00:27,586
+What are presets and why are
+
+
+14
+00:00:27,586 --> 00:00:28,196
+they useful?
+
+
+15
+00:00:29,276 --> 00:00:31,186
+In an audio software context, a
+
+
+16
+00:00:31,186 --> 00:00:32,586
+preset is a snapshot of the
+
+
+17
+00:00:32,586 --> 00:00:33,906
+state of the audio unit's
+
+
+18
+00:00:33,906 --> 00:00:35,616
+parameters at a given time.
+
+
+19
+00:00:36,466 --> 00:00:38,066
+This snapshot can be saved and
+
+
+20
+00:00:38,066 --> 00:00:38,976
+later restored.
+
+
+21
+00:00:41,216 --> 00:00:42,506
+We already support factory
+
+
+22
+00:00:42,506 --> 00:00:43,096
+presets.
+
+
+23
+00:00:43,786 --> 00:00:45,696
+It's a property on the AU audio
+
+
+24
+00:00:45,696 --> 00:00:48,136
+unit class and it's defined as
+
+
+25
+00:00:48,136 --> 00:00:49,856
+an array of AU audio unit
+
+
+26
+00:00:49,896 --> 00:00:50,436
+presets.
+
+
+27
+00:00:50,926 --> 00:00:54,546
+These factory presets are built
+
+
+28
+00:00:54,546 --> 00:00:55,936
+into the audio unit by the audio
+
+
+29
+00:00:55,936 --> 00:00:57,096
+unit manufacturer.
+
+
+30
+00:00:57,686 --> 00:00:59,186
+An audio unit developer might
+
+
+31
+00:00:59,186 --> 00:01:00,236
+include a fixed number of
+
+
+32
+00:01:00,236 --> 00:01:02,316
+presets with the product as a
+
+
+33
+00:01:02,316 --> 00:01:03,936
+starting point or to showcase
+
+
+34
+00:01:03,936 --> 00:01:05,256
+the capabilities of the audio
+
+
+35
+00:01:05,256 --> 00:01:05,586
+unit.
+
+
+36
+00:01:07,856 --> 00:01:09,266
+Now we are adding support for
+
+
+37
+00:01:09,266 --> 00:01:10,166
+user presets.
+
+
+38
+00:01:10,786 --> 00:01:12,586
+These can be accessed by using
+
+
+39
+00:01:12,586 --> 00:01:14,296
+this new user presets property
+
+
+40
+00:01:15,016 --> 00:01:16,226
+which returns an array of AU
+
+
+41
+00:01:16,226 --> 00:01:17,626
+audio unit presets.
+
+
+42
+00:01:19,966 --> 00:01:21,236
+These are presets that are
+
+
+43
+00:01:21,236 --> 00:01:22,846
+created by the user and can be
+
+
+44
+00:01:22,846 --> 00:01:23,906
+modified later on.
+
+
+45
+00:01:24,466 --> 00:01:26,086
+The audio unit exposes them to
+
+
+46
+00:01:26,116 --> 00:01:27,296
+all audio unit host
+
+
+47
+00:01:27,296 --> 00:01:28,056
+applications.
+
+
+48
+00:01:28,446 --> 00:01:31,836
+We have a new property called
+
+
+49
+00:01:31,836 --> 00:01:33,156
+support user presets.
+
+
+50
+00:01:33,156 --> 00:01:35,326
+The audio unit sets this to true
+
+
+51
+00:01:35,326 --> 00:01:36,376
+to signal support.
+
+
+52
+00:01:36,766 --> 00:01:39,156
+The audio unit host application
+
+
+53
+00:01:39,156 --> 00:01:40,616
+has to check it before using the
+
+
+54
+00:01:40,616 --> 00:01:41,596
+new functionality.
+
+
+55
+00:01:41,756 --> 00:01:43,636
+This is the way to opt in to use
+
+
+56
+00:01:43,636 --> 00:01:44,456
+the new features.
+
+
+57
+00:01:46,786 --> 00:01:48,426
+We have methods to save and
+
+
+58
+00:01:48,426 --> 00:01:49,586
+delete user presets.
+
+
+59
+00:01:50,036 --> 00:01:51,636
+The audio unit host application
+
+
+60
+00:01:51,636 --> 00:01:53,146
+can call the save user preset
+
+
+61
+00:01:53,146 --> 00:01:55,186
+method to save the current state
+
+
+62
+00:01:55,186 --> 00:01:57,516
+into a preset, or it can call
+
+
+63
+00:01:57,516 --> 00:01:59,246
+the delete user preset method to
+
+
+64
+00:01:59,246 --> 00:02:00,686
+delete an existing preset.
+
+
+65
+00:02:01,246 --> 00:02:02,716
+The audio unit can override
+
+
+66
+00:02:02,716 --> 00:02:04,526
+these to implement custom logic,
+
+
+67
+00:02:04,766 --> 00:02:05,966
+or it can use the default
+
+
+68
+00:02:05,966 --> 00:02:07,576
+implementations inherited from
+
+
+69
+00:02:07,576 --> 00:02:09,256
+the AU audio unit base class.
+
+
+70
+00:02:11,526 --> 00:02:13,096
+These default implementations
+
+
+71
+00:02:13,096 --> 00:02:14,336
+store the presets in the
+
+
+72
+00:02:14,336 --> 00:02:15,866
+application container folder of
+
+
+73
+00:02:15,866 --> 00:02:17,076
+the audio unit extension.
+
+
+74
+00:02:20,246 --> 00:02:21,956
+You can use the preset state for
+
+
+75
+00:02:21,956 --> 00:02:23,946
+user preset method to retrieve
+
+
+76
+00:02:23,946 --> 00:02:25,276
+the state stored in the user
+
+
+77
+00:02:25,276 --> 00:02:25,926
+preset.
+
+
+78
+00:02:26,956 --> 00:02:28,436
+This also has a default
+
+
+79
+00:02:28,436 --> 00:02:29,286
+implementation that's
+
+
+80
+00:02:29,286 --> 00:02:31,046
+superclass, but it can be
+
+
+81
+00:02:31,046 --> 00:02:32,686
+overridden to suit custom needs.
+
+
+82
+00:02:34,136 --> 00:02:35,786
+It returns a dictionary that you
+
+
+83
+00:02:35,786 --> 00:02:37,016
+can use to restore the state of
+
+
+84
+00:02:37,016 --> 00:02:38,886
+the audio unit by simply
+
+
+85
+00:02:38,886 --> 00:02:40,236
+assigning it to the full state
+
+
+86
+00:02:40,236 --> 00:02:41,666
+for document property of the
+
+
+87
+00:02:41,666 --> 00:02:42,266
+audio unit.
+
+
+88
+00:02:44,716 --> 00:02:46,906
+In addition to these, we've
+
+
+89
+00:02:46,906 --> 00:02:48,826
+added a new property called
+
+
+90
+00:02:48,826 --> 00:02:51,356
+isLoadedInProcess that you can
+
+
+91
+00:02:51,356 --> 00:02:52,746
+use to check whether the audio
+
+
+92
+00:02:52,746 --> 00:02:54,236
+unit is loaded-in process.
+
+
+93
+00:02:55,346 --> 00:02:57,186
+Loading in process is a macOS
+
+
+94
+00:02:57,186 --> 00:02:57,886
+only feature.
+
+
+95
+00:02:58,176 --> 00:03:00,106
+The host can request it but if
+
+
+96
+00:03:00,106 --> 00:03:01,836
+the audio unit is not packaged
+
+
+97
+00:03:01,836 --> 00:03:03,656
+to support it, the fallback
+
+
+98
+00:03:03,686 --> 00:03:05,276
+behavior is to load the audio
+
+
+99
+00:03:05,276 --> 00:03:06,386
+unit out of process.
+
+
+100
+00:03:07,916 --> 00:03:09,836
+Now, the host or the audio unit
+
+
+101
+00:03:09,836 --> 00:03:11,556
+can use this property to verify
+
+
+102
+00:03:11,556 --> 00:03:13,076
+that this operation succeeded.
+
+
+103
+00:03:13,076 --> 00:03:15,606
+And now let's see it in action.
+
+
+104
+00:03:18,706 --> 00:03:20,856
+So, here I have the updated AUV
+
+
+105
+00:03:20,856 --> 00:03:22,466
+free host sample code, which is
+
+
+106
+00:03:22,466 --> 00:03:24,506
+available both on macOS and on
+
+
+107
+00:03:24,646 --> 00:03:25,026
+iOS.
+
+
+108
+00:03:25,716 --> 00:03:27,436
+In this host application, I have
+
+
+109
+00:03:27,436 --> 00:03:29,436
+loaded the AUV free filter demo.
+
+
+110
+00:03:30,756 --> 00:03:32,746
+When I press play, we can hear
+
+
+111
+00:03:32,746 --> 00:03:35,996
+the filter in action.
+
+
+112
+00:03:35,996 --> 00:03:36,063
+[Background music]
+
+
+113
+00:03:36,063 --> 00:03:38,476
+I can drag this graph to set the
+
+
+114
+00:03:38,476 --> 00:03:40,906
+cutoff and the resonance of the
+
+
+115
+00:03:40,906 --> 00:03:42,696
+filter.
+
+
+116
+00:03:42,696 --> 00:03:45,406
+And here I have my preset
+
+
+117
+00:03:45,406 --> 00:03:46,556
+section on the right side.
+
+
+118
+00:03:47,736 --> 00:03:49,076
+We have our factory presets,
+
+
+119
+00:03:49,076 --> 00:03:51,256
+which came with the audio unit.
+
+
+120
+00:03:52,076 --> 00:03:55,056
+We have warm, bright, and
+
+
+121
+00:03:55,056 --> 00:03:57,406
+prominent.
+
+
+122
+00:03:57,406 --> 00:03:59,616
+And in the other tab, we have
+
+
+123
+00:03:59,616 --> 00:04:02,586
+the user preset section.
+
+
+124
+00:04:02,586 --> 00:04:04,736
+Here we have my previously saved
+
+
+125
+00:04:04,736 --> 00:04:07,416
+initial preset and I can save
+
+
+126
+00:04:07,416 --> 00:04:08,000
+new ones.
+
+
+127
+00:04:08,516 --> 00:04:17,875
+[ Music ]
+
+
+128
+00:04:18,375 --> 00:04:21,986
+And I can switch between them.
+
+
+129
+00:04:21,986 --> 00:04:23,396
+Once I no longer need one of the
+
+
+130
+00:04:23,396 --> 00:04:26,000
+presets, I can simply delete it.
+
+
+131
+00:04:28,046 --> 00:04:29,216
+And this is the entire
+
+
+132
+00:04:29,216 --> 00:04:31,026
+functionality of the AUV free
+
+
+133
+00:04:31,026 --> 00:04:31,226
+host.
+
+
+134
+00:04:31,226 --> 00:04:32,496
+I encourage everyone to check it
+
+
+135
+00:04:32,496 --> 00:04:33,000
+out.
+
+
+136
+00:04:36,356 --> 00:04:38,156
+To summarize, we've added
+
+
+137
+00:04:38,156 --> 00:04:39,656
+support for user presets for
+
+
+138
+00:04:39,656 --> 00:04:41,666
+audio units to complement the
+
+
+139
+00:04:41,666 --> 00:04:43,276
+functionality already provided
+
+
+140
+00:04:43,276 --> 00:04:44,506
+by factory presets.
+
+
+141
+00:04:45,436 --> 00:04:46,836
+These allow the user to save
+
+
+142
+00:04:46,836 --> 00:04:48,036
+their favorite sounds into
+
+
+143
+00:04:48,036 --> 00:04:50,146
+presets and access them in each
+
+
+144
+00:04:50,146 --> 00:04:51,346
+and every audio unit host
+
+
+145
+00:04:51,346 --> 00:04:51,996
+application.
+
+
+146
+00:04:53,076 --> 00:04:54,506
+To take advantage of these new
+
+
+147
+00:04:54,506 --> 00:04:56,116
+features, the audio unit can
+
+
+148
+00:04:56,116 --> 00:04:57,746
+simply opt in and use the
+
+
+149
+00:04:57,746 --> 00:04:59,286
+default implementations that we
+
+
+150
+00:04:59,286 --> 00:05:01,206
+provide, or it can override the
+
+
+151
+00:05:01,206 --> 00:05:02,496
+methods to implement custom
+
+
+152
+00:05:02,496 --> 00:05:03,216
+functionality.
+
+
+153
+00:05:03,986 --> 00:05:05,916
+The audio unit host application
+
+
+154
+00:05:05,916 --> 00:05:07,316
+can query the audio unit for
+
+
+155
+00:05:07,316 --> 00:05:09,576
+these presets and can create new
+
+
+156
+00:05:09,576 --> 00:05:11,136
+presets or delete the existing
+
+
+157
+00:05:11,136 --> 00:05:12,206
+ones by calling the right
+
+
+158
+00:05:12,206 --> 00:05:13,426
+methods on the audio unit.
+
+
+159
+00:05:15,036 --> 00:05:16,826
+For more information, you can
+
+
+160
+00:05:16,826 --> 00:05:18,086
+check out our newly updated
+
+
+161
+00:05:18,086 --> 00:05:19,636
+sample code and the resources
+
+
+162
+00:05:19,636 --> 00:05:21,086
+attached to this session, which
+
+
+163
+00:05:21,086 --> 00:05:21,966
+is available at
+
+
+164
+00:05:21,966 --> 00:05:23,466
+developer.apple.com.
+
+
+165
+00:05:24,366 --> 00:05:25,796
+That concludes our presentation.
+
+
+166
+00:05:25,976 --> 00:05:26,366
+Thank you.
+

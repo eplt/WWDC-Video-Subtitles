@@ -1,0 +1,1594 @@
+1
+00:00:01,516 --> 00:00:06,036
+[ Music ]
+
+
+2
+00:00:06,536 --> 00:00:08,846
+>> Hello, I'm Tim Hatcher an
+
+
+3
+00:00:08,846 --> 00:00:10,066
+engineer on the WebKit Team.
+
+
+4
+00:00:10,866 --> 00:00:11,886
+I'm going to talk about
+
+
+5
+00:00:11,886 --> 00:00:13,406
+Supporting Dark Mode in Web
+
+
+6
+00:00:13,406 --> 00:00:13,876
+Content.
+
+
+7
+00:00:16,046 --> 00:00:18,036
+When macOS Mojave introduced
+
+
+8
+00:00:18,036 --> 00:00:20,056
+Dark Mode, users and developers
+
+
+9
+00:00:20,056 --> 00:00:21,926
+naturally began to ask about web
+
+
+10
+00:00:21,926 --> 00:00:22,766
+content.
+
+
+11
+00:00:23,806 --> 00:00:25,766
+Over the decades web content has
+
+
+12
+00:00:25,766 --> 00:00:27,166
+traditionally been light in
+
+
+13
+00:00:27,166 --> 00:00:29,356
+color leading to a very bright
+
+
+14
+00:00:29,356 --> 00:00:30,966
+experience when mixed among
+
+
+15
+00:00:30,966 --> 00:00:32,716
+newly Dark Mode aware apps.
+
+
+16
+00:00:34,416 --> 00:00:36,036
+The WebKit team has been working
+
+
+17
+00:00:36,036 --> 00:00:37,306
+to standardize a way for
+
+
+18
+00:00:37,306 --> 00:00:39,416
+developers to style web content
+
+
+19
+00:00:39,416 --> 00:00:41,486
+for Dark Mode, which I'm happy
+
+
+20
+00:00:41,486 --> 00:00:43,026
+to announce is available in
+
+
+21
+00:00:43,026 --> 00:00:45,786
+Safari 12.1 on macOS Mojave and
+
+
+22
+00:00:48,516 --> 00:00:50,876
+with iOS 13's system wide dark
+
+
+23
+00:00:50,876 --> 00:00:53,266
+appearance, you will see the
+
+
+24
+00:00:53,266 --> 00:00:54,996
+same Dark Mode styling for web
+
+
+25
+00:00:54,996 --> 00:00:57,106
+content in Safari for iOS.
+
+
+26
+00:00:59,596 --> 00:01:01,116
+Throughout this video I'll be
+
+
+27
+00:01:01,116 --> 00:01:03,486
+using Safari in my examples, but
+
+
+28
+00:01:03,486 --> 00:01:04,566
+this support is not just
+
+
+29
+00:01:04,566 --> 00:01:05,706
+available in Safari.
+
+
+30
+00:01:06,206 --> 00:01:08,936
+It is also available in mail and
+
+
+31
+00:01:08,936 --> 00:01:10,806
+in your app when showing content
+
+
+32
+00:01:10,806 --> 00:01:11,636
+in web views.
+
+
+33
+00:01:13,726 --> 00:01:15,056
+There are three areas I want to
+
+
+34
+00:01:15,056 --> 00:01:16,006
+cover in this video.
+
+
+35
+00:01:16,606 --> 00:01:18,826
+One, general styling support for
+
+
+36
+00:01:18,826 --> 00:01:19,836
+Dark Mode on the web.
+
+
+37
+00:01:20,636 --> 00:01:23,296
+Two, some specific cases that
+
+
+38
+00:01:23,296 --> 00:01:24,696
+apply to email messages.
+
+
+39
+00:01:25,496 --> 00:01:27,146
+And, three, tools you can use to
+
+
+40
+00:01:27,146 --> 00:01:28,966
+debug web content in Dark Mode.
+
+
+41
+00:01:31,396 --> 00:01:32,266
+Let's get started.
+
+
+42
+00:01:32,796 --> 00:01:35,986
+I've been working on a new blog
+
+
+43
+00:01:35,986 --> 00:01:37,526
+to document some recent trips
+
+
+44
+00:01:37,526 --> 00:01:38,896
+I've taken around California.
+
+
+45
+00:01:40,956 --> 00:01:42,376
+While designing the site to be
+
+
+46
+00:01:42,376 --> 00:01:43,816
+responsive for mobile and
+
+
+47
+00:01:43,816 --> 00:01:45,976
+desktop visitors, this would be
+
+
+48
+00:01:45,976 --> 00:01:47,586
+a good time to add support for
+
+
+49
+00:01:47,586 --> 00:01:48,276
+Dark Mode.
+
+
+50
+00:01:48,826 --> 00:01:50,446
+Dark mode can be viewed as a
+
+
+51
+00:01:50,446 --> 00:01:52,026
+progression of responsive web
+
+
+52
+00:01:52,026 --> 00:01:54,646
+design, another way to adapt to
+
+
+53
+00:01:54,646 --> 00:01:56,746
+the circumstances of the device.
+
+
+54
+00:01:57,606 --> 00:01:59,416
+It is important to note that
+
+
+55
+00:01:59,416 --> 00:02:01,336
+Safari and WebKit will not auto
+
+
+56
+00:02:01,336 --> 00:02:02,506
+darken your content.
+
+
+57
+00:02:02,506 --> 00:02:04,716
+As the web developer, you are in
+
+
+58
+00:02:04,716 --> 00:02:06,536
+control of how your content will
+
+
+59
+00:02:06,536 --> 00:02:08,756
+appear to users using the dark
+
+
+60
+00:02:08,756 --> 00:02:09,795
+system appearance.
+
+
+61
+00:02:10,326 --> 00:02:12,236
+Let's take a look at how we can
+
+
+62
+00:02:12,236 --> 00:02:14,846
+transform this light page design
+
+
+63
+00:02:14,876 --> 00:02:16,546
+into a Dark Mode ready site.
+
+
+64
+00:02:17,596 --> 00:02:18,866
+The main way to signal that your
+
+
+65
+00:02:18,866 --> 00:02:20,986
+content supports Dark Mode is to
+
+
+66
+00:02:20,986 --> 00:02:22,996
+adopt the new color scheme style
+
+
+67
+00:02:22,996 --> 00:02:24,716
+property currently being
+
+
+68
+00:02:24,716 --> 00:02:26,986
+specified for inclusion in the
+
+
+69
+00:02:26,986 --> 00:02:28,226
+CSS standard.
+
+
+70
+00:02:28,226 --> 00:02:31,016
+Specifying the values light and
+
+
+71
+00:02:31,016 --> 00:02:32,896
+dark on the root element lets
+
+
+72
+00:02:32,896 --> 00:02:34,416
+the rendering engine known both
+
+
+73
+00:02:34,416 --> 00:02:35,646
+modes are supported by the
+
+
+74
+00:02:35,646 --> 00:02:36,456
+document.
+
+
+75
+00:02:37,196 --> 00:02:39,046
+This changes the default text
+
+
+76
+00:02:39,046 --> 00:02:40,216
+and background colors of the
+
+
+77
+00:02:40,216 --> 00:02:42,386
+page to match the current system
+
+
+78
+00:02:42,386 --> 00:02:44,436
+appearance, standard form
+
+
+79
+00:02:44,436 --> 00:02:47,116
+controls, scrollbars and other
+
+
+80
+00:02:47,116 --> 00:02:49,236
+named system colors also change
+
+
+81
+00:02:49,236 --> 00:02:50,376
+their look automatically.
+
+
+82
+00:02:51,566 --> 00:02:53,246
+Let's take a look at how adding
+
+
+83
+00:02:53,246 --> 00:02:54,606
+that property to my blog
+
+
+84
+00:02:54,606 --> 00:02:55,556
+affected things.
+
+
+85
+00:02:57,346 --> 00:02:59,096
+You can see the background color
+
+
+86
+00:02:59,096 --> 00:03:01,126
+changed from white to black and
+
+
+87
+00:03:01,126 --> 00:03:02,676
+most of my text completely
+
+
+88
+00:03:02,676 --> 00:03:03,816
+disappeared into the black
+
+
+89
+00:03:03,816 --> 00:03:05,796
+background; that was not what I
+
+
+90
+00:03:05,796 --> 00:03:06,576
+was expecting.
+
+
+91
+00:03:07,396 --> 00:03:08,746
+Let's take a look at some of the
+
+
+92
+00:03:08,746 --> 00:03:11,036
+style rules for this page to see
+
+
+93
+00:03:11,036 --> 00:03:11,846
+what is happening.
+
+
+94
+00:03:14,216 --> 00:03:15,526
+Here are the main style rules
+
+
+95
+00:03:15,526 --> 00:03:16,726
+for the affected areas of the
+
+
+96
+00:03:16,726 --> 00:03:17,306
+page.
+
+
+97
+00:03:18,906 --> 00:03:20,646
+For the text that disappeared
+
+
+98
+00:03:20,646 --> 00:03:22,266
+the black was being set as the
+
+
+99
+00:03:22,266 --> 00:03:23,456
+text color on the body.
+
+
+100
+00:03:23,816 --> 00:03:25,686
+I also have a dark gray text
+
+
+101
+00:03:25,686 --> 00:03:27,406
+color for the level 1 headings,
+
+
+102
+00:03:27,746 --> 00:03:28,976
+which doesn't have a high enough
+
+
+103
+00:03:28,976 --> 00:03:30,226
+contrast with the black
+
+
+104
+00:03:30,226 --> 00:03:30,826
+background.
+
+
+105
+00:03:31,616 --> 00:03:33,276
+By default, the text color of
+
+
+106
+00:03:33,276 --> 00:03:34,656
+the body will be black and light
+
+
+107
+00:03:34,656 --> 00:03:34,966
+mode.
+
+
+108
+00:03:36,636 --> 00:03:37,956
+Since that is what I wanted on
+
+
+109
+00:03:37,956 --> 00:03:39,786
+this page I can just delete the
+
+
+110
+00:03:39,786 --> 00:03:41,506
+color property override from my
+
+
+111
+00:03:41,506 --> 00:03:42,416
+style sheet.
+
+
+112
+00:03:42,986 --> 00:03:44,366
+Now that I'm using the color
+
+
+113
+00:03:44,366 --> 00:03:46,086
+scheme property, the default
+
+
+114
+00:03:46,086 --> 00:03:47,556
+text and background color will
+
+
+115
+00:03:47,556 --> 00:03:49,426
+both automatically change to the
+
+
+116
+00:03:49,426 --> 00:03:50,656
+Dark Mode values.
+
+
+117
+00:03:50,956 --> 00:03:53,526
+For the other colors in my style
+
+
+118
+00:03:53,526 --> 00:03:55,566
+sheet that I want to keep, I can
+
+
+119
+00:03:55,566 --> 00:03:57,336
+use something called CSS custom
+
+
+120
+00:03:57,336 --> 00:03:58,976
+properties otherwise known as
+
+
+121
+00:03:58,976 --> 00:04:01,206
+CSS variables to centrally
+
+
+122
+00:04:01,206 --> 00:04:02,886
+define them for use throughout
+
+
+123
+00:04:02,886 --> 00:04:04,146
+my site style sheets.
+
+
+124
+00:04:04,906 --> 00:04:06,846
+Using CSS variables makes it
+
+
+125
+00:04:06,846 --> 00:04:08,746
+very easy to later adapt the
+
+
+126
+00:04:08,746 --> 00:04:09,976
+style sheet for Dark Mode.
+
+
+127
+00:04:10,786 --> 00:04:11,976
+Let's see how that will work.
+
+
+128
+00:04:14,226 --> 00:04:16,016
+We simply take the color values
+
+
+129
+00:04:16,086 --> 00:04:17,875
+and move them to a central place
+
+
+130
+00:04:18,236 --> 00:04:19,606
+like the root element rule we
+
+
+131
+00:04:19,606 --> 00:04:21,125
+added for the color scheme
+
+
+132
+00:04:21,366 --> 00:04:21,776
+earlier.
+
+
+133
+00:04:23,666 --> 00:04:25,846
+For these colors we define a
+
+
+134
+00:04:25,846 --> 00:04:27,826
+variable name signified by a
+
+
+135
+00:04:27,826 --> 00:04:29,356
+double hyphen prefix.
+
+
+136
+00:04:30,906 --> 00:04:33,086
+Now we can return to the
+
+
+137
+00:04:33,086 --> 00:04:35,136
+original style rules where I am
+
+
+138
+00:04:35,136 --> 00:04:36,816
+still using the static color
+
+
+139
+00:04:36,816 --> 00:04:40,366
+values and change them to use
+
+
+140
+00:04:40,366 --> 00:04:41,596
+the variables we defined
+
+
+141
+00:04:41,946 --> 00:04:44,046
+referencing them by name using
+
+
+142
+00:04:44,046 --> 00:04:45,876
+the VAR function which looks
+
+
+143
+00:04:45,876 --> 00:04:46,466
+like this.
+
+
+144
+00:04:47,076 --> 00:04:48,906
+This style sheet is now ready to
+
+
+145
+00:04:48,906 --> 00:04:50,706
+support a dark color scheme.
+
+
+146
+00:04:53,316 --> 00:04:54,586
+Like responsive design
+
+
+147
+00:04:54,586 --> 00:04:56,366
+breakpoints for different device
+
+
+148
+00:04:56,366 --> 00:04:58,336
+widths, we can use a media query
+
+
+149
+00:04:58,336 --> 00:05:00,436
+to conditionalize for Dark Mode.
+
+
+150
+00:05:00,836 --> 00:05:02,726
+Specifically, if the user
+
+
+151
+00:05:02,726 --> 00:05:04,486
+currently prefers a dark color
+
+
+152
+00:05:04,486 --> 00:05:04,996
+scheme.
+
+
+153
+00:05:08,366 --> 00:05:10,106
+We can override the same CSS
+
+
+154
+00:05:10,106 --> 00:05:11,636
+variables we defined earlier for
+
+
+155
+00:05:11,636 --> 00:05:13,996
+light mode with Dark Mode
+
+
+156
+00:05:13,996 --> 00:05:15,436
+appropriate color values.
+
+
+157
+00:05:16,076 --> 00:05:17,186
+Now let's take a look at what
+
+
+158
+00:05:17,186 --> 00:05:18,556
+the page looks like with these
+
+
+159
+00:05:18,556 --> 00:05:19,456
+changes applied.
+
+
+160
+00:05:20,566 --> 00:05:22,436
+We go from this where we only
+
+
+161
+00:05:22,436 --> 00:05:23,976
+added the color scheme property
+
+
+162
+00:05:25,166 --> 00:05:26,936
+to this where the text and
+
+
+163
+00:05:26,936 --> 00:05:29,196
+header colors properly adapt to
+
+
+164
+00:05:29,196 --> 00:05:31,026
+the dark appearance, but what
+
+
+165
+00:05:31,026 --> 00:05:31,926
+about images?
+
+
+166
+00:05:32,346 --> 00:05:33,866
+Like the hero picture here of
+
+
+167
+00:05:33,866 --> 00:05:34,836
+the Mojave Desert.
+
+
+168
+00:05:36,096 --> 00:05:37,996
+The Mojave Desert image is
+
+
+169
+00:05:37,996 --> 00:05:39,456
+included by an image element
+
+
+170
+00:05:39,506 --> 00:05:41,266
+that is sourcing a JPEG on my
+
+
+171
+00:05:41,266 --> 00:05:41,746
+server.
+
+
+172
+00:05:42,396 --> 00:05:44,116
+We can easily adapt this code
+
+
+173
+00:05:44,146 --> 00:05:46,026
+using another responsive design
+
+
+174
+00:05:46,026 --> 00:05:46,556
+technique.
+
+
+175
+00:05:47,876 --> 00:05:49,086
+Specifically, the picture
+
+
+176
+00:05:49,086 --> 00:05:50,696
+element, which is a great way to
+
+
+177
+00:05:50,696 --> 00:05:52,336
+source multiple versions of an
+
+
+178
+00:05:52,336 --> 00:05:54,456
+image based on various device
+
+
+179
+00:05:54,456 --> 00:05:56,796
+characteristics using the same
+
+
+180
+00:05:56,796 --> 00:05:57,736
+media queries.
+
+
+181
+00:05:58,256 --> 00:06:00,316
+Here I specify an alternate
+
+
+182
+00:06:00,316 --> 00:06:01,976
+image of the Mojave Desert at
+
+
+183
+00:06:01,976 --> 00:06:04,206
+night using the same media query
+
+
+184
+00:06:04,206 --> 00:06:05,496
+that was used earlier for the
+
+
+185
+00:06:05,496 --> 00:06:07,256
+Dark Mode colors I can
+
+
+186
+00:06:07,256 --> 00:06:09,256
+conditionally load a night image
+
+
+187
+00:06:09,256 --> 00:06:11,096
+for users that prefer a dark
+
+
+188
+00:06:11,096 --> 00:06:12,096
+color scheme.
+
+
+189
+00:06:13,196 --> 00:06:15,076
+So we go from this where I was
+
+
+190
+00:06:15,076 --> 00:06:16,576
+using one image for both color
+
+
+191
+00:06:16,576 --> 00:06:19,406
+schemes to this where the desert
+
+
+192
+00:06:19,406 --> 00:06:20,986
+image is adapted to the dark
+
+
+193
+00:06:20,986 --> 00:06:23,336
+appearance and now the site is
+
+
+194
+00:06:23,336 --> 00:06:26,356
+ready for both dark and light
+
+
+195
+00:06:26,356 --> 00:06:27,196
+appearances.
+
+
+196
+00:06:29,036 --> 00:06:31,216
+To recap you want to use the new
+
+
+197
+00:06:31,216 --> 00:06:32,886
+color scheme property to declare
+
+
+198
+00:06:32,886 --> 00:06:34,346
+support for light and Dark
+
+
+199
+00:06:34,346 --> 00:06:34,846
+Modes.
+
+
+200
+00:06:35,266 --> 00:06:36,646
+This informs the rendering
+
+
+201
+00:06:36,646 --> 00:06:38,516
+engine what color schemes your
+
+
+202
+00:06:38,516 --> 00:06:40,866
+content was designed for so it
+
+
+203
+00:06:40,866 --> 00:06:43,116
+can adapt the default colors and
+
+
+204
+00:06:43,116 --> 00:06:44,326
+controls to match.
+
+
+205
+00:06:47,166 --> 00:06:48,836
+When the default colors are not
+
+
+206
+00:06:49,066 --> 00:06:49,916
+enough, use the
+
+
+207
+00:06:49,916 --> 00:06:51,556
+prefers-color-scheme media query
+
+
+208
+00:06:51,556 --> 00:06:52,766
+for custom values.
+
+
+209
+00:06:54,026 --> 00:06:55,656
+You can use the same media query
+
+
+210
+00:06:55,796 --> 00:06:57,216
+along with other responsive
+
+
+211
+00:06:57,216 --> 00:06:59,426
+images in the picture element
+
+
+212
+00:06:59,426 --> 00:07:02,116
+for Dark Mode ready sources and
+
+
+213
+00:07:02,116 --> 00:07:04,806
+consider using CSS variables
+
+
+214
+00:07:05,086 --> 00:07:06,646
+when adopting color schemes.
+
+
+215
+00:07:06,816 --> 00:07:08,406
+It will be easier to maintain
+
+
+216
+00:07:08,406 --> 00:07:10,356
+both appearance modes across
+
+
+217
+00:07:10,356 --> 00:07:10,976
+your content.
+
+
+218
+00:07:12,116 --> 00:07:13,796
+That brings us to Dark Mode and
+
+
+219
+00:07:13,796 --> 00:07:14,746
+email messages.
+
+
+220
+00:07:16,026 --> 00:07:18,156
+Just like mail in macOS Mohave
+
+
+221
+00:07:18,306 --> 00:07:20,156
+simple email messages composed
+
+
+222
+00:07:20,156 --> 00:07:22,786
+directly in mail on iOS 13 are
+
+
+223
+00:07:22,786 --> 00:07:24,936
+ready to go in both light and
+
+
+224
+00:07:24,936 --> 00:07:27,196
+dark appearances even if they
+
+
+225
+00:07:27,196 --> 00:07:28,306
+include in-line image
+
+
+226
+00:07:28,306 --> 00:07:29,736
+attachments like you see here.
+
+
+227
+00:07:30,666 --> 00:07:32,356
+This is the case because of
+
+
+228
+00:07:32,356 --> 00:07:33,606
+mail's auto darkening
+
+
+229
+00:07:33,606 --> 00:07:35,936
+transformations that get applied
+
+
+230
+00:07:36,226 --> 00:07:38,056
+to these simple email messages.
+
+
+231
+00:07:40,176 --> 00:07:42,246
+However, if you are an email
+
+
+232
+00:07:42,246 --> 00:07:43,866
+template designer creating
+
+
+233
+00:07:43,866 --> 00:07:45,546
+designs for a campaign that
+
+
+234
+00:07:45,546 --> 00:07:47,476
+includes remotely loaded images,
+
+
+235
+00:07:48,056 --> 00:07:49,376
+you will need to adopt the same
+
+
+236
+00:07:49,376 --> 00:07:50,966
+styling techniques I covered
+
+
+237
+00:07:50,966 --> 00:07:52,606
+earlier for web content.
+
+
+238
+00:07:53,276 --> 00:07:54,506
+Without adopting the color
+
+
+239
+00:07:54,506 --> 00:07:56,076
+scheme property mail will
+
+
+240
+00:07:56,076 --> 00:07:57,786
+display your email message in
+
+
+241
+00:07:57,786 --> 00:07:59,366
+the light appearance and will
+
+
+242
+00:07:59,366 --> 00:08:01,246
+not employ any auto darkening
+
+
+243
+00:08:01,246 --> 00:08:03,166
+transformations that simple
+
+
+244
+00:08:03,166 --> 00:08:04,516
+email messages receive.
+
+
+245
+00:08:05,696 --> 00:08:07,706
+Here is the same email message
+
+
+246
+00:08:07,836 --> 00:08:10,266
+with Dark Mode styling including
+
+
+247
+00:08:10,266 --> 00:08:11,736
+the color scheme declaration.
+
+
+248
+00:08:12,236 --> 00:08:13,946
+It is now perfectly adapted to
+
+
+249
+00:08:13,946 --> 00:08:15,356
+the dark system appearance.
+
+
+250
+00:08:16,766 --> 00:08:19,296
+To recap simple email messages
+
+
+251
+00:08:19,296 --> 00:08:20,996
+will auto darken even if they
+
+
+252
+00:08:20,996 --> 00:08:22,106
+include in-line image
+
+
+253
+00:08:22,106 --> 00:08:24,556
+attachments and rich email
+
+
+254
+00:08:24,556 --> 00:08:27,256
+messages with remote images like
+
+
+255
+00:08:27,256 --> 00:08:29,226
+custom email marketing campaigns
+
+
+256
+00:08:29,426 --> 00:08:31,086
+will use the light color scheme
+
+
+257
+00:08:31,086 --> 00:08:31,846
+by default.
+
+
+258
+00:08:32,946 --> 00:08:34,405
+You can declare support for the
+
+
+259
+00:08:34,405 --> 00:08:36,106
+dark color scheme in your
+
+
+260
+00:08:36,106 --> 00:08:38,476
+marketing email messages and use
+
+
+261
+00:08:38,476 --> 00:08:40,376
+the media query for custom color
+
+
+262
+00:08:40,416 --> 00:08:41,876
+and image customizations.
+
+
+263
+00:08:43,936 --> 00:08:45,666
+Now let's talk about tools to
+
+
+264
+00:08:45,666 --> 00:08:46,916
+debug Dark Mode content
+
+
+265
+00:08:46,916 --> 00:08:48,676
+specifically Web Inspector.
+
+
+266
+00:08:49,806 --> 00:08:51,386
+In macOS, we added the dark
+
+
+267
+00:08:51,386 --> 00:08:53,306
+appearance to Web Inspector when
+
+
+268
+00:08:53,306 --> 00:08:54,806
+your system is in Dark Mode.
+
+
+269
+00:08:55,316 --> 00:08:57,186
+This was a very popular request
+
+
+270
+00:08:57,186 --> 00:08:58,806
+from web developers, and I'm
+
+
+271
+00:08:58,806 --> 00:09:00,426
+very happy we have it now.
+
+
+272
+00:09:01,896 --> 00:09:03,296
+Not only did we add the dark
+
+
+273
+00:09:03,296 --> 00:09:04,796
+appearance there are a couple
+
+
+274
+00:09:04,796 --> 00:09:06,496
+tools to help you debug your own
+
+
+275
+00:09:06,496 --> 00:09:07,776
+content in Dark Mode.
+
+
+276
+00:09:08,456 --> 00:09:10,626
+The first is a new color scheme
+
+
+277
+00:09:10,626 --> 00:09:12,616
+toggle in the elements tab that
+
+
+278
+00:09:12,616 --> 00:09:14,276
+will change the page appearance
+
+
+279
+00:09:14,556 --> 00:09:16,136
+without requiring you to toggle
+
+
+280
+00:09:16,136 --> 00:09:17,696
+the entire system appearance
+
+
+281
+00:09:17,696 --> 00:09:18,496
+every time.
+
+
+282
+00:09:19,226 --> 00:09:21,096
+So if you like using Dark Mode,
+
+
+283
+00:09:21,476 --> 00:09:23,166
+you can quickly test how your
+
+
+284
+00:09:23,166 --> 00:09:25,256
+pages will look in the light
+
+
+285
+00:09:25,256 --> 00:09:26,726
+appearance with this button.
+
+
+286
+00:09:29,146 --> 00:09:31,426
+Like before the style sidebar
+
+
+287
+00:09:31,426 --> 00:09:33,146
+shows any rules that match for
+
+
+288
+00:09:33,146 --> 00:09:35,526
+the selected element including
+
+
+289
+00:09:35,526 --> 00:09:36,716
+any media queries.
+
+
+290
+00:09:37,286 --> 00:09:39,476
+In this case, you can see the
+
+
+291
+00:09:39,476 --> 00:09:41,176
+prefers color scheme media query
+
+
+292
+00:09:41,176 --> 00:09:43,696
+definitions of color variables
+
+
+293
+00:09:43,696 --> 00:09:45,196
+on the WebKit.org site.
+
+
+294
+00:09:45,576 --> 00:09:48,016
+And that is Dark Mode and Web
+
+
+295
+00:09:48,016 --> 00:09:48,656
+Inspector.
+
+
+296
+00:09:49,056 --> 00:09:50,346
+Check out some of the other
+
+
+297
+00:09:50,346 --> 00:09:52,116
+Safari and WebKit sessions for
+
+
+298
+00:09:52,116 --> 00:09:53,836
+details about other great new
+
+
+299
+00:09:53,836 --> 00:09:55,836
+features in Web Inspector for
+
+
+300
+00:09:55,836 --> 00:09:57,026
+Safari 13.
+
+
+301
+00:09:58,136 --> 00:09:59,656
+In summary, remember that web
+
+
+302
+00:09:59,656 --> 00:10:01,376
+pages and rich email messages
+
+
+303
+00:10:01,376 --> 00:10:02,896
+need to opt into Dark Mode.
+
+
+304
+00:10:03,396 --> 00:10:05,346
+Safari and WebKit will not auto
+
+
+305
+00:10:05,346 --> 00:10:06,556
+darken your content.
+
+
+306
+00:10:07,356 --> 00:10:09,276
+For simple email messages you
+
+
+307
+00:10:09,276 --> 00:10:10,196
+don't have to worry.
+
+
+308
+00:10:10,606 --> 00:10:12,196
+Mail darkens them to match the
+
+
+309
+00:10:12,196 --> 00:10:14,046
+system appearance automatically
+
+
+310
+00:10:14,826 --> 00:10:16,066
+and now you can use Web
+
+
+311
+00:10:16,066 --> 00:10:17,716
+Inspector to test your content
+
+
+312
+00:10:17,716 --> 00:10:19,536
+in light and Dark Modes with the
+
+
+313
+00:10:19,536 --> 00:10:21,016
+new color scheme toggle in the
+
+
+314
+00:10:21,016 --> 00:10:21,876
+elements tab.
+
+
+315
+00:10:22,096 --> 00:10:24,126
+I look forward to seeing what
+
+
+316
+00:10:24,126 --> 00:10:25,496
+you will do with this support
+
+
+317
+00:10:25,756 --> 00:10:27,476
+and how your sites and apps will
+
+
+318
+00:10:27,476 --> 00:10:29,286
+look in Dark Mode on Mac and
+
+
+319
+00:10:29,436 --> 00:10:29,946
+iOS.
+

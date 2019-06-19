@@ -1,0 +1,4684 @@
+1
+00:00:00,516 --> 00:00:04,500
+[ Music ]
+
+
+2
+00:00:12,516 --> 00:00:17,006
+[ Applause ]
+
+
+3
+00:00:17,506 --> 00:00:19,196
+>> Hi. My name is Boris and I'm
+
+
+4
+00:00:19,196 --> 00:00:20,536
+a member of the Xcode team.
+
+
+5
+00:00:20,826 --> 00:00:22,246
+Welcome to the session Creating
+
+
+6
+00:00:22,246 --> 00:00:22,946
+Swift Packages.
+
+
+7
+00:00:23,656 --> 00:00:25,096
+Likely you have already heard
+
+
+8
+00:00:25,416 --> 00:00:27,036
+about the Xcode support for
+
+
+9
+00:00:27,036 --> 00:00:29,506
+packages, but today you'll learn
+
+
+10
+00:00:29,576 --> 00:00:31,096
+how to create your own.
+
+
+11
+00:00:35,316 --> 00:00:37,576
+We'll talk about five main
+
+
+12
+00:00:37,576 --> 00:00:38,206
+things today.
+
+
+13
+00:00:38,906 --> 00:00:40,386
+We learn about how to create
+
+
+14
+00:00:40,386 --> 00:00:41,516
+your own local package.
+
+
+15
+00:00:42,576 --> 00:00:44,626
+We'll learn about how to publish
+
+
+16
+00:00:44,626 --> 00:00:44,826
+it.
+
+
+17
+00:00:46,306 --> 00:00:47,476
+We'll tell you a little bit more
+
+
+18
+00:00:47,476 --> 00:00:49,356
+about the package manifest API.
+
+
+19
+00:00:49,356 --> 00:00:52,056
+And how to edit packages.
+
+
+20
+00:00:52,856 --> 00:00:54,966
+And finally, I'll tell you about
+
+
+21
+00:00:54,966 --> 00:00:56,766
+the Swift package manager open
+
+
+22
+00:00:56,766 --> 00:00:57,496
+source project.
+
+
+23
+00:00:57,996 --> 00:01:01,446
+We had another session about
+
+
+24
+00:01:01,446 --> 00:01:02,286
+packages already.
+
+
+25
+00:01:03,766 --> 00:01:05,196
+It was called adopting Swift
+
+
+26
+00:01:05,196 --> 00:01:05,796
+packages.
+
+
+27
+00:01:06,886 --> 00:01:08,896
+You should watch that as well
+
+
+28
+00:01:09,076 --> 00:01:11,186
+and because there's other relevant
+
+
+29
+00:01:11,186 --> 00:01:13,206
+information there such as how to
+
+
+30
+00:01:13,236 --> 00:01:15,036
+resolve package resolution
+
+
+31
+00:01:15,036 --> 00:01:18,686
+conflicts and also it goes into
+
+
+32
+00:01:19,016 --> 00:01:20,686
+some details about the basics of
+
+
+33
+00:01:20,686 --> 00:01:21,956
+packages if you haven't heard
+
+
+34
+00:01:21,956 --> 00:01:23,746
+anything about them yet.
+
+
+35
+00:01:27,236 --> 00:01:29,036
+Packages are a great way to
+
+
+36
+00:01:29,036 --> 00:01:31,576
+share code, both within your
+
+
+37
+00:01:31,576 --> 00:01:33,876
+workspace with your team, or
+
+
+38
+00:01:33,936 --> 00:01:35,206
+with a wider open source
+
+
+39
+00:01:35,206 --> 00:01:35,746
+community.
+
+
+40
+00:01:39,256 --> 00:01:41,316
+Let's first take a look at how
+
+
+41
+00:01:41,316 --> 00:01:42,446
+to create our own local
+
+
+42
+00:01:42,446 --> 00:01:42,976
+packages.
+
+
+43
+00:01:43,636 --> 00:01:46,896
+You can think of local packages
+
+
+44
+00:01:46,896 --> 00:01:48,466
+as being similar to subprojects
+
+
+45
+00:01:48,466 --> 00:01:49,366
+in a workspace.
+
+
+46
+00:01:49,616 --> 00:01:53,236
+They are platform-independent in
+
+
+47
+00:01:53,236 --> 00:01:55,496
+nature so that you can use your
+
+
+48
+00:01:55,496 --> 00:01:57,056
+code across all of Apple's
+
+
+49
+00:01:57,056 --> 00:01:58,726
+platforms in a straightforward
+
+
+50
+00:01:58,946 --> 00:01:59,000
+way.
+
+
+51
+00:02:00,316 --> 00:02:01,756
+They're great for refractoring
+
+
+52
+00:02:01,756 --> 00:02:03,606
+out reusable code.
+
+
+53
+00:02:04,536 --> 00:02:07,636
+They're not versioned but once
+
+
+54
+00:02:07,636 --> 00:02:09,006
+you're ready, you can publish
+
+
+55
+00:02:09,006 --> 00:02:10,406
+them in just a few steps.
+
+
+56
+00:02:10,916 --> 00:02:14,086
+Let's take a look at how to
+
+
+57
+00:02:14,086 --> 00:02:16,186
+create our own local packages in
+
+
+58
+00:02:16,186 --> 00:02:16,926
+our first demo.
+
+
+59
+00:02:17,166 --> 00:02:18,436
+For this demo, we're going to
+
+
+60
+00:02:18,436 --> 00:02:19,776
+use an app that shows the lunch
+
+
+61
+00:02:19,776 --> 00:02:21,586
+menu of a couple of cafes near
+
+
+62
+00:02:21,586 --> 00:02:22,186
+where I work.
+
+
+63
+00:02:22,526 --> 00:02:24,616
+We have both an iOS and a
+
+
+64
+00:02:24,616 --> 00:02:26,166
+watchOS version of the app.
+
+
+65
+00:02:26,366 --> 00:02:28,596
+And right now we have this data
+
+
+66
+00:02:28,596 --> 00:02:30,016
+model here that is shared
+
+
+67
+00:02:30,086 --> 00:02:32,016
+between the two, just using
+
+
+68
+00:02:32,016 --> 00:02:32,856
+target membership.
+
+
+69
+00:02:33,686 --> 00:02:36,266
+As we evolve our app, that
+
+
+70
+00:02:36,416 --> 00:02:38,196
+actually gets a little bit
+
+
+71
+00:02:38,196 --> 00:02:38,746
+cumbersome.
+
+
+72
+00:02:38,846 --> 00:02:40,666
+So I want to refractor it into a
+
+
+73
+00:02:40,666 --> 00:02:41,516
+local package.
+
+
+74
+00:02:42,106 --> 00:02:44,696
+To get started with this, we go
+
+
+75
+00:02:44,696 --> 00:02:47,136
+to File, New, Swift Package.
+
+
+76
+00:02:47,646 --> 00:02:51,506
+We'll call the package food and
+
+
+77
+00:02:51,506 --> 00:02:52,206
+stuff.
+
+
+78
+00:02:52,206 --> 00:02:55,416
+We'll add it to our existing
+
+
+79
+00:02:55,536 --> 00:02:57,966
+project and to its root group
+
+
+80
+00:02:58,396 --> 00:03:00,436
+and just click Create.
+
+
+81
+00:03:01,236 --> 00:03:03,256
+Now, Xcode creates the basic
+
+
+82
+00:03:03,256 --> 00:03:04,776
+structure of the package for us
+
+
+83
+00:03:04,926 --> 00:03:06,666
+including Readme, the Package
+
+
+84
+00:03:06,666 --> 00:03:07,916
+that's with Manifest File,
+
+
+85
+00:03:08,106 --> 00:03:10,366
+Sources, and Tests.
+
+
+86
+00:03:12,656 --> 00:03:15,646
+We take our data model code from
+
+
+87
+00:03:15,646 --> 00:03:17,476
+our app and just drag it into
+
+
+88
+00:03:17,996 --> 00:03:19,386
+the package.
+
+
+89
+00:03:19,546 --> 00:03:21,016
+Now, next we want to link this
+
+
+90
+00:03:21,016 --> 00:03:21,786
+code with our app.
+
+
+91
+00:03:22,296 --> 00:03:23,986
+Let's take a quick look at the
+
+
+92
+00:03:23,986 --> 00:03:25,886
+manifest file which describes
+
+
+93
+00:03:26,366 --> 00:03:27,646
+how the package is being built,
+
+
+94
+00:03:27,826 --> 00:03:29,076
+and there's a section called
+
+
+95
+00:03:29,076 --> 00:03:30,606
+Products where we define a
+
+
+96
+00:03:30,606 --> 00:03:31,116
+library.
+
+
+97
+00:03:31,846 --> 00:03:33,336
+This library we can link with
+
+
+98
+00:03:33,336 --> 00:03:33,736
+our app.
+
+
+99
+00:03:33,966 --> 00:03:36,186
+We'll go into more details about
+
+
+100
+00:03:36,186 --> 00:03:37,346
+the manifest and the Products
+
+
+101
+00:03:37,346 --> 00:03:38,466
+section later in the talk.
+
+
+102
+00:03:38,816 --> 00:03:40,566
+But for now, we can go over to
+
+
+103
+00:03:40,566 --> 00:03:43,056
+the project editor, open the
+
+
+104
+00:03:43,056 --> 00:03:45,996
+target for our iOS app, and we
+
+
+105
+00:03:45,996 --> 00:03:47,376
+go to the Frameworks, Libraries,
+
+
+106
+00:03:47,376 --> 00:03:48,626
+and Embedded Content section.
+
+
+107
+00:03:48,946 --> 00:03:51,236
+We click Plus here and then we
+
+
+108
+00:03:51,236 --> 00:03:52,106
+select the food and stuff
+
+
+109
+00:03:52,106 --> 00:03:53,756
+library product from the list.
+
+
+110
+00:03:54,886 --> 00:03:56,376
+We want to perform these same
+
+
+111
+00:03:56,376 --> 00:03:57,976
+steps for the watch app.
+
+
+112
+00:03:58,566 --> 00:03:59,736
+So we go to that target.
+
+
+113
+00:04:00,396 --> 00:04:01,476
+Go to the same section.
+
+
+114
+00:04:01,696 --> 00:04:03,766
+Click plus again, and also link
+
+
+115
+00:04:03,766 --> 00:04:05,736
+this with our package product.
+
+
+116
+00:04:07,276 --> 00:04:10,016
+So, packages also bring one or
+
+
+117
+00:04:10,486 --> 00:04:11,216
+more modules.
+
+
+118
+00:04:11,366 --> 00:04:12,526
+So, we have to import those
+
+
+119
+00:04:12,526 --> 00:04:15,186
+modules into our app.
+
+
+120
+00:04:15,186 --> 00:04:16,406
+In this case, we have just one.
+
+
+121
+00:04:17,136 --> 00:04:19,666
+We go to the code of iOS app.
+
+
+122
+00:04:20,896 --> 00:04:22,186
+Import the module here.
+
+
+123
+00:04:23,396 --> 00:04:24,706
+And we'll do the same for our
+
+
+124
+00:04:24,706 --> 00:04:26,066
+watch app.
+
+
+125
+00:04:29,726 --> 00:04:32,076
+Now, since we have made some
+
+
+126
+00:04:32,156 --> 00:04:33,496
+larger changes to our workspace,
+
+
+127
+00:04:33,496 --> 00:04:34,586
+the preview was paused.
+
+
+128
+00:04:34,946 --> 00:04:36,316
+So let's press command + option
+
+
+129
+00:04:36,316 --> 00:04:37,686
++ P to resume it.
+
+
+130
+00:04:38,306 --> 00:04:41,706
+And there we have our app
+
+
+131
+00:04:42,176 --> 00:04:43,496
+working as it did before.
+
+
+132
+00:04:44,206 --> 00:04:45,726
+So in just a few steps, we
+
+
+133
+00:04:45,726 --> 00:04:48,086
+refractored our reusable code
+
+
+134
+00:04:48,086 --> 00:04:49,476
+into our own local package.
+
+
+135
+00:04:50,386 --> 00:04:51,676
+And you might've also noticed
+
+
+136
+00:04:51,896 --> 00:04:52,696
+that we did not have to
+
+
+137
+00:04:52,696 --> 00:04:54,116
+configure anything explicitly
+
+
+138
+00:04:54,196 --> 00:04:55,036
+about platforms.
+
+
+139
+00:04:55,636 --> 00:04:57,096
+This is because packages are
+
+
+140
+00:04:57,096 --> 00:04:58,566
+platform-independent in nature.
+
+
+141
+00:04:59,176 --> 00:05:00,556
+So, they build for whatever the
+
+
+142
+00:05:00,556 --> 00:05:01,386
+client needs.
+
+
+143
+00:05:01,566 --> 00:05:03,526
+In this case, our scheme does
+
+
+144
+00:05:03,526 --> 00:05:05,276
+both an iOS and a watch app.
+
+
+145
+00:05:05,846 --> 00:05:07,096
+So, the package product gets
+
+
+146
+00:05:07,096 --> 00:05:09,316
+built twice, once for iOS and
+
+
+147
+00:05:09,316 --> 00:05:10,166
+once for watchOS.
+
+
+148
+00:05:10,546 --> 00:05:11,976
+And this is all automatically
+
+
+149
+00:05:11,976 --> 00:05:12,826
+handled by Xcode.
+
+
+150
+00:05:13,286 --> 00:05:14,986
+And finally, this gives a good
+
+
+151
+00:05:14,986 --> 00:05:17,146
+first step for publishing a
+
+
+152
+00:05:17,146 --> 00:05:17,666
+package.
+
+
+153
+00:05:17,846 --> 00:05:18,936
+But before we do that, let's
+
+
+154
+00:05:18,936 --> 00:05:20,426
+head back to the slides to learn
+
+
+155
+00:05:20,426 --> 00:05:22,000
+a bit more about this.
+
+
+156
+00:05:28,556 --> 00:05:29,686
+You just learned about local
+
+
+157
+00:05:29,686 --> 00:05:30,186
+packages.
+
+
+158
+00:05:30,536 --> 00:05:31,986
+Now let's take a look at how you
+
+
+159
+00:05:31,986 --> 00:05:33,796
+would publish a package in order
+
+
+160
+00:05:33,796 --> 00:05:34,886
+to share it with a broad
+
+
+161
+00:05:34,886 --> 00:05:35,446
+audience.
+
+
+162
+00:05:36,116 --> 00:05:37,406
+Before we look at the concrete
+
+
+163
+00:05:37,406 --> 00:05:38,766
+steps for publishing a package,
+
+
+164
+00:05:38,976 --> 00:05:39,946
+we have to learn about
+
+
+165
+00:05:39,946 --> 00:05:40,456
+versioning.
+
+
+166
+00:05:41,956 --> 00:05:43,126
+More specifically, about
+
+
+167
+00:05:43,126 --> 00:05:44,486
+semantic versioning with Swift
+
+
+168
+00:05:44,486 --> 00:05:45,456
+packages utilized.
+
+
+169
+00:05:46,806 --> 00:05:48,996
+To make sure you can benefit
+
+
+170
+00:05:49,346 --> 00:05:50,696
+from bug fixes of your
+
+
+171
+00:05:50,696 --> 00:05:52,256
+dependencies without
+
+
+172
+00:05:52,866 --> 00:05:53,686
+constant churn, Swift packages
+
+
+173
+00:05:53,746 --> 00:05:55,286
+adhere to semantic versioning.
+
+
+174
+00:05:56,166 --> 00:05:57,546
+This is a wide-view standard
+
+
+175
+00:05:57,616 --> 00:05:58,976
+which assigns specific semantic
+
+
+176
+00:05:58,976 --> 00:06:00,306
+meaning to each of the
+
+
+177
+00:06:00,306 --> 00:06:01,756
+components of a version number.
+
+
+178
+00:06:02,296 --> 00:06:05,006
+The major version signifies
+
+
+179
+00:06:05,046 --> 00:06:06,456
+breaking changes to the API
+
+
+180
+00:06:07,106 --> 00:06:08,986
+which require updating existing
+
+
+181
+00:06:08,986 --> 00:06:09,526
+clients.
+
+
+182
+00:06:09,916 --> 00:06:11,716
+For example, this would be
+
+
+183
+00:06:11,816 --> 00:06:13,146
+renaming an existing type,
+
+
+184
+00:06:13,756 --> 00:06:15,486
+removing a method, or changing a
+
+
+185
+00:06:15,486 --> 00:06:16,436
+method's signature.
+
+
+186
+00:06:16,976 --> 00:06:18,406
+But this also may include any
+
+
+187
+00:06:18,406 --> 00:06:20,196
+backwards incompatible bug fixes
+
+
+188
+00:06:20,246 --> 00:06:21,796
+or major behavior changes to
+
+
+189
+00:06:21,796 --> 00:06:23,316
+existing API.
+
+
+190
+00:06:24,476 --> 00:06:26,096
+Update the minor version, the
+
+
+191
+00:06:26,096 --> 00:06:27,406
+functional ID is added in a
+
+
+192
+00:06:27,406 --> 00:06:28,706
+backwards compatible manner.
+
+
+193
+00:06:28,876 --> 00:06:30,716
+For example, adding a new method
+
+
+194
+00:06:30,816 --> 00:06:33,186
+or type.
+
+
+195
+00:06:33,636 --> 00:06:35,076
+Increase the patch version when
+
+
+196
+00:06:35,076 --> 00:06:36,036
+you're making backwards
+
+
+197
+00:06:36,036 --> 00:06:37,146
+compatible bug fixes.
+
+
+198
+00:06:37,886 --> 00:06:39,296
+This allows clients to benefit
+
+
+199
+00:06:39,296 --> 00:06:40,836
+from bug fixes to your packages
+
+
+200
+00:06:40,836 --> 00:06:42,256
+without incurring any
+
+
+201
+00:06:42,256 --> 00:06:45,256
+maintenance burden.
+
+
+202
+00:06:45,396 --> 00:06:47,196
+Major version zero is a special
+
+
+203
+00:06:47,196 --> 00:06:48,696
+case which you can use during
+
+
+204
+00:06:48,696 --> 00:06:49,596
+initial development.
+
+
+205
+00:06:50,486 --> 00:06:51,936
+Changes to minor and patch
+
+
+206
+00:06:51,936 --> 00:06:53,636
+versions can also break API.
+
+
+207
+00:06:54,456 --> 00:06:55,596
+This simplifies work during
+
+
+208
+00:06:55,596 --> 00:06:56,926
+bringup, but you should be
+
+
+209
+00:06:56,926 --> 00:06:59,146
+shipping a 1.0 release as people
+
+
+210
+00:06:59,146 --> 00:07:00,416
+start adopting your package.
+
+
+211
+00:07:00,896 --> 00:07:03,826
+Once you've been publishing your
+
+
+212
+00:07:03,826 --> 00:07:06,006
+package for awhile, your clients
+
+
+213
+00:07:06,006 --> 00:07:07,076
+will expect stable APIs.
+
+
+214
+00:07:07,076 --> 00:07:09,766
+You can use prerelease versions
+
+
+215
+00:07:09,766 --> 00:07:11,696
+to ask your clients to test APIs
+
+
+216
+00:07:12,186 --> 00:07:13,896
+before you make the final
+
+
+217
+00:07:13,896 --> 00:07:14,936
+release for a version.
+
+
+218
+00:07:18,616 --> 00:07:20,296
+You can opt in to prerelease
+
+
+219
+00:07:20,296 --> 00:07:21,846
+versions by adding a prerelease
+
+
+220
+00:07:21,846 --> 00:07:23,236
+identifier to your version
+
+
+221
+00:07:23,236 --> 00:07:23,686
+rules.
+
+
+222
+00:07:24,176 --> 00:07:26,436
+In this example, I used beta 1
+
+
+223
+00:07:26,766 --> 00:07:28,326
+in the lower bound.
+
+
+224
+00:07:31,276 --> 00:07:33,046
+Note that this opts you in to
+
+
+225
+00:07:33,046 --> 00:07:34,516
+resolving prerelease versions
+
+
+226
+00:07:34,726 --> 00:07:35,476
+but you're still getting
+
+
+227
+00:07:35,476 --> 00:07:36,056
+updates.
+
+
+228
+00:07:36,256 --> 00:07:37,906
+For example, here I've got beta
+
+
+229
+00:07:37,906 --> 00:07:38,366
+6.
+
+
+230
+00:07:39,036 --> 00:07:40,676
+Once the stable version 5 is
+
+
+231
+00:07:40,676 --> 00:07:42,166
+released, package resolution
+
+
+232
+00:07:42,166 --> 00:07:43,356
+will automatically pick that,
+
+
+233
+00:07:43,936 --> 00:07:44,736
+but you should remove the
+
+
+234
+00:07:44,736 --> 00:07:46,236
+prerelease identifier once
+
+
+235
+00:07:46,236 --> 00:07:47,096
+you're done with testing.
+
+
+236
+00:07:47,626 --> 00:07:50,606
+Let's take a look at the
+
+
+237
+00:07:50,656 --> 00:07:51,956
+concrete steps for publishing a
+
+
+238
+00:07:51,956 --> 00:07:53,000
+package in the next demo.
+
+
+239
+00:07:59,416 --> 00:08:01,146
+We go back right where we left
+
+
+240
+00:08:01,146 --> 00:08:02,416
+off from the first demo.
+
+
+241
+00:08:02,986 --> 00:08:06,556
+And to get started, I will drag
+
+
+242
+00:08:06,556 --> 00:08:10,856
+the package out of the project.
+
+
+243
+00:08:11,346 --> 00:08:12,776
+Now, you want to hold option
+
+
+244
+00:08:12,836 --> 00:08:14,146
+while dropping, so you make a
+
+
+245
+00:08:14,146 --> 00:08:14,556
+copy.
+
+
+246
+00:08:15,386 --> 00:08:17,866
+You close the project, open up
+
+
+247
+00:08:17,866 --> 00:08:19,546
+this in Finder and double-click
+
+
+248
+00:08:19,546 --> 00:08:20,606
+the package that's with File.
+
+
+249
+00:08:21,646 --> 00:08:23,076
+This opens up the package
+
+
+250
+00:08:23,176 --> 00:08:25,086
+standalone, similar to how a
+
+
+251
+00:08:25,086 --> 00:08:25,706
+project would.
+
+
+252
+00:08:26,766 --> 00:08:27,936
+And if we take a look at the Run
+
+
+253
+00:08:27,936 --> 00:08:30,016
+destinations, we see that we
+
+
+254
+00:08:30,016 --> 00:08:32,086
+also get Mac and tvOS, even
+
+
+255
+00:08:32,086 --> 00:08:33,155
+though we were developing our
+
+
+256
+00:08:33,155 --> 00:08:34,846
+package for iOS and watch
+
+
+257
+00:08:35,046 --> 00:08:35,436
+before.
+
+
+258
+00:08:36,535 --> 00:08:37,586
+This again underlines the
+
+
+259
+00:08:37,586 --> 00:08:38,746
+packages are platform
+
+
+260
+00:08:38,746 --> 00:08:39,686
+independent in nature.
+
+
+261
+00:08:40,006 --> 00:08:41,296
+No special configuration is
+
+
+262
+00:08:41,296 --> 00:08:43,006
+needed in order to build them
+
+
+263
+00:08:43,196 --> 00:08:44,696
+for all of Apple's platforms in
+
+
+264
+00:08:44,696 --> 00:08:45,106
+Xcode.
+
+
+265
+00:08:46,116 --> 00:08:47,436
+Now, since you're publishing the
+
+
+266
+00:08:47,436 --> 00:08:48,696
+package, let's flesh out the
+
+
+267
+00:08:48,696 --> 00:08:49,426
+Readme a little bit.
+
+
+268
+00:08:49,926 --> 00:08:54,226
+Let's say this package provides
+
+
+269
+00:08:55,036 --> 00:08:59,726
+data models for representing a
+
+
+270
+00:08:59,726 --> 00:09:08,316
+food menu and loading it from
+
+
+271
+00:09:08,316 --> 00:09:08,856
+JSON.
+
+
+272
+00:09:08,976 --> 00:09:11,786
+Now, for a real package you want
+
+
+273
+00:09:11,786 --> 00:09:13,466
+to include more information in
+
+
+274
+00:09:13,526 --> 00:09:15,526
+the Readme, such as how to use
+
+
+275
+00:09:15,936 --> 00:09:17,676
+it, any platform restrictions,
+
+
+276
+00:09:17,716 --> 00:09:19,266
+if you use platform-specific API
+
+
+277
+00:09:19,556 --> 00:09:22,166
+such as UIKit, and also
+
+
+278
+00:09:22,166 --> 00:09:23,446
+information about licensing.
+
+
+279
+00:09:23,806 --> 00:09:25,046
+But since this is just a demo,
+
+
+280
+00:09:25,206 --> 00:09:26,236
+this will suffice for now.
+
+
+281
+00:09:27,556 --> 00:09:29,346
+Another thing you want to do is
+
+
+282
+00:09:29,346 --> 00:09:31,136
+add tests.
+
+
+283
+00:09:31,136 --> 00:09:32,546
+Xcode created an example test
+
+
+284
+00:09:32,546 --> 00:09:35,526
+case for us earlier but we want
+
+
+285
+00:09:35,526 --> 00:09:36,746
+to actually test our data model
+
+
+286
+00:09:36,746 --> 00:09:36,956
+here.
+
+
+287
+00:09:37,476 --> 00:09:44,086
+Let's create a food item and we
+
+
+288
+00:09:44,326 --> 00:09:48,096
+call it chicken with the price
+
+
+289
+00:09:48,096 --> 00:09:49,006
+of $42.
+
+
+290
+00:09:49,676 --> 00:09:52,896
+And let's make an assertion on
+
+
+291
+00:09:52,896 --> 00:09:55,246
+the item's price to be exactly
+
+
+292
+00:09:55,246 --> 00:09:55,816
+that value.
+
+
+293
+00:09:56,476 --> 00:09:57,736
+Now, if we press Command + U,
+
+
+294
+00:09:58,826 --> 00:10:00,976
+our package builds and the tests
+
+
+295
+00:10:00,976 --> 00:10:02,436
+run, just as they would in a
+
+
+296
+00:10:02,436 --> 00:10:02,986
+project.
+
+
+297
+00:10:03,286 --> 00:10:05,396
+The tests are passing, so we can
+
+
+298
+00:10:05,396 --> 00:10:05,706
+move on.
+
+
+299
+00:10:06,506 --> 00:10:08,266
+Let's first create a repository
+
+
+300
+00:10:08,266 --> 00:10:09,016
+for our package.
+
+
+301
+00:10:09,176 --> 00:10:10,636
+To do that, we can open up the
+
+
+302
+00:10:10,636 --> 00:10:12,396
+source control menu and select
+
+
+303
+00:10:12,396 --> 00:10:14,776
+the Create Repositories option.
+
+
+304
+00:10:15,576 --> 00:10:17,456
+Xcode preselected a package for
+
+
+305
+00:10:17,456 --> 00:10:19,346
+us, so we can just click Create.
+
+
+306
+00:10:20,056 --> 00:10:21,806
+This creates a repository
+
+
+307
+00:10:21,806 --> 00:10:23,976
+locally and commits our current
+
+
+308
+00:10:23,976 --> 00:10:24,286
+state.
+
+
+309
+00:10:25,266 --> 00:10:27,086
+But we also need a repository in
+
+
+310
+00:10:27,086 --> 00:10:27,446
+GitHub.
+
+
+311
+00:10:27,716 --> 00:10:29,136
+We can create that right from
+
+
+312
+00:10:29,136 --> 00:10:30,406
+within Xcode as well.
+
+
+313
+00:10:31,186 --> 00:10:32,646
+Let's go to the SEM navigator.
+
+
+314
+00:10:33,346 --> 00:10:34,646
+Open up the context menu in the
+
+
+315
+00:10:34,646 --> 00:10:36,036
+repository, and select the
+
+
+316
+00:10:36,036 --> 00:10:37,116
+Create Remote option.
+
+
+317
+00:10:37,576 --> 00:10:40,866
+Since I already configured my
+
+
+318
+00:10:40,866 --> 00:10:42,026
+GitHub account in Xcode
+
+
+319
+00:10:42,026 --> 00:10:44,096
+preferences, it is automatically
+
+
+320
+00:10:44,176 --> 00:10:44,936
+preselected here.
+
+
+321
+00:10:45,116 --> 00:10:46,786
+We could change the repository
+
+
+322
+00:10:46,786 --> 00:10:48,116
+name but we'll leave it as is
+
+
+323
+00:10:48,376 --> 00:10:49,446
+and we'll also leave out the
+
+
+324
+00:10:49,446 --> 00:10:50,556
+optional description for now.
+
+
+325
+00:10:50,836 --> 00:10:52,286
+We'll set the visibility to
+
+
+326
+00:10:52,286 --> 00:10:53,876
+private though because I want to
+
+
+327
+00:10:53,876 --> 00:10:55,056
+just share this package with my
+
+
+328
+00:10:55,056 --> 00:10:56,716
+team for now, not with a broad
+
+
+329
+00:10:56,716 --> 00:10:57,086
+audience.
+
+
+330
+00:10:57,626 --> 00:10:59,626
+Let's click Create.
+
+
+331
+00:11:01,216 --> 00:11:03,076
+Xcode creates the package,
+
+
+332
+00:11:03,226 --> 00:11:06,076
+creates the repository on GitHub
+
+
+333
+00:11:06,286 --> 00:11:07,486
+and pushes our current state
+
+
+334
+00:11:07,486 --> 00:11:10,106
+there, just in one step.
+
+
+335
+00:11:10,326 --> 00:11:11,446
+Now we have published our
+
+
+336
+00:11:11,446 --> 00:11:13,046
+package but we also want to
+
+
+337
+00:11:13,046 --> 00:11:14,516
+publish our first version.
+
+
+338
+00:11:14,896 --> 00:11:16,436
+For this, we go back to the
+
+
+339
+00:11:16,436 --> 00:11:18,326
+context menu here and select the
+
+
+340
+00:11:18,326 --> 00:11:19,406
+Tag Master option.
+
+
+341
+00:11:19,956 --> 00:11:23,326
+We want to release version 1.0.0
+
+
+342
+00:11:23,326 --> 00:11:25,566
+and we leave the message blank
+
+
+343
+00:11:25,566 --> 00:11:25,936
+for now.
+
+
+344
+00:11:26,486 --> 00:11:29,466
+This creates a tag locally, so
+
+
+345
+00:11:29,466 --> 00:11:30,476
+we still have to push it to
+
+
+346
+00:11:30,476 --> 00:11:30,886
+GitHub.
+
+
+347
+00:11:31,256 --> 00:11:32,566
+To do that, we go back to the
+
+
+348
+00:11:32,566 --> 00:11:34,276
+source control menu, select the
+
+
+349
+00:11:34,276 --> 00:11:35,016
+Push option.
+
+
+350
+00:11:35,606 --> 00:11:38,636
+To check the checkbox to include
+
+
+351
+00:11:38,636 --> 00:11:39,976
+tags so they're actually pushing
+
+
+352
+00:11:39,976 --> 00:11:41,946
+tags, and click push.
+
+
+353
+00:11:47,636 --> 00:11:49,026
+Now that we have published our
+
+
+354
+00:11:49,026 --> 00:11:50,626
+package on GitHub, let's take a
+
+
+355
+00:11:50,626 --> 00:11:52,516
+look at it.
+
+
+356
+00:11:52,516 --> 00:11:53,926
+Select the View in GitHub option
+
+
+357
+00:11:54,106 --> 00:11:55,906
+here from the context menu, and
+
+
+358
+00:11:57,276 --> 00:11:59,356
+this opens it up right there.
+
+
+359
+00:12:00,696 --> 00:12:02,046
+So, we could end the demo here,
+
+
+360
+00:12:02,626 --> 00:12:04,016
+but as a final step, I want to
+
+
+361
+00:12:04,016 --> 00:12:05,216
+reintegrate the remote version
+
+
+362
+00:12:05,216 --> 00:12:06,646
+of the package into our lunch
+
+
+363
+00:12:06,646 --> 00:12:07,366
+app from earlier.
+
+
+364
+00:12:07,786 --> 00:12:08,656
+So, I click the clone
+
+
+365
+00:12:08,686 --> 00:12:10,776
+or download button and copy the
+
+
+366
+00:12:10,776 --> 00:12:11,416
+URL from here.
+
+
+367
+00:12:11,846 --> 00:12:15,376
+We close Safari, Xcode, as well
+
+
+368
+00:12:15,376 --> 00:12:15,916
+as Finder.
+
+
+369
+00:12:16,946 --> 00:12:18,596
+And we go back to Xcode's
+
+
+370
+00:12:18,596 --> 00:12:20,556
+welcome window and open up the
+
+
+371
+00:12:20,556 --> 00:12:22,136
+lunch project again.
+
+
+372
+00:12:24,196 --> 00:12:26,726
+Here we open the file menu and
+
+
+373
+00:12:26,726 --> 00:12:28,096
+this new Swift package's
+
+
+374
+00:12:28,096 --> 00:12:28,756
+submenu.
+
+
+375
+00:12:30,316 --> 00:12:31,896
+This menu contains a couple of
+
+
+376
+00:12:31,896 --> 00:12:34,186
+options for working with
+
+
+377
+00:12:35,916 --> 00:12:37,296
+packages but I want to add a
+
+
+378
+00:12:37,296 --> 00:12:38,266
+package dependency.
+
+
+379
+00:12:38,826 --> 00:12:42,396
+Let's copy the URL here.
+
+
+380
+00:12:47,216 --> 00:12:49,946
+The default version rules that
+
+
+381
+00:12:49,946 --> 00:12:51,836
+Xcode recommends for us includes
+
+
+382
+00:12:51,836 --> 00:12:53,496
+the 1.0.0 version that we just
+
+
+383
+00:12:53,496 --> 00:12:53,996
+published.
+
+
+384
+00:12:54,226 --> 00:12:55,236
+So, we can click Next here.
+
+
+385
+00:12:55,796 --> 00:12:59,506
+The package was resolved, and
+
+
+386
+00:12:59,506 --> 00:13:02,256
+now we see the selection of
+
+
+387
+00:13:02,306 --> 00:13:02,776
+products.
+
+
+388
+00:13:02,776 --> 00:13:03,766
+We want to link the library
+
+
+389
+00:13:03,766 --> 00:13:05,596
+product against our iOS app.
+
+
+390
+00:13:06,436 --> 00:13:07,656
+So, we click Finish here.
+
+
+391
+00:13:08,266 --> 00:13:11,666
+Now I actually forgot to do one
+
+
+392
+00:13:11,666 --> 00:13:13,426
+thing just now, which is
+
+
+393
+00:13:13,476 --> 00:13:15,626
+deleting the local package that
+
+
+394
+00:13:15,626 --> 00:13:16,406
+we had from earlier.
+
+
+395
+00:13:16,726 --> 00:13:18,346
+So, I will do that now and move
+
+
+396
+00:13:18,346 --> 00:13:19,176
+it to the trash.
+
+
+397
+00:13:20,136 --> 00:13:21,696
+And now we're actually fetching
+
+
+398
+00:13:21,696 --> 00:13:22,466
+the remote version.
+
+
+399
+00:13:23,006 --> 00:13:26,416
+Let's take a look at the this
+
+
+400
+00:13:26,596 --> 00:13:28,696
+Swift package dependency section
+
+
+401
+00:13:28,696 --> 00:13:29,746
+in the Project Navigator.
+
+
+402
+00:13:30,256 --> 00:13:31,576
+This shows all your package
+
+
+403
+00:13:31,576 --> 00:13:32,276
+dependencies.
+
+
+404
+00:13:38,776 --> 00:13:40,676
+So, because we linked the
+
+
+405
+00:13:40,676 --> 00:13:42,506
+product as part of the assistant
+
+
+406
+00:13:42,506 --> 00:13:44,226
+workflow, it's already linked
+
+
+407
+00:13:44,306 --> 00:13:45,366
+against our iOS app.
+
+
+408
+00:13:45,846 --> 00:13:48,516
+But we also have to add it to
+
+
+409
+00:13:49,086 --> 00:13:50,076
+the watch app.
+
+
+410
+00:13:50,516 --> 00:13:51,746
+To do that, we go back to the
+
+
+411
+00:13:51,746 --> 00:13:52,866
+frameworks, libraries, and
+
+
+412
+00:13:52,866 --> 00:13:53,736
+embedded content phase.
+
+
+413
+00:13:54,756 --> 00:13:57,236
+Hit plus here, and select the
+
+
+414
+00:13:57,236 --> 00:13:58,016
+package product.
+
+
+415
+00:13:58,456 --> 00:14:02,136
+Now we can go back to our
+
+
+416
+00:14:02,136 --> 00:14:02,726
+preview.
+
+
+417
+00:14:04,086 --> 00:14:04,656
+Resume it.
+
+
+418
+00:14:05,296 --> 00:14:09,126
+And we can see that works as it
+
+
+419
+00:14:09,126 --> 00:14:09,646
+did before.
+
+
+420
+00:14:10,596 --> 00:14:12,036
+So, with just a few steps, we
+
+
+421
+00:14:12,036 --> 00:14:13,956
+were able to publish a package.
+
+
+422
+00:14:14,566 --> 00:14:15,756
+Let's go back to the slides.
+
+
+423
+00:14:21,386 --> 00:14:23,846
+Next, I'd like to invite my
+
+
+424
+00:14:23,846 --> 00:14:25,066
+colleague, Ankit, onto the
+
+
+425
+00:14:25,066 --> 00:14:26,686
+stage, to tell you a little bit
+
+
+426
+00:14:26,686 --> 00:14:28,506
+more about the package manifest
+
+
+427
+00:14:28,906 --> 00:14:29,000
+API.
+
+
+428
+00:14:32,366 --> 00:14:33,116
+>> Thanks, Boris.
+
+
+429
+00:14:33,626 --> 00:14:35,346
+Boris has showed you how you can
+
+
+430
+00:14:35,346 --> 00:14:36,916
+use a local package in your
+
+
+431
+00:14:36,916 --> 00:14:38,656
+Xcode project and how you can
+
+
+432
+00:14:38,656 --> 00:14:40,306
+publish it to share it with an
+
+
+433
+00:14:40,306 --> 00:14:41,376
+even wider audience.
+
+
+434
+00:14:41,996 --> 00:14:43,476
+In this section, we will learn
+
+
+435
+00:14:43,476 --> 00:14:44,866
+more about the package manifest
+
+
+436
+00:14:44,866 --> 00:14:46,856
+APIs that are used to configure
+
+
+437
+00:14:46,856 --> 00:14:47,406
+packages.
+
+
+438
+00:14:48,026 --> 00:14:51,516
+A Swift package is a directory
+
+
+439
+00:14:51,516 --> 00:14:52,766
+that contains 
+
+
+440
+00:14:52,816 --> 00:14:53,796
+package.swift manifest file.
+
+
+441
+00:14:54,946 --> 00:14:56,296
+The first line of the manifest
+
+
+442
+00:14:56,566 --> 00:14:57,966
+is always the Swift tools
+
+
+443
+00:14:57,966 --> 00:14:58,356
+version.
+
+
+444
+00:14:59,236 --> 00:15:00,436
+This is a minimum version of
+
+
+445
+00:15:00,436 --> 00:15:02,366
+Swift Compiler that is required
+
+
+446
+00:15:02,366 --> 00:15:03,346
+to build your package.
+
+
+447
+00:15:04,066 --> 00:15:05,556
+We will learn more about this
+
+
+448
+00:15:05,556 --> 00:15:07,586
+later in the talk.
+
+
+449
+00:15:07,796 --> 00:15:08,616
+Then we have the package
+
+
+450
+00:15:08,616 --> 00:15:10,256
+description import statement.
+
+
+451
+00:15:10,886 --> 00:15:12,326
+This is a library provided by
+
+
+452
+00:15:12,326 --> 00:15:14,526
+Xcode that contains the APIs
+
+
+453
+00:15:14,526 --> 00:15:16,296
+using the manifest file.
+
+
+454
+00:15:17,916 --> 00:15:19,766
+Finally, we have the package
+
+
+455
+00:15:19,766 --> 00:15:20,926
+initializer statement.
+
+
+456
+00:15:21,566 --> 00:15:23,216
+The entire package is configured
+
+
+457
+00:15:23,216 --> 00:15:24,356
+using the single package
+
+
+458
+00:15:24,356 --> 00:15:25,396
+initializer statement.
+
+
+459
+00:15:26,206 --> 00:15:27,546
+In this case, I just have the
+
+
+460
+00:15:27,546 --> 00:15:29,296
+name of the package so that it's
+
+
+461
+00:15:29,296 --> 00:15:29,806
+at a target.
+
+
+462
+00:15:30,326 --> 00:15:33,306
+Swift packages have a standard
+
+
+463
+00:15:33,306 --> 00:15:34,136
+layout for targets.
+
+
+464
+00:15:35,146 --> 00:15:36,766
+Library targets are under a
+
+
+465
+00:15:36,766 --> 00:15:38,666
+directory called Sources and
+
+
+466
+00:15:38,766 --> 00:15:40,586
+each target should have its own
+
+
+467
+00:15:40,586 --> 00:15:41,256
+subdirectory.
+
+
+468
+00:15:41,836 --> 00:15:43,966
+They are then declared in the
+
+
+469
+00:15:43,966 --> 00:15:45,316
+Target section of the package
+
+
+470
+00:15:45,316 --> 00:15:45,986
+initializer.
+
+
+471
+00:15:47,006 --> 00:15:48,306
+The standard layout is really
+
+
+472
+00:15:48,306 --> 00:15:49,926
+powerful because you don't need
+
+
+473
+00:15:49,926 --> 00:15:51,416
+to individually list your source
+
+
+474
+00:15:51,416 --> 00:15:52,696
+files in the manifest.
+
+
+475
+00:15:53,426 --> 00:15:54,446
+You just drop them in the right
+
+
+476
+00:15:54,446 --> 00:15:56,036
+directory and Xcode will
+
+
+477
+00:15:56,036 --> 00:15:57,126
+automatically pick them up.
+
+
+478
+00:15:58,566 --> 00:15:59,636
+If I wanted to add another
+
+
+479
+00:15:59,636 --> 00:16:01,466
+target, I would create a new
+
+
+480
+00:16:01,466 --> 00:16:03,476
+subdirectory and then declare
+
+
+481
+00:16:03,476 --> 00:16:04,876
+the target in the manifest file.
+
+
+482
+00:16:05,416 --> 00:16:08,806
+Test targets are under a
+
+
+483
+00:16:08,806 --> 00:16:10,806
+directory called Tests, and they
+
+
+484
+00:16:10,806 --> 00:16:11,766
+also have their own
+
+
+485
+00:16:11,766 --> 00:16:12,366
+subdirectory.
+
+
+486
+00:16:12,926 --> 00:16:15,496
+They are declared using the test
+
+
+487
+00:16:15,496 --> 00:16:18,116
+target API and since test
+
+
+488
+00:16:18,116 --> 00:16:19,516
+targets are usually testing
+
+
+489
+00:16:19,516 --> 00:16:20,916
+another target, you need to
+
+
+490
+00:16:20,916 --> 00:16:22,316
+declare our dependency on the
+
+
+491
+00:16:22,316 --> 00:16:23,686
+target it is testing.
+
+
+492
+00:16:24,866 --> 00:16:25,756
+This is done using the
+
+
+493
+00:16:25,756 --> 00:16:27,616
+dependencies parameter of the
+
+
+494
+00:16:27,616 --> 00:16:28,456
+test target API.
+
+
+495
+00:16:29,176 --> 00:16:32,936
+As a final step, we need to
+
+
+496
+00:16:32,936 --> 00:16:34,506
+declare our product for our
+
+
+497
+00:16:34,506 --> 00:16:34,926
+package.
+
+
+498
+00:16:35,576 --> 00:16:36,696
+Products are used to export
+
+
+499
+00:16:36,786 --> 00:16:38,616
+target from a package so other
+
+
+500
+00:16:38,616 --> 00:16:39,656
+packages can use them.
+
+
+501
+00:16:40,486 --> 00:16:42,066
+In this case, I have a library
+
+
+502
+00:16:42,066 --> 00:16:43,716
+product that is exporting my
+
+
+503
+00:16:43,796 --> 00:16:44,786
+single library target.
+
+
+504
+00:16:45,376 --> 00:16:49,386
+We just saw how a basic Swift
+
+
+505
+00:16:49,386 --> 00:16:50,366
+package is configured.
+
+
+506
+00:16:50,996 --> 00:16:52,236
+Now let's see how we can add
+
+
+507
+00:16:52,286 --> 00:16:53,586
+support for our Swift packages
+
+
+508
+00:16:53,946 --> 00:16:55,326
+in the existing Xcode project.
+
+
+509
+00:16:55,326 --> 00:16:59,416
+I have a project called Menu
+
+
+510
+00:16:59,416 --> 00:17:01,016
+Downloader that I've been using
+
+
+511
+00:17:01,016 --> 00:17:02,516
+with other package managers like
+
+
+512
+00:17:02,546 --> 00:17:04,016
+CocoParts and Carthage.
+
+
+513
+00:17:04,636 --> 00:17:08,705
+It has a Swift target, some
+
+
+514
+00:17:08,705 --> 00:17:11,786
+legacy C code, Xcode project
+
+
+515
+00:17:11,786 --> 00:17:13,856
+file, and a PartSpec file that
+
+
+516
+00:17:13,856 --> 00:17:15,685
+is used by the CoCoParts package
+
+
+517
+00:17:16,165 --> 00:17:16,386
+manager.
+
+
+518
+00:17:17,175 --> 00:17:19,616
+To begin, all you need to do is
+
+
+519
+00:17:19,715 --> 00:17:21,286
+add the package.swift manifest
+
+
+520
+00:17:21,286 --> 00:17:23,536
+file, and now you are ready to
+
+
+521
+00:17:23,665 --> 00:17:25,996
+configure its targets.
+
+
+522
+00:17:26,056 --> 00:17:27,586
+Starting with the legacy C code,
+
+
+523
+00:17:27,986 --> 00:17:30,656
+we first give it a name and then
+
+
+524
+00:17:30,656 --> 00:17:31,336
+a custom path.
+
+
+525
+00:17:31,336 --> 00:17:33,906
+We have to do this because this
+
+
+526
+00:17:33,946 --> 00:17:35,536
+target is not under the standard
+
+
+527
+00:17:35,536 --> 00:17:36,456
+sources directory.
+
+
+528
+00:17:37,796 --> 00:17:39,636
+I also found out that there's a
+
+
+529
+00:17:39,636 --> 00:17:41,276
+macro in the C code that
+
+
+530
+00:17:41,276 --> 00:17:43,366
+downloads a secret lunch menu if
+
+
+531
+00:17:43,366 --> 00:17:43,906
+defined.
+
+
+532
+00:17:44,716 --> 00:17:46,856
+So, I define that using the C
+
+
+533
+00:17:47,426 --> 00:17:49,726
+settings API.
+
+
+534
+00:17:49,976 --> 00:17:51,836
+Similarly, we can configure our
+
+
+535
+00:17:51,906 --> 00:17:53,326
+Swift target by giving it a
+
+
+536
+00:17:53,326 --> 00:17:55,636
+custom path and then declaring a
+
+
+537
+00:17:55,636 --> 00:17:58,606
+dependency on the legacy C
+
+
+538
+00:18:00,596 --> 00:18:00,796
+target.
+
+
+539
+00:18:00,906 --> 00:18:02,236
+This package has two products.
+
+
+540
+00:18:03,026 --> 00:18:04,986
+The first product exports Swift
+
+
+541
+00:18:04,986 --> 00:18:06,926
+target, and the second product
+
+
+542
+00:18:06,926 --> 00:18:07,946
+exports our C target.
+
+
+543
+00:18:07,946 --> 00:18:10,266
+We are exporting our C target
+
+
+544
+00:18:10,266 --> 00:18:12,446
+separately because some of our
+
+
+545
+00:18:12,446 --> 00:18:14,856
+users might be using the C
+
+
+546
+00:18:14,856 --> 00:18:16,736
+target directly and they don't
+
+
+547
+00:18:16,736 --> 00:18:18,726
+need the Swift bridge in that
+
+
+548
+00:18:18,916 --> 00:18:19,000
+case.
+
+
+549
+00:18:20,286 --> 00:18:23,146
+It is also marked because I know
+
+
+550
+00:18:23,146 --> 00:18:25,036
+some of our users load this
+
+
+551
+00:18:25,066 --> 00:18:28,986
+library at some time.
+
+
+552
+00:18:29,196 --> 00:18:30,266
+Now, let's see how package
+
+
+553
+00:18:30,266 --> 00:18:32,236
+dependencies are configured in a
+
+
+554
+00:18:32,856 --> 00:18:33,000
+package.
+
+
+555
+00:18:34,496 --> 00:18:36,576
+Package dependencies are in a
+
+
+556
+00:18:36,576 --> 00:18:39,176
+section called Dependencies and
+
+
+557
+00:18:39,176 --> 00:18:42,386
+they have two components - a
+
+
+558
+00:18:42,386 --> 00:18:43,866
+source URL and a version
+
+
+559
+00:18:43,866 --> 00:18:44,446
+requirement.
+
+
+560
+00:18:45,366 --> 00:18:47,466
+In this case, I'm using uptoNextMajor
+
+
+561
+00:18:47,466 --> 00:18:48,576
+version requirement.
+
+
+562
+00:18:49,296 --> 00:18:51,126
+This means my package needs a
+
+
+563
+00:18:51,126 --> 00:18:52,886
+version of yams starting from
+
+
+564
+00:18:52,886 --> 00:18:54,946
+major version 2 and going up to
+
+
+565
+00:18:54,946 --> 00:18:56,376
+the next major version which
+
+
+566
+00:18:56,376 --> 00:18:57,996
+will be 3, according to semantic
+
+
+567
+00:18:57,996 --> 00:18:58,456
+versioning.
+
+
+568
+00:18:59,676 --> 00:19:00,816
+uptoNextMajor is the
+
+
+569
+00:19:00,816 --> 00:19:02,096
+recommended way to declare
+
+
+570
+00:19:02,226 --> 00:19:03,216
+version requirements.
+
+
+571
+00:19:04,206 --> 00:19:06,226
+This is because it allows you to
+
+
+572
+00:19:06,226 --> 00:19:08,366
+specify a minimum version as
+
+
+573
+00:19:08,366 --> 00:19:09,736
+explicit often for the next
+
+
+574
+00:19:09,736 --> 00:19:10,346
+major version.
+
+
+575
+00:19:10,896 --> 00:19:12,236
+And it is flexible enough to
+
+
+576
+00:19:12,236 --> 00:19:14,226
+avoid potential conflicts in
+
+
+577
+00:19:14,226 --> 00:19:15,466
+your package craft.
+
+
+578
+00:19:16,276 --> 00:19:18,286
+This also has a shorthand, which
+
+
+579
+00:19:18,286 --> 00:19:19,926
+is just called from.
+
+
+580
+00:19:21,036 --> 00:19:22,516
+There are some other types of
+
+
+581
+00:19:22,936 --> 00:19:24,106
+version-based requirements.
+
+
+582
+00:19:24,856 --> 00:19:26,946
+We just saw from and uptoNextMajor
+
+
+583
+00:19:26,946 --> 00:19:27,516
+from.
+
+
+584
+00:19:28,786 --> 00:19:30,446
+There's uptoNextMinor, which
+
+
+585
+00:19:30,446 --> 00:19:32,366
+allows you to declare version
+
+
+586
+00:19:32,366 --> 00:19:33,876
+requirement on the next minor
+
+
+587
+00:19:33,876 --> 00:19:35,016
+component of a version.
+
+
+588
+00:19:36,006 --> 00:19:37,656
+This is useful if you want to be
+
+
+589
+00:19:37,656 --> 00:19:39,026
+conservative about the changes
+
+
+590
+00:19:39,026 --> 00:19:40,126
+you take.
+
+
+591
+00:19:41,416 --> 00:19:42,966
+Then we have exact version
+
+
+592
+00:19:42,966 --> 00:19:43,466
+requirement.
+
+
+593
+00:19:43,986 --> 00:19:45,276
+This allows us to pin our
+
+
+594
+00:19:45,276 --> 00:19:46,766
+dependency to a specific
+
+
+595
+00:19:46,826 --> 00:19:47,246
+version.
+
+
+596
+00:19:48,086 --> 00:19:49,606
+We do not recommend using this
+
+
+597
+00:19:49,606 --> 00:19:50,846
+unless you really need it
+
+
+598
+00:19:51,456 --> 00:19:55,016
+because it can lead to more
+
+
+599
+00:19:55,016 --> 00:19:55,083
+conflicts in your package craft.
+
+
+600
+00:19:56,636 --> 00:19:57,756
+There are also some
+
+
+601
+00:19:57,756 --> 00:19:59,236
+nonversion-based requirements.
+
+
+602
+00:19:59,776 --> 00:20:02,276
+There's branch-based dependency
+
+
+603
+00:20:02,416 --> 00:20:03,756
+which is useful if you want to
+
+
+604
+00:20:03,756 --> 00:20:05,546
+develop multiple packages and
+
+
+605
+00:20:05,546 --> 00:20:08,326
+you want to keep them in sync.
+
+
+606
+00:20:08,506 --> 00:20:09,596
+And there's revision-based
+
+
+607
+00:20:09,596 --> 00:20:11,306
+requirement, which is useful to
+
+
+608
+00:20:11,406 --> 00:20:12,546
+pin our dependency to our
+
+
+609
+00:20:12,656 --> 00:20:13,816
+specific revision.
+
+
+610
+00:20:14,976 --> 00:20:16,436
+Note that both branch and
+
+
+611
+00:20:16,436 --> 00:20:18,176
+revision-based requirements are
+
+
+612
+00:20:18,176 --> 00:20:19,276
+not allowed in published
+
+
+613
+00:20:19,276 --> 00:20:19,746
+packages.
+
+
+614
+00:20:20,696 --> 00:20:22,126
+You must remove all branch and
+
+
+615
+00:20:22,126 --> 00:20:23,306
+revision-based requirements
+
+
+616
+00:20:23,726 --> 00:20:25,136
+before you publish a package.
+
+
+617
+00:20:25,626 --> 00:20:28,376
+Now, after selecting our package
+
+
+618
+00:20:28,376 --> 00:20:30,776
+dependency, we need to declare
+
+
+619
+00:20:30,776 --> 00:20:32,996
+dependency on one or more of its
+
+
+620
+00:20:33,036 --> 00:20:33,536
+products.
+
+
+621
+00:20:34,266 --> 00:20:36,026
+In this case, I'm declaring
+
+
+622
+00:20:36,026 --> 00:20:39,616
+dependency on yams product in
+
+
+623
+00:20:39,616 --> 00:20:42,566
+our Swift target.
+
+
+624
+00:20:42,696 --> 00:20:43,776
+Now let's come back to Swift
+
+
+625
+00:20:43,776 --> 00:20:44,406
+Tools version.
+
+
+626
+00:20:45,436 --> 00:20:46,976
+As I mentioned earlier, the
+
+
+627
+00:20:46,976 --> 00:20:48,556
+Swift Tools version is always
+
+
+628
+00:20:48,556 --> 00:20:50,046
+the first line of the manifest.
+
+
+629
+00:20:51,106 --> 00:20:52,936
+And like every other API, the
+
+
+630
+00:20:52,936 --> 00:20:54,866
+package description API also
+
+
+631
+00:20:54,866 --> 00:20:56,566
+evolves over time and the
+
+
+632
+00:20:56,566 --> 00:20:58,216
+version of the library you get
+
+
+633
+00:20:58,426 --> 00:21:00,136
+comes from the Tools version.
+
+
+634
+00:21:01,376 --> 00:21:03,176
+It also participates in the
+
+
+635
+00:21:03,176 --> 00:21:04,576
+dependency resolution process.
+
+
+636
+00:21:05,336 --> 00:21:07,416
+And Xcode ensures that the Tools
+
+
+637
+00:21:07,416 --> 00:21:09,306
+version of all of your package
+
+
+638
+00:21:09,306 --> 00:21:10,796
+dependencies are always
+
+
+639
+00:21:10,796 --> 00:21:13,216
+compatible with Tools version of
+
+
+640
+00:21:13,866 --> 00:21:15,556
+your package.
+
+
+641
+00:21:15,676 --> 00:21:17,776
+Finally, it declares the minimum
+
+
+642
+00:21:17,776 --> 00:21:19,656
+version of Swift compiler that
+
+
+643
+00:21:19,656 --> 00:21:20,896
+is required to build your
+
+
+644
+00:21:20,896 --> 00:21:21,166
+package.
+
+
+645
+00:21:22,386 --> 00:21:23,936
+This is useful for producing
+
+
+646
+00:21:23,936 --> 00:21:25,896
+good diagnostics in case
+
+
+647
+00:21:25,896 --> 00:21:27,126
+somebody tries to use your
+
+
+648
+00:21:27,126 --> 00:21:28,676
+package with an older
+
+
+649
+00:21:28,676 --> 00:21:30,246
+incompatible version of Xcode.
+
+
+650
+00:21:30,766 --> 00:21:34,706
+As Boris mentioned earlier,
+
+
+651
+00:21:35,646 --> 00:21:37,016
+Swift packages are always
+
+
+652
+00:21:37,016 --> 00:21:38,086
+platform independent.
+
+
+653
+00:21:39,126 --> 00:21:40,196
+If your package supports
+
+
+654
+00:21:40,196 --> 00:21:42,016
+multiple platforms and you have
+
+
+655
+00:21:42,016 --> 00:21:43,976
+some platform-specific code, we
+
+
+656
+00:21:43,976 --> 00:21:45,206
+can use Swift's conditional
+
+
+657
+00:21:45,206 --> 00:21:46,106
+compilation features.
+
+
+658
+00:21:46,726 --> 00:21:48,696
+And for platform's start
+
+
+659
+00:21:48,696 --> 00:21:50,936
+support availability, Xcode
+
+
+660
+00:21:50,936 --> 00:21:52,366
+assigns our default deployment
+
+
+661
+00:21:52,366 --> 00:21:53,526
+target for each of them.
+
+
+662
+00:21:54,046 --> 00:21:56,336
+You can customize the deployment
+
+
+663
+00:21:56,336 --> 00:21:58,726
+target in the platform section
+
+
+664
+00:21:58,726 --> 00:21:59,956
+of the package initializer.
+
+
+665
+00:22:01,216 --> 00:22:02,946
+Note that this does not restrict
+
+
+666
+00:22:02,946 --> 00:22:04,276
+the platforms on which this
+
+
+667
+00:22:04,276 --> 00:22:05,116
+package can build.
+
+
+668
+00:22:05,576 --> 00:22:07,286
+It only customizes it for
+
+
+669
+00:22:07,286 --> 00:22:08,026
+the listed platforms.
+
+
+670
+00:22:08,696 --> 00:22:11,876
+In this case, I'm customizing
+
+
+671
+00:22:11,876 --> 00:22:15,256
+Mapworks to 10.15 and iOS to 13.
+
+
+672
+00:22:16,306 --> 00:22:17,566
+If your current Tools version
+
+
+673
+00:22:17,846 --> 00:22:19,336
+does not have the deployment
+
+
+674
+00:22:19,336 --> 00:22:21,626
+target API you want, you can use
+
+
+675
+00:22:21,626 --> 00:22:22,606
+the string-based API.
+
+
+676
+00:22:23,266 --> 00:22:26,366
+We just went through a lot of
+
+
+677
+00:22:26,366 --> 00:22:26,926
+APIs.
+
+
+678
+00:22:27,766 --> 00:22:29,786
+All package manifest APIs are
+
+
+679
+00:22:29,786 --> 00:22:31,976
+documented and you can view the
+
+
+680
+00:22:31,976 --> 00:22:33,576
+documentation in the generated
+
+
+681
+00:22:33,576 --> 00:22:34,446
+module interface.
+
+
+682
+00:22:35,776 --> 00:22:36,796
+You can get to the generated
+
+
+683
+00:22:36,796 --> 00:22:38,686
+module interface by command
+
+
+684
+00:22:38,686 --> 00:22:40,056
+clicking package description
+
+
+685
+00:22:40,056 --> 00:22:42,146
+import statement in any manifest
+
+
+686
+00:22:42,146 --> 00:22:42,376
+file.
+
+
+687
+00:22:43,706 --> 00:22:45,896
+With that, back to Boris for
+
+
+688
+00:22:45,896 --> 00:22:47,316
+talking about how to edit Swift
+
+
+689
+00:22:47,316 --> 00:22:47,756
+packages.
+
+
+690
+00:22:48,236 --> 00:22:48,536
+Thank you.
+
+
+691
+00:22:49,516 --> 00:22:55,266
+[ Applause ]
+
+
+692
+00:22:55,766 --> 00:22:56,386
+>> Thanks, Ankit.
+
+
+693
+00:22:56,796 --> 00:23:00,036
+Once you have been publishing
+
+
+694
+00:23:00,036 --> 00:23:02,656
+your package for awhile, to
+
+
+695
+00:23:02,656 --> 00:23:03,856
+share it with your team or the
+
+
+696
+00:23:03,856 --> 00:23:06,146
+open source community, you will
+
+
+697
+00:23:06,146 --> 00:23:07,486
+likely need to work on it in the
+
+
+698
+00:23:07,486 --> 00:23:09,046
+context of your app.
+
+
+699
+00:23:09,046 --> 00:23:10,196
+So, let's talk about editing
+
+
+700
+00:23:10,196 --> 00:23:10,706
+packages.
+
+
+701
+00:23:11,636 --> 00:23:13,576
+In the earlier demos, I edited
+
+
+702
+00:23:13,576 --> 00:23:14,536
+packages in place.
+
+
+703
+00:23:15,036 --> 00:23:16,806
+One of them was a local package
+
+
+704
+00:23:17,116 --> 00:23:18,806
+that was built as part of a
+
+
+705
+00:23:18,806 --> 00:23:19,526
+workspace.
+
+
+706
+00:23:19,876 --> 00:23:21,176
+The other one was open
+
+
+707
+00:23:21,176 --> 00:23:22,516
+standalone by double clicking
+
+
+708
+00:23:22,516 --> 00:23:23,476
+package.swift.
+
+
+709
+00:23:23,816 --> 00:23:25,146
+Both are always editable.
+
+
+710
+00:23:25,746 --> 00:23:27,286
+Package dependencies, however,
+
+
+711
+00:23:27,286 --> 00:23:29,466
+are locked for editing, because
+
+
+712
+00:23:29,466 --> 00:23:30,916
+they're automatically managed by
+
+
+713
+00:23:30,916 --> 00:23:31,446
+Xcode.
+
+
+714
+00:23:31,976 --> 00:23:34,626
+If you look at the app from
+
+
+715
+00:23:34,626 --> 00:23:36,946
+earlier, our dependency on the
+
+
+716
+00:23:36,946 --> 00:23:38,116
+food and stuff package from
+
+
+717
+00:23:38,116 --> 00:23:38,476
+GitHub.
+
+
+718
+00:23:38,886 --> 00:23:41,066
+If we now check out the package
+
+
+719
+00:23:41,066 --> 00:23:43,646
+standalone and add it to our
+
+
+720
+00:23:43,646 --> 00:23:45,566
+project as a local package, it
+
+
+721
+00:23:45,566 --> 00:23:46,926
+will override existing
+
+
+722
+00:23:46,926 --> 00:23:49,246
+dependency without removing it.
+
+
+723
+00:23:50,496 --> 00:23:52,236
+The override is based on the
+
+
+724
+00:23:52,236 --> 00:23:53,486
+last path component.
+
+
+725
+00:23:53,846 --> 00:23:55,116
+So since both of these have the
+
+
+726
+00:23:55,116 --> 00:23:57,086
+same, the local one will
+
+
+727
+00:23:57,086 --> 00:23:58,506
+override the remote dependency.
+
+
+728
+00:23:58,936 --> 00:24:02,056
+Since local packages are always
+
+
+729
+00:24:02,056 --> 00:24:04,916
+editable, you can edit the app
+
+
+730
+00:24:04,916 --> 00:24:06,466
+and the package together in this
+
+
+731
+00:24:06,466 --> 00:24:06,666
+way.
+
+
+732
+00:24:07,246 --> 00:24:09,576
+Let's take a look at editing
+
+
+733
+00:24:09,576 --> 00:24:13,816
+packages in a demo.
+
+
+734
+00:24:14,236 --> 00:24:15,886
+Again, we go back right where we
+
+
+735
+00:24:15,886 --> 00:24:17,266
+left off in our earlier demo.
+
+
+736
+00:24:18,606 --> 00:24:22,196
+And if you remember, there's the
+
+
+737
+00:24:22,196 --> 00:24:23,406
+Swift Package Dependency
+
+
+738
+00:24:23,406 --> 00:24:25,656
+section, which shows the package
+
+
+739
+00:24:25,686 --> 00:24:26,886
+dependency that we added.
+
+
+740
+00:24:27,836 --> 00:24:28,976
+Now, since we already have a
+
+
+741
+00:24:28,976 --> 00:24:30,796
+checkout of the package
+
+
+742
+00:24:30,796 --> 00:24:32,306
+separately from earlier, we can
+
+
+743
+00:24:32,306 --> 00:24:33,766
+just drag it into our project.
+
+
+744
+00:24:34,096 --> 00:24:37,356
+And now the Swift Package
+
+
+745
+00:24:37,356 --> 00:24:38,806
+Dependency section disappears
+
+
+746
+00:24:39,286 --> 00:24:40,566
+because we are no longer using
+
+
+747
+00:24:40,566 --> 00:24:41,586
+the remote dependency.
+
+
+748
+00:24:41,586 --> 00:24:43,316
+We're using the local one.
+
+
+749
+00:24:47,876 --> 00:24:50,356
+So, our users have asked us for
+
+
+750
+00:24:50,356 --> 00:24:51,666
+a new feature for the lunch app.
+
+
+751
+00:24:52,326 --> 00:24:53,866
+They want to see which dishes
+
+
+752
+00:24:53,926 --> 00:24:54,456
+they can eat.
+
+
+753
+00:24:54,636 --> 00:24:56,346
+So, we want to mark explicitly
+
+
+754
+00:24:56,696 --> 00:24:58,536
+which dish is vegetarian or not.
+
+
+755
+00:24:59,136 --> 00:25:00,756
+Thankfully, our data model
+
+
+756
+00:25:00,756 --> 00:25:01,636
+already includes that
+
+
+757
+00:25:01,636 --> 00:25:02,296
+information.
+
+
+758
+00:25:04,676 --> 00:25:06,646
+Not our data model, our
+
+
+759
+00:25:06,786 --> 00:25:07,636
+underlying data.
+
+
+760
+00:25:07,856 --> 00:25:09,256
+We have to change the data model
+
+
+761
+00:25:09,256 --> 00:25:10,426
+to actually expose that.
+
+
+762
+00:25:11,066 --> 00:25:12,576
+Let's go to the package.
+
+
+763
+00:25:13,976 --> 00:25:15,476
+Open up the food item type.
+
+
+764
+00:25:16,806 --> 00:25:18,056
+I'll add a new property here
+
+
+765
+00:25:22,956 --> 00:25:25,786
+called vegetarian of type
+
+
+766
+00:25:25,786 --> 00:25:27,336
+Bool.
+
+
+767
+00:25:27,336 --> 00:25:28,436
+Copy this part.
+
+
+768
+00:25:28,436 --> 00:25:30,826
+Add it as an argument to the
+
+
+769
+00:25:30,826 --> 00:25:31,606
+initializer.
+
+
+770
+00:25:31,936 --> 00:25:34,666
+And then finally we'll set the
+
+
+771
+00:25:34,666 --> 00:25:38,946
+property to the initializer
+
+
+772
+00:25:38,946 --> 00:25:39,526
+argument.
+
+
+773
+00:25:40,136 --> 00:25:41,376
+So now we have the information
+
+
+774
+00:25:41,376 --> 00:25:42,626
+on whether this is vegetarian or
+
+
+775
+00:25:42,626 --> 00:25:43,666
+not in the data model.
+
+
+776
+00:25:44,366 --> 00:25:46,576
+Let's add something to our UI to
+
+
+777
+00:25:46,576 --> 00:25:48,116
+indicate this to our users.
+
+
+778
+00:25:49,286 --> 00:25:51,216
+Go to the code for our iOS app.
+
+
+779
+00:25:51,216 --> 00:25:54,046
+Let's hide the project navigator
+
+
+780
+00:25:54,166 --> 00:25:55,166
+so that we have a little more
+
+
+781
+00:25:55,166 --> 00:25:57,886
+space, and resume the preview so
+
+
+782
+00:25:57,886 --> 00:25:58,946
+that we see what we're dealing
+
+
+783
+00:25:58,946 --> 00:25:59,076
+with.
+
+
+784
+00:25:59,666 --> 00:26:02,086
+We can use the jump bar to go to
+
+
+785
+00:26:02,086 --> 00:26:03,566
+the food item row view type.
+
+
+786
+00:26:04,086 --> 00:26:09,586
+And if we go to our UI code in
+
+
+787
+00:26:09,586 --> 00:26:11,386
+editor, we see highlighted that
+
+
+788
+00:26:11,386 --> 00:26:13,816
+this is representing each of the
+
+
+789
+00:26:13,816 --> 00:26:14,676
+table view cells.
+
+
+790
+00:26:15,366 --> 00:26:20,736
+So, I've prepared a snippet to
+
+
+791
+00:26:20,866 --> 00:26:23,716
+compute a label that uses the
+
+
+792
+00:26:23,716 --> 00:26:26,146
+food item's name but adds emoji
+
+
+793
+00:26:26,146 --> 00:26:27,486
+that represents whether a dish
+
+
+794
+00:26:27,486 --> 00:26:28,536
+is vegetarian or not.
+
+
+795
+00:26:29,016 --> 00:26:31,626
+And we can go to the text field
+
+
+796
+00:26:31,836 --> 00:26:33,036
+and use that label here.
+
+
+797
+00:26:33,476 --> 00:26:37,996
+And let's resume the preview.
+
+
+798
+00:26:38,486 --> 00:26:42,066
+And then we can see that now for
+
+
+799
+00:26:42,066 --> 00:26:44,176
+each dish it's clearly marked if
+
+
+800
+00:26:44,176 --> 00:26:45,276
+it's vegetarian or not.
+
+
+801
+00:26:45,956 --> 00:26:47,526
+So, with these steps you can
+
+
+802
+00:26:47,526 --> 00:26:49,246
+edit your app and your package
+
+
+803
+00:26:49,246 --> 00:26:49,636
+together.
+
+
+804
+00:26:50,146 --> 00:26:52,416
+Let's go back to the slides.
+
+
+805
+00:26:58,396 --> 00:27:00,466
+This overriding behavior can
+
+
+806
+00:27:00,526 --> 00:27:01,836
+also be used to edit the
+
+
+807
+00:27:01,836 --> 00:27:03,986
+packages you don't own, if you
+
+
+808
+00:27:03,986 --> 00:27:05,646
+need to fix bugs or make a small
+
+
+809
+00:27:05,646 --> 00:27:06,736
+change of the bug in your
+
+
+810
+00:27:06,736 --> 00:27:07,146
+problem.
+
+
+811
+00:27:08,976 --> 00:27:10,696
+To wrap things up, let's look
+
+
+812
+00:27:10,696 --> 00:27:12,106
+into the Swift package manager's
+
+
+813
+00:27:12,156 --> 00:27:13,766
+open source project, which we'll
+
+
+814
+00:27:13,766 --> 00:27:15,136
+abbreviate as Swift PM.
+
+
+815
+00:27:15,796 --> 00:27:17,266
+Swift PM has been out for a
+
+
+816
+00:27:17,266 --> 00:27:18,896
+couple of years and Xcode
+
+
+817
+00:27:18,896 --> 00:27:20,576
+support of Swift packages is
+
+
+818
+00:27:20,576 --> 00:27:23,006
+built on top of it.
+
+
+819
+00:27:23,276 --> 00:27:24,676
+Swift is a cross-platform
+
+
+820
+00:27:24,676 --> 00:27:26,496
+language and Swift PM is a
+
+
+821
+00:27:26,496 --> 00:27:28,186
+cross-platform built system for
+
+
+822
+00:27:28,186 --> 00:27:28,956
+Swift packages.
+
+
+823
+00:27:29,526 --> 00:27:31,476
+Using it, you can share code
+
+
+824
+00:27:31,626 --> 00:27:33,396
+between your client and server
+
+
+825
+00:27:34,346 --> 00:27:35,436
+side apps.
+
+
+826
+00:27:35,686 --> 00:27:37,226
+Swift PM consists of four
+
+
+827
+00:27:37,226 --> 00:27:38,736
+command line tools under the top
+
+
+828
+00:27:38,736 --> 00:27:39,606
+level Swift command.
+
+
+829
+00:27:39,886 --> 00:27:41,596
+There's Swift build, to build a
+
+
+830
+00:27:41,596 --> 00:27:42,116
+package.
+
+
+831
+00:27:42,556 --> 00:27:44,256
+Swift run, to run the executable
+
+
+832
+00:27:44,256 --> 00:27:44,776
+products.
+
+
+833
+00:27:45,036 --> 00:27:46,496
+Swift test, to run tests.
+
+
+834
+00:27:47,146 --> 00:27:48,846
+And finally, Swift package, to
+
+
+835
+00:27:48,846 --> 00:27:50,196
+perform various nonbuild
+
+
+836
+00:27:50,196 --> 00:27:51,686
+operations on the package.
+
+
+837
+00:27:52,546 --> 00:27:54,166
+These command line tools can be
+
+
+838
+00:27:54,166 --> 00:27:55,816
+used to build packages for both
+
+
+839
+00:27:55,846 --> 00:27:57,326
+macOS and Linux.
+
+
+840
+00:27:58,836 --> 00:28:01,146
+To learn more about the Swift PM
+
+
+841
+00:28:01,426 --> 00:28:03,156
+command line tool and future
+
+
+842
+00:28:03,156 --> 00:28:05,446
+ideas for its evolution, you can
+
+
+843
+00:28:05,446 --> 00:28:06,646
+check out the session, "Getting
+
+
+844
+00:28:06,646 --> 00:28:07,966
+to Know Swift Package Manager"
+
+
+845
+00:28:07,966 --> 00:28:09,896
+from WWDC 2018.
+
+
+846
+00:28:10,906 --> 00:28:13,096
+Of course, you can also use
+
+
+847
+00:28:13,096 --> 00:28:14,726
+Xcode Build to build packages on
+
+
+848
+00:28:14,726 --> 00:28:16,196
+the command line or on CI.
+
+
+849
+00:28:16,966 --> 00:28:18,476
+This is also a way to build
+
+
+850
+00:28:18,476 --> 00:28:20,706
+packages for iOS, watchOS and
+
+
+851
+00:28:20,706 --> 00:28:21,956
+tvOS on the command line.
+
+
+852
+00:28:22,426 --> 00:28:25,216
+Swift package support in Xcode
+
+
+853
+00:28:25,216 --> 00:28:26,436
+is built on top of the
+
+
+854
+00:28:26,436 --> 00:28:28,376
+libSwiftPM library, which is
+
+
+855
+00:28:28,376 --> 00:28:29,996
+part of the open source project.
+
+
+856
+00:28:30,946 --> 00:28:32,416
+libSwiftPM can be used to
+
+
+857
+00:28:32,416 --> 00:28:33,856
+support Swift packages and other
+
+
+858
+00:28:33,856 --> 00:28:35,366
+developer tools for IDs.
+
+
+859
+00:28:36,166 --> 00:28:37,406
+We're excited to work with the
+
+
+860
+00:28:37,406 --> 00:28:39,116
+community towards a stable API.
+
+
+861
+00:28:39,856 --> 00:28:42,946
+An example for this is
+
+
+862
+00:28:42,946 --> 00:28:44,856
+SourceKit-LSP, which is the
+
+
+863
+00:28:44,856 --> 00:28:46,266
+implementation of the language
+
+
+864
+00:28:46,266 --> 00:28:48,336
+server protocol - or LSP for
+
+
+865
+00:28:48,336 --> 00:28:50,176
+short - for Swift and C-based
+
+
+866
+00:28:50,176 --> 00:28:50,616
+languages.
+
+
+867
+00:28:51,466 --> 00:28:53,886
+The LSP defines the protocol
+
+
+868
+00:28:53,886 --> 00:28:55,926
+used between the editor or IDE
+
+
+869
+00:28:56,316 --> 00:28:57,686
+and a language server that
+
+
+870
+00:28:57,686 --> 00:28:59,286
+provides language features like
+
+
+871
+00:28:59,286 --> 00:29:01,026
+autocomplete, jump to
+
+
+872
+00:29:01,026 --> 00:29:02,206
+definition, or find our
+
+
+873
+00:29:02,206 --> 00:29:02,846
+references.
+
+
+874
+00:29:03,416 --> 00:29:05,666
+Using SourceKit-LSP, IDEs are
+
+
+875
+00:29:05,666 --> 00:29:06,996
+editors which support the
+
+
+876
+00:29:06,996 --> 00:29:08,616
+language server protocol, get
+
+
+877
+00:29:08,616 --> 00:29:09,726
+these features for Swift
+
+
+878
+00:29:09,726 --> 00:29:10,186
+packages.
+
+
+879
+00:29:10,396 --> 00:29:11,776
+And this was built on top of the
+
+
+880
+00:29:11,776 --> 00:29:13,206
+open source libSwiftPM.
+
+
+881
+00:29:13,686 --> 00:29:16,986
+Swift package manager is part of
+
+
+882
+00:29:16,986 --> 00:29:18,476
+the larger Swift open source
+
+
+883
+00:29:18,476 --> 00:29:18,966
+project.
+
+
+884
+00:29:19,316 --> 00:29:20,946
+The Swift.org website is a great
+
+
+885
+00:29:20,946 --> 00:29:22,306
+place where you can learn about
+
+
+886
+00:29:22,306 --> 00:29:23,696
+the community and process.
+
+
+887
+00:29:24,896 --> 00:29:26,416
+Package manager follows the
+
+
+888
+00:29:26,416 --> 00:29:28,486
+Swift evolution process, just as
+
+
+889
+00:29:28,486 --> 00:29:30,146
+the rest of the Swift project.
+
+
+890
+00:29:30,436 --> 00:29:31,706
+Anyone can develop and
+
+
+891
+00:29:31,706 --> 00:29:33,646
+ultimately submit features or
+
+
+892
+00:29:33,646 --> 00:29:34,446
+major changes.
+
+
+893
+00:29:35,846 --> 00:29:37,356
+Before you spend your time
+
+
+894
+00:29:37,356 --> 00:29:39,086
+drafting a proposal, drop by the
+
+
+895
+00:29:39,086 --> 00:29:40,466
+package manager section of the
+
+
+896
+00:29:40,466 --> 00:29:42,226
+forums, start a conversation,
+
+
+897
+00:29:42,426 --> 00:29:43,956
+and find others that have useful
+
+
+898
+00:29:43,956 --> 00:29:44,836
+thoughts or feedback.
+
+
+899
+00:29:45,256 --> 00:29:49,046
+Swift packages currently only
+
+
+900
+00:29:49,046 --> 00:29:50,296
+supports source code and
+
+
+901
+00:29:50,296 --> 00:29:50,566
+unit tests.
+
+
+902
+00:29:51,596 --> 00:29:52,826
+We're looking forward to work
+
+
+903
+00:29:52,826 --> 00:29:53,986
+with the community to add
+
+
+904
+00:29:53,986 --> 00:29:55,686
+support for resources such as
+
+
+905
+00:29:55,686 --> 00:29:57,856
+images, text files, or other
+
+
+906
+00:29:58,436 --> 00:30:00,216
+data files.
+
+
+907
+00:30:00,396 --> 00:30:01,736
+We already have a draft proposal
+
+
+908
+00:30:01,736 --> 00:30:02,836
+for package resources.
+
+
+909
+00:30:02,976 --> 00:30:04,336
+You can follow along the process
+
+
+910
+00:30:04,336 --> 00:30:05,626
+and influence how this feature
+
+
+911
+00:30:05,626 --> 00:30:06,766
+will look like.
+
+
+912
+00:30:09,936 --> 00:30:11,526
+Also on Swift.org, we have
+
+
+913
+00:30:11,526 --> 00:30:13,636
+regularly updated tool change so
+
+
+914
+00:30:13,636 --> 00:30:14,986
+you can try out the latest
+
+
+915
+00:30:14,986 --> 00:30:15,836
+changes yourself.
+
+
+916
+00:30:16,836 --> 00:30:18,016
+Changes to the open source
+
+
+917
+00:30:18,016 --> 00:30:19,886
+project will also be part of
+
+
+918
+00:30:19,886 --> 00:30:21,326
+future versions of Xcode.
+
+
+919
+00:30:21,936 --> 00:30:25,886
+As a final takeaway, packages
+
+
+920
+00:30:25,936 --> 00:30:28,076
+are supported on Apple platforms
+
+
+921
+00:30:28,076 --> 00:30:28,736
+and Xcode now.
+
+
+922
+00:30:29,776 --> 00:30:31,196
+Look for reusable code in your
+
+
+923
+00:30:31,196 --> 00:30:33,536
+project and refractor it into a
+
+
+924
+00:30:33,536 --> 00:30:34,346
+Swift package.
+
+
+925
+00:30:35,216 --> 00:30:36,426
+We're excited about the
+
+
+926
+00:30:36,426 --> 00:30:37,856
+expanding Swift package
+
+
+927
+00:30:37,856 --> 00:30:38,436
+ecosystem.
+
+
+928
+00:30:39,016 --> 00:30:41,536
+If you have any further
+
+
+929
+00:30:41,536 --> 00:30:43,736
+questions about adopting or
+
+
+930
+00:30:43,736 --> 00:30:45,436
+creating packages, we have two
+
+
+931
+00:30:45,436 --> 00:30:46,326
+labs upcoming.
+
+
+932
+00:30:46,636 --> 00:30:48,436
+One is today at 12 and the other
+
+
+933
+00:30:48,436 --> 00:30:50,056
+one is tomorrow at the same
+
+
+934
+00:30:50,056 --> 00:30:50,346
+time.
+
+
+935
+00:30:50,856 --> 00:30:53,256
+Thank you very much for coming
+
+
+936
+00:30:53,306 --> 00:30:54,416
+and enjoy the rest of your week.
+
+
+937
+00:30:55,516 --> 00:30:59,506
+[ Applause ]
+

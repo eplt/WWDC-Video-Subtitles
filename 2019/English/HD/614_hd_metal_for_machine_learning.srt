@@ -1,0 +1,7664 @@
+1
+00:00:01,176 --> 00:00:04,500
+[ Music ]
+
+
+2
+00:00:09,516 --> 00:00:15,546
+[ Applause ]
+
+
+3
+00:00:16,046 --> 00:00:16,826
+>> Good afternoon.
+
+
+4
+00:00:17,536 --> 00:00:18,636
+My name's Justin.
+
+
+5
+00:00:18,756 --> 00:00:20,376
+I'm an engineer in GPU Software,
+
+
+6
+00:00:20,376 --> 00:00:21,746
+and this is Metal for Machine
+
+
+7
+00:00:21,746 --> 00:00:21,976
+Learning.
+
+
+8
+00:00:24,516 --> 00:00:25,946
+Today we'll be discussing the
+
+
+9
+00:00:25,946 --> 00:00:26,896
+Metal Performance Shaders
+
+
+10
+00:00:26,896 --> 00:00:28,466
+framework, and new machine
+
+
+11
+00:00:28,466 --> 00:00:29,426
+learning features that we added
+
+
+12
+00:00:29,426 --> 00:00:29,796
+this year.
+
+
+13
+00:00:30,396 --> 00:00:33,096
+The Metal Performance Shaders or
+
+
+14
+00:00:33,096 --> 00:00:35,156
+MPS is a collection of
+
+
+15
+00:00:35,156 --> 00:00:36,626
+GPU-accelerated primitives,
+
+
+16
+00:00:37,066 --> 00:00:38,006
+which allow you to leverage the
+
+
+17
+00:00:38,006 --> 00:00:39,356
+high-performance capabilities of
+
+
+18
+00:00:39,356 --> 00:00:40,476
+metal in the GPU.
+
+
+19
+00:00:41,226 --> 00:00:43,326
+MPS provides kernels for image
+
+
+20
+00:00:43,356 --> 00:00:46,266
+processing, linear algebra, ray
+
+
+21
+00:00:46,266 --> 00:00:48,486
+tracing, and machine learning.
+
+
+22
+00:00:49,066 --> 00:00:51,016
+Now machine learning kernels
+
+
+23
+00:00:51,016 --> 00:00:52,826
+support both inference and
+
+
+24
+00:00:52,826 --> 00:00:54,516
+training, and they're optimized
+
+
+25
+00:00:54,516 --> 00:00:57,506
+for both for iOS, macOS, and
+
+
+26
+00:00:58,756 --> 00:00:58,896
+tvOS.
+
+
+27
+00:00:59,066 --> 00:01:00,446
+MPS also provides a convenient
+
+
+28
+00:01:00,446 --> 00:01:01,766
+way of building neural networks
+
+
+29
+00:01:02,006 --> 00:01:07,646
+through the graph API.
+
+
+30
+00:01:07,876 --> 00:01:10,326
+So, here we can see how MPS fits
+
+
+31
+00:01:10,326 --> 00:01:11,826
+into the larger Apple ML
+
+
+32
+00:01:11,826 --> 00:01:12,436
+ecosystem.
+
+
+33
+00:01:13,646 --> 00:01:14,936
+You have higher-level frameworks
+
+
+34
+00:01:14,936 --> 00:01:17,806
+like Core ML and Create ML that
+
+
+35
+00:01:17,806 --> 00:01:18,736
+give you a convenient way to
+
+
+36
+00:01:18,736 --> 00:01:20,386
+implement many of your networks.
+
+
+37
+00:01:20,916 --> 00:01:22,076
+But if you want a little more
+
+
+38
+00:01:22,076 --> 00:01:23,646
+flexibility and control over
+
+
+39
+00:01:23,646 --> 00:01:25,086
+your program, you can use a
+
+
+40
+00:01:25,086 --> 00:01:27,186
+lower-level framework like MPS.
+
+
+41
+00:01:29,386 --> 00:01:31,146
+And this year, we have expanded
+
+
+42
+00:01:31,146 --> 00:01:32,266
+our machine learning support
+
+
+43
+00:01:32,266 --> 00:01:33,696
+with several new features.
+
+
+44
+00:01:34,816 --> 00:01:36,356
+We've added kernels to support
+
+
+45
+00:01:36,396 --> 00:01:37,676
+even more networks than before,
+
+
+46
+00:01:39,426 --> 00:01:41,256
+we've improved performance on
+
+
+47
+00:01:41,256 --> 00:01:43,726
+existing networks, and we've
+
+
+48
+00:01:43,726 --> 00:01:47,176
+made MPS even easier to use.
+
+
+49
+00:01:47,176 --> 00:01:48,276
+Now, as we go over these new
+
+
+50
+00:01:48,276 --> 00:01:49,456
+features, it's going to be
+
+
+51
+00:01:49,456 --> 00:01:50,636
+helpful to know a few things
+
+
+52
+00:01:50,636 --> 00:01:52,476
+about how inference and training
+
+
+53
+00:01:53,386 --> 00:01:54,546
+work in machine learning.
+
+
+54
+00:01:54,546 --> 00:01:56,006
+So, let's briefly review these
+
+
+55
+00:01:56,006 --> 00:01:56,706
+concepts.
+
+
+56
+00:01:59,156 --> 00:02:01,136
+So, inference is the process of
+
+
+57
+00:02:01,136 --> 00:02:02,536
+applying a network on an input,
+
+
+58
+00:02:02,536 --> 00:02:04,196
+in this case an image, and
+
+
+59
+00:02:04,196 --> 00:02:05,676
+producing an output or a guess
+
+
+60
+00:02:05,676 --> 00:02:06,366
+of what it is.
+
+
+61
+00:02:07,386 --> 00:02:09,066
+Now, the network is made up of a
+
+
+62
+00:02:09,066 --> 00:02:10,346
+variety of functions such as
+
+
+63
+00:02:10,346 --> 00:02:12,106
+convolutions and neuron
+
+
+64
+00:02:12,106 --> 00:02:14,586
+activations, and these layers in
+
+
+65
+00:02:14,586 --> 00:02:15,746
+turn depend upon a set of
+
+
+66
+00:02:15,746 --> 00:02:16,456
+parameters.
+
+
+67
+00:02:16,696 --> 00:02:18,526
+During inference, these sets of
+
+
+68
+00:02:18,526 --> 00:02:20,246
+parameters are fixed, but their
+
+
+69
+00:02:20,246 --> 00:02:21,856
+values are determined during the
+
+
+70
+00:02:21,856 --> 00:02:22,746
+training process.
+
+
+71
+00:02:23,306 --> 00:02:25,896
+So, what happens during
+
+
+72
+00:02:25,896 --> 00:02:26,266
+training.
+
+
+73
+00:02:26,266 --> 00:02:28,146
+During training, we give the
+
+
+74
+00:02:28,146 --> 00:02:30,406
+network many images of known
+
+
+75
+00:02:30,406 --> 00:02:30,956
+objects.
+
+
+76
+00:02:31,346 --> 00:02:32,506
+The training process involves
+
+
+77
+00:02:32,506 --> 00:02:34,016
+repeatedly classifying these
+
+
+78
+00:02:34,016 --> 00:02:35,926
+images, and as we do so, we
+
+
+79
+00:02:35,926 --> 00:02:38,496
+update our parameters, and each
+
+
+80
+00:02:38,496 --> 00:02:39,416
+iteration of the network
+
+
+81
+00:02:39,786 --> 00:02:40,676
+produces a better set of
+
+
+82
+00:02:40,736 --> 00:02:42,086
+parameters until we finally
+
+
+83
+00:02:42,086 --> 00:02:42,976
+reach a set of parameters that
+
+
+84
+00:02:42,976 --> 00:02:45,336
+allows us to best classify the
+
+
+85
+00:02:45,336 --> 00:02:45,896
+images.
+
+
+86
+00:02:46,406 --> 00:02:49,526
+Now, at that point we stop the
+
+
+87
+00:02:49,526 --> 00:02:50,726
+training process, and our
+
+
+88
+00:02:50,726 --> 00:02:51,716
+parameters are ready to be used
+
+
+89
+00:02:51,716 --> 00:02:52,186
+in inference.
+
+
+90
+00:02:52,746 --> 00:02:56,036
+So, let's look at how we can MPS
+
+
+91
+00:02:56,036 --> 00:02:57,076
+to implement some of these
+
+
+92
+00:02:57,076 --> 00:02:57,546
+ideas.
+
+
+93
+00:02:58,186 --> 00:02:59,516
+But I would like to mention that
+
+
+94
+00:03:00,036 --> 00:03:00,966
+there's a lot more to inference
+
+
+95
+00:03:00,966 --> 00:03:02,066
+and training than what we just
+
+
+96
+00:03:02,066 --> 00:03:02,536
+covered here.
+
+
+97
+00:03:02,536 --> 00:03:03,956
+So if you want more details,
+
+
+98
+00:03:04,296 --> 00:03:05,406
+please see some of our talks
+
+
+99
+00:03:05,406 --> 00:03:06,936
+from the past couple years.
+
+
+100
+00:03:10,026 --> 00:03:11,256
+Now, we added several new
+
+
+101
+00:03:11,256 --> 00:03:12,256
+features this year to better
+
+
+102
+00:03:12,256 --> 00:03:13,456
+support a wide range of
+
+
+103
+00:03:13,456 --> 00:03:14,636
+inference and training networks.
+
+
+104
+00:03:15,556 --> 00:03:16,616
+So, first we made creating
+
+
+105
+00:03:16,616 --> 00:03:18,576
+graphs of your network simpler
+
+
+106
+00:03:18,576 --> 00:03:19,946
+by supporting implicit creation
+
+
+107
+00:03:19,946 --> 00:03:20,876
+of your training graphs from
+
+
+108
+00:03:20,876 --> 00:03:21,706
+your inference graphs.
+
+
+109
+00:03:22,206 --> 00:03:24,316
+We've added kernels for
+
+
+110
+00:03:24,316 --> 00:03:26,146
+separable loss layers and random
+
+
+111
+00:03:26,146 --> 00:03:28,426
+number generation to enable a
+
+
+112
+00:03:28,426 --> 00:03:31,046
+variety of new networks and
+
+
+113
+00:03:31,046 --> 00:03:31,936
+we've added support for things
+
+
+114
+00:03:31,936 --> 00:03:33,366
+like predication and better
+
+
+115
+00:03:33,366 --> 00:03:35,276
+control over how MPS commits its
+
+
+116
+00:03:35,276 --> 00:03:37,276
+work to improve performance.
+
+
+117
+00:03:37,826 --> 00:03:40,326
+So, let's start with implicit
+
+
+118
+00:03:40,326 --> 00:03:41,056
+graph creation.
+
+
+119
+00:03:41,586 --> 00:03:44,866
+With implicit graph creation, we
+
+
+120
+00:03:44,866 --> 00:03:45,816
+can implicitly create our
+
+
+121
+00:03:45,816 --> 00:03:46,526
+training graphs from our
+
+
+122
+00:03:46,526 --> 00:03:47,246
+inference graphs.
+
+
+123
+00:03:48,466 --> 00:03:49,996
+So, let's first review how we
+
+
+124
+00:03:49,996 --> 00:03:52,266
+create a graph for our network.
+
+
+125
+00:03:52,426 --> 00:03:53,996
+Here we have a simple inference
+
+
+126
+00:03:53,996 --> 00:03:54,306
+network.
+
+
+127
+00:03:54,526 --> 00:03:55,836
+It's made up of some convolution
+
+
+128
+00:03:55,836 --> 00:03:58,756
+layers, some pooling layers, and
+
+
+129
+00:03:58,756 --> 00:03:59,796
+finally some fully connected
+
+
+130
+00:03:59,796 --> 00:04:00,166
+layers.
+
+
+131
+00:04:00,726 --> 00:04:03,306
+So, we're going to create a
+
+
+132
+00:04:03,306 --> 00:04:04,596
+graph for this network by
+
+
+133
+00:04:04,596 --> 00:04:06,006
+creating nodes for each layer.
+
+
+134
+00:04:06,006 --> 00:04:07,556
+We're going to create a
+
+
+135
+00:04:07,556 --> 00:04:09,106
+convolution node for each of the
+
+
+136
+00:04:09,106 --> 00:04:11,706
+convolution layers, a pooling
+
+
+137
+00:04:11,706 --> 00:04:12,716
+node for each of the pooling
+
+
+138
+00:04:12,716 --> 00:04:14,876
+layers, and finally some fully
+
+
+139
+00:04:14,876 --> 00:04:16,375
+connecting nodes for the fully
+
+
+140
+00:04:16,375 --> 00:04:17,106
+connected layers.
+
+
+141
+00:04:17,685 --> 00:04:20,315
+So now with our inference graph
+
+
+142
+00:04:20,315 --> 00:04:21,586
+defined, we can extend it to a
+
+
+143
+00:04:21,586 --> 00:04:21,976
+training graph.
+
+
+144
+00:04:25,276 --> 00:04:26,556
+We do this by first attending a
+
+
+145
+00:04:26,556 --> 00:04:28,186
+loss node at the end of our
+
+
+146
+00:04:28,186 --> 00:04:30,616
+inference graph, and then then
+
+
+147
+00:04:30,616 --> 00:04:31,676
+we add gradient nodes for each
+
+
+148
+00:04:31,676 --> 00:04:33,066
+of our forward nodes, moving in
+
+
+149
+00:04:33,066 --> 00:04:33,926
+the reverse order of our
+
+
+150
+00:04:34,026 --> 00:04:34,946
+inference graph.
+
+
+151
+00:04:35,506 --> 00:04:37,256
+So, we can look at the code for
+
+
+152
+00:04:37,256 --> 00:04:37,806
+this section.
+
+
+153
+00:04:38,606 --> 00:04:39,886
+As before, we start by adding
+
+
+154
+00:04:39,886 --> 00:04:43,306
+the loss node, and then we add
+
+
+155
+00:04:43,306 --> 00:04:44,956
+each gradient node, just moving
+
+
+156
+00:04:44,956 --> 00:04:46,216
+in the same order we just
+
+
+157
+00:04:46,216 --> 00:04:46,546
+mentioned.
+
+
+158
+00:04:47,146 --> 00:04:49,996
+So, here we can see that each
+
+
+159
+00:04:49,996 --> 00:04:51,876
+gradient node is pretty easily
+
+
+160
+00:04:51,876 --> 00:04:53,676
+created from the forward node,
+
+
+161
+00:04:53,676 --> 00:04:55,406
+but with implicit graph
+
+
+162
+00:04:55,406 --> 00:04:56,786
+creation, this is even simpler.
+
+
+163
+00:04:58,896 --> 00:05:00,116
+Now, once you've initialized
+
+
+164
+00:05:00,116 --> 00:05:01,046
+your gradient image with the
+
+
+165
+00:05:01,046 --> 00:05:03,216
+loss node, we can automatically
+
+
+166
+00:05:03,216 --> 00:05:04,616
+create the entire training graph
+
+
+167
+00:05:04,656 --> 00:05:05,666
+corresponding to the inference
+
+
+168
+00:05:05,666 --> 00:05:05,946
+graph.
+
+
+169
+00:05:07,646 --> 00:05:08,716
+So, as before, we create our
+
+
+170
+00:05:08,716 --> 00:05:09,276
+loss node.
+
+
+171
+00:05:09,846 --> 00:05:12,526
+Then with a single line of code,
+
+
+172
+00:05:12,786 --> 00:05:13,946
+we can create our entire
+
+
+173
+00:05:13,946 --> 00:05:14,546
+training graph.
+
+
+174
+00:05:14,546 --> 00:05:17,126
+Now, in this case, we're
+
+
+175
+00:05:17,126 --> 00:05:18,266
+creating the training graph from
+
+
+176
+00:05:18,266 --> 00:05:18,846
+the loss node.
+
+
+177
+00:05:18,846 --> 00:05:19,896
+We're going to use a nil
+
+
+178
+00:05:19,896 --> 00:05:20,886
+argument for our source
+
+
+179
+00:05:20,886 --> 00:05:23,226
+gradient, which tells the loss
+
+
+180
+00:05:23,226 --> 00:05:24,626
+node to use its result to
+
+
+181
+00:05:24,626 --> 00:05:25,686
+initialized the gradients.
+
+
+182
+00:05:26,086 --> 00:05:27,306
+But we could use another image
+
+
+183
+00:05:27,306 --> 00:05:27,786
+if we wanted.
+
+
+184
+00:05:28,336 --> 00:05:31,036
+And we're also providing nil for
+
+
+185
+00:05:31,036 --> 00:05:31,736
+the second argument.
+
+
+186
+00:05:31,736 --> 00:05:32,886
+This is called a node handler.
+
+
+187
+00:05:33,426 --> 00:05:34,476
+The node handler allows you to
+
+
+188
+00:05:34,476 --> 00:05:36,006
+provide a block, which you can
+
+
+189
+00:05:36,006 --> 00:05:37,526
+use to execute some custom code
+
+
+190
+00:05:38,036 --> 00:05:39,596
+to configure your nodes after
+
+
+191
+00:05:39,596 --> 00:05:39,976
+they're created.
+
+
+192
+00:05:43,766 --> 00:05:44,716
+I also want to mention another
+
+
+193
+00:05:44,716 --> 00:05:46,466
+useful feature, the stop
+
+
+194
+00:05:46,466 --> 00:05:47,176
+gradient property.
+
+
+195
+00:05:48,116 --> 00:05:49,766
+So, typically, when you generate
+
+
+196
+00:05:49,766 --> 00:05:50,986
+your training sequence, all of
+
+
+197
+00:05:50,986 --> 00:05:52,536
+your trainable layers will
+
+
+198
+00:05:52,536 --> 00:05:53,346
+update their weights.
+
+
+199
+00:05:54,696 --> 00:05:55,776
+In this case, those are
+
+
+200
+00:05:55,776 --> 00:05:57,236
+convolutions and the fully
+
+
+201
+00:05:57,236 --> 00:05:58,026
+connected layers.
+
+
+202
+00:05:58,556 --> 00:06:00,106
+But in some cases, you may only
+
+
+203
+00:06:00,106 --> 00:06:01,276
+want to update the weights for
+
+
+204
+00:06:01,276 --> 00:06:02,086
+some of the layers of the
+
+
+205
+00:06:02,086 --> 00:06:03,736
+network, as in transfer
+
+
+206
+00:06:03,736 --> 00:06:04,746
+learning, for example.
+
+
+207
+00:06:05,116 --> 00:06:06,606
+Now, in transfer learning, we
+
+
+208
+00:06:06,606 --> 00:06:07,686
+are going to use pretrained
+
+
+209
+00:06:07,686 --> 00:06:09,036
+weights for many of the layers,
+
+
+210
+00:06:09,036 --> 00:06:09,896
+and we only want to train the
+
+
+211
+00:06:09,896 --> 00:06:10,876
+weight for some of the layers.
+
+
+212
+00:06:11,266 --> 00:06:12,396
+Let's say, for example, the
+
+
+213
+00:06:12,396 --> 00:06:13,666
+final fully connected layers.
+
+
+214
+00:06:15,576 --> 00:06:17,016
+Implicit graph creation also
+
+
+215
+00:06:17,016 --> 00:06:18,266
+supports creating graphs for
+
+
+216
+00:06:18,266 --> 00:06:19,566
+these types of networks through
+
+
+217
+00:06:19,566 --> 00:06:20,556
+the stop gradient property.
+
+
+218
+00:06:21,166 --> 00:06:24,176
+So, to do this, we're going to
+
+
+219
+00:06:24,176 --> 00:06:25,396
+set the stop gradient property
+
+
+220
+00:06:25,396 --> 00:06:26,856
+on the first, on the first
+
+
+221
+00:06:27,066 --> 00:06:28,696
+layer, whose weights we want to
+
+
+222
+00:06:28,696 --> 00:06:28,986
+update.
+
+
+223
+00:06:29,956 --> 00:06:30,956
+In this case, the fully
+
+
+224
+00:06:30,956 --> 00:06:31,526
+connected layer.
+
+
+225
+00:06:32,056 --> 00:06:35,156
+And then when the graph is
+
+
+226
+00:06:35,156 --> 00:06:37,066
+generated, none of the
+
+
+227
+00:06:37,066 --> 00:06:38,736
+subsequent gradient nodes will
+
+
+228
+00:06:38,736 --> 00:06:39,306
+be created.
+
+
+229
+00:06:39,886 --> 00:06:42,906
+So as you can see, using
+
+
+230
+00:06:42,906 --> 00:06:44,576
+implicit graph creation is a
+
+
+231
+00:06:44,576 --> 00:06:46,726
+very easy way of generating your
+
+
+232
+00:06:46,726 --> 00:06:47,666
+training graphs from your
+
+
+233
+00:06:47,666 --> 00:06:48,366
+inference graphs.
+
+
+234
+00:06:52,236 --> 00:06:53,496
+So now let's look at a feature
+
+
+235
+00:06:53,496 --> 00:06:55,256
+we added to support some new
+
+
+236
+00:06:55,256 --> 00:06:55,836
+networks.
+
+
+237
+00:06:56,576 --> 00:06:57,926
+Separable loss kernels.
+
+
+238
+00:06:59,676 --> 00:07:01,726
+So, earlier, we just saw how to
+
+
+239
+00:07:01,726 --> 00:07:04,836
+use a loss node using MPS CNN
+
+
+240
+00:07:04,836 --> 00:07:05,276
+loss.
+
+
+241
+00:07:06,316 --> 00:07:07,966
+MPS CNN loss consumes a final
+
+
+242
+00:07:07,966 --> 00:07:09,006
+image, which is usually the
+
+
+243
+00:07:09,006 --> 00:07:10,456
+result of something like a soft
+
+
+244
+00:07:10,456 --> 00:07:12,116
+max layer along with the ground
+
+
+245
+00:07:12,116 --> 00:07:13,726
+truth data in order to compute
+
+
+246
+00:07:13,726 --> 00:07:14,726
+gradient values to begin the
+
+
+247
+00:07:14,726 --> 00:07:15,786
+back-propagation phase.
+
+
+248
+00:07:16,476 --> 00:07:18,206
+But there are some networks
+
+
+249
+00:07:18,206 --> 00:07:19,956
+which use multiple intermediate
+
+
+250
+00:07:19,956 --> 00:07:21,676
+loss values in order to produce
+
+
+251
+00:07:21,676 --> 00:07:22,456
+a final loss.
+
+
+252
+00:07:22,926 --> 00:07:24,936
+So, to support this, we added
+
+
+253
+00:07:24,986 --> 00:07:26,526
+separate forward and gradient
+
+
+254
+00:07:26,526 --> 00:07:27,186
+loss kernels.
+
+
+255
+00:07:27,656 --> 00:07:29,256
+So, here we can see two loss
+
+
+256
+00:07:29,256 --> 00:07:31,256
+values being computed using
+
+
+257
+00:07:31,336 --> 00:07:33,506
+forward loss nodes, and then we
+
+
+258
+00:07:33,506 --> 00:07:34,746
+take those results, add them
+
+
+259
+00:07:34,746 --> 00:07:36,966
+together to produce a final
+
+
+260
+00:07:36,966 --> 00:07:37,396
+loss.
+
+
+261
+00:07:38,016 --> 00:07:41,236
+Now, we need to initialize the
+
+
+262
+00:07:41,236 --> 00:07:42,216
+gradient value to begin the
+
+
+263
+00:07:42,216 --> 00:07:43,286
+back-propagation phase.
+
+
+264
+00:07:44,926 --> 00:07:46,446
+Before this happened implicitly
+
+
+265
+00:07:46,446 --> 00:07:47,566
+through the loss node now, we
+
+
+266
+00:07:47,566 --> 00:07:48,796
+need to add an initial gradient
+
+
+267
+00:07:48,796 --> 00:07:49,066
+kernel.
+
+
+268
+00:07:49,536 --> 00:07:51,126
+This is going to generate just a
+
+
+269
+00:07:51,126 --> 00:07:52,516
+gradient image of ones, and it's
+
+
+270
+00:07:52,516 --> 00:07:53,716
+going to be sized to the result
+
+
+271
+00:07:53,716 --> 00:07:54,996
+of the final loss calculation.
+
+
+272
+00:07:55,606 --> 00:07:57,896
+So with the gradient values
+
+
+273
+00:07:57,896 --> 00:07:59,266
+initialized, we can start the
+
+
+274
+00:07:59,266 --> 00:08:00,386
+back-propagation phase.
+
+
+275
+00:08:00,686 --> 00:08:01,706
+We're going to use gradient
+
+
+276
+00:08:01,706 --> 00:08:02,736
+kernels for each of our forward
+
+
+277
+00:08:02,736 --> 00:08:03,806
+kernels with an addition
+
+
+278
+00:08:03,806 --> 00:08:05,836
+gradient and gradients for each
+
+
+279
+00:08:05,836 --> 00:08:06,586
+forward loss kernel.
+
+
+280
+00:08:06,586 --> 00:08:09,706
+Now, let's take a look at a
+
+
+281
+00:08:09,706 --> 00:08:12,256
+network that uses separable
+
+
+282
+00:08:12,256 --> 00:08:12,726
+losses.
+
+
+283
+00:08:13,266 --> 00:08:14,196
+Specifically, we're going to
+
+
+284
+00:08:14,196 --> 00:08:15,336
+look at style transfer.
+
+
+285
+00:08:15,926 --> 00:08:18,766
+Now, the style transfer network
+
+
+286
+00:08:18,766 --> 00:08:20,256
+produces images which are
+
+
+287
+00:08:20,256 --> 00:08:22,436
+combinations of a style and an
+
+
+288
+00:08:22,436 --> 00:08:23,176
+original image.
+
+
+289
+00:08:24,716 --> 00:08:26,286
+The model we'll be looking at is
+
+
+290
+00:08:26,286 --> 00:08:27,276
+one that you can find and to
+
+
+291
+00:08:27,276 --> 00:08:28,646
+re-create, and it's implemented
+
+
+292
+00:08:28,646 --> 00:08:29,986
+using MPS.
+
+
+293
+00:08:31,086 --> 00:08:32,466
+Now in inference, this network
+
+
+294
+00:08:32,466 --> 00:08:34,176
+consists of a transformer node,
+
+
+295
+00:08:34,176 --> 00:08:35,405
+which is made up of things like
+
+
+296
+00:08:35,405 --> 00:08:36,556
+convolutions and instance
+
+
+297
+00:08:36,556 --> 00:08:38,135
+normalization layers, and their
+
+
+298
+00:08:38,135 --> 00:08:39,416
+weights make up the trained
+
+
+299
+00:08:39,416 --> 00:08:40,015
+parameters.
+
+
+300
+00:08:40,775 --> 00:08:41,976
+This is where the style is
+
+
+301
+00:08:41,976 --> 00:08:42,566
+incorporated.
+
+
+302
+00:08:43,126 --> 00:08:44,766
+It's learned into the parameters
+
+
+303
+00:08:44,866 --> 00:08:45,876
+through the training process.
+
+
+304
+00:08:46,716 --> 00:08:48,246
+So let's look at how we do the
+
+
+305
+00:08:48,246 --> 00:08:48,596
+training.
+
+
+306
+00:08:49,186 --> 00:08:51,266
+So here we have an overview of
+
+
+307
+00:08:51,266 --> 00:08:51,706
+the network.
+
+
+308
+00:08:53,546 --> 00:08:55,126
+Now, as an inference, we're
+
+
+309
+00:08:55,126 --> 00:08:56,306
+going to apply the transformer
+
+
+310
+00:08:56,926 --> 00:08:58,496
+to produce a stylized image.
+
+
+311
+00:08:59,186 --> 00:09:00,216
+Now, in this case, this is going
+
+
+312
+00:09:00,216 --> 00:09:02,136
+to be the network's current
+
+
+313
+00:09:02,356 --> 00:09:04,516
+guess at the best styled image,
+
+
+314
+00:09:04,516 --> 00:09:05,586
+which combines the style and the
+
+
+315
+00:09:05,586 --> 00:09:05,956
+content.
+
+
+316
+00:09:06,686 --> 00:09:08,726
+And since the goal of the
+
+
+317
+00:09:08,726 --> 00:09:10,286
+network is to match both the
+
+
+318
+00:09:10,286 --> 00:09:11,726
+desired style and the content of
+
+
+319
+00:09:11,726 --> 00:09:12,846
+the original image, we're going
+
+
+320
+00:09:12,846 --> 00:09:13,996
+to need two loss values.
+
+
+321
+00:09:14,486 --> 00:09:18,116
+So, the first loss value is
+
+
+322
+00:09:18,116 --> 00:09:19,526
+computed by this sum network
+
+
+323
+00:09:19,526 --> 00:09:20,166
+that we're going to call the
+
+
+324
+00:09:20,166 --> 00:09:21,096
+style loss network.
+
+
+325
+00:09:22,316 --> 00:09:23,326
+This loss value is going to help
+
+
+326
+00:09:23,326 --> 00:09:24,086
+ensure that the network
+
+
+327
+00:09:24,086 --> 00:09:25,756
+converges on a result, which
+
+
+328
+00:09:25,756 --> 00:09:27,336
+closely matches our desired
+
+
+329
+00:09:27,336 --> 00:09:27,706
+style.
+
+
+330
+00:09:28,316 --> 00:09:29,666
+And then we also want to make
+
+
+331
+00:09:29,666 --> 00:09:32,036
+sure that the generated image
+
+
+332
+00:09:32,776 --> 00:09:33,936
+also retains the features of the
+
+
+333
+00:09:33,936 --> 00:09:34,366
+original.
+
+
+334
+00:09:34,496 --> 00:09:35,346
+So, for this we're going to use
+
+
+335
+00:09:35,346 --> 00:09:36,236
+a second loss network.
+
+
+336
+00:09:36,626 --> 00:09:37,846
+This is the content loss.
+
+
+337
+00:09:38,336 --> 00:09:41,896
+And we can use our new forward
+
+
+338
+00:09:41,896 --> 00:09:43,166
+loss kernels for each of these
+
+
+339
+00:09:43,166 --> 00:09:44,116
+loss calculations.
+
+
+340
+00:09:46,416 --> 00:09:48,716
+But let's take a closer look at
+
+
+341
+00:09:48,716 --> 00:09:49,766
+the style loss network.
+
+
+342
+00:09:50,786 --> 00:09:51,926
+So, in order to compute the
+
+
+343
+00:09:51,926 --> 00:09:53,676
+style loss, we need a way of
+
+
+344
+00:09:53,916 --> 00:09:55,146
+sort of measuring the style of
+
+
+345
+00:09:55,146 --> 00:09:55,586
+an image.
+
+
+346
+00:09:56,236 --> 00:09:57,086
+So, to do this we're going to
+
+
+347
+00:09:57,086 --> 00:09:58,306
+calculate what's called the Gram
+
+
+348
+00:09:58,306 --> 00:09:59,936
+Matrix for several intermediate
+
+
+349
+00:09:59,936 --> 00:10:00,776
+feature representations of the
+
+
+350
+00:10:00,776 --> 00:10:00,976
+images.
+
+
+351
+00:10:01,116 --> 00:10:04,766
+This year, Gram Matrix
+
+
+352
+00:10:04,766 --> 00:10:05,946
+calculations are natively
+
+
+353
+00:10:05,946 --> 00:10:07,596
+supported in MPS with both
+
+
+354
+00:10:07,596 --> 00:10:08,996
+forward and gradient kernels.
+
+
+355
+00:10:09,606 --> 00:10:11,476
+So let's take a quick look at
+
+
+356
+00:10:11,656 --> 00:10:12,686
+the Gram Matrix and how it's
+
+
+357
+00:10:12,686 --> 00:10:13,116
+computed.
+
+
+358
+00:10:13,666 --> 00:10:15,286
+So, the Gram Matrix represents
+
+
+359
+00:10:15,286 --> 00:10:16,626
+uncentered cross-correlations
+
+
+360
+00:10:16,716 --> 00:10:17,856
+between feature vectors.
+
+
+361
+00:10:18,396 --> 00:10:20,296
+Now, each feature vector results
+
+
+362
+00:10:20,296 --> 00:10:21,296
+from spatially flattening the
+
+
+363
+00:10:21,296 --> 00:10:23,186
+results from a single image in a
+
+
+364
+00:10:23,186 --> 00:10:23,926
+single feature channel.
+
+
+365
+00:10:24,536 --> 00:10:26,926
+We compute dot products between
+
+
+366
+00:10:26,926 --> 00:10:28,476
+each feature vector to produce a
+
+
+367
+00:10:28,476 --> 00:10:29,146
+Gram Matrix.
+
+
+368
+00:10:29,916 --> 00:10:30,946
+So let's take a look at how it's
+
+
+369
+00:10:30,946 --> 00:10:31,216
+used.
+
+
+370
+00:10:32,036 --> 00:10:34,586
+So, before we get to the Gram
+
+
+371
+00:10:34,586 --> 00:10:35,906
+Matrix, we're going to use the
+
+
+372
+00:10:35,906 --> 00:10:37,466
+VGG image classification network
+
+
+373
+00:10:37,466 --> 00:10:38,986
+to extract some features from
+
+
+374
+00:10:38,986 --> 00:10:40,696
+both our style and our stylized
+
+
+375
+00:10:40,796 --> 00:10:41,366
+input image.
+
+
+376
+00:10:41,366 --> 00:10:43,896
+Now, as we described before, the
+
+
+377
+00:10:43,896 --> 00:10:45,106
+Gram Matrix gives us
+
+
+378
+00:10:45,106 --> 00:10:46,076
+correlations between feature
+
+
+379
+00:10:46,076 --> 00:10:46,526
+vectors.
+
+
+380
+00:10:47,586 --> 00:10:48,906
+Now, when we take these from the
+
+
+381
+00:10:48,906 --> 00:10:49,986
+features extracted from the
+
+
+382
+00:10:49,986 --> 00:10:52,776
+style, this gives us our sort of
+
+
+383
+00:10:52,776 --> 00:10:54,376
+ground truth for the style that
+
+
+384
+00:10:54,376 --> 00:10:56,216
+we want to apply, and we're also
+
+
+385
+00:10:56,216 --> 00:10:57,946
+going to do the same thing for
+
+
+386
+00:10:57,946 --> 00:10:59,206
+our current guess at the best
+
+
+387
+00:10:59,566 --> 00:11:00,496
+stylized image.
+
+
+388
+00:11:01,506 --> 00:11:02,706
+Now, we take these two values
+
+
+389
+00:11:02,706 --> 00:11:06,306
+together to form our style loss.
+
+
+390
+00:11:08,916 --> 00:11:10,196
+So now let's look at how we
+
+
+391
+00:11:10,196 --> 00:11:11,216
+compute the second of our two
+
+
+392
+00:11:11,216 --> 00:11:12,746
+losses, the content loss.
+
+
+393
+00:11:13,306 --> 00:11:15,326
+So, as before, we're going to
+
+
+394
+00:11:15,326 --> 00:11:17,576
+extract features using VGG and
+
+
+395
+00:11:17,686 --> 00:11:19,026
+then compute a loss using those
+
+
+396
+00:11:19,026 --> 00:11:20,556
+features and our features from
+
+
+397
+00:11:20,556 --> 00:11:21,426
+our stylized image.
+
+
+398
+00:11:22,396 --> 00:11:23,556
+And then the network's final
+
+
+399
+00:11:23,556 --> 00:11:25,386
+loss is going to be the sum of
+
+
+400
+00:11:25,386 --> 00:11:26,696
+the content loss and the style
+
+
+401
+00:11:26,696 --> 00:11:27,066
+loss.
+
+
+402
+00:11:28,206 --> 00:11:29,256
+So, now let's look at how we can
+
+
+403
+00:11:29,256 --> 00:11:30,966
+use MPS to compute these values
+
+
+404
+00:11:30,966 --> 00:11:32,046
+and initialize gradients.
+
+
+405
+00:11:32,606 --> 00:11:36,086
+So first, let's assume we have
+
+
+406
+00:11:36,086 --> 00:11:37,426
+our feature representations, as
+
+
+407
+00:11:37,426 --> 00:11:38,326
+produced by VGG.
+
+
+408
+00:11:39,306 --> 00:11:40,326
+First, we're going to add our
+
+
+409
+00:11:40,326 --> 00:11:42,876
+Gram Matrix calculation nodes to
+
+
+410
+00:11:42,946 --> 00:11:44,266
+compute the Gram Matrix for both
+
+
+411
+00:11:44,266 --> 00:11:46,066
+the style and our stylized
+
+
+412
+00:11:46,066 --> 00:11:46,376
+image.
+
+
+413
+00:11:49,546 --> 00:11:50,526
+We're going to feed these
+
+
+414
+00:11:50,526 --> 00:11:52,206
+results into a forward loss node
+
+
+415
+00:11:52,806 --> 00:11:54,256
+to just compute the loss for our
+
+
+416
+00:11:54,256 --> 00:11:54,626
+style.
+
+
+417
+00:11:55,886 --> 00:11:57,536
+The source image here is the
+
+
+418
+00:11:57,536 --> 00:11:58,626
+result of the Gram Matrix
+
+
+419
+00:11:58,626 --> 00:11:59,926
+calculation for our network
+
+
+420
+00:11:59,926 --> 00:12:00,756
+stylized image.
+
+
+421
+00:12:03,416 --> 00:12:04,646
+The Gram Matrix for the
+
+
+422
+00:12:04,646 --> 00:12:06,566
+reference style image is going
+
+
+423
+00:12:06,566 --> 00:12:07,506
+to be used in the labels
+
+
+424
+00:12:07,506 --> 00:12:07,926
+argument.
+
+
+425
+00:12:09,256 --> 00:12:10,126
+Now this shows an important
+
+
+426
+00:12:10,126 --> 00:12:11,636
+feature of the new forward loss
+
+
+427
+00:12:11,636 --> 00:12:12,096
+kernels.
+
+
+428
+00:12:12,356 --> 00:12:13,656
+Previously, you had to pass
+
+
+429
+00:12:13,656 --> 00:12:15,276
+labels using MPS state objects.
+
+
+430
+00:12:15,826 --> 00:12:18,486
+But now, you can used MPS
+
+
+431
+00:12:20,686 --> 00:12:20,866
+images.
+
+
+432
+00:12:21,036 --> 00:12:22,256
+So now we can add the loss node
+
+
+433
+00:12:22,256 --> 00:12:23,996
+for the content loss using the
+
+
+434
+00:12:24,036 --> 00:12:25,206
+features of the stylized image
+
+
+435
+00:12:25,206 --> 00:12:27,326
+and the original image, and we
+
+
+436
+00:12:27,326 --> 00:12:28,816
+can combine them to get our
+
+
+437
+00:12:28,816 --> 00:12:29,686
+total loss value.
+
+
+438
+00:12:30,276 --> 00:12:32,466
+And now we need to initialize
+
+
+439
+00:12:32,466 --> 00:12:34,066
+the final loss gradient to begin
+
+
+440
+00:12:34,066 --> 00:12:35,246
+the back-propagation phase.
+
+
+441
+00:12:36,636 --> 00:12:38,256
+We do this using the initial
+
+
+442
+00:12:38,256 --> 00:12:39,146
+gradient node we discussed
+
+
+443
+00:12:39,146 --> 00:12:39,506
+before.
+
+
+444
+00:12:43,236 --> 00:12:44,316
+Now we saw before how the result
+
+
+445
+00:12:44,316 --> 00:12:46,316
+of the loss node can be used to
+
+
+446
+00:12:46,316 --> 00:12:47,586
+implicitly generate the training
+
+
+447
+00:12:47,586 --> 00:12:47,956
+graph.
+
+
+448
+00:12:48,276 --> 00:12:49,826
+This is because it generates the
+
+
+449
+00:12:49,826 --> 00:12:50,496
+initial gradient.
+
+
+450
+00:12:51,266 --> 00:12:52,856
+But now, as I mentioned before,
+
+
+451
+00:12:52,856 --> 00:12:54,976
+with the separable loss kernels,
+
+
+452
+00:12:54,976 --> 00:12:56,326
+we do this explicitly using the
+
+
+453
+00:12:56,326 --> 00:12:57,216
+initial gradient node.
+
+
+454
+00:12:57,586 --> 00:12:58,696
+So, this is the node that were
+
+
+455
+00:12:58,696 --> 00:12:59,676
+going to use to generate our
+
+
+456
+00:12:59,676 --> 00:12:59,976
+training graph.
+
+
+457
+00:13:02,536 --> 00:13:03,586
+So, with the graph generated,
+
+
+458
+00:13:03,966 --> 00:13:05,626
+let's take a look at what this
+
+
+459
+00:13:05,626 --> 00:13:07,156
+network does in action.
+
+
+460
+00:13:10,836 --> 00:13:12,236
+So, here we can see the style
+
+
+461
+00:13:12,236 --> 00:13:13,876
+transfer network running on the
+
+
+462
+00:13:13,876 --> 00:13:14,766
+GPU using MPS.
+
+
+463
+00:13:14,766 --> 00:13:17,106
+This was run on a Mac Book Pro
+
+
+464
+00:13:17,176 --> 00:13:19,386
+with an AMD Radeon pro 560
+
+
+465
+00:13:19,386 --> 00:13:20,266
+graphics card.
+
+
+466
+00:13:20,866 --> 00:13:22,986
+Now this is showing the results
+
+
+467
+00:13:22,986 --> 00:13:24,336
+of the style transfer training
+
+
+468
+00:13:24,336 --> 00:13:25,556
+at each iteration as it
+
+
+469
+00:13:25,556 --> 00:13:26,106
+progresses.
+
+
+470
+00:13:26,576 --> 00:13:28,866
+As you can see, the style is
+
+
+471
+00:13:28,866 --> 00:13:30,996
+being applied progressively, but
+
+
+472
+00:13:30,996 --> 00:13:31,916
+the content of the image is
+
+
+473
+00:13:31,916 --> 00:13:32,506
+being retained.
+
+
+474
+00:13:32,506 --> 00:13:34,156
+I also want to mention that
+
+
+475
+00:13:34,156 --> 00:13:35,746
+these iterations have been sped
+
+
+476
+00:13:35,746 --> 00:13:37,776
+up for this video from real time
+
+
+477
+00:13:37,776 --> 00:13:38,906
+to better illustrate the
+
+
+478
+00:13:38,906 --> 00:13:40,786
+progression of the training
+
+
+479
+00:13:40,786 --> 00:13:40,976
+network.
+
+
+480
+00:13:47,266 --> 00:13:49,576
+So now, I'd like to look at
+
+
+481
+00:13:49,576 --> 00:13:50,566
+another feature that we added
+
+
+482
+00:13:50,566 --> 00:13:51,686
+this year, random number
+
+
+483
+00:13:51,686 --> 00:13:52,146
+generation.
+
+
+484
+00:13:54,596 --> 00:13:56,016
+This year we added support for
+
+
+485
+00:13:56,016 --> 00:13:57,026
+two types of random number
+
+
+486
+00:13:57,026 --> 00:13:58,116
+generators in MPS.
+
+
+487
+00:13:58,816 --> 00:13:59,586
+We have a variant of the
+
+
+488
+00:13:59,586 --> 00:14:01,656
+Mersenne Twister called MTGP32
+
+
+489
+00:14:01,656 --> 00:14:03,806
+and a counter-based generator
+
+
+490
+00:14:03,806 --> 00:14:04,416
+called Philox.
+
+
+491
+00:14:05,596 --> 00:14:06,676
+Now these generators were chosen
+
+
+492
+00:14:06,676 --> 00:14:07,806
+because their algorithms are
+
+
+493
+00:14:07,806 --> 00:14:08,706
+well suited to GPU
+
+
+494
+00:14:08,706 --> 00:14:10,086
+architectures, and they still
+
+
+495
+00:14:10,086 --> 00:14:12,046
+provide sequences of random
+
+
+496
+00:14:12,046 --> 00:14:12,846
+numbers with pretty good
+
+
+497
+00:14:12,846 --> 00:14:13,896
+statistical properties.
+
+
+498
+00:14:14,316 --> 00:14:16,566
+Now, you can use these kernels
+
+
+499
+00:14:16,566 --> 00:14:18,126
+to generate large sequences of
+
+
+500
+00:14:18,126 --> 00:14:20,526
+random numbers using buffers and
+
+
+501
+00:14:20,526 --> 00:14:21,056
+GPU memory.
+
+
+502
+00:14:21,626 --> 00:14:22,606
+And since you have this result
+
+
+503
+00:14:22,606 --> 00:14:24,496
+available in GPU memory, you can
+
+
+504
+00:14:24,496 --> 00:14:25,476
+avoid having to synchronize
+
+
+505
+00:14:25,476 --> 00:14:26,496
+large rays and numbers from the
+
+
+506
+00:14:26,496 --> 00:14:26,766
+CPU.
+
+
+507
+00:14:27,796 --> 00:14:29,176
+And generating random numbers
+
+
+508
+00:14:29,696 --> 00:14:30,576
+like this is important for
+
+
+509
+00:14:30,576 --> 00:14:31,416
+several machine learning
+
+
+510
+00:14:31,416 --> 00:14:32,056
+applications.
+
+
+511
+00:14:32,756 --> 00:14:33,986
+They're required, for example,
+
+
+512
+00:14:33,986 --> 00:14:35,536
+for initializing your weights of
+
+
+513
+00:14:35,536 --> 00:14:37,636
+your networks for training and
+
+
+514
+00:14:37,636 --> 00:14:39,376
+also for creating inputs when
+
+
+515
+00:14:39,376 --> 00:14:40,836
+training generated adversarial
+
+
+516
+00:14:40,836 --> 00:14:41,946
+networks, or GANs.
+
+
+517
+00:14:43,076 --> 00:14:44,016
+Now GANs are an especially
+
+
+518
+00:14:44,016 --> 00:14:45,526
+important use case for random
+
+
+519
+00:14:45,526 --> 00:14:46,366
+number generators.
+
+
+520
+00:14:46,636 --> 00:14:47,626
+You had to generate the random
+
+
+521
+00:14:47,626 --> 00:14:50,016
+input at each iteration of your
+
+
+522
+00:14:50,016 --> 00:14:50,336
+training.
+
+
+523
+00:14:50,956 --> 00:14:53,576
+If you had to synchronize an
+
+
+524
+00:14:53,576 --> 00:14:55,026
+array of numbers from the CPU,
+
+
+525
+00:14:55,456 --> 00:14:57,186
+every iteration, it could make
+
+
+526
+00:14:57,186 --> 00:14:58,196
+training your network
+
+
+527
+00:14:58,236 --> 00:14:59,216
+prohibitively expensive.
+
+
+528
+00:15:00,636 --> 00:15:01,946
+So, let's take a closer look at
+
+
+529
+00:15:01,946 --> 00:15:03,206
+those networks and how we can
+
+
+530
+00:15:03,206 --> 00:15:04,346
+use the new random number
+
+
+531
+00:15:04,346 --> 00:15:04,866
+generators.
+
+
+532
+00:15:07,016 --> 00:15:09,436
+So, generative adversarial
+
+
+533
+00:15:09,436 --> 00:15:10,666
+networks or GANs are built
+
+
+534
+00:15:10,666 --> 00:15:11,566
+around two networks.
+
+
+535
+00:15:11,566 --> 00:15:12,706
+We have a generator network and
+
+
+536
+00:15:12,706 --> 00:15:13,756
+a discriminator network.
+
+
+537
+00:15:14,726 --> 00:15:15,576
+Here we have an example of a
+
+
+538
+00:15:15,576 --> 00:15:17,416
+generator, which just generates
+
+
+539
+00:15:17,416 --> 00:15:18,526
+images of handwritten digits.
+
+
+540
+00:15:19,106 --> 00:15:21,506
+Now, similar to image
+
+
+541
+00:15:21,506 --> 00:15:22,766
+classification during training,
+
+
+542
+00:15:22,766 --> 00:15:23,526
+we're going to provide the
+
+
+543
+00:15:23,526 --> 00:15:25,116
+network with many examples of
+
+
+544
+00:15:25,116 --> 00:15:25,876
+handwritten digits.
+
+
+545
+00:15:25,876 --> 00:15:27,046
+However, instead of attempting
+
+
+546
+00:15:27,046 --> 00:15:29,236
+to classify them, the network is
+
+
+547
+00:15:29,236 --> 00:15:31,296
+going to attempt to generate new
+
+
+548
+00:15:31,296 --> 00:15:32,906
+images from a random initial set
+
+
+549
+00:15:32,906 --> 00:15:34,676
+of data to look similar to its
+
+
+550
+00:15:34,676 --> 00:15:35,216
+training set.
+
+
+551
+00:15:35,746 --> 00:15:39,326
+So, in order to perform this
+
+
+552
+00:15:39,326 --> 00:15:41,886
+training process, we needed some
+
+
+553
+00:15:41,886 --> 00:15:43,836
+way of determining how similar
+
+
+554
+00:15:44,236 --> 00:15:45,046
+these images should be.
+
+
+555
+00:15:45,626 --> 00:15:46,676
+So, for this second network,
+
+
+556
+00:15:46,806 --> 00:15:48,016
+we're going to use what we call
+
+
+557
+00:15:48,016 --> 00:15:48,726
+the discriminator.
+
+
+558
+00:15:50,576 --> 00:15:52,356
+Now as this name suggests, it's
+
+
+559
+00:15:52,356 --> 00:15:54,426
+designed to discriminate between
+
+
+560
+00:15:54,426 --> 00:15:57,056
+training images and those images
+
+
+561
+00:15:57,056 --> 00:15:58,076
+which are simulated by the
+
+
+562
+00:15:58,076 --> 00:15:58,486
+generator.
+
+
+563
+00:15:59,206 --> 00:16:00,406
+So, in this case, it acts as an
+
+
+564
+00:16:00,406 --> 00:16:01,416
+image classifier network but
+
+
+565
+00:16:01,416 --> 00:16:02,726
+with only two possibilities.
+
+
+566
+00:16:03,426 --> 00:16:05,496
+The input is either real, from
+
+
+567
+00:16:05,496 --> 00:16:06,596
+the training set, or it's a
+
+
+568
+00:16:06,596 --> 00:16:08,016
+generated, or a fake image.
+
+
+569
+00:16:08,326 --> 00:16:10,596
+So you can see, here's the
+
+
+570
+00:16:10,596 --> 00:16:11,996
+discriminator, looking at some
+
+
+571
+00:16:11,996 --> 00:16:13,966
+numbers and coming with whether
+
+
+572
+00:16:13,966 --> 00:16:15,606
+they're real or fake.
+
+
+573
+00:16:17,946 --> 00:16:19,066
+Now, typically both the
+
+
+574
+00:16:19,066 --> 00:16:20,206
+generator and the discriminator
+
+
+575
+00:16:20,206 --> 00:16:20,916
+are trained together.
+
+
+576
+00:16:21,646 --> 00:16:23,206
+We trained the generator to
+
+
+577
+00:16:23,206 --> 00:16:24,586
+produce more realistic images,
+
+
+578
+00:16:25,066 --> 00:16:25,626
+while we trained the
+
+
+579
+00:16:25,626 --> 00:16:26,556
+discriminator to better
+
+
+580
+00:16:26,556 --> 00:16:27,976
+distinguish synthetic images
+
+
+581
+00:16:28,186 --> 00:16:29,136
+from the training images.
+
+
+582
+00:16:29,876 --> 00:16:31,466
+So, here we have a high-level
+
+
+583
+00:16:31,466 --> 00:16:32,626
+overview of the nodes for your
+
+
+584
+00:16:32,626 --> 00:16:33,786
+training network.
+
+
+585
+00:16:34,416 --> 00:16:35,706
+So here's our discriminator
+
+
+586
+00:16:35,706 --> 00:16:36,766
+training, training network.
+
+
+587
+00:16:37,656 --> 00:16:38,676
+It consists of two loss
+
+
+588
+00:16:38,676 --> 00:16:39,426
+calculations.
+
+
+589
+00:16:39,536 --> 00:16:40,486
+So, this is an example of where
+
+
+590
+00:16:40,486 --> 00:16:41,626
+you could use the separable loss
+
+
+591
+00:16:41,626 --> 00:16:42,486
+nodes we just talked about.
+
+
+592
+00:16:43,636 --> 00:16:46,176
+We have one loss where we
+
+
+593
+00:16:46,176 --> 00:16:47,766
+attempt to ensure the
+
+
+594
+00:16:47,766 --> 00:16:48,756
+discriminator properly
+
+
+595
+00:16:48,756 --> 00:16:50,656
+classifies the simulated images
+
+
+596
+00:16:50,656 --> 00:16:52,816
+as fake, and we have a second
+
+
+597
+00:16:52,816 --> 00:16:55,356
+loss where we trained the
+
+
+598
+00:16:55,356 --> 00:16:56,596
+discriminator to classify the
+
+
+599
+00:16:56,596 --> 00:16:57,596
+real images from the training
+
+
+600
+00:16:57,596 --> 00:16:58,546
+set as real.
+
+
+601
+00:16:59,086 --> 00:17:02,696
+After computing the separate
+
+
+602
+00:17:02,696 --> 00:17:04,346
+loss values, we can use an
+
+
+603
+00:17:04,346 --> 00:17:06,306
+initial gradient node to
+
+
+604
+00:17:06,306 --> 00:17:07,256
+initialize your training graph.
+
+
+605
+00:17:07,866 --> 00:17:10,906
+And secondly, here we have the
+
+
+606
+00:17:10,906 --> 00:17:11,856
+generator training network.
+
+
+607
+00:17:12,516 --> 00:17:13,596
+This one is a little simpler.
+
+
+608
+00:17:13,596 --> 00:17:14,856
+It just has a single loss value.
+
+
+609
+00:17:15,756 --> 00:17:18,496
+But in this case, we use a label
+
+
+610
+00:17:18,496 --> 00:17:20,026
+value of real to ensure that our
+
+
+611
+00:17:20,026 --> 00:17:21,886
+generator generates images,
+
+
+612
+00:17:21,886 --> 00:17:22,715
+which the discriminator
+
+
+613
+00:17:22,715 --> 00:17:23,965
+subsequently classifies as real.
+
+
+614
+00:17:24,856 --> 00:17:26,016
+Now, I mentioned earlier that
+
+
+615
+00:17:26,016 --> 00:17:27,076
+the generator network begins
+
+
+616
+00:17:27,076 --> 00:17:28,926
+with a random set of data that
+
+
+617
+00:17:28,926 --> 00:17:29,806
+we're going to use our random
+
+
+618
+00:17:29,806 --> 00:17:30,596
+number generator for.
+
+
+619
+00:17:31,256 --> 00:17:32,476
+So, let's take a closer look at
+
+
+620
+00:17:33,196 --> 00:17:34,246
+random number generation.
+
+
+621
+00:17:34,826 --> 00:17:37,206
+Now random number generation
+
+
+622
+00:17:37,206 --> 00:17:39,446
+kernels belong to the MPSMatrix
+
+
+623
+00:17:39,446 --> 00:17:41,196
+subframework, and they're
+
+
+624
+00:17:41,196 --> 00:17:42,506
+accessed through MPSMatrix
+
+
+625
+00:17:42,506 --> 00:17:43,866
+random classes.
+
+
+626
+00:17:44,806 --> 00:17:46,206
+So, they operate on MPSMatrix
+
+
+627
+00:17:46,206 --> 00:17:47,356
+and MPSVector objects, which
+
+
+628
+00:17:47,356 --> 00:17:48,226
+means they work with metal
+
+
+629
+00:17:48,226 --> 00:17:51,096
+buffers, and they support
+
+
+630
+00:17:51,096 --> 00:17:53,476
+generating random integers with
+
+
+631
+00:17:53,476 --> 00:17:54,576
+the underlying generator, or you
+
+
+632
+00:17:54,576 --> 00:17:55,566
+can generate floating point
+
+
+633
+00:17:55,566 --> 00:17:56,576
+values using a uniform
+
+
+634
+00:17:56,576 --> 00:17:57,126
+distribution.
+
+
+635
+00:17:57,726 --> 00:17:59,996
+So, here, we're going to create
+
+
+636
+00:17:59,996 --> 00:18:01,706
+a distribution descriptor for
+
+
+637
+00:18:01,706 --> 00:18:03,976
+uniform distribution of values
+
+
+638
+00:18:03,976 --> 00:18:04,676
+between 0 and 1.
+
+
+639
+00:18:05,226 --> 00:18:07,896
+Then we're going to create our
+
+
+640
+00:18:07,896 --> 00:18:11,066
+generator, testing the proper
+
+
+641
+00:18:11,066 --> 00:18:12,246
+data types, and then we give it
+
+
+642
+00:18:12,246 --> 00:18:13,006
+an initial seed.
+
+
+643
+00:18:15,976 --> 00:18:17,366
+Finally, we create a matrix to
+
+
+644
+00:18:17,366 --> 00:18:19,276
+hold the result, and we encode
+
+
+645
+00:18:19,276 --> 00:18:21,236
+the operation to the command
+
+
+646
+00:18:21,236 --> 00:18:21,496
+buffer.
+
+
+647
+00:18:21,496 --> 00:18:23,426
+So, now let's go back to the
+
+
+648
+00:18:23,426 --> 00:18:24,436
+network and see how we can use
+
+
+649
+00:18:24,986 --> 00:18:25,106
+it.
+
+
+650
+00:18:25,756 --> 00:18:27,226
+So, here's a closer view of the
+
+
+651
+00:18:27,226 --> 00:18:27,926
+generator network.
+
+
+652
+00:18:27,926 --> 00:18:30,246
+We have some convolution layers,
+
+
+653
+00:18:30,466 --> 00:18:31,786
+some ReLu layers, and the
+
+
+654
+00:18:31,786 --> 00:18:33,026
+hyperbolic tangent neuron.
+
+
+655
+00:18:33,646 --> 00:18:36,256
+Now the input image is going to
+
+
+656
+00:18:36,256 --> 00:18:37,076
+be the output of our random
+
+
+657
+00:18:37,076 --> 00:18:37,706
+number generator.
+
+
+658
+00:18:39,046 --> 00:18:40,046
+As we saw before the random
+
+
+659
+00:18:40,046 --> 00:18:41,266
+number generator works with
+
+
+660
+00:18:41,266 --> 00:18:43,406
+matrices, but the graph and all
+
+
+661
+00:18:43,406 --> 00:18:44,416
+the neural network kernels
+
+
+662
+00:18:44,416 --> 00:18:45,216
+require images.
+
+
+663
+00:18:45,576 --> 00:18:47,186
+So, we're going to use our MPS
+
+
+664
+00:18:47,186 --> 00:18:48,646
+copy kernel to copy the data
+
+
+665
+00:18:49,106 --> 00:18:50,926
+from the matrix into an image.
+
+
+666
+00:18:53,436 --> 00:18:54,676
+So, first we'll create a matrix
+
+
+667
+00:18:54,676 --> 00:18:55,836
+to hold our random values.
+
+
+668
+00:18:57,576 --> 00:18:58,996
+Then we'll also create an image,
+
+
+669
+00:18:58,996 --> 00:18:59,816
+which is going to serve as the
+
+
+670
+00:18:59,816 --> 00:19:00,606
+input for our network.
+
+
+671
+00:19:04,616 --> 00:19:05,766
+And we're going to initialize a
+
+
+672
+00:19:05,766 --> 00:19:07,706
+copy kernel to perform the copy.
+
+
+673
+00:19:09,246 --> 00:19:10,946
+Then were going to encode our
+
+
+674
+00:19:10,946 --> 00:19:12,436
+random number generator to
+
+
+675
+00:19:12,436 --> 00:19:13,386
+generate the values.
+
+
+676
+00:19:13,386 --> 00:19:14,446
+We're going to encode the copy
+
+
+677
+00:19:14,726 --> 00:19:16,556
+to copy them into the image, and
+
+
+678
+00:19:16,556 --> 00:19:19,556
+now we're going to encode the
+
+
+679
+00:19:20,146 --> 00:19:21,226
+network using the image.
+
+
+680
+00:19:21,826 --> 00:19:25,376
+Now, for more details on this
+
+
+681
+00:19:25,376 --> 00:19:27,246
+network and using MPSMatrix
+
+
+682
+00:19:27,246 --> 00:19:28,426
+random number generation
+
+
+683
+00:19:28,426 --> 00:19:30,086
+kernels, please see the online
+
+
+684
+00:19:30,086 --> 00:19:30,766
+documentation.
+
+
+685
+00:19:30,766 --> 00:19:31,796
+There's also some sample code.
+
+
+686
+00:19:36,046 --> 00:19:36,766
+Now we also added features to
+
+
+687
+00:19:36,766 --> 00:19:38,296
+help improve the performance and
+
+
+688
+00:19:38,296 --> 00:19:39,866
+efficiency of networks using
+
+
+689
+00:19:39,866 --> 00:19:40,336
+MPS.
+
+
+690
+00:19:41,136 --> 00:19:42,006
+So let's take a look at one of
+
+
+691
+00:19:42,006 --> 00:19:43,396
+them now, predication.
+
+
+692
+00:19:43,966 --> 00:19:46,176
+With predication, you can now
+
+
+693
+00:19:46,216 --> 00:19:47,426
+conditionally execute MPS
+
+
+694
+00:19:47,426 --> 00:19:47,966
+kernels.
+
+
+695
+00:19:48,836 --> 00:19:50,376
+The kernels' execution is
+
+
+696
+00:19:50,416 --> 00:19:52,196
+predicated on values which exist
+
+
+697
+00:19:52,196 --> 00:19:53,736
+in GPU memory, and they're
+
+
+698
+00:19:53,736 --> 00:19:54,396
+referenced at the time of
+
+
+699
+00:19:54,396 --> 00:19:54,976
+execution of the kernel.
+
+
+700
+00:19:58,226 --> 00:19:58,966
+So, let's take a look at a
+
+
+701
+00:19:58,966 --> 00:20:00,266
+network, which illustrates how
+
+
+702
+00:20:00,266 --> 00:20:01,026
+this can be used.
+
+
+703
+00:20:01,846 --> 00:20:02,876
+This is image captioning.
+
+
+704
+00:20:03,256 --> 00:20:04,526
+This is a network we showed a
+
+
+705
+00:20:04,526 --> 00:20:06,336
+couple years ago, and it
+
+
+706
+00:20:06,336 --> 00:20:07,556
+generates captions of images
+
+
+707
+00:20:07,556 --> 00:20:08,756
+using a convolutional neural
+
+
+708
+00:20:08,756 --> 00:20:10,596
+network and a recurrent neural
+
+
+709
+00:20:10,996 --> 00:20:11,186
+network.
+
+
+710
+00:20:13,116 --> 00:20:14,496
+The convolution network is the
+
+
+711
+00:20:14,496 --> 00:20:15,596
+common classification network.
+
+
+712
+00:20:15,596 --> 00:20:16,566
+In this case, we're using
+
+
+713
+00:20:16,566 --> 00:20:16,976
+Inception V3.
+
+
+714
+00:20:16,976 --> 00:20:18,946
+It's going to be used to extract
+
+
+715
+00:20:18,946 --> 00:20:20,136
+features from the source image.
+
+
+716
+00:20:20,666 --> 00:20:23,286
+Then we take these feature maps,
+
+
+717
+00:20:23,456 --> 00:20:24,686
+and we feed them into a small
+
+
+718
+00:20:24,686 --> 00:20:26,136
+LSTM-based network where those
+
+
+719
+00:20:26,136 --> 00:20:27,226
+captions are generated from the
+
+
+720
+00:20:27,226 --> 00:20:28,196
+extracted features.
+
+
+721
+00:20:28,926 --> 00:20:30,026
+Now, then we iterate this
+
+
+722
+00:20:30,026 --> 00:20:31,226
+network to produce the image
+
+
+723
+00:20:31,226 --> 00:20:31,586
+caption.
+
+
+724
+00:20:32,216 --> 00:20:35,856
+In this case, we need to know,
+
+
+725
+00:20:36,646 --> 00:20:38,206
+in this case, we need to run the
+
+
+726
+00:20:38,206 --> 00:20:39,696
+LSTM-based network for some
+
+
+727
+00:20:39,696 --> 00:20:41,486
+number of iterations, which is
+
+
+728
+00:20:41,486 --> 00:20:42,676
+going to be fixed, and we need
+
+
+729
+00:20:42,676 --> 00:20:43,836
+to do it at least as many times
+
+
+730
+00:20:43,836 --> 00:20:44,986
+as we believe will be needed to
+
+
+731
+00:20:44,986 --> 00:20:46,246
+generate the captions for the
+
+
+732
+00:20:46,246 --> 00:20:46,676
+image.
+
+
+733
+00:20:47,926 --> 00:20:48,936
+In this case, for example, we
+
+
+734
+00:20:48,936 --> 00:20:50,566
+run the LSTM-based network 20
+
+
+735
+00:20:50,566 --> 00:20:51,046
+times.
+
+
+736
+00:20:51,586 --> 00:20:53,956
+Each iteration then computes the
+
+
+737
+00:20:53,956 --> 00:20:55,416
+best captions by appending a new
+
+
+738
+00:20:55,416 --> 00:20:56,776
+word to the captions produced in
+
+
+739
+00:20:56,776 --> 00:20:57,516
+the prior iteration.
+
+
+740
+00:20:58,046 --> 00:21:00,546
+But if the caption were to only
+
+
+741
+00:21:00,546 --> 00:21:02,896
+require five words, then we've
+
+
+742
+00:21:02,896 --> 00:21:04,236
+had to run many more iterations
+
+
+743
+00:21:04,236 --> 00:21:05,326
+than we need.
+
+
+744
+00:21:06,356 --> 00:21:08,906
+With predication, we can end the
+
+
+745
+00:21:08,906 --> 00:21:09,656
+execution early.
+
+
+746
+00:21:09,956 --> 00:21:11,056
+In this case, after the
+
+
+747
+00:21:11,056 --> 00:21:11,986
+five-word caption has been
+
+
+748
+00:21:11,986 --> 00:21:12,466
+generated.
+
+
+749
+00:21:13,466 --> 00:21:14,716
+So let's look at how we can use
+
+
+750
+00:21:14,716 --> 00:21:15,466
+this in MPS.
+
+
+751
+00:21:16,206 --> 00:21:17,406
+But to do so, we need to first
+
+
+752
+00:21:17,406 --> 00:21:19,476
+discuss how we provide predicate
+
+
+753
+00:21:19,476 --> 00:21:22,826
+values to MPS commands, and for
+
+
+754
+00:21:22,826 --> 00:21:24,356
+this, we introduce the
+
+
+755
+00:21:24,356 --> 00:21:25,236
+MPSCommandBuffer.
+
+
+756
+00:21:25,776 --> 00:21:29,536
+Now, MPSCommandBuffer is a class
+
+
+757
+00:21:29,536 --> 00:21:30,216
+that conforms to the
+
+
+758
+00:21:30,216 --> 00:21:31,426
+MTLCommandBuffer protocol, but
+
+
+759
+00:21:31,426 --> 00:21:32,256
+it adds a little bit more
+
+
+760
+00:21:32,256 --> 00:21:32,836
+flexibility.
+
+
+761
+00:21:33,656 --> 00:21:34,546
+It can be used anywhere you're
+
+
+762
+00:21:34,546 --> 00:21:35,486
+currently using metal command
+
+
+763
+00:21:35,486 --> 00:21:36,506
+buff, and like a
+
+
+764
+00:21:36,506 --> 00:21:37,926
+MTLCommandBuffer, it's
+
+
+765
+00:21:37,926 --> 00:21:38,576
+constructed from a
+
+
+766
+00:21:38,576 --> 00:21:39,216
+MTLCommandQueue.
+
+
+767
+00:21:39,216 --> 00:21:41,236
+Now, it provides several
+
+
+768
+00:21:41,236 --> 00:21:42,036
+important benefits.
+
+
+769
+00:21:42,696 --> 00:21:43,776
+It allows you to predicate
+
+
+770
+00:21:43,776 --> 00:21:46,146
+execution of MPS kernels, and as
+
+
+771
+00:21:46,146 --> 00:21:47,296
+we'll discuss later, it allows
+
+
+772
+00:21:47,296 --> 00:21:48,446
+you to easily perform some
+
+
+773
+00:21:48,446 --> 00:21:49,686
+intermediate commits as you
+
+
+774
+00:21:49,686 --> 00:21:51,436
+encode your MPS work, using a
+
+
+775
+00:21:51,436 --> 00:21:52,706
+method called commitAndContinue,
+
+
+776
+00:21:52,706 --> 00:21:53,476
+but we'll get back to that
+
+
+777
+00:21:53,476 --> 00:21:53,766
+later.
+
+
+778
+00:21:54,256 --> 00:21:55,706
+First, let's look at how we an
+
+
+779
+00:21:55,706 --> 00:21:57,546
+use MPSCommandBuffers to supply
+
+
+780
+00:21:57,546 --> 00:21:58,766
+predicates to MPS kernels.
+
+
+781
+00:21:59,216 --> 00:22:01,836
+So an MPS predicate object
+
+
+782
+00:22:01,836 --> 00:22:03,146
+contains a metal buffer, which
+
+
+783
+00:22:03,146 --> 00:22:04,346
+contains 32-bit integer
+
+
+784
+00:22:04,346 --> 00:22:05,666
+predicate values, and they're at
+
+
+785
+00:22:05,666 --> 00:22:06,096
+an offset.
+
+
+786
+00:22:07,276 --> 00:22:08,166
+We take the value within the
+
+
+787
+00:22:08,166 --> 00:22:09,476
+metal buffer at the offset as
+
+
+788
+00:22:09,476 --> 00:22:10,386
+the execution predicate.
+
+
+789
+00:22:10,576 --> 00:22:12,656
+Now, a value of 0 means we don't
+
+
+790
+00:22:12,656 --> 00:22:13,916
+want the kernel to execute, and
+
+
+791
+00:22:14,116 --> 00:22:15,976
+a nonzero value means to execute
+
+
+792
+00:22:15,976 --> 00:22:16,336
+as normal.
+
+
+793
+00:22:16,846 --> 00:22:18,736
+So, in this diagram here, we've
+
+
+794
+00:22:18,736 --> 00:22:19,736
+effectively bypassed the
+
+
+795
+00:22:19,736 --> 00:22:21,276
+execution of this kernel by
+
+
+796
+00:22:21,276 --> 00:22:22,496
+setting the value at the offset
+
+
+797
+00:22:22,496 --> 00:22:22,896
+to 0.
+
+
+798
+00:22:23,436 --> 00:22:25,246
+And the offset is important.
+
+
+799
+00:22:25,246 --> 00:22:26,186
+It can allow you to share a
+
+
+800
+00:22:26,186 --> 00:22:27,556
+single metal buffer among
+
+
+801
+00:22:27,556 --> 00:22:28,986
+multiple MPS predicate objects
+
+
+802
+00:22:28,986 --> 00:22:29,966
+so you can send a predicate to
+
+
+803
+00:22:29,966 --> 00:22:30,726
+multiple kernels.
+
+
+804
+00:22:31,206 --> 00:22:33,326
+Each predicate value will be
+
+
+805
+00:22:33,416 --> 00:22:34,146
+referenced with a different
+
+
+806
+00:22:34,146 --> 00:22:34,456
+offset.
+
+
+807
+00:22:35,006 --> 00:22:38,106
+Now, in order to use a predicate
+
+
+808
+00:22:38,106 --> 00:22:39,826
+value, we have to attach it to
+
+
+809
+00:22:39,826 --> 00:22:40,686
+an MPSCommandBuffer.
+
+
+810
+00:22:41,236 --> 00:22:42,576
+This way, any MPS kernels that
+
+
+811
+00:22:42,576 --> 00:22:43,826
+we encode on that command buffer
+
+
+812
+00:22:43,826 --> 00:22:44,756
+will perceive the predicate
+
+
+813
+00:22:44,756 --> 00:22:45,326
+values.
+
+
+814
+00:22:45,976 --> 00:22:47,096
+So, let's take a look at how we
+
+
+815
+00:22:47,096 --> 00:22:49,096
+can create a predicate and set
+
+
+816
+00:22:49,096 --> 00:22:50,156
+it on an MPSCommandBuffer.
+
+
+817
+00:22:50,706 --> 00:22:53,976
+So, first, we create an
+
+
+818
+00:22:53,976 --> 00:22:56,966
+MPSPredicate object, and we
+
+
+819
+00:22:57,186 --> 00:22:58,666
+attach the predicate to our
+
+
+820
+00:22:58,666 --> 00:22:59,406
+MPSCommandBuffer.
+
+
+821
+00:22:59,966 --> 00:23:01,226
+Now, we'll encode an operation
+
+
+822
+00:23:01,936 --> 00:23:03,056
+that modifies the predicate
+
+
+823
+00:23:03,056 --> 00:23:03,526
+values.
+
+
+824
+00:23:04,206 --> 00:23:05,056
+Now because of the existing
+
+
+825
+00:23:05,056 --> 00:23:06,146
+metal buffers, we need a kernel
+
+
+826
+00:23:06,146 --> 00:23:07,756
+that produces its result in a
+
+
+827
+00:23:07,756 --> 00:23:08,286
+metal buffer.
+
+
+828
+00:23:08,546 --> 00:23:10,516
+You can use your own kernel, or
+
+
+829
+00:23:10,516 --> 00:23:11,516
+you may be able to use one of
+
+
+830
+00:23:11,516 --> 00:23:13,016
+the MPSMatrix kernels, which is
+
+
+831
+00:23:13,016 --> 00:23:13,786
+what we're going to do here.
+
+
+832
+00:23:14,496 --> 00:23:15,356
+So, we're going to start by
+
+
+833
+00:23:15,356 --> 00:23:16,686
+wrapping the predicate in an
+
+
+834
+00:23:16,686 --> 00:23:17,616
+MPSMatrix object.
+
+
+835
+00:23:18,026 --> 00:23:19,156
+Then we're going to encode a
+
+
+836
+00:23:19,156 --> 00:23:20,266
+kernel to modify the predicate
+
+
+837
+00:23:20,266 --> 00:23:20,616
+value.
+
+
+838
+00:23:22,106 --> 00:23:23,106
+So, here, we're just using a
+
+
+839
+00:23:23,106 --> 00:23:24,506
+linear neuron kernel, and we're
+
+
+840
+00:23:24,506 --> 00:23:25,636
+going to use it to do something
+
+
+841
+00:23:25,636 --> 00:23:25,926
+simple.
+
+
+842
+00:23:25,926 --> 00:23:26,716
+We're just going to decrement
+
+
+843
+00:23:26,716 --> 00:23:27,526
+the value of the predicate.
+
+
+844
+00:23:28,046 --> 00:23:29,846
+And finally, we're going to
+
+
+845
+00:23:29,846 --> 00:23:31,796
+encode a cnnKernel to read the
+
+
+846
+00:23:31,796 --> 00:23:33,016
+value of the predicate prior to
+
+
+847
+00:23:33,016 --> 00:23:33,656
+execution.
+
+
+848
+00:23:37,256 --> 00:23:38,866
+So, using predication in
+
+
+849
+00:23:38,866 --> 00:23:40,716
+MPSCommandBuffers is an easy way
+
+
+850
+00:23:40,946 --> 00:23:42,396
+of eliminating unnecessary work
+
+
+851
+00:23:42,396 --> 00:23:42,996
+in your networks.
+
+
+852
+00:23:43,666 --> 00:23:45,026
+If you have kernels, which can
+
+
+853
+00:23:45,026 --> 00:23:46,086
+be bypassed, you can use
+
+
+854
+00:23:46,086 --> 00:23:47,336
+predication to take advantage of
+
+
+855
+00:23:47,336 --> 00:23:48,066
+the reduced workload.
+
+
+856
+00:23:48,416 --> 00:23:49,926
+And if there are multiple
+
+
+857
+00:23:49,926 --> 00:23:51,336
+kernels for which this applies,
+
+
+858
+00:23:51,816 --> 00:23:53,136
+you can use multiple predicates
+
+
+859
+00:23:53,376 --> 00:23:54,416
+and use only a single metal
+
+
+860
+00:23:54,416 --> 00:23:55,706
+buffer by setting unique offset
+
+
+861
+00:23:55,706 --> 00:23:56,166
+values.
+
+
+862
+00:23:56,166 --> 00:23:58,916
+So, now let's talk about the
+
+
+863
+00:23:58,916 --> 00:23:59,886
+other feature of
+
+
+864
+00:23:59,886 --> 00:24:00,826
+MPSCommandBuffers,
+
+
+865
+00:24:01,126 --> 00:24:01,806
+commitAndContinue.
+
+
+866
+00:24:02,406 --> 00:24:05,206
+Now this is a method which
+
+
+867
+00:24:05,206 --> 00:24:07,126
+allows you to easily get better
+
+
+868
+00:24:07,126 --> 00:24:09,956
+GPU utilization when executing
+
+
+869
+00:24:09,956 --> 00:24:10,846
+your work.
+
+
+870
+00:24:11,776 --> 00:24:12,936
+So, to see how it can benefit,
+
+
+871
+00:24:12,936 --> 00:24:14,406
+let's first review how a typical
+
+
+872
+00:24:14,406 --> 00:24:15,356
+workload is executed.
+
+
+873
+00:24:16,326 --> 00:24:18,046
+Now, the usual way of executing
+
+
+874
+00:24:18,046 --> 00:24:19,336
+MPS kernels is to encode your
+
+
+875
+00:24:19,336 --> 00:24:20,386
+work onto a command buffer and
+
+
+876
+00:24:20,386 --> 00:24:21,476
+then commit it for execution.
+
+
+877
+00:24:21,966 --> 00:24:22,956
+So, here we have a case of a
+
+
+878
+00:24:22,956 --> 00:24:24,246
+single command buffer, you
+
+
+879
+00:24:24,246 --> 00:24:25,246
+encode some work, and then we
+
+
+880
+00:24:25,246 --> 00:24:26,286
+execute it afterwards.
+
+
+881
+00:24:27,216 --> 00:24:28,606
+Now, in reality, the CPU's
+
+
+882
+00:24:28,606 --> 00:24:29,506
+encoding time is going to be
+
+
+883
+00:24:29,506 --> 00:24:31,066
+less than the GPU's execution
+
+
+884
+00:24:31,066 --> 00:24:33,316
+time, but we want to avoid any
+
+
+885
+00:24:33,396 --> 00:24:35,696
+idle time due to throttling and
+
+
+886
+00:24:35,696 --> 00:24:36,846
+things like that.
+
+
+887
+00:24:37,966 --> 00:24:39,346
+So you can see we're going to
+
+
+888
+00:24:39,346 --> 00:24:42,026
+get some stalling here between
+
+
+889
+00:24:42,026 --> 00:24:42,956
+the CPU and the GPU.
+
+
+890
+00:24:43,546 --> 00:24:45,776
+Now, one way of solving this is
+
+
+891
+00:24:45,776 --> 00:24:46,816
+to use double buffering.
+
+
+892
+00:24:47,286 --> 00:24:48,976
+With double buffering, we're
+
+
+893
+00:24:48,976 --> 00:24:49,936
+going to keep around two command
+
+
+894
+00:24:49,936 --> 00:24:51,156
+buffers, and we're going to
+
+
+895
+00:24:51,156 --> 00:24:52,206
+encode work to one while
+
+
+896
+00:24:52,206 --> 00:24:53,036
+executing the other.
+
+
+897
+00:24:53,866 --> 00:24:54,746
+Now, this should pretty well
+
+
+898
+00:24:55,406 --> 00:24:56,896
+eliminate the idling that we saw
+
+
+899
+00:24:56,896 --> 00:24:58,476
+before, but it has some
+
+
+900
+00:24:58,476 --> 00:24:59,256
+limitations.
+
+
+901
+00:24:59,686 --> 00:25:00,546
+So, first off, as I mentioned,
+
+
+902
+00:25:00,546 --> 00:25:01,416
+you're going to have to keep two
+
+
+903
+00:25:01,416 --> 00:25:02,206
+sets of work, which means you're
+
+
+904
+00:25:02,206 --> 00:25:03,216
+going to have to find a way to
+
+
+905
+00:25:03,216 --> 00:25:04,696
+partition your work into two
+
+
+906
+00:25:04,696 --> 00:25:05,836
+independent workloads.
+
+
+907
+00:25:06,286 --> 00:25:07,586
+And as a result, you can have
+
+
+908
+00:25:07,586 --> 00:25:08,826
+substantially increased memory
+
+
+909
+00:25:08,826 --> 00:25:09,486
+requirements.
+
+
+910
+00:25:11,336 --> 00:25:12,646
+However, we the
+
+
+911
+00:25:12,646 --> 00:25:13,986
+commitAndContinue method, we can
+
+
+912
+00:25:13,986 --> 00:25:15,046
+gain much of this performance
+
+
+913
+00:25:15,046 --> 00:25:16,726
+benefit by dividing each
+
+
+914
+00:25:16,726 --> 00:25:18,276
+workload into smaller portions.
+
+
+915
+00:25:19,456 --> 00:25:20,366
+So, here we're going to break
+
+
+916
+00:25:20,366 --> 00:25:21,556
+down the work by utilizing
+
+
+917
+00:25:21,556 --> 00:25:23,026
+independence of layers within
+
+
+918
+00:25:23,026 --> 00:25:23,816
+each command buffer.
+
+
+919
+00:25:24,906 --> 00:25:25,876
+Then we're going to commit the
+
+
+920
+00:25:25,876 --> 00:25:27,506
+smaller groups of work using
+
+
+921
+00:25:27,506 --> 00:25:28,046
+double buffering.
+
+
+922
+00:25:28,626 --> 00:25:30,596
+Now, commitAndContinue is
+
+
+923
+00:25:30,596 --> 00:25:31,676
+automatically going to handle
+
+
+924
+00:25:31,676 --> 00:25:32,836
+this internal division of work
+
+
+925
+00:25:32,836 --> 00:25:34,646
+while also ensuring that any
+
+
+926
+00:25:34,646 --> 00:25:35,826
+temporary objects that you
+
+
+927
+00:25:35,826 --> 00:25:37,056
+allocated on the command buffer
+
+
+928
+00:25:37,056 --> 00:25:38,356
+will remain valid for subsequent
+
+
+929
+00:25:38,356 --> 00:25:39,026
+work to be encoded.
+
+
+930
+00:25:39,536 --> 00:25:42,226
+As with double buffering, it
+
+
+931
+00:25:42,226 --> 00:25:43,576
+allows you to execute work on
+
+
+932
+00:25:43,576 --> 00:25:44,856
+the GPU while continuing to
+
+
+933
+00:25:44,856 --> 00:25:45,706
+encode it on the CPU.
+
+
+934
+00:25:46,506 --> 00:25:47,646
+And by easily allowing you to
+
+
+935
+00:25:47,646 --> 00:25:49,116
+partition your workload, you can
+
+
+936
+00:25:49,116 --> 00:25:50,306
+avoid the increased memory
+
+
+937
+00:25:50,306 --> 00:25:51,656
+requirement of double buffering
+
+
+938
+00:25:51,766 --> 00:25:52,716
+while still getting much
+
+
+939
+00:25:52,766 --> 00:25:54,016
+improved GPU utilization.
+
+
+940
+00:25:54,946 --> 00:25:55,856
+So let's see how you can take
+
+
+941
+00:25:55,856 --> 00:25:56,676
+advantage of this in your own
+
+
+942
+00:25:56,676 --> 00:25:56,896
+code.
+
+
+943
+00:25:58,356 --> 00:26:00,316
+So here we have four MPS kernels
+
+
+944
+00:26:00,316 --> 00:26:00,926
+we're encoding to a
+
+
+945
+00:26:00,926 --> 00:26:01,676
+MTLCommandBuffer.
+
+
+946
+00:26:02,246 --> 00:26:04,686
+And finally, we commit the work
+
+
+947
+00:26:04,686 --> 00:26:05,266
+for execution.
+
+
+948
+00:26:06,556 --> 00:26:08,046
+As we showed earlier, this is
+
+
+949
+00:26:08,046 --> 00:26:09,636
+going to give you the stalls
+
+
+950
+00:26:09,636 --> 00:26:11,206
+that we saw.
+
+
+951
+00:26:11,446 --> 00:26:12,236
+However, by using
+
+
+952
+00:26:12,236 --> 00:26:13,886
+MPSCommandBuffers and the new
+
+
+953
+00:26:13,886 --> 00:26:15,166
+CommitAndContinue method, we can
+
+
+954
+00:26:15,166 --> 00:26:16,106
+easily improve this.
+
+
+955
+00:26:17,226 --> 00:26:18,226
+So, here we're going to create
+
+
+956
+00:26:18,226 --> 00:26:19,156
+an MPSCommandBuffer.
+
+
+957
+00:26:20,476 --> 00:26:21,406
+We'll encode our first two
+
+
+958
+00:26:21,406 --> 00:26:21,836
+kernels.
+
+
+959
+00:26:23,306 --> 00:26:23,936
+Then we'll call
+
+
+960
+00:26:23,936 --> 00:26:24,606
+commitAndContinue.
+
+
+961
+00:26:25,146 --> 00:26:27,176
+This will commit the work that
+
+
+962
+00:26:27,176 --> 00:26:29,966
+we've already encoded, move any
+
+
+963
+00:26:29,966 --> 00:26:31,136
+allocations forward, and allow
+
+
+964
+00:26:31,136 --> 00:26:32,236
+us to immediately continue
+
+
+965
+00:26:32,236 --> 00:26:33,936
+encoding the other two kernels.
+
+
+966
+00:26:34,696 --> 00:26:35,826
+Finally, we can commit the
+
+
+967
+00:26:35,826 --> 00:26:36,956
+remaining work using a regular
+
+
+968
+00:26:36,956 --> 00:26:37,196
+commit.
+
+
+969
+00:26:37,196 --> 00:26:39,896
+So you can see, using
+
+
+970
+00:26:39,896 --> 00:26:41,426
+commitAndContinue requires very
+
+
+971
+00:26:41,426 --> 00:26:43,676
+few changes to your code, but if
+
+
+972
+00:26:43,676 --> 00:26:44,596
+you're taking advantage of the
+
+
+973
+00:26:44,596 --> 00:26:46,426
+graph, it's even easier.
+
+
+974
+00:26:47,846 --> 00:26:49,206
+When you encode and MPS in graph
+
+
+975
+00:26:49,206 --> 00:26:51,326
+using MPSCommandBuffer, it will
+
+
+976
+00:26:51,326 --> 00:26:52,106
+automatically use
+
+
+977
+00:26:52,106 --> 00:26:52,866
+commitAndContinue to
+
+
+978
+00:26:52,866 --> 00:26:53,956
+periodically submit work
+
+
+979
+00:26:54,346 --> 00:26:55,596
+throughout the encoding process.
+
+
+980
+00:26:56,346 --> 00:26:57,516
+No further changes are needed.
+
+
+981
+00:26:57,886 --> 00:26:59,416
+Simply use an MPSCommandBuffer
+
+
+982
+00:26:59,546 --> 00:27:00,806
+instead of a MTLCommandBuffer.
+
+
+983
+00:27:01,356 --> 00:27:04,076
+And finally, I want to point out
+
+
+984
+00:27:04,076 --> 00:27:05,516
+that you can still combine
+
+
+985
+00:27:05,556 --> 00:27:06,786
+commitAndContinue with double
+
+
+986
+00:27:06,786 --> 00:27:08,946
+buffering and get even better
+
+
+987
+00:27:08,946 --> 00:27:09,656
+performance.
+
+
+988
+00:27:09,656 --> 00:27:10,816
+So, as you can see here, it
+
+
+989
+00:27:10,816 --> 00:27:12,216
+allows you to eliminate even the
+
+
+990
+00:27:12,216 --> 00:27:13,376
+small stalls that we saw with
+
+
+991
+00:27:13,376 --> 00:27:14,026
+commitAndContinue.
+
+
+992
+00:27:14,606 --> 00:27:16,606
+So, we now have a variety of
+
+
+993
+00:27:16,606 --> 00:27:17,616
+options for committing our work
+
+
+994
+00:27:17,616 --> 00:27:18,226
+for execution.
+
+
+995
+00:27:18,226 --> 00:27:20,326
+You can use a single command
+
+
+996
+00:27:20,326 --> 00:27:21,776
+buffer, executing a single piece
+
+
+997
+00:27:21,776 --> 00:27:22,426
+of work at a time.
+
+
+998
+00:27:23,186 --> 00:27:24,326
+For better performance,
+
+
+999
+00:27:24,386 --> 00:27:25,786
+potentially with increased
+
+
+1000
+00:27:25,786 --> 00:27:26,866
+memory consumption, you can use
+
+
+1001
+00:27:26,866 --> 00:27:27,516
+double buffering.
+
+
+1002
+00:27:28,966 --> 00:27:30,906
+And now, with MPSCommandBuffer,
+
+
+1003
+00:27:31,386 --> 00:27:32,746
+you can achieve nearly the same
+
+
+1004
+00:27:32,746 --> 00:27:33,436
+performance using
+
+
+1005
+00:27:33,436 --> 00:27:34,106
+commitAndContinue.
+
+
+1006
+00:27:34,696 --> 00:27:36,766
+And if you still want even
+
+
+1007
+00:27:36,766 --> 00:27:37,786
+better performance, you can use
+
+
+1008
+00:27:37,786 --> 00:27:39,256
+commitAndContinue and double
+
+
+1009
+00:27:39,256 --> 00:27:39,586
+buffering.
+
+
+1010
+00:27:39,846 --> 00:27:42,256
+So let's take a look at how
+
+
+1011
+00:27:42,256 --> 00:27:43,556
+these approaches perform on a
+
+
+1012
+00:27:43,556 --> 00:27:44,326
+real-world network.
+
+
+1013
+00:27:44,326 --> 00:27:47,006
+So for this case, were going to
+
+
+1014
+00:27:47,006 --> 00:27:48,326
+look at the ResNet 50 network
+
+
+1015
+00:27:48,326 --> 00:27:50,076
+running on a CIFAR-10 dataset.
+
+
+1016
+00:27:50,746 --> 00:27:52,226
+Now this data was measured using
+
+
+1017
+00:27:52,226 --> 00:27:54,446
+an external AMD Radeon Pro Vega
+
+
+1018
+00:27:54,446 --> 00:27:55,336
+64 GPU.
+
+
+1019
+00:27:56,336 --> 00:27:56,926
+It's a common image
+
+
+1020
+00:27:56,926 --> 00:27:58,416
+classification network with many
+
+
+1021
+00:27:58,416 --> 00:27:59,696
+layers, so it's a good example
+
+
+1022
+00:27:59,696 --> 00:28:00,336
+of what we can see with
+
+
+1023
+00:28:00,336 --> 00:28:00,956
+commitAndContinue.
+
+
+1024
+00:28:01,146 --> 00:28:03,426
+So we're going to start with our
+
+
+1025
+00:28:03,426 --> 00:28:04,626
+single buffering case as our
+
+
+1026
+00:28:04,626 --> 00:28:05,106
+baseline.
+
+
+1027
+00:28:05,436 --> 00:28:06,476
+We have performance and memory
+
+
+1028
+00:28:06,476 --> 00:28:07,506
+consumption here on the vertical
+
+
+1029
+00:28:07,506 --> 00:28:08,036
+axis.
+
+
+1030
+00:28:08,426 --> 00:28:09,096
+So, let's see how double
+
+
+1031
+00:28:09,096 --> 00:28:10,016
+buffering compares.
+
+
+1032
+00:28:10,016 --> 00:28:11,356
+Now we've improved the
+
+
+1033
+00:28:11,356 --> 00:28:12,586
+performance quite a bit, but
+
+
+1034
+00:28:12,926 --> 00:28:14,116
+we've also increased our memory
+
+
+1035
+00:28:14,116 --> 00:28:15,306
+consumption by a similar amount.
+
+
+1036
+00:28:16,156 --> 00:28:17,146
+That's because we achieve double
+
+
+1037
+00:28:17,146 --> 00:28:18,356
+buffering by maintaining twice
+
+
+1038
+00:28:18,356 --> 00:28:19,406
+as much work in flight at any
+
+
+1039
+00:28:19,406 --> 00:28:19,886
+given time.
+
+
+1040
+00:28:20,556 --> 00:28:21,486
+So, let's look at using
+
+
+1041
+00:28:21,486 --> 00:28:22,176
+CommitAndContinue.
+
+
+1042
+00:28:23,296 --> 00:28:24,306
+We come very close on the
+
+
+1043
+00:28:24,306 --> 00:28:25,926
+performance and with
+
+
+1044
+00:28:25,926 --> 00:28:26,996
+significantly less memory
+
+
+1045
+00:28:26,996 --> 00:28:31,186
+overhead, and here we also see
+
+
+1046
+00:28:31,186 --> 00:28:32,236
+CommitAndContinue along with
+
+
+1047
+00:28:32,236 --> 00:28:32,816
+double buffering.
+
+
+1048
+00:28:33,716 --> 00:28:34,646
+We still get a little bit better
+
+
+1049
+00:28:34,646 --> 00:28:37,006
+performance, but we still use a
+
+
+1050
+00:28:37,006 --> 00:28:37,856
+lot more memory as well.
+
+
+1051
+00:28:37,856 --> 00:28:40,526
+So, you can see, using
+
+
+1052
+00:28:40,526 --> 00:28:42,316
+CommitAndContinue is a very easy
+
+
+1053
+00:28:42,316 --> 00:28:43,316
+way to achieve much better
+
+
+1054
+00:28:43,316 --> 00:28:45,266
+performance with minimal
+
+
+1055
+00:28:45,266 --> 00:28:46,166
+increase in memory pressure.
+
+
+1056
+00:28:46,786 --> 00:28:49,266
+So now, let's put all of these
+
+
+1057
+00:28:49,266 --> 00:28:50,896
+approaches together by looking
+
+
+1058
+00:28:50,896 --> 00:28:51,806
+at another application of
+
+
+1059
+00:28:51,806 --> 00:28:53,096
+machine learning, denoising.
+
+
+1060
+00:28:53,096 --> 00:28:56,136
+Now as this name suggests,
+
+
+1061
+00:28:56,136 --> 00:28:58,806
+denoising seeks to remove noise
+
+
+1062
+00:28:58,806 --> 00:28:59,746
+from a noisy image and produce a
+
+
+1063
+00:28:59,746 --> 00:28:59,976
+clean one.
+
+
+1064
+00:29:02,116 --> 00:29:03,056
+Now, we're going to be looking
+
+
+1065
+00:29:03,056 --> 00:29:04,026
+at this in the context of ray
+
+
+1066
+00:29:04,026 --> 00:29:04,426
+tracing.
+
+
+1067
+00:29:05,036 --> 00:29:07,446
+If you saw the earlier metal for
+
+
+1068
+00:29:07,446 --> 00:29:08,796
+ray tracing session, you saw
+
+
+1069
+00:29:08,796 --> 00:29:09,956
+another example of denoising,
+
+
+1070
+00:29:09,996 --> 00:29:11,496
+one using image processing
+
+
+1071
+00:29:11,496 --> 00:29:12,016
+techniques.
+
+
+1072
+00:29:12,096 --> 00:29:13,176
+Here, we're going to be looking
+
+
+1073
+00:29:13,176 --> 00:29:14,756
+at a solution based on machine
+
+
+1074
+00:29:14,756 --> 00:29:15,016
+learning.
+
+
+1075
+00:29:15,586 --> 00:29:18,606
+So for this example, we'll look
+
+
+1076
+00:29:18,606 --> 00:29:19,356
+at three phases.
+
+
+1077
+00:29:19,356 --> 00:29:20,396
+We're going to create an offline
+
+
+1078
+00:29:20,396 --> 00:29:21,236
+training process.
+
+
+1079
+00:29:21,236 --> 00:29:22,526
+We're going to run the training
+
+
+1080
+00:29:22,526 --> 00:29:24,166
+network, and finally we're going
+
+
+1081
+00:29:24,166 --> 00:29:25,226
+to deploy the inference graph to
+
+
+1082
+00:29:25,226 --> 00:29:26,346
+filter new images.
+
+
+1083
+00:29:28,286 --> 00:29:29,516
+So, first, we need to create the
+
+
+1084
+00:29:29,516 --> 00:29:29,916
+graph.
+
+
+1085
+00:29:30,496 --> 00:29:31,836
+Let's take a closer look at the
+
+
+1086
+00:29:31,836 --> 00:29:32,266
+structure.
+
+
+1087
+00:29:32,866 --> 00:29:35,316
+So here we're going to start
+
+
+1088
+00:29:35,606 --> 00:29:38,066
+with our input image, which is
+
+
+1089
+00:29:38,066 --> 00:29:39,746
+our noisy image, which came out
+
+
+1090
+00:29:39,746 --> 00:29:40,946
+of our ray tracer.
+
+
+1091
+00:29:41,556 --> 00:29:44,006
+We're going to feed this image
+
+
+1092
+00:29:44,006 --> 00:29:45,196
+into encoder stages.
+
+
+1093
+00:29:45,346 --> 00:29:46,436
+Now encoders are small
+
+
+1094
+00:29:46,436 --> 00:29:48,276
+subnetworks which extract
+
+
+1095
+00:29:48,276 --> 00:29:49,056
+higher-level feature
+
+
+1096
+00:29:49,056 --> 00:29:50,576
+representations while spatially
+
+
+1097
+00:29:50,576 --> 00:29:51,446
+compressing the image.
+
+
+1098
+00:29:51,996 --> 00:29:53,716
+We're going to pass these
+
+
+1099
+00:29:53,716 --> 00:29:55,286
+results into our decoder stages.
+
+
+1100
+00:29:55,856 --> 00:29:56,856
+Now these perform the reverse
+
+
+1101
+00:29:56,886 --> 00:29:57,406
+process.
+
+
+1102
+00:29:57,606 --> 00:29:58,506
+They're going to reconstruct the
+
+
+1103
+00:29:58,506 --> 00:29:59,636
+image from the feature maps.
+
+
+1104
+00:30:00,206 --> 00:30:02,536
+Now we're also going to use what
+
+
+1105
+00:30:02,536 --> 00:30:03,646
+are called skip connections.
+
+
+1106
+00:30:03,726 --> 00:30:05,246
+These boost features from the
+
+
+1107
+00:30:05,246 --> 00:30:07,126
+encoded image into each decoder
+
+
+1108
+00:30:07,126 --> 00:30:07,576
+stage.
+
+
+1109
+00:30:08,456 --> 00:30:09,536
+This is done by forwarding the
+
+
+1110
+00:30:09,536 --> 00:30:10,786
+result from each encoder to its
+
+
+1111
+00:30:10,786 --> 00:30:11,176
+decoder.
+
+
+1112
+00:30:11,986 --> 00:30:14,146
+Finally, the denoised image is
+
+
+1113
+00:30:14,146 --> 00:30:14,966
+fully reconstructed.
+
+
+1114
+00:30:16,086 --> 00:30:17,426
+So, let's take a closer look at
+
+
+1115
+00:30:17,696 --> 00:30:18,796
+the encoder stages.
+
+
+1116
+00:30:19,476 --> 00:30:21,386
+The encoder stage compresses the
+
+
+1117
+00:30:21,386 --> 00:30:23,336
+images while trying to learn how
+
+
+1118
+00:30:23,336 --> 00:30:24,506
+to preserve its features,
+
+
+1119
+00:30:24,566 --> 00:30:25,786
+consists of three pairs of
+
+
+1120
+00:30:25,786 --> 00:30:27,586
+convolution and ReLu layers and
+
+
+1121
+00:30:27,586 --> 00:30:28,756
+finally a max pooling layer.
+
+
+1122
+00:30:29,696 --> 00:30:30,676
+Let's look at the code.
+
+
+1123
+00:30:31,556 --> 00:30:32,686
+Now, as we saw before, we can
+
+
+1124
+00:30:32,686 --> 00:30:33,596
+construct each node in the
+
+
+1125
+00:30:33,596 --> 00:30:35,096
+sequence in the same order they
+
+
+1126
+00:30:35,096 --> 00:30:35,886
+appear in the network.
+
+
+1127
+00:30:36,366 --> 00:30:38,816
+And we'll construct the decoders
+
+
+1128
+00:30:38,816 --> 00:30:39,316
+in the same way.
+
+
+1129
+00:30:39,316 --> 00:30:41,366
+You start with an upsampling
+
+
+1130
+00:30:41,366 --> 00:30:41,596
+layer.
+
+
+1131
+00:30:42,696 --> 00:30:43,846
+After this, we add the result of
+
+
+1132
+00:30:43,846 --> 00:30:45,056
+the corresponding encoder via
+
+
+1133
+00:30:45,056 --> 00:30:48,046
+the skip connection, and then
+
+
+1134
+00:30:48,046 --> 00:30:49,286
+finally we have two pairs of
+
+
+1135
+00:30:49,286 --> 00:30:50,976
+convolution and ReLu layers.
+
+
+1136
+00:30:53,996 --> 00:30:55,106
+Again, as before, we're going to
+
+
+1137
+00:30:55,106 --> 00:30:56,266
+insert nodes corresponding to
+
+
+1138
+00:30:56,266 --> 00:30:57,136
+each layer in the network.
+
+
+1139
+00:30:58,306 --> 00:31:00,146
+Now we can put our encoder and
+
+
+1140
+00:31:00,146 --> 00:31:01,566
+decoder stages together.
+
+
+1141
+00:31:04,916 --> 00:31:06,096
+So, first we're going to connect
+
+
+1142
+00:31:06,096 --> 00:31:06,916
+our encoder nodes.
+
+
+1143
+00:31:09,536 --> 00:31:10,746
+But before we move on and
+
+
+1144
+00:31:10,746 --> 00:31:11,776
+connect our decoder nodes, we
+
+
+1145
+00:31:11,776 --> 00:31:12,876
+need to put in one more encoder
+
+
+1146
+00:31:12,876 --> 00:31:13,736
+node, which we're going to call
+
+
+1147
+00:31:13,736 --> 00:31:14,566
+the bottleneck node.
+
+
+1148
+00:31:15,026 --> 00:31:16,266
+It's identical to an encoder
+
+
+1149
+00:31:16,266 --> 00:31:17,696
+except it doesn't have the final
+
+
+1150
+00:31:17,696 --> 00:31:18,406
+max pooling layer.
+
+
+1151
+00:31:18,956 --> 00:31:21,056
+And after the bottleneck nodes,
+
+
+1152
+00:31:21,296 --> 00:31:21,946
+we're going to connect our
+
+
+1153
+00:31:21,946 --> 00:31:22,806
+decoder nodes.
+
+
+1154
+00:31:23,486 --> 00:31:25,236
+Now, by passing the result image
+
+
+1155
+00:31:25,266 --> 00:31:26,306
+from the corresponding encoder
+
+
+1156
+00:31:26,306 --> 00:31:27,826
+nodes, we're going to satisfy
+
+
+1157
+00:31:27,826 --> 00:31:28,656
+the skip connections.
+
+
+1158
+00:31:30,636 --> 00:31:31,496
+So now we have the inference
+
+
+1159
+00:31:31,496 --> 00:31:31,876
+graph.
+
+
+1160
+00:31:32,226 --> 00:31:32,886
+Let's look at the training
+
+
+1161
+00:31:32,886 --> 00:31:32,976
+phase.
+
+
+1162
+00:31:35,496 --> 00:31:37,006
+To begin the training phase, we
+
+
+1163
+00:31:37,006 --> 00:31:38,086
+need to compute the loss value.
+
+
+1164
+00:31:38,146 --> 00:31:39,196
+So we're going to start we the
+
+
+1165
+00:31:39,196 --> 00:31:40,546
+inference, we're going to start
+
+
+1166
+00:31:40,546 --> 00:31:41,416
+with the result of the inference
+
+
+1167
+00:31:41,416 --> 00:31:43,586
+graph, which for a training
+
+
+1168
+00:31:43,586 --> 00:31:44,796
+iteration is now our network's
+
+
+1169
+00:31:44,866 --> 00:31:46,146
+best guess at the current
+
+
+1170
+00:31:46,146 --> 00:31:46,876
+denoised image.
+
+
+1171
+00:31:47,446 --> 00:31:49,246
+Now, we're going to take the
+
+
+1172
+00:31:49,246 --> 00:31:51,156
+clean RGB image for our ground
+
+
+1173
+00:31:51,156 --> 00:31:52,006
+truth, and we're going to use
+
+
+1174
+00:31:52,006 --> 00:31:53,076
+that to compute a loss value.
+
+
+1175
+00:31:53,076 --> 00:31:55,066
+Now, we're also going to want to
+
+
+1176
+00:31:55,066 --> 00:31:56,076
+compute a second loss.
+
+
+1177
+00:31:56,566 --> 00:31:57,706
+We're going to perform some edge
+
+
+1178
+00:31:57,706 --> 00:31:58,206
+detection.
+
+
+1179
+00:31:58,286 --> 00:31:59,356
+We're going to do this doing a
+
+
+1180
+00:31:59,356 --> 00:32:00,706
+Laplacian of Gaussian filter.
+
+
+1181
+00:32:01,616 --> 00:32:03,026
+Now, we want to do this because
+
+
+1182
+00:32:03,546 --> 00:32:04,576
+we want our network to learn how
+
+
+1183
+00:32:04,576 --> 00:32:06,096
+to denoise the image, but at the
+
+
+1184
+00:32:06,096 --> 00:32:07,086
+same time we also want to make
+
+
+1185
+00:32:07,086 --> 00:32:08,516
+sure that it preserves the edges
+
+
+1186
+00:32:08,516 --> 00:32:09,396
+of the original image.
+
+
+1187
+00:32:10,536 --> 00:32:12,436
+So, were going to implement the
+
+
+1188
+00:32:12,436 --> 00:32:14,026
+Laplacian of Gaussian or the LoG
+
+
+1189
+00:32:14,026 --> 00:32:15,976
+filter using convolutions here.
+
+
+1190
+00:32:17,396 --> 00:32:18,446
+Finally, we're going to combine
+
+
+1191
+00:32:18,446 --> 00:32:19,326
+these two losses.
+
+
+1192
+00:32:19,486 --> 00:32:20,426
+The first loss we're going to
+
+
+1193
+00:32:20,426 --> 00:32:22,956
+call the RGB loss and the second
+
+
+1194
+00:32:22,956 --> 00:32:24,336
+the LoG loss, and we're going to
+
+
+1195
+00:32:24,336 --> 00:32:25,556
+combine these into the final
+
+
+1196
+00:32:25,556 --> 00:32:25,916
+loss.
+
+
+1197
+00:32:28,476 --> 00:32:29,956
+So now let's take a closer look
+
+
+1198
+00:32:29,956 --> 00:32:30,666
+at how we do this.
+
+
+1199
+00:32:30,796 --> 00:32:32,456
+So, we're going to create our
+
+
+1200
+00:32:32,456 --> 00:32:34,546
+RBG loss node using the result
+
+
+1201
+00:32:34,546 --> 00:32:35,796
+of the inference graph and the
+
+
+1202
+00:32:35,796 --> 00:32:37,086
+ground truth RGB images.
+
+
+1203
+00:32:37,196 --> 00:32:39,476
+So, as you mentioned earlier, we
+
+
+1204
+00:32:39,476 --> 00:32:40,876
+can use separable loss kernels,
+
+
+1205
+00:32:41,246 --> 00:32:43,256
+and we're going to pass both of
+
+
+1206
+00:32:43,256 --> 00:32:44,316
+our, we're going to pass images
+
+
+1207
+00:32:44,316 --> 00:32:45,216
+for both our source and our
+
+
+1208
+00:32:45,216 --> 00:32:45,656
+labels.
+
+
+1209
+00:32:46,166 --> 00:32:49,256
+For our LoG loss, we need to
+
+
+1210
+00:32:49,256 --> 00:32:50,656
+apply the LoG filter to the
+
+
+1211
+00:32:50,656 --> 00:32:52,346
+target RBG images as well as the
+
+
+1212
+00:32:52,346 --> 00:32:52,976
+result of the inference graph.
+
+
+1213
+00:32:56,476 --> 00:32:57,676
+So, were going to implement the
+
+
+1214
+00:32:57,676 --> 00:32:58,856
+LoG filter using convolution
+
+
+1215
+00:32:58,856 --> 00:32:58,976
+nodes.
+
+
+1216
+00:33:02,136 --> 00:33:03,576
+We're going to compute the LoG
+
+
+1217
+00:33:03,576 --> 00:33:04,916
+loss using the results of the
+
+
+1218
+00:33:04,916 --> 00:33:08,116
+convolutions, and finally with
+
+
+1219
+00:33:08,116 --> 00:33:09,386
+both loss values computed, we
+
+
+1220
+00:33:09,386 --> 00:33:10,866
+can add them together to produce
+
+
+1221
+00:33:10,866 --> 00:33:11,606
+the final loss.
+
+
+1222
+00:33:12,186 --> 00:33:15,216
+Now with the final loss value,
+
+
+1223
+00:33:15,346 --> 00:33:15,876
+we can begin the
+
+
+1224
+00:33:15,876 --> 00:33:17,206
+back-propagation phase and look
+
+
+1225
+00:33:17,206 --> 00:33:17,946
+at the training graph.
+
+
+1226
+00:33:18,976 --> 00:33:20,466
+So, we're going to do this as
+
+
+1227
+00:33:20,756 --> 00:33:22,546
+before by computing the initial
+
+
+1228
+00:33:22,546 --> 00:33:22,896
+gradient.
+
+
+1229
+00:33:22,896 --> 00:33:25,166
+With the initial gradient value,
+
+
+1230
+00:33:25,166 --> 00:33:26,246
+we can begin the training graph.
+
+
+1231
+00:33:27,316 --> 00:33:28,576
+So, this involved several
+
+
+1232
+00:33:28,576 --> 00:33:29,546
+gradient nodes first for the
+
+
+1233
+00:33:29,546 --> 00:33:31,266
+addition followed by gradient
+
+
+1234
+00:33:31,266 --> 00:33:33,386
+nodes for each forward loss and
+
+
+1235
+00:33:33,456 --> 00:33:34,596
+then for the encoder and decoder
+
+
+1236
+00:33:34,596 --> 00:33:35,136
+stages.
+
+
+1237
+00:33:35,926 --> 00:33:36,966
+Now, implementing graph nodes
+
+
+1238
+00:33:36,966 --> 00:33:38,346
+for each of these layers would
+
+
+1239
+00:33:38,346 --> 00:33:39,526
+take a substantial amount of
+
+
+1240
+00:33:39,526 --> 00:33:41,526
+code and introduce plenty of
+
+
+1241
+00:33:41,526 --> 00:33:42,626
+opportunity for errors.
+
+
+1242
+00:33:43,176 --> 00:33:44,706
+However, with implicit graph
+
+
+1243
+00:33:44,706 --> 00:33:46,396
+creation, we can have the graph
+
+
+1244
+00:33:46,566 --> 00:33:47,886
+do all of this work for us.
+
+
+1245
+00:33:48,426 --> 00:33:51,096
+So, here's all we need to write
+
+
+1246
+00:33:51,096 --> 00:33:51,976
+to generate the training graph.
+
+
+1247
+00:33:55,156 --> 00:33:56,206
+First, we add the initial
+
+
+1248
+00:33:56,206 --> 00:33:57,566
+gradient node using the result
+
+
+1249
+00:33:57,566 --> 00:33:59,046
+of the final loss.
+
+
+1250
+00:34:00,496 --> 00:34:01,686
+Then using implicit graph
+
+
+1251
+00:34:01,686 --> 00:34:03,656
+creation, we generate all of the
+
+
+1252
+00:34:03,656 --> 00:34:05,266
+remaining gradient nodes.
+
+
+1253
+00:34:07,436 --> 00:34:08,616
+So now that we have our graph
+
+
+1254
+00:34:08,616 --> 00:34:10,126
+created, we can begin training
+
+
+1255
+00:34:10,676 --> 00:34:10,746
+it.
+
+
+1256
+00:34:11,295 --> 00:34:12,826
+So first, let's discuss our
+
+
+1257
+00:34:12,826 --> 00:34:13,536
+input training data.
+
+
+1258
+00:34:14,045 --> 00:34:15,246
+Now, the inputs are images for
+
+
+1259
+00:34:15,246 --> 00:34:16,025
+which we know the desired
+
+
+1260
+00:34:16,025 --> 00:34:16,376
+result.
+
+
+1261
+00:34:16,926 --> 00:34:17,795
+In this case we have noisy
+
+
+1262
+00:34:17,795 --> 00:34:18,755
+images and we have the
+
+
+1263
+00:34:18,755 --> 00:34:19,886
+corresponding clean images.
+
+
+1264
+00:34:20,856 --> 00:34:22,056
+Now both images were generated
+
+
+1265
+00:34:22,056 --> 00:34:23,626
+using a ray tracer built on top
+
+
+1266
+00:34:23,626 --> 00:34:23,876
+of MPS.
+
+
+1267
+00:34:23,876 --> 00:34:26,315
+We generated the noisy images by
+
+
+1268
+00:34:26,315 --> 00:34:27,545
+only letting the ray tracer run
+
+
+1269
+00:34:27,545 --> 00:34:28,716
+for a short period of time.
+
+
+1270
+00:34:29,275 --> 00:34:31,226
+And the clean images we obtained
+
+
+1271
+00:34:31,226 --> 00:34:32,376
+by running the ray tracer for an
+
+
+1272
+00:34:32,376 --> 00:34:35,045
+extended period of time.
+
+
+1273
+00:34:35,266 --> 00:34:36,045
+Now, by training with these
+
+
+1274
+00:34:36,045 --> 00:34:37,786
+images, we hope our network will
+
+
+1275
+00:34:37,786 --> 00:34:38,876
+learn to approximate the clean
+
+
+1276
+00:34:38,876 --> 00:34:40,056
+ones from the noisy ones.
+
+
+1277
+00:34:40,396 --> 00:34:42,025
+And further, we're going to
+
+
+1278
+00:34:42,025 --> 00:34:43,346
+augment our input data with a
+
+
+1279
+00:34:43,346 --> 00:34:45,775
+few other images, also produced
+
+
+1280
+00:34:45,775 --> 00:34:46,386
+by a ray tracer.
+
+
+1281
+00:34:47,255 --> 00:34:48,826
+Surface normal and albedo.
+
+
+1282
+00:34:50,085 --> 00:34:51,556
+The albedo image is a
+
+
+1283
+00:34:51,556 --> 00:34:52,786
+three-channel image containing
+
+
+1284
+00:34:52,786 --> 00:34:55,596
+values which for the amount of
+
+
+1285
+00:34:55,596 --> 00:34:58,366
+reflected light, the surface
+
+
+1286
+00:34:58,366 --> 00:34:59,316
+normals are a three-channel
+
+
+1287
+00:34:59,316 --> 00:35:00,556
+image where each channel is
+
+
+1288
+00:35:00,556 --> 00:35:02,676
+going to contain a component of
+
+
+1289
+00:35:02,676 --> 00:35:03,686
+the surface normal vector.
+
+
+1290
+00:35:04,286 --> 00:35:06,446
+Now, before we can begin
+
+
+1291
+00:35:06,446 --> 00:35:07,976
+training, we need to do a little
+
+
+1292
+00:35:08,196 --> 00:35:09,926
+bit of preprocessing.
+
+
+1293
+00:35:09,926 --> 00:35:12,706
+So, as I mentioned, these all
+
+
+1294
+00:35:12,706 --> 00:35:13,626
+contain their data in three
+
+
+1295
+00:35:13,626 --> 00:35:14,166
+channels.
+
+
+1296
+00:35:15,336 --> 00:35:17,436
+However, MPS networks and MPS
+
+
+1297
+00:35:17,436 --> 00:35:20,586
+cnnKernels use their images as
+
+
+1298
+00:35:20,726 --> 00:35:21,986
+four-channel textures.
+
+
+1299
+00:35:22,546 --> 00:35:23,266
+So, we're going to have to
+
+
+1300
+00:35:23,266 --> 00:35:24,346
+concatenate these values
+
+
+1301
+00:35:24,346 --> 00:35:24,836
+together.
+
+
+1302
+00:35:25,506 --> 00:35:28,186
+Now, because each image is three
+
+
+1303
+00:35:28,186 --> 00:35:30,246
+channels, we need to concatenate
+
+
+1304
+00:35:30,246 --> 00:35:31,136
+these into a single metal
+
+
+1305
+00:35:31,136 --> 00:35:33,626
+texture array, and we can't
+
+
+1306
+00:35:33,826 --> 00:35:35,436
+necessarily use the MPS cnn
+
+
+1307
+00:35:35,516 --> 00:35:37,146
+concatenation because it
+
+
+1308
+00:35:37,146 --> 00:35:38,166
+requires feature channels in a
+
+
+1309
+00:35:38,166 --> 00:35:38,816
+multiple of four.
+
+
+1310
+00:35:39,636 --> 00:35:40,756
+However, we can write a simple
+
+
+1311
+00:35:40,756 --> 00:35:42,656
+kernel to do this for us.
+
+
+1312
+00:35:43,646 --> 00:35:45,006
+So here's a simple metal compute
+
+
+1313
+00:35:45,006 --> 00:35:46,076
+shader to concatenate these
+
+
+1314
+00:35:46,076 --> 00:35:46,866
+images together.
+
+
+1315
+00:35:46,866 --> 00:35:49,306
+We're going to start using a
+
+
+1316
+00:35:49,306 --> 00:35:51,276
+grid of threads mapped to each
+
+
+1317
+00:35:51,276 --> 00:35:52,686
+four-channel pixel the result.
+
+
+1318
+00:35:52,686 --> 00:35:55,026
+Our arguments are going to be a
+
+
+1319
+00:35:55,026 --> 00:35:56,276
+result to hold the concatenated
+
+
+1320
+00:35:56,276 --> 00:35:58,616
+image, the RGB input, the albedo
+
+
+1321
+00:35:58,616 --> 00:36:00,036
+input, and our normal image.
+
+
+1322
+00:36:00,586 --> 00:36:02,586
+So we're going to start having
+
+
+1323
+00:36:02,586 --> 00:36:04,956
+each thread read a pixel from
+
+
+1324
+00:36:04,956 --> 00:36:06,476
+each input at its location in
+
+
+1325
+00:36:06,476 --> 00:36:07,166
+the grid.
+
+
+1326
+00:36:08,056 --> 00:36:09,286
+We're going to concatenate those
+
+
+1327
+00:36:09,286 --> 00:36:11,476
+values together, and we're going
+
+
+1328
+00:36:11,476 --> 00:36:12,286
+to fill the remaining unused
+
+
+1329
+00:36:12,286 --> 00:36:12,926
+channels with 0.
+
+
+1330
+00:36:17,216 --> 00:36:18,126
+Finally, we're going to write
+
+
+1331
+00:36:18,126 --> 00:36:19,896
+out the result at its same
+
+
+1332
+00:36:19,896 --> 00:36:21,856
+location in the grid.
+
+
+1333
+00:36:21,906 --> 00:36:23,676
+So now that we have a shader
+
+
+1334
+00:36:23,676 --> 00:36:25,026
+which can concatenate these
+
+
+1335
+00:36:25,026 --> 00:36:26,076
+values together into a single
+
+
+1336
+00:36:26,076 --> 00:36:27,436
+MPS image, let's look at how we
+
+
+1337
+00:36:27,436 --> 00:36:28,176
+hand it to the graph.
+
+
+1338
+00:36:29,246 --> 00:36:30,236
+Or rather, let's look at how we
+
+
+1339
+00:36:30,236 --> 00:36:31,086
+encode it first.
+
+
+1340
+00:36:31,086 --> 00:36:33,536
+So here's an example of how we
+
+
+1341
+00:36:33,536 --> 00:36:34,616
+encode our kernel and wrap the
+
+
+1342
+00:36:34,616 --> 00:36:35,696
+result in an MPS image.
+
+
+1343
+00:36:36,896 --> 00:36:37,856
+So our inputs are images
+
+
+1344
+00:36:37,856 --> 00:36:40,326
+containing the data, and we're
+
+
+1345
+00:36:40,496 --> 00:36:41,696
+going to want to use the result
+
+
+1346
+00:36:41,696 --> 00:36:42,496
+as an input to the graph.
+
+
+1347
+00:36:42,496 --> 00:36:43,656
+So, we need to construct an MPS
+
+
+1348
+00:36:43,656 --> 00:36:44,006
+image.
+
+
+1349
+00:36:44,346 --> 00:36:45,506
+We're going to use its texture
+
+
+1350
+00:36:45,646 --> 00:36:46,696
+to hold the result of our
+
+
+1351
+00:36:46,696 --> 00:36:47,446
+concatenation kernel.
+
+
+1352
+00:36:47,926 --> 00:36:50,336
+Next, we're going to bind each
+
+
+1353
+00:36:50,336 --> 00:36:51,496
+argument at its appropriate
+
+
+1354
+00:36:51,496 --> 00:36:51,856
+location.
+
+
+1355
+00:36:53,026 --> 00:36:54,976
+We'll dispatch our threads and
+
+
+1356
+00:36:54,976 --> 00:36:56,416
+then finally return the image
+
+
+1357
+00:36:56,626 --> 00:36:57,756
+ready to be passed into our
+
+
+1358
+00:36:57,756 --> 00:36:58,086
+network.
+
+
+1359
+00:36:58,706 --> 00:36:59,726
+So, now that our inputs are
+
+
+1360
+00:36:59,726 --> 00:37:01,326
+prepared, let's look at
+
+
+1361
+00:37:01,326 --> 00:37:02,476
+executing the training graph.
+
+
+1362
+00:37:02,526 --> 00:37:04,436
+Now during training, we'll be
+
+
+1363
+00:37:04,436 --> 00:37:05,746
+executing the graph from many
+
+
+1364
+00:37:05,746 --> 00:37:06,416
+iterations.
+
+
+1365
+00:37:06,416 --> 00:37:07,936
+We're going to be executing
+
+
+1366
+00:37:08,006 --> 00:37:09,526
+multiple batches within each
+
+
+1367
+00:37:09,526 --> 00:37:11,016
+training set, and then we're
+
+
+1368
+00:37:11,016 --> 00:37:12,166
+going to be executing multiple
+
+
+1369
+00:37:12,166 --> 00:37:13,976
+batches over each epoch.
+
+
+1370
+00:37:16,596 --> 00:37:18,886
+So, here we're going to run one
+
+
+1371
+00:37:18,886 --> 00:37:19,986
+iteration of the training graph.
+
+
+1372
+00:37:20,496 --> 00:37:21,376
+We're going to concatenate our
+
+
+1373
+00:37:21,376 --> 00:37:22,956
+images together using the kernel
+
+
+1374
+00:37:22,956 --> 00:37:24,266
+we just showed except for each
+
+
+1375
+00:37:24,266 --> 00:37:24,976
+image in the batch.
+
+
+1376
+00:37:27,076 --> 00:37:28,046
+We're going to put these
+
+
+1377
+00:37:28,046 --> 00:37:29,746
+together into and array because
+
+
+1378
+00:37:29,956 --> 00:37:31,726
+the graph requires an array of
+
+
+1379
+00:37:31,726 --> 00:37:33,076
+images, one for the source
+
+
+1380
+00:37:33,076 --> 00:37:34,376
+images and one for our labels.
+
+
+1381
+00:37:34,926 --> 00:37:37,306
+Now we're going to use
+
+
+1382
+00:37:37,306 --> 00:37:38,646
+MPSCommandBuffers here, because
+
+
+1383
+00:37:38,646 --> 00:37:39,766
+as we saw earlier, it's an easy
+
+
+1384
+00:37:39,766 --> 00:37:41,066
+way of getting improved GPU
+
+
+1385
+00:37:41,066 --> 00:37:41,706
+utilization.
+
+
+1386
+00:37:43,006 --> 00:37:43,946
+So finally, we're going to
+
+
+1387
+00:37:43,946 --> 00:37:45,766
+encode the graph and then commit
+
+
+1388
+00:37:45,766 --> 00:37:46,396
+it for execution.
+
+
+1389
+00:37:47,006 --> 00:37:49,136
+So, now let's look closer at
+
+
+1390
+00:37:49,136 --> 00:37:49,896
+each training epoch.
+
+
+1391
+00:37:50,216 --> 00:37:51,526
+Now in this scheme, we're going
+
+
+1392
+00:37:51,526 --> 00:37:52,626
+to process the full training
+
+
+1393
+00:37:52,626 --> 00:37:54,156
+data set, each epoch, to allow
+
+
+1394
+00:37:54,156 --> 00:37:55,106
+for better convergence.
+
+
+1395
+00:37:55,796 --> 00:37:57,106
+We're also going to update the
+
+
+1396
+00:37:57,106 --> 00:37:59,476
+training set every some number
+
+
+1397
+00:37:59,476 --> 00:38:00,636
+of epochs, in this case every
+
+
+1398
+00:38:00,636 --> 00:38:02,196
+100, and at that point, we're
+
+
+1399
+00:38:02,196 --> 00:38:03,296
+also going to perform our
+
+
+1400
+00:38:03,296 --> 00:38:04,156
+network validation.
+
+
+1401
+00:38:04,976 --> 00:38:06,356
+Finally, at every thousandth
+
+
+1402
+00:38:06,356 --> 00:38:07,126
+epoch, we're going to decrease
+
+
+1403
+00:38:07,126 --> 00:38:07,796
+the learning rate of our
+
+
+1404
+00:38:07,796 --> 00:38:08,386
+optimizer.
+
+
+1405
+00:38:08,526 --> 00:38:10,006
+This will also help improve
+
+
+1406
+00:38:10,006 --> 00:38:10,606
+convergence.
+
+
+1407
+00:38:10,656 --> 00:38:12,046
+So let's look at the code for
+
+
+1408
+00:38:12,046 --> 00:38:12,346
+this.
+
+
+1409
+00:38:12,386 --> 00:38:13,116
+So, we're going to begin by
+
+
+1410
+00:38:13,116 --> 00:38:14,496
+processing the entire training
+
+
+1411
+00:38:14,496 --> 00:38:15,856
+set once each epoch.
+
+
+1412
+00:38:15,856 --> 00:38:18,546
+Here we see every hundredth
+
+
+1413
+00:38:18,546 --> 00:38:18,736
+epoch.
+
+
+1414
+00:38:18,736 --> 00:38:19,876
+We're going to update our
+
+
+1415
+00:38:19,876 --> 00:38:21,026
+training data set, and we're
+
+
+1416
+00:38:21,026 --> 00:38:22,136
+going to run the validation.
+
+
+1417
+00:38:23,416 --> 00:38:24,676
+And finally, every thousandth
+
+
+1418
+00:38:24,676 --> 00:38:25,786
+epoch, we'll decay our learning
+
+
+1419
+00:38:25,786 --> 00:38:28,936
+rate by a factor of 2.
+
+
+1420
+00:38:29,166 --> 00:38:30,146
+So, now that we've trained the
+
+
+1421
+00:38:30,146 --> 00:38:31,846
+graph, we can begin denoising
+
+
+1422
+00:38:31,846 --> 00:38:32,466
+new images.
+
+
+1423
+00:38:33,016 --> 00:38:34,596
+Now, because MPS is available
+
+
+1424
+00:38:34,596 --> 00:38:36,006
+and optimized across multiple
+
+
+1425
+00:38:36,006 --> 00:38:38,276
+platforms, we can easily deploy
+
+
+1426
+00:38:38,276 --> 00:38:39,166
+the training network on a
+
+
+1427
+00:38:39,166 --> 00:38:39,906
+different device.
+
+
+1428
+00:38:40,106 --> 00:38:41,916
+For example, you may want to
+
+
+1429
+00:38:41,916 --> 00:38:43,366
+execute the computationally
+
+
+1430
+00:38:43,366 --> 00:38:44,816
+expensive task of training on a
+
+
+1431
+00:38:44,816 --> 00:38:46,636
+Mac and then use the train
+
+
+1432
+00:38:46,636 --> 00:38:48,276
+network to filter images on an
+
+
+1433
+00:38:49,096 --> 00:38:49,236
+iPad.
+
+
+1434
+00:38:49,776 --> 00:38:51,086
+So, first, let's take a look at
+
+
+1435
+00:38:51,086 --> 00:38:52,546
+serialization support in MPS.
+
+
+1436
+00:38:52,546 --> 00:38:55,356
+Now all MPS kernels as well as
+
+
+1437
+00:38:55,356 --> 00:38:56,276
+the graph support a secure
+
+
+1438
+00:38:56,276 --> 00:38:56,616
+coding.
+
+
+1439
+00:38:57,116 --> 00:38:58,386
+This allows you to easily save
+
+
+1440
+00:38:58,386 --> 00:38:59,526
+and restore your networks to and
+
+
+1441
+00:38:59,526 --> 00:38:59,996
+from disk.
+
+
+1442
+00:39:01,166 --> 00:39:02,306
+And for networks which load
+
+
+1443
+00:39:02,306 --> 00:39:03,036
+their weights from a data
+
+
+1444
+00:39:03,036 --> 00:39:04,286
+source, you're going to have to
+
+
+1445
+00:39:04,286 --> 00:39:05,646
+implement secure coding support
+
+
+1446
+00:39:05,976 --> 00:39:06,976
+on your data source yourself.
+
+
+1447
+00:39:07,806 --> 00:39:09,946
+Now this requires the support
+
+
+1448
+00:39:09,946 --> 00:39:11,016
+secure coding property and the
+
+
+1449
+00:39:11,136 --> 00:39:12,586
+init and encode with coder
+
+
+1450
+00:39:12,586 --> 00:39:13,016
+methods.
+
+
+1451
+00:39:13,166 --> 00:39:14,506
+Now, once your data source
+
+
+1452
+00:39:14,506 --> 00:39:16,246
+conforms to secure coding, it's
+
+
+1453
+00:39:16,246 --> 00:39:18,326
+easy to serialize and save the
+
+
+1454
+00:39:18,326 --> 00:39:18,716
+graph.
+
+
+1455
+00:39:19,276 --> 00:39:20,576
+So, first we're going to create
+
+
+1456
+00:39:20,576 --> 00:39:21,696
+a coder in which to encode the
+
+
+1457
+00:39:21,696 --> 00:39:22,086
+graph.
+
+
+1458
+00:39:22,816 --> 00:39:23,776
+Then we're going to call encode
+
+
+1459
+00:39:23,776 --> 00:39:24,606
+with coder on the graph.
+
+
+1460
+00:39:24,606 --> 00:39:25,886
+Now, when this happens, it's
+
+
+1461
+00:39:25,886 --> 00:39:27,116
+going to serialize each of the
+
+
+1462
+00:39:27,116 --> 00:39:28,376
+individual kernels, and if those
+
+
+1463
+00:39:28,376 --> 00:39:30,196
+kernels have data sources, it
+
+
+1464
+00:39:30,196 --> 00:39:31,406
+will serialize those as well.
+
+
+1465
+00:39:31,716 --> 00:39:33,676
+That way, the resulting archive
+
+
+1466
+00:39:33,676 --> 00:39:34,786
+contains all of the information
+
+
+1467
+00:39:34,786 --> 00:39:36,166
+necessary to restore and
+
+
+1468
+00:39:36,166 --> 00:39:36,996
+initialize the graph.
+
+
+1469
+00:39:38,156 --> 00:39:40,306
+Finally, we can save the data to
+
+
+1470
+00:39:40,306 --> 00:39:40,666
+a file.
+
+
+1471
+00:39:41,266 --> 00:39:43,966
+Now let's look at loading it.
+
+
+1472
+00:39:44,746 --> 00:39:45,896
+So, in order to ensure at the
+
+
+1473
+00:39:45,896 --> 00:39:47,436
+unarchived kernels initialize on
+
+
+1474
+00:39:47,436 --> 00:39:49,266
+the proper metal device, we
+
+
+1475
+00:39:49,266 --> 00:39:50,146
+provide you with the
+
+
+1476
+00:39:50,146 --> 00:39:51,076
+MPSKeyedUnarchiver.
+
+
+1477
+00:39:51,726 --> 00:39:52,926
+It's like a regular unarchiver
+
+
+1478
+00:39:52,926 --> 00:39:54,206
+except you initialize it with a
+
+
+1479
+00:39:54,206 --> 00:39:55,606
+metal device, and then it will
+
+
+1480
+00:39:55,606 --> 00:39:56,936
+provide this device to all the
+
+
+1481
+00:39:56,936 --> 00:39:58,086
+kernels as they're initialized.
+
+
+1482
+00:39:58,536 --> 00:39:59,796
+So, after we load our data,
+
+
+1483
+00:39:59,796 --> 00:40:01,286
+we'll create an unarchiver with
+
+
+1484
+00:40:01,286 --> 00:40:01,896
+the device.
+
+
+1485
+00:40:02,386 --> 00:40:03,336
+We'll restore the graph on the
+
+
+1486
+00:40:03,336 --> 00:40:05,116
+new device, and with the train
+
+
+1487
+00:40:05,116 --> 00:40:06,736
+network now initialized, the
+
+
+1488
+00:40:06,736 --> 00:40:08,136
+graph is ready to be used to
+
+
+1489
+00:40:08,136 --> 00:40:09,296
+denoise new images.
+
+
+1490
+00:40:09,626 --> 00:40:10,536
+So, let's take a look at this
+
+
+1491
+00:40:10,536 --> 00:40:11,386
+network in action.
+
+
+1492
+00:40:11,986 --> 00:40:15,086
+So, here we applied our denoiser
+
+
+1493
+00:40:15,166 --> 00:40:15,676
+to a scene.
+
+
+1494
+00:40:16,506 --> 00:40:17,626
+The top region shows how the
+
+
+1495
+00:40:17,626 --> 00:40:19,236
+scene looks in our input noisy
+
+
+1496
+00:40:19,236 --> 00:40:19,566
+image.
+
+
+1497
+00:40:20,066 --> 00:40:21,006
+The center region shows the
+
+
+1498
+00:40:21,006 --> 00:40:23,486
+result of our denoiser, and you
+
+
+1499
+00:40:23,486 --> 00:40:24,536
+can see the bottom region shows
+
+
+1500
+00:40:24,536 --> 00:40:25,546
+the ground truth clean image.
+
+
+1501
+00:40:26,236 --> 00:40:27,686
+As you can see, the denoised
+
+
+1502
+00:40:27,686 --> 00:40:29,056
+region looks nearly as good as
+
+
+1503
+00:40:29,056 --> 00:40:30,956
+the clean target, except we're
+
+
+1504
+00:40:30,956 --> 00:40:31,846
+achieving this with
+
+
+1505
+00:40:31,976 --> 00:40:33,086
+significantly less work because
+
+
+1506
+00:40:33,086 --> 00:40:34,016
+were not running the full ray
+
+
+1507
+00:40:34,016 --> 00:40:34,356
+tracer.
+
+
+1508
+00:40:34,946 --> 00:40:37,846
+So as you saw, using MPS, we can
+
+
+1509
+00:40:37,916 --> 00:40:39,156
+easily implement complex
+
+
+1510
+00:40:39,156 --> 00:40:40,386
+networks like denoising and
+
+
+1511
+00:40:40,386 --> 00:40:41,066
+style transfer.
+
+
+1512
+00:40:42,506 --> 00:40:44,206
+This year we've expanded support
+
+
+1513
+00:40:44,716 --> 00:40:46,086
+for inference and training to a
+
+
+1514
+00:40:46,086 --> 00:40:47,086
+new class of networks with
+
+
+1515
+00:40:47,086 --> 00:40:49,146
+features like separable loss and
+
+
+1516
+00:40:49,146 --> 00:40:50,136
+random number generation.
+
+
+1517
+00:40:50,706 --> 00:40:52,856
+And with MPSCommandBuffering, we
+
+
+1518
+00:40:52,856 --> 00:40:54,136
+now support improved performance
+
+
+1519
+00:40:54,136 --> 00:40:55,696
+and better utilization through
+
+
+1520
+00:40:55,696 --> 00:40:57,036
+things like predication and
+
+
+1521
+00:40:57,036 --> 00:40:59,036
+commitAndContinue, and we made
+
+
+1522
+00:40:59,036 --> 00:41:00,426
+all of these features easier to
+
+
+1523
+00:41:00,426 --> 00:41:01,576
+use through implicit graph
+
+
+1524
+00:41:01,576 --> 00:41:01,996
+creation.
+
+
+1525
+00:41:02,566 --> 00:41:04,946
+So, for more information about
+
+
+1526
+00:41:04,946 --> 00:41:06,556
+MPS and metal, please see the
+
+
+1527
+00:41:06,556 --> 00:41:07,796
+online documentation and our
+
+
+1528
+00:41:07,796 --> 00:41:09,326
+sample code, and for more
+
+
+1529
+00:41:09,526 --> 00:41:10,706
+information about MPS and ray
+
+
+1530
+00:41:10,706 --> 00:41:12,496
+tracing, please see the Metal
+
+
+1531
+00:41:12,496 --> 00:41:13,626
+for Ray Tracing session earlier.
+
+
+1532
+00:41:14,486 --> 00:41:14,976
+Thank you.
+
+
+1533
+00:41:15,516 --> 00:41:20,500
+[ Applause ]
+

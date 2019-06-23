@@ -1,0 +1,2624 @@
+1
+00:00:00,506 --> 00:00:05,516
+[ Music ]
+
+
+2
+00:00:06,231 --> 00:00:08,231
+[ Applause ]
+
+
+3
+00:00:08,446 --> 00:00:10,006
+>> My name is Janum Trivedi, and
+
+
+4
+00:00:10,006 --> 00:00:11,466
+I'm an engineer on the UIKit
+
+
+5
+00:00:11,496 --> 00:00:12,466
+frameworks team.
+
+
+6
+00:00:13,696 --> 00:00:15,666
+First, let's talk about
+
+
+7
+00:00:15,666 --> 00:00:17,276
+architecting your app for
+
+
+8
+00:00:17,276 --> 00:00:18,236
+multiple windows.
+
+
+9
+00:00:18,916 --> 00:00:20,786
+On iOS 13, supporting multiple
+
+
+10
+00:00:20,786 --> 00:00:22,776
+windows is a fantastic way to
+
+
+11
+00:00:22,776 --> 00:00:24,016
+make your existing apps more
+
+
+12
+00:00:24,016 --> 00:00:26,006
+useful and allow your users to
+
+
+13
+00:00:26,006 --> 00:00:26,976
+be substantially more
+
+
+14
+00:00:26,976 --> 00:00:27,556
+productive.
+
+
+15
+00:00:30,056 --> 00:00:31,576
+We'll be going over three
+
+
+16
+00:00:31,576 --> 00:00:32,746
+primary topics today.
+
+
+17
+00:00:33,496 --> 00:00:34,666
+We'll get started by doing a
+
+
+18
+00:00:34,666 --> 00:00:36,436
+quick overview of the changes to
+
+
+19
+00:00:36,436 --> 00:00:38,176
+the application life cycle that
+
+
+20
+00:00:38,226 --> 00:00:39,856
+will allow multiple windows on
+
+
+21
+00:00:39,856 --> 00:00:41,236
+iOS 13 to be possible.
+
+
+22
+00:00:42,456 --> 00:00:44,856
+Then, we'll dive deeper into the
+
+
+23
+00:00:44,856 --> 00:00:47,206
+new UIScene delegate and we'll
+
+
+24
+00:00:47,206 --> 00:00:48,436
+talk about what kind of work you
+
+
+25
+00:00:48,436 --> 00:00:49,896
+should be doing there.
+
+
+26
+00:00:50,486 --> 00:00:52,816
+Finally, we'll go over some best
+
+
+27
+00:00:52,816 --> 00:00:54,386
+practices in ArchitectureKit so
+
+
+28
+00:00:54,386 --> 00:00:55,346
+you and your team can take
+
+
+29
+00:00:55,346 --> 00:00:56,926
+advantage of to make sure you
+
+
+30
+00:00:56,926 --> 00:00:57,906
+provide your users with a
+
+
+31
+00:00:57,906 --> 00:00:59,506
+consistent, seamless
+
+
+32
+00:00:59,506 --> 00:01:01,236
+multitasking experience.
+
+
+33
+00:01:01,796 --> 00:01:06,356
+Now, to get started, let's talk
+
+
+34
+00:01:06,356 --> 00:01:07,866
+about some of the roles and
+
+
+35
+00:01:07,866 --> 00:01:09,046
+responsibilities of the App
+
+
+36
+00:01:09,106 --> 00:01:10,976
+Delegate in iOS 12 and before.
+
+
+37
+00:01:10,976 --> 00:01:13,876
+The App Delegate had two primary
+
+
+38
+00:01:13,876 --> 00:01:14,166
+roles.
+
+
+39
+00:01:14,166 --> 00:01:15,436
+The first was to notify your
+
+
+40
+00:01:15,436 --> 00:01:17,266
+application of process level
+
+
+41
+00:01:17,266 --> 00:01:17,716
+events.
+
+
+42
+00:01:18,046 --> 00:01:19,286
+So, the system would notify your
+
+
+43
+00:01:19,286 --> 00:01:20,476
+App Delegate when your process
+
+
+44
+00:01:20,476 --> 00:01:22,056
+was launching or was about to
+
+
+45
+00:01:22,056 --> 00:01:22,656
+terminate.
+
+
+46
+00:01:23,256 --> 00:01:24,976
+But it also had the second role,
+
+
+47
+00:01:25,326 --> 00:01:26,846
+which was letting your
+
+
+48
+00:01:26,846 --> 00:01:29,066
+application know the state of
+
+
+49
+00:01:29,066 --> 00:01:29,566
+its UI.
+
+
+50
+00:01:31,266 --> 00:01:33,446
+So, via some methods like did
+
+
+51
+00:01:33,446 --> 00:01:34,776
+enter foreground and will resign
+
+
+52
+00:01:34,776 --> 00:01:36,616
+active, the system will let you
+
+
+53
+00:01:36,616 --> 00:01:37,846
+know your UI state.
+
+
+54
+00:01:38,446 --> 00:01:41,586
+And this is totally fine in iOS
+
+
+55
+00:01:41,586 --> 00:01:42,666
+12 and before, because
+
+
+56
+00:01:42,906 --> 00:01:44,686
+applications had one process and
+
+
+57
+00:01:44,686 --> 00:01:46,666
+also just one user interface
+
+
+58
+00:01:46,666 --> 00:01:48,366
+instance to match it.
+
+
+59
+00:01:48,936 --> 00:01:51,096
+So, today your App Delegate
+
+
+60
+00:01:51,096 --> 00:01:52,086
+probably looks a little bit
+
+
+61
+00:01:52,086 --> 00:01:53,976
+something like this, except
+
+
+62
+00:01:53,976 --> 00:01:55,406
+maybe not quite this short.
+
+
+63
+00:01:55,406 --> 00:01:59,156
+So, in your did finish launching
+
+
+64
+00:01:59,156 --> 00:02:00,376
+with options, you do a couple
+
+
+65
+00:02:00,376 --> 00:02:00,716
+things.
+
+
+66
+00:02:00,716 --> 00:02:02,706
+First you do some one-time
+
+
+67
+00:02:02,706 --> 00:02:04,536
+non-UI global setup, like
+
+
+68
+00:02:04,596 --> 00:02:05,856
+connecting to a database or
+
+
+69
+00:02:05,856 --> 00:02:06,716
+initializing your data
+
+
+70
+00:02:06,716 --> 00:02:07,376
+structures.
+
+
+71
+00:02:07,996 --> 00:02:09,886
+And immediately after that, you
+
+
+72
+00:02:09,886 --> 00:02:11,136
+set up your user interface.
+
+
+73
+00:02:11,676 --> 00:02:14,756
+And again, this is totally valid
+
+
+74
+00:02:14,756 --> 00:02:17,006
+in 12 and before, but iOS 13's
+
+
+75
+00:02:17,006 --> 00:02:18,156
+pattern is invalid.
+
+
+76
+00:02:18,956 --> 00:02:21,186
+Why? Because applications now
+
+
+77
+00:02:21,466 --> 00:02:23,176
+still just share one process but
+
+
+78
+00:02:23,176 --> 00:02:25,026
+may have multiple user interface
+
+
+79
+00:02:25,026 --> 00:02:27,576
+instances or scene sessions.
+
+
+80
+00:02:28,116 --> 00:02:32,406
+That means the responsibility of
+
+
+81
+00:02:32,406 --> 00:02:33,596
+the App Delegate needs to change
+
+
+82
+00:02:33,596 --> 00:02:33,846
+a bit.
+
+
+83
+00:02:34,386 --> 00:02:35,496
+It's still responsible for
+
+
+84
+00:02:35,496 --> 00:02:37,106
+process events and life cycle,
+
+
+85
+00:02:37,486 --> 00:02:38,796
+but it's no longer responsible
+
+
+86
+00:02:38,796 --> 00:02:40,166
+for anything related to your UI
+
+
+87
+00:02:40,166 --> 00:02:40,756
+lifecycle.
+
+
+88
+00:02:41,386 --> 00:02:43,186
+Instead, that'll all be handled
+
+
+89
+00:02:43,456 --> 00:02:45,156
+by your UIScene Delegate.
+
+
+90
+00:02:46,146 --> 00:02:47,436
+Well, what does that mean for
+
+
+91
+00:02:47,436 --> 00:02:47,716
+you?
+
+
+92
+00:02:48,346 --> 00:02:50,436
+Any UI setup or teardown work
+
+
+93
+00:02:50,436 --> 00:02:51,536
+that you used to do in your App
+
+
+94
+00:02:51,536 --> 00:02:53,716
+Delegate now needs to migrate to
+
+
+95
+00:02:53,716 --> 00:02:55,166
+the corresponding methods in
+
+
+96
+00:02:55,166 --> 00:02:56,076
+your Scene Delegate.
+
+
+97
+00:02:56,596 --> 00:02:59,986
+In fact, on iOS 13, if your
+
+
+98
+00:02:59,986 --> 00:03:02,006
+application adopts the new scene
+
+
+99
+00:03:02,006 --> 00:03:03,876
+lifecycle, UIKit will stop
+
+
+100
+00:03:03,876 --> 00:03:05,276
+calling the old App Delegate
+
+
+101
+00:03:05,276 --> 00:03:06,976
+methods that relate to UI state.
+
+
+102
+00:03:07,686 --> 00:03:09,266
+Instead, we'll call the new
+
+
+103
+00:03:09,696 --> 00:03:11,806
+Scene Delegate methods, and it's
+
+
+104
+00:03:11,806 --> 00:03:12,936
+pretty simple since there's a
+
+
+105
+00:03:13,406 --> 00:03:14,976
+1-to-1 mapping for most of
+
+
+106
+00:03:14,976 --> 00:03:15,316
+these.
+
+
+107
+00:03:16,246 --> 00:03:18,346
+But don't worry - if you want to
+
+
+108
+00:03:18,346 --> 00:03:19,696
+adopt multiple windows support
+
+
+109
+00:03:19,696 --> 00:03:21,146
+on iOS 13, that doesn't mean you
+
+
+110
+00:03:21,146 --> 00:03:22,626
+need to drop support for 12 and
+
+
+111
+00:03:22,626 --> 00:03:23,066
+before.
+
+
+112
+00:03:23,776 --> 00:03:25,366
+If you're back deploying, you
+
+
+113
+00:03:25,366 --> 00:03:26,676
+can simply keep both sets of
+
+
+114
+00:03:26,676 --> 00:03:28,356
+these methods and UIKit will
+
+
+115
+00:03:28,356 --> 00:03:30,586
+call the correct set at runtime.
+
+
+116
+00:03:31,106 --> 00:03:35,086
+Now, before we dive into the
+
+
+117
+00:03:35,086 --> 00:03:36,886
+exact delegate methods, there's
+
+
+118
+00:03:36,886 --> 00:03:37,876
+one more additional
+
+
+119
+00:03:37,876 --> 00:03:39,276
+responsibility that the App
+
+
+120
+00:03:39,366 --> 00:03:40,206
+Delegate gets.
+
+
+121
+00:03:40,466 --> 00:03:41,756
+And that is the system will now
+
+
+122
+00:03:41,756 --> 00:03:43,436
+notify your App Delegate when a
+
+
+123
+00:03:43,436 --> 00:03:44,886
+new Scene Session is being
+
+
+124
+00:03:44,886 --> 00:03:46,736
+created, or an existing Scene
+
+
+125
+00:03:46,736 --> 00:03:48,176
+Session is being discarded.
+
+
+126
+00:03:48,176 --> 00:03:51,276
+Let's make this lifecycle a
+
+
+127
+00:03:51,326 --> 00:03:52,786
+little bit more concrete.
+
+
+128
+00:03:53,196 --> 00:03:54,316
+Say I've been working on this
+
+
+129
+00:03:54,316 --> 00:03:55,806
+little blue app right here and I
+
+
+130
+00:03:55,806 --> 00:03:56,876
+want to launch it for the first
+
+
+131
+00:03:56,876 --> 00:03:57,246
+time.
+
+
+132
+00:03:57,456 --> 00:03:58,556
+Let's go through the call stack.
+
+
+133
+00:03:59,606 --> 00:04:01,826
+First, your App Delegate's going
+
+
+134
+00:04:01,826 --> 00:04:02,996
+to get the same did finish
+
+
+135
+00:04:02,996 --> 00:04:04,016
+launching with options call.
+
+
+136
+00:04:04,246 --> 00:04:05,536
+Again, it's still fine to do
+
+
+137
+00:04:05,536 --> 00:04:07,716
+your one-time non-UI setup here.
+
+
+138
+00:04:08,276 --> 00:04:10,906
+Then immediately after that, the
+
+
+139
+00:04:10,906 --> 00:04:12,346
+system's going to create a scene
+
+
+140
+00:04:12,346 --> 00:04:12,936
+session.
+
+
+141
+00:04:13,906 --> 00:04:15,306
+But before it creates the actual
+
+
+142
+00:04:15,306 --> 00:04:16,875
+UI Scene, it's going to ask our
+
+
+143
+00:04:16,875 --> 00:04:18,836
+application for UIScene
+
+
+144
+00:04:18,836 --> 00:04:19,685
+configuration.
+
+
+145
+00:04:20,226 --> 00:04:21,946
+This configuration specifies
+
+
+146
+00:04:22,156 --> 00:04:24,086
+what scene delegate, what story
+
+
+147
+00:04:24,086 --> 00:04:25,606
+board, and if you specified,
+
+
+148
+00:04:25,606 --> 00:04:27,106
+what scene subclass you want to
+
+
+149
+00:04:27,106 --> 00:04:28,116
+create the scene with.
+
+
+150
+00:04:29,366 --> 00:04:31,376
+It's worth noting that you can
+
+
+151
+00:04:31,376 --> 00:04:33,026
+define these scene
+
+
+152
+00:04:33,026 --> 00:04:34,046
+configurations either
+
+
+153
+00:04:34,046 --> 00:04:36,136
+dynamically in code or
+
+
+154
+00:04:36,136 --> 00:04:37,956
+preferably statically in your
+
+
+155
+00:04:37,956 --> 00:04:38,986
+info.plist.
+
+
+156
+00:04:40,326 --> 00:04:41,536
+This also gives you an
+
+
+157
+00:04:41,536 --> 00:04:42,886
+opportunity to select the right
+
+
+158
+00:04:42,886 --> 00:04:43,726
+configuration.
+
+
+159
+00:04:44,116 --> 00:04:45,266
+You may have a main scene
+
+
+160
+00:04:45,266 --> 00:04:47,086
+configuration, and you may have
+
+
+161
+00:04:47,086 --> 00:04:48,046
+an accessory scene.
+
+
+162
+00:04:48,466 --> 00:04:49,306
+So, you should look at the
+
+
+163
+00:04:49,306 --> 00:04:50,466
+options parameter that's
+
+
+164
+00:04:50,466 --> 00:04:52,536
+provided here, to use that as
+
+
+165
+00:04:52,536 --> 00:04:53,896
+the context to pick the right
+
+
+166
+00:04:54,196 --> 00:04:55,386
+scene configuration.
+
+
+167
+00:04:55,886 --> 00:05:00,536
+Once you've defined these, for
+
+
+168
+00:05:00,536 --> 00:05:02,476
+example in your info.plist, it's
+
+
+169
+00:05:02,476 --> 00:05:02,946
+really simple.
+
+
+170
+00:05:02,946 --> 00:05:04,136
+You just refer to it by name,
+
+
+171
+00:05:04,486 --> 00:05:06,436
+making sure you pass in the role
+
+
+172
+00:05:06,436 --> 00:05:08,196
+of the incoming sessions role.
+
+
+173
+00:05:10,536 --> 00:05:11,096
+Great.
+
+
+174
+00:05:11,956 --> 00:05:12,886
+Now our app is launched.
+
+
+175
+00:05:13,146 --> 00:05:14,626
+We have a scene session.
+
+
+176
+00:05:14,856 --> 00:05:16,026
+But we don't see any UI, and
+
+
+177
+00:05:16,026 --> 00:05:17,606
+that's where our scene delegates
+
+
+178
+00:05:18,406 --> 00:05:20,116
+did connect to scene session
+
+
+179
+00:05:20,116 --> 00:05:21,066
+comes in.
+
+
+180
+00:05:22,036 --> 00:05:23,406
+Let's look at what kind of work
+
+
+181
+00:05:23,406 --> 00:05:23,966
+we should do here.
+
+
+182
+00:05:23,966 --> 00:05:25,046
+This is where you set up your UI
+
+
+183
+00:05:25,046 --> 00:05:27,676
+window with the new designated
+
+
+184
+00:05:27,756 --> 00:05:29,516
+UI window initializer.
+
+
+185
+00:05:29,806 --> 00:05:31,126
+We'll notice that we pass in the
+
+
+186
+00:05:31,126 --> 00:05:32,286
+window scene provided.
+
+
+187
+00:05:32,976 --> 00:05:35,426
+But importantly, we need to also
+
+
+188
+00:05:35,426 --> 00:05:37,636
+check for any relevant user
+
+
+189
+00:05:37,636 --> 00:05:40,626
+activities or state restoration
+
+
+190
+00:05:40,626 --> 00:05:42,216
+activities to configure our
+
+
+191
+00:05:42,216 --> 00:05:42,806
+window with.
+
+
+192
+00:05:43,376 --> 00:05:44,856
+We'll talk about that more in a
+
+
+193
+00:05:44,856 --> 00:05:45,500
+second.
+
+
+194
+00:05:47,046 --> 00:05:48,746
+Yay, now we see our app.
+
+
+195
+00:05:49,376 --> 00:05:50,856
+So, what happens when one of our
+
+
+196
+00:05:50,856 --> 00:05:52,316
+users actually swipes up to go
+
+
+197
+00:05:52,316 --> 00:05:52,996
+back home?
+
+
+198
+00:05:54,426 --> 00:05:57,226
+Well, the old familiar will
+
+
+199
+00:05:57,226 --> 00:05:58,746
+resign active and did enter
+
+
+200
+00:05:58,746 --> 00:06:00,576
+background methods get called on
+
+
+201
+00:06:00,576 --> 00:06:01,306
+your scene delegate.
+
+
+202
+00:06:01,956 --> 00:06:02,736
+But, now there's something
+
+
+203
+00:06:02,736 --> 00:06:03,266
+interesting.
+
+
+204
+00:06:03,826 --> 00:06:05,586
+At some point in time after,
+
+
+205
+00:06:05,816 --> 00:06:07,456
+your scene may be disconnected.
+
+
+206
+00:06:07,736 --> 00:06:08,896
+Well, what does that mean?
+
+
+207
+00:06:09,116 --> 00:06:10,276
+Well, in order to reclaim
+
+
+208
+00:06:10,276 --> 00:06:13,036
+resources, the system may at
+
+
+209
+00:06:13,036 --> 00:06:14,356
+some point after your scene
+
+
+210
+00:06:14,356 --> 00:06:15,826
+enters the background, release
+
+
+211
+00:06:15,826 --> 00:06:16,786
+that scene from memory.
+
+
+212
+00:06:17,096 --> 00:06:18,616
+That also means your scene
+
+
+213
+00:06:18,616 --> 00:06:20,096
+delegate will be released from
+
+
+214
+00:06:20,386 --> 00:06:21,716
+memory and any window
+
+
+215
+00:06:21,716 --> 00:06:23,206
+hierarchies or view hierarchies
+
+
+216
+00:06:23,436 --> 00:06:24,686
+held by your scene delegate will
+
+
+217
+00:06:24,686 --> 00:06:25,986
+be released as well.
+
+
+218
+00:06:27,236 --> 00:06:29,126
+This gives you an opportunity to
+
+
+219
+00:06:29,126 --> 00:06:31,016
+deallocate and release any large
+
+
+220
+00:06:31,016 --> 00:06:32,256
+resources in memory that were
+
+
+221
+00:06:32,256 --> 00:06:33,676
+retained by somewhere else in
+
+
+222
+00:06:33,676 --> 00:06:35,696
+your application that related to
+
+
+223
+00:06:35,696 --> 00:06:36,406
+this scene.
+
+
+224
+00:06:37,276 --> 00:06:38,916
+But it's important to not use
+
+
+225
+00:06:38,916 --> 00:06:40,336
+this to actually delete any
+
+
+226
+00:06:40,336 --> 00:06:41,976
+user data or state permanently,
+
+
+227
+00:06:42,226 --> 00:06:43,926
+as the scene may reconnect and
+
+
+228
+00:06:43,926 --> 00:06:44,726
+return later.
+
+
+229
+00:06:48,236 --> 00:06:49,966
+But then let's talk about what
+
+
+230
+00:06:49,966 --> 00:06:51,996
+actually happens when our user
+
+
+231
+00:06:51,996 --> 00:06:53,966
+actually swipes up on a scene
+
+
+232
+00:06:53,966 --> 00:06:55,436
+session on switch and explicitly
+
+
+233
+00:06:55,436 --> 00:06:57,526
+wants to destroy it?
+
+
+234
+00:06:57,746 --> 00:06:59,326
+Well, the system will call our
+
+
+235
+00:06:59,326 --> 00:07:01,716
+App Delegates didDiscardSceneSessions.
+
+
+236
+00:07:04,016 --> 00:07:05,236
+This finally gives us an
+
+
+237
+00:07:05,236 --> 00:07:06,556
+opportunity to actually
+
+
+238
+00:07:06,556 --> 00:07:08,106
+permanently delegate any user
+
+
+239
+00:07:08,106 --> 00:07:09,296
+state or data associated with
+
+
+240
+00:07:09,296 --> 00:07:11,326
+the scene such as an unsaved
+
+
+241
+00:07:11,326 --> 00:07:13,306
+draft in a text editing app.
+
+
+242
+00:07:14,086 --> 00:07:16,176
+Now, it's also possible that one
+
+
+243
+00:07:16,176 --> 00:07:17,856
+of your users removed one or
+
+
+244
+00:07:17,856 --> 00:07:19,356
+more UIScenes from the switcher
+
+
+245
+00:07:19,356 --> 00:07:21,176
+by swiping up while your actual
+
+
+246
+00:07:21,176 --> 00:07:22,446
+app process was not running.
+
+
+247
+00:07:23,316 --> 00:07:24,586
+If your process was not running,
+
+
+248
+00:07:24,586 --> 00:07:25,746
+the system will keep track of
+
+
+249
+00:07:25,746 --> 00:07:27,536
+the discarded sessions and call
+
+
+250
+00:07:27,536 --> 00:07:28,516
+this shortly after your
+
+
+251
+00:07:28,516 --> 00:07:29,796
+application's next launch.
+
+
+252
+00:07:34,726 --> 00:07:36,136
+Now, let's talk about some
+
+
+253
+00:07:36,136 --> 00:07:37,616
+architecture patters that you
+
+
+254
+00:07:37,616 --> 00:07:38,816
+can consider integrating into
+
+
+255
+00:07:38,816 --> 00:07:39,346
+your apps.
+
+
+256
+00:07:39,886 --> 00:07:43,556
+We'll start by talking about
+
+
+257
+00:07:43,556 --> 00:07:44,476
+state restoration.
+
+
+258
+00:07:45,786 --> 00:07:48,086
+In iOS 13, state restoration is
+
+
+259
+00:07:48,086 --> 00:07:49,536
+no longer a nicety.
+
+
+260
+00:07:50,136 --> 00:07:52,216
+It is crucial for your
+
+
+261
+00:07:52,216 --> 00:07:53,416
+application to implement
+
+
+262
+00:07:53,416 --> 00:07:55,206
+scene-based state restoration.
+
+
+263
+00:07:55,926 --> 00:07:57,126
+Let's go over why that is.
+
+
+264
+00:07:58,426 --> 00:07:59,286
+Here's our app switcher.
+
+
+265
+00:07:59,406 --> 00:08:01,286
+I have a document app and I'm
+
+
+266
+00:08:01,286 --> 00:08:02,356
+planning a road trip and I have
+
+
+267
+00:08:02,436 --> 00:08:03,416
+four different sessions of
+
+
+268
+00:08:03,416 --> 00:08:04,526
+different documents open right
+
+
+269
+00:08:04,526 --> 00:08:04,756
+now.
+
+
+270
+00:08:05,716 --> 00:08:07,006
+But I'm really focusing on
+
+
+271
+00:08:07,236 --> 00:08:08,506
+packing list and agenda.
+
+
+272
+00:08:09,556 --> 00:08:12,176
+At some point, these other two
+
+
+273
+00:08:12,176 --> 00:08:13,226
+backgrounded road trip and
+
+
+274
+00:08:13,226 --> 00:08:14,486
+attendee scenes, have been
+
+
+275
+00:08:14,486 --> 00:08:16,116
+disconnected and released by the
+
+
+276
+00:08:16,116 --> 00:08:16,616
+system.
+
+
+277
+00:08:17,466 --> 00:08:18,896
+If I don't implement state
+
+
+278
+00:08:18,896 --> 00:08:20,886
+restoration here, when I go back
+
+
+279
+00:08:20,886 --> 00:08:21,896
+to the road trip, I'm not going
+
+
+280
+00:08:21,896 --> 00:08:23,546
+to return to the state that I
+
+
+281
+00:08:23,546 --> 00:08:24,256
+was previously in.
+
+
+282
+00:08:24,256 --> 00:08:25,056
+I'm not going to scene the
+
+
+283
+00:08:25,056 --> 00:08:26,336
+document that I was editing.
+
+
+284
+00:08:27,136 --> 00:08:28,176
+Instead, I'll just start over,
+
+
+285
+00:08:28,176 --> 00:08:29,296
+like it's a brand-new window,
+
+
+286
+00:08:29,296 --> 00:08:31,166
+and that's not a great user
+
+
+287
+00:08:31,166 --> 00:08:31,776
+experience.
+
+
+288
+00:08:33,196 --> 00:08:34,275
+Well, how can we resolve this?
+
+
+289
+00:08:34,946 --> 00:08:36,645
+iOS 13 has a brand-new
+
+
+290
+00:08:37,346 --> 00:08:39,515
+scene-based state restoration
+
+
+291
+00:08:39,515 --> 00:08:39,806
+API.
+
+
+292
+00:08:40,155 --> 00:08:41,576
+And it's super simple.
+
+
+293
+00:08:42,816 --> 00:08:45,396
+It works by not any more
+
+
+294
+00:08:45,396 --> 00:08:47,486
+encoding view hierarchies, but
+
+
+295
+00:08:47,606 --> 00:08:49,496
+instead just encoding the state
+
+
+296
+00:08:49,496 --> 00:08:51,276
+which will allow you to recreate
+
+
+297
+00:08:51,506 --> 00:08:51,996
+your window.
+
+
+298
+00:08:54,356 --> 00:08:56,236
+This is all based on NSUser
+
+
+299
+00:08:56,236 --> 00:08:56,946
+activity as well.
+
+
+300
+00:08:56,946 --> 00:08:57,856
+So, if your application
+
+
+301
+00:08:57,856 --> 00:08:59,376
+leverages powerful technologies
+
+
+302
+00:08:59,376 --> 00:09:00,696
+like spotlight search or
+
+
+303
+00:09:00,696 --> 00:09:02,336
+handoff, you can use these same
+
+
+304
+00:09:02,336 --> 00:09:03,686
+activities to encode the state
+
+
+305
+00:09:03,686 --> 00:09:04,136
+of your app.
+
+
+306
+00:09:04,796 --> 00:09:06,076
+It's also worth noting that in
+
+
+307
+00:09:06,076 --> 00:09:08,196
+iOS 13, the state restoration
+
+
+308
+00:09:08,196 --> 00:09:09,646
+archive that you give back to
+
+
+309
+00:09:09,646 --> 00:09:11,656
+the system will match the same
+
+
+310
+00:09:11,656 --> 00:09:13,236
+data protection class of the
+
+
+311
+00:09:13,236 --> 00:09:14,336
+rest of your application.
+
+
+312
+00:09:17,756 --> 00:09:19,966
+What does this look like in
+
+
+313
+00:09:20,796 --> 00:09:20,906
+code?
+
+
+314
+00:09:20,906 --> 00:09:22,156
+Well, in our scene delegate, we
+
+
+315
+00:09:22,156 --> 00:09:23,356
+implement state restoration
+
+
+316
+00:09:23,356 --> 00:09:25,796
+activity for scene and then I
+
+
+317
+00:09:25,796 --> 00:09:29,346
+call a method that finds the
+
+
+318
+00:09:29,346 --> 00:09:31,506
+most active relevant user
+
+
+319
+00:09:31,506 --> 00:09:33,086
+activity form in the current
+
+
+320
+00:09:33,086 --> 00:09:33,496
+window.
+
+
+321
+00:09:34,046 --> 00:09:35,526
+Then we return that.
+
+
+322
+00:09:36,276 --> 00:09:38,366
+After some time, when that scene
+
+
+323
+00:09:38,366 --> 00:09:39,496
+re-enters the foreground and
+
+
+324
+00:09:39,496 --> 00:09:41,746
+becomes connected, we check if
+
+
+325
+00:09:41,746 --> 00:09:43,176
+the session contains a state
+
+
+326
+00:09:43,176 --> 00:09:44,286
+restoration activity.
+
+
+327
+00:09:44,896 --> 00:09:46,596
+If it does, we use that
+
+
+328
+00:09:46,596 --> 00:09:47,076
+activity.
+
+
+329
+00:09:47,586 --> 00:09:48,656
+If not, we can create a
+
+
+330
+00:09:48,656 --> 00:09:50,446
+brand-new window without any
+
+
+331
+00:09:50,446 --> 00:09:50,776
+state.
+
+
+332
+00:09:51,886 --> 00:09:53,546
+This means that no matter what,
+
+
+333
+00:09:54,026 --> 00:09:55,396
+our users will never notice when
+
+
+334
+00:09:55,396 --> 00:09:57,026
+scenes get disconnected in the
+
+
+335
+00:09:57,026 --> 00:09:58,236
+background because they
+
+
+336
+00:09:58,236 --> 00:09:58,626
+shouldn't.
+
+
+337
+00:10:00,856 --> 00:10:03,156
+Finally, let's talk about one
+
+
+338
+00:10:03,156 --> 00:10:05,346
+more important issue that you
+
+
+339
+00:10:05,346 --> 00:10:06,816
+may run into when adopting
+
+
+340
+00:10:06,816 --> 00:10:08,026
+support for multiple windows.
+
+
+341
+00:10:08,196 --> 00:10:09,756
+And that is how to best keep
+
+
+342
+00:10:09,756 --> 00:10:11,496
+application scenes in sync.
+
+
+343
+00:10:11,496 --> 00:10:13,656
+Let me make this more concrete.
+
+
+344
+00:10:13,796 --> 00:10:15,256
+I've been working on a new chat
+
+
+345
+00:10:15,256 --> 00:10:17,396
+application right here, and as
+
+
+346
+00:10:17,396 --> 00:10:18,866
+we see, I just recently added
+
+
+347
+00:10:18,866 --> 00:10:20,456
+support for multiple windows on
+
+
+348
+00:10:20,456 --> 00:10:21,236
+iOS 13.
+
+
+349
+00:10:22,636 --> 00:10:23,666
+And I have a chat with my
+
+
+350
+00:10:23,666 --> 00:10:25,786
+friend, Giovanni, who will join
+
+
+351
+00:10:25,786 --> 00:10:27,086
+me on stage in a couple minutes,
+
+
+352
+00:10:27,736 --> 00:10:28,896
+and notice that we're viewing
+
+
+353
+00:10:28,896 --> 00:10:30,046
+the same conversation in two
+
+
+354
+00:10:30,046 --> 00:10:31,076
+different view controllers and
+
+
+355
+00:10:31,076 --> 00:10:32,536
+two different scenes at the same
+
+
+356
+00:10:32,536 --> 00:10:32,886
+time.
+
+
+357
+00:10:34,036 --> 00:10:35,276
+So, let's say I want to send
+
+
+358
+00:10:35,276 --> 00:10:36,826
+Giovanni a message and let him
+
+
+359
+00:10:36,826 --> 00:10:37,846
+know I'm ready for lunch.
+
+
+360
+00:10:39,056 --> 00:10:40,866
+Oh, only one of our scenes
+
+
+361
+00:10:40,866 --> 00:10:41,376
+updated.
+
+
+362
+00:10:42,176 --> 00:10:43,706
+So, why is that?
+
+
+363
+00:10:44,876 --> 00:10:46,816
+Well, it turns out that on iOS,
+
+
+364
+00:10:46,816 --> 00:10:47,976
+a lot of apps are structured in
+
+
+365
+00:10:47,976 --> 00:10:49,486
+this kind of way in which view
+
+
+366
+00:10:49,486 --> 00:10:51,026
+controllers receive an event,
+
+
+367
+00:10:51,446 --> 00:10:52,766
+maybe via button tap, me
+
+
+368
+00:10:52,766 --> 00:10:53,846
+pressing the send button.
+
+
+369
+00:10:54,426 --> 00:10:56,086
+And then the view controller
+
+
+370
+00:10:56,086 --> 00:10:57,786
+itself updates its own UI.
+
+
+371
+00:10:58,716 --> 00:11:00,166
+After that, our view controller
+
+
+372
+00:11:00,166 --> 00:11:01,826
+notifies our model or model
+
+
+373
+00:11:01,826 --> 00:11:02,436
+controller.
+
+
+374
+00:11:02,436 --> 00:11:05,266
+And this is mostly okay when we
+
+
+375
+00:11:05,266 --> 00:11:07,046
+just are talking about one user
+
+
+376
+00:11:07,046 --> 00:11:07,856
+interface instance.
+
+
+377
+00:11:08,466 --> 00:11:10,146
+But now if we introduce a second
+
+
+378
+00:11:10,796 --> 00:11:11,816
+view controller in a different
+
+
+379
+00:11:11,816 --> 00:11:13,166
+scene that's showing the same
+
+
+380
+00:11:13,166 --> 00:11:15,296
+data, at no point is this new
+
+
+381
+00:11:15,296 --> 00:11:16,666
+view controller being notified
+
+
+382
+00:11:16,906 --> 00:11:18,596
+to update itself with this new
+
+
+383
+00:11:18,596 --> 00:11:18,916
+data.
+
+
+384
+00:11:19,816 --> 00:11:20,446
+That's an issue.
+
+
+385
+00:11:20,966 --> 00:11:24,556
+Well, we can resolve this.
+
+
+386
+00:11:24,606 --> 00:11:25,976
+Architecturally, now if our view
+
+
+387
+00:11:25,976 --> 00:11:27,186
+controllers, upon receiving an
+
+
+388
+00:11:27,186 --> 00:11:29,536
+event, immediately and only
+
+
+389
+00:11:29,536 --> 00:11:31,356
+notify our model controller,
+
+
+390
+00:11:31,736 --> 00:11:32,986
+then we can have our model
+
+
+391
+00:11:32,986 --> 00:11:35,416
+controller actually notify any
+
+
+392
+00:11:35,416 --> 00:11:36,686
+relevant subscribers or view
+
+
+393
+00:11:36,686 --> 00:11:37,946
+controllers, telling them that
+
+
+394
+00:11:37,946 --> 00:11:39,196
+they should update with this new
+
+
+395
+00:11:39,836 --> 00:11:39,996
+data.
+
+
+396
+00:11:41,416 --> 00:11:42,536
+There are a number of ways that
+
+
+397
+00:11:42,536 --> 00:11:43,196
+we can do this.
+
+
+398
+00:11:43,196 --> 00:11:44,146
+We can use delegates,
+
+
+399
+00:11:44,146 --> 00:11:45,046
+notifications.
+
+
+400
+00:11:45,376 --> 00:11:46,696
+We can even use the fantastic
+
+
+401
+00:11:46,696 --> 00:11:48,086
+new Swift Combine framework
+
+
+402
+00:11:48,086 --> 00:11:48,836
+released this year.
+
+
+403
+00:11:49,716 --> 00:11:51,116
+But let's go over a lightweight
+
+
+404
+00:11:51,116 --> 00:11:52,526
+Swift example that you can
+
+
+405
+00:11:52,526 --> 00:11:53,646
+consider integrating into your
+
+
+406
+00:11:53,646 --> 00:11:54,096
+apps.
+
+
+407
+00:11:54,666 --> 00:11:55,976
+Here's the current method that
+
+
+408
+00:11:55,976 --> 00:11:57,356
+gets called when I press the
+
+
+409
+00:11:57,566 --> 00:11:58,786
+return button on sending a
+
+
+410
+00:11:58,786 --> 00:11:59,336
+message.
+
+
+411
+00:11:59,936 --> 00:12:01,076
+We create a message model
+
+
+412
+00:12:01,076 --> 00:12:01,426
+object.
+
+
+413
+00:12:02,056 --> 00:12:03,306
+My view controller updates its
+
+
+414
+00:12:03,306 --> 00:12:03,866
+own views.
+
+
+415
+00:12:04,446 --> 00:12:07,096
+And then we notify our model
+
+
+416
+00:12:07,096 --> 00:12:08,746
+controller to persist this.
+
+
+417
+00:12:09,286 --> 00:12:11,056
+And the first thing we need to
+
+
+418
+00:12:11,056 --> 00:12:11,916
+do is this view controller
+
+
+419
+00:12:12,236 --> 00:12:13,756
+should not be mutating its own
+
+
+420
+00:12:13,816 --> 00:12:14,406
+view state.
+
+
+421
+00:12:14,886 --> 00:12:16,086
+Instead, we're just going to get
+
+
+422
+00:12:16,086 --> 00:12:16,646
+rid of that code.
+
+
+423
+00:12:16,746 --> 00:12:18,196
+We'll add that back later in a
+
+
+424
+00:12:18,656 --> 00:12:18,836
+second.
+
+
+425
+00:12:20,846 --> 00:12:22,706
+Now, let's look at what that
+
+
+426
+00:12:22,706 --> 00:12:24,836
+model controller add method is
+
+
+427
+00:12:24,836 --> 00:12:25,446
+actually doing.
+
+
+428
+00:12:25,446 --> 00:12:26,576
+It's pretty simple.
+
+
+429
+00:12:27,206 --> 00:12:28,406
+All we're doing is persisting
+
+
+430
+00:12:28,406 --> 00:12:29,176
+that new message.
+
+
+431
+00:12:30,096 --> 00:12:31,286
+But we actually want the model
+
+
+432
+00:12:31,286 --> 00:12:33,556
+controller to now notify if any
+
+
+433
+00:12:33,556 --> 00:12:34,526
+other view controllers or
+
+
+434
+00:12:34,526 --> 00:12:35,826
+connected scenes that there has
+
+
+435
+00:12:35,826 --> 00:12:36,476
+been an update.
+
+
+436
+00:12:39,496 --> 00:12:40,456
+How are we going to send this
+
+
+437
+00:12:40,456 --> 00:12:41,186
+update down?
+
+
+438
+00:12:41,636 --> 00:12:43,936
+We want a structured way to
+
+
+439
+00:12:43,936 --> 00:12:46,276
+package this event such that
+
+
+440
+00:12:46,276 --> 00:12:49,366
+it's strongly typed and it's
+
+
+441
+00:12:49,616 --> 00:12:51,166
+easily debuggable and testable.
+
+
+442
+00:12:51,446 --> 00:12:52,576
+So, let's go ahead and actually
+
+
+443
+00:12:52,576 --> 00:12:54,116
+create a new type and we'll call
+
+
+444
+00:12:54,116 --> 00:12:55,206
+it update event.
+
+
+445
+00:12:55,206 --> 00:12:56,516
+It's a Swift enum with
+
+
+446
+00:12:56,516 --> 00:12:57,536
+associated values.
+
+
+447
+00:12:58,066 --> 00:12:59,736
+So, we'll add a new message
+
+
+448
+00:12:59,736 --> 00:13:00,026
+type.
+
+
+449
+00:13:00,676 --> 00:13:02,276
+This is the object that our
+
+
+450
+00:13:02,276 --> 00:13:03,506
+model controller is going to
+
+
+451
+00:13:03,506 --> 00:13:04,836
+create on receiving a new
+
+
+452
+00:13:04,836 --> 00:13:06,626
+message and will then send down
+
+
+453
+00:13:06,626 --> 00:13:07,876
+to any relevant view controllers
+
+
+454
+00:13:07,876 --> 00:13:08,456
+or scenes.
+
+
+455
+00:13:09,656 --> 00:13:10,896
+Because we want to post this,
+
+
+456
+00:13:10,896 --> 00:13:12,496
+we'll use NSNotification center
+
+
+457
+00:13:12,716 --> 00:13:14,076
+as the backing store for this.
+
+
+458
+00:13:14,076 --> 00:13:15,826
+So, we'll add this handy post
+
+
+459
+00:13:15,826 --> 00:13:17,636
+method that lets us in one line
+
+
+460
+00:13:17,846 --> 00:13:19,286
+create a new update event and
+
+
+461
+00:13:19,286 --> 00:13:20,896
+then post it to any subscribers.
+
+
+462
+00:13:21,456 --> 00:13:24,186
+The implementation is fairly
+
+
+463
+00:13:24,186 --> 00:13:25,166
+straightforward.
+
+
+464
+00:13:25,236 --> 00:13:27,006
+We just post a notification to
+
+
+465
+00:13:27,006 --> 00:13:28,486
+the new message notification
+
+
+466
+00:13:28,486 --> 00:13:29,646
+name channel.
+
+
+467
+00:13:30,126 --> 00:13:31,376
+But the trick here is that we're
+
+
+468
+00:13:31,376 --> 00:13:32,696
+including the update event
+
+
+469
+00:13:32,926 --> 00:13:34,826
+object itself in the
+
+
+470
+00:13:34,826 --> 00:13:35,766
+notifications object.
+
+
+471
+00:13:35,766 --> 00:13:37,096
+This will come in handy, as
+
+
+472
+00:13:37,096 --> 00:13:41,446
+we'll see in a second.
+
+
+473
+00:13:41,576 --> 00:13:42,956
+Now, when our model controller
+
+
+474
+00:13:42,956 --> 00:13:44,166
+is notified that a new message
+
+
+475
+00:13:44,166 --> 00:13:45,926
+was added, after we persist it,
+
+
+476
+00:13:46,196 --> 00:13:47,166
+we can just create this new
+
+
+477
+00:13:47,166 --> 00:13:49,066
+event and call post.
+
+
+478
+00:13:51,546 --> 00:13:53,466
+Then, if we look at how we have
+
+
+479
+00:13:53,496 --> 00:13:54,696
+to change our view controllers,
+
+
+480
+00:13:55,436 --> 00:13:57,396
+we observe this new event.
+
+
+481
+00:13:57,676 --> 00:13:58,976
+In this case, the new message
+
+
+482
+00:13:58,976 --> 00:13:59,836
+notification name.
+
+
+483
+00:14:00,286 --> 00:14:01,716
+And then we create a handler
+
+
+484
+00:14:01,716 --> 00:14:03,366
+method that we get the
+
+
+485
+00:14:03,366 --> 00:14:06,066
+notification from in the arguments.
+
+
+486
+00:14:06,816 --> 00:14:08,126
+And remember, when we pass the
+
+
+487
+00:14:08,126 --> 00:14:09,646
+update event as the
+
+
+488
+00:14:09,646 --> 00:14:12,426
+notifications object, we can now
+
+
+489
+00:14:12,546 --> 00:14:14,076
+pull that event right back out
+
+
+490
+00:14:14,076 --> 00:14:15,426
+from the notification.
+
+
+491
+00:14:15,946 --> 00:14:18,736
+Then, we can easily switch on
+
+
+492
+00:14:18,736 --> 00:14:20,506
+the kind of case of the event
+
+
+493
+00:14:21,796 --> 00:14:22,886
+and because we created an
+
+
+494
+00:14:22,886 --> 00:14:25,166
+associated enum, we can pull the
+
+
+495
+00:14:25,666 --> 00:14:26,726
+message out.
+
+
+496
+00:14:26,986 --> 00:14:28,616
+Now, we can update our user
+
+
+497
+00:14:28,616 --> 00:14:29,326
+interface here.
+
+
+498
+00:14:32,536 --> 00:14:33,736
+So, let's see what happens when
+
+
+499
+00:14:33,736 --> 00:14:34,896
+I send Giovanni that same
+
+
+500
+00:14:34,896 --> 00:14:36,786
+message after implementing this
+
+
+501
+00:14:36,786 --> 00:14:37,496
+new architecture.
+
+
+502
+00:14:38,196 --> 00:14:39,696
+Hey! All of our scenes update.
+
+
+503
+00:14:41,516 --> 00:14:45,876
+[ Applause ]
+
+
+504
+00:14:46,376 --> 00:14:47,866
+So, we've gone over a lot today.
+
+
+505
+00:14:48,076 --> 00:14:48,976
+We've gone over some of the
+
+
+506
+00:14:48,976 --> 00:14:50,886
+differences in the app versus
+
+
+507
+00:14:50,886 --> 00:14:51,736
+scene delegate and the
+
+
+508
+00:14:51,736 --> 00:14:53,296
+differences in responsibilities.
+
+
+509
+00:14:53,696 --> 00:14:54,806
+We've also gone over some of the
+
+
+510
+00:14:54,806 --> 00:14:57,586
+major scene delegate methods and
+
+
+511
+00:14:57,586 --> 00:14:58,836
+what kind of work you should do
+
+
+512
+00:14:58,836 --> 00:14:59,066
+there.
+
+
+513
+00:15:00,156 --> 00:15:01,306
+We also talked about why state
+
+
+514
+00:15:01,306 --> 00:15:02,736
+restoration is so crucial for
+
+
+515
+00:15:02,736 --> 00:15:04,616
+you to use on iOS 13 and how you
+
+
+516
+00:15:04,616 --> 00:15:06,726
+can leverage the new scene-based
+
+
+517
+00:15:06,896 --> 00:15:07,926
+API to do so.
+
+
+518
+00:15:08,606 --> 00:15:11,166
+Finally, we talked about some
+
+
+519
+00:15:11,166 --> 00:15:12,596
+high-level patterns for creating
+
+
+520
+00:15:12,596 --> 00:15:14,066
+a one-way data flow such that we
+
+
+521
+00:15:14,066 --> 00:15:15,296
+can keep all of our scenes in
+
+
+522
+00:15:15,296 --> 00:15:16,456
+sync while they share the same
+
+
+523
+00:15:16,456 --> 00:15:16,776
+data.
+
+
+524
+00:15:17,376 --> 00:15:17,716
+Thank you.
+
+
+525
+00:15:19,508 --> 00:15:21,508
+[ Applause ]
+

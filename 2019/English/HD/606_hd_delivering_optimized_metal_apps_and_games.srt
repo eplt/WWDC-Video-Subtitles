@@ -1,0 +1,8179 @@
+1
+00:00:00,506 --> 00:00:04,500
+[ Music ]
+
+
+2
+00:00:10,516 --> 00:00:15,086
+[ Applause ]
+
+
+3
+00:00:15,586 --> 00:00:16,586
+>> Good morning and welcome
+
+
+4
+00:00:16,586 --> 00:00:17,136
+everyone.
+
+
+5
+00:00:17,326 --> 00:00:18,856
+I am Guillem Vinals Gangolells
+
+
+6
+00:00:18,856 --> 00:00:20,356
+from the Metal Ecosystem Team.
+
+
+7
+00:00:21,086 --> 00:00:22,486
+This past year, we have been
+
+
+8
+00:00:22,486 --> 00:00:23,406
+working with many game
+
+
+9
+00:00:23,406 --> 00:00:25,536
+developers and identified some
+
+
+10
+00:00:25,536 --> 00:00:26,216
+common issues.
+
+
+11
+00:00:26,896 --> 00:00:28,836
+As a result, we decided to put
+
+
+12
+00:00:28,836 --> 00:00:29,746
+this talk together.
+
+
+13
+00:00:30,446 --> 00:00:32,386
+Today, I will be presenting a
+
+
+14
+00:00:32,436 --> 00:00:34,316
+total of 18 best practices to
+
+
+15
+00:00:34,316 --> 00:00:36,246
+help you improve your Metal app.
+
+
+16
+00:00:37,486 --> 00:00:39,246
+Notice that I will not present
+
+
+17
+00:00:39,456 --> 00:00:42,736
+OK practices or acceptable
+
+
+18
+00:00:42,736 --> 00:00:45,216
+practices, and most definitely
+
+
+19
+00:00:45,566 --> 00:00:47,316
+not practices that will just do
+
+
+20
+00:00:47,316 --> 00:00:47,786
+the trick.
+
+
+21
+00:00:49,056 --> 00:00:51,336
+The focus today will be on Metal
+
+
+22
+00:00:51,336 --> 00:00:52,196
+Best Practices.
+
+
+23
+00:00:52,616 --> 00:00:55,786
+So, please follow them.
+
+
+24
+00:00:55,996 --> 00:00:57,346
+Before we get started, I would
+
+
+25
+00:00:57,346 --> 00:00:58,496
+like to thank our friends at
+
+
+26
+00:00:58,496 --> 00:01:00,356
+Digital Legends, our very
+
+
+27
+00:01:00,356 --> 00:01:01,776
+talented team from Barcelona.
+
+
+28
+00:01:02,476 --> 00:01:03,936
+They are the developers of
+
+
+29
+00:01:03,936 --> 00:01:04,626
+Afterpulse.
+
+
+30
+00:01:05,146 --> 00:01:07,236
+Afterpulse is an awesome great
+
+
+31
+00:01:07,236 --> 00:01:07,876
+looking game.
+
+
+32
+00:01:08,406 --> 00:01:09,606
+It uses many rendering
+
+
+33
+00:01:09,606 --> 00:01:11,266
+techniques such as cascaded
+
+
+34
+00:01:11,266 --> 00:01:13,186
+shadow maps, a fully-featured
+
+
+35
+00:01:13,186 --> 00:01:14,966
+deferred render as well as
+
+
+36
+00:01:14,966 --> 00:01:16,566
+post-process such as bloom and
+
+
+37
+00:01:16,566 --> 00:01:16,796
+FXAA.
+
+
+38
+00:01:16,846 --> 00:01:19,356
+We will use Afterpulse
+
+
+39
+00:01:19,356 --> 00:01:21,116
+throughout this presentation to
+
+
+40
+00:01:21,116 --> 00:01:22,366
+demo our tools and highlight
+
+
+41
+00:01:22,366 --> 00:01:23,606
+some of our best practices.
+
+
+42
+00:01:25,206 --> 00:01:26,366
+We have split the talk into
+
+
+43
+00:01:26,366 --> 00:01:28,116
+three sections, general
+
+
+44
+00:01:28,116 --> 00:01:30,346
+performance, memory bandwidth,
+
+
+45
+00:01:31,226 --> 00:01:32,216
+and memory footprint.
+
+
+46
+00:01:33,056 --> 00:01:34,316
+So, let's get started with some
+
+
+47
+00:01:34,316 --> 00:01:35,776
+general performance advice.
+
+
+48
+00:01:40,076 --> 00:01:41,666
+In this section, I will talk
+
+
+49
+00:01:41,666 --> 00:01:43,076
+about choosing the right
+
+
+50
+00:01:43,076 --> 00:01:45,586
+resolution, avoiding overdraw,
+
+
+51
+00:01:45,586 --> 00:01:46,876
+reduce the amount of fragment
+
+
+52
+00:01:46,876 --> 00:01:48,396
+shader invocations per pixel
+
+
+53
+00:01:48,396 --> 00:01:48,846
+written.
+
+
+54
+00:01:49,876 --> 00:01:51,076
+We'll also talk about GPU
+
+
+55
+00:01:51,076 --> 00:01:52,936
+submissions, resource streaming,
+
+
+56
+00:01:53,206 --> 00:01:54,446
+and also a bit about thermals.
+
+
+57
+00:01:55,956 --> 00:01:56,986
+So, let's get started with the
+
+
+58
+00:01:57,086 --> 00:01:58,156
+first best practice.
+
+
+59
+00:01:58,536 --> 00:01:59,876
+Choose the right resolution.
+
+
+60
+00:02:01,006 --> 00:02:02,446
+Notice that each effect in your
+
+
+61
+00:02:02,446 --> 00:02:04,036
+game may require a different
+
+
+62
+00:02:04,036 --> 00:02:04,656
+resolution.
+
+
+63
+00:02:05,266 --> 00:02:06,436
+So, it is very important that
+
+
+64
+00:02:06,436 --> 00:02:07,836
+you consider the image quality
+
+
+65
+00:02:07,836 --> 00:02:09,606
+and performance trade-off of
+
+
+66
+00:02:09,606 --> 00:02:11,266
+each resolution and choose them
+
+
+67
+00:02:11,296 --> 00:02:11,816
+carefully.
+
+
+68
+00:02:12,626 --> 00:02:14,966
+Also, composite the game UI at
+
+
+69
+00:02:14,996 --> 00:02:17,146
+native resolution or close to
+
+
+70
+00:02:17,146 --> 00:02:18,966
+native, so the UI will look
+
+
+71
+00:02:19,036 --> 00:02:20,526
+crisp no matter the display
+
+
+72
+00:02:20,526 --> 00:02:20,916
+size.
+
+
+73
+00:02:21,556 --> 00:02:23,986
+We can check the resolutions
+
+
+74
+00:02:23,986 --> 00:02:25,226
+with the Metal Frame Debugger.
+
+
+75
+00:02:26,676 --> 00:02:28,166
+Within the metal frame debugger,
+
+
+76
+00:02:28,166 --> 00:02:29,086
+we will want to use the
+
+
+77
+00:02:29,086 --> 00:02:31,066
+Dependency Viewer, which will
+
+
+78
+00:02:31,066 --> 00:02:32,356
+show a graph of every render
+
+
+79
+00:02:32,356 --> 00:02:32,816
+pass.
+
+
+80
+00:02:33,486 --> 00:02:34,806
+In this case, we are using a
+
+
+81
+00:02:34,806 --> 00:02:36,186
+Metal example application.
+
+
+82
+00:02:37,216 --> 00:02:38,346
+To access the Dependency Viewer,
+
+
+83
+00:02:38,346 --> 00:02:39,526
+we will select the command
+
+
+84
+00:02:39,526 --> 00:02:39,916
+buffer.
+
+
+85
+00:02:40,546 --> 00:02:43,626
+And, in this case, you can see
+
+
+86
+00:02:43,626 --> 00:02:44,936
+that this example Metal
+
+
+87
+00:02:44,936 --> 00:02:46,346
+application is using several
+
+
+88
+00:02:46,346 --> 00:02:48,166
+effects within different
+
+
+89
+00:02:48,166 --> 00:02:49,106
+resolution each.
+
+
+90
+00:02:49,906 --> 00:02:51,836
+For example, Shadow Maps and
+
+
+91
+00:02:51,976 --> 00:02:53,976
+SSAO have a different resolution
+
+
+92
+00:02:53,976 --> 00:02:55,126
+than the main lighting pass.
+
+
+93
+00:02:55,776 --> 00:02:57,536
+Also, the UI is composed of
+
+
+94
+00:02:57,536 --> 00:02:58,676
+native resolution, so it will
+
+
+95
+00:02:58,676 --> 00:02:59,336
+always look sharp.
+
+
+96
+00:03:00,646 --> 00:03:02,696
+These resolutions look great and
+
+
+97
+00:03:02,696 --> 00:03:04,056
+perform well for this Metal
+
+
+98
+00:03:04,056 --> 00:03:04,716
+application.
+
+
+99
+00:03:05,186 --> 00:03:06,306
+We're asking for you to do a
+
+
+100
+00:03:06,306 --> 00:03:07,956
+similar choice for your game.
+
+
+101
+00:03:08,926 --> 00:03:10,026
+So, let's move on to best
+
+
+102
+00:03:10,026 --> 00:03:12,026
+practice number 2.
+
+
+103
+00:03:12,436 --> 00:03:13,986
+Minimize non-opaque overdraw.
+
+
+104
+00:03:15,086 --> 00:03:16,326
+Overdraw is the amount of
+
+
+105
+00:03:16,416 --> 00:03:17,866
+fragment shader's process for
+
+
+106
+00:03:17,866 --> 00:03:18,836
+each pixel written.
+
+
+107
+00:03:19,706 --> 00:03:21,776
+iOS GPUs are excellent at
+
+
+108
+00:03:21,776 --> 00:03:23,256
+reducing opaque overdraw.
+
+
+109
+00:03:23,616 --> 00:03:25,006
+We just need to help a bit.
+
+
+110
+00:03:25,606 --> 00:03:28,096
+So, the best practice here is to
+
+
+111
+00:03:28,096 --> 00:03:30,326
+render opaque meshes first and
+
+
+112
+00:03:30,326 --> 00:03:31,676
+translucent meshes later.
+
+
+113
+00:03:32,296 --> 00:03:33,916
+Also, do not render fully
+
+
+114
+00:03:33,916 --> 00:03:35,956
+transparent or invisible meshes.
+
+
+115
+00:03:36,256 --> 00:03:38,326
+We will, once again, use the
+
+
+116
+00:03:38,326 --> 00:03:40,006
+Metal Frame Debugger to help us.
+
+
+117
+00:03:40,636 --> 00:03:42,176
+This time, we will look at the
+
+
+118
+00:03:42,176 --> 00:03:44,656
+GPU Counters gauge to verify the
+
+
+119
+00:03:44,656 --> 00:03:45,966
+overdraw for a given render
+
+
+120
+00:03:45,966 --> 00:03:46,436
+pass.
+
+
+121
+00:03:47,286 --> 00:03:48,486
+We will want to focus on the
+
+
+122
+00:03:48,486 --> 00:03:49,946
+main lighting pass of our Metal
+
+
+123
+00:03:49,946 --> 00:03:50,856
+Demo application.
+
+
+124
+00:03:52,306 --> 00:03:54,126
+In order to calculate overdraw,
+
+
+125
+00:03:54,506 --> 00:03:55,576
+we will look at the number of
+
+
+126
+00:03:55,576 --> 00:03:57,036
+fragment shader invocations
+
+
+127
+00:03:57,036 --> 00:03:58,416
+divided by the amount of pixel
+
+
+128
+00:03:58,416 --> 00:03:58,756
+store.
+
+
+129
+00:03:59,536 --> 00:04:00,786
+We can use the filter bar at the
+
+
+130
+00:04:00,786 --> 00:04:02,066
+bottom to quickly look for
+
+
+131
+00:04:02,066 --> 00:04:03,216
+performance counters where
+
+
+132
+00:04:03,216 --> 00:04:03,596
+after.
+
+
+133
+00:04:04,206 --> 00:04:06,866
+In this case, it's a fully
+
+
+134
+00:04:06,866 --> 00:04:07,536
+opaque scene.
+
+
+135
+00:04:07,536 --> 00:04:09,026
+So, there's nothing else to
+
+
+136
+00:04:09,026 --> 00:04:09,516
+verify.
+
+
+137
+00:04:09,516 --> 00:04:10,846
+There's no overdraw and we are
+
+
+138
+00:04:10,846 --> 00:04:11,396
+good to go.
+
+
+139
+00:04:11,946 --> 00:04:12,896
+We're asking for you to do
+
+
+140
+00:04:12,896 --> 00:04:14,386
+something similar with your game
+
+
+141
+00:04:14,756 --> 00:04:16,026
+and verify that you're also good
+
+
+142
+00:04:16,026 --> 00:04:16,396
+to go.
+
+
+143
+00:04:17,606 --> 00:04:19,156
+So, let's move on to the next
+
+
+144
+00:04:20,206 --> 00:04:21,755
+best practice.
+
+
+145
+00:04:21,846 --> 00:04:23,376
+Submit GPU work early.
+
+
+146
+00:04:26,146 --> 00:04:27,556
+Scheduling all the off-screen
+
+
+147
+00:04:27,556 --> 00:04:29,056
+GPU work early is very
+
+
+148
+00:04:29,056 --> 00:04:29,706
+important.
+
+
+149
+00:04:30,206 --> 00:04:31,576
+It will improve the latency and
+
+
+150
+00:04:31,576 --> 00:04:33,076
+responsiveness of your game and
+
+
+151
+00:04:33,266 --> 00:04:34,816
+it will also allow the system to
+
+
+152
+00:04:34,816 --> 00:04:36,076
+adapt to the workload much
+
+
+153
+00:04:36,126 --> 00:04:36,496
+better.
+
+
+154
+00:04:37,456 --> 00:04:38,496
+So, it is important that you
+
+
+155
+00:04:38,496 --> 00:04:40,396
+have multiple GPU submissions in
+
+
+156
+00:04:40,396 --> 00:04:40,976
+your frame.
+
+
+157
+00:04:41,516 --> 00:04:43,416
+In particular, you will want an
+
+
+158
+00:04:43,456 --> 00:04:45,656
+early GPU submission before
+
+
+159
+00:04:46,176 --> 00:04:47,626
+waiting for the drawables and
+
+
+160
+00:04:47,626 --> 00:04:49,546
+some would stall the render set.
+
+
+161
+00:04:50,376 --> 00:04:52,416
+And after you get the drawable
+
+
+162
+00:04:52,416 --> 00:04:53,336
+which will be as late as
+
+
+163
+00:04:53,366 --> 00:04:55,116
+possible in the frame, you will
+
+
+164
+00:04:55,116 --> 00:04:57,626
+then have a late GPU submission
+
+
+165
+00:04:58,106 --> 00:04:59,216
+where you will schedule all the
+
+
+166
+00:04:59,216 --> 00:05:00,986
+on-screen work, potentially, the
+
+
+167
+00:05:00,986 --> 00:05:02,306
+UI Composition Pass.
+
+
+168
+00:05:03,476 --> 00:05:04,426
+Since, it's a bit tricky to
+
+
+169
+00:05:04,426 --> 00:05:05,976
+explain, we have demo prepared.
+
+
+170
+00:05:06,726 --> 00:05:08,186
+So, let's do a quick demo and
+
+
+171
+00:05:08,186 --> 00:05:09,396
+I'll show you how to identify
+
+
+172
+00:05:09,396 --> 00:05:10,746
+this with Metal System Trace.
+
+
+173
+00:05:13,656 --> 00:05:16,316
+Cool. What we see here is a
+
+
+174
+00:05:16,346 --> 00:05:18,366
+capture of Afterpulse which we
+
+
+175
+00:05:18,366 --> 00:05:20,256
+took last year with an older
+
+
+176
+00:05:20,256 --> 00:05:21,046
+build of the game.
+
+
+177
+00:05:21,696 --> 00:05:23,096
+This was taken with a game
+
+
+178
+00:05:23,096 --> 00:05:24,216
+performance template.
+
+
+179
+00:05:24,446 --> 00:05:26,046
+We introduced this template last
+
+
+180
+00:05:26,046 --> 00:05:26,296
+year.
+
+
+181
+00:05:26,786 --> 00:05:28,036
+So, you're already familiar with
+
+
+182
+00:05:28,036 --> 00:05:29,336
+some of the instruments here.
+
+
+183
+00:05:29,336 --> 00:05:31,166
+New this year, we have added the
+
+
+184
+00:05:31,166 --> 00:05:33,056
+Thermal State as well as the
+
+
+185
+00:05:33,056 --> 00:05:34,506
+Metal Resource Allocations.
+
+
+186
+00:05:34,676 --> 00:05:35,986
+We'll talk about this later.
+
+
+187
+00:05:36,796 --> 00:05:38,166
+For now, what we want to focus
+
+
+188
+00:05:38,166 --> 00:05:40,346
+on, our potential stutters or
+
+
+189
+00:05:40,346 --> 00:05:40,816
+issues.
+
+
+190
+00:05:41,396 --> 00:05:42,716
+In this case, we want to look at
+
+
+191
+00:05:42,716 --> 00:05:44,196
+the Display panel and see that
+
+
+192
+00:05:44,196 --> 00:05:46,086
+there's lots of events at the
+
+
+193
+00:05:46,086 --> 00:05:48,006
+bottom with-- where surfaces
+
+
+194
+00:05:48,006 --> 00:05:49,236
+have been on-screen for longer
+
+
+195
+00:05:49,236 --> 00:05:49,986
+than expected.
+
+
+196
+00:05:50,576 --> 00:05:51,766
+So, maybe that's a problem and
+
+
+197
+00:05:51,766 --> 00:05:52,606
+we should look at it.
+
+
+198
+00:05:53,276 --> 00:05:54,536
+What we will do is zoom in to
+
+
+199
+00:05:54,536 --> 00:05:56,706
+one of these regions holding the
+
+
+200
+00:05:56,706 --> 00:06:00,396
+Option key and dragging the--
+
+
+201
+00:06:00,836 --> 00:06:02,036
+our cursor over it.
+
+
+202
+00:06:02,126 --> 00:06:04,806
+So, in this case, we can see
+
+
+203
+00:06:04,806 --> 00:06:07,456
+that there's two frames that
+
+
+204
+00:06:07,456 --> 00:06:09,536
+seem to be later than we would
+
+
+205
+00:06:09,536 --> 00:06:12,106
+expect, at the same time, that
+
+
+206
+00:06:12,106 --> 00:06:14,176
+the GPU is idle for a long time.
+
+
+207
+00:06:14,756 --> 00:06:16,046
+So, that potentially is the
+
+
+208
+00:06:16,046 --> 00:06:17,656
+cause of the issue we are trying
+
+
+209
+00:06:17,656 --> 00:06:18,306
+to debug here.
+
+
+210
+00:06:18,306 --> 00:06:19,756
+So, let's look into more detail.
+
+
+211
+00:06:20,576 --> 00:06:22,736
+We'll do that by disclosing all
+
+
+212
+00:06:22,736 --> 00:06:24,406
+the tracks in Metal System Trace
+
+
+213
+00:06:24,406 --> 00:06:25,836
+which you're already familiar
+
+
+214
+00:06:25,836 --> 00:06:26,086
+with.
+
+
+215
+00:06:26,976 --> 00:06:29,236
+So, what we are seeing here are
+
+
+216
+00:06:30,046 --> 00:06:31,616
+how our application is encoding
+
+
+217
+00:06:31,616 --> 00:06:33,716
+work and also how our GPU is
+
+
+218
+00:06:33,716 --> 00:06:34,756
+processing this work.
+
+
+219
+00:06:35,286 --> 00:06:36,636
+So, let's focus on this orange
+
+
+220
+00:06:36,636 --> 00:06:37,036
+frame.
+
+
+221
+00:06:37,746 --> 00:06:39,006
+As you can see here, there's a
+
+
+222
+00:06:39,006 --> 00:06:41,176
+lot of work being encoded by the
+
+
+223
+00:06:41,176 --> 00:06:42,466
+apps, so we have the Shadow
+
+
+224
+00:06:42,466 --> 00:06:45,066
+Maps, the Deferred Pass as well
+
+
+225
+00:06:45,066 --> 00:06:46,366
+as part of the bloom chain, et
+
+
+226
+00:06:46,366 --> 00:06:46,726
+cetera.
+
+
+227
+00:06:47,436 --> 00:06:50,116
+So, the GPU is not actually
+
+
+228
+00:06:50,116 --> 00:06:51,836
+processing that work, at the
+
+
+229
+00:06:51,836 --> 00:06:54,396
+same time that the threat is
+
+
+230
+00:06:54,396 --> 00:06:55,696
+waiting for the drawable.
+
+
+231
+00:06:56,206 --> 00:06:57,426
+So that's what this causing this
+
+
+232
+00:06:57,426 --> 00:06:59,506
+idle gap, but we already have
+
+
+233
+00:06:59,506 --> 00:07:00,586
+some work encoded.
+
+
+234
+00:07:00,946 --> 00:07:02,336
+We just didn't submit it.
+
+
+235
+00:07:03,136 --> 00:07:04,056
+So, that's what the best
+
+
+236
+00:07:04,056 --> 00:07:05,926
+practice was about you
+
+
+237
+00:07:05,926 --> 00:07:07,286
+submitting all the off-screen
+
+
+238
+00:07:07,286 --> 00:07:09,356
+work which you can encode ahead
+
+
+239
+00:07:09,356 --> 00:07:10,776
+of time before waiting for the
+
+
+240
+00:07:10,776 --> 00:07:11,256
+drawable.
+
+
+241
+00:07:11,866 --> 00:07:13,166
+So, the solution would be to do
+
+
+242
+00:07:13,166 --> 00:07:14,686
+one GPU submission here.
+
+
+243
+00:07:15,296 --> 00:07:16,866
+Notice that there's only one GPU
+
+
+244
+00:07:16,866 --> 00:07:18,696
+submission which we can see here
+
+
+245
+00:07:19,066 --> 00:07:20,256
+towards the end of the frame.
+
+
+246
+00:07:20,346 --> 00:07:22,126
+So, all the GPU work just
+
+
+247
+00:07:22,126 --> 00:07:23,046
+happens at the end.
+
+
+248
+00:07:23,836 --> 00:07:25,616
+Unfortunately, this is very easy
+
+
+249
+00:07:25,656 --> 00:07:27,656
+to simple-- very easy to fix.
+
+
+250
+00:07:27,686 --> 00:07:29,406
+And, in fact, Digital Legends
+
+
+251
+00:07:29,406 --> 00:07:30,266
+has already fixed it.
+
+
+252
+00:07:30,266 --> 00:07:31,476
+So, let's look at the new trace
+
+
+253
+00:07:31,476 --> 00:07:33,186
+of Afterpulse and see how it
+
+
+254
+00:07:33,186 --> 00:07:33,636
+looks like.
+
+
+255
+00:07:34,876 --> 00:07:36,486
+OK. So, let's zoom in.
+
+
+256
+00:07:37,546 --> 00:07:38,786
+In this case, we can see that
+
+
+257
+00:07:38,786 --> 00:07:40,926
+there's no idle time while we
+
+
+258
+00:07:40,926 --> 00:07:42,046
+are waiting for the drawable.
+
+
+259
+00:07:42,846 --> 00:07:44,096
+So, let's disclose the Metal
+
+
+260
+00:07:44,096 --> 00:07:45,506
+System Trace tracks as we did
+
+
+261
+00:07:45,506 --> 00:07:45,966
+before.
+
+
+262
+00:07:47,196 --> 00:07:48,456
+And, in this case, we can see
+
+
+263
+00:07:48,456 --> 00:07:50,766
+that the GPU is processing the
+
+
+264
+00:07:50,766 --> 00:07:52,196
+work that we have already
+
+
+265
+00:07:52,196 --> 00:07:54,946
+scheduled before getting the
+
+
+266
+00:07:54,946 --> 00:07:55,426
+drawable.
+
+
+267
+00:07:56,266 --> 00:07:58,126
+So, in this case, the idle time
+
+
+268
+00:07:58,126 --> 00:07:59,766
+is much smaller.
+
+
+269
+00:07:59,766 --> 00:08:01,216
+So, this allows the system to
+
+
+270
+00:08:01,216 --> 00:08:02,316
+adapt to the workload much
+
+
+271
+00:08:02,316 --> 00:08:04,406
+better and there's no problems.
+
+
+272
+00:08:04,926 --> 00:08:07,486
+So, after this, we know we are
+
+
+273
+00:08:07,486 --> 00:08:09,466
+good to go and we are-- we
+
+
+274
+00:08:09,466 --> 00:08:11,536
+already have multiple GPU
+
+
+275
+00:08:11,536 --> 00:08:13,676
+submissions which do not cause
+
+
+276
+00:08:13,676 --> 00:08:15,106
+any stall because we do them
+
+
+277
+00:08:15,296 --> 00:08:16,476
+before waiting for the drawable.
+
+
+278
+00:08:16,526 --> 00:08:17,796
+So, let's go back to the slides.
+
+
+279
+00:08:19,736 --> 00:08:21,356
+OK. So, the fix for that is
+
+
+280
+00:08:21,356 --> 00:08:22,876
+actually quite simple much
+
+
+281
+00:08:22,876 --> 00:08:23,826
+easier than explaining the
+
+
+282
+00:08:23,866 --> 00:08:25,166
+problem in the first place.
+
+
+283
+00:08:25,926 --> 00:08:26,976
+What we will want to do is
+
+
+284
+00:08:26,976 --> 00:08:28,616
+simply create multiple command
+
+
+285
+00:08:28,616 --> 00:08:29,606
+buffers per frame.
+
+
+286
+00:08:30,356 --> 00:08:31,686
+So, we'll want to first create
+
+
+287
+00:08:31,686 --> 00:08:33,126
+the command buffer to encode all
+
+
+288
+00:08:33,126 --> 00:08:34,856
+the off-screen work which will
+
+
+289
+00:08:34,856 --> 00:08:37,176
+be our early GPU submission.
+
+
+290
+00:08:37,356 --> 00:08:38,765
+We will commit the command
+
+
+291
+00:08:38,765 --> 00:08:40,996
+buffer and then wait for the
+
+
+292
+00:08:40,996 --> 00:08:42,926
+next drawable, which will stall
+
+
+293
+00:08:42,926 --> 00:08:43,336
+our thread.
+
+
+294
+00:08:43,336 --> 00:08:45,956
+After we have the drawable, we
+
+
+295
+00:08:45,956 --> 00:08:48,586
+will create one final command
+
+
+296
+00:08:48,586 --> 00:08:49,946
+buffer where we will encode all
+
+
+297
+00:08:49,946 --> 00:08:52,026
+the on-screen work and present
+
+
+298
+00:08:52,026 --> 00:08:52,606
+the drawable.
+
+
+299
+00:08:53,446 --> 00:08:55,776
+This will be our final CPU-- GPU
+
+
+300
+00:08:55,776 --> 00:08:56,446
+submission.
+
+
+301
+00:08:57,256 --> 00:08:58,736
+And this will also ensure that
+
+
+302
+00:08:58,736 --> 00:09:00,146
+the frame pacing is actually
+
+
+303
+00:09:00,146 --> 00:09:01,096
+good enough as well.
+
+
+304
+00:09:02,676 --> 00:09:04,126
+It's as simple as that.
+
+
+305
+00:09:04,126 --> 00:09:05,286
+Just use multiple command
+
+
+306
+00:09:05,286 --> 00:09:05,646
+buffers.
+
+
+307
+00:09:06,496 --> 00:09:07,666
+So, let's move on to the best
+
+
+308
+00:09:07,666 --> 00:09:09,716
+practice number 4, stream
+
+
+309
+00:09:09,716 --> 00:09:10,836
+resources efficiently.
+
+
+310
+00:09:11,746 --> 00:09:13,336
+Allocating resources does take
+
+
+311
+00:09:13,386 --> 00:09:13,726
+time.
+
+
+312
+00:09:14,476 --> 00:09:16,256
+And streaming resources from the
+
+
+313
+00:09:16,256 --> 00:09:17,896
+render thread may cause stalls.
+
+
+314
+00:09:18,346 --> 00:09:19,606
+So, the best practice here is
+
+
+315
+00:09:19,606 --> 00:09:21,146
+for you to consider the memory
+
+
+316
+00:09:21,146 --> 00:09:22,956
+and performance trade-off of
+
+
+317
+00:09:22,956 --> 00:09:23,766
+your resource streaming
+
+
+318
+00:09:23,766 --> 00:09:26,036
+algorithm and make sure that you
+
+
+319
+00:09:26,116 --> 00:09:27,906
+allocate and load GPU resources
+
+
+320
+00:09:27,906 --> 00:09:29,216
+at launch time since you will
+
+
+321
+00:09:29,216 --> 00:09:30,426
+not need to allocate them at
+
+
+322
+00:09:30,426 --> 00:09:31,006
+runtime.
+
+
+323
+00:09:31,916 --> 00:09:33,316
+And any resource that you need
+
+
+324
+00:09:33,316 --> 00:09:35,336
+to stream at runtime, make sure
+
+
+325
+00:09:35,336 --> 00:09:36,826
+you do so from a dedicated
+
+
+326
+00:09:36,886 --> 00:09:37,146
+thread.
+
+
+327
+00:09:37,786 --> 00:09:39,266
+It is very important that you do
+
+
+328
+00:09:39,266 --> 00:09:40,726
+so in order to avoid stalls.
+
+
+329
+00:09:41,216 --> 00:09:43,266
+We will revisit resource
+
+
+330
+00:09:43,266 --> 00:09:44,936
+streaming later on in the memory
+
+
+331
+00:09:44,996 --> 00:09:47,216
+footprint section and reevaluate
+
+
+332
+00:09:47,216 --> 00:09:48,326
+the memory and performance
+
+
+333
+00:09:48,386 --> 00:09:48,936
+trade-off.
+
+
+334
+00:09:49,656 --> 00:09:51,406
+For now, let's just use Metal
+
+
+335
+00:09:51,406 --> 00:09:52,726
+System Trace to tune our
+
+
+336
+00:09:52,726 --> 00:09:53,516
+resource streaming.
+
+
+337
+00:09:54,516 --> 00:09:56,066
+New this year, we're having an
+
+
+338
+00:09:56,066 --> 00:09:57,836
+Allocations Track which will
+
+
+339
+00:09:57,836 --> 00:09:59,166
+show you an event for each
+
+
+340
+00:09:59,166 --> 00:10:00,646
+resource allocation and the
+
+
+341
+00:10:00,646 --> 00:10:02,866
+allocation in the same timeline
+
+
+342
+00:10:02,866 --> 00:10:04,116
+as all the other instruments.
+
+
+343
+00:10:05,046 --> 00:10:06,526
+This will allow you to identify
+
+
+344
+00:10:06,526 --> 00:10:07,746
+all those resources which you
+
+
+345
+00:10:07,746 --> 00:10:08,866
+are streaming from the main
+
+
+346
+00:10:08,866 --> 00:10:10,476
+render thread which could
+
+
+347
+00:10:10,476 --> 00:10:11,676
+potentially cause a stall.
+
+
+348
+00:10:12,786 --> 00:10:14,806
+Something else you should tune
+
+
+349
+00:10:14,806 --> 00:10:16,686
+as well is for thermals.
+
+
+350
+00:10:17,366 --> 00:10:18,936
+It is important that you design
+
+
+351
+00:10:18,936 --> 00:10:20,006
+your game for sustained
+
+
+352
+00:10:20,006 --> 00:10:20,716
+performance.
+
+
+353
+00:10:21,206 --> 00:10:22,466
+This will improve the overall
+
+
+354
+00:10:22,566 --> 00:10:24,466
+thermals of the system as well
+
+
+355
+00:10:24,466 --> 00:10:25,256
+as the stability and
+
+
+356
+00:10:25,256 --> 00:10:26,666
+responsiveness of your game.
+
+
+357
+00:10:27,526 --> 00:10:28,736
+So, the best practice will be
+
+
+358
+00:10:28,816 --> 00:10:31,026
+for you to test your game under
+
+
+359
+00:10:31,026 --> 00:10:32,166
+serious thermal state.
+
+
+360
+00:10:32,906 --> 00:10:34,856
+Also, consider tuning your game
+
+
+361
+00:10:35,216 --> 00:10:36,666
+for this serious thermal state
+
+
+362
+00:10:36,666 --> 00:10:38,086
+since that will hopefully help
+
+
+363
+00:10:38,086 --> 00:10:39,756
+you to know the thermal
+
+
+364
+00:10:39,756 --> 00:10:40,186
+throttle.
+
+
+365
+00:10:41,656 --> 00:10:44,256
+So, new this year, we're adding
+
+
+366
+00:10:44,256 --> 00:10:46,036
+Device Conditions into Xcode,
+
+
+367
+00:10:46,476 --> 00:10:47,816
+which will allow you to set the
+
+
+368
+00:10:47,876 --> 00:10:50,166
+serious thermal state directly
+
+
+369
+00:10:50,206 --> 00:10:51,396
+from the device's window.
+
+
+370
+00:10:52,596 --> 00:10:54,106
+There is a talk at the bottom
+
+
+371
+00:10:54,106 --> 00:10:55,066
+where this topic we'll be
+
+
+372
+00:10:55,066 --> 00:10:56,436
+covering to more detail and I
+
+
+373
+00:10:56,436 --> 00:10:57,506
+encourage you to watch.
+
+
+374
+00:10:59,896 --> 00:11:01,626
+Also, we can use the Xcode
+
+
+375
+00:11:01,626 --> 00:11:03,206
+Energy Gauge to verify the
+
+
+376
+00:11:03,206 --> 00:11:04,736
+thermal state that the device is
+
+
+377
+00:11:04,736 --> 00:11:05,166
+running at.
+
+
+378
+00:11:05,976 --> 00:11:07,126
+In this example, we are
+
+
+379
+00:11:07,126 --> 00:11:08,556
+conditioning our device to run
+
+
+380
+00:11:08,556 --> 00:11:10,576
+at serious thermal state and we
+
+
+381
+00:11:10,576 --> 00:11:11,966
+are effectively verifying that
+
+
+382
+00:11:11,966 --> 00:11:13,406
+the device get into serious
+
+
+383
+00:11:13,446 --> 00:11:14,056
+thermal state.
+
+
+384
+00:11:14,416 --> 00:11:15,336
+It just takes a couple of
+
+
+385
+00:11:15,336 --> 00:11:16,736
+seconds to ramp-up to that.
+
+
+386
+00:11:17,906 --> 00:11:19,386
+Cool. So, now let's move on to
+
+
+387
+00:11:19,386 --> 00:11:21,016
+the second part of our talk.
+
+
+388
+00:11:21,816 --> 00:11:23,416
+In this section, we'll talk
+
+
+389
+00:11:23,416 --> 00:11:25,266
+about memory bandwidth.
+
+
+390
+00:11:27,016 --> 00:11:28,146
+Memory bandwidth is very
+
+
+391
+00:11:28,146 --> 00:11:28,816
+important.
+
+
+392
+00:11:29,236 --> 00:11:30,936
+That is because memory transfers
+
+
+393
+00:11:30,936 --> 00:11:31,606
+are costly.
+
+
+394
+00:11:32,156 --> 00:11:33,836
+They consume power and generate
+
+
+395
+00:11:33,906 --> 00:11:34,166
+heat.
+
+
+396
+00:11:35,206 --> 00:11:37,346
+To help mitigate in that, iOS
+
+
+397
+00:11:37,346 --> 00:11:38,876
+devices have shared system
+
+
+398
+00:11:38,876 --> 00:11:40,476
+memory between the CPU and the
+
+
+399
+00:11:40,476 --> 00:11:43,056
+GPU as well as dedicated Tile
+
+
+400
+00:11:43,056 --> 00:11:44,416
+Memory for the GPU.
+
+
+401
+00:11:45,336 --> 00:11:46,926
+Metal is designed to help you
+
+
+402
+00:11:46,926 --> 00:11:48,376
+leverage both.
+
+
+403
+00:11:49,026 --> 00:11:50,786
+So, now, let's see how by start
+
+
+404
+00:11:50,786 --> 00:11:52,416
+looking into textures.
+
+
+405
+00:11:53,406 --> 00:11:55,166
+Texture sampling is probably the
+
+
+406
+00:11:55,166 --> 00:11:57,026
+main bandwidth consumer in your
+
+
+407
+00:11:57,026 --> 00:11:57,376
+game.
+
+
+408
+00:11:57,956 --> 00:11:59,376
+So, we have some best practices
+
+
+409
+00:11:59,376 --> 00:12:00,496
+for you to configure your
+
+
+410
+00:12:00,496 --> 00:12:01,366
+textures correctly.
+
+
+411
+00:12:02,416 --> 00:12:03,876
+In this section, we will talk
+
+
+412
+00:12:03,876 --> 00:12:04,946
+about offline texture
+
+
+413
+00:12:04,946 --> 00:12:07,466
+compression for game assets, GPU
+
+
+414
+00:12:07,466 --> 00:12:09,486
+texture compression as well as
+
+
+415
+00:12:09,486 --> 00:12:10,816
+how to choose the correct pixel
+
+
+416
+00:12:10,816 --> 00:12:11,286
+format.
+
+
+417
+00:12:11,946 --> 00:12:13,026
+So, let's start with texture
+
+
+418
+00:12:13,026 --> 00:12:13,526
+assets.
+
+
+419
+00:12:14,056 --> 00:12:16,756
+It is very important for you to
+
+
+420
+00:12:16,756 --> 00:12:18,106
+compress your texture assets.
+
+
+421
+00:12:18,846 --> 00:12:20,886
+That is because sampling large
+
+
+422
+00:12:20,886 --> 00:12:23,066
+textures may be inefficient and
+
+
+423
+00:12:23,066 --> 00:12:24,196
+your assets may also be
+
+
+424
+00:12:24,196 --> 00:12:25,016
+arbitrarily large.
+
+
+425
+00:12:25,716 --> 00:12:26,756
+So make sure they are all
+
+
+426
+00:12:26,756 --> 00:12:29,446
+compressed and also generate
+
+
+427
+00:12:29,446 --> 00:12:30,916
+midmaps for all the textures
+
+
+428
+00:12:30,916 --> 00:12:31,996
+which may be minified.
+
+
+429
+00:12:32,476 --> 00:12:34,346
+So, let's see the memory savings
+
+
+430
+00:12:34,346 --> 00:12:35,396
+of texture compression.
+
+
+431
+00:12:35,976 --> 00:12:38,306
+This is one of the largest
+
+
+432
+00:12:38,336 --> 00:12:39,606
+textures of Afterpulse.
+
+
+433
+00:12:40,486 --> 00:12:42,326
+If this texture were to be
+
+
+434
+00:12:42,326 --> 00:12:44,226
+uncompressed, it would take
+
+
+435
+00:12:44,226 --> 00:12:46,296
+about 16 megabytes of memory to
+
+
+436
+00:12:46,296 --> 00:12:46,606
+load.
+
+
+437
+00:12:47,846 --> 00:12:49,886
+By using texture compression, we
+
+
+438
+00:12:49,886 --> 00:12:51,846
+can lower let-- this to less
+
+
+439
+00:12:51,846 --> 00:12:54,036
+than 3 megabytes including the
+
+
+440
+00:12:54,036 --> 00:12:55,106
+full mipmap chain.
+
+
+441
+00:12:55,876 --> 00:12:57,446
+Those are great memory savings.
+
+
+442
+00:12:58,546 --> 00:13:00,176
+Notice though, that Afterpulse
+
+
+443
+00:13:00,176 --> 00:13:02,416
+is using PVRTC because it runs
+
+
+444
+00:13:02,576 --> 00:13:05,496
+on A7 devices such as the iPhone
+
+
+445
+00:13:05,496 --> 00:13:06,126
+5S.
+
+
+446
+00:13:07,066 --> 00:13:08,496
+If your game targets newer
+
+
+447
+00:13:08,496 --> 00:13:10,996
+devices, using STC instead since
+
+
+448
+00:13:10,996 --> 00:13:12,496
+it offers better compression
+
+
+449
+00:13:12,496 --> 00:13:13,726
+ratio in image quality.
+
+
+450
+00:13:15,206 --> 00:13:16,596
+To verify that our assets our
+
+
+451
+00:13:16,596 --> 00:13:18,736
+compressed correctly, we can use
+
+
+452
+00:13:18,736 --> 00:13:19,596
+the Memory Viewer.
+
+
+453
+00:13:21,026 --> 00:13:22,186
+The Metal Memory Viewer is a
+
+
+454
+00:13:22,186 --> 00:13:23,636
+great tool which I will fully
+
+
+455
+00:13:23,636 --> 00:13:24,636
+introduce in the memory
+
+
+456
+00:13:24,636 --> 00:13:25,496
+footprint section.
+
+
+457
+00:13:26,166 --> 00:13:28,446
+For now, will you-- we will use
+
+
+458
+00:13:28,446 --> 00:13:30,086
+it to inspect all of our assets.
+
+
+459
+00:13:30,566 --> 00:13:31,626
+We can double check they are
+
+
+460
+00:13:31,626 --> 00:13:33,796
+compressed, mipmapped, and also
+
+
+461
+00:13:33,796 --> 00:13:34,886
+look great.
+
+
+462
+00:13:36,216 --> 00:13:38,246
+But what happens with all those
+
+
+463
+00:13:38,246 --> 00:13:40,166
+textures which you cannot
+
+
+464
+00:13:40,216 --> 00:13:42,676
+compress ahead of time such as
+
+
+465
+00:13:42,676 --> 00:13:43,956
+render targets or all the
+
+
+466
+00:13:43,956 --> 00:13:47,566
+textures generated at runtime?
+
+
+467
+00:13:47,566 --> 00:13:49,316
+The latest iOS GPU support
+
+
+468
+00:13:49,316 --> 00:13:50,626
+lossless texture compression,
+
+
+469
+00:13:51,146 --> 00:13:52,706
+which allows the GPU to compress
+
+
+470
+00:13:52,706 --> 00:13:54,126
+textures for faster access.
+
+
+471
+00:13:55,486 --> 00:13:56,806
+So, the next best practice is
+
+
+472
+00:13:57,076 --> 00:13:58,216
+for you to optimize your
+
+
+473
+00:13:58,286 --> 00:13:59,906
+textures so the GPU can have
+
+
+474
+00:13:59,906 --> 00:14:00,716
+faster access.
+
+
+475
+00:14:01,646 --> 00:14:02,856
+It is very important that you
+
+
+476
+00:14:02,856 --> 00:14:03,986
+configure your textures
+
+
+477
+00:14:03,986 --> 00:14:04,466
+correctly.
+
+
+478
+00:14:05,106 --> 00:14:06,406
+You will want to use private
+
+
+479
+00:14:06,406 --> 00:14:08,486
+storage mode, so only the GPU
+
+
+480
+00:14:08,486 --> 00:14:10,036
+has access to the texture data
+
+
+481
+00:14:10,146 --> 00:14:11,986
+and it allows it to optimize the
+
+
+482
+00:14:11,986 --> 00:14:12,506
+contents.
+
+
+483
+00:14:12,966 --> 00:14:14,956
+Also, do not set the unknown
+
+
+484
+00:14:14,956 --> 00:14:16,796
+usage flag and avoid setting
+
+
+485
+00:14:16,796 --> 00:14:18,516
+unnecessary usage flag such as
+
+
+486
+00:14:18,516 --> 00:14:21,056
+shaderWrite or pixelView, since
+
+
+487
+00:14:21,056 --> 00:14:22,246
+those may disable this
+
+
+488
+00:14:22,246 --> 00:14:22,836
+compression.
+
+
+489
+00:14:23,716 --> 00:14:25,706
+Shared textures which can be
+
+
+490
+00:14:25,706 --> 00:14:27,866
+acces by the CPU and the GPU
+
+
+491
+00:14:28,246 --> 00:14:29,916
+should explicitly be optimized
+
+
+492
+00:14:30,376 --> 00:14:32,166
+after any CPU update on their
+
+
+493
+00:14:32,166 --> 00:14:32,556
+data.
+
+
+494
+00:14:32,936 --> 00:14:34,226
+It is also important for you to
+
+
+495
+00:14:34,226 --> 00:14:34,616
+do so.
+
+
+496
+00:14:35,206 --> 00:14:36,516
+So, let's see how can we do both
+
+
+497
+00:14:36,516 --> 00:14:37,446
+things with a little bit of
+
+
+498
+00:14:37,536 --> 00:14:37,836
+code.
+
+
+499
+00:14:38,146 --> 00:14:39,966
+And it really is just a little
+
+
+500
+00:14:39,966 --> 00:14:40,476
+bit of code.
+
+
+501
+00:14:41,036 --> 00:14:42,996
+To create an optimal texture, we
+
+
+502
+00:14:42,996 --> 00:14:44,266
+will want to set the storage
+
+
+503
+00:14:44,266 --> 00:14:45,076
+mode as private.
+
+
+504
+00:14:45,276 --> 00:14:46,986
+So, only the GPU has access to
+
+
+505
+00:14:48,126 --> 00:14:48,336
+it.
+
+
+506
+00:14:48,336 --> 00:14:49,826
+And also, we will want to set
+
+
+507
+00:14:50,296 --> 00:14:53,126
+explicit yet conservative usage
+
+
+508
+00:14:53,126 --> 00:14:53,436
+flags.
+
+
+509
+00:14:54,746 --> 00:14:56,156
+In this case, we want to use the
+
+
+510
+00:14:56,156 --> 00:14:57,346
+texture as an intermediate
+
+
+511
+00:14:57,346 --> 00:14:58,786
+render targets so we do not need
+
+
+512
+00:14:58,786 --> 00:14:59,806
+any other usage flag.
+
+
+513
+00:15:00,306 --> 00:15:03,106
+But what about shared textures?
+
+
+514
+00:15:03,806 --> 00:15:05,076
+Well, those are a bit trickier.
+
+
+515
+00:15:05,726 --> 00:15:07,016
+So, shared textures can be
+
+
+516
+00:15:07,016 --> 00:15:08,836
+accessed by both the CPU and the
+
+
+517
+00:15:08,836 --> 00:15:09,486
+GPU.
+
+
+518
+00:15:10,386 --> 00:15:12,946
+So, if the CPU updates a region
+
+
+519
+00:15:12,946 --> 00:15:14,236
+of the texture or any of the
+
+
+520
+00:15:14,276 --> 00:15:16,906
+texture data, we may need to
+
+
+521
+00:15:16,906 --> 00:15:18,806
+explicitly ask the GPU to
+
+
+522
+00:15:18,806 --> 00:15:20,236
+optimize its contents.
+
+
+523
+00:15:21,046 --> 00:15:22,406
+Notice that there is a trade-off
+
+
+524
+00:15:22,406 --> 00:15:24,036
+here between how many times does
+
+
+525
+00:15:24,036 --> 00:15:25,836
+the CPU update the data and how
+
+
+526
+00:15:25,836 --> 00:15:27,336
+many times does the GPU need to
+
+
+527
+00:15:27,336 --> 00:15:28,346
+access it afterwards.
+
+
+528
+00:15:29,026 --> 00:15:32,096
+So the Memory Viewer will
+
+
+529
+00:15:32,096 --> 00:15:33,556
+actually be a great tool again
+
+
+530
+00:15:33,726 --> 00:15:34,796
+to help us with this.
+
+
+531
+00:15:35,396 --> 00:15:37,086
+That is because we can configure
+
+
+532
+00:15:37,086 --> 00:15:39,196
+the Memory Viewer to show both
+
+
+533
+00:15:39,196 --> 00:15:40,756
+the Storage Mode and Usage flag
+
+
+534
+00:15:40,826 --> 00:15:41,866
+for all of our textures.
+
+
+535
+00:15:42,556 --> 00:15:44,096
+From this single screen we can
+
+
+536
+00:15:44,096 --> 00:15:46,356
+see our compressed textures and
+
+
+537
+00:15:46,356 --> 00:15:47,866
+identify all of those which
+
+
+538
+00:15:47,946 --> 00:15:49,486
+could be configured correctly.
+
+
+539
+00:15:50,426 --> 00:15:51,276
+It is a great tool.
+
+
+540
+00:15:52,506 --> 00:15:54,596
+At this point we are almost done
+
+
+541
+00:15:54,596 --> 00:15:55,796
+configuring our textures.
+
+
+542
+00:15:56,516 --> 00:15:57,926
+We just need to choose the right
+
+
+543
+00:15:57,926 --> 00:15:58,846
+pixel format.
+
+
+544
+00:16:00,386 --> 00:16:02,006
+Larger pixel format will use
+
+
+545
+00:16:02,006 --> 00:16:03,656
+more bandwidth, so the best
+
+
+546
+00:16:03,656 --> 00:16:05,536
+practice will be for you to
+
+
+547
+00:16:05,536 --> 00:16:07,096
+avoid using pixel formats with
+
+
+548
+00:16:07,096 --> 00:16:09,346
+unnecessary channels and also
+
+
+549
+00:16:09,346 --> 00:16:10,926
+try to lower precision whenever
+
+
+550
+00:16:10,926 --> 00:16:11,436
+possible.
+
+
+551
+00:16:12,706 --> 00:16:14,176
+Notice though that the sampling
+
+
+552
+00:16:14,176 --> 00:16:16,166
+rate itself will also depend on
+
+
+553
+00:16:16,166 --> 00:16:17,176
+the pixel format.
+
+
+554
+00:16:18,176 --> 00:16:20,526
+In this case, we can see how the
+
+
+555
+00:16:20,616 --> 00:16:22,586
+pixel format has a direct impact
+
+
+556
+00:16:22,586 --> 00:16:24,166
+on the texture sampling rate of
+
+
+557
+00:16:24,166 --> 00:16:24,936
+our GPUs.
+
+
+558
+00:16:25,656 --> 00:16:27,566
+Particularly, you will want to
+
+
+559
+00:16:27,566 --> 00:16:30,456
+watch out for 128-bit formats
+
+
+560
+00:16:30,906 --> 00:16:33,576
+such as RGBA 32-bit float, since
+
+
+561
+00:16:33,576 --> 00:16:34,876
+those are sampled at quarter
+
+
+562
+00:16:34,876 --> 00:16:35,216
+rate.
+
+
+563
+00:16:36,176 --> 00:16:37,856
+Oftentimes these high precision
+
+
+564
+00:16:37,856 --> 00:16:39,236
+formats are used for noise
+
+
+565
+00:16:39,236 --> 00:16:41,246
+textures or lookup tables for
+
+
+566
+00:16:41,246 --> 00:16:43,086
+the post-process effects.
+
+
+567
+00:16:44,406 --> 00:16:45,926
+Once again we can use the Memory
+
+
+568
+00:16:45,926 --> 00:16:47,266
+Viewer to help us with that.
+
+
+569
+00:16:48,116 --> 00:16:49,416
+The Memory Viewer will let us
+
+
+570
+00:16:49,416 --> 00:16:51,276
+filter textures by name or pixel
+
+
+571
+00:16:51,276 --> 00:16:51,726
+format.
+
+
+572
+00:16:52,706 --> 00:16:54,046
+So, we will verify that our
+
+
+573
+00:16:54,046 --> 00:16:56,486
+Metal Demo is using 16-bit
+
+
+574
+00:16:56,586 --> 00:16:57,826
+formats for the SSAO
+
+
+575
+00:16:57,826 --> 00:16:58,696
+implementation.
+
+
+576
+00:16:59,536 --> 00:17:00,886
+This is very important for the
+
+
+577
+00:17:00,886 --> 00:17:01,696
+noise textures.
+
+
+578
+00:17:03,026 --> 00:17:04,296
+Notice something else though,
+
+
+579
+00:17:04,346 --> 00:17:06,786
+and this that in this example
+
+
+580
+00:17:07,226 --> 00:17:08,435
+most of the textures are
+
+
+581
+00:17:08,435 --> 00:17:09,726
+actually render targets.
+
+
+582
+00:17:10,746 --> 00:17:12,626
+So as games become more complex,
+
+
+583
+00:17:12,626 --> 00:17:13,866
+the texture used as render
+
+
+584
+00:17:13,945 --> 00:17:16,006
+targets may actually consume a
+
+
+585
+00:17:16,006 --> 00:17:17,796
+lot of bandwidth as well, so
+
+
+586
+00:17:17,796 --> 00:17:18,866
+let's have a closer look.
+
+
+587
+00:17:19,356 --> 00:17:22,046
+In this section, we will review
+
+
+588
+00:17:22,046 --> 00:17:23,195
+render pass load and store
+
+
+589
+00:17:23,195 --> 00:17:25,276
+actions, paying close attention
+
+
+590
+00:17:25,356 --> 00:17:27,695
+to MSAA and also talk a bit
+
+
+591
+00:17:27,695 --> 00:17:28,596
+about Tile Memory.
+
+
+592
+00:17:29,866 --> 00:17:31,006
+So let's get started with
+
+
+593
+00:17:31,186 --> 00:17:32,446
+optimizing load and store
+
+
+594
+00:17:32,446 --> 00:17:32,936
+actions.
+
+
+595
+00:17:34,916 --> 00:17:36,336
+You should avoid loading or
+
+
+596
+00:17:36,336 --> 00:17:37,546
+storing render targets
+
+
+597
+00:17:37,546 --> 00:17:38,326
+unnecessary.
+
+
+598
+00:17:39,356 --> 00:17:40,706
+Render target load and store
+
+
+599
+00:17:40,706 --> 00:17:42,076
+actions are very easy to
+
+
+600
+00:17:42,076 --> 00:17:44,026
+overlook and may actually quite
+
+
+601
+00:17:44,026 --> 00:17:45,306
+quickly become a problem.
+
+
+602
+00:17:45,996 --> 00:17:47,866
+So please make sure to keep
+
+
+603
+00:17:47,866 --> 00:17:48,586
+those in check.
+
+
+604
+00:17:49,516 --> 00:17:50,926
+And it is actually quite easy to
+
+
+605
+00:17:50,926 --> 00:17:52,706
+do so, with again just a little
+
+
+606
+00:17:52,706 --> 00:17:53,606
+tiny bit of code.
+
+
+607
+00:17:54,496 --> 00:17:55,756
+In this case, we are configuring
+
+
+608
+00:17:55,756 --> 00:17:57,806
+a render pass descriptor and we
+
+
+609
+00:17:57,806 --> 00:17:59,296
+want the color attachment 1 to
+
+
+610
+00:17:59,296 --> 00:18:00,656
+be transient, which means we
+
+
+611
+00:18:00,656 --> 00:18:01,806
+don't want to load or store
+
+
+612
+00:18:01,806 --> 00:18:02,536
+anything from it.
+
+
+613
+00:18:03,426 --> 00:18:05,556
+It is a simple as setting the
+
+
+614
+00:18:05,596 --> 00:18:07,146
+correct load and store actions.
+
+
+615
+00:18:07,706 --> 00:18:09,336
+We want the load action to be
+
+
+616
+00:18:09,336 --> 00:18:11,136
+clear, so no later gets transfer
+
+
+617
+00:18:12,036 --> 00:18:13,166
+to the on chip GPU.
+
+
+618
+00:18:13,646 --> 00:18:16,296
+And we want to store action to
+
+
+619
+00:18:16,296 --> 00:18:17,106
+be, DontCare.
+
+
+620
+00:18:17,686 --> 00:18:19,536
+So no data needs to be written
+
+
+621
+00:18:19,536 --> 00:18:20,716
+at the end of the render pass.
+
+
+622
+00:18:21,536 --> 00:18:22,726
+That's all there is to it,
+
+
+623
+00:18:23,396 --> 00:18:24,676
+verifying that we have done the
+
+
+624
+00:18:24,676 --> 00:18:26,456
+right thing is also very simple,
+
+
+625
+00:18:27,246 --> 00:18:28,476
+we can use the Dependency
+
+
+626
+00:18:28,476 --> 00:18:28,846
+Viewer.
+
+
+627
+00:18:29,416 --> 00:18:32,726
+In this case, our Metal example
+
+
+628
+00:18:32,806 --> 00:18:34,336
+is storing the color attachment
+
+
+629
+00:18:34,336 --> 00:18:35,876
+1, even though it's not used
+
+
+630
+00:18:35,876 --> 00:18:36,436
+later on.
+
+
+631
+00:18:37,246 --> 00:18:38,716
+The Dependency Viewer will show
+
+
+632
+00:18:38,716 --> 00:18:40,286
+an issue icon to highlight this
+
+
+633
+00:18:40,326 --> 00:18:40,786
+problem.
+
+
+634
+00:18:41,746 --> 00:18:42,996
+We should simply set the
+
+
+635
+00:18:42,996 --> 00:18:44,786
+DontCare store action as we have
+
+
+636
+00:18:44,786 --> 00:18:46,216
+just seen in the previous slide
+
+
+637
+00:18:46,216 --> 00:18:48,026
+and the problem will go away.
+
+
+638
+00:18:48,556 --> 00:18:51,476
+It is really as simple as that.
+
+
+639
+00:18:51,996 --> 00:18:54,016
+This is particularly important
+
+
+640
+00:18:54,626 --> 00:18:56,006
+for multi-sampled render
+
+
+641
+00:18:56,076 --> 00:18:56,546
+targets.
+
+
+642
+00:18:57,076 --> 00:19:00,446
+iOS devices have very fast MSAA,
+
+
+643
+00:19:01,116 --> 00:19:02,466
+that is because the result
+
+
+644
+00:19:02,756 --> 00:19:04,396
+happens from Tile Memory, so it
+
+
+645
+00:19:04,396 --> 00:19:05,946
+does not consume any extra
+
+
+646
+00:19:05,946 --> 00:19:06,356
+bandwidth.
+
+
+647
+00:19:07,306 --> 00:19:09,046
+This also allows us to declare
+
+
+648
+00:19:09,176 --> 00:19:10,726
+the multisampled textures fully
+
+
+649
+00:19:10,726 --> 00:19:11,316
+transient.
+
+
+650
+00:19:11,836 --> 00:19:13,216
+In fact, we don't even need a
+
+
+651
+00:19:13,216 --> 00:19:14,816
+system memory allocation to back
+
+
+652
+00:19:14,816 --> 00:19:15,796
+it in the first place.
+
+
+653
+00:19:15,956 --> 00:19:17,816
+So the best practice will be for
+
+
+654
+00:19:17,816 --> 00:19:19,766
+you to consider MSAA over native
+
+
+655
+00:19:19,766 --> 00:19:21,186
+resolution, since it's very
+
+
+656
+00:19:21,186 --> 00:19:23,486
+efficient, and also make sure to
+
+
+657
+00:19:23,486 --> 00:19:24,646
+not load or store the
+
+
+658
+00:19:24,646 --> 00:19:25,876
+multisample texture.
+
+
+659
+00:19:26,686 --> 00:19:27,876
+And since you're at it set the
+
+
+660
+00:19:27,876 --> 00:19:29,476
+storage mode of the multisample
+
+
+661
+00:19:29,476 --> 00:19:30,766
+texture to memoryless.
+
+
+662
+00:19:31,766 --> 00:19:32,746
+I will fully introduce
+
+
+663
+00:19:32,746 --> 00:19:34,246
+memoryless later on the talk.
+
+
+664
+00:19:34,246 --> 00:19:35,726
+For now, let's see how can we
+
+
+665
+00:19:35,726 --> 00:19:37,396
+configure a multisample texture
+
+
+666
+00:19:37,396 --> 00:19:38,666
+and the render pass that uses
+
+
+667
+00:19:38,666 --> 00:19:38,896
+it.
+
+
+668
+00:19:39,376 --> 00:19:42,066
+In this case, we just need to
+
+
+669
+00:19:42,066 --> 00:19:43,616
+set the memoryless storage mode,
+
+
+670
+00:19:44,516 --> 00:19:46,006
+and also make sure that the
+
+
+671
+00:19:46,006 --> 00:19:48,286
+render pass is using it, clears
+
+
+672
+00:19:48,286 --> 00:19:49,976
+its contents and discards the
+
+
+673
+00:19:49,976 --> 00:19:50,576
+samples.
+
+
+674
+00:19:51,286 --> 00:19:53,076
+We only want the multisample
+
+
+675
+00:19:53,076 --> 00:19:54,676
+texture to resolve from.
+
+
+676
+00:19:55,086 --> 00:19:56,426
+We do not need to store it.
+
+
+677
+00:19:56,556 --> 00:19:57,936
+We do not want that intermediate
+
+
+678
+00:19:57,936 --> 00:19:58,806
+data to be stored.
+
+
+679
+00:19:59,476 --> 00:20:01,446
+Only the final resolve texture
+
+
+680
+00:20:01,446 --> 00:20:02,116
+should be stored.
+
+
+681
+00:20:03,316 --> 00:20:04,586
+We can once more use the
+
+
+682
+00:20:04,586 --> 00:20:06,436
+Dependency Viewer to help us
+
+
+683
+00:20:06,436 --> 00:20:08,396
+verify that we are doing the
+
+
+684
+00:20:08,726 --> 00:20:10,046
+right thing.
+
+
+685
+00:20:10,166 --> 00:20:12,026
+In this case, our Metal example
+
+
+686
+00:20:12,026 --> 00:20:13,216
+is loading and starting the
+
+
+687
+00:20:13,216 --> 00:20:15,436
+multisample texture which is
+
+
+688
+00:20:15,436 --> 00:20:16,326
+very costly.
+
+
+689
+00:20:17,526 --> 00:20:18,946
+After setting the correct flag
+
+
+690
+00:20:19,056 --> 00:20:21,006
+just as I've shown you, we will
+
+
+691
+00:20:21,006 --> 00:20:24,896
+save our 85 memory, sorry, 85
+
+
+692
+00:20:24,966 --> 00:20:27,246
+megabytes of memory bandwidth
+
+
+693
+00:20:27,246 --> 00:20:28,426
+and also footprint.
+
+
+694
+00:20:29,536 --> 00:20:30,806
+And this is very important for
+
+
+695
+00:20:30,806 --> 00:20:32,306
+you to verify the multisample
+
+
+696
+00:20:32,306 --> 00:20:32,986
+attachments.
+
+
+697
+00:20:33,836 --> 00:20:36,486
+But notice that those savings
+
+
+698
+00:20:36,596 --> 00:20:39,156
+are only possible because we are
+
+
+699
+00:20:39,156 --> 00:20:41,056
+implicitly leveraging Tile
+
+
+700
+00:20:42,226 --> 00:20:44,386
+Memory by using MSAA.
+
+
+701
+00:20:45,286 --> 00:20:46,776
+So the next best practice is for
+
+
+702
+00:20:46,776 --> 00:20:48,636
+you to explicitly leverage Tile
+
+
+703
+00:20:48,636 --> 00:20:49,036
+Memory.
+
+
+704
+00:20:50,186 --> 00:20:51,696
+Metal provides access to Tile
+
+
+705
+00:20:51,696 --> 00:20:53,736
+Memory for several features such
+
+
+706
+00:20:53,736 --> 00:20:55,616
+as programmable blending, image
+
+
+707
+00:20:55,616 --> 00:20:57,166
+block, and tile shaders.
+
+
+708
+00:20:57,996 --> 00:21:00,256
+The best practice is for you to
+
+
+709
+00:21:00,256 --> 00:21:01,646
+explicitly utilize it,
+
+
+710
+00:21:02,146 --> 00:21:04,416
+particularly to implement more
+
+
+711
+00:21:04,416 --> 00:21:05,886
+advanced rendering techniques.
+
+
+712
+00:21:06,886 --> 00:21:08,926
+The Modern Rendering with Metal
+
+
+713
+00:21:08,926 --> 00:21:10,536
+talk will cover-- has covered
+
+
+714
+00:21:10,536 --> 00:21:11,586
+some of these techniques in
+
+
+715
+00:21:11,586 --> 00:21:11,926
+detail.
+
+
+716
+00:21:13,046 --> 00:21:14,366
+For now we will just have a
+
+
+717
+00:21:14,416 --> 00:21:15,826
+quick look at deferred shading.
+
+
+718
+00:21:17,436 --> 00:21:19,676
+Deferred shading is considered
+
+
+719
+00:21:19,676 --> 00:21:22,206
+to be very bandwidth heavy that
+
+
+720
+00:21:22,206 --> 00:21:24,166
+is because traditionally it
+
+
+721
+00:21:24,166 --> 00:21:25,626
+requires the application to
+
+
+722
+00:21:25,626 --> 00:21:27,196
+store the geometry information
+
+
+723
+00:21:27,466 --> 00:21:29,846
+or G-Buffer as a set of textures
+
+
+724
+00:21:29,846 --> 00:21:31,426
+representing several pixel
+
+
+725
+00:21:31,486 --> 00:21:32,056
+properties.
+
+
+726
+00:21:32,966 --> 00:21:34,796
+Those textures are then sampled
+
+
+727
+00:21:34,796 --> 00:21:36,066
+in the second lighting pass,
+
+
+728
+00:21:36,576 --> 00:21:37,826
+where the final color is
+
+
+729
+00:21:37,826 --> 00:21:39,396
+accumulated in a render target.
+
+
+730
+00:21:40,316 --> 00:21:42,686
+Notice that we are storing and
+
+
+731
+00:21:42,686 --> 00:21:44,776
+then loading all this data from
+
+
+732
+00:21:44,776 --> 00:21:46,186
+the G-Buffer, so that's why it's
+
+
+733
+00:21:46,226 --> 00:21:47,016
+bandwidth heavy.
+
+
+734
+00:21:47,356 --> 00:21:50,136
+iOS allows you to be much more
+
+
+735
+00:21:50,136 --> 00:21:52,646
+efficient than that.
+
+
+736
+00:21:53,576 --> 00:21:54,956
+On iOS, we can leverage
+
+
+737
+00:21:54,986 --> 00:21:56,876
+programmable blending, a feature
+
+
+738
+00:21:56,876 --> 00:21:58,606
+that allows fragment shaders to
+
+
+739
+00:21:58,606 --> 00:22:01,076
+access pixel data directly from
+
+
+740
+00:22:01,076 --> 00:22:01,746
+Tile Memory.
+
+
+741
+00:22:02,646 --> 00:22:04,096
+This means that the G-buffer
+
+
+742
+00:22:04,096 --> 00:22:05,756
+data can be stored on Tile
+
+
+743
+00:22:05,756 --> 00:22:07,766
+Memory and access within the
+
+
+744
+00:22:07,766 --> 00:22:10,026
+same render pass by all the
+
+
+745
+00:22:10,026 --> 00:22:11,456
+light accumulation shaders.
+
+
+746
+00:22:12,196 --> 00:22:13,896
+It is a very powerful feature
+
+
+747
+00:22:15,116 --> 00:22:16,526
+which Digital Legends has been
+
+
+748
+00:22:16,526 --> 00:22:17,936
+utilizing for years.
+
+
+749
+00:22:18,776 --> 00:22:20,246
+This is how the single pass
+
+
+750
+00:22:20,246 --> 00:22:21,946
+deferred render of Afterpulse
+
+
+751
+00:22:22,306 --> 00:22:23,256
+looks like through the
+
+
+752
+00:22:23,256 --> 00:22:24,726
+Dependency Viewer, it's
+
+
+753
+00:22:24,726 --> 00:22:25,276
+beautiful.
+
+
+754
+00:22:25,926 --> 00:22:27,296
+The four G-Buffer attachments
+
+
+755
+00:22:27,296 --> 00:22:29,266
+are fully transient, and only
+
+
+756
+00:22:29,266 --> 00:22:31,056
+the final color and depth are
+
+
+757
+00:22:31,056 --> 00:22:32,146
+stored, so it's not only
+
+
+758
+00:22:32,146 --> 00:22:33,806
+beautiful it's also efficient.
+
+
+759
+00:22:34,686 --> 00:22:36,006
+So, now, please let's welcome
+
+
+760
+00:22:36,006 --> 00:22:37,856
+Samuel on stage for the demo of
+
+
+761
+00:22:37,856 --> 00:22:38,756
+the Dependency Viewer.
+
+
+762
+00:22:39,516 --> 00:22:43,500
+[ Applause ]
+
+
+763
+00:22:48,636 --> 00:22:49,516
+>> Thanks Guillem.
+
+
+764
+00:22:50,076 --> 00:22:51,616
+So, we've just captured an old
+
+
+765
+00:22:51,616 --> 00:22:53,206
+version of Afterpulse and want
+
+
+766
+00:22:53,206 --> 00:22:54,106
+to see if there are any
+
+
+767
+00:22:54,106 --> 00:22:55,746
+optimizations that we can make
+
+
+768
+00:22:56,006 --> 00:22:57,146
+to improve its performance.
+
+
+769
+00:22:58,556 --> 00:22:59,866
+I'm now going to use the
+
+
+770
+00:22:59,866 --> 00:23:01,586
+Dependency Viewer in the Metal
+
+
+771
+00:23:01,586 --> 00:23:03,166
+Frame Debugger to show some of
+
+
+772
+00:23:03,166 --> 00:23:04,536
+the issues that Guillem just
+
+
+773
+00:23:04,536 --> 00:23:04,916
+mentioned.
+
+
+774
+00:23:05,676 --> 00:23:08,846
+So to begin, let's click on the
+
+
+775
+00:23:08,846 --> 00:23:10,556
+CommandBuffer to open the
+
+
+776
+00:23:10,556 --> 00:23:12,206
+Dependency Viewer.
+
+
+777
+00:23:12,856 --> 00:23:16,576
+The Dependency Viewer shows us
+
+
+778
+00:23:16,576 --> 00:23:18,856
+all of the GPU passes encoded by
+
+
+779
+00:23:19,686 --> 00:23:20,646
+an app.
+
+
+780
+00:23:20,926 --> 00:23:22,656
+We can see that Afterpulse has
+
+
+781
+00:23:22,656 --> 00:23:24,816
+one CommandBuffer and begins its
+
+
+782
+00:23:24,816 --> 00:23:26,606
+frame by rendering a Shadow Map.
+
+
+783
+00:23:27,356 --> 00:23:30,606
+Followed by Deferred Phase, this
+
+
+784
+00:23:30,606 --> 00:23:31,596
+feeds into Luminance
+
+
+785
+00:23:31,596 --> 00:23:33,286
+Calculations, Particle
+
+
+786
+00:23:33,286 --> 00:23:35,286
+Simulations, and a Bloom Chain
+
+
+787
+00:23:35,886 --> 00:23:37,196
+which is used by the final
+
+
+788
+00:23:37,196 --> 00:23:38,646
+screen pass.
+
+
+789
+00:23:39,516 --> 00:23:40,666
+Now, the Dependency Viewer is
+
+
+790
+00:23:40,666 --> 00:23:42,276
+much more compact this year if
+
+
+791
+00:23:42,276 --> 00:23:44,046
+you have groups, and it's really
+
+
+792
+00:23:44,046 --> 00:23:46,096
+easy to see at a high level, how
+
+
+793
+00:23:46,096 --> 00:23:46,966
+the frame is rendered.
+
+
+794
+00:23:48,026 --> 00:23:49,806
+We can even go deeper into any
+
+
+795
+00:23:49,806 --> 00:23:51,656
+group if we want more detail.
+
+
+796
+00:23:52,416 --> 00:23:54,396
+So, in reality this Bloom Chain
+
+
+797
+00:23:54,956 --> 00:23:56,496
+is actually 12 passes.
+
+
+798
+00:23:57,066 --> 00:24:00,016
+Now, the Dependency Viewer is a
+
+
+799
+00:24:00,016 --> 00:24:01,516
+great place to find some of the
+
+
+800
+00:24:01,516 --> 00:24:02,656
+issues that Guillem mentioned.
+
+
+801
+00:24:03,166 --> 00:24:04,606
+And we can see a few on this
+
+
+802
+00:24:04,606 --> 00:24:05,296
+final screen pass.
+
+
+803
+00:24:05,296 --> 00:24:08,026
+So let's click on the issue icon
+
+
+804
+00:24:08,306 --> 00:24:09,106
+to find out more.
+
+
+805
+00:24:09,746 --> 00:24:12,656
+So, it looks like one of the
+
+
+806
+00:24:12,656 --> 00:24:14,466
+load store action issues that
+
+
+807
+00:24:14,466 --> 00:24:15,446
+Guillem mentioned earlier.
+
+
+808
+00:24:16,496 --> 00:24:17,856
+So they've set the store action
+
+
+809
+00:24:17,856 --> 00:24:19,866
+to store, but they're not using
+
+
+810
+00:24:19,866 --> 00:24:20,936
+this texture again in this
+
+
+811
+00:24:20,936 --> 00:24:21,196
+frame.
+
+
+812
+00:24:22,066 --> 00:24:23,626
+So the issue recommends we
+
+
+813
+00:24:23,626 --> 00:24:24,946
+should instead set it to
+
+
+814
+00:24:24,946 --> 00:24:27,056
+DontCare and we'll get back
+
+
+815
+00:24:27,056 --> 00:24:28,886
+almost 14 megabytes of memory
+
+
+816
+00:24:28,886 --> 00:24:30,806
+bandwidth for these two textures
+
+
+817
+00:24:30,806 --> 00:24:31,286
+combined.
+
+
+818
+00:24:31,906 --> 00:24:34,676
+So this year we've made it even
+
+
+819
+00:24:34,676 --> 00:24:36,336
+easier to find all of the issues
+
+
+820
+00:24:36,376 --> 00:24:38,436
+in the graph, simply click on
+
+
+821
+00:24:38,436 --> 00:24:39,966
+the new issues button on the
+
+
+822
+00:24:39,966 --> 00:24:42,786
+bottom right to see a list of
+
+
+823
+00:24:46,156 --> 00:24:46,316
+issues.
+
+
+824
+00:24:46,466 --> 00:24:47,726
+Now, another best practice that
+
+
+825
+00:24:47,726 --> 00:24:48,956
+Guillem mentioned was choosing
+
+
+826
+00:24:48,956 --> 00:24:51,016
+the correct pixel format.
+
+
+827
+00:24:51,556 --> 00:24:52,936
+So this year on iOS we've
+
+
+828
+00:24:52,936 --> 00:24:54,756
+introduced the new Depth 16
+
+
+829
+00:24:54,756 --> 00:24:56,806
+Format, so let's use the new
+
+
+830
+00:24:56,806 --> 00:24:58,996
+search to look for Depth 32
+
+
+831
+00:24:58,996 --> 00:25:00,246
+textures.
+
+
+832
+00:25:03,266 --> 00:25:04,666
+So it looks like they're using
+
+
+833
+00:25:04,736 --> 00:25:06,636
+36 megabytes of memory for the
+
+
+834
+00:25:06,636 --> 00:25:07,596
+Shadow Map texture.
+
+
+835
+00:25:08,506 --> 00:25:09,536
+So when the team at Digital
+
+
+836
+00:25:09,536 --> 00:25:11,356
+Legends gets back to Barcelona
+
+
+837
+00:25:11,356 --> 00:25:12,836
+after Dub-Dub, they can
+
+
+838
+00:25:12,836 --> 00:25:14,316
+investigate using this new
+
+
+839
+00:25:14,316 --> 00:25:16,646
+format and potentially save half
+
+
+840
+00:25:16,686 --> 00:25:18,126
+the memory if their shadow
+
+
+841
+00:25:18,126 --> 00:25:20,196
+requirements allow for it.
+
+
+842
+00:25:20,746 --> 00:25:22,166
+If we continue searching through
+
+
+843
+00:25:22,166 --> 00:25:24,046
+the graph, where you can see
+
+
+844
+00:25:24,046 --> 00:25:25,596
+that there's plenty of potential
+
+
+845
+00:25:25,596 --> 00:25:26,396
+memory savings.
+
+
+846
+00:25:27,066 --> 00:25:29,436
+So if you use the Dependency
+
+
+847
+00:25:29,436 --> 00:25:30,576
+Viewer in the Metal Frame
+
+
+848
+00:25:30,576 --> 00:25:32,566
+Debugger to find and diagnose a
+
+
+849
+00:25:32,616 --> 00:25:34,736
+few issues in the old version of
+
+
+850
+00:25:34,736 --> 00:25:35,276
+Afterpulse.
+
+
+851
+00:25:36,116 --> 00:25:37,146
+So, Digital Legends have
+
+
+852
+00:25:37,146 --> 00:25:38,326
+actually made some of these
+
+
+853
+00:25:38,326 --> 00:25:39,026
+improvements.
+
+
+854
+00:25:39,386 --> 00:25:40,386
+So let's take a quick look.
+
+
+855
+00:25:40,976 --> 00:25:43,906
+We can immediately see that they
+
+
+856
+00:25:43,906 --> 00:25:45,226
+are now using multiple command
+
+
+857
+00:25:45,226 --> 00:25:45,686
+buffers.
+
+
+858
+00:25:46,376 --> 00:25:47,746
+So this will fix the issue that
+
+
+859
+00:25:47,746 --> 00:25:49,196
+Guillem showed us earlier where
+
+
+860
+00:25:49,196 --> 00:25:51,056
+the CPU was blocked waiting for
+
+
+861
+00:25:51,056 --> 00:25:52,776
+the next drawable and the GPU
+
+
+862
+00:25:52,776 --> 00:25:53,276
+was idle.
+
+
+863
+00:25:53,866 --> 00:25:56,006
+If we zoom in to the final
+
+
+864
+00:25:56,006 --> 00:25:58,586
+screen pass, we can see that
+
+
+865
+00:25:58,586 --> 00:25:59,936
+they've fixed the store action
+
+
+866
+00:25:59,936 --> 00:26:00,276
+issue.
+
+
+867
+00:26:01,386 --> 00:26:02,886
+In fact, because these two
+
+
+868
+00:26:02,886 --> 00:26:04,906
+textures are fully transient and
+
+
+869
+00:26:04,906 --> 00:26:06,136
+they've set the storage mode to
+
+
+870
+00:26:06,136 --> 00:26:08,116
+memoryless, they're not using
+
+
+871
+00:26:08,116 --> 00:26:09,616
+any system memory at all.
+
+
+872
+00:26:11,016 --> 00:26:13,326
+So, Dependency really is a great
+
+
+873
+00:26:13,366 --> 00:26:14,916
+place to start debugging your
+
+
+874
+00:26:14,916 --> 00:26:15,636
+render pipeline.
+
+
+875
+00:26:16,526 --> 00:26:17,856
+Back to Guillem who will talk
+
+
+876
+00:26:17,856 --> 00:26:18,926
+about some amazing best
+
+
+877
+00:26:18,926 --> 00:26:20,936
+practices in optimizing your
+
+
+878
+00:26:20,936 --> 00:26:21,926
+apps memory footprint.
+
+
+879
+00:26:22,516 --> 00:26:29,056
+[ Applause ]
+
+
+880
+00:26:29,556 --> 00:26:30,986
+>> Thank you Sam that was an
+
+
+881
+00:26:30,986 --> 00:26:31,756
+awesome demo.
+
+
+882
+00:26:31,886 --> 00:26:33,156
+I hope you guys will also use
+
+
+883
+00:26:33,156 --> 00:26:34,116
+the Dependency Viewer.
+
+
+884
+00:26:35,296 --> 00:26:36,556
+Cool. So, let's move on to the
+
+
+885
+00:26:36,556 --> 00:26:38,906
+last part of the talk, memory
+
+
+886
+00:26:38,906 --> 00:26:39,476
+footprint.
+
+
+887
+00:26:40,786 --> 00:26:42,216
+Memory footprint is actually
+
+
+888
+00:26:42,216 --> 00:26:43,676
+very important for your game.
+
+
+889
+00:26:44,616 --> 00:26:46,696
+That is because iOS enforces a
+
+
+890
+00:26:46,696 --> 00:26:48,436
+strict application memory limit
+
+
+891
+00:26:48,896 --> 00:26:50,506
+in order to keep both the system
+
+
+892
+00:26:50,506 --> 00:26:52,066
+on your application responsive.
+
+
+893
+00:26:52,756 --> 00:26:56,016
+As some of you may have noticed
+
+
+894
+00:26:56,016 --> 00:26:58,326
+iOS 12 introduce some changes in
+
+
+895
+00:26:58,326 --> 00:26:59,706
+the way memory is accounted.
+
+
+896
+00:27:00,816 --> 00:27:02,606
+This accounting change affects
+
+
+897
+00:27:02,606 --> 00:27:03,946
+mostly Metal resources.
+
+
+898
+00:27:04,976 --> 00:27:06,736
+Metal resources such as buffers
+
+
+899
+00:27:06,736 --> 00:27:08,836
+or textures may be the bulk of
+
+
+900
+00:27:08,876 --> 00:27:09,976
+your application's memory
+
+
+901
+00:27:09,976 --> 00:27:10,496
+footprint.
+
+
+902
+00:27:10,946 --> 00:27:12,346
+So, it is important for you to
+
+
+903
+00:27:12,346 --> 00:27:13,636
+measure the memory footprint of
+
+
+904
+00:27:13,636 --> 00:27:14,166
+your game.
+
+
+905
+00:27:14,916 --> 00:27:16,356
+You will want to do, so using
+
+
+906
+00:27:16,356 --> 00:27:17,656
+the Xcode Memory Gauge.
+
+
+907
+00:27:18,746 --> 00:27:20,486
+The Xcode Memory Gauge will
+
+
+908
+00:27:20,516 --> 00:27:22,576
+report the existing number that
+
+
+909
+00:27:22,576 --> 00:27:24,266
+the system also uses to measure
+
+
+910
+00:27:24,266 --> 00:27:25,626
+your game's memory footprint.
+
+
+911
+00:27:26,396 --> 00:27:28,036
+It is very important that you
+
+
+912
+00:27:28,036 --> 00:27:29,536
+use it to verify where your
+
+
+913
+00:27:29,536 --> 00:27:30,176
+games at.
+
+
+914
+00:27:31,126 --> 00:27:32,956
+Now, new this year it will also
+
+
+915
+00:27:32,956 --> 00:27:34,496
+display the application memory
+
+
+916
+00:27:34,496 --> 00:27:36,656
+limit as your game gets closer
+
+
+917
+00:27:36,736 --> 00:27:37,626
+to it.
+
+
+918
+00:27:38,896 --> 00:27:40,566
+But what if we want to focus
+
+
+919
+00:27:40,566 --> 00:27:43,206
+specifically on the memory used
+
+
+920
+00:27:43,206 --> 00:27:44,546
+by our Metal resources?
+
+
+921
+00:27:45,156 --> 00:27:47,696
+New this year, we are
+
+
+922
+00:27:47,696 --> 00:27:49,266
+introducing the Memory Viewer.
+
+
+923
+00:27:50,496 --> 00:27:52,366
+We have added it into the Metal
+
+
+924
+00:27:52,366 --> 00:27:53,106
+Frame Debugger.
+
+
+925
+00:27:54,346 --> 00:27:56,006
+The Memory Viewer itself has two
+
+
+926
+00:27:56,006 --> 00:27:58,776
+parts, first, a bar chart at the
+
+
+927
+00:27:58,836 --> 00:28:01,006
+top which shows resources, group
+
+
+928
+00:28:01,006 --> 00:28:03,146
+by categories such as type,
+
+
+929
+00:28:03,596 --> 00:28:05,606
+storage mode, and usage.
+
+
+930
+00:28:06,256 --> 00:28:08,136
+We can also use this bar chart
+
+
+931
+00:28:08,756 --> 00:28:09,966
+to quickly navigate through the
+
+
+932
+00:28:09,966 --> 00:28:11,656
+largest resources which are then
+
+
+933
+00:28:11,656 --> 00:28:13,006
+highlighted and the time they
+
+
+934
+00:28:13,006 --> 00:28:13,606
+were shown.
+
+
+935
+00:28:14,706 --> 00:28:16,346
+Second, there is a table at the
+
+
+936
+00:28:16,346 --> 00:28:18,116
+bottom which will show the
+
+
+937
+00:28:18,176 --> 00:28:19,726
+resources that we have filtered.
+
+
+938
+00:28:19,726 --> 00:28:22,596
+It includes several properties
+
+
+939
+00:28:22,646 --> 00:28:24,786
+specific to resource type such
+
+
+940
+00:28:24,786 --> 00:28:26,506
+as pixel format and resolution
+
+
+941
+00:28:26,506 --> 00:28:27,216
+for textures.
+
+
+942
+00:28:28,046 --> 00:28:29,686
+There is also filter bar at the
+
+
+943
+00:28:29,686 --> 00:28:31,606
+bottom to help you narrow down
+
+
+944
+00:28:31,606 --> 00:28:33,156
+your investigation even further.
+
+
+945
+00:28:33,886 --> 00:28:36,056
+It is a very powerful tool and
+
+
+946
+00:28:36,056 --> 00:28:37,606
+we hope that you will utilize it
+
+
+947
+00:28:37,666 --> 00:28:38,916
+to understand the memory
+
+
+948
+00:28:38,916 --> 00:28:40,716
+footprint of all your GPU
+
+
+949
+00:28:40,716 --> 00:28:41,326
+resources.
+
+
+950
+00:28:43,056 --> 00:28:45,476
+Also another great tool that we
+
+
+951
+00:28:45,476 --> 00:28:47,456
+are introducing this year is the
+
+
+952
+00:28:47,456 --> 00:28:49,016
+Metal Resource Allocation
+
+
+953
+00:28:49,046 --> 00:28:49,736
+Instrument.
+
+
+954
+00:28:51,086 --> 00:28:52,076
+It has three different
+
+
+955
+00:28:52,076 --> 00:28:54,726
+components, a Metal Resources
+
+
+956
+00:28:54,726 --> 00:28:56,226
+Allocations track which will
+
+
+957
+00:28:56,226 --> 00:28:57,836
+show the current Metal memory
+
+
+958
+00:28:57,906 --> 00:29:00,226
+footprint of your game, an
+
+
+959
+00:29:00,226 --> 00:29:02,056
+allocations track which will
+
+
+960
+00:29:02,056 --> 00:29:03,546
+show an event for each resource
+
+
+961
+00:29:03,546 --> 00:29:05,606
+allocation and deallocation as
+
+
+962
+00:29:05,606 --> 00:29:06,856
+well as some information.
+
+
+963
+00:29:08,106 --> 00:29:10,266
+And also a detailed table view
+
+
+964
+00:29:10,536 --> 00:29:11,446
+which will show you more
+
+
+965
+00:29:11,446 --> 00:29:12,816
+information about all the
+
+
+966
+00:29:12,816 --> 00:29:14,136
+allocations captured.
+
+
+967
+00:29:15,146 --> 00:29:16,416
+Both these tools are very
+
+
+968
+00:29:16,416 --> 00:29:18,506
+powerful and will give you great
+
+
+969
+00:29:18,506 --> 00:29:20,596
+overview of the memory footprint
+
+
+970
+00:29:20,596 --> 00:29:22,006
+in your game and how-- well,
+
+
+971
+00:29:22,006 --> 00:29:23,716
+also how it changes over time.
+
+
+972
+00:29:24,226 --> 00:29:26,446
+But some of you have also been
+
+
+973
+00:29:26,446 --> 00:29:28,476
+asking for other features, in
+
+
+974
+00:29:28,476 --> 00:29:29,726
+particular, one of them you have
+
+
+975
+00:29:29,756 --> 00:29:31,146
+been asking for a long time.
+
+
+976
+00:29:31,726 --> 00:29:33,006
+And I'm very happy to tell you
+
+
+977
+00:29:33,006 --> 00:29:34,466
+that new this year, we have a
+
+
+978
+00:29:34,466 --> 00:29:36,636
+C-based API to query available
+
+
+979
+00:29:36,636 --> 00:29:37,696
+memory at runtime.
+
+
+980
+00:29:38,566 --> 00:29:40,206
+This will enable your game to
+
+
+981
+00:29:40,206 --> 00:29:41,266
+stream resources more
+
+
+982
+00:29:41,266 --> 00:29:43,776
+effectively and also avoid
+
+
+983
+00:29:43,776 --> 00:29:46,156
+memory spikes which may cause
+
+
+984
+00:29:46,156 --> 00:29:47,626
+the game to go over the
+
+
+985
+00:29:47,626 --> 00:29:48,566
+application limit.
+
+
+986
+00:29:49,456 --> 00:29:51,296
+Another cool API that we're
+
+
+987
+00:29:51,296 --> 00:29:53,206
+introducing this year is the
+
+
+988
+00:29:53,286 --> 00:29:55,436
+on-device GPU capture, which
+
+
+989
+00:29:55,436 --> 00:29:56,116
+will allow you to
+
+
+990
+00:29:56,186 --> 00:29:57,816
+programmatically trigger a GPU
+
+
+991
+00:29:57,816 --> 00:30:00,326
+capture for which Xcode is not
+
+
+992
+00:30:00,326 --> 00:30:00,856
+required.
+
+
+993
+00:30:01,446 --> 00:30:02,936
+So we think it will be ideal for
+
+
+994
+00:30:02,936 --> 00:30:04,776
+game testers in the QA process.
+
+
+995
+00:30:05,456 --> 00:30:07,286
+To enable it you will just need
+
+
+996
+00:30:07,336 --> 00:30:09,136
+to add MetalCaptureEnabled into
+
+
+997
+00:30:09,136 --> 00:30:10,026
+the info.plist.
+
+
+998
+00:30:10,026 --> 00:30:10,856
+It's very simple.
+
+
+999
+00:30:12,086 --> 00:30:13,206
+So, now, let's see how we can
+
+
+1000
+00:30:13,206 --> 00:30:15,876
+combine both APIs into some
+
+
+1001
+00:30:15,876 --> 00:30:17,466
+short piece of code.
+
+
+1002
+00:30:18,766 --> 00:30:20,596
+In this case, we will want to
+
+
+1003
+00:30:20,626 --> 00:30:22,196
+check if the application is
+
+
+1004
+00:30:22,196 --> 00:30:23,856
+close to the memory limit, maybe
+
+
+1005
+00:30:23,856 --> 00:30:25,946
+because of a memory spike and
+
+
+1006
+00:30:25,946 --> 00:30:27,656
+capture a GPU trace of our game,
+
+
+1007
+00:30:27,656 --> 00:30:29,136
+so we can use the Memory Viewer
+
+
+1008
+00:30:29,196 --> 00:30:30,086
+to fully debug it.
+
+
+1009
+00:30:30,756 --> 00:30:31,686
+So let's go for it.
+
+
+1010
+00:30:32,116 --> 00:30:33,876
+First, we'll check if the
+
+
+1011
+00:30:33,876 --> 00:30:35,166
+application is getting close to
+
+
+1012
+00:30:35,166 --> 00:30:35,696
+the limit.
+
+
+1013
+00:30:36,436 --> 00:30:38,806
+And if it is we will then want
+
+
+1014
+00:30:39,126 --> 00:30:41,276
+to capture the next frame, which
+
+
+1015
+00:30:41,276 --> 00:30:43,036
+we will just render normally as
+
+
+1016
+00:30:43,036 --> 00:30:44,286
+we would do so otherwise.
+
+
+1017
+00:30:45,716 --> 00:30:47,516
+By the end of the frame, if we
+
+
+1018
+00:30:47,516 --> 00:30:49,636
+captured it, we will then stop
+
+
+1019
+00:30:49,636 --> 00:30:51,486
+the capture and handle the GPU
+
+
+1020
+00:30:51,486 --> 00:30:53,506
+trace, it's up to you how you
+
+
+1021
+00:30:53,506 --> 00:30:54,806
+handle the GPU trace.
+
+
+1022
+00:30:55,516 --> 00:30:57,416
+Potentially you may also want to
+
+
+1023
+00:30:57,416 --> 00:30:59,836
+either exit the game or disable
+
+
+1024
+00:30:59,836 --> 00:31:01,346
+the GPU captures for this
+
+
+1025
+00:31:01,346 --> 00:31:02,716
+session, since you may not want
+
+
+1026
+00:31:02,716 --> 00:31:04,506
+to capture every single frame at
+
+
+1027
+00:31:04,506 --> 00:31:05,026
+that point.
+
+
+1028
+00:31:06,246 --> 00:31:08,016
+So this will give you a great
+
+
+1029
+00:31:08,016 --> 00:31:10,536
+way to use both APIs and to, you
+
+
+1030
+00:31:10,536 --> 00:31:12,076
+know, like further drill down on
+
+
+1031
+00:31:12,076 --> 00:31:12,856
+memory footprint.
+
+
+1032
+00:31:13,296 --> 00:31:15,556
+Which is great, so let's do
+
+
+1033
+00:31:15,556 --> 00:31:16,346
+exactly that.
+
+
+1034
+00:31:16,346 --> 00:31:17,776
+Let's look into how can we
+
+
+1035
+00:31:17,776 --> 00:31:19,286
+reduce memory footprint.
+
+
+1036
+00:31:19,866 --> 00:31:21,656
+For that we also have a bunch of
+
+
+1037
+00:31:21,656 --> 00:31:22,526
+best practices.
+
+
+1038
+00:31:23,516 --> 00:31:25,026
+In this section, we will talk
+
+
+1039
+00:31:25,026 --> 00:31:26,886
+about memoryless render targets,
+
+
+1040
+00:31:27,256 --> 00:31:29,486
+resource streaming, a bit more
+
+
+1041
+00:31:29,486 --> 00:31:31,216
+about game assets and also
+
+
+1042
+00:31:31,306 --> 00:31:32,656
+memory-intensive effects.
+
+
+1043
+00:31:33,396 --> 00:31:34,986
+So, let's get started with
+
+
+1044
+00:31:34,986 --> 00:31:36,406
+memoryless render targets.
+
+
+1045
+00:31:36,786 --> 00:31:39,206
+This is kind of where we left it
+
+
+1046
+00:31:39,206 --> 00:31:40,716
+in the memory bandwidth section.
+
+
+1047
+00:31:42,096 --> 00:31:43,466
+Notice the transient render
+
+
+1048
+00:31:43,466 --> 00:31:45,386
+targets are not loaded or stored
+
+
+1049
+00:31:45,386 --> 00:31:46,316
+on system memory.
+
+
+1050
+00:31:47,076 --> 00:31:49,056
+So they actually do not need a
+
+
+1051
+00:31:49,056 --> 00:31:50,476
+system memory allocation in the
+
+
+1052
+00:31:50,476 --> 00:31:52,286
+first place, that's why you
+
+
+1053
+00:31:52,286 --> 00:31:53,816
+should use memoryless storage
+
+
+1054
+00:31:53,816 --> 00:31:55,996
+mode, in particular, for all the
+
+
+1055
+00:31:55,996 --> 00:31:57,456
+multisampled attachments.
+
+
+1056
+00:31:58,316 --> 00:31:59,646
+So let's see how can we do that
+
+
+1057
+00:31:59,646 --> 00:32:01,716
+with, again, just a little bit
+
+
+1058
+00:32:02,116 --> 00:32:02,956
+of code.
+
+
+1059
+00:32:03,146 --> 00:32:04,806
+In this case, is as simple as
+
+
+1060
+00:32:04,806 --> 00:32:06,126
+setting memoryless into the
+
+
+1061
+00:32:06,126 --> 00:32:07,096
+texture descriptor.
+
+
+1062
+00:32:07,906 --> 00:32:09,726
+Also we will want to make sure
+
+
+1063
+00:32:09,906 --> 00:32:11,836
+that our render pass configures
+
+
+1064
+00:32:11,836 --> 00:32:13,066
+that render target as fully
+
+
+1065
+00:32:13,066 --> 00:32:13,626
+transient.
+
+
+1066
+00:32:14,106 --> 00:32:15,586
+In this case, we want to
+
+
+1067
+00:32:15,586 --> 00:32:16,856
+configure the G-Buffers
+
+
+1068
+00:32:16,856 --> 00:32:17,406
+transients.
+
+
+1069
+00:32:17,406 --> 00:32:18,776
+So, we just need to set the load
+
+
+1070
+00:32:18,776 --> 00:32:20,646
+action clear and the store
+
+
+1071
+00:32:20,646 --> 00:32:21,606
+action to DontCare.
+
+
+1072
+00:32:22,096 --> 00:32:23,326
+So we are not storing the
+
+
+1073
+00:32:23,326 --> 00:32:23,856
+G-buffer.
+
+
+1074
+00:32:24,426 --> 00:32:27,156
+So we can see how Digital
+
+
+1075
+00:32:27,156 --> 00:32:28,686
+Legends did it by having another
+
+
+1076
+00:32:28,686 --> 00:32:29,676
+look at Afterpulse.
+
+
+1077
+00:32:30,516 --> 00:32:32,406
+At the top we can see an older
+
+
+1078
+00:32:32,406 --> 00:32:35,006
+version of Afterpulse, it has a
+
+
+1079
+00:32:35,006 --> 00:32:37,096
+transient G-buffer but it's
+
+
+1080
+00:32:37,096 --> 00:32:38,816
+being backed by system memory.
+
+
+1081
+00:32:39,426 --> 00:32:41,766
+At the bottom, we can see a
+
+
+1082
+00:32:41,766 --> 00:32:43,396
+newer version of Afterpulse
+
+
+1083
+00:32:43,796 --> 00:32:45,076
+which actually has a larger
+
+
+1084
+00:32:45,076 --> 00:32:45,626
+G-buffer.
+
+
+1085
+00:32:46,446 --> 00:32:48,616
+But this G-buffer though is
+
+
+1086
+00:32:48,616 --> 00:32:51,336
+fully transient and this time
+
+
+1087
+00:32:51,706 --> 00:32:53,306
+not backed by system memory,
+
+
+1088
+00:32:53,766 --> 00:32:55,296
+they are utilizing memoryless
+
+
+1089
+00:32:55,296 --> 00:32:56,936
+storage mode for all the
+
+
+1090
+00:32:56,936 --> 00:32:57,996
+intermediate G-buffer
+
+
+1091
+00:32:57,996 --> 00:32:58,636
+attachments.
+
+
+1092
+00:32:58,966 --> 00:33:00,576
+And this is great because the
+
+
+1093
+00:33:00,576 --> 00:33:02,896
+newer version of Afterpulse is
+
+
+1094
+00:33:02,896 --> 00:33:04,876
+saving about 60 megabytes of
+
+
+1095
+00:33:04,906 --> 00:33:07,256
+memory footprint just by setting
+
+
+1096
+00:33:07,256 --> 00:33:09,336
+that one flag, it's awesome.
+
+
+1097
+00:33:10,096 --> 00:33:12,066
+And it comes with no compromise,
+
+
+1098
+00:33:12,656 --> 00:33:13,906
+there is nothing being lost
+
+
+1099
+00:33:13,906 --> 00:33:15,066
+here, there's no trade-off to be
+
+
+1100
+00:33:15,066 --> 00:33:16,676
+made, it just works.
+
+
+1101
+00:33:17,126 --> 00:33:17,676
+And it's great.
+
+
+1102
+00:33:18,496 --> 00:33:19,976
+So, now, let's move on to the
+
+
+1103
+00:33:19,976 --> 00:33:22,386
+rest of the best practices,
+
+
+1104
+00:33:22,616 --> 00:33:24,126
+which some of those we will do
+
+
+1105
+00:33:24,126 --> 00:33:26,576
+come with a, you know, memory
+
+
+1106
+00:33:26,576 --> 00:33:27,956
+and performance trade-off or
+
+
+1107
+00:33:27,956 --> 00:33:29,086
+memory and image quality
+
+
+1108
+00:33:29,086 --> 00:33:29,596
+trade-off.
+
+
+1109
+00:33:30,366 --> 00:33:31,916
+In this case, we are back to
+
+
+1110
+00:33:31,916 --> 00:33:32,696
+resource streaming.
+
+
+1111
+00:33:34,076 --> 00:33:35,306
+Notice that loading all the
+
+
+1112
+00:33:35,306 --> 00:33:37,246
+assets into memory will increase
+
+
+1113
+00:33:37,246 --> 00:33:38,806
+the memory footprint, so you
+
+
+1114
+00:33:38,806 --> 00:33:40,216
+should consider the memory and
+
+
+1115
+00:33:40,216 --> 00:33:42,596
+performance trade-off and only
+
+
+1116
+00:33:42,596 --> 00:33:43,856
+load all the assets that you
+
+
+1117
+00:33:43,856 --> 00:33:45,666
+know will be used, particularly
+
+
+1118
+00:33:45,666 --> 00:33:46,996
+when you are memory limited.
+
+
+1119
+00:33:48,036 --> 00:33:50,006
+Also you may want to free all
+
+
+1120
+00:33:50,006 --> 00:33:51,856
+the resources as long-- as soon
+
+
+1121
+00:33:51,856 --> 00:33:53,406
+as they are not used anymore,
+
+
+1122
+00:33:53,736 --> 00:33:55,356
+potentially like splash screen
+
+
+1123
+00:33:55,356 --> 00:33:56,796
+or tutorial UI would be great
+
+
+1124
+00:33:56,796 --> 00:33:57,826
+candidates for that.
+
+
+1125
+00:33:58,806 --> 00:34:00,916
+And this is a hard decision to
+
+
+1126
+00:34:00,916 --> 00:34:03,056
+make but fortunately the Memory
+
+
+1127
+00:34:03,056 --> 00:34:04,406
+Viewer is also a great tool to
+
+
+1128
+00:34:04,406 --> 00:34:05,326
+help us with that.
+
+
+1129
+00:34:06,926 --> 00:34:08,755
+We can use the filters to
+
+
+1130
+00:34:08,755 --> 00:34:10,166
+quickly focus on unused
+
+
+1131
+00:34:10,216 --> 00:34:10,846
+resources.
+
+
+1132
+00:34:11,996 --> 00:34:14,016
+By doing so, the table at the
+
+
+1133
+00:34:14,016 --> 00:34:15,716
+bottom will be updated and then
+
+
+1134
+00:34:15,846 --> 00:34:17,085
+we can focus on all these
+
+
+1135
+00:34:17,085 --> 00:34:18,636
+resources which are not used in
+
+
+1136
+00:34:18,636 --> 00:34:19,146
+this frame.
+
+
+1137
+00:34:19,315 --> 00:34:21,616
+And we will talk more about this
+
+
+1138
+00:34:21,616 --> 00:34:22,866
+and use them off the Memory
+
+
+1139
+00:34:22,866 --> 00:34:24,235
+Viewer towards the end of the
+
+
+1140
+00:34:24,266 --> 00:34:24,576
+talk.
+
+
+1141
+00:34:25,656 --> 00:34:26,976
+So, now, let's move on to best
+
+
+1142
+00:34:26,976 --> 00:34:28,275
+practice number 14.
+
+
+1143
+00:34:29,106 --> 00:34:30,505
+Use smaller assets.
+
+
+1144
+00:34:31,186 --> 00:34:33,246
+In fact, you should only make
+
+
+1145
+00:34:33,246 --> 00:34:35,426
+the assets as large as necessary
+
+
+1146
+00:34:36,286 --> 00:34:37,726
+and consider again the image
+
+
+1147
+00:34:37,775 --> 00:34:39,396
+quality and memory trade-off of
+
+
+1148
+00:34:39,396 --> 00:34:40,335
+your asset sizes.
+
+
+1149
+00:34:40,866 --> 00:34:42,335
+Make sure that both textures and
+
+
+1150
+00:34:42,335 --> 00:34:43,406
+meshes are compressed.
+
+
+1151
+00:34:44,196 --> 00:34:45,376
+And potentially if you are
+
+
+1152
+00:34:45,376 --> 00:34:47,666
+getting memory limited you may
+
+
+1153
+00:34:47,666 --> 00:34:49,886
+want to only load the smaller
+
+
+1154
+00:34:49,886 --> 00:34:51,525
+mipmap levels of your textures,
+
+
+1155
+00:34:52,306 --> 00:34:53,926
+or the lower LODs for your
+
+
+1156
+00:34:53,926 --> 00:34:54,386
+meshes.
+
+
+1157
+00:34:55,005 --> 00:34:57,456
+But there is a trade-off here
+
+
+1158
+00:34:57,456 --> 00:34:58,426
+that we are making, between
+
+
+1159
+00:34:58,426 --> 00:35:00,016
+image quality and memory.
+
+
+1160
+00:35:00,136 --> 00:35:02,246
+It's up to you to decide, when
+
+
+1161
+00:35:02,246 --> 00:35:03,746
+do you want to take it?
+
+
+1162
+00:35:04,496 --> 00:35:07,026
+The next best practice number 15
+
+
+1163
+00:35:07,106 --> 00:35:08,206
+is very similar.
+
+
+1164
+00:35:08,666 --> 00:35:10,806
+We will want to simplify
+
+
+1165
+00:35:10,996 --> 00:35:12,506
+memory-intensive effects.
+
+
+1166
+00:35:12,996 --> 00:35:16,066
+Some effects may require large
+
+
+1167
+00:35:16,066 --> 00:35:17,746
+off-screen buffers, such as
+
+
+1168
+00:35:17,746 --> 00:35:19,416
+Shadow Maps and SSAO.
+
+
+1169
+00:35:19,726 --> 00:35:21,956
+So the best practice will be for
+
+
+1170
+00:35:21,956 --> 00:35:23,146
+you to consider the image
+
+
+1171
+00:35:23,146 --> 00:35:24,736
+quality and memory trade-off of
+
+
+1172
+00:35:24,736 --> 00:35:25,936
+all of those effects.
+
+
+1173
+00:35:27,086 --> 00:35:28,726
+Potentially lower the resolution
+
+
+1174
+00:35:28,726 --> 00:35:29,946
+of all these large off-screen
+
+
+1175
+00:35:29,946 --> 00:35:30,436
+buffers.
+
+
+1176
+00:35:31,316 --> 00:35:32,526
+And if you are very memory
+
+
+1177
+00:35:32,526 --> 00:35:34,606
+constrained then just disable
+
+
+1178
+00:35:34,606 --> 00:35:36,026
+all those effects all together.
+
+
+1179
+00:35:37,506 --> 00:35:38,696
+That is a trade-off to be made
+
+
+1180
+00:35:38,776 --> 00:35:39,906
+here and you need to be
+
+
+1181
+00:35:39,906 --> 00:35:41,006
+conscious about it.
+
+
+1182
+00:35:41,256 --> 00:35:42,486
+But sometimes there's no other
+
+
+1183
+00:35:42,486 --> 00:35:42,946
+choice.
+
+
+1184
+00:35:44,536 --> 00:35:46,476
+The next best practices that we
+
+
+1185
+00:35:46,476 --> 00:35:48,256
+are going to cover here are
+
+
+1186
+00:35:48,256 --> 00:35:49,336
+slightly different.
+
+
+1187
+00:35:50,146 --> 00:35:52,896
+In this last section, I will
+
+
+1188
+00:35:52,896 --> 00:35:54,456
+introduce a couple of more
+
+
+1189
+00:35:54,456 --> 00:35:56,106
+advanced concepts that will help
+
+
+1190
+00:35:56,106 --> 00:35:58,036
+us further reducing the memory
+
+
+1191
+00:35:58,076 --> 00:35:58,586
+footprint.
+
+
+1192
+00:35:59,526 --> 00:36:00,946
+We will talk about metal
+
+
+1193
+00:36:00,986 --> 00:36:04,556
+resource heaps, purgeable memory
+
+
+1194
+00:36:04,806 --> 00:36:06,066
+as well as pipeline state
+
+
+1195
+00:36:06,066 --> 00:36:06,576
+objects.
+
+
+1196
+00:36:07,476 --> 00:36:09,286
+So, let's get started with metal
+
+
+1197
+00:36:09,286 --> 00:36:10,066
+resource heaps.
+
+
+1198
+00:36:11,256 --> 00:36:12,746
+metal resource heaps will allow
+
+
+1199
+00:36:12,746 --> 00:36:13,946
+your application to take
+
+
+1200
+00:36:13,946 --> 00:36:16,346
+explicit control over the large
+
+
+1201
+00:36:16,376 --> 00:36:18,496
+memory allocation that happens
+
+
+1202
+00:36:18,496 --> 00:36:19,056
+up front.
+
+
+1203
+00:36:20,016 --> 00:36:21,516
+In this case, we will go from
+
+
+1204
+00:36:21,516 --> 00:36:23,526
+three separate textures which
+
+
+1205
+00:36:23,526 --> 00:36:25,686
+have their own allocation into a
+
+
+1206
+00:36:25,806 --> 00:36:28,086
+single metal resource heap which
+
+
+1207
+00:36:28,086 --> 00:36:29,596
+is a single allocation that will
+
+
+1208
+00:36:29,596 --> 00:36:30,886
+hold these three textures
+
+
+1209
+00:36:30,886 --> 00:36:31,526
+separately.
+
+
+1210
+00:36:32,536 --> 00:36:34,406
+This will also allow the system
+
+
+1211
+00:36:34,406 --> 00:36:35,966
+to pack those textures together,
+
+
+1212
+00:36:36,066 --> 00:36:37,346
+so we're already saving some
+
+
+1213
+00:36:37,346 --> 00:36:37,806
+memory.
+
+
+1214
+00:36:38,346 --> 00:36:41,986
+But the great memory savings
+
+
+1215
+00:36:41,986 --> 00:36:45,096
+will come from using aliasing.
+
+
+1216
+00:36:46,136 --> 00:36:47,566
+So, notice that rendering a
+
+
+1217
+00:36:47,566 --> 00:36:49,276
+frame may require a lot of
+
+
+1218
+00:36:49,276 --> 00:36:51,176
+intermediate memory, in
+
+
+1219
+00:36:51,176 --> 00:36:52,886
+particular, is your game scales
+
+
+1220
+00:36:52,886 --> 00:36:54,236
+in the post-process pipeline.
+
+
+1221
+00:36:55,066 --> 00:36:56,486
+So it is very important for you
+
+
+1222
+00:36:56,486 --> 00:36:58,076
+to use metal resource heaps for
+
+
+1223
+00:36:58,076 --> 00:37:00,316
+those effects and alias as much
+
+
+1224
+00:37:00,316 --> 00:37:01,646
+of that memory as possible.
+
+
+1225
+00:37:02,346 --> 00:37:03,596
+For example, you may want to
+
+
+1226
+00:37:03,596 --> 00:37:05,396
+reutilize the memory for all
+
+
+1227
+00:37:05,396 --> 00:37:06,776
+those resources which have no
+
+
+1228
+00:37:06,776 --> 00:37:09,406
+dependencies, potentially like
+
+
+1229
+00:37:09,406 --> 00:37:11,076
+those you would find in SSAO and
+
+
+1230
+00:37:11,076 --> 00:37:11,756
+Depth of Field.
+
+
+1231
+00:37:12,296 --> 00:37:15,106
+So, now, let's look how would
+
+
+1232
+00:37:15,106 --> 00:37:15,866
+that look like.
+
+
+1233
+00:37:16,566 --> 00:37:18,346
+In this case, we have the same
+
+
+1234
+00:37:18,346 --> 00:37:19,946
+metal resource heap as before.
+
+
+1235
+00:37:21,116 --> 00:37:23,136
+But if the three textures are
+
+
+1236
+00:37:23,136 --> 00:37:24,986
+not used at the same time we can
+
+
+1237
+00:37:24,986 --> 00:37:26,256
+potentially alias them.
+
+
+1238
+00:37:26,796 --> 00:37:28,156
+And by doing so, we will save a
+
+
+1239
+00:37:28,156 --> 00:37:29,076
+lot of memory.
+
+
+1240
+00:37:30,146 --> 00:37:31,886
+And this will really help your
+
+
+1241
+00:37:31,886 --> 00:37:33,956
+game scale with a much more
+
+
+1242
+00:37:33,956 --> 00:37:35,786
+complex post-process pipeline
+
+
+1243
+00:37:36,346 --> 00:37:37,946
+without having to pay a huge
+
+
+1244
+00:37:37,946 --> 00:37:39,646
+memory price for all those
+
+
+1245
+00:37:39,646 --> 00:37:41,136
+intermediate render targets and
+
+
+1246
+00:37:41,136 --> 00:37:42,276
+all the intermediate memory.
+
+
+1247
+00:37:43,266 --> 00:37:44,576
+So it is great, it's a great
+
+
+1248
+00:37:44,576 --> 00:37:45,886
+feature that you should consider
+
+
+1249
+00:37:45,886 --> 00:37:46,506
+leveraging.
+
+
+1250
+00:37:47,076 --> 00:37:49,426
+Now, let's talk about another
+
+
+1251
+00:37:49,426 --> 00:37:50,706
+advanced concept that of
+
+
+1252
+00:37:50,856 --> 00:37:51,816
+purgeable memory.
+
+
+1253
+00:37:53,306 --> 00:37:54,826
+Purgeable memory has three
+
+
+1254
+00:37:54,826 --> 00:37:58,186
+states, non-volatile, volatile,
+
+
+1255
+00:37:58,626 --> 00:37:59,336
+and empty.
+
+
+1256
+00:38:00,576 --> 00:38:02,516
+Notice that volatile and empty
+
+
+1257
+00:38:02,516 --> 00:38:05,156
+allocations do not count towards
+
+
+1258
+00:38:05,156 --> 00:38:06,246
+the application memory
+
+
+1259
+00:38:06,326 --> 00:38:06,826
+footprint.
+
+
+1260
+00:38:07,806 --> 00:38:09,506
+That is because the system can
+
+
+1261
+00:38:09,506 --> 00:38:10,976
+either reclaim that memory at
+
+
+1262
+00:38:10,976 --> 00:38:12,366
+some point, in the case of
+
+
+1263
+00:38:12,396 --> 00:38:14,366
+volatile or has already
+
+
+1264
+00:38:14,426 --> 00:38:15,806
+reclaimed it in the past, in the
+
+
+1265
+00:38:15,806 --> 00:38:16,676
+case of empty.
+
+
+1266
+00:38:17,216 --> 00:38:18,766
+So you may need to regenerate
+
+
+1267
+00:38:18,766 --> 00:38:19,656
+those resources.
+
+
+1268
+00:38:21,106 --> 00:38:22,456
+But that makes this kind of
+
+
+1269
+00:38:22,496 --> 00:38:24,756
+memory ideal for resource
+
+
+1270
+00:38:24,756 --> 00:38:25,176
+caches.
+
+
+1271
+00:38:26,226 --> 00:38:28,616
+So the best practice number 17
+
+
+1272
+00:38:28,616 --> 00:38:30,226
+is for you to mark resources as
+
+
+1273
+00:38:30,226 --> 00:38:30,936
+volatile.
+
+
+1274
+00:38:31,676 --> 00:38:33,836
+Temporary resources may become a
+
+
+1275
+00:38:33,836 --> 00:38:35,126
+large part of your game's
+
+
+1276
+00:38:35,126 --> 00:38:35,646
+footprint.
+
+
+1277
+00:38:36,936 --> 00:38:38,526
+And Metal will allow you to
+
+
+1278
+00:38:38,526 --> 00:38:40,566
+explicitly manage those, set the
+
+
+1279
+00:38:40,566 --> 00:38:41,726
+purgeable state of all the
+
+
+1280
+00:38:41,726 --> 00:38:43,686
+resources explicitly.
+
+
+1281
+00:38:44,516 --> 00:38:46,136
+So you will want to focus on
+
+
+1282
+00:38:46,136 --> 00:38:48,406
+your caches particularly all of
+
+
+1283
+00:38:48,406 --> 00:38:49,836
+those which hold mostly idle
+
+
+1284
+00:38:49,836 --> 00:38:52,006
+memory and carefully manage
+
+
+1285
+00:38:52,036 --> 00:38:54,076
+their purgeable state, so they
+
+
+1286
+00:38:54,076 --> 00:38:55,066
+will not count towards the
+
+
+1287
+00:38:55,066 --> 00:38:55,956
+game's footprint.
+
+
+1288
+00:38:56,976 --> 00:38:59,336
+Let's see a very short bit of
+
+
+1289
+00:38:59,446 --> 00:39:01,036
+code that will give you an
+
+
+1290
+00:39:01,036 --> 00:39:02,336
+example on how to do so.
+
+
+1291
+00:39:03,026 --> 00:39:04,446
+In this case, we have a texture
+
+
+1292
+00:39:04,446 --> 00:39:06,116
+cache, could have also been a
+
+
+1293
+00:39:06,116 --> 00:39:06,876
+buffer cache.
+
+
+1294
+00:39:07,686 --> 00:39:09,456
+And we will set the purgeable
+
+
+1295
+00:39:09,456 --> 00:39:10,766
+state of all the textures in
+
+
+1296
+00:39:11,116 --> 00:39:13,456
+that cache as volatile because
+
+
+1297
+00:39:13,456 --> 00:39:15,716
+we know that cache is mostly
+
+
+1298
+00:39:15,716 --> 00:39:16,086
+idle.
+
+
+1299
+00:39:16,216 --> 00:39:18,386
+We only use a texture from now
+
+
+1300
+00:39:18,386 --> 00:39:19,836
+and then but not very often.
+
+
+1301
+00:39:20,296 --> 00:39:22,786
+So if we need to use a resource
+
+
+1302
+00:39:22,786 --> 00:39:24,736
+from that cache, we will then
+
+
+1303
+00:39:24,736 --> 00:39:26,686
+need to mark it as non-volatile
+
+
+1304
+00:39:27,246 --> 00:39:28,916
+that will ensure that the system
+
+
+1305
+00:39:29,296 --> 00:39:30,806
+doesn't remove its backing data.
+
+
+1306
+00:39:32,166 --> 00:39:34,166
+And in the case, it was empty
+
+
+1307
+00:39:34,656 --> 00:39:36,636
+which was the previous state
+
+
+1308
+00:39:36,776 --> 00:39:37,926
+that the one we just said.
+
+
+1309
+00:39:38,556 --> 00:39:39,776
+We may actually need to
+
+
+1310
+00:39:39,776 --> 00:39:42,256
+regenerate the data potentially
+
+
+1311
+00:39:42,256 --> 00:39:42,496
+not.
+
+
+1312
+00:39:42,496 --> 00:39:44,116
+It depends on what type of cache
+
+
+1313
+00:39:44,116 --> 00:39:44,826
+you're managing.
+
+
+1314
+00:39:45,446 --> 00:39:47,676
+But after we do so, we can just
+
+
+1315
+00:39:47,676 --> 00:39:49,236
+utilize the resource normally as
+
+
+1316
+00:39:49,236 --> 00:39:50,196
+we would otherwise.
+
+
+1317
+00:39:52,256 --> 00:39:56,676
+A very good practice will be for
+
+
+1318
+00:39:56,676 --> 00:39:58,406
+you to also check the common
+
+
+1319
+00:39:58,406 --> 00:40:01,416
+buffer completion and get to
+
+
+1320
+00:40:01,416 --> 00:40:02,936
+handle when the common buffer is
+
+
+1321
+00:40:02,936 --> 00:40:04,876
+completed and then potentially
+
+
+1322
+00:40:04,876 --> 00:40:06,936
+you flag that resource as
+
+
+1323
+00:40:06,936 --> 00:40:07,936
+volatile again.
+
+
+1324
+00:40:08,486 --> 00:40:10,006
+So it does not keep counting
+
+
+1325
+00:40:10,006 --> 00:40:11,346
+towards your memory footprint.
+
+
+1326
+00:40:12,516 --> 00:40:14,786
+You can be explicit and in fact
+
+
+1327
+00:40:14,786 --> 00:40:16,116
+you should be very aggressive
+
+
+1328
+00:40:16,226 --> 00:40:17,926
+particularly when you have lots
+
+
+1329
+00:40:17,926 --> 00:40:19,716
+of caches of mostly idle memory.
+
+
+1330
+00:40:20,306 --> 00:40:23,596
+So let's introduce one last
+
+
+1331
+00:40:23,596 --> 00:40:25,746
+concept that of pipeline state
+
+
+1332
+00:40:25,746 --> 00:40:26,306
+objects.
+
+
+1333
+00:40:27,486 --> 00:40:28,846
+Most of you are already familiar
+
+
+1334
+00:40:28,846 --> 00:40:29,466
+with those.
+
+
+1335
+00:40:29,946 --> 00:40:32,216
+PSOs encapsulate most of the
+
+
+1336
+00:40:32,216 --> 00:40:33,226
+Metal render state.
+
+
+1337
+00:40:34,276 --> 00:40:35,326
+They are constructed with a
+
+
+1338
+00:40:35,326 --> 00:40:36,826
+description-- a descriptor which
+
+
+1339
+00:40:36,826 --> 00:40:38,486
+contains vertex and fragment
+
+
+1340
+00:40:38,486 --> 00:40:40,306
+functions as well as other
+
+
+1341
+00:40:40,306 --> 00:40:42,366
+states such as the blend state
+
+
+1342
+00:40:42,796 --> 00:40:44,016
+and the vertex descriptor.
+
+
+1343
+00:40:45,026 --> 00:40:46,636
+All of these will get compiled
+
+
+1344
+00:40:46,636 --> 00:40:48,286
+into final Metal PSO.
+
+
+1345
+00:40:49,686 --> 00:40:51,906
+We only need this final Metal
+
+
+1346
+00:40:51,906 --> 00:40:53,796
+PSO in order to render.
+
+
+1347
+00:40:54,466 --> 00:40:56,466
+So the next best practice is for
+
+
+1348
+00:40:56,466 --> 00:40:58,506
+you to explicitly leverage that.
+
+
+1349
+00:40:59,456 --> 00:41:00,606
+Since Metal allows your
+
+
+1350
+00:41:00,606 --> 00:41:02,336
+application to load most of the
+
+
+1351
+00:41:02,336 --> 00:41:04,176
+rendering state up front, you
+
+
+1352
+00:41:04,176 --> 00:41:04,896
+should do so.
+
+
+1353
+00:41:05,386 --> 00:41:06,246
+That will be great for
+
+
+1354
+00:41:06,246 --> 00:41:07,166
+performance.
+
+
+1355
+00:41:07,966 --> 00:41:09,536
+But then consider the memory
+
+
+1356
+00:41:09,536 --> 00:41:10,716
+trade-off of doing that.
+
+
+1357
+00:41:11,656 --> 00:41:12,756
+If you are getting memory
+
+
+1358
+00:41:12,756 --> 00:41:15,016
+limited make sure do not hold on
+
+
+1359
+00:41:15,016 --> 00:41:17,556
+to PSO references that you know
+
+
+1360
+00:41:17,556 --> 00:41:18,856
+they are not needed anymore.
+
+
+1361
+00:41:19,616 --> 00:41:21,876
+And very important also do not
+
+
+1362
+00:41:21,876 --> 00:41:23,246
+hold on to Metal function
+
+
+1363
+00:41:23,246 --> 00:41:24,946
+references after you have
+
+
+1364
+00:41:25,026 --> 00:41:26,426
+created the PSO cache.
+
+
+1365
+00:41:26,936 --> 00:41:28,326
+Since those are not needed to
+
+
+1366
+00:41:28,326 --> 00:41:29,926
+render they are only needed to
+
+
+1367
+00:41:29,926 --> 00:41:30,936
+create new PSOs.
+
+
+1368
+00:41:31,766 --> 00:41:33,456
+So let's see what I mean by
+
+
+1369
+00:41:33,456 --> 00:41:35,316
+looking at the descriptor again.
+
+
+1370
+00:41:36,086 --> 00:41:37,466
+This is the pipeline state
+
+
+1371
+00:41:37,466 --> 00:41:38,756
+object as well as the pipeline
+
+
+1372
+00:41:38,756 --> 00:41:39,946
+state object descriptor.
+
+
+1373
+00:41:40,326 --> 00:41:41,616
+And what this best practice is
+
+
+1374
+00:41:41,616 --> 00:41:43,826
+asking you to do is to free the
+
+
+1375
+00:41:43,826 --> 00:41:45,616
+reference of both the vertex and
+
+
+1376
+00:41:45,616 --> 00:41:46,966
+fragment functions after you
+
+
+1377
+00:41:46,966 --> 00:41:49,136
+create the PSOs, potentially
+
+
+1378
+00:41:49,136 --> 00:41:50,356
+only hold on to those when
+
+
+1379
+00:41:50,356 --> 00:41:52,896
+you're populating the main PSO
+
+
+1380
+00:41:52,896 --> 00:41:53,866
+cache at load time.
+
+
+1381
+00:41:54,926 --> 00:41:56,876
+And then consider also freeing
+
+
+1382
+00:41:56,876 --> 00:41:58,976
+the PSO itself when you are
+
+
+1383
+00:41:58,976 --> 00:42:00,866
+getting memory limited if you
+
+
+1384
+00:42:00,866 --> 00:42:02,736
+know that that PSO is no longer
+
+
+1385
+00:42:03,886 --> 00:42:04,056
+needed.
+
+
+1386
+00:42:04,616 --> 00:42:06,136
+Now, let's, please welcome
+
+
+1387
+00:42:06,136 --> 00:42:07,716
+Onyechi on stage for an awesome
+
+
+1388
+00:42:07,716 --> 00:42:08,936
+demo of the Memory Viewer.
+
+
+1389
+00:42:09,516 --> 00:42:15,006
+[ Applause ]
+
+
+1390
+00:42:15,506 --> 00:42:16,256
+>> Thank you Guillem.
+
+
+1391
+00:42:16,466 --> 00:42:17,646
+Hello everyone.
+
+
+1392
+00:42:19,086 --> 00:42:21,076
+So you already have the brief
+
+
+1393
+00:42:21,076 --> 00:42:22,066
+introduction to the Memory
+
+
+1394
+00:42:22,066 --> 00:42:23,136
+Viewer from the previous slides.
+
+
+1395
+00:42:23,276 --> 00:42:24,846
+Now, I'm going to show you how
+
+
+1396
+00:42:24,846 --> 00:42:26,246
+to use it to understand your
+
+
+1397
+00:42:26,246 --> 00:42:27,566
+memory footprint that's
+
+
+1398
+00:42:27,566 --> 00:42:28,746
+optimized for better memory
+
+
+1399
+00:42:28,746 --> 00:42:29,466
+performance.
+
+
+1400
+00:42:29,986 --> 00:42:32,816
+So here we are again with a
+
+
+1401
+00:42:32,816 --> 00:42:34,486
+capture of a frame from the same
+
+
+1402
+00:42:35,026 --> 00:42:36,086
+early version of the game
+
+
+1403
+00:42:36,296 --> 00:42:37,016
+Afterpulse.
+
+
+1404
+00:42:37,786 --> 00:42:39,026
+Then the top left there are the
+
+
+1405
+00:42:39,026 --> 00:42:40,746
+debug navigates that you'll find
+
+
+1406
+00:42:40,746 --> 00:42:42,716
+in your Memory Gauge which when
+
+
+1407
+00:42:42,716 --> 00:42:44,856
+I click on it, it takes me into
+
+
+1408
+00:42:44,856 --> 00:42:45,436
+the Memory Viewer.
+
+
+1409
+00:42:45,436 --> 00:42:48,326
+Now this shows us the state of
+
+
+1410
+00:42:48,326 --> 00:42:50,116
+all live Metal resources for the
+
+
+1411
+00:42:50,116 --> 00:42:50,616
+captured frame.
+
+
+1412
+00:42:51,386 --> 00:42:52,596
+And my goal is to find
+
+
+1413
+00:42:52,596 --> 00:42:53,886
+opportunities to reduce its
+
+
+1414
+00:42:53,886 --> 00:42:54,526
+memory footprint.
+
+
+1415
+00:42:55,326 --> 00:42:57,956
+So to begin, let's take a look
+
+
+1416
+00:42:57,956 --> 00:42:59,956
+at the orange bars in the graph.
+
+
+1417
+00:42:59,956 --> 00:43:01,336
+This shows how our resources are
+
+
+1418
+00:43:01,336 --> 00:43:02,606
+distributed by type.
+
+
+1419
+00:43:02,606 --> 00:43:04,856
+And we can see that textures
+
+
+1420
+00:43:04,856 --> 00:43:05,956
+make up the largest proportion,
+
+
+1421
+00:43:05,956 --> 00:43:06,156
+right?
+
+
+1422
+00:43:07,186 --> 00:43:08,916
+There's about 440 megabytes of
+
+
+1423
+00:43:08,916 --> 00:43:09,116
+them.
+
+
+1424
+00:43:09,506 --> 00:43:10,946
+Now, I want to focus in these
+
+
+1425
+00:43:10,946 --> 00:43:12,186
+sections and I can simply do
+
+
+1426
+00:43:12,186 --> 00:43:14,236
+that by clicking on the filter
+
+
+1427
+00:43:14,236 --> 00:43:14,666
+button.
+
+
+1428
+00:43:15,046 --> 00:43:18,176
+Now, both the graph and the
+
+
+1429
+00:43:18,176 --> 00:43:19,576
+table have been updated to show
+
+
+1430
+00:43:19,576 --> 00:43:20,276
+textures only.
+
+
+1431
+00:43:20,926 --> 00:43:23,266
+So, next, Guillem mentioned that
+
+
+1432
+00:43:23,266 --> 00:43:24,336
+when looking to reduce our
+
+
+1433
+00:43:24,336 --> 00:43:26,666
+memory footprint starting at
+
+
+1434
+00:43:26,666 --> 00:43:28,276
+unused resources that was a
+
+
+1435
+00:43:28,336 --> 00:43:29,346
+great place to begin.
+
+
+1436
+00:43:29,536 --> 00:43:30,736
+So, let's do that.
+
+
+1437
+00:43:30,736 --> 00:43:33,266
+Let's look at the blue bars this
+
+
+1438
+00:43:33,856 --> 00:43:33,966
+time.
+
+
+1439
+00:43:34,186 --> 00:43:36,596
+This represents our usage and we
+
+
+1440
+00:43:36,596 --> 00:43:37,926
+see that we have about 200
+
+
+1441
+00:43:37,926 --> 00:43:39,356
+megabytes, so unused texture.
+
+
+1442
+00:43:40,476 --> 00:43:43,406
+So as a reminder, unused
+
+
+1443
+00:43:43,406 --> 00:43:44,616
+resources are resources that do
+
+
+1444
+00:43:44,616 --> 00:43:45,936
+not contribute to the final
+
+
+1445
+00:43:45,936 --> 00:43:47,566
+output of this rendered frame.
+
+
+1446
+00:43:47,566 --> 00:43:49,296
+That means they're not accessed
+
+
+1447
+00:43:49,296 --> 00:43:49,996
+by the GPU.
+
+
+1448
+00:43:51,806 --> 00:43:54,176
+OK. So, I can easily do that
+
+
+1449
+00:43:54,176 --> 00:43:55,156
+again by just clicking on the
+
+
+1450
+00:43:55,156 --> 00:43:56,276
+unused filter, so that we're
+
+
+1451
+00:43:56,276 --> 00:43:57,986
+looking on unused textures now.
+
+
+1452
+00:43:59,276 --> 00:44:01,096
+Next, I will sort the table by
+
+
+1453
+00:44:01,096 --> 00:44:03,076
+allocated size, so that we're
+
+
+1454
+00:44:03,076 --> 00:44:04,286
+focused in our largest texture.
+
+
+1455
+00:44:04,286 --> 00:44:07,046
+And we can see straight away
+
+
+1456
+00:44:07,046 --> 00:44:08,606
+that our largest texture which
+
+
+1457
+00:44:08,606 --> 00:44:10,956
+is about 13 megabytes has an
+
+
+1458
+00:44:10,956 --> 00:44:11,386
+issue.
+
+
+1459
+00:44:12,176 --> 00:44:13,816
+So, issues work here just like
+
+
+1460
+00:44:13,816 --> 00:44:15,406
+in Dependency Viewer you saw in
+
+
+1461
+00:44:15,406 --> 00:44:16,226
+the previous demo.
+
+
+1462
+00:44:16,766 --> 00:44:17,856
+So let's click it to see what
+
+
+1463
+00:44:17,856 --> 00:44:18,396
+it's about.
+
+
+1464
+00:44:20,026 --> 00:44:21,436
+OK. So, this says we have a
+
+
+1465
+00:44:21,436 --> 00:44:22,546
+large unused texture.
+
+
+1466
+00:44:23,406 --> 00:44:25,106
+It's not accessed by the CPU and
+
+
+1467
+00:44:25,556 --> 00:44:26,796
+has never been bound to a
+
+
+1468
+00:44:26,796 --> 00:44:28,486
+command encoder with a
+
+
+1469
+00:44:28,486 --> 00:44:30,246
+recommendation to avoid loading
+
+
+1470
+00:44:30,246 --> 00:44:32,076
+the resource or to make it
+
+
+1471
+00:44:32,076 --> 00:44:32,636
+volatile.
+
+
+1472
+00:44:33,806 --> 00:44:35,476
+So, we can also confront this by
+
+
+1473
+00:44:35,476 --> 00:44:37,256
+looking at the properties, CPU
+
+
+1474
+00:44:37,256 --> 00:44:38,576
+Access and Times since Last
+
+
+1475
+00:44:38,576 --> 00:44:38,976
+Bound.
+
+
+1476
+00:44:38,976 --> 00:44:41,366
+And we can clearly see that this
+
+
+1477
+00:44:41,366 --> 00:44:42,536
+section is definitely never been
+
+
+1478
+00:44:42,536 --> 00:44:44,396
+accessed by either the CPU or
+
+
+1479
+00:44:44,396 --> 00:44:44,946
+the GPU.
+
+
+1480
+00:44:45,406 --> 00:44:46,396
+So, therefore, we can say with
+
+
+1481
+00:44:46,396 --> 00:44:47,506
+confidence now this is a
+
+
+1482
+00:44:47,736 --> 00:44:49,406
+resource that it should be under
+
+
+1483
+00:44:49,406 --> 00:44:51,756
+down, till it's actually needed.
+
+
+1484
+00:44:52,066 --> 00:44:53,186
+OK. So, that's encouraging, we
+
+
+1485
+00:44:53,186 --> 00:44:54,686
+very quickly identify 13
+
+
+1486
+00:44:54,726 --> 00:44:56,086
+megabytes of memory savings.
+
+
+1487
+00:44:56,846 --> 00:44:58,226
+Let's check out the next issue.
+
+
+1488
+00:44:58,866 --> 00:45:01,476
+So, in this case, texture has
+
+
+1489
+00:45:01,476 --> 00:45:03,036
+been identified as a temporary
+
+
+1490
+00:45:03,036 --> 00:45:03,566
+resource.
+
+
+1491
+00:45:03,886 --> 00:45:05,726
+It's not accessed by the CPU and
+
+
+1492
+00:45:05,726 --> 00:45:06,966
+has not been bound to a command
+
+
+1493
+00:45:06,966 --> 00:45:08,966
+encoder for over 47 seconds.
+
+
+1494
+00:45:09,666 --> 00:45:10,936
+So, in other words, this texture
+
+
+1495
+00:45:10,966 --> 00:45:12,606
+has not been using this frame or
+
+
+1496
+00:45:12,606 --> 00:45:13,986
+in any other frame in the last
+
+
+1497
+00:45:13,986 --> 00:45:14,986
+47 seconds.
+
+
+1498
+00:45:15,536 --> 00:45:16,606
+So this is a pretty good
+
+
+1499
+00:45:16,606 --> 00:45:18,196
+candidate for a resource that
+
+
+1500
+00:45:18,196 --> 00:45:19,846
+should be made volatile if
+
+
+1501
+00:45:19,886 --> 00:45:21,796
+possible since it occasionally
+
+
+1502
+00:45:21,796 --> 00:45:22,916
+contributes to a frame.
+
+
+1503
+00:45:23,816 --> 00:45:26,726
+OK. So, this is fantastic.
+
+
+1504
+00:45:27,056 --> 00:45:30,826
+We've very quickly found about
+
+
+1505
+00:45:30,826 --> 00:45:32,526
+14 megabytes of memory savings
+
+
+1506
+00:45:33,006 --> 00:45:35,796
+and indeed when looking to
+
+
+1507
+00:45:35,796 --> 00:45:36,876
+reduce our memory footprint
+
+
+1508
+00:45:37,256 --> 00:45:39,086
+looking at unused resources is a
+
+
+1509
+00:45:39,086 --> 00:45:41,026
+great place to begin on issues
+
+
+1510
+00:45:41,026 --> 00:45:41,926
+that will help you to quickly
+
+
+1511
+00:45:41,926 --> 00:45:43,586
+identify the best candidates to
+
+
+1512
+00:45:43,586 --> 00:45:43,906
+remove.
+
+
+1513
+00:45:44,976 --> 00:45:45,916
+But you should also pay
+
+
+1514
+00:45:45,916 --> 00:45:47,166
+attention to the properties
+
+
+1515
+00:45:47,566 --> 00:45:51,256
+Times since Last Bound to figure
+
+
+1516
+00:45:51,256 --> 00:45:52,246
+out which of your unused
+
+
+1517
+00:45:52,246 --> 00:45:53,456
+resources have never been
+
+
+1518
+00:45:53,456 --> 00:45:55,396
+submitted to the GPU even though
+
+
+1519
+00:45:55,396 --> 00:45:56,556
+they may have been accessed by
+
+
+1520
+00:45:56,556 --> 00:45:57,156
+the CPU.
+
+
+1521
+00:45:59,196 --> 00:46:00,236
+OK. Let's switch things up a
+
+
+1522
+00:46:00,236 --> 00:46:00,506
+bit.
+
+
+1523
+00:46:00,836 --> 00:46:02,726
+Let's see what issues or what
+
+
+1524
+00:46:02,726 --> 00:46:04,736
+memory savings we can discover,
+
+
+1525
+00:46:04,736 --> 00:46:06,096
+where textures are actually in
+
+
+1526
+00:46:06,096 --> 00:46:06,476
+used.
+
+
+1527
+00:46:06,786 --> 00:46:08,696
+OK. I'm going to switch to the
+
+
+1528
+00:46:08,696 --> 00:46:09,876
+used filter this time, so we're
+
+
+1529
+00:46:09,876 --> 00:46:11,166
+looking at used textures.
+
+
+1530
+00:46:11,956 --> 00:46:12,996
+And we see that one of our
+
+
+1531
+00:46:12,996 --> 00:46:14,446
+largest textures which is about
+
+
+1532
+00:46:14,446 --> 00:46:16,536
+18 megabytes has two issues.
+
+
+1533
+00:46:17,296 --> 00:46:18,306
+So, let's see what they are.
+
+
+1534
+00:46:18,306 --> 00:46:20,666
+OK. So, the first one is about
+
+
+1535
+00:46:20,736 --> 00:46:22,586
+lossless compression.
+
+
+1536
+00:46:22,666 --> 00:46:24,176
+Texture has opted out of
+
+
+1537
+00:46:24,206 --> 00:46:26,106
+lossless compressions because of
+
+
+1538
+00:46:26,106 --> 00:46:27,466
+the presence of a ShaderWrite
+
+
+1539
+00:46:27,526 --> 00:46:29,486
+usage flag, even though it's
+
+
+1540
+00:46:29,486 --> 00:46:31,026
+being used exclusively as a
+
+
+1541
+00:46:31,026 --> 00:46:31,696
+render target.
+
+
+1542
+00:46:32,706 --> 00:46:34,566
+The second issue is about
+
+
+1543
+00:46:34,566 --> 00:46:35,156
+storage mode.
+
+
+1544
+00:46:36,086 --> 00:46:37,996
+Our texture the render target
+
+
+1545
+00:46:37,996 --> 00:46:39,246
+has been identified as being
+
+
+1546
+00:46:39,246 --> 00:46:41,316
+transient which obviously means
+
+
+1547
+00:46:41,316 --> 00:46:42,766
+that no loads to actions are
+
+
+1548
+00:46:42,766 --> 00:46:43,586
+required for this texture.
+
+
+1549
+00:46:44,176 --> 00:46:45,586
+But unfortunately it has a
+
+
+1550
+00:46:45,586 --> 00:46:47,496
+storage mode shared when really
+
+
+1551
+00:46:47,496 --> 00:46:48,676
+it should be memoryless.
+
+
+1552
+00:46:49,826 --> 00:46:51,596
+So, we have two different
+
+
+1553
+00:46:51,596 --> 00:46:52,386
+recommendations here.
+
+
+1554
+00:46:53,196 --> 00:46:55,186
+And if you think about it, we
+
+
+1555
+00:46:55,186 --> 00:46:56,416
+can only really choose one of
+
+
+1556
+00:46:56,416 --> 00:46:56,506
+them.
+
+
+1557
+00:46:57,596 --> 00:46:58,536
+But at this point I should
+
+
+1558
+00:46:58,536 --> 00:46:59,626
+emphasize that these
+
+
+1559
+00:46:59,626 --> 00:47:01,446
+recommendations presented by the
+
+
+1560
+00:47:01,446 --> 00:47:03,496
+Memory Viewer are based on data
+
+
+1561
+00:47:03,496 --> 00:47:04,686
+gathered up to the current
+
+
+1562
+00:47:04,686 --> 00:47:04,996
+frame.
+
+
+1563
+00:47:05,906 --> 00:47:07,836
+However, you know better by how
+
+
+1564
+00:47:07,836 --> 00:47:09,226
+you intend to use your resource
+
+
+1565
+00:47:09,296 --> 00:47:10,306
+beyond the current frame.
+
+
+1566
+00:47:11,386 --> 00:47:13,876
+So, with that said if we are
+
+
+1567
+00:47:13,876 --> 00:47:15,386
+certain that this texture will
+
+
+1568
+00:47:15,386 --> 00:47:17,336
+remain transient and say a
+
+
+1569
+00:47:17,336 --> 00:47:19,416
+future render passes then
+
+
+1570
+00:47:19,556 --> 00:47:20,786
+switching to memoryless is the
+
+
+1571
+00:47:20,786 --> 00:47:21,586
+superior option.
+
+
+1572
+00:47:21,706 --> 00:47:23,716
+And doing so would reduce our
+
+
+1573
+00:47:23,716 --> 00:47:24,956
+memory footprint by the size of
+
+
+1574
+00:47:24,956 --> 00:47:26,186
+the texture which is 18
+
+
+1575
+00:47:26,186 --> 00:47:26,736
+megabytes.
+
+
+1576
+00:47:27,676 --> 00:47:29,426
+If on the other hand, our
+
+
+1577
+00:47:29,426 --> 00:47:32,276
+texture will not be transient in
+
+
+1578
+00:47:32,276 --> 00:47:34,436
+future render passes then we
+
+
+1579
+00:47:34,436 --> 00:47:36,056
+should seriously consider opting
+
+
+1580
+00:47:36,056 --> 00:47:37,246
+into lossless compression
+
+
+1581
+00:47:37,876 --> 00:47:39,076
+because doing so would have a
+
+
+1582
+00:47:39,076 --> 00:47:40,426
+positive impact on our memory
+
+
+1583
+00:47:40,426 --> 00:47:41,656
+bandwidth as suggested by
+
+
+1584
+00:47:41,656 --> 00:47:42,006
+Guillem.
+
+
+1585
+00:47:42,866 --> 00:47:44,706
+And, in this case, simply
+
+
+1586
+00:47:44,706 --> 00:47:46,016
+removing the redundant
+
+
+1587
+00:47:46,016 --> 00:47:48,206
+ShaderWrite flag should do the
+
+
+1588
+00:47:49,336 --> 00:47:49,476
+trick.
+
+
+1589
+00:47:49,656 --> 00:47:52,636
+So, we've only just scratched
+
+
+1590
+00:47:52,636 --> 00:47:54,116
+the surface of what's possible
+
+
+1591
+00:47:54,236 --> 00:47:54,996
+with the Memory Viewer.
+
+
+1592
+00:47:55,556 --> 00:47:56,556
+You've seen how with just a few
+
+
+1593
+00:47:56,556 --> 00:47:57,716
+mouse clicks it makes it very
+
+
+1594
+00:47:57,716 --> 00:47:59,496
+easy for you to understand your
+
+
+1595
+00:47:59,496 --> 00:48:01,266
+memory usage and also it makes
+
+
+1596
+00:48:01,266 --> 00:48:02,596
+it very quick for you to
+
+
+1597
+00:48:02,596 --> 00:48:04,516
+identify those hard to find
+
+
+1598
+00:48:04,516 --> 00:48:05,696
+issues that may affect your
+
+
+1599
+00:48:05,696 --> 00:48:06,266
+performance.
+
+
+1600
+00:48:06,536 --> 00:48:07,876
+And with that I'm going to
+
+
+1601
+00:48:07,876 --> 00:48:09,096
+welcome Guillem back to the
+
+
+1602
+00:48:09,096 --> 00:48:09,456
+stage.
+
+
+1603
+00:48:09,666 --> 00:48:09,856
+Thank you.
+
+
+1604
+00:48:10,516 --> 00:48:14,886
+[ Applause ]
+
+
+1605
+00:48:15,386 --> 00:48:16,856
+>> Thank you that was also an
+
+
+1606
+00:48:16,856 --> 00:48:17,516
+awesome demo.
+
+
+1607
+00:48:18,856 --> 00:48:22,146
+Cool. So, we have seen a lot of
+
+
+1608
+00:48:22,146 --> 00:48:23,126
+best practices today.
+
+
+1609
+00:48:23,126 --> 00:48:25,666
+We've been through a total of 18
+
+
+1610
+00:48:25,666 --> 00:48:27,146
+of them which is quite a lot of
+
+
+1611
+00:48:27,146 --> 00:48:28,506
+content to go through really.
+
+
+1612
+00:48:29,416 --> 00:48:30,916
+Notice that most of this best
+
+
+1613
+00:48:30,916 --> 00:48:32,336
+practices are actually quite
+
+
+1614
+00:48:32,336 --> 00:48:33,146
+related, right?
+
+
+1615
+00:48:33,206 --> 00:48:35,656
+So, most of the memory bandwidth
+
+
+1616
+00:48:35,656 --> 00:48:37,426
+best practices, will also help
+
+
+1617
+00:48:37,426 --> 00:48:38,416
+you reducing the memory
+
+
+1618
+00:48:38,466 --> 00:48:39,086
+footprint.
+
+
+1619
+00:48:39,866 --> 00:48:42,496
+So, maybe the best way to
+
+
+1620
+00:48:42,496 --> 00:48:44,056
+actually think about all this
+
+
+1621
+00:48:44,056 --> 00:48:46,506
+content, this is a checklist of
+
+
+1622
+00:48:46,506 --> 00:48:48,166
+optimizations for your Metal
+
+
+1623
+00:48:48,166 --> 00:48:49,236
+gamer application.
+
+
+1624
+00:48:50,386 --> 00:48:53,416
+And when you carefully take all
+
+
+1625
+00:48:53,416 --> 00:48:56,076
+of these elements, you too will
+
+
+1626
+00:48:56,076 --> 00:48:58,236
+be delivering optimized Metal
+
+
+1627
+00:48:58,266 --> 00:49:00,396
+games and apps, which was all
+
+
+1628
+00:49:00,396 --> 00:49:02,486
+that this talk is all about.
+
+
+1629
+00:49:02,836 --> 00:49:05,026
+For more information please see
+
+
+1630
+00:49:05,026 --> 00:49:07,146
+our documentation online and
+
+
+1631
+00:49:07,146 --> 00:49:08,996
+come visit us at the lab today
+
+
+1632
+00:49:08,996 --> 00:49:09,406
+at 3.
+
+
+1633
+00:49:10,456 --> 00:49:11,696
+Thank you very much and I hope
+
+
+1634
+00:49:11,696 --> 00:49:12,766
+you enjoy the rest of the show.
+
+
+1635
+00:49:12,766 --> 00:49:12,956
+Thank you.
+
+
+1636
+00:49:13,508 --> 00:49:15,508
+[ Applause ]
+

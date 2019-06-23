@@ -1,0 +1,6604 @@
+1
+00:00:01,176 --> 00:00:04,500
+[ Music ]
+
+
+2
+00:00:11,516 --> 00:00:15,616
+[ Applause ]
+
+
+3
+00:00:16,116 --> 00:00:18,866
+>> Hi, I'm Kai Kaahaaina and
+
+
+4
+00:00:18,866 --> 00:00:19,976
+today along with Alejandro
+
+
+5
+00:00:19,976 --> 00:00:21,316
+Lucena we'll be discussing how
+
+
+6
+00:00:21,316 --> 00:00:23,316
+to optimize storage for your
+
+
+7
+00:00:23,426 --> 00:00:23,956
+app.
+
+
+8
+00:00:24,866 --> 00:00:27,126
+Just like CPU memory, storage is
+
+
+9
+00:00:27,126 --> 00:00:28,216
+a finite resource.
+
+
+10
+00:00:29,386 --> 00:00:30,756
+When an app makes optimal use of
+
+
+11
+00:00:30,756 --> 00:00:32,436
+storage, we can help better
+
+
+12
+00:00:32,436 --> 00:00:35,316
+ensure long battery life,
+
+
+13
+00:00:36,686 --> 00:00:37,526
+better performance,
+
+
+14
+00:00:39,486 --> 00:00:40,486
+reduced app footprint,
+
+
+15
+00:00:41,676 --> 00:00:43,246
+and good device health.
+
+
+16
+00:00:45,136 --> 00:00:46,786
+Our main optimization topics
+
+
+17
+00:00:46,786 --> 00:00:48,386
+today will be efficient image
+
+
+18
+00:00:48,386 --> 00:00:50,756
+assets, syncing to disk,
+
+
+19
+00:00:51,686 --> 00:00:54,316
+serialized data files, Core
+
+
+20
+00:00:54,316 --> 00:00:55,696
+Data, and SQLite.
+
+
+21
+00:00:56,356 --> 00:01:00,196
+First up, efficient image
+
+
+22
+00:01:00,196 --> 00:01:00,666
+assets.
+
+
+23
+00:01:01,066 --> 00:01:02,156
+As screen sizes have gotten
+
+
+24
+00:01:02,156 --> 00:01:02,946
+larger there's been a
+
+
+25
+00:01:02,946 --> 00:01:04,336
+corresponding increase in the
+
+
+26
+00:01:04,336 --> 00:01:06,556
+size of image assets.
+
+
+27
+00:01:08,866 --> 00:01:10,246
+For our session we've created a
+
+
+28
+00:01:10,246 --> 00:01:11,966
+very simple demo app for
+
+
+29
+00:01:11,966 --> 00:01:13,646
+cataloging and favoriting
+
+
+30
+00:01:14,186 --> 00:01:14,366
+photos.
+
+
+31
+00:01:15,096 --> 00:01:16,606
+However, even when preloaded
+
+
+32
+00:01:16,606 --> 00:01:18,116
+with just a few photos, our app
+
+
+33
+00:01:18,116 --> 00:01:19,736
+has already grown to 24.6
+
+
+34
+00:01:19,736 --> 00:01:20,726
+megabytes in size.
+
+
+35
+00:01:21,806 --> 00:01:23,176
+We'll now talk about two ways we
+
+
+36
+00:01:23,176 --> 00:01:25,846
+can reduce the size of our app.
+
+
+37
+00:01:27,016 --> 00:01:28,566
+The first is HEIC.
+
+
+38
+00:01:29,006 --> 00:01:30,826
+HEIC, also referred to as HEIF
+
+
+39
+00:01:30,826 --> 00:01:32,746
+sometimes, is a more efficient
+
+
+40
+00:01:32,746 --> 00:01:36,356
+and capable alternative to JPEG.
+
+
+41
+00:01:36,556 --> 00:01:38,226
+HEIC offers 50 percent smaller
+
+
+42
+00:01:38,306 --> 00:01:40,156
+files at comparable quality to
+
+
+43
+00:01:40,156 --> 00:01:42,926
+JPEG which of course means a
+
+
+44
+00:01:42,926 --> 00:01:45,316
+smaller on disk footprint, and
+
+
+45
+00:01:45,456 --> 00:01:46,636
+smaller files could be more
+
+
+46
+00:01:46,636 --> 00:01:48,466
+easily moved up and down the
+
+
+47
+00:01:48,896 --> 00:01:49,086
+network.
+
+
+48
+00:01:49,796 --> 00:01:51,096
+They can also be more quickly
+
+
+49
+00:01:51,096 --> 00:01:55,526
+loaded and saved to disk.
+
+
+50
+00:01:55,706 --> 00:01:57,066
+HEIC also offers many features
+
+
+51
+00:01:57,066 --> 00:01:58,516
+not available in JPEG such as
+
+
+52
+00:01:58,516 --> 00:01:59,626
+the ability to store auxiliary
+
+
+53
+00:01:59,626 --> 00:02:01,316
+images that contain depth and
+
+
+54
+00:02:01,316 --> 00:02:02,236
+disparity information.
+
+
+55
+00:02:03,776 --> 00:02:06,056
+HEIC also supports alpha and
+
+
+56
+00:02:06,056 --> 00:02:07,026
+lossless compression.
+
+
+57
+00:02:07,636 --> 00:02:10,346
+HEIC even allows you to store
+
+
+58
+00:02:10,346 --> 00:02:12,496
+multiple images in a single
+
+
+59
+00:02:12,496 --> 00:02:12,906
+container.
+
+
+60
+00:02:15,336 --> 00:02:17,376
+iOS has supported HEIC since iOS
+
+
+61
+00:02:17,376 --> 00:02:19,266
+11 and macOS has supported HEIC
+
+
+62
+00:02:19,266 --> 00:02:20,456
+since macOS High Sierra.
+
+
+63
+00:02:21,476 --> 00:02:22,396
+It's also available in other
+
+
+64
+00:02:22,396 --> 00:02:22,946
+operating systems.
+
+
+65
+00:02:26,366 --> 00:02:28,066
+So going back to our demo app we
+
+
+66
+00:02:28,066 --> 00:02:29,606
+start off using JPEG assets and
+
+
+67
+00:02:29,606 --> 00:02:31,786
+had an on disk footprint of 24.6
+
+
+68
+00:02:31,786 --> 00:02:32,346
+megabytes.
+
+
+69
+00:02:32,956 --> 00:02:35,596
+By simply adopting HEIC instead
+
+
+70
+00:02:35,596 --> 00:02:36,896
+of JPEG, we were able to reduce
+
+
+71
+00:02:36,896 --> 00:02:38,736
+the size of this app to 17.9
+
+
+72
+00:02:38,736 --> 00:02:39,296
+megabytes.
+
+
+73
+00:02:39,986 --> 00:02:41,576
+That's a 27 percent reduction
+
+
+74
+00:02:41,626 --> 00:02:43,506
+simply by adopting HEIC.
+
+
+75
+00:02:46,256 --> 00:02:47,566
+The other way we can reduce the
+
+
+76
+00:02:47,566 --> 00:02:48,966
+footprint of our app is by using
+
+
+77
+00:02:48,966 --> 00:02:49,896
+Asset Catalogs.
+
+
+78
+00:02:50,506 --> 00:02:52,086
+Asset Catalogs are a great way
+
+
+79
+00:02:52,306 --> 00:02:54,116
+of organizing the assets for
+
+
+80
+00:02:54,116 --> 00:02:55,246
+your app.
+
+
+81
+00:02:55,246 --> 00:02:57,246
+Assets such as the app icon and
+
+
+82
+00:02:58,196 --> 00:02:59,886
+device and scale variants to
+
+
+83
+00:02:59,886 --> 00:03:00,456
+your images.
+
+
+84
+00:03:01,046 --> 00:03:02,446
+Asset Catalogs provide a very
+
+
+85
+00:03:02,446 --> 00:03:03,786
+easy way of storing multiple
+
+
+86
+00:03:03,786 --> 00:03:05,236
+resolutions of the same image
+
+
+87
+00:03:05,966 --> 00:03:07,086
+which makes it very easy to
+
+
+88
+00:03:07,086 --> 00:03:08,386
+support a wide variety of
+
+
+89
+00:03:08,386 --> 00:03:08,936
+devices.
+
+
+90
+00:03:11,046 --> 00:03:12,446
+We also can use Asset Catalogs
+
+
+91
+00:03:12,446 --> 00:03:14,946
+to tag on demand resources so
+
+
+92
+00:03:14,946 --> 00:03:15,996
+the user doesn't need to see
+
+
+93
+00:03:15,996 --> 00:03:17,586
+them downloaded until they're
+
+
+94
+00:03:17,586 --> 00:03:18,896
+ready to use them.
+
+
+95
+00:03:21,316 --> 00:03:22,646
+We get both storage and
+
+
+96
+00:03:22,646 --> 00:03:23,776
+performance benefits through the
+
+
+97
+00:03:23,776 --> 00:03:25,006
+use of Asset Catalogs.
+
+
+98
+00:03:25,536 --> 00:03:28,316
+We first get to reduce our on
+
+
+99
+00:03:28,316 --> 00:03:29,566
+disk footprint because Asset
+
+
+100
+00:03:29,566 --> 00:03:31,036
+Catalogs store all of our image
+
+
+101
+00:03:31,036 --> 00:03:32,466
+assets in a single optimized
+
+
+102
+00:03:32,466 --> 00:03:33,946
+format instead of individual
+
+
+103
+00:03:33,946 --> 00:03:34,456
+files.
+
+
+104
+00:03:34,996 --> 00:03:38,106
+And the App Store also uses
+
+
+105
+00:03:38,106 --> 00:03:39,726
+metadata from your Asset Catalog
+
+
+106
+00:03:39,726 --> 00:03:41,026
+to help support app slicing for
+
+
+107
+00:03:41,026 --> 00:03:41,836
+your iOS apps.
+
+
+108
+00:03:43,326 --> 00:03:44,236
+This way when a customer
+
+
+109
+00:03:44,236 --> 00:03:45,046
+downloads your app from the
+
+
+110
+00:03:45,046 --> 00:03:46,866
+store, they get only the assets
+
+
+111
+00:03:46,866 --> 00:03:47,966
+they need for their particular
+
+
+112
+00:03:47,966 --> 00:03:48,386
+device.
+
+
+113
+00:03:48,766 --> 00:03:50,056
+This makes the download smaller
+
+
+114
+00:03:50,056 --> 00:03:51,516
+and the user has to wait less
+
+
+115
+00:03:51,516 --> 00:03:53,056
+time for the app to download and
+
+
+116
+00:03:53,056 --> 00:03:54,106
+they can start enjoying your app
+
+
+117
+00:03:54,376 --> 00:03:54,816
+much sooner.
+
+
+118
+00:03:57,306 --> 00:03:58,536
+We also get performance wins.
+
+
+119
+00:03:59,426 --> 00:04:00,966
+Again, owing to the optimized
+
+
+120
+00:04:00,966 --> 00:04:02,576
+format that Asset Catalogs saves
+
+
+121
+00:04:02,576 --> 00:04:04,746
+our image assets in, images can
+
+
+122
+00:04:04,746 --> 00:04:05,586
+be loaded more quickly.
+
+
+123
+00:04:05,946 --> 00:04:07,306
+This is especially beneficial
+
+
+124
+00:04:07,806 --> 00:04:08,636
+for app launch time.
+
+
+125
+00:04:09,526 --> 00:04:10,896
+Particularly on Macs with hard
+
+
+126
+00:04:10,896 --> 00:04:11,856
+drives where we've seen up to a
+
+
+127
+00:04:11,956 --> 00:04:13,886
+10 percent improvement on app
+
+
+128
+00:04:13,946 --> 00:04:14,686
+launch performance.
+
+
+129
+00:04:17,486 --> 00:04:18,926
+Asset Catalogs also make it
+
+
+130
+00:04:18,926 --> 00:04:20,805
+really easy to adopt GPU-based
+
+
+131
+00:04:20,805 --> 00:04:21,276
+compression.
+
+
+132
+00:04:22,196 --> 00:04:23,406
+This compression is lossless by
+
+
+133
+00:04:23,406 --> 00:04:26,516
+default, but lossy image options
+
+
+134
+00:04:26,676 --> 00:04:27,376
+are available.
+
+
+135
+00:04:29,826 --> 00:04:31,266
+All enjoy hardware accelerated
+
+
+136
+00:04:31,266 --> 00:04:33,896
+decompression, and one option
+
+
+137
+00:04:34,256 --> 00:04:35,716
+even provides a way of lowering
+
+
+138
+00:04:36,176 --> 00:04:37,496
+the in-memory footprint of your
+
+
+139
+00:04:37,496 --> 00:04:37,976
+image assets.
+
+
+140
+00:04:42,046 --> 00:04:43,116
+So going back to our demo app,
+
+
+141
+00:04:43,116 --> 00:04:44,126
+earlier we saw we were able to
+
+
+142
+00:04:44,126 --> 00:04:45,256
+reduce the size of the app to
+
+
+143
+00:04:45,256 --> 00:04:47,526
+17.9 megabytes by adopting HEIC.
+
+
+144
+00:04:48,906 --> 00:04:50,396
+Now, by having also adopted
+
+
+145
+00:04:50,396 --> 00:04:52,376
+Asset Catalogs, primarily though
+
+
+146
+00:04:52,826 --> 00:04:53,896
+the app slicing feature, we're
+
+
+147
+00:04:53,896 --> 00:04:54,936
+able to further reduce the
+
+
+148
+00:04:55,146 --> 00:04:56,786
+footprint of this app to 14.9
+
+
+149
+00:04:56,786 --> 00:04:57,236
+megabytes.
+
+
+150
+00:04:58,556 --> 00:04:59,956
+That's a 40 percent reduction in
+
+
+151
+00:04:59,956 --> 00:05:00,976
+footprint since we started
+
+
+152
+00:05:01,246 --> 00:05:02,796
+simply by adopting HEIC and
+
+
+153
+00:05:02,796 --> 00:05:03,666
+Asset Catalogs.
+
+
+154
+00:05:05,896 --> 00:05:07,126
+So if you aren't already using
+
+
+155
+00:05:07,126 --> 00:05:08,356
+HEIC for your image assets and
+
+
+156
+00:05:08,356 --> 00:05:09,776
+Asset Catalogs to help organize
+
+
+157
+00:05:09,776 --> 00:05:11,276
+your assets, we highly recommend
+
+
+158
+00:05:11,276 --> 00:05:11,986
+looking into using them.
+
+
+159
+00:05:11,986 --> 00:05:13,146
+They're a great and easy way of
+
+
+160
+00:05:13,146 --> 00:05:14,496
+getting a more efficient and
+
+
+161
+00:05:14,496 --> 00:05:15,456
+smaller app footprint.
+
+
+162
+00:05:19,206 --> 00:05:20,816
+Next up I'd like to talk a
+
+
+163
+00:05:20,816 --> 00:05:22,006
+little about file system
+
+
+164
+00:05:25,116 --> 00:05:25,496
+metadata.
+
+
+165
+00:05:25,496 --> 00:05:26,946
+Our demo app maintains a small
+
+
+166
+00:05:26,946 --> 00:05:28,366
+plist that just keeps track of
+
+
+167
+00:05:28,366 --> 00:05:29,076
+the last time the app was
+
+
+168
+00:05:29,076 --> 00:05:29,606
+launched.
+
+
+169
+00:05:30,276 --> 00:05:31,546
+Each time the app is launched,
+
+
+170
+00:05:31,636 --> 00:05:33,506
+we read in this plist, update
+
+
+171
+00:05:33,506 --> 00:05:34,496
+the last app launch time
+
+
+172
+00:05:34,496 --> 00:05:36,036
+property, and write the updated
+
+
+173
+00:05:36,436 --> 00:05:39,346
+plist back out to disk.
+
+
+174
+00:05:39,346 --> 00:05:40,576
+If we observe what this behavior
+
+
+175
+00:05:40,576 --> 00:05:41,726
+looks like using the File
+
+
+176
+00:05:41,726 --> 00:05:42,996
+Activity instrument Alejandro
+
+
+177
+00:05:42,996 --> 00:05:43,766
+will be discussing a little bit
+
+
+178
+00:05:43,766 --> 00:05:45,606
+later in the talk, we can see
+
+
+179
+00:05:45,606 --> 00:05:46,756
+that this behavior causes one
+
+
+180
+00:05:46,756 --> 00:05:48,316
+read which makes a lot of sense,
+
+
+181
+00:05:48,316 --> 00:05:50,806
+we read the plist in, but it
+
+
+182
+00:05:50,806 --> 00:05:52,286
+causes three write operations
+
+
+183
+00:05:52,436 --> 00:05:53,556
+which might be a bit surprising
+
+
+184
+00:05:53,556 --> 00:05:54,836
+since we're only writing out one
+
+
+185
+00:05:54,866 --> 00:05:55,246
+file.
+
+
+186
+00:05:55,816 --> 00:05:58,316
+We also see an fsync operation
+
+
+187
+00:05:58,316 --> 00:05:59,876
+and these can be expensive and
+
+
+188
+00:05:59,876 --> 00:06:00,906
+we'll talk a little bit more
+
+
+189
+00:06:00,906 --> 00:06:01,966
+about why that can be expensive
+
+
+190
+00:06:02,156 --> 00:06:04,436
+a bit later.
+
+
+191
+00:06:04,666 --> 00:06:06,216
+So why three writes instead of
+
+
+192
+00:06:06,216 --> 00:06:06,516
+one?
+
+
+193
+00:06:07,196 --> 00:06:08,596
+Well the answer is file system
+
+
+194
+00:06:08,596 --> 00:06:09,046
+metadata.
+
+
+195
+00:06:10,036 --> 00:06:12,606
+File system metadata is data
+
+
+196
+00:06:12,606 --> 00:06:13,686
+that the file system needs to
+
+
+197
+00:06:13,686 --> 00:06:14,956
+update every time we create a
+
+
+198
+00:06:14,986 --> 00:06:15,996
+file or delete a file.
+
+
+199
+00:06:16,126 --> 00:06:17,386
+So in this case, our writing a
+
+
+200
+00:06:17,386 --> 00:06:19,206
+plist, creating a file, causes
+
+
+201
+00:06:19,946 --> 00:06:21,546
+extra overhead.
+
+
+202
+00:06:23,316 --> 00:06:25,116
+So what is file system metadata?
+
+
+203
+00:06:25,646 --> 00:06:26,706
+File system metadata is the
+
+
+204
+00:06:26,706 --> 00:06:27,776
+information the file system
+
+
+205
+00:06:27,776 --> 00:06:29,436
+needs to track about our files.
+
+
+206
+00:06:29,656 --> 00:06:31,016
+Things such as the file name,
+
+
+207
+00:06:31,836 --> 00:06:36,356
+size, location, and dates like
+
+
+208
+00:06:36,586 --> 00:06:38,086
+date created or last modified.
+
+
+209
+00:06:38,896 --> 00:06:39,716
+And a lot more.
+
+
+210
+00:06:40,326 --> 00:06:42,936
+To get a better understanding of
+
+
+211
+00:06:42,936 --> 00:06:44,126
+what the file system has to do
+
+
+212
+00:06:44,126 --> 00:06:45,186
+every time we create a file,
+
+
+213
+00:06:45,486 --> 00:06:47,406
+let's walk through what APFS has
+
+
+214
+00:06:47,436 --> 00:06:48,686
+to do when we go to write our
+
+
+215
+00:06:48,686 --> 00:06:51,016
+NSDictionary file to disk.
+
+
+216
+00:06:51,746 --> 00:06:52,726
+Well the first thing that APFS
+
+
+217
+00:06:52,726 --> 00:06:54,906
+is going to do is update the
+
+
+218
+00:06:54,906 --> 00:06:56,506
+file system tree and it's going
+
+
+219
+00:06:56,506 --> 00:06:57,556
+to do this by updating one of
+
+
+220
+00:06:57,556 --> 00:06:58,106
+its nodes.
+
+
+221
+00:06:59,246 --> 00:07:00,966
+However, owing to the copy on
+
+
+222
+00:07:00,966 --> 00:07:03,186
+write nature of APFS we don't
+
+
+223
+00:07:03,186 --> 00:07:05,216
+actually update an existing
+
+
+224
+00:07:05,216 --> 00:07:06,456
+node, we create a copy of an
+
+
+225
+00:07:06,456 --> 00:07:07,036
+existing node.
+
+
+226
+00:07:07,476 --> 00:07:08,496
+Let's look at this in detail.
+
+
+227
+00:07:09,616 --> 00:07:10,756
+So here's our existing file
+
+
+228
+00:07:10,756 --> 00:07:13,336
+system tree.
+
+
+229
+00:07:13,556 --> 00:07:15,366
+And we see a copy made of an
+
+
+230
+00:07:15,366 --> 00:07:16,766
+existing node.
+
+
+231
+00:07:18,016 --> 00:07:19,516
+How this new node differs from
+
+
+232
+00:07:19,516 --> 00:07:20,546
+the original isn't in the node
+
+
+233
+00:07:20,546 --> 00:07:21,786
+name, it's actually the same as
+
+
+234
+00:07:21,786 --> 00:07:23,396
+the original node, but the new
+
+
+235
+00:07:23,396 --> 00:07:24,686
+node has an incremented or at
+
+
+236
+00:07:24,686 --> 00:07:26,166
+least different transaction ID.
+
+
+237
+00:07:26,166 --> 00:07:27,506
+And it's this different
+
+
+238
+00:07:27,506 --> 00:07:28,856
+transaction ID that allows APFS
+
+
+239
+00:07:28,856 --> 00:07:30,786
+to support advanced features
+
+
+240
+00:07:30,786 --> 00:07:33,406
+such as snapshots.
+
+
+241
+00:07:33,476 --> 00:07:34,986
+So going back up a level, now
+
+
+242
+00:07:34,986 --> 00:07:37,086
+that we have our updated file
+
+
+243
+00:07:37,086 --> 00:07:38,926
+system tree, APFS needs to
+
+
+244
+00:07:38,956 --> 00:07:40,686
+update the object map so it's
+
+
+245
+00:07:40,686 --> 00:07:41,486
+aware of the new node.
+
+
+246
+00:07:42,016 --> 00:07:44,036
+So in total, to support writing
+
+
+247
+00:07:44,036 --> 00:07:45,966
+this new file, APFS had to do
+
+
+248
+00:07:45,966 --> 00:07:47,226
+two separate operations that
+
+
+249
+00:07:48,466 --> 00:07:52,166
+totaled 8K of write I/O, 4K to
+
+
+250
+00:07:52,166 --> 00:07:53,356
+update the file system tree,
+
+
+251
+00:07:54,536 --> 00:07:55,876
+another 4K to update the object
+
+
+252
+00:07:55,876 --> 00:07:56,066
+map.
+
+
+253
+00:07:56,566 --> 00:07:58,556
+And we still need to write the
+
+
+254
+00:07:58,556 --> 00:08:00,746
+file itself which, in this case
+
+
+255
+00:08:00,746 --> 00:08:02,096
+even though it's only 240 bytes
+
+
+256
+00:08:02,096 --> 00:08:04,196
+of NSDictionary data, the
+
+
+257
+00:08:04,196 --> 00:08:05,426
+smallest file we can write to
+
+
+258
+00:08:05,426 --> 00:08:07,966
+disk on an iOS device is 4K so
+
+
+259
+00:08:07,966 --> 00:08:09,346
+it gets rounded up.
+
+
+260
+00:08:10,196 --> 00:08:12,496
+So in total we had to write 12K
+
+
+261
+00:08:12,496 --> 00:08:14,516
+of data to disk to store a 240
+
+
+262
+00:08:14,516 --> 00:08:15,816
+byte NSDictionary.
+
+
+263
+00:08:17,186 --> 00:08:18,036
+That's about 2 percent
+
+
+264
+00:08:18,036 --> 00:08:18,546
+efficiency.
+
+
+265
+00:08:19,226 --> 00:08:20,496
+So not only does the example
+
+
+266
+00:08:20,496 --> 00:08:21,886
+show us the work that APFS needs
+
+
+267
+00:08:21,886 --> 00:08:23,576
+to do to track file creation, it
+
+
+268
+00:08:23,576 --> 00:08:25,166
+also highlights how expensive it
+
+
+269
+00:08:25,166 --> 00:08:26,846
+can be to store small amounts of
+
+
+270
+00:08:26,846 --> 00:08:28,696
+data in individual files on the
+
+
+271
+00:08:28,696 --> 00:08:29,746
+file system.
+
+
+272
+00:08:33,275 --> 00:08:34,416
+So in the example we just walked
+
+
+273
+00:08:34,416 --> 00:08:35,326
+through we saw that we had to do
+
+
+274
+00:08:35,326 --> 00:08:37,706
+8K of I/O to support creating a
+
+
+275
+00:08:37,706 --> 00:08:39,456
+file on APFS.
+
+
+276
+00:08:40,155 --> 00:08:41,496
+Well what about deleting a file?
+
+
+277
+00:08:41,616 --> 00:08:42,256
+That's 8K.
+
+
+278
+00:08:42,736 --> 00:08:44,135
+Other common operations such as
+
+
+279
+00:08:44,135 --> 00:08:46,156
+renaming a file is 16K.
+
+
+280
+00:08:46,876 --> 00:08:49,296
+Modifying an existing file is
+
+
+281
+00:08:50,016 --> 00:08:50,136
+8K.
+
+
+282
+00:08:51,996 --> 00:08:53,286
+The big take away from this is
+
+
+283
+00:08:53,286 --> 00:08:54,936
+that file system updates aren't
+
+
+284
+00:08:54,936 --> 00:08:55,116
+free.
+
+
+285
+00:08:55,376 --> 00:08:56,786
+In fact, they can involve more
+
+
+286
+00:08:56,786 --> 00:08:58,266
+I/O usage than the data being
+
+
+287
+00:08:58,266 --> 00:08:58,616
+stored.
+
+
+288
+00:08:58,616 --> 00:09:00,656
+So as a result, we need to be
+
+
+289
+00:09:00,656 --> 00:09:01,626
+selective about how we create
+
+
+290
+00:09:01,626 --> 00:09:03,076
+and modify and delete files.
+
+
+291
+00:09:04,056 --> 00:09:05,026
+We want to try to avoid
+
+
+292
+00:09:05,026 --> 00:09:06,266
+expensive behaviors such as
+
+
+293
+00:09:06,356 --> 00:09:07,816
+rapidly creating and deleting
+
+
+294
+00:09:07,816 --> 00:09:07,976
+files.
+
+
+295
+00:09:11,886 --> 00:09:12,946
+If we have a use case where we
+
+
+296
+00:09:12,946 --> 00:09:14,196
+do need to keep temporary data
+
+
+297
+00:09:14,196 --> 00:09:15,596
+on the file system, here's a
+
+
+298
+00:09:15,596 --> 00:09:16,586
+great way of trying to reduce
+
+
+299
+00:09:16,616 --> 00:09:18,096
+the cost to the system for that
+
+
+300
+00:09:18,096 --> 00:09:18,756
+temporary data.
+
+
+301
+00:09:19,246 --> 00:09:22,036
+First, create your file but keep
+
+
+302
+00:09:22,246 --> 00:09:25,546
+it open and unlinked, and do not
+
+
+303
+00:09:25,546 --> 00:09:26,316
+call fsync on it.
+
+
+304
+00:09:26,956 --> 00:09:27,896
+Doing this will give the file
+
+
+305
+00:09:27,896 --> 00:09:29,086
+system the hints it needs to
+
+
+306
+00:09:29,086 --> 00:09:30,446
+keep the temporary file in the
+
+
+307
+00:09:30,446 --> 00:09:32,206
+OS cache as long as possible and
+
+
+308
+00:09:32,206 --> 00:09:33,566
+not write out to disk as
+
+
+309
+00:09:33,566 --> 00:09:37,056
+frequently as it might have to.
+
+
+310
+00:09:37,256 --> 00:09:37,986
+If you'd like to learn more
+
+
+311
+00:09:37,986 --> 00:09:39,306
+about file system metadata in
+
+
+312
+00:09:39,306 --> 00:09:41,086
+APFS we have a great reference
+
+
+313
+00:09:41,086 --> 00:09:42,026
+document on our developer
+
+
+314
+00:09:42,026 --> 00:09:43,356
+website and I highly recommend
+
+
+315
+00:09:43,356 --> 00:09:48,386
+checking it out.
+
+
+316
+00:09:48,486 --> 00:09:50,246
+Next up, syncing to disk.
+
+
+317
+00:09:52,436 --> 00:09:53,856
+When it comes to managing where
+
+
+318
+00:09:53,856 --> 00:09:55,406
+our data lives, we want to keep
+
+
+319
+00:09:55,406 --> 00:09:57,156
+our data in the cache closest to
+
+
+320
+00:09:57,226 --> 00:09:58,786
+the CPU for best performance,
+
+
+321
+00:09:59,636 --> 00:10:02,306
+but we also want to ensure that
+
+
+322
+00:10:02,306 --> 00:10:04,176
+our data gets to disk when we
+
+
+323
+00:10:04,176 --> 00:10:04,606
+need it to.
+
+
+324
+00:10:05,736 --> 00:10:06,596
+First let's talk about the
+
+
+325
+00:10:06,596 --> 00:10:07,766
+various caches that we have.
+
+
+326
+00:10:09,416 --> 00:10:10,616
+First there's the OS cache.
+
+
+327
+00:10:10,756 --> 00:10:11,936
+This is where we want to keep
+
+
+328
+00:10:12,136 --> 00:10:13,386
+our data for best performance.
+
+
+329
+00:10:14,836 --> 00:10:16,106
+Reads and writes to the OS cache
+
+
+330
+00:10:16,106 --> 00:10:17,416
+are referred to as logical I/O.
+
+
+331
+00:10:18,216 --> 00:10:19,356
+As this cache is backed by
+
+
+332
+00:10:19,356 --> 00:10:21,326
+memory, logical I/O operations
+
+
+333
+00:10:21,326 --> 00:10:22,486
+complete very quickly.
+
+
+334
+00:10:23,326 --> 00:10:24,696
+Keeping data in the OS cache is
+
+
+335
+00:10:24,696 --> 00:10:25,746
+often advantageous for
+
+
+336
+00:10:25,876 --> 00:10:27,406
+frequently used and modified
+
+
+337
+00:10:27,406 --> 00:10:27,686
+data.
+
+
+338
+00:10:28,206 --> 00:10:31,826
+Next, we have the disk cache and
+
+
+339
+00:10:31,826 --> 00:10:32,616
+the disk cache is actually
+
+
+340
+00:10:32,616 --> 00:10:33,926
+physically located on the
+
+
+341
+00:10:33,926 --> 00:10:34,686
+storage device.
+
+
+342
+00:10:36,506 --> 00:10:37,916
+And lastly, we have permanent
+
+
+343
+00:10:37,916 --> 00:10:38,386
+storage.
+
+
+344
+00:10:38,386 --> 00:10:39,496
+This is the actual physical
+
+
+345
+00:10:39,496 --> 00:10:40,666
+medium which will be persisting
+
+
+346
+00:10:40,666 --> 00:10:41,876
+the data long term.
+
+
+347
+00:10:42,366 --> 00:10:43,776
+In the case of iOS devices and
+
+
+348
+00:10:43,776 --> 00:10:48,006
+most Macs, this is NAND.
+
+
+349
+00:10:48,166 --> 00:10:49,346
+Physical I/Os are reads and
+
+
+350
+00:10:49,346 --> 00:10:50,826
+writes to and from the physical
+
+
+351
+00:10:50,826 --> 00:10:51,286
+storage.
+
+
+352
+00:10:51,536 --> 00:10:54,876
+These I/Os may be to the or from
+
+
+353
+00:10:54,876 --> 00:10:56,356
+the disk cache or the permanent
+
+
+354
+00:10:56,356 --> 00:10:56,736
+storage.
+
+
+355
+00:10:56,736 --> 00:10:59,196
+So now that we have talked a
+
+
+356
+00:10:59,196 --> 00:11:01,086
+little about the caches and
+
+
+357
+00:11:01,086 --> 00:11:02,516
+permanent storage, let's talk
+
+
+358
+00:11:02,516 --> 00:11:03,856
+about the most common APIs we
+
+
+359
+00:11:03,856 --> 00:11:05,196
+use to move data from the OS
+
+
+360
+00:11:05,196 --> 00:11:06,826
+cache to the storage device.
+
+
+361
+00:11:07,046 --> 00:11:08,856
+First up is fsync.
+
+
+362
+00:11:08,856 --> 00:11:12,076
+fsync causes data to be moved
+
+
+363
+00:11:12,076 --> 00:11:14,426
+from the OS cache to the disk
+
+
+364
+00:11:14,426 --> 00:11:14,716
+cache.
+
+
+365
+00:11:15,296 --> 00:11:17,626
+It doesn't however guarantee
+
+
+366
+00:11:17,626 --> 00:11:19,236
+that the data will be written to
+
+
+367
+00:11:19,236 --> 00:11:20,366
+permanent storage immediately.
+
+
+368
+00:11:20,986 --> 00:11:21,916
+Without further input from
+
+
+369
+00:11:21,916 --> 00:11:23,636
+software, it's up to the
+
+
+370
+00:11:23,636 --> 00:11:24,896
+device's firmware to determine
+
+
+371
+00:11:24,896 --> 00:11:25,856
+when data gets moved from the
+
+
+372
+00:11:25,856 --> 00:11:27,146
+disk cache to permanent storage.
+
+
+373
+00:11:28,636 --> 00:11:29,886
+It also doesn't guarantee write
+
+
+374
+00:11:29,886 --> 00:11:30,266
+ordering.
+
+
+375
+00:11:31,036 --> 00:11:32,276
+That's to say, the order in
+
+
+376
+00:11:32,276 --> 00:11:33,726
+which data's written from the OS
+
+
+377
+00:11:33,726 --> 00:11:35,086
+cache to the disk cache may not
+
+
+378
+00:11:35,086 --> 00:11:36,346
+necessarily be the same order in
+
+
+379
+00:11:36,346 --> 00:11:37,566
+which data is written from the
+
+
+380
+00:11:37,566 --> 00:11:39,226
+disk cache to permanent storage.
+
+
+381
+00:11:39,636 --> 00:11:42,546
+fsync can also be expensive if
+
+
+382
+00:11:42,546 --> 00:11:43,426
+it's overused.
+
+
+383
+00:11:43,426 --> 00:11:45,236
+When we had our data in the OS
+
+
+384
+00:11:45,236 --> 00:11:46,716
+cache, the OS cache was able to
+
+
+385
+00:11:46,976 --> 00:11:49,646
+easily absorb overwrites or
+
+
+386
+00:11:49,646 --> 00:11:50,946
+modifications to the same data.
+
+
+387
+00:11:51,316 --> 00:11:52,766
+Once we used fsync it got moved
+
+
+388
+00:11:52,766 --> 00:11:53,416
+to the disk cache.
+
+
+389
+00:11:54,446 --> 00:11:55,816
+And depending on the cadence in
+
+
+390
+00:11:55,816 --> 00:11:56,806
+which we need to ensure our data
+
+
+391
+00:11:56,806 --> 00:11:57,826
+gets moved to the disk cache,
+
+
+392
+00:11:58,426 --> 00:11:59,966
+calling fsync manually may not
+
+
+393
+00:11:59,966 --> 00:12:01,196
+even be necessary as it's done
+
+
+394
+00:12:01,196 --> 00:12:03,646
+periodically for us by the OS.
+
+
+395
+00:12:07,596 --> 00:12:09,806
+The primary way data gets moved
+
+
+396
+00:12:09,806 --> 00:12:11,696
+all the way from the OS cache to
+
+
+397
+00:12:11,696 --> 00:12:12,676
+permanent storage is through the
+
+
+398
+00:12:12,676 --> 00:12:14,516
+use of F controls, FFULLFSYNC.
+
+
+399
+00:12:15,606 --> 00:12:16,886
+This causes the data in the
+
+
+400
+00:12:16,886 --> 00:12:18,276
+drive's disk cache to get
+
+
+401
+00:12:18,276 --> 00:12:18,586
+flushed.
+
+
+402
+00:12:18,976 --> 00:12:21,366
+However this causes all of the
+
+
+403
+00:12:21,366 --> 00:12:22,466
+data in the disk cache to get
+
+
+404
+00:12:22,466 --> 00:12:24,406
+flushed so not only is the data
+
+
+405
+00:12:24,406 --> 00:12:25,616
+that we were interested in
+
+
+406
+00:12:25,616 --> 00:12:26,696
+moving all the way to permanent
+
+
+407
+00:12:26,696 --> 00:12:28,866
+storage get moved to permanent
+
+
+408
+00:12:28,866 --> 00:12:30,666
+storage, all the data in the
+
+
+409
+00:12:30,706 --> 00:12:31,426
+disk cache does.
+
+
+410
+00:12:32,206 --> 00:12:33,756
+As a result, it's expensive
+
+
+411
+00:12:34,186 --> 00:12:34,956
+because this could be a lot of
+
+
+412
+00:12:34,956 --> 00:12:36,116
+data and it could take a lot of
+
+
+413
+00:12:36,116 --> 00:12:36,376
+time.
+
+
+414
+00:12:37,916 --> 00:12:39,166
+And again, it might actually not
+
+
+415
+00:12:39,166 --> 00:12:40,106
+even be necessary to do this
+
+
+416
+00:12:40,106 --> 00:12:41,686
+manually as this is done
+
+
+417
+00:12:41,686 --> 00:12:43,696
+periodically for us by the OS.
+
+
+418
+00:12:46,356 --> 00:12:48,406
+If the primary reason we were
+
+
+419
+00:12:48,406 --> 00:12:49,966
+using FFULLFSYNC was to ensure
+
+
+420
+00:12:49,966 --> 00:12:51,646
+I/O ordering, a great and much
+
+
+421
+00:12:51,646 --> 00:12:52,706
+more efficient alternative is
+
+
+422
+00:12:52,706 --> 00:12:53,966
+using F BARRIERFSYNC.
+
+
+423
+00:12:54,716 --> 00:12:56,966
+F BARRIERFSYNC enforces I/O
+
+
+424
+00:12:56,966 --> 00:12:57,316
+ordering.
+
+
+425
+00:12:57,856 --> 00:13:00,346
+F BARRIERFSYNC is probably best
+
+
+426
+00:13:00,346 --> 00:13:01,546
+thought of as being basically an
+
+
+427
+00:13:01,546 --> 00:13:03,186
+fsync with a barrier and the
+
+
+428
+00:13:03,396 --> 00:13:04,986
+barrier is a hint to the Apple
+
+
+429
+00:13:04,986 --> 00:13:06,786
+SSD to execute all the iOS that
+
+
+430
+00:13:06,786 --> 00:13:08,526
+were received before the barrier
+
+
+431
+00:13:08,856 --> 00:13:10,846
+before executing any of the iOS
+
+
+432
+00:13:10,846 --> 00:13:12,266
+which were received after the
+
+
+433
+00:13:12,266 --> 00:13:12,696
+barrier.
+
+
+434
+00:13:13,236 --> 00:13:15,496
+As a result, it's a lot less
+
+
+435
+00:13:15,496 --> 00:13:17,696
+expensive than F FULLFSYNC as we
+
+
+436
+00:13:17,696 --> 00:13:18,976
+get the same result we wanted
+
+
+437
+00:13:19,046 --> 00:13:20,536
+without having to push all the
+
+
+438
+00:13:20,536 --> 00:13:22,176
+data in the disk cache to
+
+
+439
+00:13:22,176 --> 00:13:22,926
+permanent storage.
+
+
+440
+00:13:23,476 --> 00:13:25,836
+So if you're concerned about I/O
+
+
+441
+00:13:25,836 --> 00:13:26,966
+ordering, please use F
+
+
+442
+00:13:26,966 --> 00:13:28,296
+BARRIERFSYNC and not F
+
+
+443
+00:13:28,296 --> 00:13:28,856
+FULLFSYNC.
+
+
+444
+00:13:28,926 --> 00:13:30,466
+It's a much faster and efficient
+
+
+445
+00:13:30,736 --> 00:13:31,696
+way of getting your data to
+
+
+446
+00:13:31,696 --> 00:13:31,966
+disk.
+
+
+447
+00:13:37,046 --> 00:13:38,286
+Serialized data files.
+
+
+448
+00:13:39,076 --> 00:13:40,766
+Files such as plist, XML and
+
+
+449
+00:13:40,766 --> 00:13:41,776
+JSON, they're great.
+
+
+450
+00:13:42,066 --> 00:13:43,276
+They're convenient to use.
+
+
+451
+00:13:43,666 --> 00:13:45,516
+They're a great way of storing
+
+
+452
+00:13:45,516 --> 00:13:47,076
+infrequently modified data and
+
+
+453
+00:13:48,006 --> 00:13:49,416
+they're extremely easy to parse.
+
+
+454
+00:13:50,496 --> 00:13:51,586
+However, all this ease of use
+
+
+455
+00:13:51,586 --> 00:13:52,686
+comes with a few tradeoffs.
+
+
+456
+00:13:53,186 --> 00:13:57,036
+Any time we make a single change
+
+
+457
+00:13:57,126 --> 00:13:58,756
+to the file, the entire file has
+
+
+458
+00:13:58,756 --> 00:14:00,216
+to be re-serialized and
+
+
+459
+00:14:00,216 --> 00:14:01,006
+rewritten to disk.
+
+
+460
+00:14:02,096 --> 00:14:03,736
+As a result, they scale poorly.
+
+
+461
+00:14:04,966 --> 00:14:05,806
+And since they're so easy to
+
+
+462
+00:14:05,806 --> 00:14:07,646
+use, they can be easy to misuse.
+
+
+463
+00:14:08,756 --> 00:14:09,476
+And because we're having to
+
+
+464
+00:14:09,476 --> 00:14:10,546
+replace the file with every
+
+
+465
+00:14:10,546 --> 00:14:11,606
+single change, they're very
+
+
+466
+00:14:11,606 --> 00:14:13,056
+system file metadata intensive.
+
+
+467
+00:14:13,596 --> 00:14:17,086
+And they're very much not meant
+
+
+468
+00:14:17,086 --> 00:14:18,316
+to be a database replacement.
+
+
+469
+00:14:18,856 --> 00:14:22,106
+Looking at a screenshot from the
+
+
+470
+00:14:22,106 --> 00:14:23,746
+file activity Instruments we can
+
+
+471
+00:14:23,746 --> 00:14:24,806
+see that the act of creating,
+
+
+472
+00:14:24,806 --> 00:14:26,876
+reading, and modifying the plist
+
+
+473
+00:14:27,496 --> 00:14:28,956
+causes 12 separate I/O
+
+
+474
+00:14:28,956 --> 00:14:30,826
+operations which is quite a bit
+
+
+475
+00:14:30,826 --> 00:14:32,136
+for what is probably four lines
+
+
+476
+00:14:32,136 --> 00:14:32,976
+of code.
+
+
+477
+00:14:34,296 --> 00:14:35,346
+And if we look at this in a
+
+
+478
+00:14:35,346 --> 00:14:36,286
+slightly different view, then we
+
+
+479
+00:14:36,286 --> 00:14:37,146
+see every time we call
+
+
+480
+00:14:37,146 --> 00:14:38,316
+NSDictionary to write to file
+
+
+481
+00:14:38,316 --> 00:14:41,566
+atomically, the operation ends
+
+
+482
+00:14:41,676 --> 00:14:42,786
+with an fsync operation.
+
+
+483
+00:14:43,256 --> 00:14:44,226
+This means that all the data
+
+
+484
+00:14:44,226 --> 00:14:45,286
+we're storing in this
+
+
+485
+00:14:45,286 --> 00:14:46,186
+NSDictionary we're pushing to
+
+
+486
+00:14:46,186 --> 00:14:47,336
+disk is never enjoying the
+
+
+487
+00:14:47,336 --> 00:14:48,806
+benefit of the OS cache.
+
+
+488
+00:14:49,356 --> 00:14:53,126
+As a result, really large data
+
+
+489
+00:14:53,126 --> 00:14:54,376
+sets or data sets which are
+
+
+490
+00:14:54,516 --> 00:14:56,196
+modified frequently aren't
+
+
+491
+00:14:56,196 --> 00:14:58,726
+really efficient in a serialized
+
+
+492
+00:14:58,726 --> 00:14:59,376
+plist format.
+
+
+493
+00:14:59,926 --> 00:15:02,906
+If the amount of data you have
+
+
+494
+00:15:02,906 --> 00:15:04,066
+is either too large or too
+
+
+495
+00:15:04,066 --> 00:15:05,516
+frequently modified, Core Data
+
+
+496
+00:15:05,516 --> 00:15:06,786
+is a really good alternative.
+
+
+497
+00:15:07,216 --> 00:15:10,716
+Core Data management is built on
+
+
+498
+00:15:10,766 --> 00:15:12,346
+SQLite and provides a great
+
+
+499
+00:15:12,346 --> 00:15:13,936
+abstraction layer between an
+
+
+500
+00:15:14,026 --> 00:15:15,576
+SQLite data source and the model
+
+
+501
+00:15:15,576 --> 00:15:18,256
+layer for your app.
+
+
+502
+00:15:18,476 --> 00:15:20,056
+Core Data automatically manages
+
+
+503
+00:15:20,056 --> 00:15:21,336
+object graphs and relationships,
+
+
+504
+00:15:21,876 --> 00:15:24,736
+support for change tracking and
+
+
+505
+00:15:24,736 --> 00:15:28,316
+notifications, automatic version
+
+
+506
+00:15:28,316 --> 00:15:29,606
+tracking and multi-writer
+
+
+507
+00:15:29,606 --> 00:15:30,506
+conflict resolution.
+
+
+508
+00:15:30,926 --> 00:15:31,706
+Core Data will even
+
+
+509
+00:15:31,706 --> 00:15:34,456
+automatically pull connections
+
+
+510
+00:15:34,596 --> 00:15:35,636
+for multiple concurrent
+
+
+511
+00:15:35,636 --> 00:15:36,246
+operations.
+
+
+512
+00:15:36,756 --> 00:15:39,646
+And new with iOS13, Core Data
+
+
+513
+00:15:40,126 --> 00:15:41,756
+supports CloudKit integration
+
+
+514
+00:15:41,826 --> 00:15:42,976
+which is a huge win for Core
+
+
+515
+00:15:42,976 --> 00:15:43,706
+Data adopters.
+
+
+516
+00:15:44,236 --> 00:15:46,786
+And Core Data also supports live
+
+
+517
+00:15:46,786 --> 00:15:47,846
+queries which allows you to
+
+
+518
+00:15:47,846 --> 00:15:49,986
+generate queries on the fly so
+
+
+519
+00:15:49,986 --> 00:15:51,156
+you don't have to hand code in
+
+
+520
+00:15:51,156 --> 00:15:52,786
+advance all the SQLite queries
+
+
+521
+00:15:52,786 --> 00:15:53,656
+you think you might need.
+
+
+522
+00:15:54,196 --> 00:15:57,476
+Core Data also offers automatic
+
+
+523
+00:15:57,476 --> 00:16:00,086
+memory management, statement
+
+
+524
+00:16:00,086 --> 00:16:03,166
+aggregation and transactions,
+
+
+525
+00:16:03,166 --> 00:16:06,466
+schema migrations, and new in
+
+
+526
+00:16:06,466 --> 00:16:08,896
+iOS 13, data denormalization,
+
+
+527
+00:16:10,246 --> 00:16:12,776
+and so much more.
+
+
+528
+00:16:12,986 --> 00:16:13,916
+We've also observed that
+
+
+529
+00:16:13,916 --> 00:16:15,286
+adopters of Core Data have to
+
+
+530
+00:16:15,286 --> 00:16:17,276
+write 50 to 70 percent less code
+
+
+531
+00:16:17,416 --> 00:16:18,576
+to support their model layer.
+
+
+532
+00:16:19,306 --> 00:16:20,326
+That's code that never needs to
+
+
+533
+00:16:20,326 --> 00:16:22,116
+be written, modified, or
+
+
+534
+00:16:22,116 --> 00:16:22,506
+debugged.
+
+
+535
+00:16:23,016 --> 00:16:24,166
+If, however you have a use case
+
+
+536
+00:16:24,166 --> 00:16:25,606
+which requires the direct use of
+
+
+537
+00:16:25,606 --> 00:16:27,026
+SQLite, we do have some best
+
+
+538
+00:16:27,026 --> 00:16:28,266
+practices we'd like to share.
+
+
+539
+00:16:28,806 --> 00:16:31,136
+This is a bigger topic so we
+
+
+540
+00:16:31,136 --> 00:16:32,436
+have some subtopics including
+
+
+541
+00:16:32,436 --> 00:16:34,126
+connections, journaling,
+
+
+542
+00:16:34,366 --> 00:16:36,726
+transactions, file size and
+
+
+543
+00:16:36,726 --> 00:16:39,026
+privacy, and partial indexes or
+
+
+544
+00:16:40,516 --> 00:16:41,686
+subconnections.
+
+
+545
+00:16:42,196 --> 00:16:44,566
+The robustness guarantees of
+
+
+546
+00:16:44,566 --> 00:16:45,506
+SQLite aren't free.
+
+
+547
+00:16:45,966 --> 00:16:47,186
+Opening and closing a database
+
+
+548
+00:16:47,186 --> 00:16:48,746
+can cause expensive operations
+
+
+549
+00:16:48,746 --> 00:16:50,176
+such as consistency checking,
+
+
+550
+00:16:50,486 --> 00:16:51,886
+journal recovery, and journal
+
+
+551
+00:16:51,886 --> 00:16:52,386
+checkpointing.
+
+
+552
+00:16:52,936 --> 00:16:55,766
+As a result, we actually
+
+
+553
+00:16:55,766 --> 00:16:56,886
+recommend not using a more
+
+
+554
+00:16:56,886 --> 00:16:58,146
+traditional model of opening and
+
+
+555
+00:16:58,146 --> 00:16:59,606
+closing a database each time
+
+
+556
+00:16:59,606 --> 00:17:00,086
+it's needed.
+
+
+557
+00:17:01,126 --> 00:17:02,066
+Instead we recommend the
+
+
+558
+00:17:02,066 --> 00:17:02,456
+inverse.
+
+
+559
+00:17:03,126 --> 00:17:04,486
+Keep the database open as long
+
+
+560
+00:17:04,486 --> 00:17:05,766
+as possible and close
+
+
+561
+00:17:05,766 --> 00:17:07,165
+connections only when necessary.
+
+
+562
+00:17:08,026 --> 00:17:09,336
+For multi-threaded processes,
+
+
+563
+00:17:09,486 --> 00:17:10,996
+pull connections so that so long
+
+
+564
+00:17:10,996 --> 00:17:12,406
+as one thread still needs the
+
+
+565
+00:17:12,406 --> 00:17:13,675
+database the database can remain
+
+
+566
+00:17:13,675 --> 00:17:14,036
+open.
+
+
+567
+00:17:14,816 --> 00:17:16,086
+This really helps amortize the
+
+
+568
+00:17:16,086 --> 00:17:17,306
+cost of opening and closing a
+
+
+569
+00:17:17,306 --> 00:17:18,516
+database over time.
+
+
+570
+00:17:22,046 --> 00:17:22,876
+Next up, journaling.
+
+
+571
+00:17:23,366 --> 00:17:25,976
+Delete mode journaling is the
+
+
+572
+00:17:25,976 --> 00:17:27,165
+default journaling mode for
+
+
+573
+00:17:27,165 --> 00:17:28,896
+SQLite but it isn't necessarily
+
+
+574
+00:17:28,896 --> 00:17:29,686
+the most efficient.
+
+
+575
+00:17:30,146 --> 00:17:31,906
+To see why let's take a look at
+
+
+576
+00:17:31,906 --> 00:17:33,486
+how delete mode journaling
+
+
+577
+00:17:33,486 --> 00:17:33,846
+works.
+
+
+578
+00:17:34,376 --> 00:17:36,486
+Let's say we have a database and
+
+
+579
+00:17:36,486 --> 00:17:37,956
+we want to modify four pages in
+
+
+580
+00:17:38,516 --> 00:17:38,586
+it.
+
+
+581
+00:17:39,176 --> 00:17:40,506
+The first thing that happens, we
+
+
+582
+00:17:40,506 --> 00:17:42,066
+end up copying those four pages
+
+
+583
+00:17:42,266 --> 00:17:45,746
+to a journal file.
+
+
+584
+00:17:45,946 --> 00:17:47,366
+We then can modify the four
+
+
+585
+00:17:47,366 --> 00:17:48,486
+pages within the database.
+
+
+586
+00:17:49,466 --> 00:17:51,646
+And once that's completed, the
+
+
+587
+00:17:51,646 --> 00:17:52,716
+journal file gets deleted.
+
+
+588
+00:17:53,436 --> 00:17:54,606
+So if we think about that, we
+
+
+589
+00:17:54,606 --> 00:17:57,066
+had to write twice the number of
+
+
+590
+00:17:57,066 --> 00:17:59,226
+pages we meant to modify and we
+
+
+591
+00:17:59,226 --> 00:18:00,586
+had all the file system overhead
+
+
+592
+00:18:00,586 --> 00:18:01,876
+of this short-lived journal file
+
+
+593
+00:18:01,876 --> 00:18:02,696
+that we kept around just for a
+
+
+594
+00:18:02,696 --> 00:18:03,606
+single transaction.
+
+
+595
+00:18:05,576 --> 00:18:07,086
+Fortunately, SQLite provides a
+
+
+596
+00:18:07,086 --> 00:18:08,236
+much more efficient alternative
+
+
+597
+00:18:09,126 --> 00:18:10,986
+in Write Ahead Log or WAL Mode
+
+
+598
+00:18:10,986 --> 00:18:11,406
+Journaling.
+
+
+599
+00:18:11,946 --> 00:18:13,776
+WAL Mode Journaling provides a
+
+
+600
+00:18:13,776 --> 00:18:15,086
+great way of reducing writes.
+
+
+601
+00:18:15,086 --> 00:18:16,786
+It allows us to combine writes
+
+
+602
+00:18:16,786 --> 00:18:18,456
+to the -- multiple writes to the
+
+
+603
+00:18:18,456 --> 00:18:18,986
+same page.
+
+
+604
+00:18:18,986 --> 00:18:20,476
+It uses fewer barriers.
+
+
+605
+00:18:21,316 --> 00:18:22,476
+It can support multiple readers
+
+
+606
+00:18:22,476 --> 00:18:23,516
+at the same time as a writer,
+
+
+607
+00:18:24,016 --> 00:18:25,086
+and supports snapshots.
+
+
+608
+00:18:26,116 --> 00:18:27,156
+Let's take a look at how WAL
+
+
+609
+00:18:27,156 --> 00:18:27,706
+Mode works.
+
+
+610
+00:18:29,146 --> 00:18:29,966
+So let's say again we have a
+
+
+611
+00:18:29,966 --> 00:18:30,986
+database and we want to modify
+
+
+612
+00:18:30,986 --> 00:18:31,506
+four pages.
+
+
+613
+00:18:32,186 --> 00:18:33,306
+Instead of modifying pages
+
+
+614
+00:18:33,306 --> 00:18:34,786
+directly in the database, they
+
+
+615
+00:18:34,786 --> 00:18:35,646
+just get written to the Write
+
+
+616
+00:18:35,646 --> 00:18:37,906
+Ahead Log file and, as we have
+
+
+617
+00:18:37,906 --> 00:18:40,006
+additional transactions, those
+
+
+618
+00:18:40,006 --> 00:18:41,096
+pages get added to the Write
+
+
+619
+00:18:41,096 --> 00:18:43,146
+Ahead Log file too until the
+
+
+620
+00:18:43,146 --> 00:18:44,096
+Write Ahead Log file gets
+
+
+621
+00:18:44,096 --> 00:18:45,226
+sufficiently large and it makes
+
+
+622
+00:18:45,226 --> 00:18:46,096
+sense to checkpoint it.
+
+
+623
+00:18:47,516 --> 00:18:49,126
+And, when we checkpoint it we
+
+
+624
+00:18:49,126 --> 00:18:50,266
+get one of the huge wins of WAL
+
+
+625
+00:18:50,266 --> 00:18:52,036
+Mode, pages which would've been
+
+
+626
+00:18:52,036 --> 00:18:54,866
+modified multiple times in a
+
+
+627
+00:18:54,866 --> 00:18:56,536
+Delete Mode database, all those
+
+
+628
+00:18:56,536 --> 00:18:57,816
+changes to the same page get
+
+
+629
+00:18:57,816 --> 00:18:59,776
+merged during the WAL checkpoint
+
+
+630
+00:18:59,776 --> 00:19:01,006
+and that same page only needs to
+
+
+631
+00:19:01,006 --> 00:19:02,096
+be written out once.
+
+
+632
+00:19:02,776 --> 00:19:06,136
+And when we're done, a simple
+
+
+633
+00:19:06,136 --> 00:19:06,976
+overwrite of the header of the
+
+
+634
+00:19:06,976 --> 00:19:08,476
+WAL file is all that's needed to
+
+
+635
+00:19:08,476 --> 00:19:09,916
+make it available for future use
+
+
+636
+00:19:10,226 --> 00:19:11,416
+thus reducing the file system
+
+
+637
+00:19:11,416 --> 00:19:12,596
+cost of maintaining this Write
+
+
+638
+00:19:12,596 --> 00:19:13,336
+Ahead Log file.
+
+
+639
+00:19:13,906 --> 00:19:17,536
+So we can see WAL Mode is more
+
+
+640
+00:19:17,536 --> 00:19:19,306
+efficient for most use cases of
+
+
+641
+00:19:19,306 --> 00:19:19,726
+SQLite.
+
+
+642
+00:19:19,856 --> 00:19:21,136
+If you weren't already using WAL
+
+
+643
+00:19:21,136 --> 00:19:22,536
+Mode for your SQLite databases,
+
+
+644
+00:19:22,646 --> 00:19:23,936
+we highly recommend switching
+
+
+645
+00:19:23,936 --> 00:19:24,646
+over to WAL Mode.
+
+
+646
+00:19:24,646 --> 00:19:26,306
+It can be a great way of getting
+
+
+647
+00:19:26,306 --> 00:19:27,986
+some huge performance wins for
+
+
+648
+00:19:27,986 --> 00:19:28,446
+your app.
+
+
+649
+00:19:29,626 --> 00:19:31,076
+Using multiple INSERT and UPDATE
+
+
+650
+00:19:31,076 --> 00:19:32,036
+and DELETE statements in a
+
+
+651
+00:19:32,036 --> 00:19:33,386
+single transaction is a great
+
+
+652
+00:19:33,386 --> 00:19:34,906
+way of giving SQLite more
+
+
+653
+00:19:34,906 --> 00:19:36,176
+information so that it can make
+
+
+654
+00:19:36,176 --> 00:19:37,526
+more efficient operations on
+
+
+655
+00:19:37,526 --> 00:19:37,956
+your behalf.
+
+
+656
+00:19:39,116 --> 00:19:41,076
+Pages that are changed multiple
+
+
+657
+00:19:41,146 --> 00:19:42,616
+times by, in the same
+
+
+658
+00:19:42,616 --> 00:19:43,536
+transaction by multiple
+
+
+659
+00:19:43,536 --> 00:19:44,906
+statements, only get written out
+
+
+660
+00:19:44,906 --> 00:19:45,576
+to disk once.
+
+
+661
+00:19:46,086 --> 00:19:48,176
+Let's say in this example we
+
+
+662
+00:19:48,176 --> 00:19:48,856
+have three separate
+
+
+663
+00:19:48,856 --> 00:19:50,266
+transactions, each with one
+
+
+664
+00:19:50,266 --> 00:19:51,476
+statement that modify the same
+
+
+665
+00:19:51,476 --> 00:19:52,296
+page in the database.
+
+
+666
+00:19:53,076 --> 00:19:54,036
+We'll see the same page in the
+
+
+667
+00:19:54,036 --> 00:19:55,556
+database get modified three
+
+
+668
+00:19:55,556 --> 00:19:55,976
+times.
+
+
+669
+00:19:56,576 --> 00:19:58,856
+If, however, we had a single
+
+
+670
+00:19:58,856 --> 00:20:00,336
+transaction with those three
+
+
+671
+00:20:00,336 --> 00:20:02,506
+statements, all those changes
+
+
+672
+00:20:02,506 --> 00:20:03,786
+would get combined and the page
+
+
+673
+00:20:03,786 --> 00:20:04,666
+in the database would only get
+
+
+674
+00:20:04,666 --> 00:20:06,026
+written out once.
+
+
+675
+00:20:07,356 --> 00:20:08,956
+As a result, using multiple
+
+
+676
+00:20:08,956 --> 00:20:10,456
+statements in a single SQLite
+
+
+677
+00:20:10,456 --> 00:20:11,776
+transaction is a great way for
+
+
+678
+00:20:11,776 --> 00:20:13,546
+aggregating changes over time.
+
+
+679
+00:20:17,746 --> 00:20:18,906
+File size and privacy.
+
+
+680
+00:20:18,906 --> 00:20:22,106
+So what happens when we delete
+
+
+681
+00:20:22,106 --> 00:20:22,996
+data from the database?
+
+
+682
+00:20:23,846 --> 00:20:25,146
+Space containing the deleted
+
+
+683
+00:20:25,146 --> 00:20:27,396
+data is marked as free and while
+
+
+684
+00:20:27,396 --> 00:20:28,176
+it's no longer part of the
+
+
+685
+00:20:28,176 --> 00:20:29,706
+database, it's still technically
+
+
+686
+00:20:29,706 --> 00:20:30,176
+on disk.
+
+
+687
+00:20:31,406 --> 00:20:32,786
+So how do we securely delete
+
+
+688
+00:20:32,846 --> 00:20:34,146
+sensitive information in an
+
+
+689
+00:20:34,146 --> 00:20:35,476
+efficient manner?
+
+
+690
+00:20:36,996 --> 00:20:38,466
+We recommend using secure
+
+
+691
+00:20:38,466 --> 00:20:39,386
+delete=fast.
+
+
+692
+00:20:39,976 --> 00:20:41,306
+secure delete=fast is great.
+
+
+693
+00:20:41,856 --> 00:20:44,116
+It automatically zeroes deleted
+
+
+694
+00:20:44,116 --> 00:20:45,986
+data and there is no cost for
+
+
+695
+00:20:45,986 --> 00:20:47,186
+data that was in the same page
+
+
+696
+00:20:47,186 --> 00:20:48,156
+as the header file that we had
+
+
+697
+00:20:48,156 --> 00:20:49,256
+to modify to mark the data as
+
+
+698
+00:20:49,256 --> 00:20:49,696
+being free.
+
+
+699
+00:20:49,696 --> 00:20:51,766
+And it's also now the default
+
+
+700
+00:20:51,766 --> 00:20:53,336
+behavior for SQLite in the iOS
+
+
+701
+00:20:53,336 --> 00:20:53,786
+13.
+
+
+702
+00:20:54,716 --> 00:20:55,886
+If you need it for older builds
+
+
+703
+00:20:55,886 --> 00:20:58,366
+of iOS, please specify the
+
+
+704
+00:20:58,366 --> 00:21:00,516
+secure delete=fast pragma.
+
+
+705
+00:21:04,056 --> 00:21:05,056
+When it comes to managing the
+
+
+706
+00:21:05,056 --> 00:21:06,906
+size of our database files, we
+
+
+707
+00:21:06,906 --> 00:21:08,576
+highly recommend not using
+
+
+708
+00:21:08,576 --> 00:21:09,046
+VACUUM.
+
+
+709
+00:21:10,326 --> 00:21:12,716
+VACUUM is a very slow memory and
+
+
+710
+00:21:12,716 --> 00:21:13,996
+I/O intensive operation.
+
+
+711
+00:21:14,246 --> 00:21:15,376
+To better understand why let's
+
+
+712
+00:21:15,376 --> 00:21:17,276
+take a look at how VACUUM for
+
+
+713
+00:21:17,276 --> 00:21:18,346
+SQLite databases work.
+
+
+714
+00:21:18,346 --> 00:21:20,956
+So let's say we have a database
+
+
+715
+00:21:20,956 --> 00:21:21,936
+and we wanted to VACUUM out all
+
+
+716
+00:21:21,936 --> 00:21:22,596
+the free pages.
+
+
+717
+00:21:23,106 --> 00:21:24,896
+What happens is we end up
+
+
+718
+00:21:24,896 --> 00:21:26,426
+opening up a cache door to our
+
+
+719
+00:21:26,426 --> 00:21:27,786
+database, a journal file gets
+
+
+720
+00:21:27,786 --> 00:21:29,046
+created, then we end up
+
+
+721
+00:21:29,086 --> 00:21:31,096
+performing an SQLite dump from
+
+
+722
+00:21:31,096 --> 00:21:32,416
+the database to the journal file
+
+
+723
+00:21:32,936 --> 00:21:34,416
+copying all of the valid data
+
+
+724
+00:21:34,416 --> 00:21:35,916
+from our database to the journal
+
+
+725
+00:21:35,916 --> 00:21:36,236
+file.
+
+
+726
+00:21:37,676 --> 00:21:38,816
+Then later when it's time to
+
+
+727
+00:21:38,816 --> 00:21:40,596
+checkpoint the journal file, the
+
+
+728
+00:21:40,596 --> 00:21:42,056
+database gets truncated to the
+
+
+729
+00:21:42,056 --> 00:21:44,686
+size of the journal file and all
+
+
+730
+00:21:44,686 --> 00:21:46,226
+the data from the journal gets
+
+
+731
+00:21:46,226 --> 00:21:47,526
+reinserted back to the database.
+
+
+732
+00:21:48,516 --> 00:21:49,886
+And then when that's complete,
+
+
+733
+00:21:50,006 --> 00:21:51,396
+the journal file gets discarded.
+
+
+734
+00:21:54,076 --> 00:21:55,136
+As we can see, this is pretty
+
+
+735
+00:21:55,136 --> 00:21:56,686
+expensive as all of the valid
+
+
+736
+00:21:56,686 --> 00:21:57,706
+data we had in our database had
+
+
+737
+00:21:57,706 --> 00:21:58,946
+to be written at least twice,
+
+
+738
+00:21:59,146 --> 00:22:00,336
+once to the journal file and
+
+
+739
+00:22:00,336 --> 00:22:01,876
+then once again back into the
+
+
+740
+00:22:01,876 --> 00:22:02,366
+database.
+
+
+741
+00:22:02,956 --> 00:22:06,056
+And if the working side of the
+
+
+742
+00:22:06,056 --> 00:22:07,576
+database is too big to fit into
+
+
+743
+00:22:07,576 --> 00:22:09,726
+memory, SQLite actually has to
+
+
+744
+00:22:09,726 --> 00:22:11,416
+utilize spill files to help
+
+
+745
+00:22:11,416 --> 00:22:13,466
+manage the extra data until the
+
+
+746
+00:22:13,466 --> 00:22:14,506
+operation is complete.
+
+
+747
+00:22:18,236 --> 00:22:19,136
+Again, fortunately there's a
+
+
+748
+00:22:19,136 --> 00:22:20,466
+much more efficient alternative
+
+
+749
+00:22:20,826 --> 00:22:22,726
+in SQLite and in this case
+
+
+750
+00:22:22,946 --> 00:22:24,356
+that's auto vacuum=INCREMENTAL.
+
+
+751
+00:22:24,916 --> 00:22:26,596
+auto VACUUM incremental is great
+
+
+752
+00:22:26,596 --> 00:22:27,556
+because not only does it allow
+
+
+753
+00:22:27,556 --> 00:22:28,586
+us a more efficient way of
+
+
+754
+00:22:28,806 --> 00:22:29,966
+managing the size of the
+
+
+755
+00:22:29,966 --> 00:22:32,076
+database file, it lets us
+
+
+756
+00:22:32,076 --> 00:22:33,406
+specify the number of pages we
+
+
+757
+00:22:33,406 --> 00:22:34,346
+want to vacuum out of the
+
+
+758
+00:22:34,346 --> 00:22:36,446
+database providing an option for
+
+
+759
+00:22:36,446 --> 00:22:37,766
+leaving some free pages in the
+
+
+760
+00:22:37,766 --> 00:22:39,276
+database for future use.
+
+
+761
+00:22:43,216 --> 00:22:44,406
+Let's take a look at how auto
+
+
+762
+00:22:44,406 --> 00:22:46,766
+vacuum=INCREMENTAL works.
+
+
+763
+00:22:46,856 --> 00:22:48,636
+So in this example we're going
+
+
+764
+00:22:48,636 --> 00:22:49,546
+to vacuum out the two free
+
+
+765
+00:22:49,546 --> 00:22:49,966
+pages.
+
+
+766
+00:22:50,876 --> 00:22:52,066
+Whereas before we would have had
+
+
+767
+00:22:52,066 --> 00:22:53,296
+to move all of our data from the
+
+
+768
+00:22:53,296 --> 00:22:55,836
+database in the WAL file, for
+
+
+769
+00:22:55,986 --> 00:22:57,466
+incremental auto vacuum, all we
+
+
+770
+00:22:57,466 --> 00:22:59,496
+do is migrate two pages from the
+
+
+771
+00:22:59,496 --> 00:23:00,886
+end of the database into the
+
+
+772
+00:23:00,886 --> 00:23:04,066
+Write Ahead Log and any parent
+
+
+773
+00:23:04,066 --> 00:23:06,156
+nodes that get modified during
+
+
+774
+00:23:06,156 --> 00:23:07,576
+the rebalance of the database
+
+
+775
+00:23:07,576 --> 00:23:08,786
+tree also get written to the
+
+
+776
+00:23:08,786 --> 00:23:09,416
+Write Ahead Log.
+
+
+777
+00:23:10,356 --> 00:23:12,246
+Then, when the Write Ahead Log
+
+
+778
+00:23:12,246 --> 00:23:14,776
+gets checkpointed, the database
+
+
+779
+00:23:14,776 --> 00:23:16,126
+file itself gets truncated, the
+
+
+780
+00:23:16,126 --> 00:23:18,566
+pages we migrated from the end
+
+
+781
+00:23:18,566 --> 00:23:19,606
+of the database go to where the
+
+
+782
+00:23:19,606 --> 00:23:21,056
+free pages used to be, and any
+
+
+783
+00:23:21,056 --> 00:23:22,686
+updated parent nodes get written
+
+
+784
+00:23:22,686 --> 00:23:23,416
+to the database.
+
+
+785
+00:23:24,286 --> 00:23:25,386
+So as you can see, whereas
+
+
+786
+00:23:25,386 --> 00:23:26,466
+before we had to move all of our
+
+
+787
+00:23:26,466 --> 00:23:27,616
+data in and out of the database,
+
+
+788
+00:23:27,726 --> 00:23:29,056
+now we're simply modifying a
+
+
+789
+00:23:29,056 --> 00:23:30,576
+subset of the pages within the
+
+
+790
+00:23:30,576 --> 00:23:30,976
+database.
+
+
+791
+00:23:31,956 --> 00:23:33,146
+This is much more efficient.
+
+
+792
+00:23:34,476 --> 00:23:35,436
+There's all -- we highly
+
+
+793
+00:23:35,436 --> 00:23:37,726
+recommend using incremental auto
+
+
+794
+00:23:37,726 --> 00:23:39,426
+vacuum and fast secure delete to
+
+
+795
+00:23:39,426 --> 00:23:40,796
+manage both file size and
+
+
+796
+00:23:40,796 --> 00:23:42,006
+privacy for your SQLite
+
+
+797
+00:23:42,006 --> 00:23:42,546
+databases.
+
+
+798
+00:23:48,166 --> 00:23:48,946
+Partial indexes.
+
+
+799
+00:23:51,856 --> 00:23:52,686
+Indexes are great.
+
+
+800
+00:23:53,066 --> 00:23:54,686
+Indexes allow for faster ORDER
+
+
+801
+00:23:54,686 --> 00:23:56,356
+BY, GROUP BY, and WHERE clauses.
+
+
+802
+00:23:57,126 --> 00:23:58,366
+Unfortunately, they aren't free.
+
+
+803
+00:23:58,586 --> 00:23:59,416
+There's a certain amount of
+
+
+804
+00:23:59,416 --> 00:24:00,486
+overhead the database needs to
+
+
+805
+00:24:00,486 --> 00:24:01,876
+do to support these indexes.
+
+
+806
+00:24:02,576 --> 00:24:03,986
+And after we add more indexes,
+
+
+807
+00:24:04,256 --> 00:24:06,326
+each new write of data to the
+
+
+808
+00:24:06,326 --> 00:24:07,446
+database can become more
+
+
+809
+00:24:07,446 --> 00:24:07,966
+expensive.
+
+
+810
+00:24:09,656 --> 00:24:10,786
+Fortunately, there's a more
+
+
+811
+00:24:10,786 --> 00:24:11,686
+efficient alternative in the
+
+
+812
+00:24:11,686 --> 00:24:12,886
+form of partial indexes.
+
+
+813
+00:24:13,566 --> 00:24:14,806
+Partial indexes allow you to
+
+
+814
+00:24:14,806 --> 00:24:16,336
+describe where you'd want to pay
+
+
+815
+00:24:16,336 --> 00:24:17,796
+the price of your index using a
+
+
+816
+00:24:17,796 --> 00:24:19,846
+WHERE clause which is great
+
+
+817
+00:24:19,846 --> 00:24:21,686
+because now you can get the
+
+
+818
+00:24:21,686 --> 00:24:23,186
+benefits of an index when you
+
+
+819
+00:24:23,186 --> 00:24:25,236
+want it, but not -- but not
+
+
+820
+00:24:25,236 --> 00:24:26,296
+necessarily having to pay the
+
+
+821
+00:24:26,296 --> 00:24:27,556
+price of the index when it won't
+
+
+822
+00:24:27,556 --> 00:24:27,976
+do you any benefit.
+
+
+823
+00:24:33,526 --> 00:24:35,526
+So in summary for SQLite, please
+
+
+824
+00:24:36,796 --> 00:24:38,706
+keep database connections open
+
+
+825
+00:24:38,746 --> 00:24:41,436
+as long as possible.
+
+
+826
+00:24:41,526 --> 00:24:43,086
+Use WAL journaling mode instead
+
+
+827
+00:24:43,086 --> 00:24:44,706
+of delete journaling mode.
+
+
+828
+00:24:45,656 --> 00:24:47,216
+Whenever possible, use multiple
+
+
+829
+00:24:47,216 --> 00:24:48,626
+statements per transaction so
+
+
+830
+00:24:48,626 --> 00:24:50,536
+SQLite can do some optimizations
+
+
+831
+00:24:50,606 --> 00:24:51,686
+for us.
+
+
+832
+00:24:53,076 --> 00:24:54,416
+Use fast secure delete and auto
+
+
+833
+00:24:54,416 --> 00:24:56,116
+vacuum incremental to manage
+
+
+834
+00:24:56,166 --> 00:24:57,416
+both file size and privacy for
+
+
+835
+00:24:57,416 --> 00:24:58,166
+your databases.
+
+
+836
+00:24:59,346 --> 00:25:01,246
+And, when it's practical, use
+
+
+837
+00:25:01,286 --> 00:25:02,546
+partial indexes instead of
+
+
+838
+00:25:02,546 --> 00:25:03,206
+regular indexes.
+
+
+839
+00:25:04,726 --> 00:25:07,586
+And if you'd really rather not
+
+
+840
+00:25:07,836 --> 00:25:09,286
+worry about these details in
+
+
+841
+00:25:09,286 --> 00:25:11,066
+SQLite, we highly recommend just
+
+
+842
+00:25:11,066 --> 00:25:11,906
+using Core Data.
+
+
+843
+00:25:11,906 --> 00:25:13,226
+Core Data handles all this heavy
+
+
+844
+00:25:13,226 --> 00:25:15,806
+lifting for you and as Core Data
+
+
+845
+00:25:15,806 --> 00:25:17,206
+gets improved over time,
+
+
+846
+00:25:17,656 --> 00:25:19,246
+adopters of Core Data will also
+
+
+847
+00:25:19,246 --> 00:25:20,496
+get those benefits for free.
+
+
+848
+00:25:24,946 --> 00:25:26,756
+Next up Alejandro will show us
+
+
+849
+00:25:26,756 --> 00:25:28,036
+how we can use the updated File
+
+
+850
+00:25:28,036 --> 00:25:29,866
+Activity instrument and show us
+
+
+851
+00:25:29,866 --> 00:25:30,956
+real-world examples of how we
+
+
+852
+00:25:30,956 --> 00:25:32,686
+can profile and optimize I/O for
+
+
+853
+00:25:32,686 --> 00:25:32,956
+apps.
+
+
+854
+00:25:33,596 --> 00:25:33,946
+Alejandro.
+
+
+855
+00:25:34,516 --> 00:25:41,256
+[ Applause ]
+
+
+856
+00:25:41,756 --> 00:25:42,816
+>> All right thank you Kai.
+
+
+857
+00:25:43,216 --> 00:25:44,646
+And good morning everyone.
+
+
+858
+00:25:44,646 --> 00:25:45,596
+Thank you for attending this
+
+
+859
+00:25:45,596 --> 00:25:46,946
+session on optimizing storage.
+
+
+860
+00:25:47,796 --> 00:25:49,456
+What I'd like to do is talk
+
+
+861
+00:25:49,456 --> 00:25:50,536
+about some of the improvements
+
+
+862
+00:25:50,536 --> 00:25:51,696
+we've made to the File Activity
+
+
+863
+00:25:51,696 --> 00:25:53,216
+instrument to see how we can use
+
+
+864
+00:25:53,216 --> 00:25:55,036
+that to optimize storage in our
+
+
+865
+00:25:55,036 --> 00:25:55,156
+app.
+
+
+866
+00:25:55,906 --> 00:25:56,616
+So let's get started.
+
+
+867
+00:25:57,366 --> 00:25:58,606
+What changed with the File
+
+
+868
+00:25:58,606 --> 00:25:59,866
+Activity instrument?
+
+
+869
+00:26:00,776 --> 00:26:02,206
+Well, one of the first things we
+
+
+870
+00:26:02,206 --> 00:26:03,706
+did was we added support for all
+
+
+871
+00:26:03,706 --> 00:26:04,476
+Apple devices.
+
+
+872
+00:26:04,876 --> 00:26:05,786
+So this means you can have the
+
+
+873
+00:26:05,786 --> 00:26:07,026
+same uniform profiling
+
+
+874
+00:26:07,026 --> 00:26:08,636
+experience across your iOS
+
+
+875
+00:26:08,636 --> 00:26:11,426
+device, Mac, Watch, TV,
+
+
+876
+00:26:11,526 --> 00:26:11,976
+etcetera.
+
+
+877
+00:26:15,426 --> 00:26:16,406
+The File Activity instrument
+
+
+878
+00:26:16,406 --> 00:26:18,066
+also lets you support tracing
+
+
+879
+00:26:18,066 --> 00:26:18,846
+for not just your own
+
+
+880
+00:26:18,846 --> 00:26:20,176
+application but also for the
+
+
+881
+00:26:20,176 --> 00:26:22,126
+entire system so you can see how
+
+
+882
+00:26:22,126 --> 00:26:23,866
+your application behaves with
+
+
+883
+00:26:24,096 --> 00:26:25,856
+regards to the I/O subsystem
+
+
+884
+00:26:26,106 --> 00:26:27,736
+alone and how it interacts with
+
+
+885
+00:26:27,796 --> 00:26:28,986
+the rest of the system so you
+
+
+886
+00:26:28,986 --> 00:26:29,976
+can see different interactions
+
+
+887
+00:26:29,976 --> 00:26:30,316
+going on.
+
+
+888
+00:26:30,806 --> 00:26:34,156
+Next as Kai mentioned, there is
+
+
+889
+00:26:34,156 --> 00:26:35,496
+the distinction between logical
+
+
+890
+00:26:35,496 --> 00:26:36,286
+and physical I/O.
+
+
+891
+00:26:36,696 --> 00:26:37,616
+And understanding how they
+
+
+892
+00:26:37,616 --> 00:26:38,566
+interact with each other is
+
+
+893
+00:26:38,566 --> 00:26:40,346
+actually really important for --
+
+
+894
+00:26:40,346 --> 00:26:42,116
+to understand your I/O usage.
+
+
+895
+00:26:42,396 --> 00:26:43,526
+So the File Activity instrument
+
+
+896
+00:26:43,526 --> 00:26:44,786
+lets us see both of these
+
+
+897
+00:26:44,786 --> 00:26:45,156
+together.
+
+
+898
+00:26:45,686 --> 00:26:48,796
+And lastly, we also added
+
+
+899
+00:26:48,796 --> 00:26:50,176
+support for automated reasoning.
+
+
+900
+00:26:50,596 --> 00:26:51,856
+And the automated reasoning
+
+
+901
+00:26:51,856 --> 00:26:52,946
+comes in a variety of different
+
+
+902
+00:26:52,946 --> 00:26:54,186
+mechanisms, so I'd like to talk
+
+
+903
+00:26:54,186 --> 00:26:55,256
+about this very briefly.
+
+
+904
+00:26:55,736 --> 00:26:58,666
+First and foremost, one of the
+
+
+905
+00:26:58,666 --> 00:27:00,336
+automated reasoning anti-pattern
+
+
+906
+00:27:00,336 --> 00:27:01,346
+detections that we added was
+
+
+907
+00:27:01,346 --> 00:27:02,406
+actually that for excessive
+
+
+908
+00:27:02,406 --> 00:27:03,156
+physical rights.
+
+
+909
+00:27:03,596 --> 00:27:04,726
+So the File Activity instrument
+
+
+910
+00:27:04,726 --> 00:27:06,316
+will actually notify you while
+
+
+911
+00:27:06,316 --> 00:27:08,046
+you're tracing that it detected
+
+
+912
+00:27:08,046 --> 00:27:09,596
+some sort of excessive activity
+
+
+913
+00:27:09,796 --> 00:27:10,946
+in your application and you can
+
+
+914
+00:27:10,946 --> 00:27:12,366
+go in directly from instruments
+
+
+915
+00:27:12,366 --> 00:27:14,266
+and see what may have caused it.
+
+
+916
+00:27:16,396 --> 00:27:18,086
+We also added support for seeing
+
+
+917
+00:27:18,086 --> 00:27:19,706
+when certain I/O related system
+
+
+918
+00:27:19,706 --> 00:27:20,796
+calls that either you call
+
+
+919
+00:27:20,796 --> 00:27:22,176
+directly or maybe are called on
+
+
+920
+00:27:22,176 --> 00:27:23,116
+your behalf because of a
+
+
+921
+00:27:23,116 --> 00:27:24,606
+framework have failed.
+
+
+922
+00:27:24,606 --> 00:27:25,806
+And these are important to
+
+
+923
+00:27:25,806 --> 00:27:27,836
+understand, not just for I/O but
+
+
+924
+00:27:27,836 --> 00:27:28,906
+also for correctness in your
+
+
+925
+00:27:28,906 --> 00:27:29,336
+application.
+
+
+926
+00:27:29,926 --> 00:27:33,196
+And lastly, to Kai's points
+
+
+927
+00:27:33,196 --> 00:27:34,986
+about fsync and F control with F
+
+
+928
+00:27:34,986 --> 00:27:36,886
+FULLFSYNC, we also have a
+
+
+929
+00:27:36,886 --> 00:27:37,876
+mechanism for detecting
+
+
+930
+00:27:37,876 --> 00:27:39,686
+suboptimal caching so you can
+
+
+931
+00:27:39,686 --> 00:27:41,276
+see when your application might
+
+
+932
+00:27:41,276 --> 00:27:42,696
+be performing certain behaviors
+
+
+933
+00:27:42,946 --> 00:27:43,966
+that aren't making the best
+
+
+934
+00:27:43,966 --> 00:27:45,286
+utilization of the OS cache.
+
+
+935
+00:27:46,056 --> 00:27:46,946
+So let's get started with File
+
+
+936
+00:27:46,946 --> 00:27:48,226
+Activity instrument and see what
+
+
+937
+00:27:48,226 --> 00:27:49,546
+it looks like.
+
+
+938
+00:27:49,816 --> 00:27:50,996
+With Instruments 11, when we
+
+
+939
+00:27:50,996 --> 00:27:52,836
+open up the instruments, we see
+
+
+940
+00:27:52,836 --> 00:27:54,336
+the file activity still has
+
+
+941
+00:27:54,456 --> 00:27:55,856
+roughly the same icon but we get
+
+
+942
+00:27:55,856 --> 00:27:57,216
+a new string at the bottom which
+
+
+943
+00:27:57,216 --> 00:27:58,106
+kind of sums up what it's
+
+
+944
+00:27:58,106 --> 00:27:58,826
+capable of doing.
+
+
+945
+00:27:58,996 --> 00:28:00,906
+And if we go ahead and select
+
+
+946
+00:28:00,906 --> 00:28:02,466
+it, we're presented with some
+
+
+947
+00:28:02,466 --> 00:28:03,076
+new tracks.
+
+
+948
+00:28:03,856 --> 00:28:04,996
+First and foremost is the file
+
+
+949
+00:28:04,996 --> 00:28:06,166
+system suggestions track.
+
+
+950
+00:28:06,536 --> 00:28:07,986
+And this track is where all of
+
+
+951
+00:28:07,986 --> 00:28:08,926
+these anti-patterns and
+
+
+952
+00:28:08,926 --> 00:28:10,446
+automated reasoning suggestions
+
+
+953
+00:28:10,446 --> 00:28:11,706
+will live.
+
+
+954
+00:28:12,016 --> 00:28:13,186
+Directly beneath it we have file
+
+
+955
+00:28:13,186 --> 00:28:14,846
+system activity and the file
+
+
+956
+00:28:14,846 --> 00:28:16,076
+system activity will be broken
+
+
+957
+00:28:16,076 --> 00:28:17,236
+down for logical reads and
+
+
+958
+00:28:17,236 --> 00:28:19,006
+logical writes and it'll show
+
+
+959
+00:28:19,006 --> 00:28:20,306
+you a count of how many of these
+
+
+960
+00:28:20,306 --> 00:28:21,236
+operations happened.
+
+
+961
+00:28:21,596 --> 00:28:22,826
+And you're also able to see in
+
+
+962
+00:28:22,826 --> 00:28:24,376
+more depth how many calls were
+
+
+963
+00:28:24,376 --> 00:28:25,996
+made, who called them, and
+
+
+964
+00:28:25,996 --> 00:28:27,006
+certain other statistics.
+
+
+965
+00:28:27,906 --> 00:28:29,696
+Similarly, right beneath it is
+
+
+966
+00:28:29,696 --> 00:28:30,926
+disk usage where you can get the
+
+
+967
+00:28:30,926 --> 00:28:32,436
+same sort of read and write
+
+
+968
+00:28:32,436 --> 00:28:33,836
+distinction but for the physical
+
+
+969
+00:28:33,836 --> 00:28:34,156
+layer.
+
+
+970
+00:28:34,986 --> 00:28:36,756
+And lastly, the disk I/O latency
+
+
+971
+00:28:36,756 --> 00:28:38,116
+so we can see just how long
+
+
+972
+00:28:38,116 --> 00:28:39,436
+certain physical I/Os took.
+
+
+973
+00:28:40,296 --> 00:28:41,456
+So let's get started and I'll
+
+
+974
+00:28:41,456 --> 00:28:43,786
+refer back to this demo app.
+
+
+975
+00:28:43,786 --> 00:28:44,676
+And the first thing I'd like to
+
+
+976
+00:28:44,676 --> 00:28:46,286
+implement is actually favoriting
+
+
+977
+00:28:46,286 --> 00:28:46,936
+of photos.
+
+
+978
+00:28:47,416 --> 00:28:48,236
+So in the bottom right-hand
+
+
+979
+00:28:48,236 --> 00:28:49,446
+corner of each of these images
+
+
+980
+00:28:49,536 --> 00:28:50,896
+there's a star and what I'd like
+
+
+981
+00:28:50,896 --> 00:28:51,856
+to implement is being able to
+
+
+982
+00:28:51,856 --> 00:28:53,476
+select that star to consider an
+
+
+983
+00:28:53,476 --> 00:28:54,236
+image a favorite.
+
+
+984
+00:28:54,946 --> 00:28:56,376
+As an example, I can select a
+
+
+985
+00:28:56,376 --> 00:28:59,606
+banana slug as a favorite as
+
+
+986
+00:28:59,606 --> 00:29:00,536
+well as these skyscrapers.
+
+
+987
+00:29:00,536 --> 00:29:02,296
+And the very first approach that
+
+
+988
+00:29:02,296 --> 00:29:03,986
+I'll take is implementing this
+
+
+989
+00:29:03,986 --> 00:29:05,106
+by opening and closing the
+
+
+990
+00:29:05,106 --> 00:29:06,506
+database every time that we have
+
+
+991
+00:29:06,506 --> 00:29:07,076
+a favoriting.
+
+
+992
+00:29:07,736 --> 00:29:09,066
+Now Kai told us that this isn't
+
+
+993
+00:29:09,236 --> 00:29:10,566
+the best pattern but I still
+
+
+994
+00:29:10,566 --> 00:29:11,736
+think it's useful to get this
+
+
+995
+00:29:11,736 --> 00:29:12,946
+into a File Activity instrument
+
+
+996
+00:29:12,946 --> 00:29:14,456
+trace so we have a baseline and
+
+
+997
+00:29:14,456 --> 00:29:15,526
+we can see what sorts of things
+
+
+998
+00:29:15,526 --> 00:29:15,936
+are happening.
+
+
+999
+00:29:17,736 --> 00:29:19,546
+So here behind me I have exactly
+
+
+1000
+00:29:19,546 --> 00:29:19,826
+that.
+
+
+1001
+00:29:19,826 --> 00:29:21,456
+I ran the File Activity
+
+
+1002
+00:29:21,456 --> 00:29:22,616
+instrument against this same
+
+
+1003
+00:29:22,616 --> 00:29:24,136
+workload by opening and closing
+
+
+1004
+00:29:24,136 --> 00:29:25,296
+the database per operation.
+
+
+1005
+00:29:25,916 --> 00:29:26,926
+And the first track I'd like to
+
+
+1006
+00:29:26,926 --> 00:29:28,336
+focus on is disk usage because
+
+
+1007
+00:29:28,336 --> 00:29:29,366
+this is where all the physical
+
+
+1008
+00:29:29,366 --> 00:29:30,326
+I/O information will live.
+
+
+1009
+00:29:31,016 --> 00:29:32,966
+Here we see in the physical
+
+
+1010
+00:29:32,966 --> 00:29:34,376
+writes column or the physical
+
+
+1011
+00:29:34,376 --> 00:29:35,876
+writes row, we see the different
+
+
+1012
+00:29:35,876 --> 00:29:36,966
+amount of physical I/Os that
+
+
+1013
+00:29:36,966 --> 00:29:37,346
+happen.
+
+
+1014
+00:29:37,346 --> 00:29:38,926
+In this case in the tool tip
+
+
+1015
+00:29:38,926 --> 00:29:40,836
+text we have 54 for this
+
+
+1016
+00:29:40,836 --> 00:29:41,566
+particular column.
+
+
+1017
+00:29:42,186 --> 00:29:43,056
+But right beneath it is the
+
+
+1018
+00:29:43,056 --> 00:29:44,306
+detail view and the detail view
+
+
+1019
+00:29:44,306 --> 00:29:45,146
+is where all of the extra
+
+
+1020
+00:29:45,146 --> 00:29:46,256
+statistics will live so I'm
+
+
+1021
+00:29:46,256 --> 00:29:47,476
+going to go into here so we can
+
+
+1022
+00:29:47,476 --> 00:29:48,816
+see what sort of things we're
+
+
+1023
+00:29:49,456 --> 00:29:49,646
+getting.
+
+
+1024
+00:29:50,676 --> 00:29:52,786
+By zooming in I'd like to point
+
+
+1025
+00:29:52,786 --> 00:29:54,946
+out that for this workload of
+
+
+1026
+00:29:54,946 --> 00:29:57,006
+favoriting these photos with the
+
+
+1027
+00:29:57,006 --> 00:29:58,296
+opening and closing database per
+
+
+1028
+00:29:58,296 --> 00:30:00,426
+operation, we had 1,002
+
+
+1029
+00:30:00,426 --> 00:30:01,406
+different physical I/O
+
+
+1030
+00:30:01,406 --> 00:30:03,076
+operations totaling just under 6
+
+
+1031
+00:30:03,076 --> 00:30:03,976
+megabytes of total footprint.
+
+
+1032
+00:30:04,046 --> 00:30:06,466
+And this may not seem like that
+
+
+1033
+00:30:06,466 --> 00:30:07,666
+much but when we compare it to
+
+
+1034
+00:30:07,666 --> 00:30:08,546
+some of the other ones, we'll
+
+
+1035
+00:30:08,546 --> 00:30:09,606
+get a better understanding of
+
+
+1036
+00:30:09,666 --> 00:30:11,556
+why this is perhaps as bad as it
+
+
+1037
+00:30:11,556 --> 00:30:11,816
+is.
+
+
+1038
+00:30:12,816 --> 00:30:13,946
+So here we get some statistics
+
+
+1039
+00:30:13,946 --> 00:30:15,486
+about, you know, latency and
+
+
+1040
+00:30:15,486 --> 00:30:16,476
+average latencies as well.
+
+
+1041
+00:30:17,286 --> 00:30:18,476
+But I would like to switch back
+
+
+1042
+00:30:18,476 --> 00:30:20,356
+to the overall view because I
+
+
+1043
+00:30:20,356 --> 00:30:21,426
+also noticed that in the file
+
+
+1044
+00:30:21,426 --> 00:30:22,936
+system suggestions track, we do
+
+
+1045
+00:30:22,936 --> 00:30:24,476
+have some notifications that the
+
+
+1046
+00:30:24,476 --> 00:30:26,136
+instrument told us and I'd like
+
+
+1047
+00:30:26,136 --> 00:30:27,866
+to go into these as well so we
+
+
+1048
+00:30:27,866 --> 00:30:28,686
+can see just what happened.
+
+
+1049
+00:30:29,646 --> 00:30:31,026
+Again, at the bottom we have the
+
+
+1050
+00:30:31,026 --> 00:30:32,306
+detail view, and here the detail
+
+
+1051
+00:30:32,306 --> 00:30:33,846
+view in that count column is
+
+
+1052
+00:30:33,846 --> 00:30:35,466
+telling us that we had 12 total
+
+
+1053
+00:30:35,466 --> 00:30:36,356
+notifications.
+
+
+1054
+00:30:37,686 --> 00:30:39,576
+And if we go into that dropdown,
+
+
+1055
+00:30:39,656 --> 00:30:40,906
+we see that these notifications
+
+
+1056
+00:30:40,906 --> 00:30:42,296
+were precisely for excessive
+
+
+1057
+00:30:42,296 --> 00:30:43,076
+physical rights.
+
+
+1058
+00:30:43,706 --> 00:30:44,756
+And we know that opening and
+
+
+1059
+00:30:44,756 --> 00:30:45,876
+closing the database isn't
+
+
+1060
+00:30:45,876 --> 00:30:47,406
+necessarily a good thing and
+
+
+1061
+00:30:47,406 --> 00:30:48,266
+we're going to try different
+
+
+1062
+00:30:48,266 --> 00:30:49,526
+techniques so we can get this.
+
+
+1063
+00:30:49,816 --> 00:30:50,676
+But I like to start off with
+
+
+1064
+00:30:50,676 --> 00:30:51,776
+this baseline of 12
+
+
+1065
+00:30:51,776 --> 00:30:52,796
+notifications from the file
+
+
+1066
+00:30:52,796 --> 00:30:53,986
+system -- File Activity
+
+
+1067
+00:30:53,986 --> 00:30:54,376
+instrument.
+
+
+1068
+00:30:55,436 --> 00:30:58,686
+And lastly, I also want to talk
+
+
+1069
+00:30:58,686 --> 00:31:00,066
+about the actual file system
+
+
+1070
+00:31:00,066 --> 00:31:01,786
+activity track where we can see
+
+
+1071
+00:31:01,786 --> 00:31:02,986
+statistics about which
+
+
+1072
+00:31:02,986 --> 00:31:04,526
+operations were called such as
+
+
+1073
+00:31:04,526 --> 00:31:05,896
+writes and reads and so forth,
+
+
+1074
+00:31:06,506 --> 00:31:08,946
+but also in this table here we
+
+
+1075
+00:31:08,946 --> 00:31:10,126
+get different views of the
+
+
+1076
+00:31:10,126 --> 00:31:11,056
+logical I/Os that our
+
+
+1077
+00:31:11,056 --> 00:31:11,826
+application did.
+
+
+1078
+00:31:12,346 --> 00:31:13,286
+Here are the default is file
+
+
+1079
+00:31:13,286 --> 00:31:14,556
+system statistics but we can
+
+
+1080
+00:31:14,556 --> 00:31:16,176
+also go down to file descriptor
+
+
+1081
+00:31:16,516 --> 00:31:17,446
+information as well.
+
+
+1082
+00:31:21,046 --> 00:31:22,056
+All right so with that in mind,
+
+
+1083
+00:31:22,346 --> 00:31:23,556
+now I want to go and switch to a
+
+
+1084
+00:31:23,556 --> 00:31:24,796
+different model which is opening
+
+
+1085
+00:31:24,796 --> 00:31:25,926
+and closing the database as
+
+
+1086
+00:31:25,966 --> 00:31:26,276
+needed.
+
+
+1087
+00:31:27,106 --> 00:31:28,486
+Specifically I'll go back into
+
+
+1088
+00:31:28,486 --> 00:31:29,926
+the disk usage detail view and
+
+
+1089
+00:31:30,576 --> 00:31:31,536
+the first thing that I'd like to
+
+
+1090
+00:31:31,616 --> 00:31:33,246
+point out is we're down from
+
+
+1091
+00:31:33,246 --> 00:31:35,526
+1,002 physical I/O operations
+
+
+1092
+00:31:35,526 --> 00:31:37,736
+down to 54 and we're down from
+
+
+1093
+00:31:37,736 --> 00:31:39,196
+just under 6 megabytes of disk
+
+
+1094
+00:31:39,196 --> 00:31:41,976
+footprint to 288 kilobytes which
+
+
+1095
+00:31:41,976 --> 00:31:43,336
+is quite a significant win and
+
+
+1096
+00:31:43,336 --> 00:31:44,866
+this was simply just by changing
+
+
+1097
+00:31:44,866 --> 00:31:46,686
+the usage model of when we open
+
+
+1098
+00:31:46,686 --> 00:31:47,846
+and close our database.
+
+
+1099
+00:31:49,306 --> 00:31:51,266
+Furthermore, focusing again on
+
+
+1100
+00:31:51,266 --> 00:31:52,976
+file system suggestions, we
+
+
+1101
+00:31:52,976 --> 00:31:54,636
+started off with 12 in the
+
+
+1102
+00:31:54,636 --> 00:31:56,506
+previous version of doing this
+
+
+1103
+00:31:57,886 --> 00:31:58,886
+but now we're down to 3.
+
+
+1104
+00:31:59,356 --> 00:32:00,566
+And while this still isn't the
+
+
+1105
+00:32:00,566 --> 00:32:02,046
+ideal case, we are making
+
+
+1106
+00:32:02,046 --> 00:32:02,586
+progress.
+
+
+1107
+00:32:02,586 --> 00:32:03,776
+And as we implement different
+
+
+1108
+00:32:03,776 --> 00:32:05,396
+behavior such as journaling,
+
+
+1109
+00:32:05,396 --> 00:32:06,386
+we'll see this number change.
+
+
+1110
+00:32:07,896 --> 00:32:09,536
+Speaking of which, let's start
+
+
+1111
+00:32:09,536 --> 00:32:10,386
+with Delete Mode Journaling.
+
+
+1112
+00:32:10,616 --> 00:32:11,566
+Now as Kai mentioned, Delete
+
+
+1113
+00:32:11,566 --> 00:32:12,686
+Mode Journaling is the default
+
+
+1114
+00:32:12,686 --> 00:32:15,126
+for SQLite and so this
+
+
+1115
+00:32:15,126 --> 00:32:16,566
+statistics page that I have here
+
+
+1116
+00:32:16,566 --> 00:32:17,966
+is actually the same exact one
+
+
+1117
+00:32:17,966 --> 00:32:18,996
+that I showed where we were
+
+
+1118
+00:32:18,996 --> 00:32:20,176
+opening and closing the database
+
+
+1119
+00:32:20,176 --> 00:32:20,726
+as needed.
+
+
+1120
+00:32:21,026 --> 00:32:22,866
+So I won't show the entire trace
+
+
+1121
+00:32:22,866 --> 00:32:24,306
+again but I do want to recall
+
+
+1122
+00:32:24,306 --> 00:32:24,796
+the numbers.
+
+
+1123
+00:32:25,106 --> 00:32:26,716
+54 physical I/O operations
+
+
+1124
+00:32:26,716 --> 00:32:28,196
+totaling 288 kilobytes.
+
+
+1125
+00:32:31,046 --> 00:32:32,096
+But when we switch to a model
+
+
+1126
+00:32:32,096 --> 00:32:33,306
+that uses WAL Mode Journaling
+
+
+1127
+00:32:33,446 --> 00:32:34,186
+there are some interesting
+
+
+1128
+00:32:34,186 --> 00:32:35,176
+observations that I'd like to
+
+
+1129
+00:32:35,176 --> 00:32:36,206
+point out.
+
+
+1130
+00:32:36,956 --> 00:32:38,576
+First and foremost is that now
+
+
+1131
+00:32:38,576 --> 00:32:40,506
+we have zero suggestions on the
+
+
+1132
+00:32:40,506 --> 00:32:41,716
+file systems suggestions track.
+
+
+1133
+00:32:42,316 --> 00:32:44,026
+We started at 12, ended up at 3,
+
+
+1134
+00:32:44,026 --> 00:32:45,306
+and now we're at zero so this is
+
+
+1135
+00:32:45,356 --> 00:32:46,536
+very significant gains that
+
+
+1136
+00:32:46,536 --> 00:32:48,276
+we're making by simply adopting
+
+
+1137
+00:32:48,276 --> 00:32:49,126
+the WAL Mode Journaling.
+
+
+1138
+00:32:50,326 --> 00:32:51,856
+And secondly, this is the
+
+
+1139
+00:32:51,856 --> 00:32:53,246
+interaction between the logical
+
+
+1140
+00:32:53,246 --> 00:32:54,406
+and physical I/O that I'd also
+
+
+1141
+00:32:54,406 --> 00:32:54,996
+like to point out.
+
+
+1142
+00:32:55,676 --> 00:32:57,346
+Specifically, here in the file
+
+
+1143
+00:32:57,346 --> 00:32:58,976
+system activity track we see a
+
+
+1144
+00:32:58,976 --> 00:33:00,636
+lot of logical I/Os happening,
+
+
+1145
+00:33:00,636 --> 00:33:02,916
+but we don't get a physical I/O
+
+
+1146
+00:33:02,916 --> 00:33:04,516
+until we stop the trace of the
+
+
+1147
+00:33:04,516 --> 00:33:05,136
+application.
+
+
+1148
+00:33:05,786 --> 00:33:06,816
+And why is this significant?
+
+
+1149
+00:33:07,296 --> 00:33:08,486
+Well when we compare it to what
+
+
+1150
+00:33:08,486 --> 00:33:09,936
+we had previously with the
+
+
+1151
+00:33:09,936 --> 00:33:12,706
+Delete Mode Journaling, notice
+
+
+1152
+00:33:12,706 --> 00:33:13,666
+how in Delete Mode Journaling
+
+
+1153
+00:33:13,666 --> 00:33:14,726
+every time that we had file
+
+
+1154
+00:33:14,726 --> 00:33:16,436
+system activity, so logical I/O,
+
+
+1155
+00:33:16,656 --> 00:33:17,786
+we also had a corresponding
+
+
+1156
+00:33:17,786 --> 00:33:18,986
+physical I/O to go with it.
+
+
+1157
+00:33:19,516 --> 00:33:20,766
+Whereas with WAL Mode Journaling
+
+
+1158
+00:33:20,766 --> 00:33:22,256
+it's making really great use of
+
+
+1159
+00:33:22,256 --> 00:33:23,496
+the OS cache and getting us a
+
+
+1160
+00:33:23,496 --> 00:33:24,446
+lot of great performance
+
+
+1161
+00:33:24,446 --> 00:33:25,246
+benefits.
+
+
+1162
+00:33:26,476 --> 00:33:27,646
+To see this in a little more
+
+
+1163
+00:33:27,646 --> 00:33:28,896
+detail we can go into that file
+
+
+1164
+00:33:28,896 --> 00:33:30,616
+system activity track again and
+
+
+1165
+00:33:30,616 --> 00:33:31,706
+focus on the detail view.
+
+
+1166
+00:33:32,946 --> 00:33:34,216
+With WAL Mode journaling we only
+
+
+1167
+00:33:34,216 --> 00:33:35,866
+had a single fsync call whereas
+
+
+1168
+00:33:36,026 --> 00:33:37,426
+with Delete Mode Journaling we
+
+
+1169
+00:33:37,426 --> 00:33:38,916
+were all the way up to 16.
+
+
+1170
+00:33:39,746 --> 00:33:41,286
+So WAL Mode is definitely making
+
+
+1171
+00:33:41,286 --> 00:33:42,796
+a lot of great use of the OS
+
+
+1172
+00:33:42,796 --> 00:33:42,916
+cache.
+
+
+1173
+00:33:46,416 --> 00:33:47,496
+Now the next thing I'd like to
+
+
+1174
+00:33:47,496 --> 00:33:48,756
+talk about is how we're going to
+
+
+1175
+00:33:48,756 --> 00:33:50,146
+implement deleting of photos.
+
+
+1176
+00:33:50,146 --> 00:33:51,056
+We talked about favoriting, but
+
+
+1177
+00:33:51,056 --> 00:33:52,126
+we also want a way to remove
+
+
+1178
+00:33:52,126 --> 00:33:53,656
+photos from the application.
+
+
+1179
+00:33:54,516 --> 00:33:55,736
+And the first approach that
+
+
+1180
+00:33:55,736 --> 00:33:56,676
+we'll talk about is actually
+
+
+1181
+00:33:56,676 --> 00:33:57,496
+using what's called single
+
+
+1182
+00:33:57,496 --> 00:33:58,586
+statement transactions and Kai
+
+
+1183
+00:33:58,586 --> 00:33:59,406
+mentioned this as well.
+
+
+1184
+00:34:00,406 --> 00:34:01,526
+Specifically, when we want to
+
+
+1185
+00:34:01,526 --> 00:34:02,786
+select a photo for deletion,
+
+
+1186
+00:34:02,786 --> 00:34:03,736
+we'll select the checkmark at
+
+
+1187
+00:34:03,736 --> 00:34:05,326
+the bottom left corner, and
+
+
+1188
+00:34:05,326 --> 00:34:06,886
+we'll issue a delete query to
+
+
+1189
+00:34:06,886 --> 00:34:08,085
+the database.
+
+
+1190
+00:34:08,156 --> 00:34:09,016
+Now we could think of this as a
+
+
+1191
+00:34:09,016 --> 00:34:10,186
+single statement transaction
+
+
+1192
+00:34:10,186 --> 00:34:11,606
+because we're executing this
+
+
+1193
+00:34:11,606 --> 00:34:13,366
+delete query per photo and we're
+
+
+1194
+00:34:13,366 --> 00:34:14,856
+not doing any sort of coalescing
+
+
+1195
+00:34:14,856 --> 00:34:17,485
+on our own.
+
+
+1196
+00:34:17,746 --> 00:34:18,626
+With this model here's the
+
+
+1197
+00:34:18,626 --> 00:34:19,726
+single statement transaction
+
+
+1198
+00:34:19,726 --> 00:34:21,255
+approach and we do have some
+
+
+1199
+00:34:21,255 --> 00:34:22,576
+file system activity to point
+
+
+1200
+00:34:22,576 --> 00:34:23,856
+out as well as some disk usage.
+
+
+1201
+00:34:24,596 --> 00:34:26,186
+But one thing to focus on is
+
+
+1202
+00:34:26,186 --> 00:34:27,985
+with this approach we had 111
+
+
+1203
+00:34:28,065 --> 00:34:29,446
+different file system operations
+
+
+1204
+00:34:29,946 --> 00:34:32,565
+and going over to the disk usage
+
+
+1205
+00:34:32,565 --> 00:34:34,856
+track we had 12 writes for a
+
+
+1206
+00:34:34,856 --> 00:34:36,335
+total of 72 kilobytes of total
+
+
+1207
+00:34:36,335 --> 00:34:36,726
+footprint.
+
+
+1208
+00:34:37,096 --> 00:34:40,835
+Next, I'd like to talk about
+
+
+1209
+00:34:40,835 --> 00:34:42,106
+multiple statement transactions
+
+
+1210
+00:34:42,106 --> 00:34:43,556
+and this is by taking the idea
+
+
+1211
+00:34:43,556 --> 00:34:45,166
+that each of these photos, even
+
+
+1212
+00:34:45,166 --> 00:34:46,726
+from a logical perspective, we
+
+
+1213
+00:34:46,726 --> 00:34:48,106
+don't want to delete these
+
+
+1214
+00:34:48,106 --> 00:34:49,505
+photos one at a time.
+
+
+1215
+00:34:49,536 --> 00:34:50,636
+Logically we want to get them
+
+
+1216
+00:34:50,636 --> 00:34:52,456
+all deleted at the same time and
+
+
+1217
+00:34:52,456 --> 00:34:53,585
+we have an analog for this
+
+
+1218
+00:34:53,585 --> 00:34:55,545
+within SQLite by merging all
+
+
+1219
+00:34:55,545 --> 00:34:56,876
+these delete statements into one
+
+
+1220
+00:34:56,876 --> 00:34:57,456
+transaction.
+
+
+1221
+00:34:57,736 --> 00:34:58,746
+So we have multiple statements
+
+
+1222
+00:34:58,746 --> 00:34:59,626
+in a single transaction.
+
+
+1223
+00:35:00,456 --> 00:35:02,586
+And if we do this, we're down to
+
+
+1224
+00:35:02,586 --> 00:35:04,266
+37 file system operations.
+
+
+1225
+00:35:04,266 --> 00:35:05,296
+So we're doing significantly
+
+
+1226
+00:35:05,296 --> 00:35:07,616
+less work but in addition to
+
+
+1227
+00:35:07,616 --> 00:35:09,146
+that if we look at the disk
+
+
+1228
+00:35:09,146 --> 00:35:12,076
+usage we're down to 4 total
+
+
+1229
+00:35:12,076 --> 00:35:14,046
+writes and 24 kilobytes of
+
+
+1230
+00:35:14,046 --> 00:35:14,496
+footprint.
+
+
+1231
+00:35:14,496 --> 00:35:17,596
+Looking at these side by side,
+
+
+1232
+00:35:18,186 --> 00:35:19,856
+we started with 111 for single
+
+
+1233
+00:35:19,856 --> 00:35:21,016
+statement transactions of total
+
+
+1234
+00:35:21,016 --> 00:35:22,756
+file system activity, we're down
+
+
+1235
+00:35:22,756 --> 00:35:24,656
+to 37 with multiple statement
+
+
+1236
+00:35:24,656 --> 00:35:25,226
+transactions.
+
+
+1237
+00:35:26,266 --> 00:35:27,056
+And looking to how this
+
+
+1238
+00:35:27,056 --> 00:35:28,506
+translates to actual physical
+
+
+1239
+00:35:28,506 --> 00:35:31,016
+disk usage, we started at 12
+
+
+1240
+00:35:31,016 --> 00:35:33,316
+writes totaling 72 kilobytes and
+
+
+1241
+00:35:33,316 --> 00:35:34,486
+now we're down to 4 writes
+
+
+1242
+00:35:34,486 --> 00:35:35,816
+totaling 24 kilobytes with
+
+
+1243
+00:35:35,816 --> 00:35:36,966
+multiple statement transactions.
+
+
+1244
+00:35:37,226 --> 00:35:40,006
+And while we're on the topic of
+
+
+1245
+00:35:40,006 --> 00:35:41,596
+deleting, we should also mention
+
+
+1246
+00:35:41,596 --> 00:35:42,606
+vacuuming because we want to
+
+
+1247
+00:35:42,606 --> 00:35:44,046
+keep our database compressed or,
+
+
+1248
+00:35:44,126 --> 00:35:45,236
+you know, compact as possible.
+
+
+1249
+00:35:45,926 --> 00:35:46,966
+And we'll start off with a full
+
+
+1250
+00:35:46,966 --> 00:35:47,416
+vacuum.
+
+
+1251
+00:35:47,956 --> 00:35:49,036
+In this case we'll be issuing a
+
+
+1252
+00:35:49,036 --> 00:35:50,726
+vacuum statement every time that
+
+
+1253
+00:35:50,726 --> 00:35:51,566
+we issue a delete.
+
+
+1254
+00:35:52,116 --> 00:35:53,166
+And Kai told us that full
+
+
+1255
+00:35:53,166 --> 00:35:54,916
+vacuuming isn't the most optimal
+
+
+1256
+00:35:54,916 --> 00:35:56,316
+way of doing it, but we can see
+
+
+1257
+00:35:56,316 --> 00:35:57,586
+how this exactly works within
+
+
+1258
+00:35:57,586 --> 00:35:58,696
+the File Activity instrument.
+
+
+1259
+00:35:59,756 --> 00:36:01,896
+Specifically, by doing this we
+
+
+1260
+00:36:01,896 --> 00:36:04,116
+have a total of 27 different I/O
+
+
+1261
+00:36:04,116 --> 00:36:05,766
+operations totaling 168
+
+
+1262
+00:36:05,766 --> 00:36:06,796
+kilobytes by issuing a full
+
+
+1263
+00:36:06,796 --> 00:36:10,476
+vacuum, but if we switch this
+
+
+1264
+00:36:10,476 --> 00:36:11,956
+over to using incremental
+
+
+1265
+00:36:11,956 --> 00:36:14,206
+vacuum, we have some different
+
+
+1266
+00:36:14,206 --> 00:36:14,776
+numbers.
+
+
+1267
+00:36:15,356 --> 00:36:17,416
+We have 12 total I/O operations
+
+
+1268
+00:36:17,496 --> 00:36:18,926
+for 72 kilobytes of total
+
+
+1269
+00:36:18,926 --> 00:36:19,336
+footprint.
+
+
+1270
+00:36:22,556 --> 00:36:23,616
+Again, looking at these side by
+
+
+1271
+00:36:23,616 --> 00:36:26,256
+side, we're down from 27 I/O
+
+
+1272
+00:36:26,256 --> 00:36:27,556
+operations with a full vacuum
+
+
+1273
+00:36:27,656 --> 00:36:29,216
+down to 12 by using incremental
+
+
+1274
+00:36:29,216 --> 00:36:32,566
+vacuum and from 168K of total
+
+
+1275
+00:36:32,566 --> 00:36:34,216
+disk footprint for the full
+
+
+1276
+00:36:34,216 --> 00:36:35,296
+vacuum down to 72.
+
+
+1277
+00:36:35,296 --> 00:36:37,166
+So it's pretty significant gains
+
+
+1278
+00:36:37,166 --> 00:36:38,226
+that we're making by adopting
+
+
+1279
+00:36:38,226 --> 00:36:39,296
+these sorts of patterns within
+
+
+1280
+00:36:39,326 --> 00:36:39,736
+SQLite.
+
+
+1281
+00:36:43,916 --> 00:36:45,126
+So what I'd like to do now is
+
+
+1282
+00:36:45,126 --> 00:36:46,826
+sort of summarize and one of the
+
+
+1283
+00:36:46,826 --> 00:36:48,636
+first points is we want you to
+
+
+1284
+00:36:48,636 --> 00:36:49,746
+apply these lessons, whether
+
+
+1285
+00:36:49,746 --> 00:36:51,936
+you're using Core Data or SQLite
+
+
+1286
+00:36:51,936 --> 00:36:53,476
+or plist and so forth, we want
+
+
+1287
+00:36:53,476 --> 00:36:55,336
+you to apply these lessons but
+
+
+1288
+00:36:55,336 --> 00:36:56,166
+don't just apply them.
+
+
+1289
+00:36:56,166 --> 00:36:57,886
+We also want you to verify them
+
+
+1290
+00:36:57,916 --> 00:36:58,736
+with the File Activity
+
+
+1291
+00:36:58,736 --> 00:36:59,146
+instrument.
+
+
+1292
+00:36:59,666 --> 00:37:00,676
+Now the File Activity instrument
+
+
+1293
+00:37:00,676 --> 00:37:01,826
+may be able to help you by
+
+
+1294
+00:37:01,826 --> 00:37:03,606
+proving these points but also
+
+
+1295
+00:37:03,606 --> 00:37:04,396
+you may have some other
+
+
+1296
+00:37:04,396 --> 00:37:05,626
+suggestions that you don't even
+
+
+1297
+00:37:05,626 --> 00:37:06,886
+know about and perhaps the File
+
+
+1298
+00:37:06,886 --> 00:37:08,286
+Activity instrument can help
+
+
+1299
+00:37:08,286 --> 00:37:09,586
+bring those into vision for you
+
+
+1300
+00:37:09,586 --> 00:37:10,496
+and help you notice them.
+
+
+1301
+00:37:12,146 --> 00:37:14,066
+And with that in mind, we also
+
+
+1302
+00:37:14,066 --> 00:37:15,116
+want you to continue optimizing
+
+
+1303
+00:37:15,116 --> 00:37:15,546
+storage.
+
+
+1304
+00:37:15,886 --> 00:37:17,336
+There's a lot more than just
+
+
+1305
+00:37:17,336 --> 00:37:18,436
+meets the eye and we hope that
+
+
+1306
+00:37:18,436 --> 00:37:19,406
+with these lessons and with the
+
+
+1307
+00:37:19,406 --> 00:37:20,746
+tools that we're providing it
+
+
+1308
+00:37:20,746 --> 00:37:21,896
+could be a great experience for
+
+
+1309
+00:37:21,896 --> 00:37:22,196
+everyone.
+
+
+1310
+00:37:24,516 --> 00:37:25,546
+For more information we have a
+
+
+1311
+00:37:25,546 --> 00:37:27,226
+lab later on today for
+
+
+1312
+00:37:27,226 --> 00:37:28,716
+performance and we also had a
+
+
+1313
+00:37:28,716 --> 00:37:30,866
+session this year at WWDC '19
+
+
+1314
+00:37:31,116 --> 00:37:32,256
+for making apps with Core Data
+
+
+1315
+00:37:32,256 --> 00:37:33,106
+if you'd like to learn a little
+
+
+1316
+00:37:33,106 --> 00:37:34,486
+bit more about how exactly to
+
+
+1317
+00:37:34,486 --> 00:37:34,976
+adopt this.
+
+
+1318
+00:37:37,376 --> 00:37:38,326
+Thank you everyone for
+
+
+1319
+00:37:38,326 --> 00:37:38,676
+attending.
+
+
+1320
+00:37:38,676 --> 00:37:39,626
+Enjoy the rest of the session.
+
+
+1321
+00:37:40,516 --> 00:37:43,500
+[ Applause ]
+

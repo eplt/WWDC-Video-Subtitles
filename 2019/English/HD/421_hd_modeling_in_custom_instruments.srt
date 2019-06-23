@@ -1,0 +1,7689 @@
+1
+00:00:00,506 --> 00:00:05,500
+[ Music ]
+
+
+2
+00:00:10,441 --> 00:00:12,441
+[ Applause ]
+
+
+3
+00:00:12,866 --> 00:00:13,956
+>> Thank you.
+
+
+4
+00:00:16,196 --> 00:00:17,126
+Alright, good afternoon.
+
+
+5
+00:00:17,356 --> 00:00:18,316
+My name is Chad Woolf.
+
+
+6
+00:00:18,316 --> 00:00:19,636
+I'm a performance tools engineer
+
+
+7
+00:00:19,636 --> 00:00:20,706
+for Apple and this is session
+
+
+8
+00:00:20,706 --> 00:00:22,506
+421, we'll talk about modeling
+
+
+9
+00:00:23,076 --> 00:00:24,286
+in Custom Instruments.
+
+
+10
+00:00:24,946 --> 00:00:25,876
+Now, within the Custom
+
+
+11
+00:00:25,876 --> 00:00:26,876
+Instruments Architecture,
+
+
+12
+00:00:27,296 --> 00:00:28,526
+modeling is done by this piece
+
+
+13
+00:00:28,526 --> 00:00:29,396
+in the middle here called a
+
+
+14
+00:00:29,396 --> 00:00:30,956
+modeler, and the modeler's job
+
+
+15
+00:00:30,956 --> 00:00:32,906
+is really to reason about the
+
+
+16
+00:00:32,906 --> 00:00:33,706
+raw events that are being
+
+
+17
+00:00:33,706 --> 00:00:34,536
+recorded by the operating
+
+
+18
+00:00:34,536 --> 00:00:35,536
+system, perform some
+
+
+19
+00:00:35,536 --> 00:00:36,746
+transformations, and create the
+
+
+20
+00:00:36,746 --> 00:00:38,516
+displayable events or the input
+
+
+21
+00:00:38,516 --> 00:00:40,206
+to another modeler for
+
+
+22
+00:00:40,336 --> 00:00:41,746
+instruments in the Air
+
+
+23
+00:00:41,746 --> 00:00:42,326
+Instruments UI.
+
+
+24
+00:00:42,966 --> 00:00:44,296
+Now, this architecture was
+
+
+25
+00:00:44,386 --> 00:00:46,366
+covered in its entirety in our
+
+
+26
+00:00:46,366 --> 00:00:48,126
+2018 session, Creating Custom
+
+
+27
+00:00:48,126 --> 00:00:48,586
+Instruments.
+
+
+28
+00:00:49,136 --> 00:00:49,936
+So in this session, what we're
+
+
+29
+00:00:49,936 --> 00:00:51,316
+going to do really is just take
+
+
+30
+00:00:51,316 --> 00:00:52,926
+sort of a spotlight focus on
+
+
+31
+00:00:52,926 --> 00:00:53,906
+this piece in the middle, called
+
+
+32
+00:00:53,906 --> 00:00:54,346
+a modeler.
+
+
+33
+00:00:55,306 --> 00:00:56,526
+Now modelers are important to
+
+
+34
+00:00:56,526 --> 00:00:57,916
+all of our instruments including
+
+
+35
+00:00:58,206 --> 00:00:59,936
+the Time Profiler up here.
+
+
+36
+00:01:00,646 --> 00:01:02,016
+Now in the Time Profiler, the
+
+
+37
+00:01:02,016 --> 00:01:03,236
+data that you're seeing
+
+
+38
+00:01:03,296 --> 00:01:04,436
+presented in the UI is not
+
+
+39
+00:01:04,436 --> 00:01:05,495
+exactly the same as being
+
+
+40
+00:01:05,495 --> 00:01:06,956
+recorded by the kernel.
+
+
+41
+00:01:07,576 --> 00:01:08,956
+We use a modeler to do some
+
+
+42
+00:01:08,956 --> 00:01:09,626
+transforms.
+
+
+43
+00:01:10,206 --> 00:01:11,446
+So now when the kernel takes a
+
+
+44
+00:01:11,446 --> 00:01:12,666
+sample of what your thread is
+
+
+45
+00:01:12,666 --> 00:01:15,096
+doing, it creates or captures
+
+
+46
+00:01:15,096 --> 00:01:15,906
+what's called a primitive
+
+
+47
+00:01:15,906 --> 00:01:17,946
+backtrace, and it puts that into
+
+
+48
+00:01:17,946 --> 00:01:19,996
+the time sample table, which is
+
+
+49
+00:01:19,996 --> 00:01:21,056
+then picked up by the Time
+
+
+50
+00:01:21,056 --> 00:01:23,126
+Profiler modeler, which is then
+
+
+51
+00:01:23,126 --> 00:01:24,086
+transformed into a more
+
+
+52
+00:01:24,086 --> 00:01:25,076
+displayable form of the
+
+
+53
+00:01:25,076 --> 00:01:26,756
+backtrace, which goes into the
+
+
+54
+00:01:26,756 --> 00:01:28,906
+Time Profiler table, which is
+
+
+55
+00:01:28,906 --> 00:01:30,006
+ultimately viewed by the Time
+
+
+56
+00:01:30,006 --> 00:01:30,786
+Profiler instrument.
+
+
+57
+00:01:31,236 --> 00:01:32,476
+Now, the reason we do this is
+
+
+58
+00:01:32,476 --> 00:01:33,526
+because it's a lot simpler and
+
+
+59
+00:01:33,526 --> 00:01:34,906
+thus more efficient to capture
+
+
+60
+00:01:34,906 --> 00:01:36,886
+these primitive backtraces, and
+
+
+61
+00:01:36,946 --> 00:01:38,106
+then we can fix them up in user
+
+
+62
+00:01:38,106 --> 00:01:39,386
+space later inside of our
+
+
+63
+00:01:39,386 --> 00:01:41,016
+modeler and therefore we keep
+
+
+64
+00:01:41,016 --> 00:01:42,086
+that recording side in the
+
+
+65
+00:01:42,086 --> 00:01:42,936
+kernel very efficient.
+
+
+66
+00:01:43,686 --> 00:01:44,856
+Now, another kind of
+
+
+67
+00:01:45,336 --> 00:01:46,406
+optimization that's made by the
+
+
+68
+00:01:46,406 --> 00:01:48,886
+kernel is if the kernel samples
+
+
+69
+00:01:48,886 --> 00:01:50,336
+a thread that it knows hasn't
+
+
+70
+00:01:50,336 --> 00:01:51,756
+moved since the last time it
+
+
+71
+00:01:51,756 --> 00:01:53,366
+samples it, instead of taking a
+
+
+72
+00:01:53,366 --> 00:01:55,296
+full back trace, it just puts a
+
+
+73
+00:01:55,296 --> 00:01:57,006
+placeholder backtrace into the
+
+
+74
+00:01:57,006 --> 00:01:59,006
+time sample table and then our
+
+
+75
+00:01:59,006 --> 00:02:00,606
+time profiler modeler picks that
+
+
+76
+00:02:00,606 --> 00:02:02,426
+up, takes the last known
+
+
+77
+00:02:02,426 --> 00:02:04,336
+backtrace for that, and
+
+
+78
+00:02:04,336 --> 00:02:05,596
+replicates that into the Time
+
+
+79
+00:02:05,596 --> 00:02:07,246
+Profile table that's viewed by
+
+
+80
+00:02:07,246 --> 00:02:07,766
+the Instrument.
+
+
+81
+00:02:08,346 --> 00:02:09,756
+Now, this does two things.
+
+
+82
+00:02:09,756 --> 00:02:11,476
+It saves a ton of space in the
+
+
+83
+00:02:11,476 --> 00:02:12,506
+kernel's recording buffer,
+
+
+84
+00:02:12,506 --> 00:02:13,586
+especially if your threads are
+
+
+85
+00:02:13,586 --> 00:02:14,176
+mostly idle.
+
+
+86
+00:02:14,176 --> 00:02:16,506
+And it also keeps the UI
+
+
+87
+00:02:16,506 --> 00:02:17,746
+efficient, because the UI
+
+
+88
+00:02:17,746 --> 00:02:18,786
+doesn't need to know about this
+
+
+89
+00:02:18,846 --> 00:02:20,556
+placeholder convention because
+
+
+90
+00:02:20,556 --> 00:02:22,416
+that's all been normalized by
+
+
+91
+00:02:22,596 --> 00:02:23,126
+our modeler.
+
+
+92
+00:02:23,886 --> 00:02:24,636
+So, you're going to see these
+
+
+93
+00:02:24,636 --> 00:02:25,556
+themes repeat in today's
+
+
+94
+00:02:25,556 --> 00:02:25,856
+session.
+
+
+95
+00:02:26,426 --> 00:02:28,076
+And that is basically to take
+
+
+96
+00:02:28,076 --> 00:02:29,296
+the complexity of your custom
+
+
+97
+00:02:29,296 --> 00:02:31,016
+instrument and absorb that in
+
+
+98
+00:02:31,016 --> 00:02:31,846
+the modeling layer.
+
+
+99
+00:02:31,846 --> 00:02:33,526
+And that will promote simplicity
+
+
+100
+00:02:33,526 --> 00:02:34,796
+in other areas, specifically
+
+
+101
+00:02:35,206 --> 00:02:36,516
+when it comes to the tracing
+
+
+102
+00:02:36,516 --> 00:02:37,806
+code that you embed inside your
+
+
+103
+00:02:37,806 --> 00:02:39,126
+logic and also the UI that you
+
+
+104
+00:02:39,126 --> 00:02:39,956
+use in Instruments.
+
+
+105
+00:02:40,446 --> 00:02:42,016
+So, today's session looks like
+
+
+106
+00:02:42,016 --> 00:02:42,166
+this.
+
+
+107
+00:02:42,166 --> 00:02:42,956
+We're going to review some
+
+
+108
+00:02:42,956 --> 00:02:44,816
+modeling basics and then we're
+
+
+109
+00:02:44,816 --> 00:02:45,556
+going to walk you through the
+
+
+110
+00:02:45,556 --> 00:02:46,736
+process of building a custom
+
+
+111
+00:02:46,736 --> 00:02:47,156
+modeler.
+
+
+112
+00:02:47,776 --> 00:02:49,476
+When you get to build a custom
+
+
+113
+00:02:49,476 --> 00:02:51,726
+modeler, sometimes it's tough
+
+
+114
+00:02:51,726 --> 00:02:52,536
+when you do it from scratch.
+
+
+115
+00:02:53,086 --> 00:02:54,266
+So, this year we have sample
+
+
+116
+00:02:54,266 --> 00:02:56,426
+code attached to this year's
+
+
+117
+00:02:56,596 --> 00:02:58,176
+session, so you can follow along
+
+
+118
+00:02:58,176 --> 00:02:59,416
+with that, or use that as the
+
+
+119
+00:02:59,416 --> 00:03:00,646
+basis for your own modelers.
+
+
+120
+00:03:01,126 --> 00:03:02,036
+Now, in the process, we're also
+
+
+121
+00:03:02,036 --> 00:03:03,796
+going to talk about execution
+
+
+122
+00:03:03,886 --> 00:03:05,446
+and the rules engine, Cliff's
+
+
+123
+00:03:05,446 --> 00:03:05,996
+rules engine.
+
+
+124
+00:03:06,306 --> 00:03:07,576
+And also an important topic
+
+
+125
+00:03:07,656 --> 00:03:08,516
+called speculation.
+
+
+126
+00:03:09,046 --> 00:03:11,056
+So, let's start with reviewing
+
+
+127
+00:03:11,056 --> 00:03:12,236
+some modeling basics.
+
+
+128
+00:03:12,776 --> 00:03:15,776
+Now, when you create a modeler,
+
+
+129
+00:03:16,076 --> 00:03:17,486
+you also have to define the
+
+
+130
+00:03:17,486 --> 00:03:18,496
+other pieces of that
+
+
+131
+00:03:18,496 --> 00:03:19,496
+architecture as well.
+
+
+132
+00:03:19,496 --> 00:03:21,076
+So, you also have to define the
+
+
+133
+00:03:21,076 --> 00:03:22,626
+schemas that will glue all this
+
+
+134
+00:03:22,626 --> 00:03:24,026
+together in the Instrument,
+
+
+135
+00:03:24,446 --> 00:03:26,396
+which will ultimately view the
+
+
+136
+00:03:26,396 --> 00:03:28,176
+output of your Instrument.
+
+
+137
+00:03:28,176 --> 00:03:29,986
+And that all gets built into an
+
+
+138
+00:03:29,986 --> 00:03:31,036
+Instrument's distribution
+
+
+139
+00:03:31,036 --> 00:03:32,346
+package, which can then be
+
+
+140
+00:03:32,346 --> 00:03:34,096
+installed inside of Instruments
+
+
+141
+00:03:34,096 --> 00:03:34,846
+and tested.
+
+
+142
+00:03:35,556 --> 00:03:36,426
+Now, at this point we're going
+
+
+143
+00:03:36,426 --> 00:03:38,006
+to assume that you already have
+
+
+144
+00:03:38,006 --> 00:03:39,476
+one of these projects set up in
+
+
+145
+00:03:39,506 --> 00:03:39,876
+Xcode.
+
+
+146
+00:03:39,876 --> 00:03:40,676
+And really, what you're looking
+
+
+147
+00:03:40,676 --> 00:03:43,106
+to do is add a custom modeler or
+
+
+148
+00:03:43,106 --> 00:03:43,966
+you're going to be working from
+
+
+149
+00:03:43,966 --> 00:03:45,676
+our sample code that's attached
+
+
+150
+00:03:45,676 --> 00:03:47,396
+to the session this year, and
+
+
+151
+00:03:47,396 --> 00:03:48,086
+you're going to have that
+
+
+152
+00:03:48,086 --> 00:03:49,716
+project already set up.
+
+
+153
+00:03:50,226 --> 00:03:51,996
+Now, when do you need to create
+
+
+154
+00:03:51,996 --> 00:03:52,716
+a custom modeler?
+
+
+155
+00:03:53,446 --> 00:03:54,936
+It's true that Xcode will
+
+
+156
+00:03:54,936 --> 00:03:56,306
+generate modelers for you, in
+
+
+157
+00:03:56,306 --> 00:03:58,086
+some cases specifically when
+
+
+158
+00:03:58,086 --> 00:03:59,716
+you're using OS Signpost as your
+
+
+159
+00:03:59,716 --> 00:04:00,046
+input.
+
+
+160
+00:04:00,186 --> 00:04:01,716
+But these modelers are really
+
+
+161
+00:04:01,716 --> 00:04:03,026
+meant to get you an Instrument
+
+
+162
+00:04:03,026 --> 00:04:04,006
+up and running quickly.
+
+
+163
+00:04:04,006 --> 00:04:05,186
+They're not really there to
+
+
+164
+00:04:05,186 --> 00:04:07,186
+expose the entire feature set to
+
+
+165
+00:04:07,186 --> 00:04:08,246
+you that you can do with custom
+
+
+166
+00:04:08,246 --> 00:04:08,686
+modelers.
+
+
+167
+00:04:09,486 --> 00:04:11,176
+Such as being able to fuse data
+
+
+168
+00:04:11,176 --> 00:04:12,386
+from multiple input tables.
+
+
+169
+00:04:12,436 --> 00:04:13,466
+That's something that you can do
+
+
+170
+00:04:13,516 --> 00:04:14,356
+with a custom modeler.
+
+
+171
+00:04:14,436 --> 00:04:15,396
+You can't do it in the generated
+
+
+172
+00:04:15,396 --> 00:04:15,796
+case.
+
+
+173
+00:04:16,856 --> 00:04:18,016
+And more importantly, maintain a
+
+
+174
+00:04:18,016 --> 00:04:18,716
+working memory.
+
+
+175
+00:04:18,886 --> 00:04:20,995
+This allows your modeler to keep
+
+
+176
+00:04:20,995 --> 00:04:22,016
+some running totals.
+
+
+177
+00:04:22,046 --> 00:04:23,406
+To track open intervals.
+
+
+178
+00:04:23,776 --> 00:04:25,076
+And perform some more extensive
+
+
+179
+00:04:25,076 --> 00:04:27,316
+calculations using the modeler's
+
+
+180
+00:04:27,316 --> 00:04:27,906
+working memory.
+
+
+181
+00:04:27,906 --> 00:04:30,366
+Now, another thing that you can
+
+
+182
+00:04:30,366 --> 00:04:31,606
+do is create custom graphs.
+
+
+183
+00:04:31,606 --> 00:04:32,366
+If there's a graph that you'd
+
+
+184
+00:04:32,366 --> 00:04:33,426
+like to create but Instruments
+
+
+185
+00:04:33,426 --> 00:04:35,186
+doesn't do it natively, you can
+
+
+186
+00:04:35,186 --> 00:04:36,766
+synthesize the data inside your
+
+
+187
+00:04:36,766 --> 00:04:37,206
+modeler.
+
+
+188
+00:04:37,206 --> 00:04:38,306
+For example, maybe you can
+
+
+189
+00:04:38,306 --> 00:04:41,026
+compute a running average or
+
+
+190
+00:04:41,026 --> 00:04:42,056
+something as sophisticated as a
+
+
+191
+00:04:42,056 --> 00:04:42,666
+Calvin filter.
+
+
+192
+00:04:42,666 --> 00:04:44,106
+It's really, it's up to you and
+
+
+193
+00:04:44,106 --> 00:04:45,576
+you can do all of that in a
+
+
+194
+00:04:45,576 --> 00:04:46,306
+custom modeler.
+
+
+195
+00:04:46,556 --> 00:04:48,076
+Now, ultimately the goal here is
+
+
+196
+00:04:48,076 --> 00:04:49,056
+really to build smarter and
+
+
+197
+00:04:49,056 --> 00:04:51,676
+smarter instruments so that the
+
+
+198
+00:04:51,676 --> 00:04:52,956
+instruments know what's going on
+
+
+199
+00:04:52,956 --> 00:04:53,556
+in your code.
+
+
+200
+00:04:53,556 --> 00:04:55,246
+And it's to even reach a point
+
+
+201
+00:04:55,586 --> 00:04:57,026
+where the people who are working
+
+
+202
+00:04:57,026 --> 00:04:58,146
+with your code will turn to your
+
+
+203
+00:04:58,146 --> 00:04:59,596
+Instruments first before they
+
+
+204
+00:04:59,596 --> 00:05:00,536
+turn to you for trouble
+
+
+205
+00:05:00,536 --> 00:05:01,856
+shooting, and that'll kind of
+
+
+206
+00:05:02,086 --> 00:05:03,516
+free you up to work on the next
+
+
+207
+00:05:03,516 --> 00:05:03,916
+great thing.
+
+
+208
+00:05:07,046 --> 00:05:07,656
+Now, a modeler is basically a
+
+
+209
+00:05:07,656 --> 00:05:09,176
+rules engine that is bound to a
+
+
+210
+00:05:09,176 --> 00:05:10,936
+set of input tables and a set of
+
+
+211
+00:05:10,936 --> 00:05:11,776
+output tables.
+
+
+212
+00:05:12,586 --> 00:05:13,676
+The Instrument's analysis core
+
+
+213
+00:05:13,676 --> 00:05:15,356
+takes on the task of time
+
+
+214
+00:05:15,356 --> 00:05:16,976
+ordering the input tables and
+
+
+215
+00:05:16,976 --> 00:05:17,886
+injecting them into the
+
+
+216
+00:05:17,886 --> 00:05:19,106
+modeler's working memory.
+
+
+217
+00:05:19,636 --> 00:05:20,476
+Now, objects in the working
+
+
+218
+00:05:20,476 --> 00:05:21,776
+memory are called facts.
+
+
+219
+00:05:21,906 --> 00:05:22,826
+And the way that you reason
+
+
+220
+00:05:22,826 --> 00:05:24,146
+about the changes to the working
+
+
+221
+00:05:24,146 --> 00:05:25,876
+memory and these facts is by
+
+
+222
+00:05:25,876 --> 00:05:27,706
+defining a rules system in the
+
+
+223
+00:05:27,706 --> 00:05:28,436
+CLIPS language.
+
+
+224
+00:05:28,656 --> 00:05:29,696
+Now, CLIPS is an open source
+
+
+225
+00:05:29,696 --> 00:05:30,046
+language.
+
+
+226
+00:05:30,046 --> 00:05:31,086
+It's been around since the '80s,
+
+
+227
+00:05:31,086 --> 00:05:31,836
+so there's lots of great
+
+
+228
+00:05:31,836 --> 00:05:33,596
+examples and documentation to
+
+
+229
+00:05:33,596 --> 00:05:34,896
+help you get started and there's
+
+
+230
+00:05:34,896 --> 00:05:35,916
+a lot of great examples in our
+
+
+231
+00:05:35,916 --> 00:05:37,126
+sample code and also in our
+
+
+232
+00:05:37,126 --> 00:05:37,796
+slides today.
+
+
+233
+00:05:38,776 --> 00:05:39,936
+Now, ultimately when your
+
+
+234
+00:05:39,936 --> 00:05:41,216
+modeler discovers something that
+
+
+235
+00:05:41,216 --> 00:05:42,766
+it wants to output, there are
+
+
+236
+00:05:42,766 --> 00:05:44,106
+functions in the modeler as well
+
+
+237
+00:05:44,106 --> 00:05:45,396
+to write to the bound output
+
+
+238
+00:05:45,396 --> 00:05:45,906
+tables.
+
+
+239
+00:05:46,286 --> 00:05:47,936
+Now, to get started writing a
+
+
+240
+00:05:47,936 --> 00:05:49,096
+modeler from scratch, we have a
+
+
+241
+00:05:49,096 --> 00:05:50,486
+three-step process that starts
+
+
+242
+00:05:50,486 --> 00:05:52,236
+with basically deciding what you
+
+
+243
+00:05:52,236 --> 00:05:52,776
+want to model.
+
+
+244
+00:05:53,186 --> 00:05:54,546
+Now, this means understanding
+
+
+245
+00:05:54,546 --> 00:05:55,576
+the technology you're creating a
+
+
+246
+00:05:55,576 --> 00:05:56,536
+Custom Instrument for.
+
+
+247
+00:05:56,536 --> 00:05:59,116
+And it also means knowing how
+
+
+248
+00:05:59,116 --> 00:05:59,876
+the Custom Instrument's
+
+
+249
+00:05:59,876 --> 00:06:00,986
+infrastructure works and how to
+
+
+250
+00:06:00,986 --> 00:06:02,146
+really get the most out of it.
+
+
+251
+00:06:02,146 --> 00:06:04,756
+In our 2019 session, Developing
+
+
+252
+00:06:04,756 --> 00:06:05,956
+a Great Profile Experience, our
+
+
+253
+00:06:05,956 --> 00:06:06,976
+team will walk you through the
+
+
+254
+00:06:07,006 --> 00:06:09,046
+process of trying to tell a
+
+
+255
+00:06:09,046 --> 00:06:10,286
+story of what's going on with
+
+
+256
+00:06:10,286 --> 00:06:11,406
+your code using Custom
+
+
+257
+00:06:11,406 --> 00:06:12,306
+Instruments, so that's a great
+
+
+258
+00:06:12,346 --> 00:06:13,546
+place to start with
+
+
+259
+00:06:13,836 --> 00:06:14,806
+understanding what your'e trying
+
+
+260
+00:06:14,806 --> 00:06:15,146
+to model.
+
+
+261
+00:06:15,146 --> 00:06:17,526
+All right, so now that you have
+
+
+262
+00:06:18,296 --> 00:06:19,876
+the output defined for your
+
+
+263
+00:06:19,876 --> 00:06:21,296
+modeler, it's going to need some
+
+
+264
+00:06:21,296 --> 00:06:21,636
+input.
+
+
+265
+00:06:21,636 --> 00:06:23,336
+And the best way to get input
+
+
+266
+00:06:23,336 --> 00:06:24,556
+into instruments from your code
+
+
+267
+00:06:24,776 --> 00:06:26,276
+is through the OS Signpost API.
+
+
+268
+00:06:26,616 --> 00:06:28,006
+This is an API that you can
+
+
+269
+00:06:28,006 --> 00:06:29,226
+sprinkle throughout your code to
+
+
+270
+00:06:29,226 --> 00:06:30,356
+basically trace what's happening
+
+
+271
+00:06:30,356 --> 00:06:32,176
+in your code and pass argument
+
+
+272
+00:06:32,176 --> 00:06:33,836
+data, gives your modeler
+
+
+273
+00:06:33,836 --> 00:06:35,196
+something to reason about in
+
+
+274
+00:06:35,196 --> 00:06:35,786
+your input stream.
+
+
+275
+00:06:36,156 --> 00:06:37,646
+Now, once you have your inputs
+
+
+276
+00:06:37,686 --> 00:06:39,246
+and your outputs, then it's time
+
+
+277
+00:06:39,306 --> 00:06:40,366
+to start defining your rule
+
+
+278
+00:06:40,366 --> 00:06:41,336
+system and start writing your
+
+
+279
+00:06:41,336 --> 00:06:41,746
+rules.
+
+
+280
+00:06:42,236 --> 00:06:43,386
+Now, we know that steps two and
+
+
+281
+00:06:43,386 --> 00:06:44,356
+three are going to be iterative.
+
+
+282
+00:06:44,496 --> 00:06:46,636
+So, as you write your rules, you
+
+
+283
+00:06:46,636 --> 00:06:47,776
+may discover that you need to go
+
+
+284
+00:06:47,776 --> 00:06:49,596
+back and add more Signposts or
+
+
+285
+00:06:49,596 --> 00:06:50,446
+that you need to change your
+
+
+286
+00:06:50,446 --> 00:06:51,526
+Signposts, which is totally
+
+
+287
+00:06:51,656 --> 00:06:51,746
+fine.
+
+
+288
+00:06:51,746 --> 00:06:52,486
+You can do that.
+
+
+289
+00:06:52,786 --> 00:06:53,616
+But keep in mind that your
+
+
+290
+00:06:53,616 --> 00:06:55,246
+Signposts re going to really
+
+
+291
+00:06:55,246 --> 00:06:56,696
+form the boundary between what's
+
+
+292
+00:06:56,696 --> 00:06:58,066
+going on in your code and your
+
+
+293
+00:06:58,066 --> 00:06:58,486
+Instrument.
+
+
+294
+00:06:58,486 --> 00:06:59,406
+So, at some point you're going
+
+
+295
+00:06:59,406 --> 00:07:00,356
+to want to, like, make sure that
+
+
+296
+00:07:00,356 --> 00:07:02,166
+you comment those Signpost
+
+
+297
+00:07:02,166 --> 00:07:04,106
+invocation calls and let people
+
+
+298
+00:07:04,106 --> 00:07:05,176
+know that that's really a
+
+
+299
+00:07:05,176 --> 00:07:06,506
+contract and it'll break your
+
+
+300
+00:07:06,506 --> 00:07:08,456
+instrument if you modify it.
+
+
+301
+00:07:08,456 --> 00:07:10,286
+All right, now we think that
+
+
+302
+00:07:10,286 --> 00:07:11,756
+this process is probably best
+
+
+303
+00:07:11,756 --> 00:07:12,826
+understood with a practical
+
+
+304
+00:07:12,826 --> 00:07:13,336
+example.
+
+
+305
+00:07:13,336 --> 00:07:15,006
+So, I would like to now turn it
+
+
+306
+00:07:15,006 --> 00:07:16,696
+over to our modeling expert,
+
+
+307
+00:07:16,986 --> 00:07:18,856
+Alejandro Lucena, to walk us
+
+
+308
+00:07:19,486 --> 00:07:19,596
+through.
+
+
+309
+00:07:20,516 --> 00:07:23,336
+[Applause]
+
+
+310
+00:07:23,836 --> 00:07:24,596
+>> All right.
+
+
+311
+00:07:24,596 --> 00:07:25,796
+Good afternoon, everybody, and
+
+
+312
+00:07:25,796 --> 00:07:26,786
+thank you, Chad.
+
+
+313
+00:07:27,066 --> 00:07:28,826
+So, what I'd like to do is I'd
+
+
+314
+00:07:28,826 --> 00:07:29,786
+like to go through this thought
+
+
+315
+00:07:29,786 --> 00:07:30,766
+process that Chad just
+
+
+316
+00:07:30,766 --> 00:07:32,166
+highlighted and apply it to an
+
+
+317
+00:07:32,166 --> 00:07:33,556
+example so we can see how all
+
+
+318
+00:07:33,556 --> 00:07:34,526
+these pieces fit together.
+
+
+319
+00:07:35,436 --> 00:07:37,256
+And to do that, I want to start
+
+
+320
+00:07:37,256 --> 00:07:38,186
+off with this demo app.
+
+
+321
+00:07:38,516 --> 00:07:39,906
+And full disclosure, this is
+
+
+322
+00:07:39,906 --> 00:07:41,176
+probably the coolest thing I
+
+
+323
+00:07:41,176 --> 00:07:43,066
+have ever worked on and it's a
+
+
+324
+00:07:43,066 --> 00:07:44,236
+list of goats, right?
+
+
+325
+00:07:44,916 --> 00:07:46,986
+Now, these different goats don't
+
+
+326
+00:07:46,986 --> 00:07:48,306
+just have themselves displayed
+
+
+327
+00:07:48,306 --> 00:07:48,956
+on this app.
+
+
+328
+00:07:48,996 --> 00:07:50,296
+The app also lets me sort the
+
+
+329
+00:07:50,296 --> 00:07:50,636
+list.
+
+
+330
+00:07:51,186 --> 00:07:52,426
+Now, the sorting is implemented
+
+
+331
+00:07:52,426 --> 00:07:53,536
+using something we call the
+
+
+332
+00:07:53,536 --> 00:07:54,376
+mobile agent pattern.
+
+
+333
+00:07:55,016 --> 00:07:56,406
+And this pattern has a lot of
+
+
+334
+00:07:56,406 --> 00:07:57,566
+parallels to different patterns
+
+
+335
+00:07:57,566 --> 00:07:59,046
+that you may be using such as
+
+
+336
+00:07:59,046 --> 00:08:00,126
+futures and promises or
+
+
+337
+00:08:00,126 --> 00:08:00,936
+operation queues.
+
+
+338
+00:08:01,486 --> 00:08:02,806
+So, whenever you hear the term
+
+
+339
+00:08:02,806 --> 00:08:04,156
+mobile agent, when we're talking
+
+
+340
+00:08:04,156 --> 00:08:05,426
+about it, you can mentally
+
+
+341
+00:08:05,426 --> 00:08:07,486
+substitute that in for whichever
+
+
+342
+00:08:07,486 --> 00:08:08,276
+pattern you're using.
+
+
+343
+00:08:08,716 --> 00:08:09,646
+But we'll stick with the mobile
+
+
+344
+00:08:09,646 --> 00:08:10,636
+agent pattern for the purposes
+
+
+345
+00:08:10,636 --> 00:08:11,476
+of this session.
+
+
+346
+00:08:12,626 --> 00:08:14,056
+So, as the name implies, the
+
+
+347
+00:08:14,056 --> 00:08:15,706
+mobile agent pattern has a very
+
+
+348
+00:08:15,706 --> 00:08:16,886
+important concept which is that
+
+
+349
+00:08:16,886 --> 00:08:17,646
+of a mobile agent.
+
+
+350
+00:08:18,246 --> 00:08:19,526
+And we'll visualize the mobile
+
+
+351
+00:08:19,526 --> 00:08:20,666
+agent as this circle in the
+
+
+352
+00:08:20,666 --> 00:08:21,436
+upper lefthand corner.
+
+
+353
+00:08:22,266 --> 00:08:23,456
+Now, the goal of an agent is to
+
+
+354
+00:08:23,456 --> 00:08:24,946
+take a task such as sorting a
+
+
+355
+00:08:24,946 --> 00:08:26,446
+list and really breaking it down
+
+
+356
+00:08:26,446 --> 00:08:28,496
+into a few subtasks such as
+
+
+357
+00:08:28,496 --> 00:08:29,886
+obtaining the initial list and
+
+
+358
+00:08:29,886 --> 00:08:30,746
+then sorting it, and then
+
+
+359
+00:08:30,746 --> 00:08:32,466
+committing the results, with
+
+
+360
+00:08:32,546 --> 00:08:33,785
+each of those subtasks being
+
+
+361
+00:08:33,785 --> 00:08:35,616
+executed at what we call stops.
+
+
+362
+00:08:36,246 --> 00:08:37,836
+And stops can provide the agent
+
+
+363
+00:08:37,836 --> 00:08:39,356
+with some sort of dependencies
+
+
+364
+00:08:39,356 --> 00:08:40,866
+or execution context for it to
+
+
+365
+00:08:40,866 --> 00:08:41,626
+achieve its subgoal.
+
+
+366
+00:08:42,336 --> 00:08:44,046
+So I want to take a look at how
+
+
+367
+00:08:44,046 --> 00:08:45,296
+we can implement something like
+
+
+368
+00:08:45,296 --> 00:08:46,976
+sorting using this mobile agent
+
+
+369
+00:08:46,976 --> 00:08:47,226
+pattern.
+
+
+370
+00:08:47,956 --> 00:08:49,036
+Now, what we'll do is when we
+
+
+371
+00:08:49,036 --> 00:08:50,176
+click the sort in the upper
+
+
+372
+00:08:50,176 --> 00:08:52,456
+lefthand corner, the agent is
+
+
+373
+00:08:52,456 --> 00:08:53,886
+going to move over to its very
+
+
+374
+00:08:53,886 --> 00:08:54,436
+first stop.
+
+
+375
+00:08:54,626 --> 00:08:55,856
+In this case, the stop is hosted
+
+
+376
+00:08:55,856 --> 00:08:58,326
+by a UI and it will execute its
+
+
+377
+00:08:58,326 --> 00:08:59,726
+first subtask of obtaining the
+
+
+378
+00:08:59,726 --> 00:09:00,036
+list.
+
+
+379
+00:09:00,976 --> 00:09:02,196
+Now, once the list is obtained,
+
+
+380
+00:09:02,576 --> 00:09:03,796
+it can move over to a different
+
+
+381
+00:09:03,796 --> 00:09:05,776
+stop, such as one hosted by a
+
+
+382
+00:09:05,776 --> 00:09:06,566
+dispatch queues.
+
+
+383
+00:09:06,726 --> 00:09:08,856
+And at that dispatch queues stop,
+
+
+384
+00:09:08,856 --> 00:09:10,026
+it can then perform the actual
+
+
+385
+00:09:10,026 --> 00:09:10,396
+sorting.
+
+
+386
+00:09:11,306 --> 00:09:12,536
+And once the sorting is
+
+
+387
+00:09:12,536 --> 00:09:14,276
+complete, it can move back to
+
+
+388
+00:09:14,276 --> 00:09:16,476
+the UI to end up populating the
+
+
+389
+00:09:16,476 --> 00:09:18,066
+list with those sorted results.
+
+
+390
+00:09:19,136 --> 00:09:20,426
+And finally, it can park itself
+
+
+391
+00:09:20,456 --> 00:09:21,376
+back at the sort button for
+
+
+392
+00:09:21,376 --> 00:09:21,886
+future use.
+
+
+393
+00:09:23,296 --> 00:09:24,736
+So, what we just saw is that the
+
+
+394
+00:09:24,736 --> 00:09:26,166
+mobile agent pattern, or really
+
+
+395
+00:09:26,166 --> 00:09:27,436
+the agents can be in one of two
+
+
+396
+00:09:27,436 --> 00:09:28,236
+primary phases.
+
+
+397
+00:09:28,566 --> 00:09:29,796
+They can either be executing at
+
+
+398
+00:09:29,796 --> 00:09:31,346
+a stop, or they can be moving
+
+
+399
+00:09:31,346 --> 00:09:32,096
+over to a stop.
+
+
+400
+00:09:32,536 --> 00:09:33,166
+And this is what we're
+
+
+401
+00:09:33,166 --> 00:09:34,086
+interested in modeling.
+
+
+402
+00:09:34,086 --> 00:09:35,006
+And more specifically, we're
+
+
+403
+00:09:35,006 --> 00:09:35,686
+interested in seeing the
+
+
+404
+00:09:35,686 --> 00:09:36,806
+duration of these things, how
+
+
+405
+00:09:36,806 --> 00:09:37,616
+long they take and the
+
+
+406
+00:09:37,616 --> 00:09:38,636
+interactions between them.
+
+
+407
+00:09:39,506 --> 00:09:40,636
+And to better visualize this, I
+
+
+408
+00:09:40,636 --> 00:09:41,526
+want to go through the sorting
+
+
+409
+00:09:41,526 --> 00:09:43,126
+example again but put these
+
+
+410
+00:09:43,126 --> 00:09:44,256
+intervals into perspective.
+
+
+411
+00:09:44,376 --> 00:09:45,196
+So, what I'm going to do is I'm
+
+
+412
+00:09:45,196 --> 00:09:46,536
+going to move this device over
+
+
+413
+00:09:46,536 --> 00:09:48,156
+to the lefthand side because
+
+
+414
+00:09:48,156 --> 00:09:49,126
+we'll need some space.
+
+
+415
+00:09:50,126 --> 00:09:51,286
+So again, when we click the sort
+
+
+416
+00:09:51,286 --> 00:09:52,886
+button, the agent is moving over
+
+
+417
+00:09:52,886 --> 00:09:53,776
+to that UI stop.
+
+
+418
+00:09:54,556 --> 00:09:55,576
+And as soon as that movement
+
+
+419
+00:09:55,576 --> 00:09:56,506
+happens, we want to see an
+
+
+420
+00:09:56,506 --> 00:09:57,736
+interval with maybe some
+
+
+421
+00:09:57,736 --> 00:09:58,896
+descriptive string or something
+
+
+422
+00:09:58,896 --> 00:09:59,896
+telling us what happened.
+
+
+423
+00:10:01,046 --> 00:10:02,196
+Next, we know that at the stop,
+
+
+424
+00:10:02,196 --> 00:10:03,266
+the agent is going to perform
+
+
+425
+00:10:03,266 --> 00:10:05,006
+its first subtask, which is
+
+
+426
+00:10:05,366 --> 00:10:05,896
+getting the list.
+
+
+427
+00:10:06,146 --> 00:10:08,126
+And we see that in a different
+
+
+428
+00:10:08,126 --> 00:10:08,806
+interval here.
+
+
+429
+00:10:09,306 --> 00:10:12,046
+Next, the agent is going to move
+
+
+430
+00:10:12,046 --> 00:10:13,866
+over to a dispatch queues, and
+
+
+431
+00:10:13,866 --> 00:10:14,946
+that'll be represented by its
+
+
+432
+00:10:14,946 --> 00:10:15,466
+own interval.
+
+
+433
+00:10:17,356 --> 00:10:19,066
+At the dispatch queues, the agent
+
+
+434
+00:10:19,066 --> 00:10:21,316
+will perform some sorting, and
+
+
+435
+00:10:21,316 --> 00:10:22,576
+we see it; it's executing in the
+
+
+436
+00:10:22,576 --> 00:10:23,216
+sorting mode.
+
+
+437
+00:10:24,716 --> 00:10:26,006
+Before it finally moves back
+
+
+438
+00:10:26,006 --> 00:10:27,306
+over to the UI stop and we have
+
+
+439
+00:10:27,306 --> 00:10:28,646
+a final movement interval,
+
+
+440
+00:10:28,646 --> 00:10:29,696
+moving back to the UI.
+
+
+441
+00:10:29,696 --> 00:10:32,296
+And at that stop, it will
+
+
+442
+00:10:32,296 --> 00:10:34,046
+execute the next, or the last,
+
+
+443
+00:10:34,176 --> 00:10:35,596
+subtask of filling in the list
+
+
+444
+00:10:35,596 --> 00:10:36,386
+with the sorted results.
+
+
+445
+00:10:37,746 --> 00:10:38,716
+So, with these intervals, we can
+
+
+446
+00:10:38,716 --> 00:10:39,696
+really think of the beginning of
+
+
+447
+00:10:39,696 --> 00:10:40,896
+the interval as being the time
+
+
+448
+00:10:40,896 --> 00:10:42,126
+at which the activity started,
+
+
+449
+00:10:42,126 --> 00:10:43,306
+either execution or movement.
+
+
+450
+00:10:43,806 --> 00:10:44,726
+And the end of the interval
+
+
+451
+00:10:44,726 --> 00:10:45,706
+being the time at which that
+
+
+452
+00:10:45,706 --> 00:10:46,326
+activity ended.
+
+
+453
+00:10:47,096 --> 00:10:47,916
+And with these intervals in
+
+
+454
+00:10:47,916 --> 00:10:49,286
+mind, we can have or we can
+
+
+455
+00:10:49,286 --> 00:10:50,946
+design some instrument that we'd
+
+
+456
+00:10:50,946 --> 00:10:52,196
+like to see, and that's
+
+
+457
+00:10:52,196 --> 00:10:53,316
+precisely what I have behind me
+
+
+458
+00:10:53,316 --> 00:10:53,516
+now.
+
+
+459
+00:10:54,436 --> 00:10:55,566
+Here in the topmost track, I
+
+
+460
+00:10:55,566 --> 00:10:57,146
+have al these intervals together
+
+
+461
+00:10:57,146 --> 00:10:58,036
+and we can see the different
+
+
+462
+00:10:58,036 --> 00:10:59,206
+movements and executions.
+
+
+463
+00:10:59,856 --> 00:11:01,366
+And beneath that very topmost
+
+
+464
+00:11:01,366 --> 00:11:02,256
+track, we have the different
+
+
+465
+00:11:02,256 --> 00:11:03,346
+stops that were active during
+
+
+466
+00:11:03,346 --> 00:11:03,756
+the trace.
+
+
+467
+00:11:05,056 --> 00:11:06,506
+Now, on top of the visual aspect
+
+
+468
+00:11:06,506 --> 00:11:07,936
+of the instrument, we also want
+
+
+469
+00:11:08,006 --> 00:11:08,816
+to see a detail view.
+
+
+470
+00:11:08,816 --> 00:11:10,186
+And the detail view will give us
+
+
+471
+00:11:10,186 --> 00:11:11,246
+some more information about what
+
+
+472
+00:11:11,246 --> 00:11:12,936
+happened at each stop, such as
+
+
+473
+00:11:13,016 --> 00:11:14,586
+the time that it started, how
+
+
+474
+00:11:14,586 --> 00:11:16,426
+long it took, which agent was
+
+
+475
+00:11:16,426 --> 00:11:17,176
+there, and so forth.
+
+
+476
+00:11:18,436 --> 00:11:20,376
+Now, at this point, we should
+
+
+477
+00:11:20,376 --> 00:11:21,846
+notice these columns at the top.
+
+
+478
+00:11:22,256 --> 00:11:23,666
+Because these columns are how we
+
+
+479
+00:11:23,666 --> 00:11:24,966
+define what we're interested in
+
+
+480
+00:11:24,966 --> 00:11:25,406
+modeling.
+
+
+481
+00:11:25,996 --> 00:11:27,056
+Here, the columns tell us that
+
+
+482
+00:11:27,056 --> 00:11:28,016
+this is a start time and a
+
+
+483
+00:11:28,016 --> 00:11:29,746
+duration and an agent kind, but
+
+
+484
+00:11:29,746 --> 00:11:31,316
+more generally we specify these
+
+
+485
+00:11:31,316 --> 00:11:32,446
+columns in our Instrument's
+
+
+486
+00:11:32,446 --> 00:11:33,976
+package files written in XML.
+
+
+487
+00:11:34,596 --> 00:11:35,946
+And these columns collectively
+
+
+488
+00:11:36,006 --> 00:11:37,036
+form our output tables.
+
+
+489
+00:11:37,646 --> 00:11:38,516
+Which brings us to our very
+
+
+490
+00:11:38,516 --> 00:11:39,016
+first checkpoint.
+
+
+491
+00:11:39,536 --> 00:11:40,416
+And that is that with these
+
+
+492
+00:11:40,416 --> 00:11:42,146
+columns, we define what it is
+
+
+493
+00:11:42,146 --> 00:11:43,346
+that we're trying to store.
+
+
+494
+00:11:43,346 --> 00:11:45,266
+And that fulfills the first goal
+
+
+495
+00:11:45,266 --> 00:11:46,476
+of deciding what it is that we
+
+
+496
+00:11:46,476 --> 00:11:46,946
+want to model.
+
+
+497
+00:11:46,946 --> 00:11:49,696
+And now that we have that, the
+
+
+498
+00:11:49,696 --> 00:11:50,876
+next thing we need to do is get
+
+
+499
+00:11:50,876 --> 00:11:52,366
+data from our application into
+
+
+500
+00:11:52,416 --> 00:11:53,726
+Instruments, and we'll
+
+
+501
+00:11:53,726 --> 00:11:54,716
+accomplish this by using OS
+
+
+502
+00:11:54,716 --> 00:11:55,256
+Signpost.
+
+
+503
+00:11:56,706 --> 00:11:57,496
+So, let's take a look at our
+
+
+504
+00:11:57,496 --> 00:11:58,066
+intervals again.
+
+
+505
+00:11:58,736 --> 00:11:59,126
+We have these.
+
+
+506
+00:11:59,786 --> 00:12:01,696
+And we do have an API that
+
+
+507
+00:12:01,696 --> 00:12:03,456
+utilizes OS Signpost, that is
+
+
+508
+00:12:03,456 --> 00:12:04,916
+natively built for intervals.
+
+
+509
+00:12:05,766 --> 00:12:07,146
+But we want to take it one step
+
+
+510
+00:12:07,146 --> 00:12:09,626
+further and specifically I want
+
+
+511
+00:12:09,626 --> 00:12:10,806
+to use event Signposts.
+
+
+512
+00:12:11,366 --> 00:12:12,226
+And each of these event
+
+
+513
+00:12:12,226 --> 00:12:13,696
+Signposts will be emitted at the
+
+
+514
+00:12:13,696 --> 00:12:14,966
+borders between the activity
+
+
+515
+00:12:14,966 --> 00:12:15,436
+intervals.
+
+
+516
+00:12:15,846 --> 00:12:17,086
+And the reason for doing this is
+
+
+517
+00:12:17,086 --> 00:12:18,816
+not only because we get to save
+
+
+518
+00:12:18,816 --> 00:12:20,096
+roughly 50% of the amount of
+
+
+519
+00:12:20,096 --> 00:12:21,306
+Signposts we would otherwise
+
+
+520
+00:12:21,306 --> 00:12:21,566
+emit.
+
+
+521
+00:12:22,016 --> 00:12:22,936
+But this is actually a more
+
+
+522
+00:12:22,936 --> 00:12:24,266
+accurate representation of the
+
+
+523
+00:12:24,266 --> 00:12:25,096
+mobile agent pattern.
+
+
+524
+00:12:25,866 --> 00:12:27,136
+Specifically, when an agent is
+
+
+525
+00:12:27,136 --> 00:12:28,396
+done with the current activity,
+
+
+526
+00:12:28,396 --> 00:12:29,336
+it will immediately begin
+
+
+527
+00:12:29,336 --> 00:12:30,406
+another one, and so we can just
+
+
+528
+00:12:30,406 --> 00:12:31,676
+emit a single Signpost that
+
+
+529
+00:12:31,676 --> 00:12:33,076
+tells us that it's moving on to
+
+
+530
+00:12:33,076 --> 00:12:35,276
+the next thing.
+
+
+531
+00:12:35,276 --> 00:12:36,616
+And in order to accomplish this,
+
+
+532
+00:12:36,886 --> 00:12:38,076
+here we have an execute stop
+
+
+533
+00:12:38,286 --> 00:12:39,356
+function that is part of the
+
+
+534
+00:12:39,356 --> 00:12:40,206
+mobile agent class.
+
+
+535
+00:12:40,736 --> 00:12:42,436
+And before we perform the actual
+
+
+536
+00:12:42,436 --> 00:12:43,696
+internal logic of executing
+
+
+537
+00:12:43,696 --> 00:12:44,696
+whatever it is that we're doing
+
+
+538
+00:12:44,696 --> 00:12:46,496
+at that stop, we have a Signpost
+
+
+539
+00:12:46,586 --> 00:12:48,586
+that has a name, a specific
+
+
+540
+00:12:48,586 --> 00:12:50,016
+Signpost ID and a message that
+
+
+541
+00:12:50,016 --> 00:12:50,756
+we'd like to embed.
+
+
+542
+00:12:52,056 --> 00:12:54,086
+In addition to that, we have the
+
+
+543
+00:12:54,086 --> 00:12:55,856
+same sort of OS Signpost setup
+
+
+544
+00:12:55,856 --> 00:12:57,276
+within this visit next stop
+
+
+545
+00:12:57,276 --> 00:12:58,336
+function, which implements the
+
+
+546
+00:12:58,336 --> 00:12:59,746
+logic of moving an agent from
+
+
+547
+00:12:59,746 --> 00:13:00,776
+one stop over to the next.
+
+
+548
+00:13:01,316 --> 00:13:02,606
+And again, before we perform the
+
+
+549
+00:13:02,606 --> 00:13:03,936
+movement, we title it
+
+
+550
+00:13:03,936 --> 00:13:05,126
+appropriately such as mobile
+
+
+551
+00:13:05,126 --> 00:13:06,096
+agent moves, then we give it
+
+
+552
+00:13:06,096 --> 00:13:07,736
+another Signpost ID and a
+
+
+553
+00:13:07,736 --> 00:13:08,076
+message.
+
+
+554
+00:13:11,556 --> 00:13:12,636
+But now we've really got to
+
+
+555
+00:13:12,636 --> 00:13:13,686
+focus on this middle piece which
+
+
+556
+00:13:13,686 --> 00:13:14,896
+is the modeler, and the modeler
+
+
+557
+00:13:14,896 --> 00:13:15,806
+is what's going to transform
+
+
+558
+00:13:15,806 --> 00:13:17,116
+those Signposts that we just put
+
+
+559
+00:13:17,116 --> 00:13:18,826
+into our app into the usable
+
+
+560
+00:13:18,826 --> 00:13:20,026
+intervals that we want to see in
+
+
+561
+00:13:20,186 --> 00:13:21,956
+the output table.
+
+
+562
+00:13:22,086 --> 00:13:22,786
+So, I'd like to give you an
+
+
+563
+00:13:22,786 --> 00:13:23,216
+example.
+
+
+564
+00:13:23,216 --> 00:13:24,626
+Here we have a modeler, and this
+
+
+565
+00:13:24,626 --> 00:13:25,906
+modeler starts off with a blank
+
+
+566
+00:13:25,906 --> 00:13:26,936
+view of working memory, because
+
+
+567
+00:13:26,936 --> 00:13:27,866
+it doesn't really know anything
+
+
+568
+00:13:27,866 --> 00:13:28,516
+about the state of the
+
+
+569
+00:13:28,516 --> 00:13:29,236
+application yet.
+
+
+570
+00:13:30,246 --> 00:13:31,826
+But what we do know, however, is
+
+
+571
+00:13:31,826 --> 00:13:33,646
+that the modeler interacts very
+
+
+572
+00:13:33,646 --> 00:13:34,996
+closely with the OS Signpost
+
+
+573
+00:13:34,996 --> 00:13:35,256
+table.
+
+
+574
+00:13:35,686 --> 00:13:36,716
+And the OS Signpost table is
+
+
+575
+00:13:36,716 --> 00:13:37,916
+populated from our application.
+
+
+576
+00:13:38,826 --> 00:13:40,036
+So, let's consider the case of
+
+
+577
+00:13:40,036 --> 00:13:41,776
+the modeler trying to detect a
+
+
+578
+00:13:41,776 --> 00:13:43,476
+mobile agent from the Signpost.
+
+
+579
+00:13:44,626 --> 00:13:46,166
+While when we click the Sort on
+
+
+580
+00:13:46,166 --> 00:13:47,666
+our demo app, the modeler is
+
+
+581
+00:13:47,666 --> 00:13:49,246
+going to receive an OS Signpost.
+
+
+582
+00:13:49,506 --> 00:13:50,716
+And the modeler will represent
+
+
+583
+00:13:50,716 --> 00:13:51,766
+that Signpost by a fact.
+
+
+584
+00:13:52,296 --> 00:13:53,496
+And that fact has its slots
+
+
+585
+00:13:53,496 --> 00:13:54,676
+filled out according to however
+
+
+586
+00:13:54,676 --> 00:13:56,076
+we made the OS Signpost call.
+
+
+587
+00:13:56,076 --> 00:13:58,866
+Now, at this point the modeler
+
+
+588
+00:13:58,866 --> 00:14:00,356
+sees that the OS Signpost fact
+
+
+589
+00:14:00,356 --> 00:14:01,556
+is actually advertising a lot of
+
+
+590
+00:14:01,556 --> 00:14:02,476
+information about a mobile
+
+
+591
+00:14:02,476 --> 00:14:02,766
+agent.
+
+
+592
+00:14:03,276 --> 00:14:04,856
+And so the modeler can use that
+
+
+593
+00:14:04,856 --> 00:14:06,646
+OS Signpost fact to deduce the
+
+
+594
+00:14:06,646 --> 00:14:08,256
+agent and introduce it into
+
+
+595
+00:14:08,256 --> 00:14:09,566
+working memory by asserting a
+
+
+596
+00:14:09,566 --> 00:14:09,796
+fact.
+
+
+597
+00:14:10,306 --> 00:14:11,386
+In this case, it's asserting
+
+
+598
+00:14:11,386 --> 00:14:12,326
+that it knows that there's a
+
+
+599
+00:14:12,326 --> 00:14:13,616
+sorting agent that's moved to
+
+
+600
+00:14:13,616 --> 00:14:13,976
+the background.
+
+
+601
+00:14:14,456 --> 00:14:17,366
+Next, the modeler should
+
+
+602
+00:14:17,366 --> 00:14:18,506
+determine the activity that the
+
+
+603
+00:14:18,506 --> 00:14:20,076
+agent was doing, such as what it
+
+
+604
+00:14:20,076 --> 00:14:21,366
+was actually, you know, trying
+
+
+605
+00:14:21,456 --> 00:14:22,666
+to do as well as the time.
+
+
+606
+00:14:23,396 --> 00:14:24,536
+So, the modeler can look at the
+
+
+607
+00:14:24,596 --> 00:14:26,086
+facts already and say, or it
+
+
+608
+00:14:26,086 --> 00:14:27,326
+knows that it has a mobile agent
+
+
+609
+00:14:27,446 --> 00:14:28,096
+that was moving.
+
+
+610
+00:14:28,506 --> 00:14:29,796
+And it sees the Signpost fact
+
+
+611
+00:14:29,876 --> 00:14:31,526
+and that it started at time 42.
+
+
+612
+00:14:31,526 --> 00:14:33,176
+And the modeler can again make
+
+
+613
+00:14:33,176 --> 00:14:34,456
+note of that by introducing
+
+
+614
+00:14:34,456 --> 00:14:35,956
+another fact into working memory
+
+
+615
+00:14:36,466 --> 00:14:37,696
+that tells us that it started at
+
+
+616
+00:14:37,696 --> 00:14:38,366
+time 42.
+
+
+617
+00:14:38,366 --> 00:14:41,306
+Now, at this point the Signpost
+
+
+618
+00:14:41,306 --> 00:14:43,846
+facts go away but that's okay,
+
+
+619
+00:14:43,846 --> 00:14:45,156
+because we kept all the relevant
+
+
+620
+00:14:45,156 --> 00:14:46,406
+information in the facts that we
+
+
+621
+00:14:46,406 --> 00:14:47,496
+asserted into working memory
+
+
+622
+00:14:47,496 --> 00:14:48,016
+ourselves.
+
+
+623
+00:14:49,186 --> 00:14:50,106
+So, I'll move these facts up a
+
+
+624
+00:14:50,106 --> 00:14:51,276
+little bit, because we need some
+
+
+625
+00:14:51,276 --> 00:14:51,646
+space.
+
+
+626
+00:14:51,646 --> 00:14:53,506
+And the last thing that the
+
+
+627
+00:14:53,506 --> 00:14:54,956
+modeler has to do here is
+
+
+628
+00:14:54,956 --> 00:14:56,716
+determine the full interval of
+
+
+629
+00:14:56,716 --> 00:14:57,246
+the activity.
+
+
+630
+00:14:57,626 --> 00:14:58,676
+Right now we only have the start
+
+
+631
+00:14:58,676 --> 00:14:58,896
+time.
+
+
+632
+00:14:58,896 --> 00:15:00,176
+We don't really know the entire
+
+
+633
+00:15:00,176 --> 00:15:00,446
+interval.
+
+
+634
+00:15:00,446 --> 00:15:02,336
+But we know that at some point
+
+
+635
+00:15:02,916 --> 00:15:04,216
+our demo app is going to emit
+
+
+636
+00:15:04,216 --> 00:15:05,006
+another Signpost.
+
+
+637
+00:15:05,186 --> 00:15:06,116
+And again, when the modeler
+
+
+638
+00:15:06,116 --> 00:15:07,456
+receives it, it will represent
+
+
+639
+00:15:07,456 --> 00:15:08,416
+it as a fact accordingly.
+
+
+640
+00:15:09,026 --> 00:15:10,336
+And because we structured our
+
+
+641
+00:15:10,336 --> 00:15:11,506
+Signposts such that they were
+
+
+642
+00:15:11,506 --> 00:15:12,716
+emitted at the borders between
+
+
+643
+00:15:12,716 --> 00:15:14,546
+these intervals, the modeler now
+
+
+644
+00:15:14,546 --> 00:15:15,976
+knows that when it receives
+
+
+645
+00:15:15,976 --> 00:15:17,446
+another Signpost, it can look at
+
+
+646
+00:15:17,446 --> 00:15:19,156
+any open interval facts that it
+
+
+647
+00:15:19,156 --> 00:15:21,006
+previously had open and close
+
+
+648
+00:15:21,006 --> 00:15:21,176
+them.
+
+
+649
+00:15:22,186 --> 00:15:23,236
+In this case, the modeler is
+
+
+650
+00:15:23,236 --> 00:15:24,286
+going to look at these values
+
+
+651
+00:15:24,286 --> 00:15:25,586
+from the facts that it has, and
+
+
+652
+00:15:25,616 --> 00:15:27,516
+it has enough to determine the
+
+
+653
+00:15:27,676 --> 00:15:28,726
+full interval.
+
+
+654
+00:15:28,726 --> 00:15:30,366
+And to do that, it'll summon the
+
+
+655
+00:15:30,366 --> 00:15:33,176
+output table and then remove
+
+
+656
+00:15:33,176 --> 00:15:34,336
+that open interval fact that it
+
+
+657
+00:15:34,336 --> 00:15:36,546
+had to replace it with a full
+
+
+658
+00:15:36,546 --> 00:15:36,866
+interval.
+
+
+659
+00:15:36,866 --> 00:15:37,606
+In this case, moving it to the
+
+
+660
+00:15:37,606 --> 00:15:38,016
+background.
+
+
+661
+00:15:38,636 --> 00:15:39,846
+And use that interval to
+
+
+662
+00:15:39,846 --> 00:15:43,226
+populate the output table.
+
+
+663
+00:15:43,226 --> 00:15:43,546
+All right.
+
+
+664
+00:15:44,686 --> 00:15:45,756
+Now, before delving into some
+
+
+665
+00:15:45,756 --> 00:15:47,156
+CLIPS code that actually goes
+
+
+666
+00:15:47,156 --> 00:15:48,016
+through all this, I think it's
+
+
+667
+00:15:48,016 --> 00:15:49,936
+important to understand how an
+
+
+668
+00:15:49,936 --> 00:15:51,556
+API call from our application
+
+
+669
+00:15:51,556 --> 00:15:53,276
+code translates to a fact within
+
+
+670
+00:15:53,276 --> 00:15:53,616
+CLIPS.
+
+
+671
+00:15:54,766 --> 00:15:57,056
+Specifically, when we call OS
+
+
+672
+00:15:57,056 --> 00:15:58,166
+Signposts with a particular
+
+
+673
+00:15:58,166 --> 00:16:00,416
+name, that name becomes the same
+
+
+674
+00:16:00,416 --> 00:16:02,506
+name slot in the OS Signpost
+
+
+675
+00:16:02,696 --> 00:16:03,286
+fact.
+
+
+676
+00:16:04,416 --> 00:16:05,886
+Furthermore, the type of
+
+
+677
+00:16:05,886 --> 00:16:07,036
+Signposts that we have, in this
+
+
+678
+00:16:07,036 --> 00:16:08,636
+case event, becomes the
+
+
+679
+00:16:08,666 --> 00:16:10,096
+event-type slot within the OS
+
+
+680
+00:16:10,096 --> 00:16:11,456
+Signpost fact.
+
+
+681
+00:16:11,856 --> 00:16:14,176
+And lastly, the Signpost ID
+
+
+682
+00:16:14,596 --> 00:16:16,336
+becomes the identifier value
+
+
+683
+00:16:16,436 --> 00:16:18,576
+within the OS Signpost fact as
+
+
+684
+00:16:18,576 --> 00:16:19,186
+well as a message.
+
+
+685
+00:16:19,186 --> 00:16:20,576
+The message that we embed also
+
+
+686
+00:16:20,706 --> 00:16:22,266
+takes on the message value
+
+
+687
+00:16:22,266 --> 00:16:24,246
+within the OS Signpost fact.
+
+
+688
+00:16:26,496 --> 00:16:27,856
+So, now that we know that, we
+
+
+689
+00:16:27,856 --> 00:16:29,146
+can try to look at some rules to
+
+
+690
+00:16:29,146 --> 00:16:30,156
+detect a mobile agent.
+
+
+691
+00:16:30,156 --> 00:16:31,136
+Here we have a rule written in
+
+
+692
+00:16:31,136 --> 00:16:32,376
+CLIPS, and the first thing that
+
+
+693
+00:16:32,376 --> 00:16:33,606
+it's trying to do is to detect
+
+
+694
+00:16:33,606 --> 00:16:34,946
+the presence of an OS Signpost
+
+
+695
+00:16:35,536 --> 00:16:37,476
+that has a particular name such
+
+
+696
+00:16:37,476 --> 00:16:38,406
+as mobile agent moved.
+
+
+697
+00:16:39,296 --> 00:16:40,916
+And what we'll do is we're going
+
+
+698
+00:16:40,946 --> 00:16:42,546
+to capture the value that's held
+
+
+699
+00:16:42,546 --> 00:16:44,156
+within the identifier slot in
+
+
+700
+00:16:44,156 --> 00:16:45,116
+this instance variable.
+
+
+701
+00:16:46,736 --> 00:16:48,236
+Additionally, we can perform
+
+
+702
+00:16:48,236 --> 00:16:49,586
+some parsing on the message to
+
+
+703
+00:16:49,586 --> 00:16:50,766
+extract any useful information
+
+
+704
+00:16:50,766 --> 00:16:51,356
+that we see from there.
+
+
+705
+00:16:53,756 --> 00:16:55,116
+And now in the second part, we
+
+
+706
+00:16:55,116 --> 00:16:56,026
+have one more condition that
+
+
+707
+00:16:56,026 --> 00:16:57,396
+we'd like to express, which is
+
+
+708
+00:16:57,396 --> 00:16:59,116
+that we're trying to match
+
+
+709
+00:16:59,116 --> 00:17:00,746
+against the absence of a mobile
+
+
+710
+00:17:00,746 --> 00:17:01,636
+agent that has already been
+
+
+711
+00:17:01,636 --> 00:17:02,896
+identified by the Signpost.
+
+
+712
+00:17:03,266 --> 00:17:04,276
+Signpost is what we're going to
+
+
+713
+00:17:04,276 --> 00:17:05,896
+use to identify mobile agents,
+
+
+714
+00:17:05,896 --> 00:17:06,906
+but we don't want to introduce
+
+
+715
+00:17:06,906 --> 00:17:07,626
+any duplicates.
+
+
+716
+00:17:08,076 --> 00:17:09,215
+So, here with the knot keyword,
+
+
+717
+00:17:09,215 --> 00:17:10,766
+we're telling the modeler only
+
+
+718
+00:17:10,766 --> 00:17:11,915
+do this if you don't already
+
+
+719
+00:17:11,915 --> 00:17:13,016
+have a mobile agent that has
+
+
+720
+00:17:13,016 --> 00:17:14,116
+been identified with this
+
+
+721
+00:17:14,116 --> 00:17:14,756
+instance variable.
+
+
+722
+00:17:14,756 --> 00:17:17,215
+And if that's the case, the
+
+
+723
+00:17:17,215 --> 00:17:18,496
+modeler can go ahead and assert
+
+
+724
+00:17:18,496 --> 00:17:19,526
+that mobile agent into working
+
+
+725
+00:17:19,526 --> 00:17:19,816
+memory.
+
+
+726
+00:17:22,516 --> 00:17:23,796
+Likewise, when we're trying to
+
+
+727
+00:17:23,796 --> 00:17:25,336
+detect what the mobile agent was
+
+
+728
+00:17:25,336 --> 00:17:27,175
+doing, we match against the OS
+
+
+729
+00:17:27,175 --> 00:17:28,356
+Signpost fact again, because
+
+
+730
+00:17:28,356 --> 00:17:29,336
+we'll need that to determine
+
+
+731
+00:17:29,336 --> 00:17:30,036
+some properties.
+
+
+732
+00:17:31,036 --> 00:17:32,856
+But in this case, we omit the
+
+
+733
+00:17:32,856 --> 00:17:34,336
+use of the knot keyword, because
+
+
+734
+00:17:34,336 --> 00:17:35,686
+we really do want the presence
+
+
+735
+00:17:35,686 --> 00:17:37,136
+of this agent fact to live in
+
+
+736
+00:17:37,136 --> 00:17:37,856
+our working memory.
+
+
+737
+00:17:37,856 --> 00:17:39,196
+So, we know that we have already
+
+
+738
+00:17:39,196 --> 00:17:40,576
+parsed the agent and we can do
+
+
+739
+00:17:40,576 --> 00:17:41,256
+something more with it.
+
+
+740
+00:17:42,516 --> 00:17:44,346
+Specifically, once we do have
+
+
+741
+00:17:44,346 --> 00:17:46,316
+these two facts present, we can
+
+
+742
+00:17:46,316 --> 00:17:47,616
+assert or introduce that
+
+
+743
+00:17:47,616 --> 00:17:48,816
+movement fact so that the
+
+
+744
+00:17:48,816 --> 00:17:50,266
+modeler can keep track of what
+
+
+745
+00:17:50,266 --> 00:17:53,526
+the agent was actually doing.
+
+
+746
+00:17:53,666 --> 00:17:54,796
+All right, so we've seen some
+
+
+747
+00:17:54,796 --> 00:17:55,836
+examples of how we can write
+
+
+748
+00:17:55,836 --> 00:17:58,646
+CLIPS code to detect agents and
+
+
+749
+00:17:58,646 --> 00:17:59,696
+activities that they were doing,
+
+
+750
+00:17:59,696 --> 00:18:00,766
+but we need to learn a little
+
+
+751
+00:18:00,766 --> 00:18:01,976
+bit more about the underlying
+
+
+752
+00:18:01,976 --> 00:18:04,386
+execution to help us structure
+
+
+753
+00:18:04,386 --> 00:18:05,456
+our modeler a little bit better.
+
+
+754
+00:18:05,946 --> 00:18:07,206
+And in order to do that, I want
+
+
+755
+00:18:07,206 --> 00:18:08,166
+to invite Chad back onto the
+
+
+756
+00:18:08,166 --> 00:18:09,366
+stage to talk to us about rule
+
+
+757
+00:18:09,366 --> 00:18:09,806
+execution.
+
+
+758
+00:18:12,016 --> 00:18:13,306
+[ Applause ]
+
+
+759
+00:18:13,306 --> 00:18:14,816
+>> All right, so let's talk
+
+
+760
+00:18:14,816 --> 00:18:16,846
+about rules execution in the
+
+
+761
+00:18:16,846 --> 00:18:18,956
+CLIPS language in Rules Engine.
+
+
+762
+00:18:20,136 --> 00:18:21,686
+All right, when we define Rules
+
+
+763
+00:18:21,686 --> 00:18:22,946
+in CLIPS, they're defined with a
+
+
+764
+00:18:22,946 --> 00:18:24,486
+lefthand side and a righthand
+
+
+765
+00:18:24,486 --> 00:18:26,546
+side separated by a production
+
+
+766
+00:18:26,546 --> 00:18:26,976
+operator.
+
+
+767
+00:18:27,406 --> 00:18:29,306
+Now, lefthand side is really the
+
+
+768
+00:18:29,306 --> 00:18:30,216
+declarative part of the
+
+
+769
+00:18:30,216 --> 00:18:30,596
+language.
+
+
+770
+00:18:30,596 --> 00:18:31,726
+So, this is where you define a
+
+
+771
+00:18:31,726 --> 00:18:32,976
+pattern that you want the rules
+
+
+772
+00:18:32,976 --> 00:18:34,706
+engine to find in the working
+
+
+773
+00:18:34,706 --> 00:18:35,616
+memory of facts.
+
+
+774
+00:18:36,266 --> 00:18:37,266
+And when the Rules Engine
+
+
+775
+00:18:37,266 --> 00:18:39,266
+identifies a set of facts that
+
+
+776
+00:18:39,266 --> 00:18:40,656
+satisfies that pattern on the
+
+
+777
+00:18:40,656 --> 00:18:42,356
+lefthand side, it creates what's
+
+
+778
+00:18:42,356 --> 00:18:43,196
+called an activation.
+
+
+779
+00:18:43,586 --> 00:18:45,206
+Now, for each activation, it
+
+
+780
+00:18:45,206 --> 00:18:46,646
+will fire the righthand side of
+
+
+781
+00:18:46,646 --> 00:18:46,976
+the rule.
+
+
+782
+00:18:47,176 --> 00:18:48,486
+Now, the righthand side of the
+
+
+783
+00:18:48,486 --> 00:18:49,696
+rule is really the imperative
+
+
+784
+00:18:49,746 --> 00:18:50,356
+part of the language.
+
+
+785
+00:18:50,356 --> 00:18:51,436
+This is where you have access to
+
+
+786
+00:18:51,436 --> 00:18:53,136
+functions like retract, which
+
+
+787
+00:18:53,136 --> 00:18:54,426
+allows you to remove a fact from
+
+
+788
+00:18:54,426 --> 00:18:54,996
+working memory.
+
+
+789
+00:18:55,666 --> 00:18:57,306
+Or assert, which allows you to
+
+
+790
+00:18:57,306 --> 00:18:58,786
+add a fact into the working
+
+
+791
+00:18:58,786 --> 00:18:59,096
+memory.
+
+
+792
+00:18:59,746 --> 00:19:00,906
+And also some specialized
+
+
+793
+00:19:00,906 --> 00:19:02,426
+functions that allow you to
+
+
+794
+00:19:02,426 --> 00:19:03,876
+write to the output tables of
+
+
+795
+00:19:03,876 --> 00:19:05,636
+your modeler so you can write
+
+
+796
+00:19:05,636 --> 00:19:05,946
+the output.
+
+
+797
+00:19:07,686 --> 00:19:08,776
+Now, let's talk about facts for
+
+
+798
+00:19:08,776 --> 00:19:08,986
+a minute.
+
+
+799
+00:19:09,326 --> 00:19:10,786
+When we assert a fact into the
+
+
+800
+00:19:10,786 --> 00:19:12,286
+working memory, we use our
+
+
+801
+00:19:12,286 --> 00:19:13,016
+assert function.
+
+
+802
+00:19:13,016 --> 00:19:15,426
+And each new fact is assigned
+
+
+803
+00:19:15,426 --> 00:19:16,946
+what's called a fact address,
+
+
+804
+00:19:16,946 --> 00:19:17,706
+and they're identified with a
+
+
+805
+00:19:17,706 --> 00:19:19,426
+lowercase f, dash, and then some
+
+
+806
+00:19:19,426 --> 00:19:20,026
+unique number.
+
+
+807
+00:19:20,946 --> 00:19:23,116
+Now when we want to modify a
+
+
+808
+00:19:23,116 --> 00:19:24,856
+fact in the working memory, we
+
+
+809
+00:19:24,856 --> 00:19:26,716
+also have a modify function
+
+
+810
+00:19:27,466 --> 00:19:28,636
+which takes the fact address and
+
+
+811
+00:19:28,636 --> 00:19:29,536
+the slots that we'd like to
+
+
+812
+00:19:29,536 --> 00:19:30,666
+change on that piece of the
+
+
+813
+00:19:30,666 --> 00:19:31,186
+working memory.
+
+
+814
+00:19:31,956 --> 00:19:33,376
+Now, this is actually
+
+
+815
+00:19:33,376 --> 00:19:34,786
+implemented as a combination of
+
+
+816
+00:19:34,786 --> 00:19:36,306
+a retraction and an assertion.
+
+
+817
+00:19:36,306 --> 00:19:37,656
+So what happens here is we first
+
+
+818
+00:19:37,656 --> 00:19:38,826
+retract the fact from the
+
+
+819
+00:19:38,826 --> 00:19:40,586
+working memory, make the change,
+
+
+820
+00:19:40,586 --> 00:19:42,176
+and then reassert it back into
+
+
+821
+00:19:42,176 --> 00:19:43,186
+the working memory with the
+
+
+822
+00:19:43,186 --> 00:19:44,846
+updated fields or updated slots.
+
+
+823
+00:19:45,586 --> 00:19:47,476
+Now, this is important because
+
+
+824
+00:19:47,566 --> 00:19:48,686
+when you reassert something into
+
+
+825
+00:19:48,686 --> 00:19:49,856
+the working memory, it will
+
+
+826
+00:19:49,856 --> 00:19:50,876
+refire and potentially
+
+
+827
+00:19:50,876 --> 00:19:52,266
+reactivate some of those rules,
+
+
+828
+00:19:52,586 --> 00:19:53,676
+which exactly what you want in
+
+
+829
+00:19:53,676 --> 00:19:55,476
+most cases because that's how
+
+
+830
+00:19:55,476 --> 00:19:56,486
+your rules system is going to
+
+
+831
+00:19:56,486 --> 00:19:58,106
+react to the changes you're
+
+
+832
+00:19:58,106 --> 00:19:59,636
+making to the working memory.
+
+
+833
+00:20:00,446 --> 00:20:02,026
+However, this can lead in some
+
+
+834
+00:20:02,026 --> 00:20:03,486
+cases to a complication I like
+
+
+835
+00:20:03,486 --> 00:20:05,336
+to refer to as a logical loop.
+
+
+836
+00:20:05,876 --> 00:20:07,016
+So, let's see how we might have
+
+
+837
+00:20:07,016 --> 00:20:08,496
+accidently created a logical
+
+
+838
+00:20:08,496 --> 00:20:09,466
+loop in our code.
+
+
+839
+00:20:09,466 --> 00:20:11,276
+So, we have this pretty small
+
+
+840
+00:20:11,276 --> 00:20:11,756
+rule here.
+
+
+841
+00:20:11,916 --> 00:20:13,726
+And what it's designed to do is
+
+
+842
+00:20:13,726 --> 00:20:14,826
+to count the number of mobile
+
+
+843
+00:20:14,826 --> 00:20:16,756
+agents-- mobile agent instances
+
+
+844
+00:20:16,756 --> 00:20:17,456
+that have appeared in the
+
+
+845
+00:20:17,456 --> 00:20:18,036
+working memory.
+
+
+846
+00:20:18,746 --> 00:20:19,876
+So, it starts off with a counter
+
+
+847
+00:20:19,876 --> 00:20:21,026
+fact, with a slot that's
+
+
+848
+00:20:21,026 --> 00:20:21,886
+initially zero.
+
+
+849
+00:20:22,546 --> 00:20:24,036
+And for each mobile agent that
+
+
+850
+00:20:24,036 --> 00:20:25,146
+gets placed into the working
+
+
+851
+00:20:25,146 --> 00:20:26,326
+memory, it will fire the
+
+
+852
+00:20:26,326 --> 00:20:28,136
+righthand side of the rule which
+
+
+853
+00:20:28,136 --> 00:20:30,206
+simply modifies the counter by
+
+
+854
+00:20:30,206 --> 00:20:32,326
+bumping the count slot up by
+
+
+855
+00:20:32,326 --> 00:20:32,596
+one.
+
+
+856
+00:20:32,916 --> 00:20:33,636
+Now, this sounds pretty
+
+
+857
+00:20:33,636 --> 00:20:34,196
+straightforward.
+
+
+858
+00:20:34,796 --> 00:20:36,366
+However, let's look at it when
+
+
+859
+00:20:36,366 --> 00:20:37,486
+it actually executes.
+
+
+860
+00:20:38,206 --> 00:20:39,536
+So first thing, we start off
+
+
+861
+00:20:39,536 --> 00:20:40,396
+with our counter in working
+
+
+862
+00:20:40,396 --> 00:20:41,846
+memory with an initial count of
+
+
+863
+00:20:41,846 --> 00:20:42,246
+zero.
+
+
+864
+00:20:43,836 --> 00:20:45,136
+And let's say at some point in
+
+
+865
+00:20:45,136 --> 00:20:46,646
+the future a mobile agent is
+
+
+866
+00:20:46,646 --> 00:20:47,486
+asserted into the working
+
+
+867
+00:20:47,486 --> 00:20:47,836
+memory.
+
+
+868
+00:20:47,976 --> 00:20:49,046
+Now we have enough on the
+
+
+869
+00:20:49,046 --> 00:20:50,366
+lefthand side to fire the
+
+
+870
+00:20:50,366 --> 00:20:50,996
+righthand side.
+
+
+871
+00:20:51,326 --> 00:20:53,526
+So, that will call our modify
+
+
+872
+00:20:53,526 --> 00:20:55,796
+function which will first do a
+
+
+873
+00:20:55,796 --> 00:20:57,186
+retraction of that fact.
+
+
+874
+00:20:57,926 --> 00:20:59,936
+It'll modify by increasing the
+
+
+875
+00:20:59,936 --> 00:21:01,616
+count value, and then it will
+
+
+876
+00:21:01,616 --> 00:21:02,826
+reassert it back into the
+
+
+877
+00:21:02,826 --> 00:21:03,476
+working memory.
+
+
+878
+00:21:03,756 --> 00:21:05,436
+Now when we do this, notice that
+
+
+879
+00:21:05,436 --> 00:21:06,896
+it refired that same rule.
+
+
+880
+00:21:07,506 --> 00:21:08,906
+So now for that same mobile
+
+
+881
+00:21:08,906 --> 00:21:09,796
+agent instance, it's going to
+
+
+882
+00:21:09,796 --> 00:21:11,476
+count two, three, four, five,
+
+
+883
+00:21:11,476 --> 00:21:12,236
+six, seven, right.
+
+
+884
+00:21:12,236 --> 00:21:13,156
+It's going to keep going on and
+
+
+885
+00:21:13,156 --> 00:21:14,956
+on and on until eventually the
+
+
+886
+00:21:14,956 --> 00:21:16,636
+trace stops and instruments
+
+
+887
+00:21:16,636 --> 00:21:17,896
+tells you this was a fatal error
+
+
+888
+00:21:17,896 --> 00:21:19,156
+and that the rules engine
+
+
+889
+00:21:19,156 --> 00:21:19,986
+appears to be stuck.
+
+
+890
+00:21:20,786 --> 00:21:21,706
+Now, in the Instruments
+
+
+891
+00:21:21,706 --> 00:21:23,766
+Inspector in the console of your
+
+
+892
+00:21:24,076 --> 00:21:25,796
+modeler, you'll see trace, which
+
+
+893
+00:21:25,796 --> 00:21:27,226
+indicates all the events and
+
+
+894
+00:21:27,226 --> 00:21:28,426
+activations that were happening
+
+
+895
+00:21:28,826 --> 00:21:29,726
+during that loop.
+
+
+896
+00:21:29,726 --> 00:21:30,726
+So, that'll give you a head
+
+
+897
+00:21:30,726 --> 00:21:32,286
+start on how to debug that and
+
+
+898
+00:21:32,286 --> 00:21:33,626
+get out of it.
+
+
+899
+00:21:33,626 --> 00:21:35,016
+Now, the easiest way, in my
+
+
+900
+00:21:35,016 --> 00:21:35,836
+experience, to get out of a
+
+
+901
+00:21:35,836 --> 00:21:36,796
+logical loop is to do what I
+
+
+902
+00:21:36,796 --> 00:21:37,326
+call a little bit of
+
+
+903
+00:21:37,326 --> 00:21:38,436
+goal-oriented programming.
+
+
+904
+00:21:39,016 --> 00:21:40,016
+So instead of modifying the
+
+
+905
+00:21:40,016 --> 00:21:41,206
+counter fact directly, what we
+
+
+906
+00:21:41,206 --> 00:21:43,376
+do is we create a goal fact to
+
+
+907
+00:21:43,626 --> 00:21:45,556
+bump the counter for us.
+
+
+908
+00:21:45,916 --> 00:21:47,426
+And now this time when we detect
+
+
+909
+00:21:47,426 --> 00:21:48,956
+a mobile agent instance, we
+
+
+910
+00:21:48,956 --> 00:21:50,726
+assert a goal fact to count that
+
+
+911
+00:21:50,726 --> 00:21:51,296
+instance.
+
+
+912
+00:21:51,836 --> 00:21:53,236
+And then in our counting rule,
+
+
+913
+00:21:53,636 --> 00:21:55,976
+we capture the counter and the
+
+
+914
+00:21:55,976 --> 00:21:58,066
+goal and we retract the goal
+
+
+915
+00:21:58,356 --> 00:21:59,556
+because now it's being satisfied
+
+
+916
+00:21:59,966 --> 00:22:00,976
+when we bump the counter.
+
+
+917
+00:22:00,976 --> 00:22:01,746
+And that's going to keep that
+
+
+918
+00:22:01,746 --> 00:22:03,016
+rule from coming back through
+
+
+919
+00:22:03,016 --> 00:22:04,226
+and that's how we've broken out
+
+
+920
+00:22:04,226 --> 00:22:05,626
+of that logical loop.
+
+
+921
+00:22:06,376 --> 00:22:08,216
+All right, now let's talk about
+
+
+922
+00:22:08,216 --> 00:22:09,706
+the firing order of our rules
+
+
+923
+00:22:09,706 --> 00:22:10,856
+and how that might change the
+
+
+924
+00:22:10,856 --> 00:22:12,136
+outcome of our modeler.
+
+
+925
+00:22:13,086 --> 00:22:14,236
+So, let's return back to our
+
+
+926
+00:22:14,236 --> 00:22:15,136
+execute stop function.
+
+
+927
+00:22:15,136 --> 00:22:15,966
+This is what's called right
+
+
+928
+00:22:15,966 --> 00:22:17,806
+before a mobile agent goes into
+
+
+929
+00:22:17,806 --> 00:22:18,886
+its executing stage.
+
+
+930
+00:22:19,196 --> 00:22:20,876
+And now you'll notice here in
+
+
+931
+00:22:20,876 --> 00:22:22,476
+our OS Signpost, that first
+
+
+932
+00:22:22,476 --> 00:22:23,956
+argument in our first version of
+
+
+933
+00:22:23,956 --> 00:22:25,556
+the code, we're actually using
+
+
+934
+00:22:25,856 --> 00:22:27,236
+the agent's type string.
+
+
+935
+00:22:27,816 --> 00:22:28,586
+Which in this case would be
+
+
+936
+00:22:28,586 --> 00:22:30,146
+sorting agent or it's about 14
+
+
+937
+00:22:30,146 --> 00:22:31,426
+bytes of data that has to be
+
+
+938
+00:22:31,426 --> 00:22:32,816
+logged into the trace buffers.
+
+
+939
+00:22:33,246 --> 00:22:34,366
+Now, we think we can improve on
+
+
+940
+00:22:34,366 --> 00:22:36,266
+that by changing it from a
+
+
+941
+00:22:36,266 --> 00:22:38,616
+string over to a type code.
+
+
+942
+00:22:39,096 --> 00:22:40,006
+Now, this is only going to be a
+
+
+943
+00:22:40,006 --> 00:22:41,686
+four byte integer which is going
+
+
+944
+00:22:41,686 --> 00:22:43,046
+to save us about 10 bytes per
+
+
+945
+00:22:43,046 --> 00:22:43,396
+event.
+
+
+946
+00:22:43,776 --> 00:22:44,746
+And if these things are coming
+
+
+947
+00:22:44,746 --> 00:22:45,836
+in by the thousands, which they
+
+
+948
+00:22:45,836 --> 00:22:47,906
+are, it's going to save 10s of
+
+
+949
+00:22:47,906 --> 00:22:48,886
+thousands of bytes in the
+
+
+950
+00:22:48,886 --> 00:22:49,456
+tracing buffer.
+
+
+951
+00:22:50,486 --> 00:22:51,436
+Now in order to do that, we're
+
+
+952
+00:22:51,436 --> 00:22:52,346
+going to have to create some
+
+
+953
+00:22:52,456 --> 00:22:53,566
+mapping inside of our modeler
+
+
+954
+00:22:53,736 --> 00:22:55,516
+that coverts that code over to
+
+
+955
+00:22:55,516 --> 00:22:56,496
+that string, and so we're going
+
+
+956
+00:22:56,496 --> 00:22:57,686
+to use facts to do that.
+
+
+957
+00:22:58,546 --> 00:23:01,056
+And this time, in our detection
+
+
+958
+00:23:01,056 --> 00:23:02,486
+rule, we're going to capture the
+
+
+959
+00:23:02,486 --> 00:23:05,536
+agent's type code and when we
+
+
+960
+00:23:05,536 --> 00:23:06,946
+assert our mobile agent, we're
+
+
+961
+00:23:06,946 --> 00:23:08,086
+going to assert it with a kind
+
+
+962
+00:23:08,086 --> 00:23:09,896
+slot that's the symbol sentinel.
+
+
+963
+00:23:09,896 --> 00:23:10,476
+It's going to indicate we
+
+
+964
+00:23:10,476 --> 00:23:11,816
+haven't set the full string yet.
+
+
+965
+00:23:12,716 --> 00:23:14,276
+Because on a second rule, what
+
+
+966
+00:23:14,276 --> 00:23:15,466
+we're going to do is look for
+
+
+967
+00:23:15,516 --> 00:23:17,236
+any mobile agent that has a kind
+
+
+968
+00:23:17,236 --> 00:23:19,796
+of sentinel and we're going to
+
+
+969
+00:23:19,796 --> 00:23:22,126
+find for that corresponding type
+
+
+970
+00:23:22,196 --> 00:23:23,846
+code, the type string map that
+
+
+971
+00:23:23,846 --> 00:23:25,396
+you saw on the previous slide.
+
+
+972
+00:23:25,396 --> 00:23:27,216
+And once we have those two
+
+
+973
+00:23:27,216 --> 00:23:29,266
+pieces, we'll modify the kind
+
+
+974
+00:23:29,266 --> 00:23:30,556
+slot, changing it from the
+
+
+975
+00:23:30,556 --> 00:23:32,486
+symbol sentinel to a real
+
+
+976
+00:23:32,486 --> 00:23:32,776
+string.
+
+
+977
+00:23:33,666 --> 00:23:35,106
+Now, this whole design really
+
+
+978
+00:23:35,106 --> 00:23:37,706
+relies on this second lookup
+
+
+979
+00:23:37,706 --> 00:23:39,296
+rule, firing immediately after
+
+
+980
+00:23:39,296 --> 00:23:40,306
+we perform the assertion.
+
+
+981
+00:23:41,166 --> 00:23:42,366
+But what happens if another rule
+
+
+982
+00:23:42,366 --> 00:23:43,466
+in our system, for example our
+
+
+983
+00:23:43,466 --> 00:23:45,226
+agent parked rule, which also
+
+
+984
+00:23:45,226 --> 00:23:46,806
+references the mobile agent and
+
+
+985
+00:23:47,246 --> 00:23:49,266
+captures and uses the kind slot.
+
+
+986
+00:23:49,266 --> 00:23:50,886
+What if it happens to slip in
+
+
+987
+00:23:50,886 --> 00:23:52,376
+there between the assertion and
+
+
+988
+00:23:52,376 --> 00:23:52,826
+the lookup rule?
+
+
+989
+00:23:52,826 --> 00:23:53,946
+Well, it's going to see a kind
+
+
+990
+00:23:53,946 --> 00:23:54,416
+of sentinel.
+
+
+991
+00:23:54,416 --> 00:23:55,796
+And since this is a change we're
+
+
+992
+00:23:55,796 --> 00:23:56,896
+making to our rule system, it
+
+
+993
+00:23:56,896 --> 00:23:57,746
+might not be ready for that.
+
+
+994
+00:23:57,746 --> 00:23:58,796
+We have a whole new set of bugs
+
+
+995
+00:23:58,796 --> 00:23:58,996
+now.
+
+
+996
+00:23:59,716 --> 00:24:01,066
+So, one way to work around this
+
+
+997
+00:24:01,116 --> 00:24:03,776
+is to add a restriction to that
+
+
+998
+00:24:03,856 --> 00:24:05,946
+rule that says as long as the
+
+
+999
+00:24:05,946 --> 00:24:07,556
+kind is not equal to sentinel
+
+
+1000
+00:24:07,616 --> 00:24:08,906
+and that effectively delays the
+
+
+1001
+00:24:08,906 --> 00:24:10,476
+rule firing until that lookup
+
+
+1002
+00:24:10,476 --> 00:24:12,576
+rule does change the agent's
+
+
+1003
+00:24:12,646 --> 00:24:14,276
+kind from something, from
+
+
+1004
+00:24:14,276 --> 00:24:15,216
+sentinel to something real.
+
+
+1005
+00:24:15,216 --> 00:24:17,056
+Now, you can certainly do this
+
+
+1006
+00:24:17,056 --> 00:24:18,016
+but you're going to have to do
+
+
+1007
+00:24:18,016 --> 00:24:19,286
+this to all of the rules.
+
+
+1008
+00:24:19,286 --> 00:24:20,126
+And so that could be a little
+
+
+1009
+00:24:20,126 --> 00:24:22,186
+bit of a maintenance problem if
+
+
+1010
+00:24:22,186 --> 00:24:23,096
+you already have an existing
+
+
+1011
+00:24:23,096 --> 00:24:24,796
+rule set that assumes that will
+
+
+1012
+00:24:24,796 --> 00:24:25,586
+never be sentinel.
+
+
+1013
+00:24:26,536 --> 00:24:27,706
+So, let's look at another
+
+
+1014
+00:24:27,776 --> 00:24:28,856
+alternative way to do that.
+
+
+1015
+00:24:29,096 --> 00:24:29,986
+Now, really what we're trying to
+
+
+1016
+00:24:29,986 --> 00:24:31,716
+do is get that lookup rule to
+
+
+1017
+00:24:31,716 --> 00:24:32,886
+fire immediately after we
+
+
+1018
+00:24:32,886 --> 00:24:33,756
+perform that assertion.
+
+
+1019
+00:24:34,066 --> 00:24:34,966
+And one of the ways that we can
+
+
+1020
+00:24:34,966 --> 00:24:37,916
+do that is by telling CLIPS that
+
+
+1021
+00:24:38,096 --> 00:24:39,426
+that specific rule is more
+
+
+1022
+00:24:39,426 --> 00:24:41,436
+important than or more salient
+
+
+1023
+00:24:41,796 --> 00:24:43,476
+than the default salience of
+
+
+1024
+00:24:43,476 --> 00:24:43,846
+zero.
+
+
+1025
+00:24:44,546 --> 00:24:45,936
+Now, as long as that rule is the
+
+
+1026
+00:24:46,386 --> 00:24:48,526
+most salient rule in the system,
+
+
+1027
+00:24:48,856 --> 00:24:50,276
+as soon as our first rule
+
+
+1028
+00:24:50,276 --> 00:24:51,466
+finishes, that second rule is
+
+
+1029
+00:24:51,466 --> 00:24:52,446
+going to be the one that fires.
+
+
+1030
+00:24:52,896 --> 00:24:53,946
+Now, if you're using salience in
+
+
+1031
+00:24:53,946 --> 00:24:54,836
+other locations, you're going to
+
+
+1032
+00:24:54,836 --> 00:24:55,676
+have to go through your code and
+
+
+1033
+00:24:55,676 --> 00:24:57,966
+make sure that 100 is still the
+
+
+1034
+00:24:57,966 --> 00:24:59,166
+highest salience value, but
+
+
+1035
+00:24:59,166 --> 00:25:00,456
+that's another way to ensure
+
+
+1036
+00:25:00,456 --> 00:25:00,686
+that.
+
+
+1037
+00:25:01,086 --> 00:25:03,236
+Now, there is a little bit more
+
+
+1038
+00:25:03,236 --> 00:25:04,706
+direct way to control the rule
+
+
+1039
+00:25:04,706 --> 00:25:05,766
+ordering and the rule firing,
+
+
+1040
+00:25:05,766 --> 00:25:07,476
+but that requires that we learn
+
+
+1041
+00:25:07,476 --> 00:25:08,576
+a little bit more about
+
+
+1042
+00:25:08,576 --> 00:25:09,476
+activations.
+
+
+1043
+00:25:10,116 --> 00:25:12,466
+So, a reminder, an activation is
+
+
+1044
+00:25:12,466 --> 00:25:14,356
+basically a combination of facts
+
+
+1045
+00:25:14,356 --> 00:25:15,206
+in the working memory that
+
+
+1046
+00:25:15,206 --> 00:25:16,506
+satisfies the lefthand side of
+
+
+1047
+00:25:16,506 --> 00:25:16,996
+our pattern.
+
+
+1048
+00:25:17,226 --> 00:25:18,566
+And for each activation, we fire
+
+
+1049
+00:25:18,566 --> 00:25:19,756
+the righthand side of the rule.
+
+
+1050
+00:25:20,416 --> 00:25:22,036
+Now, we don't fire the righthand
+
+
+1051
+00:25:22,036 --> 00:25:23,246
+side of the rule immediately.
+
+
+1052
+00:25:23,606 --> 00:25:25,536
+Instead, what we do is the
+
+
+1053
+00:25:25,536 --> 00:25:27,096
+activation is logged to a data
+
+
+1054
+00:25:27,096 --> 00:25:29,876
+structure called the agenda, or
+
+
+1055
+00:25:29,876 --> 00:25:30,476
+an agenda.
+
+
+1056
+00:25:31,106 --> 00:25:34,266
+Now, an agenda is basically a
+
+
+1057
+00:25:34,266 --> 00:25:36,036
+list of activations that have
+
+
+1058
+00:25:36,036 --> 00:25:37,116
+resulted from a working memory
+
+
+1059
+00:25:37,116 --> 00:25:38,336
+update, and so all the rules
+
+
+1060
+00:25:38,336 --> 00:25:39,596
+engine needs to do is start from
+
+
+1061
+00:25:39,596 --> 00:25:40,516
+the top of that list and work
+
+
+1062
+00:25:40,516 --> 00:25:41,916
+its way down, firing the rules
+
+
+1063
+00:25:42,246 --> 00:25:43,686
+in that particular pattern.
+
+
+1064
+00:25:44,236 --> 00:25:45,516
+So, here we've fired the first
+
+
+1065
+00:25:45,516 --> 00:25:46,466
+rule, now we come down to the
+
+
+1066
+00:25:46,466 --> 00:25:46,806
+second rule.
+
+
+1067
+00:25:47,086 --> 00:25:47,986
+Now, this data structure is
+
+
+1068
+00:25:48,026 --> 00:25:50,096
+dynamic, so if rule 99 here were
+
+
+1069
+00:25:50,096 --> 00:25:53,476
+to retract fact 17, and fact 17
+
+
+1070
+00:25:53,476 --> 00:25:54,556
+is being referenced by these
+
+
+1071
+00:25:54,556 --> 00:25:56,126
+other two activations, CLIPS
+
+
+1072
+00:25:56,126 --> 00:25:57,826
+will first retract those
+
+
+1073
+00:25:57,826 --> 00:25:59,756
+activations before moving
+
+
+1074
+00:25:59,756 --> 00:26:01,056
+forward, and then thus the
+
+
+1075
+00:26:01,056 --> 00:26:02,986
+agenda will look like this when
+
+
+1076
+00:26:03,116 --> 00:26:04,386
+execution resumes.
+
+
+1077
+00:26:04,946 --> 00:26:08,086
+Now the agendas are ordered by
+
+
+1078
+00:26:08,176 --> 00:26:08,976
+salience, so that's where
+
+
+1079
+00:26:08,976 --> 00:26:09,886
+salience comes into play.
+
+
+1080
+00:26:09,886 --> 00:26:10,906
+The higher salience, the higher
+
+
+1081
+00:26:10,906 --> 00:26:11,746
+it appears on the agenda.
+
+
+1082
+00:26:12,536 --> 00:26:13,776
+But the more important part here
+
+
+1083
+00:26:13,996 --> 00:26:15,506
+is that there isn't a single
+
+
+1084
+00:26:15,506 --> 00:26:17,086
+agenda on your modeler.
+
+
+1085
+00:26:17,086 --> 00:26:18,686
+There's actually one per module
+
+
+1086
+00:26:18,766 --> 00:26:19,406
+that's defined.
+
+
+1087
+00:26:19,696 --> 00:26:20,946
+And we take advantage of that in
+
+
+1088
+00:26:20,946 --> 00:26:22,356
+the analysis core by defining a
+
+
+1089
+00:26:22,426 --> 00:26:23,786
+couple of standard modules for
+
+
+1090
+00:26:23,786 --> 00:26:24,006
+you.
+
+
+1091
+00:26:24,696 --> 00:26:26,066
+The first one being the modeler
+
+
+1092
+00:26:26,156 --> 00:26:27,176
+module, and this is where you're
+
+
+1093
+00:26:27,176 --> 00:26:29,026
+going to want to put your pure
+
+
+1094
+00:26:29,026 --> 00:26:30,136
+reasoning logic and your
+
+
+1095
+00:26:30,236 --> 00:26:32,156
+reasoning rules in this module,
+
+
+1096
+00:26:32,156 --> 00:26:33,706
+by prefacing the rule name with
+
+
+1097
+00:26:33,706 --> 00:26:34,916
+modeler colon colon.
+
+
+1098
+00:26:35,406 --> 00:26:37,386
+And we defined a second module
+
+
+1099
+00:26:37,556 --> 00:26:39,526
+called a recorder module that,
+
+
+1100
+00:26:39,526 --> 00:26:40,096
+this is where you're going to
+
+
+1101
+00:26:40,096 --> 00:26:41,186
+want to put your output writing
+
+
+1102
+00:26:41,186 --> 00:26:42,726
+rules, by prefacing those with
+
+
+1103
+00:26:42,726 --> 00:26:43,826
+recorder colon colon.
+
+
+1104
+00:26:43,826 --> 00:26:45,316
+And the reason you're going to
+
+
+1105
+00:26:45,316 --> 00:26:46,916
+want to do that is because when
+
+
+1106
+00:26:46,916 --> 00:26:48,966
+we execute these rules, we
+
+
+1107
+00:26:48,966 --> 00:26:50,316
+execute everything that's on the
+
+
+1108
+00:26:50,316 --> 00:26:52,536
+modeler's agenda first until
+
+
+1109
+00:26:52,536 --> 00:26:53,816
+it's completely empty before
+
+
+1110
+00:26:53,816 --> 00:26:55,096
+moving over to the recorder's
+
+
+1111
+00:26:55,096 --> 00:26:55,526
+module.
+
+
+1112
+00:26:56,056 --> 00:26:56,946
+And so what that allows you to
+
+
+1113
+00:26:56,976 --> 00:26:58,916
+do is have confidence that when
+
+
+1114
+00:26:58,916 --> 00:26:59,896
+you're having an output writing
+
+
+1115
+00:26:59,896 --> 00:27:01,696
+rule, you're not looking at
+
+
+1116
+00:27:01,696 --> 00:27:02,506
+working memory that's in the
+
+
+1117
+00:27:02,506 --> 00:27:03,936
+process of being reasoned in the
+
+
+1118
+00:27:03,936 --> 00:27:04,626
+modeler module.
+
+
+1119
+00:27:05,796 --> 00:27:06,746
+Now, you can take advantage of
+
+
+1120
+00:27:06,746 --> 00:27:07,826
+this yourself by defining your
+
+
+1121
+00:27:07,826 --> 00:27:09,856
+own custom modules in CLIPS.
+
+
+1122
+00:27:09,856 --> 00:27:10,966
+And so let's take a look at how
+
+
+1123
+00:27:10,966 --> 00:27:13,396
+we could do that to better
+
+
+1124
+00:27:13,466 --> 00:27:15,586
+adjust our lookup rule
+
+
+1125
+00:27:15,586 --> 00:27:16,106
+execution.
+
+
+1126
+00:27:16,506 --> 00:27:17,856
+So the first thing we want not
+
+
+1127
+00:27:17,856 --> 00:27:19,296
+do is define the module for our
+
+
+1128
+00:27:19,296 --> 00:27:20,156
+lookup module.
+
+
+1129
+00:27:21,026 --> 00:27:22,586
+Now we want to place our lookup
+
+
+1130
+00:27:22,806 --> 00:27:24,346
+rule inside that module by
+
+
+1131
+00:27:24,346 --> 00:27:25,696
+prefacing it with lookup colon
+
+
+1132
+00:27:25,696 --> 00:27:26,056
+colon.
+
+
+1133
+00:27:27,296 --> 00:27:29,456
+Now, when we assert a mobile
+
+
+1134
+00:27:29,456 --> 00:27:31,756
+agent fact, immediately the next
+
+
+1135
+00:27:31,756 --> 00:27:33,606
+thing that we do is tell CLIPS
+
+
+1136
+00:27:33,606 --> 00:27:35,136
+to focus on the lookup agenda.
+
+
+1137
+00:27:35,376 --> 00:27:36,436
+Basically run all of the
+
+
+1138
+00:27:36,436 --> 00:27:37,336
+activations that are in the
+
+
+1139
+00:27:37,336 --> 00:27:39,866
+lookup agenda before returning
+
+
+1140
+00:27:39,866 --> 00:27:41,796
+back to the modeler's agenda and
+
+
+1141
+00:27:41,796 --> 00:27:42,936
+thusly executing the next set of
+
+
+1142
+00:27:42,936 --> 00:27:43,416
+modeling rules.
+
+
+1143
+00:27:43,416 --> 00:27:44,666
+So, that's a great way to slip
+
+
+1144
+00:27:44,806 --> 00:27:47,336
+rules in between execution in
+
+
+1145
+00:27:47,336 --> 00:27:48,066
+the execution order.
+
+
+1146
+00:27:48,706 --> 00:27:49,816
+All right, so that gives us
+
+
+1147
+00:27:49,816 --> 00:27:51,716
+enough information now and we
+
+
+1148
+00:27:51,716 --> 00:27:53,126
+can start taking a look at how
+
+
+1149
+00:27:53,126 --> 00:27:54,556
+to start debugging and
+
+
+1150
+00:27:54,556 --> 00:27:55,126
+profiling.
+
+
+1151
+00:27:55,216 --> 00:27:56,006
+And in order to do that, I'd
+
+
+1152
+00:27:56,006 --> 00:27:57,246
+like to ask Alejandro to come
+
+
+1153
+00:27:57,246 --> 00:27:58,786
+back up to the stage and walk us
+
+
+1154
+00:27:58,836 --> 00:28:00,216
+through that.
+
+
+1155
+00:28:01,516 --> 00:28:04,596
+[ Applause ]
+
+
+1156
+00:28:05,096 --> 00:28:05,956
+>> All right, thank you Chad.
+
+
+1157
+00:28:06,686 --> 00:28:07,596
+What I'd like to do is talk
+
+
+1158
+00:28:07,596 --> 00:28:08,686
+about some of the debugging and
+
+
+1159
+00:28:08,686 --> 00:28:09,886
+profiling primitives we have
+
+
+1160
+00:28:09,886 --> 00:28:10,836
+available to us when we're
+
+
+1161
+00:28:10,836 --> 00:28:11,806
+building these models.
+
+
+1162
+00:28:12,536 --> 00:28:13,586
+Starting off with logging.
+
+
+1163
+00:28:14,326 --> 00:28:15,586
+Now, the logging primitives that
+
+
+1164
+00:28:15,586 --> 00:28:17,186
+we have available to us are very
+
+
+1165
+00:28:17,186 --> 00:28:18,586
+similar to print f, in that we
+
+
+1166
+00:28:18,586 --> 00:28:20,096
+can specify a format string,
+
+
+1167
+00:28:20,436 --> 00:28:22,116
+format flags as well, and the
+
+
+1168
+00:28:22,266 --> 00:28:23,716
+variables that we'd like to
+
+
+1169
+00:28:23,746 --> 00:28:24,646
+represent those types.
+
+
+1170
+00:28:25,546 --> 00:28:27,216
+Now, unlike print f or just
+
+
+1171
+00:28:27,216 --> 00:28:28,806
+normal use of print f, through
+
+
+1172
+00:28:28,806 --> 00:28:29,936
+the Instruments Inspector, we
+
+
+1173
+00:28:29,936 --> 00:28:31,056
+actually have the ability to
+
+
+1174
+00:28:31,056 --> 00:28:32,506
+dynamically enable or disable
+
+
+1175
+00:28:32,506 --> 00:28:33,486
+these log statements, and we'll
+
+
+1176
+00:28:33,486 --> 00:28:34,356
+see an example of this very
+
+
+1177
+00:28:34,356 --> 00:28:34,676
+shortly.
+
+
+1178
+00:28:35,776 --> 00:28:36,816
+Now, how do I actually get these
+
+
+1179
+00:28:36,816 --> 00:28:37,986
+logging statements into my
+
+
+1180
+00:28:38,096 --> 00:28:38,406
+rules?
+
+
+1181
+00:28:38,906 --> 00:28:40,056
+Well, there's a function in
+
+
+1182
+00:28:40,056 --> 00:28:41,506
+CLIPS which is log narrative.
+
+
+1183
+00:28:41,976 --> 00:28:43,376
+And log narrative works, as I
+
+
+1184
+00:28:43,376 --> 00:28:44,436
+mentioned, very similarly to
+
+
+1185
+00:28:44,436 --> 00:28:45,876
+print f in that we can specify a
+
+
+1186
+00:28:45,876 --> 00:28:47,456
+string, such as resolve agent
+
+
+1187
+00:28:47,456 --> 00:28:49,186
+kind code, and then we specify
+
+
+1188
+00:28:49,186 --> 00:28:50,826
+the format type using percent
+
+
+1189
+00:28:51,046 --> 00:28:52,196
+and then the actual engineering
+
+
+1190
+00:28:52,196 --> 00:28:54,176
+type, in this case UN 64 and
+
+
+1191
+00:28:54,296 --> 00:28:56,396
+then a percent sign to string,
+
+
+1192
+00:28:56,806 --> 00:28:57,746
+followed by the variables that
+
+
+1193
+00:28:57,746 --> 00:28:58,876
+we'd like to take on those data
+
+
+1194
+00:28:58,876 --> 00:28:59,216
+types.
+
+
+1195
+00:29:01,946 --> 00:29:03,056
+Now, likewise, we can also
+
+
+1196
+00:29:03,056 --> 00:29:04,326
+enable different type of
+
+
+1197
+00:29:04,426 --> 00:29:05,246
+primitive here which is
+
+
+1198
+00:29:05,246 --> 00:29:06,046
+profiling through the
+
+
+1199
+00:29:06,046 --> 00:29:07,756
+Instruments Inspector, and the
+
+
+1200
+00:29:07,756 --> 00:29:09,046
+profiling primitive gives us
+
+
+1201
+00:29:09,046 --> 00:29:10,306
+things such as rule activation
+
+
+1202
+00:29:10,306 --> 00:29:11,496
+counts so we can see how many
+
+
+1203
+00:29:11,496 --> 00:29:13,656
+times certain rules fired as
+
+
+1204
+00:29:13,656 --> 00:29:15,266
+well as a time distribution so
+
+
+1205
+00:29:15,266 --> 00:29:16,916
+we can see how much time in
+
+
+1206
+00:29:16,916 --> 00:29:18,466
+seconds and percentage wise we
+
+
+1207
+00:29:18,466 --> 00:29:20,136
+spent activating certain rules.
+
+
+1208
+00:29:20,846 --> 00:29:22,126
+Now, to put all this in context,
+
+
+1209
+00:29:22,506 --> 00:29:23,396
+I'd like to switch over to a
+
+
+1210
+00:29:23,396 --> 00:29:24,696
+demo and I'll show you how all
+
+
+1211
+00:29:24,696 --> 00:29:25,416
+these things work together.
+
+
+1212
+00:29:29,356 --> 00:29:30,566
+So here with me I have the
+
+
+1213
+00:29:30,566 --> 00:29:31,566
+sample code that is again
+
+
+1214
+00:29:31,566 --> 00:29:32,476
+available to download.
+
+
+1215
+00:29:32,616 --> 00:29:33,786
+And within the sample code we
+
+
+1216
+00:29:33,786 --> 00:29:34,826
+have many different targets that
+
+
+1217
+00:29:34,826 --> 00:29:35,356
+you can use.
+
+
+1218
+00:29:35,976 --> 00:29:36,986
+But the one that I like to start
+
+
+1219
+00:29:36,986 --> 00:29:37,956
+with first is this plot
+
+
+1220
+00:29:37,956 --> 00:29:39,106
+templates modeling target that
+
+
+1221
+00:29:39,106 --> 00:29:40,286
+we can see over here.
+
+
+1222
+00:29:41,436 --> 00:29:42,746
+So, this will actually open up
+
+
+1223
+00:29:42,816 --> 00:29:44,296
+instruments when I build and run
+
+
+1224
+00:29:44,296 --> 00:29:44,376
+it.
+
+
+1225
+00:29:46,696 --> 00:29:48,156
+Looks like the build succeeded.
+
+
+1226
+00:29:50,636 --> 00:29:52,276
+And we can open up instruments
+
+
+1227
+00:29:52,276 --> 00:29:52,696
+accordingly.
+
+
+1228
+00:29:54,096 --> 00:29:55,406
+Now what I'll do here is I
+
+
+1229
+00:29:55,406 --> 00:29:57,036
+actually have the goats app
+
+
+1230
+00:29:57,436 --> 00:29:58,806
+already pulled up, so I won't
+
+
+1231
+00:29:58,806 --> 00:29:59,806
+maximize the screen, because
+
+
+1232
+00:29:59,806 --> 00:30:01,076
+we're going to need to keep this
+
+
+1233
+00:30:01,076 --> 00:30:02,086
+in mind here.
+
+
+1234
+00:30:02,906 --> 00:30:03,826
+Initially what I'll do is I'll
+
+
+1235
+00:30:03,826 --> 00:30:06,196
+go to the blank template and in
+
+
+1236
+00:30:06,196 --> 00:30:07,116
+the upper righthand corner, I
+
+
+1237
+00:30:07,116 --> 00:30:08,166
+can select an instrument that
+
+
+1238
+00:30:08,166 --> 00:30:08,606
+I'd like to add.
+
+
+1239
+00:30:08,606 --> 00:30:10,456
+And so to do that, I'll go ahead
+
+
+1240
+00:30:10,576 --> 00:30:12,616
+and go here and start searching
+
+
+1241
+00:30:12,616 --> 00:30:14,996
+for the mobile agents target
+
+
+1242
+00:30:15,056 --> 00:30:17,066
+that we just built.
+
+
+1243
+00:30:17,246 --> 00:30:18,396
+Now within here, again I
+
+
+1244
+00:30:18,396 --> 00:30:19,476
+mentioned the log narratives can
+
+
+1245
+00:30:19,476 --> 00:30:20,716
+be enabled or disabled
+
+
+1246
+00:30:20,716 --> 00:30:22,186
+dynamically via the Instruments
+
+
+1247
+00:30:22,186 --> 00:30:22,636
+Inspector.
+
+
+1248
+00:30:22,636 --> 00:30:24,666
+So using command i, I can open
+
+
+1249
+00:30:24,666 --> 00:30:26,276
+up the Instruments Inspector and
+
+
+1250
+00:30:26,276 --> 00:30:27,476
+here in the login tab, by
+
+
+1251
+00:30:27,476 --> 00:30:28,636
+default it's set to none.
+
+
+1252
+00:30:28,826 --> 00:30:30,046
+Butt I can switch that over to
+
+
+1253
+00:30:30,046 --> 00:30:31,186
+narrative, and that will enable
+
+
+1254
+00:30:31,186 --> 00:30:32,266
+these log narrative statements.
+
+
+1255
+00:30:33,176 --> 00:30:33,996
+So, I'll go ahead and close
+
+
+1256
+00:30:33,996 --> 00:30:34,276
+this.
+
+
+1257
+00:30:34,486 --> 00:30:36,096
+And instead of all processes,
+
+
+1258
+00:30:36,126 --> 00:30:37,086
+I'm going to switch it over to
+
+
+1259
+00:30:37,086 --> 00:30:38,366
+this goat list app.
+
+
+1260
+00:30:39,356 --> 00:30:40,576
+So, I'll start recording.
+
+
+1261
+00:30:41,006 --> 00:30:41,996
+And here in the goat list I can
+
+
+1262
+00:30:41,996 --> 00:30:43,356
+perform some actions such as
+
+
+1263
+00:30:43,356 --> 00:30:44,436
+sorting the different list of
+
+
+1264
+00:30:44,436 --> 00:30:44,816
+goats.
+
+
+1265
+00:30:45,316 --> 00:30:46,576
+And I see some activity popping
+
+
+1266
+00:30:46,576 --> 00:30:47,426
+up here in instruments.
+
+
+1267
+00:30:48,526 --> 00:30:49,566
+I can click it again and we'll
+
+
+1268
+00:30:49,566 --> 00:30:50,696
+see some more activity popping
+
+
+1269
+00:30:50,696 --> 00:30:52,206
+up, but I think that's enough to
+
+
+1270
+00:30:52,206 --> 00:30:53,196
+demonstrate the purpose here.
+
+
+1271
+00:30:54,656 --> 00:30:56,976
+First I'd like to zoom in and
+
+
+1272
+00:30:56,976 --> 00:30:57,976
+show the different intervals
+
+
+1273
+00:30:57,976 --> 00:30:58,946
+that we were talking about
+
+
+1274
+00:30:58,946 --> 00:31:00,546
+previously such as activating
+
+
+1275
+00:31:00,546 --> 00:31:01,856
+and the movements and
+
+
+1276
+00:31:01,856 --> 00:31:02,316
+everything.
+
+
+1277
+00:31:03,126 --> 00:31:04,156
+But to see the actual log
+
+
+1278
+00:31:04,156 --> 00:31:04,956
+narrative statements, again,
+
+
+1279
+00:31:04,956 --> 00:31:05,906
+I'll open up the Instruments
+
+
+1280
+00:31:05,906 --> 00:31:07,156
+Inspector using command i.
+
+
+1281
+00:31:08,076 --> 00:31:09,026
+And we got something new.
+
+
+1282
+00:31:09,026 --> 00:31:10,726
+We got this modeler log table.
+
+
+1283
+00:31:11,046 --> 00:31:12,466
+And in this modeler log table,
+
+
+1284
+00:31:12,466 --> 00:31:13,296
+that's where all of our log
+
+
+1285
+00:31:13,296 --> 00:31:14,346
+narrative statements will live,
+
+
+1286
+00:31:14,746 --> 00:31:16,296
+such as this resolving agent
+
+
+1287
+00:31:16,296 --> 00:31:17,706
+kind code that we saw in this
+
+
+1288
+00:31:17,706 --> 00:31:18,856
+example of how we use log
+
+
+1289
+00:31:18,856 --> 00:31:19,246
+narrative.
+
+
+1290
+00:31:19,706 --> 00:31:20,726
+In addition to many other ones
+
+
+1291
+00:31:20,726 --> 00:31:21,686
+that we have in our rules.
+
+
+1292
+00:31:22,206 --> 00:31:24,756
+Now, how do we switch over from
+
+
+1293
+00:31:24,756 --> 00:31:25,846
+using log narrative over to
+
+
+1294
+00:31:25,846 --> 00:31:26,356
+profile.
+
+
+1295
+00:31:26,696 --> 00:31:29,066
+Well again, in this login tab, I
+
+
+1296
+00:31:29,066 --> 00:31:29,996
+can switch over to something
+
+
+1297
+00:31:29,996 --> 00:31:32,146
+like profile 1, and I'll close
+
+
+1298
+00:31:32,146 --> 00:31:33,256
+out of the Instruments Inspector
+
+
+1299
+00:31:33,726 --> 00:31:34,826
+and try running Instruments
+
+
+1300
+00:31:34,826 --> 00:31:35,096
+again.
+
+
+1301
+00:31:35,306 --> 00:31:36,356
+I'll re-record the trace.
+
+
+1302
+00:31:37,096 --> 00:31:38,076
+Now I realize that this is
+
+
+1303
+00:31:38,076 --> 00:31:40,076
+already sorted but we can still
+
+
+1304
+00:31:40,076 --> 00:31:41,286
+get some activity happening from
+
+
+1305
+00:31:41,286 --> 00:31:41,966
+the mobile agents.
+
+
+1306
+00:31:42,406 --> 00:31:43,806
+And that should be enough again
+
+
+1307
+00:31:43,806 --> 00:31:44,916
+to demonstrate the purposes.
+
+
+1308
+00:31:45,856 --> 00:31:47,656
+So, I'll stop and I'll open up
+
+
+1309
+00:31:47,656 --> 00:31:49,006
+the Instruments Inspector again.
+
+
+1310
+00:31:49,996 --> 00:31:51,106
+There is no more modeler log
+
+
+1311
+00:31:51,106 --> 00:31:52,326
+table because we don't have any
+
+
+1312
+00:31:52,496 --> 00:31:53,396
+log narratives to show.
+
+
+1313
+00:31:54,046 --> 00:31:55,106
+But if, however, I go to this
+
+
+1314
+00:31:55,106 --> 00:31:57,296
+modeler's tab up here, I can
+
+
+1315
+00:31:57,296 --> 00:31:58,486
+actually see a very nice
+
+
+1316
+00:31:58,486 --> 00:31:59,746
+descriptive view of these
+
+
+1317
+00:31:59,746 --> 00:32:01,886
+different profiling values, such
+
+
+1318
+00:32:01,886 --> 00:32:03,376
+as this rule, this lookup
+
+
+1319
+00:32:03,376 --> 00:32:06,246
+unknown stop for execution got 7
+
+
+1320
+00:32:06,246 --> 00:32:07,436
+entries in the amount of time
+
+
+1321
+00:32:07,436 --> 00:32:08,646
+that it took and percentage wise
+
+
+1322
+00:32:08,646 --> 00:32:10,486
+as well, in addition to many of
+
+
+1323
+00:32:10,486 --> 00:32:11,216
+the other rules that I've
+
+
+1324
+00:32:11,216 --> 00:32:12,296
+specified in my modeling.
+
+
+1325
+00:32:12,826 --> 00:32:15,156
+Now, before closing this out, I
+
+
+1326
+00:32:15,346 --> 00:32:16,306
+did notice something
+
+
+1327
+00:32:16,306 --> 00:32:17,326
+particularly interesting.
+
+
+1328
+00:32:17,326 --> 00:32:18,276
+I'm going to rerun the trace
+
+
+1329
+00:32:18,276 --> 00:32:19,706
+once more because I want to
+
+
+1330
+00:32:19,706 --> 00:32:21,036
+capture it one more time.
+
+
+1331
+00:32:22,026 --> 00:32:23,306
+I'll start the sort and I see
+
+
+1332
+00:32:23,306 --> 00:32:24,176
+these different activities
+
+
+1333
+00:32:24,176 --> 00:32:24,606
+coming up.
+
+
+1334
+00:32:25,286 --> 00:32:26,836
+But then if I sort again, I
+
+
+1335
+00:32:26,836 --> 00:32:27,946
+notice that I get these long
+
+
+1336
+00:32:27,946 --> 00:32:29,396
+orange intervals coming in after
+
+
+1337
+00:32:29,396 --> 00:32:29,756
+the fact.
+
+
+1338
+00:32:29,816 --> 00:32:30,656
+They don't really follow the
+
+
+1339
+00:32:30,656 --> 00:32:33,766
+same live description or the
+
+
+1340
+00:32:33,766 --> 00:32:35,436
+live rendering that I expect
+
+
+1341
+00:32:35,436 --> 00:32:36,076
+with this Instrument.
+
+
+1342
+00:32:36,866 --> 00:32:38,026
+Now, there is a reason why this
+
+
+1343
+00:32:38,026 --> 00:32:39,666
+happens and in order to talk us
+
+
+1344
+00:32:39,726 --> 00:32:40,776
+through it and how we can find a
+
+
+1345
+00:32:40,776 --> 00:32:42,096
+solution for this, I want to
+
+
+1346
+00:32:42,096 --> 00:32:43,366
+bring Chad back on to talk about
+
+
+1347
+00:32:43,366 --> 00:32:43,906
+speculation.
+
+
+1348
+00:32:48,516 --> 00:32:50,796
+[ Applause ]
+
+
+1349
+00:32:51,296 --> 00:32:53,196
+>> Hi. Thank you, Alejandro.
+
+
+1350
+00:32:53,496 --> 00:32:55,376
+All right, so to describe the
+
+
+1351
+00:32:55,446 --> 00:32:57,396
+phenomenon that Alejandro was
+
+
+1352
+00:32:57,396 --> 00:32:58,426
+seeing, or work around it, we
+
+
+1353
+00:32:58,686 --> 00:32:59,806
+have to introduce a concept
+
+
+1354
+00:32:59,856 --> 00:33:00,736
+called speculation.
+
+
+1355
+00:33:00,976 --> 00:33:02,856
+And now what happened with those
+
+
+1356
+00:33:02,856 --> 00:33:03,376
+intervals?
+
+
+1357
+00:33:03,716 --> 00:33:05,216
+What makes them unique is first
+
+
+1358
+00:33:05,216 --> 00:33:06,056
+they're long intervals.
+
+
+1359
+00:33:06,056 --> 00:33:07,836
+They appear over or they extend
+
+
+1360
+00:33:07,836 --> 00:33:08,596
+over a period of several
+
+
+1361
+00:33:08,596 --> 00:33:10,006
+seconds, so it's more obvious,
+
+
+1362
+00:33:10,006 --> 00:33:10,526
+more visible.
+
+
+1363
+00:33:11,196 --> 00:33:13,266
+But secondly, the real problem
+
+
+1364
+00:33:13,266 --> 00:33:14,856
+is that the only record of these
+
+
+1365
+00:33:14,856 --> 00:33:16,256
+intervals that exists is sitting
+
+
+1366
+00:33:16,256 --> 00:33:17,336
+in the working memory of your
+
+
+1367
+00:33:17,336 --> 00:33:17,796
+modeler.
+
+
+1368
+00:33:18,056 --> 00:33:19,756
+Now, your UI is actually looking
+
+
+1369
+00:33:19,756 --> 00:33:20,726
+at the output tables in your
+
+
+1370
+00:33:20,726 --> 00:33:22,066
+modeler, so it's not able to see
+
+
+1371
+00:33:22,066 --> 00:33:22,426
+those.
+
+
+1372
+00:33:22,976 --> 00:33:24,206
+And we can't really write those
+
+
+1373
+00:33:24,206 --> 00:33:25,526
+intervals into the output table
+
+
+1374
+00:33:25,736 --> 00:33:27,326
+until we know, you know, when
+
+
+1375
+00:33:27,326 --> 00:33:28,056
+they're going to close.
+
+
+1376
+00:33:28,176 --> 00:33:29,876
+And that's what you're seeing in
+
+
+1377
+00:33:29,876 --> 00:33:30,726
+that particular case.
+
+
+1378
+00:33:31,666 --> 00:33:33,106
+Now, what we really want to do
+
+
+1379
+00:33:33,106 --> 00:33:34,096
+is be able to write like
+
+
+1380
+00:33:34,236 --> 00:33:35,816
+temporary or placeholder rows
+
+
+1381
+00:33:35,816 --> 00:33:37,256
+into the output tables of our
+
+
+1382
+00:33:37,256 --> 00:33:37,666
+modeler.
+
+
+1383
+00:33:38,026 --> 00:33:39,176
+And to do that, we've introduced
+
+
+1384
+00:33:39,176 --> 00:33:40,476
+a concept called Speculation
+
+
+1385
+00:33:40,516 --> 00:33:40,716
+mode.
+
+
+1386
+00:33:41,956 --> 00:33:43,206
+Now, Speculation mode in your
+
+
+1387
+00:33:43,206 --> 00:33:44,816
+modeler really says if this were
+
+
+1388
+00:33:44,816 --> 00:33:46,936
+your last chance to write to the
+
+
+1389
+00:33:46,936 --> 00:33:48,606
+output tables, what would you
+
+
+1390
+00:33:48,606 --> 00:33:49,326
+write right now?
+
+
+1391
+00:33:49,886 --> 00:33:51,006
+So, let's look at an example
+
+
+1392
+00:33:51,006 --> 00:33:51,176
+here.
+
+
+1393
+00:33:51,756 --> 00:33:52,596
+Let's say our modeler has
+
+
+1394
+00:33:52,626 --> 00:33:54,176
+processed all the data up until
+
+
+1395
+00:33:54,176 --> 00:33:55,306
+this white line here, which we
+
+
+1396
+00:33:55,306 --> 00:33:57,056
+call the event horizon.
+
+
+1397
+00:33:57,236 --> 00:33:58,866
+The event horizon is a point in
+
+
+1398
+00:33:58,926 --> 00:34:00,626
+time after which the modeler has
+
+
+1399
+00:34:00,626 --> 00:34:01,306
+no visibility.
+
+
+1400
+00:34:01,536 --> 00:34:02,766
+Now, that could be due to the
+
+
+1401
+00:34:02,766 --> 00:34:04,126
+fact that the trace just ended,
+
+
+1402
+00:34:04,546 --> 00:34:05,986
+or it could be that the analysis
+
+
+1403
+00:34:05,986 --> 00:34:07,616
+core hasn't filled in that
+
+
+1404
+00:34:07,816 --> 00:34:09,056
+portion of the trace yet.
+
+
+1405
+00:34:09,356 --> 00:34:10,676
+And so it's unaware of what's on
+
+
+1406
+00:34:10,676 --> 00:34:11,556
+the other side of that line.
+
+
+1407
+00:34:12,045 --> 00:34:13,146
+Now, do you see that we've
+
+
+1408
+00:34:13,246 --> 00:34:14,366
+created an interval that says
+
+
+1409
+00:34:14,366 --> 00:34:15,446
+moving to the background.
+
+
+1410
+00:34:15,716 --> 00:34:16,606
+And we can do that because it is
+
+
+1411
+00:34:16,606 --> 00:34:17,746
+nicely bookended between a
+
+
+1412
+00:34:17,746 --> 00:34:19,496
+moving and executing Signpost
+
+
+1413
+00:34:19,496 --> 00:34:19,706
+pair.
+
+
+1414
+00:34:20,306 --> 00:34:21,795
+But we don't know where that
+
+
+1415
+00:34:21,795 --> 00:34:23,166
+followup executing interval's
+
+
+1416
+00:34:23,166 --> 00:34:24,156
+really going to end because it's
+
+
+1417
+00:34:24,156 --> 00:34:25,106
+ending event is on the other
+
+
+1418
+00:34:25,106 --> 00:34:26,126
+side of the event horizon.
+
+
+1419
+00:34:26,416 --> 00:34:28,156
+So what we want to do is when we
+
+
+1420
+00:34:28,156 --> 00:34:29,866
+get into speculation mode, just
+
+
+1421
+00:34:29,936 --> 00:34:31,466
+write a temporary placeholder
+
+
+1422
+00:34:31,466 --> 00:34:33,106
+event into the tables so that
+
+
+1423
+00:34:33,106 --> 00:34:35,516
+the UI can see something and
+
+
+1424
+00:34:35,516 --> 00:34:37,226
+we're going to run that interval
+
+
+1425
+00:34:37,226 --> 00:34:38,886
+basically from the executing
+
+
+1426
+00:34:38,886 --> 00:34:40,966
+Signpost up to the current value
+
+
+1427
+00:34:41,166 --> 00:34:42,076
+of the event horizon.
+
+
+1428
+00:34:43,346 --> 00:34:44,146
+Now, you know that your
+
+
+1429
+00:34:44,146 --> 00:34:45,525
+modeler's in Speculation mode
+
+
+1430
+00:34:45,636 --> 00:34:47,505
+because you get a Speculate fact
+
+
+1431
+00:34:47,565 --> 00:34:49,356
+that's going to be injected into
+
+
+1432
+00:34:49,596 --> 00:34:50,376
+working memory.
+
+
+1433
+00:34:51,196 --> 00:34:52,726
+And in your recorder rules, you
+
+
+1434
+00:34:52,726 --> 00:34:54,206
+can combine that Speculate fact
+
+
+1435
+00:34:54,206 --> 00:34:56,275
+with any interval facts to write
+
+
+1436
+00:34:56,565 --> 00:34:58,996
+those open intervals into the
+
+
+1437
+00:34:58,996 --> 00:35:00,426
+table with the captured event
+
+
+1438
+00:35:00,426 --> 00:35:01,396
+horizon timestamp.
+
+
+1439
+00:35:01,566 --> 00:35:03,836
+And that's your opportunity to
+
+
+1440
+00:35:03,836 --> 00:35:04,916
+write the open intervals.
+
+
+1441
+00:35:05,836 --> 00:35:07,396
+So, let's take a look at example
+
+
+1442
+00:35:07,396 --> 00:35:08,376
+rule that we might define here.
+
+
+1443
+00:35:08,986 --> 00:35:10,016
+So first off, we're going to put
+
+
+1444
+00:35:10,016 --> 00:35:12,246
+our speculative output writing
+
+
+1445
+00:35:12,246 --> 00:35:13,586
+rule in the recorder module.
+
+
+1446
+00:35:13,586 --> 00:35:14,716
+So, prefix it with a recorder
+
+
+1447
+00:35:14,716 --> 00:35:15,506
+colon colon.
+
+
+1448
+00:35:16,796 --> 00:35:18,246
+Now, we're going to match on the
+
+
+1449
+00:35:18,246 --> 00:35:19,616
+Speculate event, capture the
+
+
+1450
+00:35:19,616 --> 00:35:21,156
+value of the event horizon.
+
+
+1451
+00:35:21,156 --> 00:35:22,976
+So, we have the end time for our
+
+
+1452
+00:35:22,976 --> 00:35:24,346
+interval, our theoretical end
+
+
+1453
+00:35:24,346 --> 00:35:24,626
+time.
+
+
+1454
+00:35:25,526 --> 00:35:27,506
+Now, for each open interval fact
+
+
+1455
+00:35:27,506 --> 00:35:28,686
+sitting in the working memory,
+
+
+1456
+00:35:28,936 --> 00:35:29,816
+we're going to fire the
+
+
+1457
+00:35:29,816 --> 00:35:30,816
+righthand side of the rule.
+
+
+1458
+00:35:31,486 --> 00:35:32,646
+And what we're going to do here
+
+
+1459
+00:35:32,646 --> 00:35:34,736
+is compute the duration based on
+
+
+1460
+00:35:34,736 --> 00:35:35,856
+the end time which is the event
+
+
+1461
+00:35:35,856 --> 00:35:37,226
+horizon and start time which is
+
+
+1462
+00:35:37,226 --> 00:35:38,516
+whenever the interval started.
+
+
+1463
+00:35:39,346 --> 00:35:41,436
+And then you create a new row
+
+
+1464
+00:35:41,436 --> 00:35:42,616
+and fill out the columns just
+
+
+1465
+00:35:42,616 --> 00:35:43,666
+like you would in normal output
+
+
+1466
+00:35:43,666 --> 00:35:44,126
+writing rule.
+
+
+1467
+00:35:44,336 --> 00:35:45,386
+Now the only difference really
+
+
+1468
+00:35:45,526 --> 00:35:46,826
+between a normal output writing
+
+
+1469
+00:35:46,826 --> 00:35:47,926
+rule and a speculative output
+
+
+1470
+00:35:47,926 --> 00:35:50,146
+writing rule is that you're
+
+
+1471
+00:35:50,146 --> 00:35:51,756
+testing or predicating this rule
+
+
+1472
+00:35:51,756 --> 00:35:53,936
+on the Speculate fact, and
+
+
+1473
+00:35:54,016 --> 00:35:55,066
+you're looking at the open
+
+
+1474
+00:35:55,066 --> 00:35:56,346
+intervals instead of the closed
+
+
+1475
+00:35:56,346 --> 00:35:57,446
+intervals, which you'd normally
+
+
+1476
+00:35:57,446 --> 00:35:59,056
+be writing into your output
+
+
+1477
+00:35:59,056 --> 00:35:59,326
+table.
+
+
+1478
+00:36:00,706 --> 00:36:02,606
+Now, when you're in immediate
+
+
+1479
+00:36:02,606 --> 00:36:04,516
+mode, what happens is that as
+
+
+1480
+00:36:04,516 --> 00:36:05,746
+that recording head moves
+
+
+1481
+00:36:05,796 --> 00:36:08,496
+forward, the older speculative
+
+
+1482
+00:36:08,496 --> 00:36:10,386
+data is purged and your modeler
+
+
+1483
+00:36:10,386 --> 00:36:11,616
+enters into speculation mode
+
+
+1484
+00:36:11,616 --> 00:36:13,076
+again with a new value of the
+
+
+1485
+00:36:13,076 --> 00:36:14,706
+event horizon and you're able to
+
+
+1486
+00:36:14,706 --> 00:36:15,946
+put those speculation events
+
+
+1487
+00:36:15,946 --> 00:36:16,106
+back.
+
+
+1488
+00:36:16,676 --> 00:36:18,476
+And the UI just continues to
+
+
+1489
+00:36:18,476 --> 00:36:19,336
+update like normal.
+
+
+1490
+00:36:20,056 --> 00:36:21,986
+Now when the trace stops, your
+
+
+1491
+00:36:21,986 --> 00:36:23,756
+modeler will enter Speculation
+
+
+1492
+00:36:23,756 --> 00:36:24,746
+mode one more time.
+
+
+1493
+00:36:24,746 --> 00:36:26,686
+But whatever you write now will
+
+
+1494
+00:36:26,686 --> 00:36:28,466
+actually be recorded and saved
+
+
+1495
+00:36:28,466 --> 00:36:30,106
+in the real trace data and
+
+
+1496
+00:36:30,106 --> 00:36:31,376
+become available to downstream
+
+
+1497
+00:36:31,376 --> 00:36:32,666
+modelers, not just the UI.
+
+
+1498
+00:36:32,666 --> 00:36:35,536
+Now, if we make that change to
+
+
+1499
+00:36:35,536 --> 00:36:38,316
+our existing instrument, it'll
+
+
+1500
+00:36:38,316 --> 00:36:39,466
+start working like this now
+
+
+1501
+00:36:39,776 --> 00:36:40,686
+where you have our mobile agent
+
+
+1502
+00:36:40,686 --> 00:36:42,716
+trace and now you see this
+
+
+1503
+00:36:42,716 --> 00:36:44,896
+parking interval continuing to
+
+
+1504
+00:36:44,896 --> 00:36:45,796
+grow here at the end.
+
+
+1505
+00:36:45,946 --> 00:36:47,526
+And it updates in real time.
+
+
+1506
+00:36:47,526 --> 00:36:48,736
+If you look in the detail table
+
+
+1507
+00:36:48,736 --> 00:36:49,586
+on the bottom, you'll see the
+
+
+1508
+00:36:49,586 --> 00:36:51,506
+duration continuing to grow.
+
+
+1509
+00:36:52,356 --> 00:36:54,496
+Now, when we press stop and end
+
+
+1510
+00:36:54,496 --> 00:36:55,786
+the recording, you'll notice
+
+
+1511
+00:36:55,786 --> 00:36:56,896
+that the interval sticks around.
+
+
+1512
+00:36:56,896 --> 00:36:58,076
+It's actually been recorded and
+
+
+1513
+00:36:58,316 --> 00:36:59,346
+will be saved as part of the
+
+
+1514
+00:36:59,346 --> 00:36:59,836
+trace.
+
+
+1515
+00:37:01,356 --> 00:37:02,536
+Now in summary, we know that
+
+
+1516
+00:37:02,536 --> 00:37:03,536
+writing custom modelers
+
+
+1517
+00:37:03,536 --> 00:37:05,086
+represents a significant
+
+
+1518
+00:37:05,086 --> 00:37:06,186
+investment, both in your time
+
+
+1519
+00:37:06,186 --> 00:37:07,336
+and learning a new technology.
+
+
+1520
+00:37:07,816 --> 00:37:09,316
+But it's really the best way to
+
+
+1521
+00:37:09,316 --> 00:37:10,466
+get the most out of custom
+
+
+1522
+00:37:10,466 --> 00:37:11,536
+instruments and to add
+
+
+1523
+00:37:11,536 --> 00:37:12,906
+intelligence to your custom
+
+
+1524
+00:37:12,906 --> 00:37:13,426
+instruments.
+
+
+1525
+00:37:13,696 --> 00:37:15,116
+And as we've seen, an
+
+
+1526
+00:37:15,116 --> 00:37:16,426
+intelligent instrument can lead
+
+
+1527
+00:37:16,426 --> 00:37:17,936
+to a more efficient recording
+
+
+1528
+00:37:17,936 --> 00:37:19,526
+mechanism and a much better user
+
+
+1529
+00:37:19,526 --> 00:37:20,196
+experience.
+
+
+1530
+00:37:22,036 --> 00:37:23,096
+So for more information, we have
+
+
+1531
+00:37:23,096 --> 00:37:24,646
+our attached sample code, also
+
+
+1532
+00:37:24,646 --> 00:37:26,416
+some related sessions on our
+
+
+1533
+00:37:26,416 --> 00:37:27,916
+sessions webpage.
+
+
+1534
+00:37:28,366 --> 00:37:29,816
+And that about does it for
+
+
+1535
+00:37:29,816 --> 00:37:30,126
+today.
+
+
+1536
+00:37:30,216 --> 00:37:30,866
+Thank you very much.
+
+
+1537
+00:37:31,006 --> 00:37:31,666
+Enjoy the rest of the show.
+
+
+1538
+00:37:32,516 --> 00:37:35,500
+[ Applause ]
+

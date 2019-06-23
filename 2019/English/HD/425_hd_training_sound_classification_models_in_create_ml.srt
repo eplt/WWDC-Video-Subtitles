@@ -1,0 +1,2974 @@
+1
+00:00:00,506 --> 00:00:05,500
+[ Music ]
+
+
+2
+00:00:09,516 --> 00:00:12,500
+[ Applause ]
+
+
+3
+00:00:14,096 --> 00:00:14,596
+>> Good morning.
+
+
+4
+00:00:15,486 --> 00:00:16,606
+My name's Dan Klingler.
+
+
+5
+00:00:17,156 --> 00:00:18,656
+And, I'm a software engineer on
+
+
+6
+00:00:18,656 --> 00:00:19,926
+the audio team here at Apple.
+
+
+7
+00:00:19,926 --> 00:00:22,266
+And, today I'm really excited to
+
+
+8
+00:00:22,266 --> 00:00:24,016
+talk to you about training sound
+
+
+9
+00:00:24,016 --> 00:00:26,036
+classification models in Create
+
+
+10
+00:00:26,036 --> 00:00:26,276
+ML.
+
+
+11
+00:00:28,766 --> 00:00:30,906
+So, before we start, we might
+
+
+12
+00:00:30,906 --> 00:00:32,766
+want to ask the question what is
+
+
+13
+00:00:32,766 --> 00:00:34,806
+sound classification, and how
+
+
+14
+00:00:34,806 --> 00:00:36,266
+might it be useful in your
+
+
+15
+00:00:36,266 --> 00:00:36,876
+application?
+
+
+16
+00:00:38,086 --> 00:00:41,036
+Sound classification is the task
+
+
+17
+00:00:41,036 --> 00:00:43,166
+of taking a sound, and placing
+
+
+18
+00:00:43,166 --> 00:00:44,966
+it into one of many categories.
+
+
+19
+00:00:45,846 --> 00:00:47,386
+But, if you think about it,
+
+
+20
+00:00:47,806 --> 00:00:49,056
+there are many different ways
+
+
+21
+00:00:49,056 --> 00:00:50,416
+that we can categorize sound.
+
+
+22
+00:00:51,616 --> 00:00:53,956
+One way might be to think about
+
+
+23
+00:00:53,956 --> 00:00:55,486
+the object that makes the sound.
+
+
+24
+00:00:55,996 --> 00:00:57,686
+So, in this example, we have the
+
+
+25
+00:00:57,686 --> 00:00:59,456
+sound of guitar, or the sound of
+
+
+26
+00:00:59,456 --> 00:01:00,056
+drums.
+
+
+27
+00:01:00,336 --> 00:01:02,106
+And, it's really the acoustical
+
+
+28
+00:01:02,106 --> 00:01:03,496
+properties of that object which
+
+
+29
+00:01:03,496 --> 00:01:05,135
+are different, and allow us as
+
+
+30
+00:01:05,135 --> 00:01:06,686
+humans to disambiguate these
+
+
+31
+00:01:06,686 --> 00:01:07,266
+sounds.
+
+
+32
+00:01:09,236 --> 00:01:10,766
+But, a second way we could think
+
+
+33
+00:01:10,766 --> 00:01:13,156
+about sound classification is
+
+
+34
+00:01:13,156 --> 00:01:15,216
+where the sound comes from, and
+
+
+35
+00:01:15,216 --> 00:01:16,436
+if you've ever gone on a hike,
+
+
+36
+00:01:16,996 --> 00:01:18,456
+or been in the middle of a busy
+
+
+37
+00:01:18,456 --> 00:01:20,986
+city, you'll understand that the
+
+
+38
+00:01:20,986 --> 00:01:22,566
+texture of the sound around you
+
+
+39
+00:01:22,846 --> 00:01:25,026
+is very different, even though
+
+
+40
+00:01:25,026 --> 00:01:26,616
+there's not one particular sound
+
+
+41
+00:01:26,616 --> 00:01:27,916
+that stands out, necessarily.
+
+
+42
+00:01:31,306 --> 00:01:32,386
+And, a third way we could think
+
+
+43
+00:01:32,386 --> 00:01:34,996
+about sound classification, is
+
+
+44
+00:01:34,996 --> 00:01:36,526
+by looking at the attributes of
+
+
+45
+00:01:36,526 --> 00:01:37,906
+the sound, or the properties of
+
+
+46
+00:01:37,906 --> 00:01:38,376
+the sound.
+
+
+47
+00:01:38,926 --> 00:01:41,516
+And so in this example, a baby's
+
+
+48
+00:01:41,516 --> 00:01:43,976
+laugh versus a baby's cry.
+
+
+49
+00:01:44,026 --> 00:01:45,756
+Both come from the same source,
+
+
+50
+00:01:46,346 --> 00:01:47,606
+but the properties of the sound
+
+
+51
+00:01:47,606 --> 00:01:48,486
+are very different.
+
+
+52
+00:01:48,656 --> 00:01:50,406
+And, this allows us to tell the
+
+
+53
+00:01:50,406 --> 00:01:51,726
+difference between these sounds.
+
+
+54
+00:01:53,336 --> 00:01:56,856
+Now, as app developers, you all
+
+
+55
+00:01:56,856 --> 00:01:58,406
+have different apps, and you
+
+
+56
+00:01:58,406 --> 00:01:59,686
+might have your different use
+
+
+57
+00:01:59,686 --> 00:02:01,386
+case for sound classification.
+
+
+58
+00:02:02,716 --> 00:02:04,456
+And, wouldn't it be great if you
+
+
+59
+00:02:04,456 --> 00:02:05,946
+could train your own model,
+
+
+60
+00:02:06,346 --> 00:02:07,696
+tailor-made for your own
+
+
+61
+00:02:07,746 --> 00:02:08,976
+application's use case?
+
+
+62
+00:02:11,486 --> 00:02:13,626
+And, you can do that today using
+
+
+63
+00:02:13,626 --> 00:02:15,176
+the Create ML app, which is
+
+
+64
+00:02:15,176 --> 00:02:16,366
+built right into Xcode.
+
+
+65
+00:02:16,856 --> 00:02:18,806
+This is the simplest way to
+
+
+66
+00:02:18,806 --> 00:02:20,696
+train a sound classifier model.
+
+
+67
+00:02:22,556 --> 00:02:24,846
+To train a sound classifier,
+
+
+68
+00:02:25,596 --> 00:02:27,386
+you'll first provide labeled
+
+
+69
+00:02:27,386 --> 00:02:29,726
+audio data to Create ML, in the
+
+
+70
+00:02:29,726 --> 00:02:31,056
+form of audio files.
+
+
+71
+00:02:32,736 --> 00:02:35,236
+Then, Create ML will train a
+
+
+72
+00:02:35,236 --> 00:02:37,096
+sound classifier model on your
+
+
+73
+00:02:37,096 --> 00:02:38,616
+custom data.
+
+
+74
+00:02:39,356 --> 00:02:41,236
+And then, you can take that
+
+
+75
+00:02:41,236 --> 00:02:43,126
+sound classifier, and use it
+
+
+76
+00:02:43,226 --> 00:02:44,376
+right in your application.
+
+
+77
+00:02:45,256 --> 00:02:46,926
+And, I'd love to show you this
+
+
+78
+00:02:46,926 --> 00:02:49,336
+process in action today, with a
+
+
+79
+00:02:49,336 --> 00:02:49,736
+demo.
+
+
+80
+00:02:52,516 --> 00:02:55,500
+[ Applause ]
+
+
+81
+00:03:00,376 --> 00:03:02,226
+So, to start, I'm going to
+
+
+82
+00:03:02,226 --> 00:03:04,236
+launch the Create ML app, which
+
+
+83
+00:03:04,236 --> 00:03:05,556
+you can find bundled with your
+
+
+84
+00:03:05,556 --> 00:03:06,546
+Xcode installation.
+
+
+85
+00:03:08,936 --> 00:03:10,196
+We're going to be creating a new
+
+
+86
+00:03:10,196 --> 00:03:13,366
+document, and select Sound from
+
+
+87
+00:03:13,366 --> 00:03:14,246
+the template chooser.
+
+
+88
+00:03:17,816 --> 00:03:20,316
+We'll click Next, and name our
+
+
+89
+00:03:20,316 --> 00:03:22,636
+project MySoundClassifier.
+
+
+90
+00:03:23,006 --> 00:03:25,406
+Let's save this project to our
+
+
+91
+00:03:25,406 --> 00:03:26,436
+Documents directory.
+
+
+92
+00:03:27,696 --> 00:03:30,236
+Once the Create ML app launches,
+
+
+93
+00:03:30,446 --> 00:03:32,576
+you'll see this home screen, and
+
+
+94
+00:03:32,576 --> 00:03:33,946
+the Input tab is selected on the
+
+
+95
+00:03:33,946 --> 00:03:34,336
+left.
+
+
+96
+00:03:36,036 --> 00:03:37,106
+This is where we'll provide our
+
+
+97
+00:03:37,106 --> 00:03:38,846
+training data to the Create ML
+
+
+98
+00:03:39,326 --> 00:03:40,346
+app, in order to train our
+
+
+99
+00:03:40,346 --> 00:03:41,096
+custom model.
+
+
+100
+00:03:43,236 --> 00:03:45,086
+You'll see some other tabs
+
+
+101
+00:03:45,086 --> 00:03:45,996
+across the top here.
+
+
+102
+00:03:46,476 --> 00:03:48,156
+Like Training, Validation, and
+
+
+103
+00:03:48,156 --> 00:03:48,636
+Testing.
+
+
+104
+00:03:49,126 --> 00:03:50,656
+And, these allow us to view some
+
+
+105
+00:03:50,656 --> 00:03:52,516
+statistics on the accuracy of
+
+
+106
+00:03:52,516 --> 00:03:53,886
+our model for each of these
+
+
+107
+00:03:53,886 --> 00:03:54,776
+stages of training.
+
+
+108
+00:03:55,996 --> 00:03:58,726
+And, finally, the Output tab is
+
+
+109
+00:03:58,726 --> 00:03:59,846
+where we'll expect to find our
+
+
+110
+00:03:59,846 --> 00:04:01,296
+model after it's been trained.
+
+
+111
+00:04:02,046 --> 00:04:03,606
+And, we can also interact with
+
+
+112
+00:04:03,606 --> 00:04:04,916
+our model in real time.
+
+
+113
+00:04:06,356 --> 00:04:07,866
+Now, today, I'm going to be
+
+
+114
+00:04:07,866 --> 00:04:09,246
+training a musical instrument
+
+
+115
+00:04:09,246 --> 00:04:09,956
+classifier.
+
+
+116
+00:04:09,956 --> 00:04:11,376
+And, I've brought some
+
+
+117
+00:04:11,376 --> 00:04:13,246
+instruments with me that we can
+
+
+118
+00:04:13,696 --> 00:04:13,806
+try.
+
+
+119
+00:04:14,476 --> 00:04:16,245
+I have a TrainingData directory
+
+
+120
+00:04:16,805 --> 00:04:18,406
+that we can open, and take a
+
+
+121
+00:04:18,406 --> 00:04:19,706
+look at some of the sound files
+
+
+122
+00:04:19,706 --> 00:04:21,046
+I've collected.
+
+
+123
+00:04:22,055 --> 00:04:25,056
+These contain recordings from an
+
+
+124
+00:04:25,056 --> 00:04:27,526
+acoustic guitar, for example, or
+
+
+125
+00:04:27,526 --> 00:04:29,376
+cowbell, or shaker.
+
+
+126
+00:04:30,056 --> 00:04:33,756
+To train our model, all we need
+
+
+127
+00:04:33,756 --> 00:04:35,886
+to do is drag this directory
+
+
+128
+00:04:36,266 --> 00:04:37,456
+straight into Create ML.
+
+
+129
+00:04:38,136 --> 00:04:41,636
+Create ML has figured out that
+
+
+130
+00:04:41,636 --> 00:04:43,386
+we have a total of 49 sound
+
+
+131
+00:04:43,386 --> 00:04:44,346
+files we're going to be using
+
+
+132
+00:04:44,346 --> 00:04:44,696
+today.
+
+
+133
+00:04:44,696 --> 00:04:47,286
+And, that spans 7 different
+
+
+134
+00:04:47,286 --> 00:04:47,876
+classes.
+
+
+135
+00:04:50,276 --> 00:04:52,086
+All we need to do is press the
+
+
+136
+00:04:52,086 --> 00:04:53,816
+Train button, and our model will
+
+
+137
+00:04:53,816 --> 00:04:54,516
+begin training.
+
+
+138
+00:04:55,766 --> 00:04:57,696
+Now, the first thing Create ML
+
+
+139
+00:04:57,696 --> 00:04:58,596
+is going to be doing when
+
+
+140
+00:04:58,596 --> 00:05:00,586
+training this model is walking
+
+
+141
+00:05:00,586 --> 00:05:02,036
+through each of the sound files
+
+
+142
+00:05:02,036 --> 00:05:03,916
+we provided, and extracting
+
+
+143
+00:05:03,916 --> 00:05:06,176
+audio features across the entire
+
+
+144
+00:05:06,176 --> 00:05:07,006
+file.
+
+
+145
+00:05:07,376 --> 00:05:08,776
+And, once it's collected all
+
+
+146
+00:05:08,776 --> 00:05:10,526
+these audio features, it will
+
+
+147
+00:05:10,526 --> 00:05:11,766
+begin the process you're seeing
+
+
+148
+00:05:11,766 --> 00:05:13,706
+now, which is where the model
+
+
+149
+00:05:13,706 --> 00:05:14,616
+weights are updating
+
+
+150
+00:05:14,616 --> 00:05:15,236
+iteratively.
+
+
+151
+00:05:17,266 --> 00:05:18,206
+As the model weights are
+
+
+152
+00:05:18,206 --> 00:05:19,896
+updating, you can see that the
+
+
+153
+00:05:19,896 --> 00:05:22,126
+performance is increasing, and
+
+
+154
+00:05:22,126 --> 00:05:24,276
+our accuracy is moving towards
+
+
+155
+00:05:24,276 --> 00:05:26,356
+100%, which is a good sign that
+
+
+156
+00:05:26,356 --> 00:05:27,416
+our model is converging.
+
+
+157
+00:05:28,906 --> 00:05:30,026
+Now, if you think about the
+
+
+158
+00:05:30,026 --> 00:05:31,356
+sounds we've collected today,
+
+
+159
+00:05:31,396 --> 00:05:33,456
+they're fairly distinct, like
+
+
+160
+00:05:33,456 --> 00:05:35,176
+cowbell and acoustic guitar
+
+
+161
+00:05:35,176 --> 00:05:36,086
+sound fairly different.
+
+
+162
+00:05:36,316 --> 00:05:37,616
+And so, this particular model
+
+
+163
+00:05:37,616 --> 00:05:38,976
+we've trained is able to do a
+
+
+164
+00:05:38,976 --> 00:05:40,356
+really good job with the sounds,
+
+
+165
+00:05:40,356 --> 00:05:42,296
+as you can see, on both the
+
+
+166
+00:05:42,296 --> 00:05:43,906
+training and the validation
+
+
+167
+00:05:43,906 --> 00:05:44,396
+sets.
+
+
+168
+00:05:44,936 --> 00:05:48,736
+The testing pane is a good place
+
+
+169
+00:05:48,796 --> 00:05:50,726
+to provide a large data set that
+
+
+170
+00:05:50,726 --> 00:05:52,676
+you might have for benchmarking.
+
+
+171
+00:05:53,866 --> 00:05:55,976
+The Create ML app allows you to
+
+
+172
+00:05:55,976 --> 00:05:57,556
+train multiple models at the
+
+
+173
+00:05:57,556 --> 00:05:58,286
+same time.
+
+
+174
+00:05:58,916 --> 00:06:00,256
+And, potentially provide
+
+
+175
+00:06:00,316 --> 00:06:01,636
+different sets of training data.
+
+
+176
+00:06:01,716 --> 00:06:03,626
+And so, the testing pane is a
+
+
+177
+00:06:03,626 --> 00:06:05,176
+great place if you want to
+
+
+178
+00:06:05,176 --> 00:06:06,776
+provide a common benchmark for
+
+
+179
+00:06:06,776 --> 00:06:07,706
+all those different model
+
+
+180
+00:06:07,706 --> 00:06:08,876
+configurations you're training.
+
+
+181
+00:06:10,636 --> 00:06:12,186
+Finally, as we make our way to
+
+
+182
+00:06:12,186 --> 00:06:14,346
+the Output tab, you'll see a UI
+
+
+183
+00:06:14,446 --> 00:06:16,196
+that shows how we can interact
+
+
+184
+00:06:16,196 --> 00:06:16,926
+with our model.
+
+
+185
+00:06:17,846 --> 00:06:19,556
+Now, I've collected one other
+
+
+186
+00:06:19,556 --> 00:06:21,376
+file that I didn't include in my
+
+
+187
+00:06:21,376 --> 00:06:22,066
+training set.
+
+
+188
+00:06:22,066 --> 00:06:24,606
+And, I've placed this in the
+
+
+189
+00:06:24,606 --> 00:06:25,866
+TestingData directory.
+
+
+190
+00:06:25,866 --> 00:06:28,376
+When I drag that directory into
+
+
+191
+00:06:28,376 --> 00:06:30,206
+the UI, you can see it
+
+
+192
+00:06:30,206 --> 00:06:31,706
+recognizes a file called
+
+
+193
+00:06:31,706 --> 00:06:33,606
+classification test.
+
+
+194
+00:06:34,876 --> 00:06:36,616
+As we scroll through this file,
+
+
+195
+00:06:37,276 --> 00:06:39,126
+it appears that Create ML has
+
+
+196
+00:06:39,126 --> 00:06:40,806
+classified the first second or
+
+
+197
+00:06:40,806 --> 00:06:42,376
+so of this file as background
+
+
+198
+00:06:42,376 --> 00:06:42,756
+noise.
+
+
+199
+00:06:43,876 --> 00:06:45,276
+Then, speech for the next couple
+
+
+200
+00:06:45,276 --> 00:06:48,246
+seconds, and finally shaker.
+
+
+201
+00:06:50,506 --> 00:06:52,706
+But, let's find out if we agree
+
+
+202
+00:06:52,706 --> 00:06:53,956
+with this classification.
+
+
+203
+00:06:54,256 --> 00:06:55,606
+And, we can listen to this file
+
+
+204
+00:06:55,606 --> 00:06:58,626
+right here in the UI.
+
+
+205
+00:06:58,816 --> 00:06:59,976
+Test, 1, 2, 3.
+
+
+206
+00:07:00,516 --> 00:07:04,516
+[ Shaker Playing ]
+
+
+207
+00:07:05,516 --> 00:07:10,366
+[ Applause ]
+
+
+208
+00:07:10,866 --> 00:07:12,306
+So, it seems at least on the
+
+
+209
+00:07:12,306 --> 00:07:14,436
+file that we've collected, that
+
+
+210
+00:07:14,436 --> 00:07:15,386
+this model seems to be
+
+
+211
+00:07:15,386 --> 00:07:16,516
+performing reasonably.
+
+
+212
+00:07:17,286 --> 00:07:19,146
+Now, what would be even better,
+
+
+213
+00:07:19,726 --> 00:07:20,756
+is if we could interact with
+
+
+214
+00:07:20,756 --> 00:07:21,676
+this model live.
+
+
+215
+00:07:22,606 --> 00:07:24,306
+And, to do that, we've added a
+
+
+216
+00:07:24,306 --> 00:07:26,806
+button here that has Record
+
+
+217
+00:07:26,806 --> 00:07:27,426
+Microphone.
+
+
+218
+00:07:28,316 --> 00:07:30,796
+And, once I begin recording, my
+
+
+219
+00:07:30,796 --> 00:07:32,176
+Mac will begin feeding the
+
+
+220
+00:07:32,176 --> 00:07:34,026
+built-in microphone data into
+
+
+221
+00:07:34,026 --> 00:07:34,966
+the model we've just trained.
+
+
+222
+00:07:35,516 --> 00:07:43,436
+[ Applause ]
+
+
+223
+00:07:43,936 --> 00:07:45,626
+So, what you can see is, anytime
+
+
+224
+00:07:45,626 --> 00:07:47,286
+I'm speaking, the model's
+
+
+225
+00:07:47,286 --> 00:07:48,796
+recognizing speech with high
+
+
+226
+00:07:48,796 --> 00:07:49,496
+confidence.
+
+
+227
+00:07:49,976 --> 00:07:51,696
+And, as I quiet down, you can
+
+
+228
+00:07:51,696 --> 00:07:53,526
+see the model settle back down
+
+
+229
+00:07:53,676 --> 00:07:56,636
+into a background state.
+
+
+230
+00:07:57,056 --> 00:07:58,206
+And, I brought a few instruments
+
+
+231
+00:07:58,206 --> 00:07:59,716
+with me so that we can play
+
+
+232
+00:07:59,716 --> 00:08:00,966
+along and see if the model can
+
+
+233
+00:08:00,966 --> 00:08:01,676
+recognize them.
+
+
+234
+00:08:02,556 --> 00:08:03,726
+Let's start with a shaker.
+
+
+235
+00:08:04,516 --> 00:08:06,516
+[ Playing Shaker ]
+
+
+236
+00:08:07,516 --> 00:08:11,706
+[ Applause ]
+
+
+237
+00:08:12,206 --> 00:08:13,826
+I've also brought my trusty
+
+
+238
+00:08:13,826 --> 00:08:13,976
+cowbell.
+
+
+239
+00:08:14,516 --> 00:08:19,546
+[ Playing Cowbell ]
+
+
+240
+00:08:20,046 --> 00:08:22,266
+>> More cowbell!
+
+
+241
+00:08:22,686 --> 00:08:23,836
+>> Well, the people have spoken.
+
+
+242
+00:08:23,836 --> 00:08:24,496
+More cowbell.
+
+
+243
+00:08:24,496 --> 00:08:24,966
+There you have it.
+
+
+244
+00:08:25,016 --> 00:08:27,016
+[ Playing Cowbell ]
+
+
+245
+00:08:27,516 --> 00:08:30,096
+[ Applause ]
+
+
+246
+00:08:30,596 --> 00:08:32,155
+And, I also brought my acoustic
+
+
+247
+00:08:32,155 --> 00:08:34,366
+guitar with me here today, so we
+
+
+248
+00:08:34,366 --> 00:08:35,645
+can try some of this as well.
+
+
+249
+00:08:38,666 --> 00:08:39,515
+I can start with some
+
+
+250
+00:08:39,515 --> 00:08:40,496
+single-note lines.
+
+
+251
+00:08:41,515 --> 00:08:46,636
+[ Playing Guitar ]
+
+
+252
+00:08:47,136 --> 00:08:48,436
+And then, we can try some chords
+
+
+253
+00:08:48,436 --> 00:08:48,976
+as well.
+
+
+254
+00:08:49,516 --> 00:08:55,500
+[ Playing Guitar ]
+
+
+255
+00:08:57,516 --> 00:09:05,216
+[ Applause ]
+
+
+256
+00:09:05,716 --> 00:09:07,206
+So, that seemed to be working
+
+
+257
+00:09:07,206 --> 00:09:08,246
+pretty well, and I think that's
+
+
+258
+00:09:08,246 --> 00:09:09,216
+something we can work with.
+
+
+259
+00:09:10,196 --> 00:09:11,556
+So, I can stop the recording
+
+
+260
+00:09:11,556 --> 00:09:11,856
+now.
+
+
+261
+00:09:12,526 --> 00:09:14,386
+And, in the Create ML app, I'm
+
+
+262
+00:09:14,386 --> 00:09:15,956
+able to scroll back through this
+
+
+263
+00:09:15,956 --> 00:09:17,596
+recording, and take a look at
+
+
+264
+00:09:17,596 --> 00:09:18,726
+any of the segments that we've
+
+
+265
+00:09:18,726 --> 00:09:19,926
+been analyzing so far.
+
+
+266
+00:09:21,096 --> 00:09:22,386
+This might be a great place to
+
+
+267
+00:09:22,386 --> 00:09:23,456
+check if there are any
+
+
+268
+00:09:23,456 --> 00:09:24,966
+anomalies, or things that it
+
+
+269
+00:09:24,966 --> 00:09:26,836
+didn't get correct, and maybe we
+
+
+270
+00:09:26,836 --> 00:09:28,356
+can clip some parts of this file
+
+
+271
+00:09:28,356 --> 00:09:29,936
+to use, as part of our training
+
+
+272
+00:09:29,936 --> 00:09:31,376
+set to improve the performance
+
+
+273
+00:09:31,376 --> 00:09:32,306
+of our model.
+
+
+274
+00:09:33,376 --> 00:09:35,136
+And, finally, when we're happy
+
+
+275
+00:09:35,136 --> 00:09:36,356
+that our model is performing the
+
+
+276
+00:09:36,356 --> 00:09:38,336
+way we'd like, we can simply
+
+
+277
+00:09:38,336 --> 00:09:40,126
+drag this model to our desktop,
+
+
+278
+00:09:40,416 --> 00:09:41,506
+where we can integrate it into
+
+
+279
+00:09:41,506 --> 00:09:42,316
+our application.
+
+
+280
+00:09:43,556 --> 00:09:44,796
+And, that's training a sound
+
+
+281
+00:09:44,826 --> 00:09:47,316
+classifier in the Create ML app
+
+
+282
+00:09:47,316 --> 00:09:48,836
+in under a minute, with zero
+
+
+283
+00:09:48,836 --> 00:09:49,416
+lines of code.
+
+
+284
+00:09:50,516 --> 00:09:56,500
+[ Applause ]
+
+
+285
+00:09:59,106 --> 00:10:00,736
+So, you saw during the demo,
+
+
+286
+00:10:01,726 --> 00:10:02,936
+there's some things to consider
+
+
+287
+00:10:02,996 --> 00:10:04,046
+when collecting your training
+
+
+288
+00:10:04,046 --> 00:10:04,386
+data.
+
+
+289
+00:10:05,766 --> 00:10:06,486
+And, the first thing you'll
+
+
+290
+00:10:06,486 --> 00:10:08,466
+notice is how I collected this
+
+
+291
+00:10:08,526 --> 00:10:09,706
+data in directories.
+
+
+292
+00:10:11,696 --> 00:10:12,946
+All the sounds that come from a
+
+
+293
+00:10:12,946 --> 00:10:15,206
+guitar are placed in the Guitar
+
+
+294
+00:10:15,206 --> 00:10:15,746
+directory.
+
+
+295
+00:10:16,476 --> 00:10:19,296
+And, likewise with a file like
+
+
+296
+00:10:19,296 --> 00:10:20,386
+Drums or Background.
+
+
+297
+00:10:21,226 --> 00:10:22,556
+Now, let's talk about the
+
+
+298
+00:10:22,556 --> 00:10:23,836
+background class for a minute.
+
+
+299
+00:10:25,916 --> 00:10:26,786
+Even though we're training a
+
+
+300
+00:10:26,786 --> 00:10:28,406
+musical instrument classifier,
+
+
+301
+00:10:28,816 --> 00:10:30,136
+you still need to consider what
+
+
+302
+00:10:30,136 --> 00:10:31,976
+might happen if there's not any
+
+
+303
+00:10:31,976 --> 00:10:33,056
+musical instruments being
+
+
+304
+00:10:33,056 --> 00:10:35,276
+played, and if you only trained
+
+
+305
+00:10:35,276 --> 00:10:36,416
+your model on musical
+
+
+306
+00:10:36,416 --> 00:10:38,406
+instruments, but then fed it
+
+
+307
+00:10:38,406 --> 00:10:39,186
+background data.
+
+
+308
+00:10:39,716 --> 00:10:40,876
+That's data it's never seen
+
+
+309
+00:10:40,876 --> 00:10:41,306
+before.
+
+
+310
+00:10:41,476 --> 00:10:43,276
+And so, make sure that when
+
+
+311
+00:10:43,276 --> 00:10:44,066
+you're training a sound
+
+
+312
+00:10:44,066 --> 00:10:45,716
+classifier, if you expect your
+
+
+313
+00:10:45,716 --> 00:10:47,816
+model to work in situations
+
+
+314
+00:10:48,106 --> 00:10:49,436
+where there's background noise,
+
+
+315
+00:10:50,046 --> 00:10:51,856
+to provide that as part of the
+
+
+316
+00:10:51,856 --> 00:10:52,916
+class as well.
+
+
+317
+00:10:55,866 --> 00:10:57,506
+Now, suppose you had a file that
+
+
+318
+00:10:57,506 --> 00:10:58,826
+was called sounds.
+
+
+319
+00:10:59,686 --> 00:11:01,176
+And, the file started at the
+
+
+320
+00:11:01,176 --> 00:11:03,686
+beginning with drums, and then
+
+
+321
+00:11:03,686 --> 00:11:04,866
+transitioned to background
+
+
+322
+00:11:04,866 --> 00:11:07,286
+noise, and then finally ended
+
+
+323
+00:11:07,666 --> 00:11:08,626
+with guitar.
+
+
+324
+00:11:09,906 --> 00:11:13,236
+This file, as is, is not going
+
+
+325
+00:11:13,236 --> 00:11:15,606
+to be useful for dragging
+
+
+326
+00:11:15,606 --> 00:11:16,886
+directly in the Create ML app.
+
+
+327
+00:11:17,006 --> 00:11:18,896
+And, that's because this sound
+
+
+328
+00:11:18,896 --> 00:11:20,676
+contains multiple sound classes
+
+
+329
+00:11:20,716 --> 00:11:21,456
+in one file.
+
+
+330
+00:11:23,016 --> 00:11:25,246
+Remember, you have to use
+
+
+331
+00:11:25,246 --> 00:11:26,756
+labeled directories to train
+
+
+332
+00:11:26,756 --> 00:11:28,726
+your model, and so the best
+
+
+333
+00:11:28,726 --> 00:11:29,946
+thing to do in this situation
+
+
+334
+00:11:29,946 --> 00:11:31,666
+would be to split this file into
+
+
+335
+00:11:31,666 --> 00:11:33,776
+three, and name them drums,
+
+
+336
+00:11:33,776 --> 00:11:35,116
+guitar, and background.
+
+
+337
+00:11:35,736 --> 00:11:38,126
+This is going to have a lot
+
+
+338
+00:11:38,126 --> 00:11:39,406
+better performance when training
+
+
+339
+00:11:39,406 --> 00:11:40,936
+your model, if you split your
+
+
+340
+00:11:40,936 --> 00:11:41,686
+files this way.
+
+
+341
+00:11:44,196 --> 00:11:46,856
+A few other considerations when
+
+
+342
+00:11:46,856 --> 00:11:47,856
+collecting audio data.
+
+
+343
+00:11:49,046 --> 00:11:51,656
+First, we want to insure that
+
+
+344
+00:11:51,656 --> 00:11:52,806
+the data you're collecting
+
+
+345
+00:11:53,066 --> 00:11:54,536
+matches a real-world audio
+
+
+346
+00:11:54,536 --> 00:11:55,216
+environment.
+
+
+347
+00:11:55,786 --> 00:11:59,346
+So, remember that if your app is
+
+
+348
+00:11:59,346 --> 00:12:01,006
+intended to work in a variety of
+
+
+349
+00:12:01,006 --> 00:12:03,136
+rooms or acoustic scenarios, you
+
+
+350
+00:12:03,136 --> 00:12:04,646
+can either collect data in those
+
+
+351
+00:12:04,646 --> 00:12:06,986
+acoustic scenarios, or consider
+
+
+352
+00:12:06,986 --> 00:12:08,486
+even simulating those rooms,
+
+
+353
+00:12:08,666 --> 00:12:09,656
+using a technique called
+
+
+354
+00:12:09,746 --> 00:12:10,356
+convolution.
+
+
+355
+00:12:12,856 --> 00:12:14,776
+Another important thing to
+
+
+356
+00:12:14,776 --> 00:12:16,416
+consider is the on-device
+
+
+357
+00:12:16,416 --> 00:12:17,466
+microphone processing.
+
+
+358
+00:12:17,996 --> 00:12:20,446
+You might check out AV audio
+
+
+359
+00:12:20,626 --> 00:12:22,926
+session modes to select
+
+
+360
+00:12:23,156 --> 00:12:24,726
+different modes of microphone
+
+
+361
+00:12:24,726 --> 00:12:26,066
+processing in your application,
+
+
+362
+00:12:26,516 --> 00:12:27,906
+and select the one which is best
+
+
+363
+00:12:27,906 --> 00:12:29,516
+suited for your app, or
+
+
+364
+00:12:29,516 --> 00:12:31,066
+potentially matches the training
+
+
+365
+00:12:31,066 --> 00:12:33,966
+data you've collected.
+
+
+366
+00:12:34,426 --> 00:12:36,406
+And a final point, is to be
+
+
+367
+00:12:36,406 --> 00:12:38,516
+aware of the model architecture.
+
+
+368
+00:12:39,226 --> 00:12:40,616
+So, this is the sound classifier
+
+
+369
+00:12:40,616 --> 00:12:42,876
+model, and it can do pretty well
+
+
+370
+00:12:42,876 --> 00:12:44,396
+at classifying varieties of
+
+
+371
+00:12:44,396 --> 00:12:45,016
+sounds.
+
+
+372
+00:12:45,576 --> 00:12:46,666
+But, this is not something that
+
+
+373
+00:12:46,666 --> 00:12:48,136
+would be suitable for, say,
+
+
+374
+00:12:48,396 --> 00:12:49,576
+training a full-on speech
+
+
+375
+00:12:49,576 --> 00:12:50,226
+recognizer.
+
+
+376
+00:12:50,676 --> 00:12:52,096
+There are better tools for that
+
+
+377
+00:12:52,096 --> 00:12:52,436
+job.
+
+
+378
+00:12:52,526 --> 00:12:53,496
+So, make sure you're always
+
+
+379
+00:12:53,496 --> 00:12:54,476
+using the right tool for the
+
+
+380
+00:12:54,476 --> 00:12:54,756
+job.
+
+
+381
+00:12:57,246 --> 00:13:00,166
+So, now you have this ML model,
+
+
+382
+00:13:00,166 --> 00:13:01,796
+and let's talk about how you can
+
+
+383
+00:13:01,796 --> 00:13:02,846
+integrate it into your
+
+
+384
+00:13:02,846 --> 00:13:03,476
+application.
+
+
+385
+00:13:05,336 --> 00:13:07,136
+And, to make it as easy as
+
+
+386
+00:13:07,136 --> 00:13:08,836
+possible to run sound
+
+
+387
+00:13:08,876 --> 00:13:10,056
+classification models in your
+
+
+388
+00:13:10,056 --> 00:13:11,926
+app, we're also releasing a new
+
+
+389
+00:13:11,926 --> 00:13:14,456
+framework called SoundAnalysis.
+
+
+390
+00:13:15,366 --> 00:13:17,996
+SoundAnalysis is a new
+
+
+391
+00:13:17,996 --> 00:13:19,536
+high-level framework for
+
+
+392
+00:13:19,536 --> 00:13:20,526
+analyzing sound.
+
+
+393
+00:13:21,596 --> 00:13:25,576
+It uses Core ML models, and it
+
+
+394
+00:13:25,576 --> 00:13:27,376
+handles common audio operations
+
+
+395
+00:13:27,376 --> 00:13:29,296
+internally, such as channel
+
+
+396
+00:13:29,296 --> 00:13:31,306
+mapping, sample rate conversion,
+
+
+397
+00:13:31,716 --> 00:13:32,526
+or reblocking.
+
+
+398
+00:13:35,136 --> 00:13:36,306
+And, let's take a look under the
+
+
+399
+00:13:36,306 --> 00:13:38,436
+hood to see how SoundAnalysis
+
+
+400
+00:13:38,436 --> 00:13:38,946
+works.
+
+
+401
+00:13:39,276 --> 00:13:41,716
+Now, the top section represents
+
+
+402
+00:13:41,716 --> 00:13:42,566
+your application.
+
+
+403
+00:13:43,086 --> 00:13:44,436
+And, the bottom represents
+
+
+404
+00:13:44,506 --> 00:13:45,696
+what's happening under the hood
+
+
+405
+00:13:45,776 --> 00:13:46,946
+in SoundAnalysis.
+
+
+406
+00:13:47,186 --> 00:13:50,346
+The first thing you'll do is
+
+
+407
+00:13:50,346 --> 00:13:51,616
+provide the model you just
+
+
+408
+00:13:51,616 --> 00:13:53,596
+trained using Create ML to
+
+
+409
+00:13:53,596 --> 00:13:54,846
+SoundAnalysis framework.
+
+
+410
+00:13:56,656 --> 00:13:59,826
+Then, your application will
+
+
+411
+00:13:59,826 --> 00:14:01,756
+provide some audio that needs to
+
+
+412
+00:14:01,756 --> 00:14:02,456
+be analyzed.
+
+
+413
+00:14:04,176 --> 00:14:06,596
+This audio will first hit a
+
+
+414
+00:14:06,596 --> 00:14:08,356
+channel-mapping step, which
+
+
+415
+00:14:08,356 --> 00:14:09,996
+ensures that if your model
+
+
+416
+00:14:09,996 --> 00:14:12,236
+expects one channel of audio,
+
+
+417
+00:14:12,346 --> 00:14:14,506
+like ours did here, that that's
+
+
+418
+00:14:14,506 --> 00:14:15,636
+what's delivered to the model,
+
+
+419
+00:14:16,086 --> 00:14:17,736
+even as a client, if you're
+
+
+420
+00:14:17,736 --> 00:14:19,576
+delivering stereo data, for
+
+
+421
+00:14:19,576 --> 00:14:19,976
+example.
+
+
+422
+00:14:22,476 --> 00:14:23,986
+The next step that happens is
+
+
+423
+00:14:23,986 --> 00:14:25,296
+called sample rate conversion.
+
+
+424
+00:14:26,066 --> 00:14:28,066
+The model we trained natively
+
+
+425
+00:14:28,066 --> 00:14:30,456
+operates on 16 kilohertz audio
+
+
+426
+00:14:30,456 --> 00:14:30,846
+data.
+
+
+427
+00:14:31,216 --> 00:14:33,196
+And, this ensures that the audio
+
+
+428
+00:14:33,196 --> 00:14:34,766
+that you provide gets converted
+
+
+429
+00:14:35,036 --> 00:14:36,386
+to match the rate the model
+
+
+430
+00:14:36,386 --> 00:14:36,976
+expects.
+
+
+431
+00:14:41,326 --> 00:14:42,366
+The final step that
+
+
+432
+00:14:42,366 --> 00:14:43,986
+SoundAnalysis performs is an
+
+
+433
+00:14:43,986 --> 00:14:45,316
+audio buffering operation.
+
+
+434
+00:14:46,796 --> 00:14:47,966
+Most of the models we're working
+
+
+435
+00:14:47,966 --> 00:14:50,276
+with today require a fixed
+
+
+436
+00:14:50,276 --> 00:14:52,236
+amount of audio data to process
+
+
+437
+00:14:52,236 --> 00:14:53,106
+an analysis chunk.
+
+
+438
+00:14:54,006 --> 00:14:56,916
+And, oftentimes, the audio that
+
+
+439
+00:14:56,916 --> 00:14:58,596
+you have as a client might be
+
+
+440
+00:14:58,596 --> 00:15:00,516
+coming in at arbitrary sized
+
+
+441
+00:15:00,516 --> 00:15:01,006
+buffers.
+
+
+442
+00:15:01,136 --> 00:15:02,496
+And, it's a lot of work to
+
+
+443
+00:15:02,496 --> 00:15:04,096
+implement an efficient ring
+
+
+444
+00:15:04,096 --> 00:15:05,666
+buffer that makes sure to
+
+
+445
+00:15:05,666 --> 00:15:07,506
+deliver the correct size chunks
+
+
+446
+00:15:07,506 --> 00:15:08,796
+of audio to your model.
+
+
+447
+00:15:09,386 --> 00:15:11,966
+And so, this step ensures that
+
+
+448
+00:15:11,966 --> 00:15:13,456
+if the model expects around 1
+
+
+449
+00:15:13,456 --> 00:15:15,046
+second of audio data, that that
+
+
+450
+00:15:15,046 --> 00:15:16,876
+will always be what's delivered
+
+
+451
+00:15:16,876 --> 00:15:17,406
+to the model.
+
+
+452
+00:15:18,396 --> 00:15:20,726
+And then, finally, after the
+
+
+453
+00:15:20,726 --> 00:15:22,306
+data's delivered to the model,
+
+
+454
+00:15:22,586 --> 00:15:23,466
+your app will receive a
+
+
+455
+00:15:23,466 --> 00:15:25,786
+callback, containing the top
+
+
+456
+00:15:25,786 --> 00:15:27,536
+classification results for that
+
+
+457
+00:15:27,536 --> 00:15:28,176
+piece of audio.
+
+
+458
+00:15:28,996 --> 00:15:31,286
+Now, the good thing is, you
+
+
+459
+00:15:31,286 --> 00:15:32,816
+don't really have to know any of
+
+
+460
+00:15:32,816 --> 00:15:33,276
+this.
+
+
+461
+00:15:33,866 --> 00:15:35,486
+Just remember to take your
+
+
+462
+00:15:35,486 --> 00:15:36,996
+audio, provide it to
+
+
+463
+00:15:36,996 --> 00:15:38,626
+SoundAnalysis framework, and
+
+
+464
+00:15:38,626 --> 00:15:40,166
+then handle the results in your
+
+
+465
+00:15:40,166 --> 00:15:40,776
+application.
+
+
+466
+00:15:43,696 --> 00:15:45,356
+So, let's talk a little bit more
+
+
+467
+00:15:45,356 --> 00:15:46,876
+about the results you'll expect
+
+
+468
+00:15:46,876 --> 00:15:48,276
+to get from SoundAnalysis.
+
+
+469
+00:15:49,616 --> 00:15:51,496
+Audio is a stream, and it
+
+
+470
+00:15:51,496 --> 00:15:53,216
+doesn't always have a beginning
+
+
+471
+00:15:53,216 --> 00:15:54,516
+and end, like images do.
+
+
+472
+00:15:54,966 --> 00:15:56,986
+And, for this reason, the
+
+
+473
+00:15:56,986 --> 00:15:58,206
+results that we're working with
+
+
+474
+00:15:58,416 --> 00:15:59,506
+might look a little different.
+
+
+475
+00:16:00,196 --> 00:16:02,416
+Your results contain a time
+
+
+476
+00:16:02,416 --> 00:16:04,566
+range, and this corresponds to
+
+
+477
+00:16:04,606 --> 00:16:05,906
+the block of audio that was
+
+
+478
+00:16:05,906 --> 00:16:07,336
+analyzed for that result.
+
+
+479
+00:16:08,396 --> 00:16:10,756
+In this example, the block size
+
+
+480
+00:16:10,756 --> 00:16:11,716
+is specific to model
+
+
+481
+00:16:11,716 --> 00:16:13,506
+architecture, and is around 1
+
+
+482
+00:16:13,506 --> 00:16:14,786
+second, as you can see.
+
+
+483
+00:16:17,046 --> 00:16:18,496
+As you continue providing audio
+
+
+484
+00:16:18,496 --> 00:16:20,016
+data to the model, you'll
+
+
+485
+00:16:20,016 --> 00:16:21,566
+continue to receive results
+
+
+486
+00:16:21,826 --> 00:16:22,776
+containing the top
+
+
+487
+00:16:22,776 --> 00:16:24,516
+classifications for that block
+
+
+488
+00:16:24,516 --> 00:16:25,756
+of audio that you analyzed.
+
+
+489
+00:16:27,326 --> 00:16:29,586
+Now, you might notice that this
+
+
+490
+00:16:29,586 --> 00:16:31,126
+second result has overlapped the
+
+
+491
+00:16:31,126 --> 00:16:33,126
+previous results by about 50%.
+
+
+492
+00:16:33,726 --> 00:16:35,166
+And, this is actually by design.
+
+
+493
+00:16:36,636 --> 00:16:38,066
+You want to make sure that every
+
+
+494
+00:16:38,266 --> 00:16:39,196
+piece of audio that you're
+
+
+495
+00:16:39,196 --> 00:16:40,956
+providing has the opportunity to
+
+
+496
+00:16:40,956 --> 00:16:42,536
+fall near the middle of an
+
+
+497
+00:16:42,536 --> 00:16:43,476
+analysis window.
+
+
+498
+00:16:43,916 --> 00:16:45,726
+Otherwise, it might fall between
+
+
+499
+00:16:45,726 --> 00:16:48,066
+two analysis windows, and the
+
+
+500
+00:16:48,066 --> 00:16:49,576
+model performance might not be
+
+
+501
+00:16:49,576 --> 00:16:50,096
+as good.
+
+
+502
+00:16:51,096 --> 00:16:53,126
+And so, the default is 50%
+
+
+503
+00:16:53,126 --> 00:16:54,696
+overlap on the analysis,
+
+
+504
+00:16:55,096 --> 00:16:56,476
+although it's configurable in
+
+
+505
+00:16:56,506 --> 00:16:57,906
+the API, if you have a use case
+
+
+506
+00:16:57,906 --> 00:16:59,146
+that requires otherwise.
+
+
+507
+00:17:00,336 --> 00:17:02,216
+And, as you continue providing
+
+
+508
+00:17:02,216 --> 00:17:04,715
+audio data, you'll continue to
+
+
+509
+00:17:04,715 --> 00:17:05,726
+receive results.
+
+
+510
+00:17:05,886 --> 00:17:08,566
+And, you can continue pushing
+
+
+511
+00:17:08,566 --> 00:17:09,996
+this data, and getting results
+
+
+512
+00:17:09,996 --> 00:17:10,656
+for as long as the audio stream
+
+
+513
+00:17:10,656 --> 00:17:10,976
+is active.
+
+
+514
+00:17:15,876 --> 00:17:18,175
+Now, let's take a quick look at
+
+
+515
+00:17:18,175 --> 00:17:19,766
+the API provided by
+
+
+516
+00:17:19,766 --> 00:17:21,016
+SoundAnalysis Framework.
+
+
+517
+00:17:23,356 --> 00:17:24,846
+Let's say we have an audio file,
+
+
+518
+00:17:24,846 --> 00:17:27,106
+and we want to analyze it using
+
+
+519
+00:17:27,106 --> 00:17:28,215
+the classifier we've just
+
+
+520
+00:17:28,215 --> 00:17:29,016
+trained here today.
+
+
+521
+00:17:30,526 --> 00:17:32,516
+To start, we'll create an audio
+
+
+522
+00:17:32,516 --> 00:17:34,736
+file analyzer, and provide the
+
+
+523
+00:17:34,736 --> 00:17:36,126
+URL to the file we'd like to
+
+
+524
+00:17:36,126 --> 00:17:36,806
+analyze.
+
+
+525
+00:17:38,476 --> 00:17:40,506
+Then, we'll create a
+
+
+526
+00:17:40,506 --> 00:17:42,716
+classifySoundRequest, and then
+
+
+527
+00:17:42,716 --> 00:17:44,756
+instantiate MySoundClassifier,
+
+
+528
+00:17:45,136 --> 00:17:46,196
+which is the model we trained
+
+
+529
+00:17:46,196 --> 00:17:46,396
+here.
+
+
+530
+00:17:49,406 --> 00:17:51,536
+Then, we'll add this request to
+
+
+531
+00:17:51,536 --> 00:17:53,796
+our analyzer, and provide an
+
+
+532
+00:17:53,796 --> 00:17:55,376
+observer, which will handle the
+
+
+533
+00:17:55,376 --> 00:17:56,876
+results that the model will
+
+
+534
+00:17:56,876 --> 00:17:57,496
+produce.
+
+
+535
+00:17:59,156 --> 00:18:02,366
+Finally, we'll analyze the file,
+
+
+536
+00:18:02,816 --> 00:18:03,966
+which will start scanning
+
+
+537
+00:18:03,966 --> 00:18:05,336
+through the file and producing
+
+
+538
+00:18:05,336 --> 00:18:06,016
+the results.
+
+
+539
+00:18:09,146 --> 00:18:10,476
+Now, on your application side,
+
+
+540
+00:18:11,266 --> 00:18:12,486
+you'll need to make sure that
+
+
+541
+00:18:12,486 --> 00:18:14,296
+one of your classes implements
+
+
+542
+00:18:14,576 --> 00:18:16,706
+the SNResultsObserving protocol.
+
+
+543
+00:18:17,806 --> 00:18:18,866
+This is how you'll receive
+
+
+544
+00:18:18,866 --> 00:18:20,106
+results from the framework.
+
+
+545
+00:18:21,796 --> 00:18:23,076
+The first method you might
+
+
+546
+00:18:23,076 --> 00:18:25,466
+implement is request didProduce
+
+
+547
+00:18:25,466 --> 00:18:25,866
+result.
+
+
+548
+00:18:26,526 --> 00:18:28,876
+This method will be called many
+
+
+549
+00:18:28,876 --> 00:18:29,986
+times, potentially.
+
+
+550
+00:18:30,656 --> 00:18:32,976
+Once for each new observation
+
+
+551
+00:18:32,976 --> 00:18:33,786
+that's available.
+
+
+552
+00:18:34,796 --> 00:18:37,516
+You might consider grabbing the
+
+
+553
+00:18:37,666 --> 00:18:39,536
+top classification result, and
+
+
+554
+00:18:39,536 --> 00:18:40,886
+the time range associated with
+
+
+555
+00:18:40,886 --> 00:18:41,026
+it.
+
+
+556
+00:18:41,346 --> 00:18:42,436
+And, this is where the logic
+
+
+557
+00:18:42,466 --> 00:18:44,356
+would go in your application, to
+
+
+558
+00:18:44,356 --> 00:18:46,766
+handle the sound classification
+
+
+559
+00:18:46,766 --> 00:18:46,976
+event.
+
+
+560
+00:18:49,596 --> 00:18:50,726
+Another method you'll be
+
+
+561
+00:18:50,726 --> 00:18:52,216
+interested in is request
+
+
+562
+00:18:52,386 --> 00:18:53,546
+didFailWithError.
+
+
+563
+00:18:54,216 --> 00:18:55,586
+If analysis fails for any
+
+
+564
+00:18:55,586 --> 00:18:57,106
+reason, this method will be
+
+
+565
+00:18:57,106 --> 00:18:57,526
+called.
+
+
+566
+00:18:57,526 --> 00:18:59,176
+And then, you shouldn't expect
+
+
+567
+00:18:59,176 --> 00:19:00,766
+to receive any more results from
+
+
+568
+00:19:00,766 --> 00:19:01,496
+this analyzer.
+
+
+569
+00:19:02,796 --> 00:19:04,926
+Or, if the stream completes
+
+
+570
+00:19:04,926 --> 00:19:06,656
+successfully, at the end of the
+
+
+571
+00:19:06,656 --> 00:19:08,486
+file, for example, you'll
+
+
+572
+00:19:08,486 --> 00:19:11,246
+receive the request didComplete.
+
+
+573
+00:19:13,506 --> 00:19:15,546
+So, let's recap what you've seen
+
+
+574
+00:19:15,546 --> 00:19:15,926
+today.
+
+
+575
+00:19:17,656 --> 00:19:18,926
+You saw how you can train a
+
+
+576
+00:19:18,926 --> 00:19:20,636
+sound classifier in Create ML
+
+
+577
+00:19:21,326 --> 00:19:24,596
+using your own audio data.
+
+
+578
+00:19:25,656 --> 00:19:27,636
+And, take that model and run it
+
+
+579
+00:19:27,636 --> 00:19:29,866
+on-device using SoundAnalysis
+
+
+580
+00:19:29,866 --> 00:19:30,216
+framework.
+
+
+581
+00:19:32,186 --> 00:19:34,886
+For more information, check out
+
+
+582
+00:19:34,886 --> 00:19:36,486
+our sound classification article
+
+
+583
+00:19:36,846 --> 00:19:38,496
+on developer.apple.com.
+
+
+584
+00:19:39,106 --> 00:19:40,346
+And, there you'll find an
+
+
+585
+00:19:40,346 --> 00:19:42,246
+example of how to perform sound
+
+
+586
+00:19:42,246 --> 00:19:43,956
+classification on your device's
+
+
+587
+00:19:44,006 --> 00:19:45,866
+built-in microphone, using AV
+
+
+588
+00:19:45,866 --> 00:19:47,816
+Audio Engine, just like the
+
+
+589
+00:19:47,816 --> 00:19:49,466
+musical instrument demo you saw
+
+
+590
+00:19:49,466 --> 00:19:49,886
+earlier.
+
+
+591
+00:19:53,046 --> 00:19:54,506
+Thank you all for listening, and
+
+
+592
+00:19:54,506 --> 00:19:56,186
+I can't wait to see how you use
+
+
+593
+00:19:56,186 --> 00:19:57,556
+sound classification in your
+
+
+594
+00:19:57,556 --> 00:19:57,976
+applications.
+
+
+595
+00:19:58,516 --> 00:20:04,500
+[ Applause ]
+

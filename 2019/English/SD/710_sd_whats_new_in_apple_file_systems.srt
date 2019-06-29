@@ -1,0 +1,4749 @@
+1
+00:00:01,176 --> 00:00:04,500
+[ Music ]
+
+
+2
+00:00:10,516 --> 00:00:14,996
+[ Applause ]
+
+
+3
+00:00:15,496 --> 00:00:16,876
+>> Good afternoon, ladies and
+
+
+4
+00:00:16,876 --> 00:00:17,416
+gentlemen.
+
+
+5
+00:00:18,106 --> 00:00:19,306
+Welcome to the Filesystem
+
+
+6
+00:00:19,306 --> 00:00:19,746
+session.
+
+
+7
+00:00:20,666 --> 00:00:22,556
+In this session, we're going to
+
+
+8
+00:00:22,556 --> 00:00:24,696
+cover several topics related to
+
+
+9
+00:00:24,696 --> 00:00:25,676
+the filesystems.
+
+
+10
+00:00:25,866 --> 00:00:27,946
+First, we're going to have a
+
+
+11
+00:00:27,946 --> 00:00:30,306
+look at the role a filesystem
+
+
+12
+00:00:30,376 --> 00:00:33,106
+plays in protecting system
+
+
+13
+00:00:33,106 --> 00:00:34,616
+software on macOS.
+
+
+14
+00:00:36,336 --> 00:00:38,876
+We're going to describe how
+
+
+15
+00:00:38,876 --> 00:00:41,366
+volume replication works in
+
+
+16
+00:00:41,416 --> 00:00:41,766
+APFS.
+
+
+17
+00:00:42,636 --> 00:00:45,426
+And finally, we are going to
+
+
+18
+00:00:45,946 --> 00:00:47,936
+talk about the new and very
+
+
+19
+00:00:47,936 --> 00:00:49,566
+exciting feature coming to the
+
+
+20
+00:00:49,566 --> 00:00:52,736
+devices running iOS and iPadOS,
+
+
+21
+00:00:53,376 --> 00:00:55,516
+the access to the external files
+
+
+22
+00:00:55,916 --> 00:00:57,326
+on the external media.
+
+
+23
+00:00:57,846 --> 00:01:03,146
+But before we start, let's rehab
+
+
+24
+00:01:03,706 --> 00:01:06,166
+what happened to APFS recently.
+
+
+25
+00:01:06,536 --> 00:01:09,426
+APFS has been the default
+
+
+26
+00:01:09,546 --> 00:01:12,556
+filesystem it -- on iOS and tvOS
+
+
+27
+00:01:12,556 --> 00:01:17,766
+since 10.3 and on macOS since
+
+
+28
+00:01:17,846 --> 00:01:18,736
+High Sierra.
+
+
+29
+00:01:22,576 --> 00:01:24,316
+One of the features which APFS
+
+
+30
+00:01:24,316 --> 00:01:28,126
+introduced is a built-in volume
+
+
+31
+00:01:28,126 --> 00:01:28,546
+manager.
+
+
+32
+00:01:30,436 --> 00:01:32,506
+The concept of a volume is not
+
+
+33
+00:01:32,506 --> 00:01:33,836
+new to APFS.
+
+
+34
+00:01:34,326 --> 00:01:36,626
+They existed in HFS Plus.
+
+
+35
+00:01:37,876 --> 00:01:41,206
+The HFS Plus volume is a
+
+
+36
+00:01:41,206 --> 00:01:43,706
+one-to-one map to -- on this
+
+
+37
+00:01:43,836 --> 00:01:44,336
+partition.
+
+
+38
+00:01:45,006 --> 00:01:48,136
+And it occupies contiguous range
+
+
+39
+00:01:48,136 --> 00:01:49,426
+of blocks on disk.
+
+
+40
+00:01:50,756 --> 00:01:52,236
+Because of this one-to-one
+
+
+41
+00:01:52,236 --> 00:01:55,736
+mapping to partition and HFS
+
+
+42
+00:01:55,736 --> 00:01:57,666
+Plus volumes cannot be added
+
+
+43
+00:01:58,146 --> 00:01:58,756
+easily.
+
+
+44
+00:01:59,106 --> 00:02:02,266
+In order to add a new volume to
+
+
+45
+00:02:02,266 --> 00:02:05,576
+partitioned disk, you need first
+
+
+46
+00:02:05,576 --> 00:02:08,156
+to shrink the existing volume.
+
+
+47
+00:02:08,395 --> 00:02:10,526
+And then you can add a new
+
+
+48
+00:02:11,636 --> 00:02:12,346
+volume.
+
+
+49
+00:02:12,346 --> 00:02:14,386
+APFS volumes are a lot more
+
+
+50
+00:02:14,386 --> 00:02:17,496
+flexible because they share
+
+
+51
+00:02:17,816 --> 00:02:19,466
+their own disk partition space
+
+
+52
+00:02:20,256 --> 00:02:21,506
+with their siblings.
+
+
+53
+00:02:22,816 --> 00:02:26,486
+And that flexibility allows
+
+
+54
+00:02:27,406 --> 00:02:30,686
+higher levels of a system to
+
+
+55
+00:02:31,766 --> 00:02:33,386
+implement features which would
+
+
+56
+00:02:33,386 --> 00:02:35,546
+not otherwise be possible to
+
+
+57
+00:02:35,546 --> 00:02:37,776
+implement with the old-style
+
+
+58
+00:02:37,776 --> 00:02:38,316
+volumes.
+
+
+59
+00:02:39,876 --> 00:02:41,966
+One of us -- one of the features
+
+
+60
+00:02:42,006 --> 00:02:44,426
+which we'll implement is
+
+
+61
+00:02:44,816 --> 00:02:47,236
+protecting system software from
+
+
+62
+00:02:47,466 --> 00:02:49,806
+malicious or accidental updates.
+
+
+63
+00:02:52,716 --> 00:02:54,626
+You may remember back in the
+
+
+64
+00:02:54,816 --> 00:02:57,376
+macOS El Capitan days, we
+
+
+65
+00:02:57,376 --> 00:03:00,846
+introduced the concept of system
+
+
+66
+00:03:00,846 --> 00:03:01,966
+integrity protection.
+
+
+67
+00:03:03,596 --> 00:03:08,126
+It was used to control access to
+
+
+68
+00:03:08,436 --> 00:03:10,926
+a part of the directory
+
+
+69
+00:03:11,006 --> 00:03:11,656
+hierarchy.
+
+
+70
+00:03:12,816 --> 00:03:14,556
+Some directories would be write
+
+
+71
+00:03:14,836 --> 00:03:16,716
+protected, while changes would
+
+
+72
+00:03:16,716 --> 00:03:18,566
+be allowed in the other parts of
+
+
+73
+00:03:18,566 --> 00:03:19,816
+the filesystems.
+
+
+74
+00:03:20,466 --> 00:03:23,036
+This year, we're taking this one
+
+
+75
+00:03:23,036 --> 00:03:23,616
+step further.
+
+
+76
+00:03:23,616 --> 00:03:27,406
+We're making entire root
+
+
+77
+00:03:27,586 --> 00:03:29,306
+filesystem read-only.
+
+
+78
+00:03:30,516 --> 00:03:35,936
+[ Cheering and Applause ]
+
+
+79
+00:03:36,436 --> 00:03:38,796
+Obviously, a system where you
+
+
+80
+00:03:38,846 --> 00:03:41,176
+cannot install new software or
+
+
+81
+00:03:41,176 --> 00:03:43,906
+where user cannot save the data
+
+
+82
+00:03:43,906 --> 00:03:45,536
+is not particularly useful.
+
+
+83
+00:03:47,996 --> 00:03:49,346
+In order to understand how we
+
+
+84
+00:03:49,346 --> 00:03:50,666
+can reconcile those two
+
+
+85
+00:03:50,666 --> 00:03:53,516
+conflicting goals, read-only and
+
+
+86
+00:03:53,516 --> 00:03:54,916
+writeable at the same time,
+
+
+87
+00:03:55,606 --> 00:03:57,186
+let's look at what's happening
+
+
+88
+00:03:57,276 --> 00:03:59,026
+when we upgrade from macOS
+
+
+89
+00:03:59,266 --> 00:04:01,166
+Mojave to macOS Catalina.
+
+
+90
+00:04:01,706 --> 00:04:06,196
+A typical container on macOS
+
+
+91
+00:04:06,196 --> 00:04:08,596
+Mojave will have one main
+
+
+92
+00:04:08,596 --> 00:04:11,906
+volume, and few service volumes.
+
+
+93
+00:04:11,906 --> 00:04:13,996
+For example, VM.
+
+
+94
+00:04:14,406 --> 00:04:17,146
+The main volume is used to store
+
+
+95
+00:04:17,146 --> 00:04:19,946
+both user's data and system
+
+
+96
+00:04:19,946 --> 00:04:20,736
+software.
+
+
+97
+00:04:22,436 --> 00:04:24,436
+When we start upgrade--
+
+
+98
+00:04:30,126 --> 00:04:32,036
+When we start the upgrade to
+
+
+99
+00:04:32,426 --> 00:04:36,566
+macOS Catalina, we first change
+
+
+100
+00:04:36,566 --> 00:04:38,596
+the role of the main volume and
+
+
+101
+00:04:38,596 --> 00:04:40,286
+mark it as data volume.
+
+
+102
+00:04:41,776 --> 00:04:44,956
+We then can prune some parts of
+
+
+103
+00:04:44,956 --> 00:04:46,806
+the directive hierarchy which
+
+
+104
+00:04:46,806 --> 00:04:48,946
+contains only system software.
+
+
+105
+00:04:50,426 --> 00:04:53,986
+Once this is done, we can move
+
+
+106
+00:04:54,206 --> 00:04:56,216
+to the next stage where we
+
+
+107
+00:04:56,216 --> 00:04:58,696
+create a new empty volume, which
+
+
+108
+00:04:58,696 --> 00:05:01,186
+will be used only to store
+
+
+109
+00:05:01,186 --> 00:05:02,456
+system software.
+
+
+110
+00:05:02,666 --> 00:05:05,396
+We'll populate that volume with
+
+
+111
+00:05:05,396 --> 00:05:06,406
+the system content.
+
+
+112
+00:05:06,986 --> 00:05:09,026
+And once this process is done,
+
+
+113
+00:05:09,836 --> 00:05:10,976
+we can declare victory on the
+
+
+114
+00:05:10,976 --> 00:05:11,706
+protection front.
+
+
+115
+00:05:12,056 --> 00:05:13,056
+We are read-only.
+
+
+116
+00:05:13,056 --> 00:05:13,696
+We're protected.
+
+
+117
+00:05:14,016 --> 00:05:16,976
+It's good, but it's not enough.
+
+
+118
+00:05:19,256 --> 00:05:21,846
+We still need to somehow tie the
+
+
+119
+00:05:21,846 --> 00:05:24,866
+new system content with the user
+
+
+120
+00:05:24,866 --> 00:05:25,406
+content.
+
+
+121
+00:05:25,866 --> 00:05:27,896
+And for that, we introduce the
+
+
+122
+00:05:27,896 --> 00:05:29,286
+concept of a volume group.
+
+
+123
+00:05:30,046 --> 00:05:32,626
+A volume group is one data
+
+
+124
+00:05:32,626 --> 00:05:34,846
+volume and one system volume.
+
+
+125
+00:05:35,196 --> 00:05:36,586
+And they treat it as it as a
+
+
+126
+00:05:36,586 --> 00:05:37,616
+single entity.
+
+
+127
+00:05:38,746 --> 00:05:42,046
+The UI present it as a single
+
+
+128
+00:05:42,046 --> 00:05:42,496
+disk.
+
+
+129
+00:05:43,126 --> 00:05:45,036
+They share encryption state.
+
+
+130
+00:05:45,796 --> 00:05:48,016
+If your volumes are encrypted,
+
+
+131
+00:05:48,016 --> 00:05:50,086
+then the same password can be
+
+
+132
+00:05:50,086 --> 00:05:51,766
+used to unlock both volumes.
+
+
+133
+00:05:52,566 --> 00:05:55,516
+Almost everything looks as a
+
+
+134
+00:05:55,516 --> 00:05:58,726
+single unified entity.
+
+
+135
+00:05:59,936 --> 00:06:01,556
+There is one thing which is
+
+
+136
+00:06:01,556 --> 00:06:01,946
+missing.
+
+
+137
+00:06:02,186 --> 00:06:04,326
+We still need to somehow provide
+
+
+138
+00:06:04,326 --> 00:06:05,816
+an illusion of a single
+
+
+139
+00:06:05,946 --> 00:06:07,066
+directory hierarchy.
+
+
+140
+00:06:08,026 --> 00:06:10,916
+Traditionally, it was done by
+
+
+141
+00:06:11,406 --> 00:06:14,666
+mounting filesystems on top of
+
+
+142
+00:06:14,666 --> 00:06:16,056
+directories in the root
+
+
+143
+00:06:16,056 --> 00:06:16,866
+filesystem.
+
+
+144
+00:06:18,226 --> 00:06:20,266
+With a number of crossing
+
+
+145
+00:06:20,266 --> 00:06:21,636
+points, which we need to
+
+
+146
+00:06:21,636 --> 00:06:24,946
+introduce, and the number of
+
+
+147
+00:06:25,026 --> 00:06:26,246
+volumes which are required in
+
+
+148
+00:06:26,246 --> 00:06:28,176
+the filesystem, that approach
+
+
+149
+00:06:28,246 --> 00:06:29,426
+becomes rather expensive.
+
+
+150
+00:06:29,916 --> 00:06:32,296
+So to deal with this, we
+
+
+151
+00:06:32,296 --> 00:06:34,426
+introduced a new concept called
+
+
+152
+00:06:34,426 --> 00:06:34,926
+Firmlink.
+
+
+153
+00:06:35,416 --> 00:06:39,316
+The Firmlink is a new filesystem
+
+
+154
+00:06:39,316 --> 00:06:39,616
+object.
+
+
+155
+00:06:40,776 --> 00:06:42,316
+It's similar to Symlink.
+
+
+156
+00:06:42,876 --> 00:06:46,136
+But unlike Symlink, Firmlink
+
+
+157
+00:06:46,526 --> 00:06:50,426
+support backwards and forwards
+
+
+158
+00:06:51,046 --> 00:06:53,326
+path reversals, which is
+
+
+159
+00:06:53,936 --> 00:06:55,956
+consistent in its
+
+
+160
+00:06:56,126 --> 00:06:57,246
+representation.
+
+
+161
+00:06:58,036 --> 00:07:00,326
+And that consistency is rather
+
+
+162
+00:07:00,326 --> 00:07:00,886
+important.
+
+
+163
+00:07:00,926 --> 00:07:02,476
+If you ever had to deal with an
+
+
+164
+00:07:02,476 --> 00:07:04,966
+application, which absolutely
+
+
+165
+00:07:04,966 --> 00:07:06,936
+insists it has to live in a
+
+
+166
+00:07:06,936 --> 00:07:08,416
+particular directory, for
+
+
+167
+00:07:08,416 --> 00:07:09,686
+example, such as applications.
+
+
+168
+00:07:10,096 --> 00:07:12,066
+You know that you have to be
+
+
+169
+00:07:12,096 --> 00:07:15,096
+able to walk both from the top
+
+
+170
+00:07:15,096 --> 00:07:16,676
+of a filesystem from the road
+
+
+171
+00:07:16,676 --> 00:07:18,586
+down to the leaves and backwards
+
+
+172
+00:07:18,586 --> 00:07:21,186
+and get the same path.
+
+
+173
+00:07:21,736 --> 00:07:22,976
+We can do that with Firmlinks.
+
+
+174
+00:07:29,216 --> 00:07:34,116
+The Firmlinks are a traversal
+
+
+175
+00:07:34,116 --> 00:07:36,436
+point from a directory on the
+
+
+176
+00:07:36,436 --> 00:07:40,036
+system volume to a directory on
+
+
+177
+00:07:40,036 --> 00:07:40,866
+the data volume.
+
+
+178
+00:07:42,246 --> 00:07:43,876
+They only have one-to-one
+
+
+179
+00:07:43,876 --> 00:07:44,326
+mapping.
+
+
+180
+00:07:44,326 --> 00:07:44,916
+One source.
+
+
+181
+00:07:45,036 --> 00:07:45,716
+One target.
+
+
+182
+00:07:47,066 --> 00:07:48,896
+You cannot use a Firmlink to
+
+
+183
+00:07:48,896 --> 00:07:50,656
+cross a boundary of a volume
+
+
+184
+00:07:50,656 --> 00:07:50,976
+group.
+
+
+185
+00:07:54,256 --> 00:07:56,116
+The Firmlinks are rather
+
+
+186
+00:07:56,116 --> 00:07:57,666
+transparent to the user and the
+
+
+187
+00:07:57,666 --> 00:07:58,336
+application.
+
+
+188
+00:07:58,726 --> 00:08:00,436
+They are created by the install
+
+
+189
+00:08:00,436 --> 00:08:01,426
+at the installation time.
+
+
+190
+00:08:01,946 --> 00:08:03,666
+And they are not supposed to be
+
+
+191
+00:08:03,756 --> 00:08:03,976
+noticed.
+
+
+192
+00:08:08,256 --> 00:08:10,246
+Once we get this new tool, we
+
+
+193
+00:08:10,246 --> 00:08:13,066
+can use it to stitch up volumes
+
+
+194
+00:08:13,066 --> 00:08:13,426
+together.
+
+
+195
+00:08:13,426 --> 00:08:16,296
+The installer will create entry
+
+
+196
+00:08:16,296 --> 00:08:16,976
+on the system volume.
+
+
+197
+00:08:22,426 --> 00:08:24,446
+And point them to the
+
+
+198
+00:08:24,446 --> 00:08:26,576
+corresponding volumes on the
+
+
+199
+00:08:26,926 --> 00:08:27,976
+data volume.
+
+
+200
+00:08:31,576 --> 00:08:34,346
+And once it's done, we have a
+
+
+201
+00:08:34,346 --> 00:08:36,976
+unified directory hierarchy.
+
+
+202
+00:08:37,686 --> 00:08:40,155
+We can reboot, mount root as
+
+
+203
+00:08:40,155 --> 00:08:42,006
+read-only, and enjoy the
+
+
+204
+00:08:42,006 --> 00:08:42,976
+protection which it gives us.
+
+
+205
+00:08:49,686 --> 00:08:50,726
+Life is good.
+
+
+206
+00:08:51,446 --> 00:08:52,496
+Everything's protected.
+
+
+207
+00:08:53,066 --> 00:08:53,986
+Everything's running.
+
+
+208
+00:08:54,726 --> 00:08:56,556
+But you still have to remember
+
+
+209
+00:08:58,026 --> 00:09:00,016
+that the volumes are split
+
+
+210
+00:09:00,016 --> 00:09:01,356
+during the install process.
+
+
+211
+00:09:01,726 --> 00:09:03,446
+There is no way to avoid it.
+
+
+212
+00:09:03,786 --> 00:09:04,516
+It will happen.
+
+
+213
+00:09:05,116 --> 00:09:09,626
+In the developer's preview, we
+
+
+214
+00:09:09,626 --> 00:09:12,166
+elected to leave the root
+
+
+215
+00:09:12,296 --> 00:09:14,606
+filesystem writeable to make it
+
+
+216
+00:09:14,606 --> 00:09:16,006
+easier for you to test your
+
+
+217
+00:09:16,006 --> 00:09:16,736
+application.
+
+
+218
+00:09:17,596 --> 00:09:19,026
+If you want to mimic your
+
+
+219
+00:09:19,026 --> 00:09:21,796
+behavior, which will be
+
+
+220
+00:09:22,966 --> 00:09:24,636
+implemented in the future, you
+
+
+221
+00:09:24,636 --> 00:09:26,586
+can create a special file in the
+
+
+222
+00:09:26,586 --> 00:09:30,026
+root directory and on reboot,
+
+
+223
+00:09:30,026 --> 00:09:31,666
+your volumes will be mounted
+
+
+224
+00:09:31,666 --> 00:09:32,256
+read-only.
+
+
+225
+00:09:33,506 --> 00:09:35,066
+That will change in the next
+
+
+226
+00:09:35,066 --> 00:09:37,786
+build over next seed.
+
+
+227
+00:09:42,256 --> 00:09:45,496
+In the release build, you would
+
+
+228
+00:09:45,496 --> 00:09:48,196
+still be able to mount root
+
+
+229
+00:09:48,196 --> 00:09:51,516
+filesystem as read-write if you
+
+
+230
+00:09:51,516 --> 00:09:52,886
+disable system integrity
+
+
+231
+00:09:52,886 --> 00:09:53,426
+protection.
+
+
+232
+00:09:54,896 --> 00:09:57,196
+But this is not a persistent
+
+
+233
+00:09:57,196 --> 00:09:57,616
+change.
+
+
+234
+00:09:58,016 --> 00:10:00,566
+On the reboot, it will revert
+
+
+235
+00:10:00,566 --> 00:10:03,296
+back to read-only state.
+
+
+236
+00:10:03,866 --> 00:10:06,216
+You can remount it read-only,
+
+
+237
+00:10:06,216 --> 00:10:07,806
+read-write again.
+
+
+238
+00:10:08,886 --> 00:10:10,116
+And again, it will revert to the
+
+
+239
+00:10:10,116 --> 00:10:11,686
+same state on reboot.
+
+
+240
+00:10:13,306 --> 00:10:14,906
+As you can imagine, this is
+
+
+241
+00:10:14,906 --> 00:10:17,366
+rather big change in the way
+
+
+242
+00:10:17,516 --> 00:10:20,016
+macOS shapes and installs.
+
+
+243
+00:10:20,886 --> 00:10:23,066
+And it could catch some
+
+
+244
+00:10:23,066 --> 00:10:23,986
+applications.
+
+
+245
+00:10:24,816 --> 00:10:25,806
+If, for example, your
+
+
+246
+00:10:25,806 --> 00:10:27,946
+application uses a complex
+
+
+247
+00:10:27,946 --> 00:10:30,536
+layout on the filesystem or
+
+
+248
+00:10:30,736 --> 00:10:32,666
+comes with the installer
+
+
+249
+00:10:32,666 --> 00:10:35,576
+package, make sure it works on
+
+
+250
+00:10:35,576 --> 00:10:38,606
+the new read-only root
+
+
+251
+00:10:38,606 --> 00:10:38,976
+partition.
+
+
+252
+00:10:42,046 --> 00:10:43,376
+If you're writing a backup
+
+
+253
+00:10:43,376 --> 00:10:47,246
+utility, which cares about inode
+
+
+254
+00:10:47,246 --> 00:10:49,996
+numbers, filesystem IDs, and the
+
+
+255
+00:10:49,996 --> 00:10:52,286
+like, make sure that you test
+
+
+256
+00:10:52,286 --> 00:10:53,896
+it, because the assumptions you
+
+
+257
+00:10:53,896 --> 00:10:56,406
+may had previously may not be
+
+
+258
+00:10:56,406 --> 00:10:56,836
+true.
+
+
+259
+00:10:57,276 --> 00:10:59,796
+So the bottom line is test,
+
+
+260
+00:10:59,976 --> 00:11:01,006
+test, test.
+
+
+261
+00:11:01,946 --> 00:11:03,846
+And next, I will hand over to
+
+
+262
+00:11:03,846 --> 00:11:05,856
+Jon Becker to talk about volume
+
+
+263
+00:11:05,856 --> 00:11:06,426
+replication.
+
+
+264
+00:11:08,516 --> 00:11:12,500
+[ Applause ]
+
+
+265
+00:11:16,166 --> 00:11:16,976
+>> Thank you, Max.
+
+
+266
+00:11:19,046 --> 00:11:19,576
+Good afternoon.
+
+
+267
+00:11:20,436 --> 00:11:21,556
+My name is Jon, and I'm going to
+
+
+268
+00:11:21,556 --> 00:11:22,646
+be talking about volume
+
+
+269
+00:11:22,646 --> 00:11:24,326
+replication with APFS.
+
+
+270
+00:11:24,836 --> 00:11:26,306
+So let's dive right in.
+
+
+271
+00:11:26,796 --> 00:11:28,276
+What is volume replication?
+
+
+272
+00:11:29,296 --> 00:11:31,256
+Well, the basic idea is pretty
+
+
+273
+00:11:31,256 --> 00:11:31,606
+simple.
+
+
+274
+00:11:31,606 --> 00:11:33,766
+We'd want to copy one volume to
+
+
+275
+00:11:33,766 --> 00:11:34,296
+another volume.
+
+
+276
+00:11:35,366 --> 00:11:36,026
+Sounds simple.
+
+
+277
+00:11:36,936 --> 00:11:39,536
+But the important aspect of this
+
+
+278
+00:11:39,806 --> 00:11:41,286
+is that we want the fidelity of
+
+
+279
+00:11:41,286 --> 00:11:42,446
+this copy to be as high as
+
+
+280
+00:11:42,486 --> 00:11:42,966
+possible.
+
+
+281
+00:11:43,756 --> 00:11:45,946
+In general, it's not sufficient
+
+
+282
+00:11:45,946 --> 00:11:47,586
+to just be doing file-by-file
+
+
+283
+00:11:47,586 --> 00:11:48,016
+copies.
+
+
+284
+00:11:48,306 --> 00:11:51,516
+We want to be copying all volume
+
+
+285
+00:11:51,516 --> 00:11:52,046
+content.
+
+
+286
+00:11:52,456 --> 00:11:55,136
+All data, all metadata, volume
+
+
+287
+00:11:55,136 --> 00:11:56,036
+attributes.
+
+
+288
+00:11:56,326 --> 00:11:58,056
+If the source volume contains a
+
+
+289
+00:11:58,056 --> 00:12:00,126
+bootable OS, we want to be
+
+
+290
+00:12:00,126 --> 00:12:01,666
+copying the metadata that makes
+
+
+291
+00:12:01,666 --> 00:12:03,356
+that volume bootable so that the
+
+
+292
+00:12:03,396 --> 00:12:05,746
+target of our copy will also be
+
+
+293
+00:12:05,746 --> 00:12:06,086
+bootable.
+
+
+294
+00:12:06,086 --> 00:12:08,156
+Now I'm going to be talking
+
+
+295
+00:12:08,156 --> 00:12:10,586
+about replication in the context
+
+
+296
+00:12:10,586 --> 00:12:12,346
+of the Apple Software Restore
+
+
+297
+00:12:12,346 --> 00:12:14,186
+command line utility, or ASR.
+
+
+298
+00:12:14,186 --> 00:12:16,756
+ASR has been around for a very
+
+
+299
+00:12:16,756 --> 00:12:17,486
+long time.
+
+
+300
+00:12:17,486 --> 00:12:18,856
+Many of you may be familiar with
+
+
+301
+00:12:19,276 --> 00:12:19,406
+it.
+
+
+302
+00:12:19,406 --> 00:12:20,906
+And its primary function is to
+
+
+303
+00:12:20,906 --> 00:12:22,266
+do volume replication.
+
+
+304
+00:12:23,646 --> 00:12:25,206
+Now, with ASR, it's very common
+
+
+305
+00:12:25,206 --> 00:12:26,606
+for the source of our
+
+
+306
+00:12:26,606 --> 00:12:29,096
+replication to be a disk image.
+
+
+307
+00:12:29,096 --> 00:12:30,986
+And in that context, we often
+
+
+308
+00:12:30,986 --> 00:12:33,216
+refer to the procedure of doing
+
+
+309
+00:12:33,216 --> 00:12:34,786
+this replication to occur -- to
+
+
+310
+00:12:34,786 --> 00:12:37,656
+a target volume as restoring,
+
+
+311
+00:12:38,056 --> 00:12:39,186
+hence the name Apple Software
+
+
+312
+00:12:39,216 --> 00:12:39,786
+Restore.
+
+
+313
+00:12:40,156 --> 00:12:41,966
+But you'll hear me use the terms
+
+
+314
+00:12:42,026 --> 00:12:44,026
+restoring and replicating pretty
+
+
+315
+00:12:44,026 --> 00:12:45,036
+much interchangeably.
+
+
+316
+00:12:46,696 --> 00:12:50,796
+So who wants this?
+
+
+317
+00:12:50,796 --> 00:12:52,336
+Who needs this functionality?
+
+
+318
+00:12:53,576 --> 00:12:56,186
+Well, if you are in education or
+
+
+319
+00:12:56,186 --> 00:12:58,436
+Enterprise IT, if you do things
+
+
+320
+00:12:58,436 --> 00:13:00,866
+like set up large labs with lots
+
+
+321
+00:13:00,866 --> 00:13:02,636
+of machines, or if you write
+
+
+322
+00:13:02,636 --> 00:13:04,156
+backup utilities, then
+
+
+323
+00:13:04,156 --> 00:13:06,166
+replication is a function that
+
+
+324
+00:13:06,206 --> 00:13:08,526
+you probably need or want to use
+
+
+325
+00:13:08,526 --> 00:13:09,576
+with some regularity.
+
+
+326
+00:13:10,296 --> 00:13:12,816
+As we'll see, some of the new
+
+
+327
+00:13:12,816 --> 00:13:14,496
+features of APFS present a
+
+
+328
+00:13:14,526 --> 00:13:15,756
+challenge for how we can do
+
+
+329
+00:13:15,756 --> 00:13:16,396
+replication.
+
+
+330
+00:13:17,536 --> 00:13:19,406
+On the other hand, as well also
+
+
+331
+00:13:19,406 --> 00:13:21,486
+see, these new features also
+
+
+332
+00:13:21,486 --> 00:13:23,586
+present an opportunity to make
+
+
+333
+00:13:23,586 --> 00:13:25,596
+replication a more powerful and
+
+
+334
+00:13:25,596 --> 00:13:26,656
+flexible operation.
+
+
+335
+00:13:27,706 --> 00:13:29,416
+So I want to back up for just a
+
+
+336
+00:13:29,416 --> 00:13:32,096
+second and talk about how
+
+
+337
+00:13:32,096 --> 00:13:33,446
+replication has looked in the
+
+
+338
+00:13:33,446 --> 00:13:35,066
+past prior to APFS.
+
+
+339
+00:13:35,566 --> 00:13:37,596
+Now as Max demonstrated before,
+
+
+340
+00:13:38,136 --> 00:13:40,886
+with previous filesystems, like
+
+
+341
+00:13:41,636 --> 00:13:43,656
+HFS Plus, the filesystem, or I
+
+
+342
+00:13:43,656 --> 00:13:45,176
+should say the volume, is in a
+
+
+343
+00:13:45,176 --> 00:13:46,706
+one-to-one relationship with the
+
+
+344
+00:13:46,706 --> 00:13:48,056
+partition that contains it.
+
+
+345
+00:13:48,536 --> 00:13:49,896
+And what that means is that the
+
+
+346
+00:13:49,896 --> 00:13:52,076
+volume is backed by a contiguous
+
+
+347
+00:13:52,126 --> 00:13:52,936
+block device.
+
+
+348
+00:13:53,496 --> 00:13:55,886
+So replicating can really
+
+
+349
+00:13:55,886 --> 00:13:58,366
+involve just doing a block copy
+
+
+350
+00:13:58,846 --> 00:14:00,256
+of the entire partition.
+
+
+351
+00:14:00,896 --> 00:14:04,476
+Of course, if we're copying the
+
+
+352
+00:14:04,476 --> 00:14:06,986
+entire block device, we are
+
+
+353
+00:14:06,986 --> 00:14:08,416
+copying all of the filesystem
+
+
+354
+00:14:08,416 --> 00:14:09,556
+information in that volume.
+
+
+355
+00:14:09,556 --> 00:14:11,386
+Now there may be some
+
+
+356
+00:14:11,386 --> 00:14:12,866
+complications like as in this
+
+
+357
+00:14:12,866 --> 00:14:13,436
+diagram.
+
+
+358
+00:14:13,766 --> 00:14:15,256
+We have the source and target
+
+
+359
+00:14:15,256 --> 00:14:16,466
+partition not being the same
+
+
+360
+00:14:16,466 --> 00:14:16,826
+size.
+
+
+361
+00:14:17,066 --> 00:14:18,066
+But there are ways that we can
+
+
+362
+00:14:18,066 --> 00:14:18,686
+fix that up.
+
+
+363
+00:14:18,686 --> 00:14:20,856
+And so by and large, block
+
+
+364
+00:14:20,856 --> 00:14:23,546
+copying is a very effective and
+
+
+365
+00:14:23,546 --> 00:14:25,006
+relatively simple way of doing
+
+
+366
+00:14:25,006 --> 00:14:25,656
+replication.
+
+
+367
+00:14:26,636 --> 00:14:30,236
+But of course, with APFS, there
+
+
+368
+00:14:30,236 --> 00:14:31,256
+are some new features that
+
+
+369
+00:14:31,256 --> 00:14:31,976
+complicate this picture.
+
+
+370
+00:14:34,416 --> 00:14:36,626
+So APFS, as Max told you, has
+
+
+371
+00:14:36,726 --> 00:14:38,156
+some features, like volume
+
+
+372
+00:14:38,156 --> 00:14:39,336
+management and space sharing.
+
+
+373
+00:14:39,336 --> 00:14:42,886
+And as we can see, if we take a
+
+
+374
+00:14:42,886 --> 00:14:44,766
+look at Volume 1 in the diagram
+
+
+375
+00:14:44,766 --> 00:14:46,556
+here, it's spread out around its
+
+
+376
+00:14:46,556 --> 00:14:47,536
+container partition.
+
+
+377
+00:14:47,836 --> 00:14:49,326
+And so it is not a contiguous
+
+
+378
+00:14:49,326 --> 00:14:49,966
+block device.
+
+
+379
+00:14:51,166 --> 00:14:52,536
+And it may be -- its data may be
+
+
+380
+00:14:52,536 --> 00:14:56,216
+interspersed with the data for
+
+
+381
+00:14:56,216 --> 00:14:57,306
+another volume in the same
+
+
+382
+00:14:57,306 --> 00:14:59,036
+container, like Volume 2 in this
+
+
+383
+00:14:59,036 --> 00:14:59,396
+example.
+
+
+384
+00:15:00,616 --> 00:15:02,076
+Furthermore, we of course care
+
+
+385
+00:15:02,076 --> 00:15:03,496
+about security and privacy.
+
+
+386
+00:15:04,116 --> 00:15:05,096
+And so we have to think about
+
+
+387
+00:15:05,096 --> 00:15:05,736
+encryption.
+
+
+388
+00:15:06,556 --> 00:15:08,356
+Now with APFS, encryption is
+
+
+389
+00:15:08,356 --> 00:15:10,016
+done at the filesystem level.
+
+
+390
+00:15:10,526 --> 00:15:12,996
+And what's more, on Macs that
+
+
+391
+00:15:12,996 --> 00:15:15,736
+have the T2 security chip for
+
+
+392
+00:15:16,286 --> 00:15:18,276
+internal storage devices, that
+
+
+393
+00:15:18,276 --> 00:15:19,686
+encryption is on all the time.
+
+
+394
+00:15:20,396 --> 00:15:22,316
+And it is tied directly to the
+
+
+395
+00:15:22,316 --> 00:15:23,926
+hardware, meaning that it is
+
+
+396
+00:15:23,926 --> 00:15:26,516
+specific to that storage device
+
+
+397
+00:15:26,556 --> 00:15:27,316
+in that Mac.
+
+
+398
+00:15:28,106 --> 00:15:29,366
+And so if we would try to copy
+
+
+399
+00:15:29,366 --> 00:15:31,346
+the blocks for that volume and
+
+
+400
+00:15:31,346 --> 00:15:32,236
+take them somewhere else, they
+
+
+401
+00:15:32,236 --> 00:15:33,176
+won't be decryptable.
+
+
+402
+00:15:34,206 --> 00:15:36,166
+So the upshot here is block
+
+
+403
+00:15:36,166 --> 00:15:37,456
+copies are really not a possible
+
+
+404
+00:15:37,456 --> 00:15:39,486
+way to do replication with APFS
+
+
+405
+00:15:39,486 --> 00:15:39,986
+volumes.
+
+
+406
+00:15:40,566 --> 00:15:44,136
+So how do we reconcile this with
+
+
+407
+00:15:44,136 --> 00:15:46,906
+the needs that we have?
+
+
+408
+00:15:47,106 --> 00:15:48,846
+Well, new with macOS Catalina
+
+
+409
+00:15:48,946 --> 00:15:51,116
+we're introducing APFS volume
+
+
+410
+00:15:51,116 --> 00:15:52,846
+replication with ASR.
+
+
+411
+00:15:53,576 --> 00:15:55,176
+ASR and APFS.
+
+
+412
+00:15:56,176 --> 00:15:57,086
+Yeah, thank you.
+
+
+413
+00:15:57,086 --> 00:15:58,756
+ASR and APFS are tightly
+
+
+414
+00:15:58,756 --> 00:15:59,336
+integrated.
+
+
+415
+00:15:59,566 --> 00:16:02,296
+And ASR can have APFS generate a
+
+
+416
+00:16:02,296 --> 00:16:03,966
+stream from the source volume.
+
+
+417
+00:16:03,966 --> 00:16:05,336
+And that stream then gets
+
+
+418
+00:16:05,336 --> 00:16:06,506
+written to the target volume.
+
+
+419
+00:16:07,066 --> 00:16:10,266
+Now because APFS is generating
+
+
+420
+00:16:10,266 --> 00:16:11,636
+this stream, it knows where it
+
+
+421
+00:16:11,636 --> 00:16:13,126
+needs to read the parts of the
+
+
+422
+00:16:13,126 --> 00:16:13,856
+source volume.
+
+
+423
+00:16:15,276 --> 00:16:16,626
+And so it's not a problem that
+
+
+424
+00:16:16,626 --> 00:16:17,646
+that source volume is not a
+
+
+425
+00:16:17,646 --> 00:16:18,976
+contiguous block device.
+
+
+426
+00:16:22,376 --> 00:16:24,276
+As far as encryption goes, if
+
+
+427
+00:16:24,276 --> 00:16:25,376
+the source of volume is
+
+
+428
+00:16:25,376 --> 00:16:28,606
+encrypted, then it will be --
+
+
+429
+00:16:28,756 --> 00:16:30,366
+the data from it will be
+
+
+430
+00:16:30,366 --> 00:16:32,106
+decrypted on the fly as the
+
+
+431
+00:16:32,106 --> 00:16:33,116
+stream is generated.
+
+
+432
+00:16:33,776 --> 00:16:34,996
+And of course, if the source
+
+
+433
+00:16:34,996 --> 00:16:35,786
+volume is protected by
+
+
+434
+00:16:35,786 --> 00:16:37,516
+FileVault, then it does need to
+
+
+435
+00:16:37,516 --> 00:16:39,276
+be unlocked by user action prior
+
+
+436
+00:16:39,276 --> 00:16:40,366
+to this replication taking
+
+
+437
+00:16:40,366 --> 00:16:40,766
+place.
+
+
+438
+00:16:41,536 --> 00:16:43,726
+If the target volume is itself
+
+
+439
+00:16:43,726 --> 00:16:45,976
+encrypted then the data is in --
+
+
+440
+00:16:45,976 --> 00:16:47,776
+or the data is encrypted as it
+
+
+441
+00:16:47,776 --> 00:16:49,066
+is written from the stream to
+
+
+442
+00:16:49,066 --> 00:16:49,926
+the target volume.
+
+
+443
+00:16:50,356 --> 00:16:52,616
+And so in this case, that data
+
+
+444
+00:16:52,616 --> 00:16:54,286
+is encrypted from the get go by
+
+
+445
+00:16:54,286 --> 00:16:55,476
+the time it hits the target
+
+
+446
+00:16:55,476 --> 00:16:55,836
+volume.
+
+
+447
+00:16:56,546 --> 00:16:59,606
+Okay? One other nice feature of
+
+
+448
+00:16:59,606 --> 00:17:01,766
+this replication is that as the
+
+
+449
+00:17:01,766 --> 00:17:03,466
+stream is generated, the volume
+
+
+450
+00:17:03,466 --> 00:17:05,636
+data is defragmented on the fly.
+
+
+451
+00:17:05,636 --> 00:17:07,705
+The metadata is compacted, and
+
+
+452
+00:17:07,705 --> 00:17:09,486
+so the resulting stream, and
+
+
+453
+00:17:09,486 --> 00:17:10,935
+therefore, the resulting target
+
+
+454
+00:17:10,935 --> 00:17:11,915
+volume, are very nicely
+
+
+455
+00:17:11,915 --> 00:17:12,465
+optimized.
+
+
+456
+00:17:12,766 --> 00:17:17,066
+This can be a great way to do --
+
+
+457
+00:17:17,066 --> 00:17:18,896
+to master images, for example.
+
+
+458
+00:17:19,856 --> 00:17:20,986
+If you're mastering an image,
+
+
+459
+00:17:21,266 --> 00:17:22,445
+and your final step is to do a
+
+
+460
+00:17:22,445 --> 00:17:24,126
+replication operation, then your
+
+
+461
+00:17:24,126 --> 00:17:25,435
+image volume will be very nicely
+
+
+462
+00:17:25,435 --> 00:17:25,976
+optimized.
+
+
+463
+00:17:30,076 --> 00:17:31,436
+So when we do restores,
+
+
+464
+00:17:32,736 --> 00:17:34,596
+replication, however you want to
+
+
+465
+00:17:34,596 --> 00:17:36,036
+say it, there are a number of
+
+
+466
+00:17:36,036 --> 00:17:37,376
+options that we can use.
+
+
+467
+00:17:37,696 --> 00:17:39,016
+I just want to call out a couple
+
+
+468
+00:17:39,086 --> 00:17:39,676
+of them.
+
+
+469
+00:17:39,826 --> 00:17:41,306
+The first one is really very
+
+
+470
+00:17:41,306 --> 00:17:43,246
+much like restores as we're used
+
+
+471
+00:17:43,246 --> 00:17:43,456
+to.
+
+
+472
+00:17:43,916 --> 00:17:46,076
+We can specify a source volume.
+
+
+473
+00:17:46,306 --> 00:17:48,276
+You can specify a target volume.
+
+
+474
+00:17:48,866 --> 00:17:50,546
+And the idea is that the target
+
+
+475
+00:17:50,546 --> 00:17:52,396
+volume will be completely erased
+
+
+476
+00:17:52,396 --> 00:17:53,206
+and replaced.
+
+
+477
+00:17:53,436 --> 00:17:55,086
+Or its contents replaced by the
+
+
+478
+00:17:55,086 --> 00:17:56,166
+contents of the source volume.
+
+
+479
+00:17:56,396 --> 00:17:58,456
+Now in this case, we will have
+
+
+480
+00:17:58,456 --> 00:18:00,646
+Volume 2 be our target volume.
+
+
+481
+00:18:00,646 --> 00:18:01,696
+And so our restore would look
+
+
+482
+00:18:01,696 --> 00:18:02,526
+something like this.
+
+
+483
+00:18:02,716 --> 00:18:03,806
+You would see a sample command
+
+
+484
+00:18:03,806 --> 00:18:04,446
+line right here.
+
+
+485
+00:18:05,526 --> 00:18:08,056
+And the result is Volume 2's
+
+
+486
+00:18:08,056 --> 00:18:09,546
+contents are erased, replaced by
+
+
+487
+00:18:09,966 --> 00:18:11,016
+the contents of the source
+
+
+488
+00:18:11,016 --> 00:18:11,316
+volume.
+
+
+489
+00:18:11,316 --> 00:18:12,306
+So the restored volume and
+
+
+490
+00:18:12,306 --> 00:18:14,526
+source volume are the same.
+
+
+491
+00:18:14,526 --> 00:18:15,666
+Notice, by the way, that in this
+
+
+492
+00:18:15,666 --> 00:18:17,666
+example, the target container
+
+
+493
+00:18:17,666 --> 00:18:18,986
+also has another volume in it.
+
+
+494
+00:18:19,076 --> 00:18:20,836
+And that volume is left alone.
+
+
+495
+00:18:20,836 --> 00:18:21,976
+Its contents are preserved.
+
+
+496
+00:18:22,206 --> 00:18:23,926
+It does not form in any way a
+
+
+497
+00:18:24,016 --> 00:18:25,176
+part of the replication
+
+
+498
+00:18:25,176 --> 00:18:25,726
+operation.
+
+
+499
+00:18:26,766 --> 00:18:28,566
+But there's another option that
+
+
+500
+00:18:28,566 --> 00:18:30,816
+we have, which is instead of
+
+
+501
+00:18:30,876 --> 00:18:32,346
+having to specify a target
+
+
+502
+00:18:32,346 --> 00:18:35,366
+volume and erase that, we can
+
+
+503
+00:18:35,366 --> 00:18:37,796
+instead generate a brand-new
+
+
+504
+00:18:37,796 --> 00:18:39,416
+volume to be the target on the
+
+
+505
+00:18:39,416 --> 00:18:39,736
+fly.
+
+
+506
+00:18:40,146 --> 00:18:42,596
+And we do this by specifying the
+
+
+507
+00:18:42,596 --> 00:18:44,516
+entire container as the target.
+
+
+508
+00:18:44,956 --> 00:18:46,646
+And this tells ASR that what we
+
+
+509
+00:18:46,646 --> 00:18:48,446
+really want is to generate a
+
+
+510
+00:18:48,446 --> 00:18:49,856
+brand-new volume and restore to
+
+
+511
+00:18:49,856 --> 00:18:50,356
+that.
+
+
+512
+00:18:50,416 --> 00:18:51,346
+You can see another sample
+
+
+513
+00:18:51,346 --> 00:18:51,866
+command line.
+
+
+514
+00:18:51,866 --> 00:18:53,706
+And the result is a new volume
+
+
+515
+00:18:53,706 --> 00:18:55,766
+is created and restored to.
+
+
+516
+00:18:56,026 --> 00:18:57,306
+So in this case, Volume 1 and
+
+
+517
+00:18:57,306 --> 00:18:57,976
+Volume 2 are both left alone.
+
+
+518
+00:19:02,186 --> 00:19:03,836
+Now I want to step away for just
+
+
+519
+00:19:03,836 --> 00:19:05,386
+a second from replication.
+
+
+520
+00:19:06,116 --> 00:19:07,696
+And I want to talk about
+
+
+521
+00:19:08,086 --> 00:19:09,726
+snapshots in APFS.
+
+
+522
+00:19:10,176 --> 00:19:12,016
+So a snapshot is just a
+
+
+523
+00:19:12,056 --> 00:19:13,706
+point-in-time capture of all
+
+
+524
+00:19:13,706 --> 00:19:14,496
+volume state.
+
+
+525
+00:19:15,256 --> 00:19:16,466
+So for example, we may have a
+
+
+526
+00:19:16,466 --> 00:19:17,886
+volume with a number of files on
+
+
+527
+00:19:17,886 --> 00:19:17,986
+it.
+
+
+528
+00:19:18,266 --> 00:19:19,986
+We can take a snapshot of that
+
+
+529
+00:19:19,986 --> 00:19:20,416
+volume.
+
+
+530
+00:19:21,126 --> 00:19:24,366
+And the result is a capture, a
+
+
+531
+00:19:24,366 --> 00:19:25,706
+freeze frame, of what that
+
+
+532
+00:19:25,706 --> 00:19:27,226
+volume looks like at the time
+
+
+533
+00:19:27,226 --> 00:19:28,366
+that the snapshot is taken.
+
+
+534
+00:19:28,676 --> 00:19:30,146
+If we make subsequent changes to
+
+
+535
+00:19:30,146 --> 00:19:31,666
+the volume, like for example,
+
+
+536
+00:19:31,756 --> 00:19:33,696
+deleting a file or adding some
+
+
+537
+00:19:33,696 --> 00:19:36,576
+new files, the snapshot is still
+
+
+538
+00:19:36,576 --> 00:19:38,796
+encompassing all of the state
+
+
+539
+00:19:38,796 --> 00:19:40,196
+that existed at the time it was
+
+
+540
+00:19:40,196 --> 00:19:40,686
+created.
+
+
+541
+00:19:41,816 --> 00:19:43,456
+So in this case, if we look at
+
+
+542
+00:19:43,456 --> 00:19:45,276
+the live volume, it appears that
+
+
+543
+00:19:45,276 --> 00:19:46,806
+that file that was deleted is
+
+
+544
+00:19:46,806 --> 00:19:47,466
+not there.
+
+
+545
+00:19:47,796 --> 00:19:49,016
+But in some sense, it is still
+
+
+546
+00:19:49,016 --> 00:19:50,336
+there because it's part of that
+
+
+547
+00:19:50,336 --> 00:19:50,886
+snapshot.
+
+
+548
+00:19:52,016 --> 00:19:53,276
+So you might wonder, "Well, what
+
+
+549
+00:19:53,276 --> 00:19:53,996
+does this have to do with
+
+
+550
+00:19:53,996 --> 00:19:54,656
+replication?"
+
+
+551
+00:19:55,416 --> 00:19:57,156
+Well, once again, new with macOS
+
+
+552
+00:19:57,156 --> 00:19:59,386
+Catalina, we can now do
+
+
+553
+00:20:00,486 --> 00:20:02,796
+restores, replication of
+
+
+554
+00:20:02,796 --> 00:20:03,466
+snapshots.
+
+
+555
+00:20:04,596 --> 00:20:05,976
+So to understand what that means
+
+
+556
+00:20:05,976 --> 00:20:06,043
+--
+
+
+557
+00:20:06,043 --> 00:20:07,096
+[ Applause ]
+
+
+558
+00:20:07,096 --> 00:20:07,346
+Thank you.
+
+
+559
+00:20:09,056 --> 00:20:10,236
+To understand what that means,
+
+
+560
+00:20:10,236 --> 00:20:11,846
+consider this volume here on the
+
+
+561
+00:20:11,846 --> 00:20:12,236
+left.
+
+
+562
+00:20:12,236 --> 00:20:14,116
+It has two snapshots in it, Snap
+
+
+563
+00:20:14,116 --> 00:20:14,876
+1 and Snap 2.
+
+
+564
+00:20:15,436 --> 00:20:16,596
+They contain some files in
+
+
+565
+00:20:16,596 --> 00:20:17,826
+common, the yellow ones, some
+
+
+566
+00:20:17,826 --> 00:20:19,926
+files that are in one snapshot
+
+
+567
+00:20:19,926 --> 00:20:21,066
+and not the other, some files
+
+
+568
+00:20:21,066 --> 00:20:22,066
+that are in the other and not
+
+
+569
+00:20:22,066 --> 00:20:23,446
+the one, and a file that's not
+
+
+570
+00:20:23,446 --> 00:20:24,286
+an either snapshot.
+
+
+571
+00:20:24,886 --> 00:20:30,416
+I can restore this volume to a
+
+
+572
+00:20:30,416 --> 00:20:32,176
+target volume over here on the
+
+
+573
+00:20:32,276 --> 00:20:32,646
+right.
+
+
+574
+00:20:32,646 --> 00:20:33,626
+It's currently empty.
+
+
+575
+00:20:34,376 --> 00:20:35,536
+And the idea there, of course,
+
+
+576
+00:20:35,536 --> 00:20:37,326
+is that at the end of that
+
+
+577
+00:20:37,326 --> 00:20:39,086
+restore, the target volume looks
+
+
+578
+00:20:39,086 --> 00:20:39,836
+like the source volume.
+
+
+579
+00:20:40,036 --> 00:20:42,456
+But instead of restoring the
+
+
+580
+00:20:42,456 --> 00:20:44,356
+sort -- the live version of the
+
+
+581
+00:20:44,356 --> 00:20:45,526
+source volume the way it
+
+
+582
+00:20:45,526 --> 00:20:47,006
+currently looks, I can instead
+
+
+583
+00:20:47,006 --> 00:20:48,236
+restore a snapshot.
+
+
+584
+00:20:48,526 --> 00:20:49,716
+So if, for example, I want to
+
+
+585
+00:20:49,716 --> 00:20:53,296
+restore Snap 1, I can specify
+
+
+586
+00:20:53,456 --> 00:20:54,486
+that's the snapshot I want to
+
+
+587
+00:20:54,486 --> 00:20:54,946
+restore.
+
+
+588
+00:20:55,966 --> 00:20:58,436
+And the result is that my target
+
+
+589
+00:20:58,436 --> 00:20:59,996
+now looks like Snap 1.
+
+
+590
+00:21:00,726 --> 00:21:02,546
+And notice in particular that
+
+
+591
+00:21:02,546 --> 00:21:03,836
+those two files, which were
+
+
+592
+00:21:03,836 --> 00:21:05,646
+deleted from the source volume,
+
+
+593
+00:21:05,646 --> 00:21:07,026
+have come back to life in the
+
+
+594
+00:21:07,026 --> 00:21:07,676
+target volume.
+
+
+595
+00:21:10,216 --> 00:21:12,336
+Having done that, maybe I want
+
+
+596
+00:21:12,336 --> 00:21:13,556
+to add some new files to my
+
+
+597
+00:21:13,556 --> 00:21:14,326
+target volume.
+
+
+598
+00:21:14,696 --> 00:21:17,306
+But then, maybe now I want to
+
+
+599
+00:21:17,306 --> 00:21:19,756
+restore Snap 2 to that target
+
+
+600
+00:21:19,756 --> 00:21:20,056
+volume.
+
+
+601
+00:21:20,586 --> 00:21:23,366
+And of course, again, the idea
+
+
+602
+00:21:23,366 --> 00:21:24,306
+is that at the end of that
+
+
+603
+00:21:24,306 --> 00:21:25,596
+operation, the live target
+
+
+604
+00:21:25,596 --> 00:21:27,366
+volume should look like Snap 2
+
+
+605
+00:21:27,366 --> 00:21:28,246
+from the source volume.
+
+
+606
+00:21:29,276 --> 00:21:31,756
+But notice that both the source
+
+
+607
+00:21:31,756 --> 00:21:33,206
+volume and the target volume
+
+
+608
+00:21:33,386 --> 00:21:35,216
+already have Snap 1 on them.
+
+
+609
+00:21:35,456 --> 00:21:37,726
+Wouldn't it be great, if instead
+
+
+610
+00:21:37,726 --> 00:21:39,436
+of having to copy all of Snap 2,
+
+
+611
+00:21:39,436 --> 00:21:40,636
+I could just copy the things
+
+
+612
+00:21:40,636 --> 00:21:42,336
+that are different between Snap
+
+
+613
+00:21:42,336 --> 00:21:43,096
+1 and Snap 2?
+
+
+614
+00:21:44,036 --> 00:21:44,836
+Well, indeed I can.
+
+
+615
+00:21:45,076 --> 00:21:46,456
+We call that difference between
+
+
+616
+00:21:46,456 --> 00:21:48,296
+two snapshots a snapshot delta.
+
+
+617
+00:21:49,076 --> 00:21:51,646
+And the idea is when I restore a
+
+
+618
+00:21:51,646 --> 00:21:53,906
+snapshot delta, I'm specifying
+
+
+619
+00:21:53,906 --> 00:21:55,016
+the two snapshots whose
+
+
+620
+00:21:55,016 --> 00:21:57,466
+difference I want to take.
+
+
+621
+00:21:57,676 --> 00:21:58,806
+I perform the restore.
+
+
+622
+00:21:59,486 --> 00:22:00,506
+And of course at the end, the
+
+
+623
+00:22:00,506 --> 00:22:02,146
+live target volume looks like
+
+
+624
+00:22:02,886 --> 00:22:04,296
+Snap 2 from the source.
+
+
+625
+00:22:04,556 --> 00:22:05,716
+But there's three things that I
+
+
+626
+00:22:05,716 --> 00:22:07,796
+want you to notice about this
+
+
+627
+00:22:07,796 --> 00:22:08,386
+target volume.
+
+
+628
+00:22:08,386 --> 00:22:10,986
+Number one, all of those files
+
+
+629
+00:22:10,986 --> 00:22:11,926
+which were not part of the
+
+
+630
+00:22:11,926 --> 00:22:13,306
+snapshot on the target have been
+
+
+631
+00:22:13,306 --> 00:22:13,826
+discarded.
+
+
+632
+00:22:15,156 --> 00:22:17,286
+Number two, the files which were
+
+
+633
+00:22:17,286 --> 00:22:20,416
+in Snap 1 but not in Snap 2 have
+
+
+634
+00:22:20,456 --> 00:22:22,306
+been discarded from the live
+
+
+635
+00:22:22,306 --> 00:22:23,146
+target volume.
+
+
+636
+00:22:23,146 --> 00:22:24,556
+They, of course, still exist in
+
+
+637
+00:22:24,556 --> 00:22:25,946
+Snap 1 on the target volume.
+
+
+638
+00:22:26,966 --> 00:22:28,416
+And number three, the only
+
+
+639
+00:22:28,416 --> 00:22:30,026
+things that we needed to copy
+
+
+640
+00:22:30,566 --> 00:22:31,656
+were those files that were part
+
+
+641
+00:22:31,656 --> 00:22:33,536
+of Snap 2 and not part of Snap
+
+
+642
+00:22:33,536 --> 00:22:33,836
+1.
+
+
+643
+00:22:35,246 --> 00:22:37,096
+Okay? Now this is a really
+
+
+644
+00:22:37,096 --> 00:22:38,026
+powerful feature.
+
+
+645
+00:22:38,026 --> 00:22:39,746
+It's a great way to do
+
+
+646
+00:22:39,746 --> 00:22:40,856
+incremental releases.
+
+
+647
+00:22:41,046 --> 00:22:42,846
+Imagine that you are updating a
+
+
+648
+00:22:42,846 --> 00:22:44,446
+lab filled with 100 machines.
+
+
+649
+00:22:44,446 --> 00:22:45,856
+You can save a lot of time, a
+
+
+650
+00:22:45,856 --> 00:22:47,566
+lot of network bandwidth, if
+
+
+651
+00:22:47,566 --> 00:22:48,636
+you're only copying the
+
+
+652
+00:22:48,636 --> 00:22:49,816
+difference between a couple of
+
+
+653
+00:22:49,816 --> 00:22:51,696
+snapshots on your source image.
+
+
+654
+00:22:55,146 --> 00:22:56,076
+So that's what I had to say
+
+
+655
+00:22:56,076 --> 00:22:57,146
+about replication.
+
+
+656
+00:22:57,326 --> 00:22:58,496
+Take home points here.
+
+
+657
+00:22:59,126 --> 00:23:02,556
+A more sophisticated filesystem
+
+
+658
+00:23:02,556 --> 00:23:03,776
+requires more sophisticated
+
+
+659
+00:23:03,776 --> 00:23:04,646
+mechanisms for doing
+
+
+660
+00:23:04,646 --> 00:23:04,976
+replication.
+
+
+661
+00:23:10,046 --> 00:23:11,066
+APFS volume replication is
+
+
+662
+00:23:11,066 --> 00:23:12,986
+really best done using ASR
+
+
+663
+00:23:12,986 --> 00:23:14,636
+because it provides the highest
+
+
+664
+00:23:14,736 --> 00:23:15,986
+fidelity of copies.
+
+
+665
+00:23:16,346 --> 00:23:17,616
+And it handles the encryption as
+
+
+666
+00:23:17,616 --> 00:23:18,146
+necessary.
+
+
+667
+00:23:18,596 --> 00:23:20,746
+And finally, we can now restore
+
+
+668
+00:23:20,746 --> 00:23:22,686
+snapshots in snapshot deltas
+
+
+669
+00:23:22,736 --> 00:23:23,506
+using ASR.
+
+
+670
+00:23:24,196 --> 00:23:25,586
+And with that, I'm going to turn
+
+
+671
+00:23:25,586 --> 00:23:26,716
+it over to Bill, who will talk
+
+
+672
+00:23:26,716 --> 00:23:28,166
+about external file access for
+
+
+673
+00:23:28,166 --> 00:23:28,606
+iOS.
+
+
+674
+00:23:28,666 --> 00:23:28,976
+Thank you.
+
+
+675
+00:23:29,516 --> 00:23:34,376
+[ Applause ]
+
+
+676
+00:23:34,876 --> 00:23:35,396
+>> Thank you, John.
+
+
+677
+00:23:36,006 --> 00:23:37,046
+Good afternoon.
+
+
+678
+00:23:37,856 --> 00:23:40,196
+You may recall two years ago, we
+
+
+679
+00:23:40,196 --> 00:23:42,276
+introduced Files app and a new
+
+
+680
+00:23:42,276 --> 00:23:43,316
+file provider, API.
+
+
+681
+00:23:44,396 --> 00:23:45,726
+Together, they offer an
+
+
+682
+00:23:45,726 --> 00:23:47,106
+excellent experience for
+
+
+683
+00:23:47,106 --> 00:23:48,376
+Cloud-based documents.
+
+
+684
+00:23:49,576 --> 00:23:51,146
+This year, we thought we could
+
+
+685
+00:23:51,146 --> 00:23:51,516
+do more.
+
+
+686
+00:23:52,706 --> 00:23:54,186
+So this year, we're happy to
+
+
+687
+00:23:54,186 --> 00:23:57,296
+announce support on iOS for
+
+
+688
+00:23:57,296 --> 00:23:59,916
+accessing files on network
+
+
+689
+00:23:59,916 --> 00:24:03,106
+shares and on USB storage.
+
+
+690
+00:24:04,516 --> 00:24:08,500
+[ Cheering and Applause ]
+
+
+691
+00:24:10,926 --> 00:24:13,546
+For USB storage, we support
+
+
+692
+00:24:13,546 --> 00:24:15,936
+everything from compact flash
+
+
+693
+00:24:16,216 --> 00:24:19,766
+and CF and cards and sticks, up
+
+
+694
+00:24:19,866 --> 00:24:21,466
+through USB raid boxes.
+
+
+695
+00:24:22,906 --> 00:24:23,726
+We support a number of
+
+
+696
+00:24:23,726 --> 00:24:24,616
+filesystems.
+
+
+697
+00:24:25,026 --> 00:24:27,576
+We support unencrypted APFS,
+
+
+698
+00:24:28,766 --> 00:24:32,356
+unencrypted HFS Plus, and we
+
+
+699
+00:24:32,356 --> 00:24:34,976
+support FAT and ExFAT.
+
+
+700
+00:24:35,516 --> 00:24:39,086
+[ Applause ]
+
+
+701
+00:24:39,586 --> 00:24:41,926
+This feature is available on all
+
+
+702
+00:24:41,926 --> 00:24:44,126
+iOS and iPadOS devices.
+
+
+703
+00:24:44,976 --> 00:24:47,296
+It's available on iPad Pro with
+
+
+704
+00:24:47,296 --> 00:24:47,936
+USB-C.
+
+
+705
+00:24:48,726 --> 00:24:50,586
+And for lightning devices, it's
+
+
+706
+00:24:50,586 --> 00:24:51,856
+available with the appropriate
+
+
+707
+00:24:51,956 --> 00:24:52,666
+adapters.
+
+
+708
+00:24:56,746 --> 00:24:59,156
+Moving on for network shares, we
+
+
+709
+00:24:59,156 --> 00:25:02,416
+support connecting to SMB 3.0
+
+
+710
+00:25:02,416 --> 00:25:02,966
+servers.
+
+
+711
+00:25:05,476 --> 00:25:06,886
+We support connecting over
+
+
+712
+00:25:06,886 --> 00:25:09,916
+Wi-Fi, over cellular, and over
+
+
+713
+00:25:09,916 --> 00:25:10,346
+Ethernet.
+
+
+714
+00:25:11,426 --> 00:25:12,616
+There are a lot of exciting
+
+
+715
+00:25:12,616 --> 00:25:13,346
+features here.
+
+
+716
+00:25:13,346 --> 00:25:15,266
+But one that we wanted to call
+
+
+717
+00:25:15,266 --> 00:25:18,186
+out is for our iOS devices,
+
+
+718
+00:25:18,186 --> 00:25:19,306
+iPadOS devices.
+
+
+719
+00:25:19,626 --> 00:25:21,786
+We're supporting search using
+
+
+720
+00:25:21,786 --> 00:25:23,166
+the Windows Search Protocol.
+
+
+721
+00:25:24,446 --> 00:25:26,156
+So all these devices can search
+
+
+722
+00:25:26,156 --> 00:25:27,766
+your SMB server if it supports
+
+
+723
+00:25:28,536 --> 00:25:29,636
+the WSP protocol.
+
+
+724
+00:25:30,896 --> 00:25:32,926
+We're also really excited to
+
+
+725
+00:25:32,926 --> 00:25:34,266
+announce that that that includes
+
+
+726
+00:25:34,546 --> 00:25:36,196
+the SMB server and macOS
+
+
+727
+00:25:36,196 --> 00:25:36,636
+Catalina.
+
+
+728
+00:25:41,526 --> 00:25:43,186
+Before going on, I wanted to
+
+
+729
+00:25:43,186 --> 00:25:44,486
+talk a moment about security.
+
+
+730
+00:25:45,296 --> 00:25:47,126
+Security is a feature users have
+
+
+731
+00:25:47,126 --> 00:25:48,966
+come to expect from iOS.
+
+
+732
+00:25:49,856 --> 00:25:51,956
+Two of the tools we have used to
+
+
+733
+00:25:51,956 --> 00:25:54,366
+help deliver this security are
+
+
+734
+00:25:54,706 --> 00:25:56,806
+process separation and privilege
+
+
+735
+00:25:56,806 --> 00:25:57,436
+separation.
+
+
+736
+00:25:57,986 --> 00:26:00,196
+In developing this feature,
+
+
+737
+00:26:00,296 --> 00:26:01,446
+we've kept this in mind and
+
+
+738
+00:26:01,446 --> 00:26:02,636
+incorporated them from the
+
+
+739
+00:26:02,636 --> 00:26:03,206
+ground up.
+
+
+740
+00:26:04,446 --> 00:26:06,756
+So for all of our volumes and
+
+
+741
+00:26:06,756 --> 00:26:08,306
+shares, the filesystem
+
+
+742
+00:26:08,306 --> 00:26:10,586
+manipulations happen not on the
+
+
+743
+00:26:10,636 --> 00:26:12,466
+kernel but in a dedicated
+
+
+744
+00:26:12,496 --> 00:26:13,456
+process space.
+
+
+745
+00:26:14,226 --> 00:26:16,906
+This separation helps us deliver
+
+
+746
+00:26:17,126 --> 00:26:19,116
+the security iOS users have come
+
+
+747
+00:26:19,116 --> 00:26:19,746
+to expect.
+
+
+748
+00:26:22,616 --> 00:26:23,976
+Now, let's see it in an action.
+
+
+749
+00:26:27,196 --> 00:26:28,976
+All right, I have an iPad.
+
+
+750
+00:26:35,206 --> 00:26:37,166
+And I don't know if -- you
+
+
+751
+00:26:37,166 --> 00:26:37,936
+probably can't see it.
+
+
+752
+00:26:37,936 --> 00:26:38,896
+But I have a USB stick
+
+
+753
+00:26:38,896 --> 00:26:39,326
+connected.
+
+
+754
+00:26:40,546 --> 00:26:41,566
+And I have mail.
+
+
+755
+00:26:42,266 --> 00:26:46,356
+And in files, on the left, you
+
+
+756
+00:26:46,356 --> 00:26:48,066
+can see the locations.
+
+
+757
+00:26:48,676 --> 00:26:49,786
+iCloud Drive.
+
+
+758
+00:26:50,316 --> 00:26:51,676
+If we had a third-party Cloud
+
+
+759
+00:26:51,676 --> 00:26:52,756
+provider, they would be listed
+
+
+760
+00:26:52,756 --> 00:26:53,486
+there as well.
+
+
+761
+00:26:53,486 --> 00:26:56,546
+And we see a destination for our
+
+
+762
+00:26:56,546 --> 00:26:57,336
+USB device.
+
+
+763
+00:26:57,926 --> 00:27:01,316
+When we select it, we see our
+
+
+764
+00:27:01,506 --> 00:27:04,146
+photos, our documents, all the
+
+
+765
+00:27:04,146 --> 00:27:05,906
+files and directories on there.
+
+
+766
+00:27:06,516 --> 00:27:10,866
+And we can manipulate them just
+
+
+767
+00:27:10,866 --> 00:27:13,006
+like any other file in Files
+
+
+768
+00:27:13,006 --> 00:27:13,246
+app.
+
+
+769
+00:27:13,246 --> 00:27:16,516
+So to copy one, you just select
+
+
+770
+00:27:16,516 --> 00:27:18,846
+it, get it ready for drag and
+
+
+771
+00:27:18,846 --> 00:27:21,316
+drop, pick your destination,
+
+
+772
+00:27:21,986 --> 00:27:23,966
+drag it, and drop it.
+
+
+773
+00:27:24,436 --> 00:27:25,356
+And you can see it's already in
+
+
+774
+00:27:25,356 --> 00:27:25,916
+the folder now.
+
+
+775
+00:27:28,826 --> 00:27:30,016
+Another thing we like to do with
+
+
+776
+00:27:30,016 --> 00:27:33,266
+devices is let's copy photos
+
+
+777
+00:27:33,766 --> 00:27:35,016
+onto them.
+
+
+778
+00:27:35,226 --> 00:27:37,136
+Photos, I have a picture a
+
+
+779
+00:27:37,136 --> 00:27:38,196
+friend took in India of
+
+
+780
+00:27:38,236 --> 00:27:38,726
+tomatoes.
+
+
+781
+00:27:40,366 --> 00:27:43,146
+Let's save it to the USB.
+
+
+782
+00:27:43,406 --> 00:27:44,986
+To do that, we just select the
+
+
+783
+00:27:44,986 --> 00:27:50,156
+document, go to Share, go down
+
+
+784
+00:27:50,156 --> 00:27:52,196
+the list to save to Files.
+
+
+785
+00:27:53,056 --> 00:27:55,106
+You can see, as a destination,
+
+
+786
+00:27:55,106 --> 00:27:56,836
+we have the USB stick listed.
+
+
+787
+00:27:57,436 --> 00:27:59,226
+We just select it.
+
+
+788
+00:27:59,226 --> 00:27:59,986
+It already is.
+
+
+789
+00:28:00,036 --> 00:28:00,806
+We hit save.
+
+
+790
+00:28:01,496 --> 00:28:02,856
+And it's copied.
+
+
+791
+00:28:03,516 --> 00:28:08,666
+[ Cheering and Applause ]
+
+
+792
+00:28:09,166 --> 00:28:10,906
+I expect many of you are
+
+
+793
+00:28:10,906 --> 00:28:12,176
+application developers.
+
+
+794
+00:28:12,226 --> 00:28:13,216
+And you're wondering how your
+
+
+795
+00:28:13,216 --> 00:28:14,646
+application can take advantage
+
+
+796
+00:28:14,646 --> 00:28:15,026
+of this.
+
+
+797
+00:28:15,946 --> 00:28:17,776
+This feature is available to any
+
+
+798
+00:28:17,776 --> 00:28:19,556
+and all applications linked on
+
+
+799
+00:28:19,616 --> 00:28:21,266
+or after iOS 13.
+
+
+800
+00:28:22,326 --> 00:28:23,706
+So rebuild your application.
+
+
+801
+00:28:24,116 --> 00:28:25,166
+And you can take advantage.
+
+
+802
+00:28:26,626 --> 00:28:28,636
+To see that in action, let's
+
+
+803
+00:28:28,636 --> 00:28:29,356
+look at Numbers.
+
+
+804
+00:28:29,986 --> 00:28:32,926
+When I open up Numbers, it's
+
+
+805
+00:28:32,926 --> 00:28:34,146
+start -- it's starting with my
+
+
+806
+00:28:34,146 --> 00:28:34,796
+iCloud Drive.
+
+
+807
+00:28:35,966 --> 00:28:37,136
+The USB is listed as a
+
+
+808
+00:28:37,136 --> 00:28:37,736
+destination.
+
+
+809
+00:28:38,396 --> 00:28:39,976
+We select it.
+
+
+810
+00:28:43,166 --> 00:28:44,446
+And there, we can see all of our
+
+
+811
+00:28:44,446 --> 00:28:45,066
+documents.
+
+
+812
+00:28:45,146 --> 00:28:47,846
+We can see our photos dimmed
+
+
+813
+00:28:48,056 --> 00:28:48,966
+because they're not Numbers
+
+
+814
+00:28:48,966 --> 00:28:49,596
+documents.
+
+
+815
+00:28:49,876 --> 00:28:51,586
+And then we see that we've had
+
+
+816
+00:28:51,896 --> 00:28:53,836
+two Numbers documents on this
+
+
+817
+00:28:53,836 --> 00:28:54,126
+drive.
+
+
+818
+00:28:55,266 --> 00:28:56,806
+Let's open one of them.
+
+
+819
+00:28:56,806 --> 00:28:59,186
+It's a loan comparison comparing
+
+
+820
+00:28:59,186 --> 00:29:00,616
+two different loan amounts and
+
+
+821
+00:29:00,616 --> 00:29:01,656
+two different interest rates.
+
+
+822
+00:29:02,836 --> 00:29:03,976
+Just for comparison, let's see
+
+
+823
+00:29:03,976 --> 00:29:04,546
+what happens if we raise the
+
+
+824
+00:29:04,546 --> 00:29:04,966
+interest rate.
+
+
+825
+00:29:09,156 --> 00:29:09,246
+No. Oh.
+
+
+826
+00:29:10,016 --> 00:29:11,056
+[ Laughter ]
+
+
+827
+00:29:11,056 --> 00:29:11,976
+Set it to 20, not 200.
+
+
+828
+00:29:18,046 --> 00:29:21,856
+Oh, no. Well, that's crazy.
+
+
+829
+00:29:22,508 --> 00:29:24,508
+[ Laughter ]
+
+
+830
+00:29:27,056 --> 00:29:28,926
+And you can see on the -- see
+
+
+831
+00:29:28,926 --> 00:29:30,676
+live the interest rate amounts
+
+
+832
+00:29:30,676 --> 00:29:30,956
+changing.
+
+
+833
+00:29:38,396 --> 00:29:40,456
+So what does this mean for you
+
+
+834
+00:29:41,446 --> 00:29:42,246
+as developers?
+
+
+835
+00:29:43,306 --> 00:29:46,546
+As I said, it's available if
+
+
+836
+00:29:46,546 --> 00:29:47,966
+you're linked on or after iOS
+
+
+837
+00:29:47,966 --> 00:29:48,526
+13.
+
+
+838
+00:29:48,686 --> 00:29:50,466
+So rebuild your application and
+
+
+839
+00:29:50,466 --> 00:29:50,586
+test.
+
+
+840
+00:29:55,346 --> 00:29:56,726
+We're adding five different
+
+
+841
+00:29:56,726 --> 00:29:58,956
+filesystem types to iOS.
+
+
+842
+00:29:59,836 --> 00:30:01,636
+These filesystems act slightly
+
+
+843
+00:30:01,636 --> 00:30:03,876
+differently than APFS on the
+
+
+844
+00:30:03,876 --> 00:30:05,216
+internal flash storage.
+
+
+845
+00:30:07,216 --> 00:30:09,836
+One difference is iOS has always
+
+
+846
+00:30:09,836 --> 00:30:11,896
+had case-sensitive filesystems.
+
+
+847
+00:30:12,796 --> 00:30:14,076
+FAT and ExFAT are
+
+
+848
+00:30:14,366 --> 00:30:15,636
+case-insensitive.
+
+
+849
+00:30:16,716 --> 00:30:18,816
+And HFS and APFS can be
+
+
+850
+00:30:18,816 --> 00:30:19,996
+configured either way.
+
+
+851
+00:30:21,636 --> 00:30:24,056
+The Clone System call may not
+
+
+852
+00:30:24,056 --> 00:30:24,876
+always be available.
+
+
+853
+00:30:26,246 --> 00:30:28,206
+So as these differences are --
+
+
+854
+00:30:28,326 --> 00:30:29,386
+if these are differences are
+
+
+855
+00:30:29,386 --> 00:30:30,926
+important to you or as they are,
+
+
+856
+00:30:31,646 --> 00:30:32,896
+please pay attention to volume
+
+
+857
+00:30:32,896 --> 00:30:33,676
+capabilities.
+
+
+858
+00:30:34,656 --> 00:30:37,106
+There are two different APIs or
+
+
+859
+00:30:37,106 --> 00:30:38,426
+a couple of APIs that can get
+
+
+860
+00:30:38,426 --> 00:30:38,966
+them for you.
+
+
+861
+00:30:39,746 --> 00:30:41,826
+One I wanted to call out are the
+
+
+862
+00:30:41,826 --> 00:30:44,406
+resourceValues in NSURL.
+
+
+863
+00:30:45,576 --> 00:30:47,726
+These can give you parameters
+
+
+864
+00:30:47,726 --> 00:30:48,676
+for the filesystem you're
+
+
+865
+00:30:48,676 --> 00:30:48,976
+working with.
+
+
+866
+00:30:52,296 --> 00:30:53,756
+Another important point is file
+
+
+867
+00:30:54,176 --> 00:30:58,006
+movement may take time.
+
+
+868
+00:30:58,186 --> 00:31:00,006
+So please put your temporary
+
+
+869
+00:31:00,006 --> 00:31:02,066
+files near your working files.
+
+
+870
+00:31:02,696 --> 00:31:05,226
+If you don't, right, this is
+
+
+871
+00:31:05,226 --> 00:31:05,676
+helpful.
+
+
+872
+00:31:06,586 --> 00:31:09,706
+Because Save-Save uses a rename
+
+
+873
+00:31:09,946 --> 00:31:12,136
+at the very end so that a user
+
+
+874
+00:31:12,136 --> 00:31:13,496
+always sees a good file.
+
+
+875
+00:31:13,666 --> 00:31:15,456
+They either see the document
+
+
+876
+00:31:15,456 --> 00:31:17,216
+that they started with, or they
+
+
+877
+00:31:17,276 --> 00:31:18,046
+see the new save.
+
+
+878
+00:31:19,356 --> 00:31:20,586
+For this to work, we need that
+
+
+879
+00:31:20,586 --> 00:31:21,146
+rename.
+
+
+880
+00:31:21,496 --> 00:31:22,466
+And that only works if they're
+
+
+881
+00:31:22,466 --> 00:31:23,936
+both on the same filesystem.
+
+
+882
+00:31:25,466 --> 00:31:26,806
+Also, if you're not careful
+
+
+883
+00:31:26,806 --> 00:31:28,036
+about your temporary files, they
+
+
+884
+00:31:28,036 --> 00:31:29,986
+may end up in your container on
+
+
+885
+00:31:29,986 --> 00:31:31,116
+the internal storage.
+
+
+886
+00:31:31,766 --> 00:31:32,686
+And that's going to lead to a
+
+
+887
+00:31:32,686 --> 00:31:33,976
+lot of unnecessary IO.
+
+
+888
+00:31:38,016 --> 00:31:39,416
+File Manager can help you with
+
+
+889
+00:31:39,416 --> 00:31:39,786
+this.
+
+
+890
+00:31:40,286 --> 00:31:42,796
+If you ask for a URL for the
+
+
+891
+00:31:42,796 --> 00:31:44,496
+itemReplacementDirectory
+
+
+892
+00:31:44,766 --> 00:31:46,456
+appropriate for your documents,
+
+
+893
+00:31:46,706 --> 00:31:48,106
+it will give you a temporary
+
+
+894
+00:31:48,106 --> 00:31:49,286
+directory on the same
+
+
+895
+00:31:49,286 --> 00:31:49,976
+filesystem.
+
+
+896
+00:31:55,406 --> 00:31:56,856
+Another thing is that external
+
+
+897
+00:31:56,856 --> 00:31:58,016
+devices can go away.
+
+
+898
+00:31:59,416 --> 00:32:01,206
+A network can go out of range.
+
+
+899
+00:32:02,226 --> 00:32:03,876
+A file server can go down.
+
+
+900
+00:32:04,486 --> 00:32:05,826
+A CAT can disconnect a cable.
+
+
+901
+00:32:07,236 --> 00:32:08,556
+These things can happen.
+
+
+902
+00:32:08,916 --> 00:32:10,106
+And your application needs to be
+
+
+903
+00:32:10,106 --> 00:32:12,126
+robust in face of it.
+
+
+904
+00:32:12,666 --> 00:32:13,886
+One thing I especially wanted to
+
+
+905
+00:32:13,886 --> 00:32:16,056
+point out is mmap can be
+
+
+906
+00:32:16,056 --> 00:32:16,656
+dangerous.
+
+
+907
+00:32:17,366 --> 00:32:18,666
+It can be really powerful.
+
+
+908
+00:32:18,986 --> 00:32:20,826
+But if the file goes away, the
+
+
+909
+00:32:20,826 --> 00:32:22,096
+only way the kernel can tell you
+
+
+910
+00:32:22,096 --> 00:32:23,666
+that is with a BUS error.
+
+
+911
+00:32:25,536 --> 00:32:28,586
+So one thing, if you're using
+
+
+912
+00:32:28,646 --> 00:32:31,066
+NSData, there is a hint you can
+
+
+913
+00:32:31,066 --> 00:32:33,606
+give NSData and say mmap this
+
+
+914
+00:32:33,636 --> 00:32:34,966
+data from a file if it's safe.
+
+
+915
+00:32:40,086 --> 00:32:41,346
+The last point is that external
+
+
+916
+00:32:41,346 --> 00:32:42,796
+devices, all of them, have
+
+
+917
+00:32:42,886 --> 00:32:44,626
+higher latencies than APFS on
+
+
+918
+00:32:44,666 --> 00:32:46,376
+the internal flash storage.
+
+
+919
+00:32:47,566 --> 00:32:50,236
+So if you're doing sizable IO,
+
+
+920
+00:32:50,236 --> 00:32:53,226
+please keep multiple operations
+
+
+921
+00:32:53,396 --> 00:32:53,976
+in-flight at once.
+
+
+922
+00:32:58,336 --> 00:33:00,206
+So to summarize today's talk,
+
+
+923
+00:33:01,696 --> 00:33:03,116
+Max talked to us about how we're
+
+
+924
+00:33:03,116 --> 00:33:06,086
+making the root volume read-only
+
+
+925
+00:33:06,456 --> 00:33:07,376
+for enhanced security.
+
+
+926
+00:33:08,046 --> 00:33:12,296
+John talked to us about ASR and
+
+
+927
+00:33:12,296 --> 00:33:14,246
+how you can use ASR to replicate
+
+
+928
+00:33:14,246 --> 00:33:16,016
+volumes, including snapshot
+
+
+929
+00:33:16,016 --> 00:33:16,506
+deltas.
+
+
+930
+00:33:17,106 --> 00:33:19,926
+And I talked to you about how
+
+
+931
+00:33:19,926 --> 00:33:20,846
+we're adding support for
+
+
+932
+00:33:20,846 --> 00:33:22,856
+external files to iOS and iPadOS
+
+
+933
+00:33:22,856 --> 00:33:25,206
+and how that will let you access
+
+
+934
+00:33:25,546 --> 00:33:27,856
+files on USB storage and network
+
+
+935
+00:33:27,856 --> 00:33:28,316
+shares.
+
+
+936
+00:33:30,346 --> 00:33:32,356
+For more information, we have a
+
+
+937
+00:33:32,356 --> 00:33:34,126
+lab after this session.
+
+
+938
+00:33:34,726 --> 00:33:37,286
+And tomorrow, there's a talk,
+
+
+939
+00:33:38,906 --> 00:33:40,656
+Combine and Advances in
+
+
+940
+00:33:40,696 --> 00:33:41,866
+Foundation, where they're going
+
+
+941
+00:33:41,866 --> 00:33:43,456
+to talk more about what you can
+
+
+942
+00:33:43,456 --> 00:33:45,396
+do with Foundation on external
+
+
+943
+00:33:45,396 --> 00:33:45,736
+media.
+
+
+944
+00:33:45,876 --> 00:33:48,046
+And there's also a video
+
+
+945
+00:33:48,046 --> 00:33:50,926
+session, What's New in File
+
+
+946
+00:33:50,926 --> 00:33:52,606
+Management and Quick Look, that
+
+
+947
+00:33:52,746 --> 00:33:53,996
+will talk more about the UI
+
+
+948
+00:33:53,996 --> 00:33:55,756
+document aspects of this talk.
+
+
+949
+00:33:57,126 --> 00:33:57,406
+Thank you.
+
+
+950
+00:33:58,516 --> 00:34:04,500
+[ Applause ]
+

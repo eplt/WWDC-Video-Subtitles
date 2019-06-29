@@ -1,0 +1,8684 @@
+1
+00:00:00,506 --> 00:00:05,500
+[ Music ]
+
+
+2
+00:00:10,516 --> 00:00:13,566
+[ Applause ]
+
+
+3
+00:00:14,066 --> 00:00:15,196
+>> Lionel Lemarie: Hi, folks.
+
+
+4
+00:00:16,146 --> 00:00:17,296
+Welcome to our Metal session.
+
+
+5
+00:00:18,096 --> 00:00:18,996
+I'm Lionel.
+
+
+6
+00:00:19,076 --> 00:00:20,386
+I'm in the GPU software
+
+
+7
+00:00:20,386 --> 00:00:21,766
+performance team here at Apple.
+
+
+8
+00:00:22,736 --> 00:00:25,546
+And with my friends Max and
+
+
+9
+00:00:25,546 --> 00:00:27,066
+Sarah, we'll be guiding you
+
+
+10
+00:00:27,066 --> 00:00:29,056
+through how to bring your OpenGL
+
+
+11
+00:00:29,056 --> 00:00:29,636
+app to Metal.
+
+
+12
+00:00:30,326 --> 00:00:33,496
+So last year we announced that
+
+
+13
+00:00:33,606 --> 00:00:36,936
+OpenGL, OpenGL ES, and OpenCL
+
+
+14
+00:00:37,056 --> 00:00:37,966
+are deprecated.
+
+
+15
+00:00:38,976 --> 00:00:39,926
+They will continue to be
+
+
+16
+00:00:39,926 --> 00:00:43,436
+supported in iOS 13 and macOS
+
+
+17
+00:00:43,436 --> 00:00:46,496
+Catalina, but now is the time to
+
+
+18
+00:00:46,496 --> 00:00:46,746
+move.
+
+
+19
+00:00:47,926 --> 00:00:49,476
+New projects should target Metal
+
+
+20
+00:00:49,476 --> 00:00:50,436
+from their inception.
+
+
+21
+00:00:50,816 --> 00:00:52,496
+But if you have an OpenGL app
+
+
+22
+00:00:52,826 --> 00:00:54,176
+that you want to port to Metal,
+
+
+23
+00:00:54,716 --> 00:00:57,696
+you've come to the right place.
+
+
+24
+00:00:58,266 --> 00:00:59,836
+So we first introduced Metal in
+
+
+25
+00:00:59,936 --> 00:01:03,266
+2014 as our new low-overhead,
+
+
+26
+00:01:03,546 --> 00:01:04,635
+high-efficiency,
+
+
+27
+00:01:04,926 --> 00:01:06,976
+high-performance GPU programming
+
+
+28
+00:01:06,976 --> 00:01:07,266
+API.
+
+
+29
+00:01:07,726 --> 00:01:10,936
+Over the past five years,
+
+
+30
+00:01:11,386 --> 00:01:13,726
+Apple's core frameworks have
+
+
+31
+00:01:13,726 --> 00:01:15,706
+adopted Metal and they're
+
+
+32
+00:01:15,706 --> 00:01:17,146
+getting really great results.
+
+
+33
+00:01:17,586 --> 00:01:19,306
+If your application is built on
+
+
+34
+00:01:19,306 --> 00:01:21,216
+top of layers like SpriteKit,
+
+
+35
+00:01:21,546 --> 00:01:23,846
+SceneKit, RealityKit, Core
+
+
+36
+00:01:23,846 --> 00:01:25,616
+Image, Core Animation, then
+
+
+37
+00:01:25,616 --> 00:01:26,666
+you're already using Metal.
+
+
+38
+00:01:28,796 --> 00:01:30,326
+We've also been working closely
+
+
+39
+00:01:30,326 --> 00:01:31,986
+with vendors on engines like
+
+
+40
+00:01:31,986 --> 00:01:34,036
+Unity, Unreal Engine 4, and
+
+
+41
+00:01:34,036 --> 00:01:36,446
+Lumberyard to really take
+
+
+42
+00:01:36,446 --> 00:01:37,326
+advantage of Metal.
+
+
+43
+00:01:37,836 --> 00:01:38,846
+If you're using one of these
+
+
+44
+00:01:38,846 --> 00:01:41,556
+engines, you're already up to
+
+
+45
+00:01:41,556 --> 00:01:41,836
+speed.
+
+
+46
+00:01:45,316 --> 00:01:47,656
+But if you've built your own
+
+
+47
+00:01:47,656 --> 00:01:49,656
+renderer, then Metal gives you a
+
+
+48
+00:01:49,656 --> 00:01:50,946
+lot of great benefits.
+
+
+49
+00:01:51,926 --> 00:01:54,036
+Metal combines the graphics of
+
+
+50
+00:01:54,036 --> 00:01:56,376
+OpenGL and compute of OpenCL
+
+
+51
+00:01:56,516 --> 00:01:57,816
+into a unified API.
+
+
+52
+00:01:59,336 --> 00:02:01,436
+It allows you to use multithread
+
+
+53
+00:02:01,436 --> 00:02:02,936
+rendering in your application.
+
+
+54
+00:02:04,136 --> 00:02:05,766
+Whenever there are CPU
+
+
+55
+00:02:05,766 --> 00:02:07,226
+operations that need to take
+
+
+56
+00:02:07,226 --> 00:02:09,096
+place that are expensive, we
+
+
+57
+00:02:09,096 --> 00:02:10,366
+made sure that they happen as
+
+
+58
+00:02:10,366 --> 00:02:11,876
+infrequently as possible to
+
+
+59
+00:02:11,876 --> 00:02:13,786
+reduce overhead during your
+
+
+60
+00:02:13,786 --> 00:02:14,616
+app's execution.
+
+
+61
+00:02:16,666 --> 00:02:18,746
+Metal's shading language is C++
+
+
+62
+00:02:18,796 --> 00:02:20,756
+based and all the shaders used
+
+
+63
+00:02:20,756 --> 00:02:23,036
+in your application can be
+
+
+64
+00:02:23,036 --> 00:02:25,176
+precompiled, making it easier to
+
+
+65
+00:02:25,176 --> 00:02:27,586
+have a wide variety of material
+
+
+66
+00:02:27,586 --> 00:02:28,556
+shaders, for example.
+
+
+67
+00:02:29,066 --> 00:02:32,056
+And last but not least, we have
+
+
+68
+00:02:32,056 --> 00:02:33,786
+a full suite of debugging and
+
+
+69
+00:02:33,786 --> 00:02:35,736
+optimization tools built right
+
+
+70
+00:02:35,736 --> 00:02:36,426
+into Xcode.
+
+
+71
+00:02:37,936 --> 00:02:39,316
+So once you have ported to
+
+
+72
+00:02:39,316 --> 00:02:40,936
+Metal, you have full support to
+
+
+73
+00:02:40,936 --> 00:02:42,366
+make your application even
+
+
+74
+00:02:42,366 --> 00:02:42,656
+better.
+
+
+75
+00:02:43,786 --> 00:02:44,506
+So let's dive in.
+
+
+76
+00:02:45,036 --> 00:02:46,826
+In this session we'll take a
+
+
+77
+00:02:46,826 --> 00:02:48,046
+look at the different steps
+
+
+78
+00:02:48,046 --> 00:02:51,376
+involved in migrating from GL
+
+
+79
+00:02:51,376 --> 00:02:52,906
+into Metal, and we'll do that by
+
+
+80
+00:02:52,906 --> 00:02:55,556
+comparing a typical GL app to a
+
+
+81
+00:02:55,656 --> 00:02:57,286
+Metal app.
+
+
+82
+00:02:57,706 --> 00:03:00,076
+As an overview, let's quickly
+
+
+83
+00:03:00,736 --> 00:03:02,836
+look through the steps of our GL
+
+
+84
+00:03:02,836 --> 00:03:03,036
+app.
+
+
+85
+00:03:03,996 --> 00:03:06,686
+First, you set up a window that
+
+
+86
+00:03:06,686 --> 00:03:07,656
+you'll use for rendering.
+
+
+87
+00:03:08,326 --> 00:03:09,716
+Then you create your resources
+
+
+88
+00:03:09,716 --> 00:03:11,066
+like buffers, textures,
+
+
+89
+00:03:11,146 --> 00:03:11,806
+samplers.
+
+
+90
+00:03:12,536 --> 00:03:13,866
+You implement all your shaders
+
+
+91
+00:03:14,146 --> 00:03:15,276
+written in GLSL.
+
+
+92
+00:03:16,466 --> 00:03:17,726
+Before you can render anything
+
+
+93
+00:03:17,726 --> 00:03:19,126
+in GL, you may have to create
+
+
+94
+00:03:19,126 --> 00:03:20,746
+certain object states, such as
+
+
+95
+00:03:20,746 --> 00:03:22,216
+GL programs, GL frame buffer
+
+
+96
+00:03:22,216 --> 00:03:24,736
+objects, vertex array objects.
+
+
+97
+00:03:25,976 --> 00:03:28,026
+So once you've initialized your
+
+
+98
+00:03:28,106 --> 00:03:30,416
+resources, the render loop
+
+
+99
+00:03:30,416 --> 00:03:32,646
+starts and you draw your frames.
+
+
+100
+00:03:33,356 --> 00:03:35,206
+For each frame, you start by
+
+
+101
+00:03:35,206 --> 00:03:38,046
+updating your resources, bind a
+
+
+102
+00:03:38,046 --> 00:03:40,346
+specific frame buffer, set the
+
+
+103
+00:03:40,346 --> 00:03:41,996
+graphic state, and make your
+
+
+104
+00:03:41,996 --> 00:03:42,526
+draw calls.
+
+
+105
+00:03:43,536 --> 00:03:44,756
+You repeat this process for each
+
+
+106
+00:03:44,756 --> 00:03:46,156
+frame buffer you have.
+
+
+107
+00:03:46,416 --> 00:03:47,816
+You may have shadow maps, a
+
+
+108
+00:03:47,816 --> 00:03:49,026
+lighting pass, some
+
+
+109
+00:03:49,026 --> 00:03:49,906
+post-processing.
+
+
+110
+00:03:50,486 --> 00:03:52,246
+So potentially quite a few
+
+
+111
+00:03:52,666 --> 00:03:53,396
+render passes.
+
+
+112
+00:03:53,936 --> 00:03:56,696
+And then finally, you present
+
+
+113
+00:03:57,096 --> 00:03:58,846
+the final rendered image.
+
+
+114
+00:03:59,466 --> 00:04:00,376
+It's pretty easy.
+
+
+115
+00:04:01,436 --> 00:04:02,646
+And as you can see, the Metal
+
+
+116
+00:04:02,646 --> 00:04:04,226
+flow looks very similar.
+
+
+117
+00:04:04,976 --> 00:04:06,656
+We updated some of the original
+
+
+118
+00:04:06,656 --> 00:04:08,616
+concepts and introduced a few
+
+
+119
+00:04:08,616 --> 00:04:09,216
+new things.
+
+
+120
+00:04:09,446 --> 00:04:12,066
+But overall, the flow is much
+
+
+121
+00:04:12,066 --> 00:04:12,416
+the same.
+
+
+122
+00:04:12,626 --> 00:04:13,936
+It's not a complete rewrite of
+
+
+123
+00:04:13,936 --> 00:04:17,046
+the engine; it works in the same
+
+
+124
+00:04:17,046 --> 00:04:17,305
+manner.
+
+
+125
+00:04:18,995 --> 00:04:21,625
+So we will reintroduce the new
+
+
+126
+00:04:21,625 --> 00:04:23,366
+concepts while drawing parallels
+
+
+127
+00:04:23,366 --> 00:04:26,216
+between GL and Metal, comparing
+
+
+128
+00:04:26,216 --> 00:04:28,206
+and contrasting the two API's to
+
+
+129
+00:04:28,206 --> 00:04:29,786
+help you successfully make the
+
+
+130
+00:04:29,786 --> 00:04:30,276
+transition.
+
+
+131
+00:04:30,846 --> 00:04:34,436
+When you're walking through any
+
+
+132
+00:04:34,436 --> 00:04:36,496
+tutorial on graphics, then the
+
+
+133
+00:04:36,566 --> 00:04:39,396
+first thing you learn is how to
+
+
+134
+00:04:39,636 --> 00:04:41,586
+create and draw to a window.
+
+
+135
+00:04:42,476 --> 00:04:43,496
+So let's start with the window
+
+
+136
+00:04:43,496 --> 00:04:44,046
+subsystem.
+
+
+137
+00:04:44,426 --> 00:04:45,726
+Both GL and Metal have this
+
+
+138
+00:04:45,726 --> 00:04:47,816
+concept, but it's accomplished a
+
+
+139
+00:04:47,816 --> 00:04:48,716
+little differently.
+
+
+140
+00:04:49,316 --> 00:04:52,226
+The application is required to
+
+
+141
+00:04:52,226 --> 00:04:53,456
+set up and present a drawing
+
+
+142
+00:04:53,456 --> 00:04:54,006
+surface.
+
+
+143
+00:04:54,076 --> 00:04:55,576
+And view and view delegates
+
+
+144
+00:04:55,606 --> 00:04:57,396
+manage the interface between the
+
+
+145
+00:04:57,396 --> 00:04:59,286
+API and the underlying window
+
+
+146
+00:04:59,286 --> 00:04:59,636
+system.
+
+
+147
+00:04:59,636 --> 00:05:02,726
+You might be using these
+
+
+148
+00:05:02,726 --> 00:05:04,786
+frameworks to manage your GL
+
+
+149
+00:05:04,786 --> 00:05:06,196
+views, so we have equivalent
+
+
+150
+00:05:06,246 --> 00:05:07,336
+frameworks in Metal.
+
+
+151
+00:05:08,466 --> 00:05:11,606
+NSOpenGLView and GLKView map to
+
+
+152
+00:05:11,606 --> 00:05:12,366
+MTKView.
+
+
+153
+00:05:13,156 --> 00:05:14,306
+And if you are using Core
+
+
+154
+00:05:14,306 --> 00:05:15,866
+Animation in your application
+
+
+155
+00:05:15,866 --> 00:05:17,636
+with the EAGLLayer, then there's
+
+
+156
+00:05:17,636 --> 00:05:19,416
+an equivalent CAMetalLayer.
+
+
+157
+00:05:19,416 --> 00:05:23,086
+As an example, let's say you are
+
+
+158
+00:05:23,086 --> 00:05:24,266
+using GLKView.
+
+
+159
+00:05:25,566 --> 00:05:27,386
+It has a single entry point with
+
+
+160
+00:05:27,386 --> 00:05:27,976
+the draw rate.
+
+
+161
+00:05:28,336 --> 00:05:29,646
+So you need it to check if the
+
+
+162
+00:05:29,646 --> 00:05:31,366
+resolution of your target is
+
+
+163
+00:05:31,366 --> 00:05:32,876
+unchanged since the last frame,
+
+
+164
+00:05:32,996 --> 00:05:34,616
+update your render target sizes
+
+
+165
+00:05:34,876 --> 00:05:36,626
+as needed, right from within the
+
+
+166
+00:05:36,626 --> 00:05:37,136
+render loop.
+
+
+167
+00:05:38,496 --> 00:05:40,456
+In MetalKit, it's a bit updated.
+
+
+168
+00:05:40,456 --> 00:05:41,686
+There's a separate function for
+
+
+169
+00:05:41,686 --> 00:05:44,706
+whenever the drawable needs to
+
+
+170
+00:05:44,706 --> 00:05:45,806
+change, such as when you're
+
+
+171
+00:05:45,806 --> 00:05:47,606
+rotating the screen or resizing
+
+
+172
+00:05:47,606 --> 00:05:48,136
+your window.
+
+
+173
+00:05:48,456 --> 00:05:49,876
+So you don't need to check if
+
+
+174
+00:05:49,876 --> 00:05:51,036
+your resources need to be
+
+
+175
+00:05:51,036 --> 00:05:54,076
+reallocated inside your draw
+
+
+176
+00:05:54,076 --> 00:05:55,646
+function; it's dedicated to
+
+
+177
+00:05:55,646 --> 00:05:55,956
+render code.
+
+
+178
+00:05:59,276 --> 00:06:00,396
+If you need additional
+
+
+179
+00:06:00,396 --> 00:06:02,236
+flexibility, we provide the
+
+
+180
+00:06:02,286 --> 00:06:05,556
+CAMetalLayer, which you use as
+
+
+181
+00:06:05,596 --> 00:06:07,466
+the backing layer for your view.
+
+
+182
+00:06:08,876 --> 00:06:11,216
+While the CAEAGLLayer defined
+
+
+183
+00:06:11,216 --> 00:06:12,576
+the properties of your drawable
+
+
+184
+00:06:12,656 --> 00:06:15,636
+such as its color format, the
+
+
+185
+00:06:15,636 --> 00:06:18,186
+CAMetalLayer allows you to set
+
+
+186
+00:06:18,186 --> 00:06:20,616
+up your drawable size, pixel
+
+
+187
+00:06:20,616 --> 00:06:22,176
+format, color space, and more.
+
+
+188
+00:06:23,146 --> 00:06:25,056
+Importantly, the CAMetalLayer
+
+
+189
+00:06:25,056 --> 00:06:28,016
+maintains a pool of textures and
+
+
+190
+00:06:28,016 --> 00:06:29,646
+you call next drawable to get
+
+
+191
+00:06:29,646 --> 00:06:30,796
+the drawable to render your
+
+
+192
+00:06:30,796 --> 00:06:31,206
+frame to.
+
+
+193
+00:06:31,586 --> 00:06:32,846
+It's an important concept that
+
+
+194
+00:06:32,846 --> 00:06:34,646
+we'll revisit in a short while
+
+
+195
+00:06:34,896 --> 00:06:37,876
+when it's time to present.
+
+
+196
+00:06:37,976 --> 00:06:38,986
+So now we have a window.
+
+
+197
+00:06:39,546 --> 00:06:42,066
+Next we're going to introduce
+
+
+198
+00:06:42,066 --> 00:06:43,286
+some new concepts in Metal.
+
+
+199
+00:06:43,536 --> 00:06:45,006
+So the command queues, command
+
+
+200
+00:06:45,006 --> 00:06:46,396
+buffers, command encoders.
+
+
+201
+00:06:46,976 --> 00:06:48,896
+These objects work together in
+
+
+202
+00:06:48,896 --> 00:06:50,626
+Metal to submit work to the GPU.
+
+
+203
+00:06:51,436 --> 00:06:52,616
+They're new because the
+
+
+204
+00:06:52,616 --> 00:06:55,056
+underlying glContexts managed
+
+
+205
+00:06:55,166 --> 00:06:56,366
+the submission for you.
+
+
+206
+00:06:56,366 --> 00:07:02,096
+GL is an implicit API, meaning
+
+
+207
+00:07:02,096 --> 00:07:03,596
+that there is no code that tells
+
+
+208
+00:07:03,596 --> 00:07:06,406
+GL when to schedule the work.
+
+
+209
+00:07:06,676 --> 00:07:08,126
+As a developer, you have very
+
+
+210
+00:07:08,126 --> 00:07:09,626
+little control about when
+
+
+211
+00:07:09,626 --> 00:07:11,586
+graphics work really happens,
+
+
+212
+00:07:11,746 --> 00:07:13,376
+such as when shaders are
+
+
+213
+00:07:13,376 --> 00:07:15,436
+compiled, when resource storage
+
+
+214
+00:07:15,436 --> 00:07:18,236
+is allocated, when validation
+
+
+215
+00:07:18,236 --> 00:07:20,366
+occurs, or when work is actually
+
+
+216
+00:07:20,366 --> 00:07:21,576
+submitted to the GPU.
+
+
+217
+00:07:22,106 --> 00:07:24,106
+The glContext is a big
+
+
+218
+00:07:24,106 --> 00:07:25,026
+[state] machine, and a
+
+
+219
+00:07:25,026 --> 00:07:26,346
+typical workflow would look like
+
+
+220
+00:07:26,346 --> 00:07:26,656
+this.
+
+
+221
+00:07:27,306 --> 00:07:28,886
+Your application creates a
+
+
+222
+00:07:28,886 --> 00:07:31,056
+glContext, sets it on the
+
+
+223
+00:07:31,126 --> 00:07:32,926
+thread, and then calls arbitrary
+
+
+224
+00:07:32,926 --> 00:07:33,676
+GL comments.
+
+
+225
+00:07:34,276 --> 00:07:35,556
+The comments are recorded by the
+
+
+226
+00:07:35,586 --> 00:07:37,106
+context under the hood and would
+
+
+227
+00:07:37,106 --> 00:07:38,826
+get executed at some point in
+
+
+228
+00:07:38,826 --> 00:07:39,056
+time.
+
+
+229
+00:07:39,846 --> 00:07:40,966
+Let's take a closer look to see
+
+
+230
+00:07:40,966 --> 00:07:41,866
+what actually goes on.
+
+
+231
+00:07:43,186 --> 00:07:46,056
+Say your application just send
+
+
+232
+00:07:46,056 --> 00:07:47,856
+GL these calls, a few state
+
+
+233
+00:07:47,856 --> 00:07:49,356
+changes, a few draw calls.
+
+
+234
+00:07:50,096 --> 00:07:51,236
+In a perfect scenario, the
+
+
+235
+00:07:51,236 --> 00:07:52,686
+context would translate this
+
+
+236
+00:07:52,966 --> 00:07:54,676
+into GPU comments to fill up an
+
+
+237
+00:07:54,676 --> 00:07:55,726
+internal buffer.
+
+
+238
+00:07:56,126 --> 00:07:57,436
+And then when it's full, it
+
+
+239
+00:07:57,436 --> 00:07:58,786
+would send it to the GPU.
+
+
+240
+00:07:59,566 --> 00:08:02,276
+If you insert a glFlush to
+
+
+241
+00:08:02,276 --> 00:08:03,856
+enforce execution, you know for
+
+
+242
+00:08:03,856 --> 00:08:05,426
+sure they'll be kicked off by
+
+
+243
+00:08:05,426 --> 00:08:05,876
+that point.
+
+
+244
+00:08:06,456 --> 00:08:07,606
+But actually, the GPU could
+
+
+245
+00:08:07,606 --> 00:08:09,186
+start execution at any point
+
+
+246
+00:08:09,186 --> 00:08:09,626
+beforehand.
+
+
+247
+00:08:10,706 --> 00:08:11,116
+Alright.
+
+
+248
+00:08:11,116 --> 00:08:12,766
+So, for example, if we change
+
+
+249
+00:08:12,766 --> 00:08:14,376
+one draw call introducing every
+
+
+250
+00:08:14,376 --> 00:08:16,356
+dependency, suddenly execution
+
+
+251
+00:08:16,356 --> 00:08:18,306
+is kicked off at that point and
+
+
+252
+00:08:18,306 --> 00:08:19,546
+you could experience massive
+
+
+253
+00:08:19,546 --> 00:08:20,036
+stalls.
+
+
+254
+00:08:21,476 --> 00:08:22,686
+So, again, when does work
+
+
+255
+00:08:22,686 --> 00:08:23,896
+actually get submitted?
+
+
+256
+00:08:23,896 --> 00:08:25,386
+It depends.
+
+
+257
+00:08:25,686 --> 00:08:26,666
+And that was one of the
+
+
+258
+00:08:26,666 --> 00:08:28,956
+downsides of OpenGL -- wasn't
+
+
+259
+00:08:28,956 --> 00:08:30,946
+consistent in performance.
+
+
+260
+00:08:31,456 --> 00:08:33,366
+Any one small change could force
+
+
+261
+00:08:33,366 --> 00:08:35,676
+you down a bad path.
+
+
+262
+00:08:36,265 --> 00:08:37,916
+Metal, on the other hand, is an
+
+
+263
+00:08:37,916 --> 00:08:39,785
+explicit API, meaning the
+
+
+264
+00:08:39,785 --> 00:08:41,256
+application gets to decide
+
+
+265
+00:08:41,256 --> 00:08:43,905
+exactly what work goes to the
+
+
+266
+00:08:43,986 --> 00:08:46,856
+GPU and when.
+
+
+267
+00:08:47,576 --> 00:08:49,066
+Metal splits the concept of a
+
+
+268
+00:08:49,066 --> 00:08:51,856
+glContext into a collection of
+
+
+269
+00:08:51,856 --> 00:08:53,136
+internal working objects.
+
+
+270
+00:08:54,026 --> 00:08:55,996
+The first object an app creates
+
+
+271
+00:08:56,766 --> 00:08:59,646
+is a Metal device object, which
+
+
+272
+00:08:59,646 --> 00:09:00,806
+is just an abstract
+
+
+273
+00:09:01,296 --> 00:09:02,676
+representation of the GPU.
+
+
+274
+00:09:03,276 --> 00:09:05,666
+Then it creates a key object
+
+
+275
+00:09:05,666 --> 00:09:07,006
+called a Metal command queue.
+
+
+276
+00:09:07,656 --> 00:09:08,696
+The Metal command queue
+
+
+277
+00:09:08,696 --> 00:09:11,426
+maintains the order of commands
+
+
+278
+00:09:11,546 --> 00:09:13,556
+sent to the GPU by allocating
+
+
+279
+00:09:13,906 --> 00:09:15,016
+command buffers to fill.
+
+
+280
+00:09:15,566 --> 00:09:18,596
+And a command buffer is simply a
+
+
+281
+00:09:18,596 --> 00:09:19,916
+list of GPU commands your app
+
+
+282
+00:09:19,976 --> 00:09:21,606
+will fill to send to the GPU for
+
+
+283
+00:09:21,606 --> 00:09:22,106
+execution.
+
+
+284
+00:09:22,996 --> 00:09:24,286
+So we saw this command buffer
+
+
+285
+00:09:24,286 --> 00:09:26,086
+concept in GL -- in the GL
+
+
+286
+00:09:26,086 --> 00:09:27,126
+example we just studied.
+
+
+287
+00:09:28,156 --> 00:09:29,536
+Let's work with that command
+
+
+288
+00:09:29,536 --> 00:09:32,746
+buffer from this point on.
+
+
+289
+00:09:33,066 --> 00:09:34,406
+But an app doesn't write the
+
+
+290
+00:09:34,406 --> 00:09:35,976
+commands directly to the command
+
+
+291
+00:09:35,976 --> 00:09:38,856
+buffer; instead, it creates a
+
+
+292
+00:09:38,856 --> 00:09:40,016
+Metal command encoder.
+
+
+293
+00:09:40,886 --> 00:09:42,096
+Let's look at the main three
+
+
+294
+00:09:42,096 --> 00:09:43,356
+types of encoders.
+
+
+295
+00:09:44,406 --> 00:09:46,236
+First one we'll use will be
+
+
+296
+00:09:46,236 --> 00:09:48,206
+filled with blit commands that
+
+
+297
+00:09:48,206 --> 00:09:49,906
+are used to copy resources
+
+
+298
+00:09:49,906 --> 00:09:50,216
+around.
+
+
+299
+00:09:50,816 --> 00:09:53,816
+The command encoder translates
+
+
+300
+00:09:53,866 --> 00:09:56,236
+API codes into GPU instructions
+
+
+301
+00:09:56,666 --> 00:09:57,876
+and then writes them to the
+
+
+302
+00:09:57,876 --> 00:09:58,476
+command buffer.
+
+
+303
+00:09:59,286 --> 00:10:00,596
+After a series of commands have
+
+
+304
+00:10:00,596 --> 00:10:01,946
+been encoded, for example,
+
+
+305
+00:10:01,946 --> 00:10:03,216
+series of blits to copy
+
+
+306
+00:10:03,216 --> 00:10:05,136
+resources, then your app will
+
+
+307
+00:10:05,136 --> 00:10:07,406
+end encoding, which releases the
+
+
+308
+00:10:07,406 --> 00:10:08,676
+encoder object.
+
+
+309
+00:10:10,676 --> 00:10:13,136
+Additionally, Metal supports a
+
+
+310
+00:10:13,136 --> 00:10:14,786
+compute encoder for parallel
+
+
+311
+00:10:14,786 --> 00:10:16,056
+work that you would normally
+
+
+312
+00:10:16,056 --> 00:10:17,876
+have done in OpenCL before.
+
+
+313
+00:10:19,056 --> 00:10:21,196
+You enqueue a number of kernels
+
+
+314
+00:10:22,096 --> 00:10:23,496
+that get written to the command
+
+
+315
+00:10:23,496 --> 00:10:25,046
+buffer and you run the
+
+
+316
+00:10:25,046 --> 00:10:26,746
+encoder to release it.
+
+
+317
+00:10:28,196 --> 00:10:30,336
+Lastly, let's use a render
+
+
+318
+00:10:30,336 --> 00:10:31,996
+encoder for your familiar
+
+
+319
+00:10:31,996 --> 00:10:32,936
+rendering commands.
+
+
+320
+00:10:34,336 --> 00:10:35,776
+You enqueue your state changes
+
+
+321
+00:10:35,776 --> 00:10:38,036
+and your draw calls and end the
+
+
+322
+00:10:38,036 --> 00:10:38,536
+encoder.
+
+
+323
+00:10:41,356 --> 00:10:43,816
+So here we have a command buffer
+
+
+324
+00:10:44,116 --> 00:10:45,696
+full of different workloads, but
+
+
+325
+00:10:45,696 --> 00:10:47,396
+the GPU hasn't done any work
+
+
+326
+00:10:47,396 --> 00:10:47,556
+yet.
+
+
+327
+00:10:48,346 --> 00:10:50,246
+Metal has created the objects
+
+
+328
+00:10:50,586 --> 00:10:52,516
+and encoded commands all within
+
+
+329
+00:10:52,516 --> 00:10:53,036
+the CPU.
+
+
+330
+00:10:53,956 --> 00:10:55,516
+It's only after your application
+
+
+331
+00:10:55,566 --> 00:10:56,946
+has finished encoding comments
+
+
+332
+00:10:57,136 --> 00:10:58,556
+and explicitly committed the
+
+
+333
+00:10:58,556 --> 00:11:00,456
+command buffer that the GPU
+
+
+334
+00:11:00,456 --> 00:11:02,146
+begins to work and executes
+
+
+335
+00:11:02,556 --> 00:11:03,186
+those commands.
+
+
+336
+00:11:04,376 --> 00:11:05,516
+So now that we have encoded
+
+
+337
+00:11:05,516 --> 00:11:08,366
+commands, let's now compare and
+
+
+338
+00:11:08,366 --> 00:11:10,396
+contrast GL and Metal's command
+
+
+339
+00:11:10,396 --> 00:11:10,966
+submissions.
+
+
+340
+00:11:12,176 --> 00:11:14,006
+In GL there's no direct control
+
+
+341
+00:11:14,006 --> 00:11:16,006
+of when work gets submitted to
+
+
+342
+00:11:16,006 --> 00:11:17,586
+the GPU -- you rely on big
+
+
+343
+00:11:17,586 --> 00:11:19,456
+hammers like glFlush and
+
+
+344
+00:11:19,456 --> 00:11:20,706
+glFinish to ensure code
+
+
+345
+00:11:20,706 --> 00:11:23,196
+execution; glFlush submits the
+
+
+346
+00:11:23,196 --> 00:11:25,306
+commands and poses the CPU
+
+
+347
+00:11:25,306 --> 00:11:26,836
+threads until they're scheduled,
+
+
+348
+00:11:27,226 --> 00:11:28,806
+and glFinish poses the CPU
+
+
+349
+00:11:28,806 --> 00:11:30,756
+thread until the GPU is
+
+
+350
+00:11:30,756 --> 00:11:31,586
+completely finished.
+
+
+351
+00:11:32,716 --> 00:11:34,466
+Work can still get submitted at
+
+
+352
+00:11:34,466 --> 00:11:35,936
+any time before these commands
+
+
+353
+00:11:35,936 --> 00:11:38,096
+happen, introducing potential
+
+
+354
+00:11:38,096 --> 00:11:39,626
+stalls and slowdowns.
+
+
+355
+00:11:40,416 --> 00:11:42,536
+And Metal has equivalent
+
+
+356
+00:11:42,536 --> 00:11:43,786
+versions of these functions; you
+
+
+357
+00:11:43,786 --> 00:11:45,386
+can still explicitly commit and
+
+
+358
+00:11:45,386 --> 00:11:46,896
+wait for a command buffer to be
+
+
+359
+00:11:46,896 --> 00:11:48,126
+scheduled or completed.
+
+
+360
+00:11:48,636 --> 00:11:51,156
+But these wait commands are not
+
+
+361
+00:11:51,156 --> 00:11:52,976
+recommended unless you
+
+
+362
+00:11:52,976 --> 00:11:55,396
+absolutely need them.
+
+
+363
+00:11:55,576 --> 00:11:56,956
+Instead, we suggest that you
+
+
+364
+00:11:56,956 --> 00:11:58,526
+simply commit your command
+
+
+365
+00:11:58,526 --> 00:12:01,356
+buffer and then add a callback
+
+
+366
+00:12:01,356 --> 00:12:02,786
+so that your application can be
+
+
+367
+00:12:02,786 --> 00:12:04,466
+notified later when the command
+
+
+368
+00:12:04,466 --> 00:12:05,976
+buffer has been completed on the
+
+
+369
+00:12:05,976 --> 00:12:06,376
+GPU.
+
+
+370
+00:12:07,106 --> 00:12:08,976
+This frees your CPU to continue
+
+
+371
+00:12:08,976 --> 00:12:09,886
+doing other work.
+
+
+372
+00:12:10,486 --> 00:12:14,606
+So now that we have reviewed
+
+
+373
+00:12:15,006 --> 00:12:16,686
+command queue, command buffer,
+
+
+374
+00:12:16,936 --> 00:12:19,036
+command encoder, let's move on
+
+
+375
+00:12:19,336 --> 00:12:20,446
+and talk about resource
+
+
+376
+00:12:20,446 --> 00:12:20,836
+creation.
+
+
+377
+00:12:23,196 --> 00:12:25,206
+There are three main types of
+
+
+378
+00:12:25,206 --> 00:12:28,206
+resources that any graphic app
+
+
+379
+00:12:28,206 --> 00:12:30,166
+is likely to use: Buffers,
+
+
+380
+00:12:30,476 --> 00:12:31,906
+textures, and samplers.
+
+
+381
+00:12:32,666 --> 00:12:34,106
+Let's take a look at buffers
+
+
+382
+00:12:34,106 --> 00:12:34,426
+first.
+
+
+383
+00:12:35,476 --> 00:12:37,426
+In GL, you have a buffer object
+
+
+384
+00:12:37,576 --> 00:12:38,986
+and the memory associated with
+
+
+385
+00:12:38,986 --> 00:12:39,146
+it.
+
+
+386
+00:12:39,716 --> 00:12:42,536
+The API codes you use can modify
+
+
+387
+00:12:42,536 --> 00:12:45,036
+the object state, the memory, or
+
+
+388
+00:12:45,036 --> 00:12:45,756
+both together.
+
+
+389
+00:12:46,366 --> 00:12:50,186
+So here, for example,
+
+
+390
+00:12:50,186 --> 00:12:51,826
+glBufferData can be used to
+
+
+391
+00:12:51,826 --> 00:12:53,916
+modify both the memory and the
+
+
+392
+00:12:53,916 --> 00:12:54,886
+state of the object.
+
+
+393
+00:12:55,666 --> 00:12:56,986
+The buffer dimensions can be
+
+
+394
+00:12:56,986 --> 00:12:58,936
+modified again later by calling
+
+
+395
+00:12:58,936 --> 00:13:01,696
+glBufferData, in which case the
+
+
+396
+00:13:01,696 --> 00:13:03,726
+old object and its contents will
+
+
+397
+00:13:03,726 --> 00:13:05,726
+be discarded internally by
+
+
+398
+00:13:05,726 --> 00:13:06,216
+OpenGL.
+
+
+399
+00:13:06,816 --> 00:13:11,036
+In Metal, the API to create and
+
+
+400
+00:13:11,036 --> 00:13:12,416
+fill a buffer looks very
+
+
+401
+00:13:12,416 --> 00:13:14,406
+similar, but the main difference
+
+
+402
+00:13:14,406 --> 00:13:16,336
+lies in the fact that the
+
+
+403
+00:13:16,336 --> 00:13:18,186
+produced subject is immutable.
+
+
+404
+00:13:18,556 --> 00:13:20,456
+If at any point you need to
+
+
+405
+00:13:20,456 --> 00:13:22,156
+resize the buffer, you simply
+
+
+406
+00:13:22,156 --> 00:13:23,756
+need to create a new one and
+
+
+407
+00:13:23,756 --> 00:13:25,186
+discard the old one.
+
+
+408
+00:13:26,896 --> 00:13:29,946
+Both OpenGL and Metal have ways
+
+
+409
+00:13:29,946 --> 00:13:31,526
+to indicate how you intend to
+
+
+410
+00:13:31,526 --> 00:13:35,096
+use an object; however, in GL
+
+
+411
+00:13:35,096 --> 00:13:36,966
+the enum is simply a usage hint
+
+
+412
+00:13:37,346 --> 00:13:40,626
+about how the data in a buffer
+
+
+413
+00:13:40,626 --> 00:13:42,166
+object would be accessed.
+
+
+414
+00:13:42,926 --> 00:13:44,896
+The driver uses that hint to
+
+
+415
+00:13:44,896 --> 00:13:46,416
+decide where to base the locate
+
+
+416
+00:13:46,646 --> 00:13:48,106
+memory for the buffer, but
+
+
+417
+00:13:48,106 --> 00:13:49,856
+there's no direct control over
+
+
+418
+00:13:49,956 --> 00:13:50,356
+storage.
+
+
+419
+00:13:51,156 --> 00:13:53,776
+OpenGL ultimately decides where
+
+
+420
+00:13:53,776 --> 00:13:56,000
+to store the objects.
+
+
+421
+00:13:57,386 --> 00:13:59,356
+In Metal, the API allows you to
+
+
+422
+00:13:59,356 --> 00:14:01,716
+specify a storage mode which
+
+
+423
+00:14:01,716 --> 00:14:03,296
+maps to a specific memory
+
+
+424
+00:14:03,296 --> 00:14:04,336
+allocation behavior.
+
+
+425
+00:14:05,436 --> 00:14:06,936
+Metal gives you control, since
+
+
+426
+00:14:06,936 --> 00:14:08,746
+you know best how your objects
+
+
+427
+00:14:08,776 --> 00:14:09,696
+are going to be used.
+
+
+428
+00:14:10,036 --> 00:14:13,026
+It's an important concept in an
+
+
+429
+00:14:13,026 --> 00:14:14,756
+object creation, so we'll come
+
+
+430
+00:14:14,756 --> 00:14:16,816
+back to it in a short moment
+
+
+431
+00:14:16,816 --> 00:14:18,976
+right after we look at texture
+
+
+432
+00:14:19,836 --> 00:14:20,000
+API's.
+
+
+433
+00:14:22,246 --> 00:14:23,916
+In GL, each texture has an
+
+
+434
+00:14:23,916 --> 00:14:26,196
+internal sampler object, an
+
+
+435
+00:14:26,196 --> 00:14:28,716
+app's commonly set up sampling
+
+
+436
+00:14:28,716 --> 00:14:29,926
+mode through that sampler.
+
+
+437
+00:14:30,516 --> 00:14:31,816
+But you also have the option to
+
+
+438
+00:14:31,816 --> 00:14:33,416
+create a separate sampler object
+
+
+439
+00:14:33,646 --> 00:14:34,656
+outside of your texture.
+
+
+440
+00:14:35,916 --> 00:14:38,086
+Here's an example for creating
+
+
+441
+00:14:38,086 --> 00:14:39,236
+and binding your texture,
+
+
+442
+00:14:39,836 --> 00:14:41,906
+setting up your sampler, and
+
+
+443
+00:14:41,906 --> 00:14:43,836
+then finally filling in the
+
+
+444
+00:14:43,836 --> 00:14:44,156
+data.
+
+
+445
+00:14:44,786 --> 00:14:47,826
+One thing worth mentioning is
+
+
+446
+00:14:47,826 --> 00:14:50,016
+that GL has a lot of API calls
+
+
+447
+00:14:50,066 --> 00:14:52,496
+to create initialized textures
+
+
+448
+00:14:52,536 --> 00:14:53,006
+with data.
+
+
+449
+00:14:54,166 --> 00:14:55,756
+It also has what are called
+
+
+450
+00:14:55,866 --> 00:14:57,616
+named resource versions of the
+
+
+451
+00:14:57,616 --> 00:14:58,196
+same API.
+
+
+452
+00:14:59,716 --> 00:15:01,366
+There's even more API's when it
+
+
+453
+00:15:01,366 --> 00:15:02,636
+comes to managing samplers.
+
+
+454
+00:15:02,636 --> 00:15:07,046
+The list just goes on and on.
+
+
+455
+00:15:07,316 --> 00:15:09,116
+One of the design goals with
+
+
+456
+00:15:09,116 --> 00:15:11,606
+Metal was to give a simpler API
+
+
+457
+00:15:11,606 --> 00:15:13,646
+that would maintain all of the
+
+
+458
+00:15:13,646 --> 00:15:14,326
+flexibility.
+
+
+459
+00:15:14,976 --> 00:15:17,176
+So in Metal, texture and sampler
+
+
+460
+00:15:17,176 --> 00:15:19,386
+objects are always separate and
+
+
+461
+00:15:19,386 --> 00:15:20,916
+immutable after creation.
+
+
+462
+00:15:21,546 --> 00:15:25,756
+To create a texture, we create a
+
+
+463
+00:15:25,756 --> 00:15:27,916
+descriptor, set various
+
+
+464
+00:15:27,916 --> 00:15:29,646
+properties to define texture
+
+
+465
+00:15:29,646 --> 00:15:31,476
+dimensions like pixelFormat and
+
+
+466
+00:15:31,476 --> 00:15:33,606
+sizes, amongst others.
+
+
+467
+00:15:35,096 --> 00:15:37,026
+Again, an important property we
+
+
+468
+00:15:37,026 --> 00:15:39,016
+said is the storage mode to
+
+
+469
+00:15:39,016 --> 00:15:40,806
+specify where in memory to store
+
+
+470
+00:15:40,806 --> 00:15:41,406
+the texture.
+
+
+471
+00:15:42,466 --> 00:15:43,736
+And finally, we use that
+
+
+472
+00:15:43,866 --> 00:15:45,706
+descriptor to create an
+
+
+473
+00:15:45,706 --> 00:15:46,526
+immutable object.
+
+
+474
+00:15:47,056 --> 00:15:50,686
+In a similar fashion, you start
+
+
+475
+00:15:51,016 --> 00:15:52,816
+with a sampler descriptor, set
+
+
+476
+00:15:52,816 --> 00:15:55,206
+its properties, and create the
+
+
+477
+00:15:55,726 --> 00:15:57,056
+immutable sampler object.
+
+
+478
+00:15:58,086 --> 00:15:59,296
+It's pretty easy.
+
+
+479
+00:16:00,556 --> 00:16:02,826
+To fill a texture's image data,
+
+
+480
+00:16:02,946 --> 00:16:05,186
+we calculate the bytes per row.
+
+
+481
+00:16:05,326 --> 00:16:06,896
+And just like we did in OpenGL,
+
+
+482
+00:16:06,956 --> 00:16:08,626
+we specify the region to load.
+
+
+483
+00:16:09,486 --> 00:16:10,986
+Then we call the textures
+
+
+484
+00:16:11,086 --> 00:16:13,626
+replaceRegion method, which
+
+
+485
+00:16:13,626 --> 00:16:15,676
+copies the data into the texture
+
+
+486
+00:16:15,806 --> 00:16:18,066
+from a pointer we specify.
+
+
+487
+00:16:21,116 --> 00:16:22,776
+Once you load your first
+
+
+488
+00:16:22,776 --> 00:16:24,046
+texture, you're likely to
+
+
+489
+00:16:24,046 --> 00:16:25,896
+observe that it's upside down.
+
+
+490
+00:16:27,286 --> 00:16:28,656
+That's because in Metal the
+
+
+491
+00:16:28,656 --> 00:16:30,366
+texture coordinates are flipped on the
+
+
+492
+00:16:30,366 --> 00:16:31,896
+y-axis compared to GL.
+
+
+493
+00:16:33,056 --> 00:16:34,726
+And it's also worth mentioning
+
+
+494
+00:16:34,946 --> 00:16:38,066
+that Metal API's don't perform
+
+
+495
+00:16:38,066 --> 00:16:40,526
+any pixelFormat transformation
+
+
+496
+00:16:40,526 --> 00:16:41,056
+under the hood.
+
+
+497
+00:16:41,286 --> 00:16:42,336
+So you need to upload your
+
+
+498
+00:16:42,336 --> 00:16:43,896
+textures in the exact format
+
+
+499
+00:16:44,016 --> 00:16:44,976
+that you intend to use.
+
+
+500
+00:16:49,466 --> 00:16:51,916
+Now let's get back to storage
+
+
+501
+00:16:51,916 --> 00:16:52,266
+modes.
+
+
+502
+00:16:52,726 --> 00:16:55,626
+As mentioned, in GL the driver
+
+
+503
+00:16:55,626 --> 00:16:57,396
+has to make a best guess on how
+
+
+504
+00:16:57,396 --> 00:16:58,886
+you wanted to use your
+
+
+505
+00:16:58,886 --> 00:16:59,456
+resources.
+
+
+506
+00:16:59,986 --> 00:17:01,396
+As a developer, you can provide
+
+
+507
+00:17:01,396 --> 00:17:03,096
+hints in some cases, like when
+
+
+508
+00:17:03,096 --> 00:17:04,496
+you created a buffer or by
+
+
+509
+00:17:04,496 --> 00:17:07,906
+creating render buffer objects
+
+
+510
+00:17:07,906 --> 00:17:09,276
+for frame buffer attachments.
+
+
+511
+00:17:09,836 --> 00:17:11,856
+But in all cases, these were
+
+
+512
+00:17:11,856 --> 00:17:13,556
+still hints and the
+
+
+513
+00:17:13,556 --> 00:17:15,546
+implementation details are
+
+
+514
+00:17:15,546 --> 00:17:16,195
+hidden from you.
+
+
+515
+00:17:16,806 --> 00:17:18,925
+A few minutes ago, we briefly
+
+
+516
+00:17:18,925 --> 00:17:20,665
+saw the additional storage mode
+
+
+517
+00:17:20,695 --> 00:17:22,246
+property Metal that you can set
+
+
+518
+00:17:22,246 --> 00:17:25,626
+on a texture descriptor and also
+
+
+519
+00:17:25,626 --> 00:17:27,435
+when creating a buffer.
+
+
+520
+00:17:28,376 --> 00:17:29,796
+Let's look at the main use cases
+
+
+521
+00:17:29,796 --> 00:17:30,236
+for those.
+
+
+522
+00:17:31,596 --> 00:17:34,536
+Simplest option is to use shared
+
+
+523
+00:17:34,536 --> 00:17:36,716
+storage mode, which gives both
+
+
+524
+00:17:36,716 --> 00:17:38,576
+the CPU and GPU access to the
+
+
+525
+00:17:38,576 --> 00:17:39,146
+resource.
+
+
+526
+00:17:39,806 --> 00:17:41,396
+For buffers, this means you get
+
+
+527
+00:17:41,396 --> 00:17:43,196
+to point here to the memory
+
+
+528
+00:17:43,196 --> 00:17:44,256
+backing of the object.
+
+
+529
+00:17:45,146 --> 00:17:48,136
+For textures on iOS, this means
+
+
+530
+00:17:48,636 --> 00:17:49,956
+you can call some easy-to-use
+
+
+531
+00:17:49,956 --> 00:17:51,916
+functions to set and retrieve
+
+
+532
+00:17:52,126 --> 00:17:52,706
+image data.
+
+
+533
+00:17:53,356 --> 00:17:57,466
+You can also use a private
+
+
+534
+00:17:57,466 --> 00:17:59,736
+storage mode, which gives the
+
+
+535
+00:17:59,736 --> 00:18:02,316
+GPU exclusive access to the
+
+
+536
+00:18:02,316 --> 00:18:02,606
+data.
+
+
+537
+00:18:03,156 --> 00:18:05,696
+It allows Metal to apply some
+
+
+538
+00:18:05,696 --> 00:18:07,236
+optimizations that it wouldn't
+
+
+539
+00:18:07,236 --> 00:18:09,256
+normally have been able to use
+
+
+540
+00:18:09,746 --> 00:18:11,766
+if the CPU had access to it.
+
+
+541
+00:18:12,676 --> 00:18:14,896
+But only the GPU can directly
+
+
+542
+00:18:14,896 --> 00:18:16,736
+fill the contents of the data.
+
+
+543
+00:18:17,716 --> 00:18:19,046
+So you can indirectly fill the
+
+
+544
+00:18:19,046 --> 00:18:21,056
+data from the CPU by using a
+
+
+545
+00:18:21,056 --> 00:18:22,836
+blitEncoder from a second
+
+
+546
+00:18:22,836 --> 00:18:25,006
+intermediate resource that uses
+
+
+547
+00:18:25,216 --> 00:18:26,016
+shared storage.
+
+
+548
+00:18:26,556 --> 00:18:30,256
+On the voices with dedicated
+
+
+549
+00:18:30,256 --> 00:18:31,676
+video memory, setting the
+
+
+550
+00:18:31,676 --> 00:18:33,616
+resource to use private storage
+
+
+551
+00:18:34,256 --> 00:18:36,316
+allocates it in video memory
+
+
+552
+00:18:36,316 --> 00:18:37,656
+only, single copy.
+
+
+553
+00:18:38,236 --> 00:18:42,386
+On macOS there's a managed
+
+
+554
+00:18:42,386 --> 00:18:44,176
+storage mode which allows both
+
+
+555
+00:18:44,176 --> 00:18:46,476
+the CPU and GPU to access an
+
+
+556
+00:18:46,476 --> 00:18:47,146
+object's data.
+
+
+557
+00:18:48,436 --> 00:18:50,326
+And on systems with dedicated
+
+
+558
+00:18:50,326 --> 00:18:52,526
+video memory, Metal may have to
+
+
+559
+00:18:52,526 --> 00:18:55,206
+create a second mirrored memory
+
+
+560
+00:18:55,206 --> 00:18:57,576
+backing for efficient access by
+
+
+561
+00:18:57,576 --> 00:18:58,516
+both processes.
+
+
+562
+00:18:59,276 --> 00:19:01,046
+So because of this, explicit
+
+
+563
+00:19:01,046 --> 00:19:02,406
+codes are necessary to ensure
+
+
+564
+00:19:02,406 --> 00:19:03,666
+that your data is synchronized
+
+
+565
+00:19:03,946 --> 00:19:06,426
+for CPU and GPU access, for
+
+
+566
+00:19:06,426 --> 00:19:07,976
+example, using didModifyRange.
+
+
+567
+00:19:11,156 --> 00:19:14,046
+So to recap, we reviewed some of
+
+
+568
+00:19:14,046 --> 00:19:16,216
+the typical uses for each mode.
+
+
+569
+00:19:17,306 --> 00:19:20,146
+On macOS you would use the
+
+
+570
+00:19:20,146 --> 00:19:22,176
+private storage mode for static
+
+
+571
+00:19:22,176 --> 00:19:24,606
+assets and your render targets.
+
+
+572
+00:19:25,826 --> 00:19:28,316
+Your small dynamic buffers could
+
+
+573
+00:19:28,316 --> 00:19:30,366
+use the shared storage mode.
+
+
+574
+00:19:31,216 --> 00:19:32,896
+And your larger buffers with
+
+
+575
+00:19:32,896 --> 00:19:34,906
+small updates would use the
+
+
+576
+00:19:34,906 --> 00:19:35,886
+managed storage mode.
+
+
+577
+00:19:36,396 --> 00:19:40,086
+On iOS, your static data and
+
+
+578
+00:19:40,086 --> 00:19:42,416
+rendering targets can use the
+
+
+579
+00:19:42,416 --> 00:19:43,326
+private storage mode.
+
+
+580
+00:19:43,816 --> 00:19:47,026
+And since our devices use
+
+
+581
+00:19:47,456 --> 00:19:50,596
+unified memory, dynamic data of
+
+
+582
+00:19:50,596 --> 00:19:52,566
+any size can use the shared
+
+
+583
+00:19:52,566 --> 00:19:54,716
+storage mode and still get great
+
+
+584
+00:19:54,776 --> 00:19:55,456
+performance.
+
+
+585
+00:19:59,716 --> 00:20:02,136
+Next, let's talk about
+
+
+586
+00:20:02,136 --> 00:20:03,896
+developing shaders for your
+
+
+587
+00:20:03,896 --> 00:20:05,086
+graphics application and what
+
+
+588
+00:20:05,086 --> 00:20:07,796
+API's you use to work with
+
+
+589
+00:20:07,796 --> 00:20:08,336
+shaders.
+
+
+590
+00:20:08,866 --> 00:20:12,326
+When it comes to shader
+
+
+591
+00:20:12,326 --> 00:20:13,996
+compilation in GL, you have to
+
+
+592
+00:20:13,996 --> 00:20:17,696
+create a shader object, replace
+
+
+593
+00:20:17,996 --> 00:20:20,206
+the ShaderSource in the object,
+
+
+594
+00:20:20,586 --> 00:20:22,756
+make just in time compilation,
+
+
+595
+00:20:23,156 --> 00:20:25,276
+and verify that the compilation
+
+
+596
+00:20:25,276 --> 00:20:25,806
+succeeded.
+
+
+597
+00:20:25,866 --> 00:20:28,726
+And while this workflow has its
+
+
+598
+00:20:28,726 --> 00:20:30,586
+benefits, your application had
+
+
+599
+00:20:30,586 --> 00:20:32,176
+to pay the performance costs of
+
+
+600
+00:20:32,176 --> 00:20:34,266
+compiling all your shaders every
+
+
+601
+00:20:36,736 --> 00:20:36,936
+time.
+
+
+602
+00:20:37,056 --> 00:20:39,206
+One of the key ways in which
+
+
+603
+00:20:39,206 --> 00:20:42,036
+Metal achieves its efficiency is
+
+
+604
+00:20:42,036 --> 00:20:44,076
+by doing work earlier and less
+
+
+605
+00:20:44,076 --> 00:20:44,596
+frequently.
+
+
+606
+00:20:45,296 --> 00:20:46,816
+At build time, Xcode will
+
+
+607
+00:20:46,816 --> 00:20:48,346
+compile all the Metal
+
+
+608
+00:20:48,636 --> 00:20:50,096
+ShaderSource files into a
+
+
+609
+00:20:50,096 --> 00:20:52,196
+default Metal library file and
+
+
+610
+00:20:52,196 --> 00:20:53,946
+place it in your app bundle for
+
+
+611
+00:20:53,946 --> 00:20:54,966
+retrieval at runtime.
+
+
+612
+00:20:55,836 --> 00:20:57,216
+So this removes the need to
+
+
+613
+00:20:57,216 --> 00:20:59,946
+compile a lot of it at runtime
+
+
+614
+00:21:00,026 --> 00:21:01,556
+and cuts the compilation time
+
+
+615
+00:21:02,086 --> 00:21:03,736
+when your application runs in
+
+
+616
+00:21:04,726 --> 00:21:04,936
+half.
+
+
+617
+00:21:05,206 --> 00:21:07,436
+All you need to do is create a
+
+
+618
+00:21:07,436 --> 00:21:09,276
+Metal library from a file
+
+
+619
+00:21:09,276 --> 00:21:10,986
+bundled with your application
+
+
+620
+00:21:11,486 --> 00:21:13,666
+and fetch the shader function
+
+
+621
+00:21:13,876 --> 00:21:14,826
+from it.
+
+
+622
+00:21:17,656 --> 00:21:19,976
+In GL you use GLSL, which is
+
+
+623
+00:21:19,976 --> 00:21:21,756
+based on the C programming
+
+
+624
+00:21:21,756 --> 00:21:22,236
+language.
+
+
+625
+00:21:23,696 --> 00:21:25,326
+The Metal shading language or
+
+
+626
+00:21:25,326 --> 00:21:27,536
+MSL is based on C++.
+
+
+627
+00:21:27,776 --> 00:21:29,466
+So it should look reasonably
+
+
+628
+00:21:29,466 --> 00:21:31,176
+familiar to most GL developers.
+
+
+629
+00:21:32,206 --> 00:21:34,216
+Its foundation in C++ means that
+
+
+630
+00:21:34,216 --> 00:21:35,446
+you can create classes,
+
+
+631
+00:21:35,636 --> 00:21:36,726
+templates, and stretches.
+
+
+632
+00:21:36,726 --> 00:21:38,886
+You can define enums and
+
+
+633
+00:21:38,886 --> 00:21:40,000
+namespaces.
+
+
+634
+00:21:41,216 --> 00:21:43,546
+And like GLSL, there are
+
+
+635
+00:21:43,546 --> 00:21:45,466
+built-in vector and matrix
+
+
+636
+00:21:45,516 --> 00:21:47,136
+types, numerous built-in
+
+
+637
+00:21:47,186 --> 00:21:48,726
+functions and operations come in
+
+
+638
+00:21:48,726 --> 00:21:49,826
+and use for graphics.
+
+
+639
+00:21:50,396 --> 00:21:52,596
+And there are classes to operate
+
+
+640
+00:21:52,836 --> 00:21:54,786
+on textures that specify sampler
+
+
+641
+00:21:54,786 --> 00:21:54,976
+state.
+
+
+642
+00:22:01,146 --> 00:22:03,796
+Like Metal, MSL is also unified
+
+
+643
+00:22:03,936 --> 00:22:05,936
+for graphics and compute.
+
+
+644
+00:22:07,276 --> 00:22:09,156
+And finally, since shaders are
+
+
+645
+00:22:09,156 --> 00:22:11,776
+pre-compiled, Xcode is able to
+
+
+646
+00:22:11,776 --> 00:22:13,586
+give you errors, warning, and
+
+
+647
+00:22:13,586 --> 00:22:15,206
+guidance to help you debug at
+
+
+648
+00:22:15,306 --> 00:22:16,456
+build time.
+
+
+649
+00:22:17,576 --> 00:22:19,596
+So let's take a look at actual
+
+
+650
+00:22:19,596 --> 00:22:22,306
+code for MSL and compare it with
+
+
+651
+00:22:22,306 --> 00:22:22,986
+GLSL.
+
+
+652
+00:22:24,176 --> 00:22:25,886
+We're going to walk through a
+
+
+653
+00:22:25,886 --> 00:22:28,436
+simple vertex shader, GLSL on
+
+
+654
+00:22:28,436 --> 00:22:29,746
+top, MSL on the bottom.
+
+
+655
+00:22:30,266 --> 00:22:33,936
+Let's start defining our
+
+
+656
+00:22:33,936 --> 00:22:34,526
+shaders.
+
+
+657
+00:22:34,566 --> 00:22:35,736
+These are the prototypes.
+
+
+658
+00:22:36,006 --> 00:22:37,586
+In GLSL, void main.
+
+
+659
+00:22:38,266 --> 00:22:39,656
+There's nothing in the shader
+
+
+660
+00:22:39,656 --> 00:22:41,556
+that specifies the shader stage.
+
+
+661
+00:22:42,146 --> 00:22:43,656
+It's purely determined by the
+
+
+662
+00:22:43,656 --> 00:22:46,136
+shader type passed into the
+
+
+663
+00:22:46,136 --> 00:22:47,416
+glCreateShader call.
+
+
+664
+00:22:48,776 --> 00:22:50,836
+In MSL the shader stage is
+
+
+665
+00:22:50,836 --> 00:22:52,486
+explicitly specified in the
+
+
+666
+00:22:52,486 --> 00:22:53,036
+shader code.
+
+
+667
+00:22:53,426 --> 00:22:54,916
+Here the vertex qualifier
+
+
+668
+00:22:54,916 --> 00:22:56,006
+indicates that it will be
+
+
+669
+00:22:56,006 --> 00:22:57,336
+executed for each vertex
+
+
+670
+00:22:57,476 --> 00:22:59,116
+generating perfect examples.
+
+
+671
+00:23:00,916 --> 00:23:03,726
+In GLSL, every shader entry
+
+
+672
+00:23:03,726 --> 00:23:05,486
+point has to be called main and
+
+
+673
+00:23:05,616 --> 00:23:06,806
+accept and return void.
+
+
+674
+00:23:07,526 --> 00:23:09,866
+In MSL each entry point has a
+
+
+675
+00:23:09,866 --> 00:23:10,796
+distinct name.
+
+
+676
+00:23:11,176 --> 00:23:13,256
+And when you're building shaders
+
+
+677
+00:23:13,256 --> 00:23:15,076
+with Xcode, the compiler can
+
+
+678
+00:23:15,076 --> 00:23:16,876
+resolve include statement in the
+
+
+679
+00:23:16,876 --> 00:23:18,926
+preprocessing stage the same it
+
+
+680
+00:23:18,926 --> 00:23:20,546
+would do for regular C++ code.
+
+
+681
+00:23:21,266 --> 00:23:22,926
+At runtime you can query
+
+
+682
+00:23:23,296 --> 00:23:24,916
+functions by their distinct name
+
+
+683
+00:23:25,586 --> 00:23:27,216
+from the precompiled Metal
+
+
+684
+00:23:27,216 --> 00:23:27,596
+library.
+
+
+685
+00:23:27,656 --> 00:23:31,376
+Then let's talk about inputs.
+
+
+686
+00:23:32,416 --> 00:23:34,216
+Because each entry point in GLSL
+
+
+687
+00:23:34,216 --> 00:23:35,716
+is a main function with no
+
+
+688
+00:23:35,716 --> 00:23:38,016
+argument, all of the inputs are
+
+
+689
+00:23:38,016 --> 00:23:39,476
+passed as global arguments.
+
+
+690
+00:23:40,226 --> 00:23:41,876
+This applies to both vertex
+
+
+691
+00:23:41,876 --> 00:23:43,246
+attributes and uniform
+
+
+692
+00:23:43,246 --> 00:23:43,836
+variables.
+
+
+693
+00:23:45,056 --> 00:23:48,186
+In Metal all the inputs to the
+
+
+694
+00:23:48,186 --> 00:23:50,266
+shaded stage are arguments to
+
+
+695
+00:23:50,266 --> 00:23:51,126
+the entry function.
+
+
+696
+00:23:51,546 --> 00:23:54,276
+The double brackets declare C++
+
+
+697
+00:23:54,276 --> 00:23:54,816
+attributes.
+
+
+698
+00:23:54,916 --> 00:23:56,000
+We'll look at them in a second.
+
+
+699
+00:23:57,676 --> 00:23:59,366
+One of the inputs here that we
+
+
+700
+00:23:59,366 --> 00:24:00,956
+have is a model view projection
+
+
+701
+00:24:00,956 --> 00:24:01,496
+matrix.
+
+
+702
+00:24:02,006 --> 00:24:05,966
+In OpenGL, your application had
+
+
+703
+00:24:05,966 --> 00:24:07,986
+to be aware of the GLSL names
+
+
+704
+00:24:08,816 --> 00:24:11,546
+within the C++ code in order to
+
+
+705
+00:24:11,546 --> 00:24:13,306
+bind data to these variables.
+
+
+706
+00:24:14,146 --> 00:24:15,826
+And that made shader development
+
+
+707
+00:24:16,276 --> 00:24:16,796
+error-prone.
+
+
+708
+00:24:17,376 --> 00:24:21,076
+In MSL the uniform binding
+
+
+709
+00:24:21,076 --> 00:24:22,446
+indices are explicitly
+
+
+710
+00:24:22,446 --> 00:24:24,096
+controlled by the developer
+
+
+711
+00:24:24,096 --> 00:24:25,906
+within the shader, so an
+
+
+712
+00:24:25,906 --> 00:24:28,006
+application can bind directly to
+
+
+713
+00:24:28,076 --> 00:24:29,156
+a specific slot.
+
+
+714
+00:24:29,646 --> 00:24:31,166
+In the example here, slot number
+
+
+715
+00:24:31,166 --> 00:24:31,376
+one.
+
+
+716
+00:24:32,816 --> 00:24:34,106
+The keyword constant here
+
+
+717
+00:24:34,106 --> 00:24:36,836
+indicates that the intention for
+
+
+718
+00:24:36,836 --> 00:24:38,446
+the model view projection is to
+
+
+719
+00:24:38,446 --> 00:24:40,256
+be uniform for all vertices.
+
+
+720
+00:24:42,276 --> 00:24:44,086
+The other input to the shader is
+
+
+721
+00:24:44,086 --> 00:24:45,576
+a set of vertex attributes.
+
+
+722
+00:24:46,266 --> 00:24:48,136
+In GLSL you typically use
+
+
+723
+00:24:48,396 --> 00:24:50,136
+separate attribute inputs.
+
+
+724
+00:24:50,476 --> 00:24:52,416
+The main difference here is that
+
+
+725
+00:24:52,416 --> 00:24:54,896
+MSL uses a structure of your own
+
+
+726
+00:24:54,896 --> 00:24:55,256
+design.
+
+
+727
+00:24:56,136 --> 00:24:57,746
+The staging keywords suggest
+
+
+728
+00:24:57,826 --> 00:24:59,066
+that each invocation of the
+
+
+729
+00:24:59,066 --> 00:25:01,036
+shader will receive its own
+
+
+730
+00:25:01,036 --> 00:25:01,660
+arguments.
+
+
+731
+00:25:03,806 --> 00:25:05,146
+Once you have all the inputs to
+
+
+732
+00:25:05,146 --> 00:25:06,756
+the shaders set up, you can
+
+
+733
+00:25:06,756 --> 00:25:08,016
+actually perform all the
+
+
+734
+00:25:08,016 --> 00:25:08,736
+calculations.
+
+
+735
+00:25:10,416 --> 00:25:12,556
+Then for the outputs, in GLSL
+
+
+736
+00:25:12,556 --> 00:25:14,316
+the output is split between
+
+
+737
+00:25:14,316 --> 00:25:16,436
+varying attributes like
+
+
+738
+00:25:16,436 --> 00:25:18,866
+glTexCoord and predefined
+
+
+739
+00:25:18,866 --> 00:25:21,146
+variables, in this case gl
+
+
+740
+00:25:21,146 --> 00:25:21,596
+Position.
+
+
+741
+00:25:22,176 --> 00:25:25,886
+In MSL, the vertex shader output
+
+
+742
+00:25:26,106 --> 00:25:27,526
+is combined into your own
+
+
+743
+00:25:27,526 --> 00:25:27,966
+structure.
+
+
+744
+00:25:29,576 --> 00:25:31,866
+So we've used a vertex and
+
+
+745
+00:25:31,866 --> 00:25:32,976
+vertex output structure.
+
+
+746
+00:25:33,406 --> 00:25:34,976
+Let's scroll up in the MSL code
+
+
+747
+00:25:35,046 --> 00:25:36,696
+to see what they actually look
+
+
+748
+00:25:37,236 --> 00:25:37,386
+like.
+
+
+749
+00:25:39,436 --> 00:25:41,926
+As mentioned previously, GLSL
+
+
+750
+00:25:41,926 --> 00:25:44,536
+defines the input vertex
+
+
+751
+00:25:44,536 --> 00:25:46,756
+attributes separately, and Metal
+
+
+752
+00:25:46,756 --> 00:25:48,646
+allows you to define them within
+
+
+753
+00:25:48,646 --> 00:25:49,166
+a structure.
+
+
+754
+00:25:49,776 --> 00:25:52,836
+In MSL there are a few special
+
+
+755
+00:25:52,836 --> 00:25:54,356
+keywords for vertex shader
+
+
+756
+00:25:54,356 --> 00:25:54,696
+input.
+
+
+757
+00:25:55,196 --> 00:25:57,966
+We mark each structure member
+
+
+758
+00:25:57,966 --> 00:25:59,686
+with an attribute keyword and
+
+
+759
+00:25:59,686 --> 00:26:02,306
+assign an attribute index to it.
+
+
+760
+00:26:02,816 --> 00:26:05,286
+Similar to GLSL, these indices
+
+
+761
+00:26:05,636 --> 00:26:07,296
+are used in the Metal API to
+
+
+762
+00:26:07,396 --> 00:26:09,106
+assign the vertex buffer streams
+
+
+763
+00:26:09,256 --> 00:26:11,836
+to your vertex attributes.
+
+
+764
+00:26:15,556 --> 00:26:18,066
+And GLSL predefines special
+
+
+765
+00:26:18,066 --> 00:26:20,456
+keywords like GL position to
+
+
+766
+00:26:20,456 --> 00:26:23,166
+indicate which variable contains
+
+
+767
+00:26:23,606 --> 00:26:25,086
+vertex coordinates that have
+
+
+768
+00:26:25,086 --> 00:26:26,396
+been transformed with the model
+
+
+769
+00:26:26,396 --> 00:26:27,576
+view projection matrix.
+
+
+770
+00:26:29,046 --> 00:26:30,256
+Similarly, for the vertex
+
+
+771
+00:26:30,256 --> 00:26:32,576
+output, a structure in MSL, the
+
+
+772
+00:26:32,576 --> 00:26:35,206
+special keyword position signals
+
+
+773
+00:26:35,206 --> 00:26:36,506
+that the vertex shader output
+
+
+774
+00:26:36,726 --> 00:26:38,246
+position is stored in that
+
+
+775
+00:26:38,656 --> 00:26:39,356
+structure member.
+
+
+776
+00:26:42,656 --> 00:26:46,296
+Similar to GLSL vector type, MSL
+
+
+777
+00:26:46,296 --> 00:26:48,326
+defines a number of simd types
+
+
+778
+00:26:48,486 --> 00:26:50,996
+via the simd.h header that can
+
+
+779
+00:26:50,996 --> 00:26:53,366
+be shared between your CPU and
+
+
+780
+00:26:53,366 --> 00:26:53,896
+GPU code.
+
+
+781
+00:26:55,186 --> 00:26:56,376
+But there's a few things you
+
+
+782
+00:26:56,376 --> 00:26:57,536
+need to remember about them.
+
+
+783
+00:26:58,926 --> 00:27:01,036
+Vector and matrix types in your
+
+
+784
+00:27:01,036 --> 00:27:03,706
+buffers are aligned to 16 bytes
+
+
+785
+00:27:03,906 --> 00:27:05,396
+or 8 bytes for half precision.
+
+
+786
+00:27:06,146 --> 00:27:07,276
+So they're not necessarily
+
+
+787
+00:27:07,276 --> 00:27:09,256
+packed, for example, a float3
+
+
+788
+00:27:09,256 --> 00:27:11,576
+has a size of 12 bytes but is
+
+
+789
+00:27:11,576 --> 00:27:12,726
+aligned to 16 bytes.
+
+
+790
+00:27:13,346 --> 00:27:15,246
+This is to ensure that the data
+
+
+791
+00:27:15,246 --> 00:27:17,536
+is aligned for optimal CPU and
+
+
+792
+00:27:17,536 --> 00:27:18,276
+GPU access.
+
+
+793
+00:27:19,686 --> 00:27:21,486
+There are specific backed
+
+
+794
+00:27:21,486 --> 00:27:23,186
+formats you can use if you need
+
+
+795
+00:27:23,186 --> 00:27:23,406
+them.
+
+
+796
+00:27:23,786 --> 00:27:25,406
+But you will need to unpack them
+
+
+797
+00:27:25,466 --> 00:27:29,966
+in the shader before using them.
+
+
+798
+00:27:30,166 --> 00:27:32,306
+So we've just reviewed the main
+
+
+799
+00:27:32,306 --> 00:27:34,726
+differences between GLSL and
+
+
+800
+00:27:34,726 --> 00:27:35,176
+MSL.
+
+
+801
+00:27:35,876 --> 00:27:38,536
+And to make this transition
+
+
+802
+00:27:38,536 --> 00:27:41,006
+smooth and easy, my colleague
+
+
+803
+00:27:41,006 --> 00:27:42,986
+Max will show you a really cool
+
+
+804
+00:27:42,986 --> 00:27:44,536
+tool to help you breeze through
+
+
+805
+00:27:44,536 --> 00:27:44,603
+it.
+
+
+806
+00:27:45,146 --> 00:27:45,426
+Thank you.
+
+
+807
+00:27:46,516 --> 00:27:51,796
+[ Applause ]
+
+
+808
+00:27:52,296 --> 00:27:53,286
+>> Good evening.
+
+
+809
+00:27:54,616 --> 00:27:57,106
+Metal, it's not just an API and
+
+
+810
+00:27:57,346 --> 00:27:59,516
+a shading language, it is also a
+
+
+811
+00:27:59,516 --> 00:28:01,666
+powerful collection of tools.
+
+
+812
+00:28:02,686 --> 00:28:04,556
+My name is Max, and I'm going to
+
+
+813
+00:28:04,556 --> 00:28:06,656
+minimize your hassle porting to
+
+
+814
+00:28:06,656 --> 00:28:07,016
+Metal.
+
+
+815
+00:28:07,586 --> 00:28:11,546
+Let's take a look at this scene.
+
+
+816
+00:28:11,846 --> 00:28:13,976
+This is the very first draw call
+
+
+817
+00:28:13,976 --> 00:28:16,296
+from an old OpenGL demo that we
+
+
+818
+00:28:16,296 --> 00:28:17,976
+here at Apple also ported to
+
+
+819
+00:28:17,976 --> 00:28:18,376
+Metal.
+
+
+820
+00:28:19,126 --> 00:28:21,656
+It's drawing a model of a temple
+
+
+821
+00:28:21,656 --> 00:28:23,926
+and a tree, both illuminated by
+
+
+822
+00:28:23,976 --> 00:28:25,016
+a global light source.
+
+
+823
+00:28:25,316 --> 00:28:26,516
+Let's port the fragment shader
+
+
+824
+00:28:26,516 --> 00:28:26,976
+together.
+
+
+825
+00:28:31,046 --> 00:28:32,916
+So the very first thing I did, I
+
+
+826
+00:28:32,916 --> 00:28:34,926
+just copy and pasted my entire
+
+
+827
+00:28:34,926 --> 00:28:37,616
+old OpenGL code directly into my
+
+
+828
+00:28:37,616 --> 00:28:38,676
+Metal shader file.
+
+
+829
+00:28:39,886 --> 00:28:41,556
+Based on this, I've already
+
+
+830
+00:28:41,556 --> 00:28:44,476
+created my input structure, as
+
+
+831
+00:28:44,476 --> 00:28:46,026
+well as my function prototype.
+
+
+832
+00:28:47,536 --> 00:28:48,076
+Let's begin.
+
+
+833
+00:28:49,266 --> 00:28:50,896
+So what we are going to do is
+
+
+834
+00:28:50,896 --> 00:28:52,656
+just copy and paste the contents
+
+
+835
+00:28:52,656 --> 00:28:55,186
+of the main function directly
+
+
+836
+00:28:55,396 --> 00:28:56,846
+into our Metal function.
+
+
+837
+00:28:58,166 --> 00:29:00,436
+And here we see the very first
+
+
+838
+00:29:00,436 --> 00:29:02,016
+powerful thing about Metal.
+
+
+839
+00:29:03,336 --> 00:29:04,116
+Because the shader's
+
+
+840
+00:29:04,216 --> 00:29:06,176
+precompiled, we are getting
+
+
+841
+00:29:06,176 --> 00:29:07,406
+errors instantly.
+
+
+842
+00:29:07,816 --> 00:29:09,646
+Let's take a closer look.
+
+
+843
+00:29:10,456 --> 00:29:12,336
+Of course, the building vector
+
+
+844
+00:29:12,336 --> 00:29:13,806
+types have different names now.
+
+
+845
+00:29:14,416 --> 00:29:17,276
+So vec2 becomes a float2; the
+
+
+846
+00:29:17,326 --> 00:29:20,616
+vec3 becomes the float3; and the
+
+
+847
+00:29:20,616 --> 00:29:22,786
+vec4 becomes a float4.
+
+
+848
+00:29:23,416 --> 00:29:24,776
+So we quickly fix that.
+
+
+849
+00:29:28,296 --> 00:29:29,826
+The next error we are going to
+
+
+850
+00:29:29,826 --> 00:29:31,956
+see is that like all of our
+
+
+851
+00:29:31,956 --> 00:29:33,316
+input structures -- all of our
+
+
+852
+00:29:33,316 --> 00:29:35,346
+global variables are now coming
+
+
+853
+00:29:35,396 --> 00:29:36,496
+from our input structure.
+
+
+854
+00:29:36,936 --> 00:29:38,336
+And because I just used a
+
+
+855
+00:29:38,446 --> 00:29:39,996
+similar naming scheme, this is
+
+
+856
+00:29:39,996 --> 00:29:40,976
+also very easy.
+
+
+857
+00:29:48,596 --> 00:29:50,146
+And, of course, we have to do
+
+
+858
+00:29:50,146 --> 00:29:51,786
+the exact same thing for our
+
+
+859
+00:29:51,786 --> 00:29:52,716
+uniforms.
+
+
+860
+00:29:58,186 --> 00:29:59,466
+The next error is a little bit
+
+
+861
+00:29:59,466 --> 00:30:00,426
+more complex.
+
+
+862
+00:30:01,106 --> 00:30:02,916
+Sampling in Metal is different,
+
+
+863
+00:30:02,916 --> 00:30:04,186
+so let's take a look.
+
+
+864
+00:30:05,336 --> 00:30:06,576
+We are going to start from
+
+
+865
+00:30:06,576 --> 00:30:07,216
+scratch.
+
+
+866
+00:30:07,956 --> 00:30:10,406
+So we directly can call a sample
+
+
+867
+00:30:10,406 --> 00:30:12,976
+function on our colorMap.
+
+
+868
+00:30:13,136 --> 00:30:15,286
+And here we can see how powerful
+
+
+869
+00:30:15,286 --> 00:30:16,416
+it is to have full auto
+
+
+870
+00:30:16,416 --> 00:30:17,016
+completion.
+
+
+871
+00:30:18,166 --> 00:30:19,736
+So this function expects us to
+
+
+872
+00:30:19,736 --> 00:30:21,586
+put in a sampler and a texture
+
+
+873
+00:30:21,586 --> 00:30:21,966
+coordinate.
+
+
+874
+00:30:21,966 --> 00:30:23,816
+We already have the texture
+
+
+875
+00:30:23,816 --> 00:30:24,246
+coordinate.
+
+
+876
+00:30:25,416 --> 00:30:27,316
+We could pass in the sampler as
+
+
+877
+00:30:27,316 --> 00:30:30,036
+an argument to our function or,
+
+
+878
+00:30:30,036 --> 00:30:31,636
+conveniently in Metal, we can
+
+
+879
+00:30:31,636 --> 00:30:33,446
+just declare one in code like
+
+
+880
+00:30:33,496 --> 00:30:33,696
+this.
+
+
+881
+00:30:34,286 --> 00:30:37,556
+We need to do the exact same
+
+
+882
+00:30:37,626 --> 00:30:39,636
+thing for our normalMap.
+
+
+883
+00:30:48,236 --> 00:30:49,296
+The last error that we are
+
+
+884
+00:30:49,416 --> 00:30:52,026
+seeing is that we are writing
+
+
+885
+00:30:52,026 --> 00:30:54,326
+into, like, one of many OpenGL
+
+
+886
+00:30:54,326 --> 00:30:55,386
+magic variables.
+
+
+887
+00:30:55,716 --> 00:30:57,256
+Instead, we are just going to
+
+
+888
+00:30:57,256 --> 00:30:59,846
+return our final computed color.
+
+
+889
+00:31:04,356 --> 00:31:06,036
+We can also see that all the
+
+
+890
+00:31:06,036 --> 00:31:07,966
+other functions, like normalize,
+
+
+891
+00:31:08,356 --> 00:31:09,936
+dot product, and my favorite
+
+
+892
+00:31:09,936 --> 00:31:12,096
+function max, are still exactly
+
+
+893
+00:31:12,096 --> 00:31:12,556
+the same.
+
+
+894
+00:31:13,976 --> 00:31:15,136
+Our shader now compiled
+
+
+895
+00:31:15,166 --> 00:31:15,946
+successfully.
+
+
+896
+00:31:16,516 --> 00:31:16,976
+Let's run it.
+
+
+897
+00:31:23,326 --> 00:31:24,486
+Something went wrong.
+
+
+898
+00:31:25,056 --> 00:31:28,436
+In OpenGL when you're
+
+
+899
+00:31:28,836 --> 00:31:30,256
+experiencing an error with your
+
+
+900
+00:31:30,256 --> 00:31:31,936
+shader, what you usually do is,
+
+
+901
+00:31:31,936 --> 00:31:33,906
+like, you look at your source
+
+
+902
+00:31:33,976 --> 00:31:36,396
+code, you look at your output,
+
+
+903
+00:31:36,836 --> 00:31:38,356
+and you think really hard.
+
+
+904
+00:31:39,146 --> 00:31:40,076
+We're just going to use the
+
+
+905
+00:31:40,076 --> 00:31:41,266
+shader debugger instead.
+
+
+906
+00:31:42,736 --> 00:31:44,106
+Clicking on the little camera
+
+
+907
+00:31:44,106 --> 00:31:46,426
+icon in the debug area will
+
+
+908
+00:31:46,426 --> 00:31:47,756
+capture a GPU trace.
+
+
+909
+00:31:48,526 --> 00:31:51,536
+This is a recording of every
+
+
+910
+00:31:51,536 --> 00:31:52,986
+Metal API call we made.
+
+
+911
+00:31:53,876 --> 00:31:55,996
+And we can now navigate to our
+
+
+912
+00:31:55,996 --> 00:31:56,826
+draw calls.
+
+
+913
+00:31:57,156 --> 00:31:58,376
+Here we are drawing the tree.
+
+
+914
+00:31:59,566 --> 00:32:00,946
+And here we are drawing the
+
+
+915
+00:32:00,946 --> 00:32:01,416
+temple.
+
+
+916
+00:32:01,926 --> 00:32:04,616
+Let me long press on the stairs
+
+
+917
+00:32:04,616 --> 00:32:06,436
+of the temple to bring up the
+
+
+918
+00:32:06,436 --> 00:32:08,526
+pixel inspector, which allows us
+
+
+919
+00:32:08,526 --> 00:32:10,046
+to start the shader debugger.
+
+
+920
+00:32:14,116 --> 00:32:16,596
+What we are seeing here now is
+
+
+921
+00:32:16,596 --> 00:32:18,906
+the values per line for the code
+
+
+922
+00:32:18,906 --> 00:32:20,646
+that we have ported together and
+
+
+923
+00:32:20,646 --> 00:32:21,746
+for the pixel we have just
+
+
+924
+00:32:21,836 --> 00:32:22,266
+selected.
+
+
+925
+00:32:22,266 --> 00:32:24,326
+Let's take a look at our
+
+
+926
+00:32:24,326 --> 00:32:25,566
+colorMap first.
+
+
+927
+00:32:25,976 --> 00:32:29,086
+We can see this looks like a
+
+
+928
+00:32:29,086 --> 00:32:30,026
+reasonable texture.
+
+
+929
+00:32:30,206 --> 00:32:32,066
+And we can also see that our
+
+
+930
+00:32:32,146 --> 00:32:33,466
+stairs are, like, in the upper
+
+
+931
+00:32:33,466 --> 00:32:36,096
+half of this texture; however,
+
+
+932
+00:32:36,486 --> 00:32:37,896
+if we were taking a look at our
+
+
+933
+00:32:37,896 --> 00:32:40,046
+texture coordinate, we can see
+
+
+934
+00:32:40,226 --> 00:32:41,486
+that we are sampling from the
+
+
+935
+00:32:41,486 --> 00:32:43,066
+lower half.
+
+
+936
+00:32:43,126 --> 00:32:44,696
+Let me quickly verify if this is
+
+
+937
+00:32:44,696 --> 00:32:45,066
+the case.
+
+
+938
+00:32:46,376 --> 00:32:48,096
+What we are going to do is to
+
+
+939
+00:32:48,096 --> 00:32:50,846
+invert the y coordinate of our
+
+
+940
+00:32:50,846 --> 00:32:51,256
+texture.
+
+
+941
+00:32:52,056 --> 00:32:56,966
+We can now update our shaders --
+
+
+942
+00:32:57,566 --> 00:33:00,606
+looks reasonable -- and we can
+
+
+943
+00:33:00,606 --> 00:33:02,046
+continue our execution.
+
+
+944
+00:33:02,506 --> 00:33:03,496
+There, much better.
+
+
+945
+00:33:03,596 --> 00:33:08,696
+This is a pretty common error
+
+
+946
+00:33:08,746 --> 00:33:10,106
+that you will experience when
+
+
+947
+00:33:10,106 --> 00:33:11,686
+porting from OpenGL to Metal.
+
+
+948
+00:33:13,086 --> 00:33:15,096
+And, of course, the real fix is
+
+
+949
+00:33:15,096 --> 00:33:16,536
+you go into your texture loading
+
+
+950
+00:33:16,536 --> 00:33:18,396
+code and make sure your texture
+
+
+951
+00:33:18,446 --> 00:33:20,356
+is loaded at the right origin so
+
+
+952
+00:33:20,356 --> 00:33:21,726
+you don't have to do this fix in
+
+
+953
+00:33:21,726 --> 00:33:22,336
+every shader.
+
+
+954
+00:33:23,416 --> 00:33:25,466
+However, the combination of a
+
+
+955
+00:33:25,466 --> 00:33:27,536
+feature-rich editor and mighty
+
+
+956
+00:33:27,536 --> 00:33:29,686
+debugging tools will also help
+
+
+957
+00:33:29,686 --> 00:33:31,666
+you port in your games to Metal
+
+
+958
+00:33:31,666 --> 00:33:32,256
+finally.
+
+
+959
+00:33:33,676 --> 00:33:34,866
+Thank you very much.
+
+
+960
+00:33:35,386 --> 00:33:36,796
+My colleague Sarah will now
+
+
+961
+00:33:36,846 --> 00:33:37,776
+guide you through the rest of
+
+
+962
+00:33:37,816 --> 00:33:38,246
+the slides.
+
+
+963
+00:33:39,516 --> 00:33:43,616
+[ Applause ]
+
+
+964
+00:33:44,116 --> 00:33:45,066
+>> Sarah Clawson: Thanks, Max.
+
+
+965
+00:33:45,066 --> 00:33:46,286
+Hi, I'm Sarah Clawson.
+
+
+966
+00:33:46,286 --> 00:33:48,216
+And I'm here to take you through
+
+
+967
+00:33:48,216 --> 00:33:49,856
+the rest of the port from GL to
+
+
+968
+00:33:49,856 --> 00:33:50,076
+Metal.
+
+
+969
+00:33:50,616 --> 00:33:53,686
+So far in the life of a graphics
+
+
+970
+00:33:53,686 --> 00:33:55,116
+app, we've gone through a lot of
+
+
+971
+00:33:55,116 --> 00:33:55,366
+setup.
+
+
+972
+00:33:56,176 --> 00:33:57,796
+We've got a window to render to,
+
+
+973
+00:33:58,006 --> 00:33:59,386
+a way to get your commands to
+
+
+974
+00:33:59,386 --> 00:34:02,156
+the GPU, and a set of resources
+
+
+975
+00:34:02,326 --> 00:34:03,466
+and shaders ready to go.
+
+
+976
+00:34:04,436 --> 00:34:05,946
+Next up, we're going to talk
+
+
+977
+00:34:05,946 --> 00:34:07,596
+about setting up the state for
+
+
+978
+00:34:07,596 --> 00:34:08,726
+your render loop.
+
+
+979
+00:34:10,826 --> 00:34:13,085
+OpenGL has several key concepts
+
+
+980
+00:34:13,085 --> 00:34:13,786
+when it comes to state
+
+
+981
+00:34:13,786 --> 00:34:14,226
+management.
+
+
+982
+00:34:14,976 --> 00:34:16,786
+The vertex array object defines
+
+
+983
+00:34:16,815 --> 00:34:17,996
+both the vertex attribute
+
+
+984
+00:34:17,996 --> 00:34:19,176
+layout, as well as the vertex
+
+
+985
+00:34:19,216 --> 00:34:19,556
+buffers.
+
+
+986
+00:34:20,396 --> 00:34:21,536
+The program is a link
+
+
+987
+00:34:21,536 --> 00:34:23,056
+combination of vertex and
+
+
+988
+00:34:23,056 --> 00:34:23,735
+fragment shaders.
+
+
+989
+00:34:24,676 --> 00:34:27,235
+And the framebuffer is a set of
+
+
+990
+00:34:27,286 --> 00:34:28,446
+color and depth stencil
+
+
+991
+00:34:28,446 --> 00:34:29,476
+attachments that your
+
+
+992
+00:34:29,556 --> 00:34:30,696
+application intends to render
+
+
+993
+00:34:30,696 --> 00:34:30,876
+to.
+
+
+994
+00:34:31,946 --> 00:34:33,726
+These state objects are created
+
+
+995
+00:34:33,946 --> 00:34:35,545
+during initialization and are
+
+
+996
+00:34:35,545 --> 00:34:36,786
+used throughout your frames.
+
+
+997
+00:34:37,436 --> 00:34:40,295
+Let's walk through an example to
+
+
+998
+00:34:40,295 --> 00:34:42,946
+show how OpenGL manages state.
+
+
+999
+00:34:44,616 --> 00:34:46,106
+Here we have a sample render
+
+
+1000
+00:34:46,106 --> 00:34:48,616
+loop where an OpenGL application
+
+
+1001
+00:34:48,616 --> 00:34:50,656
+binds a framebuffer, sets a
+
+
+1002
+00:34:50,656 --> 00:34:52,606
+program, and then makes other
+
+
+1003
+00:34:52,606 --> 00:34:53,786
+state modifications, like
+
+
+1004
+00:34:53,786 --> 00:34:56,005
+enabling depth, or face culling,
+
+
+1005
+00:34:56,476 --> 00:34:57,746
+or changing the colorMap before
+
+
+1006
+00:34:57,746 --> 00:35:00,326
+making a draw call.
+
+
+1007
+00:35:00,506 --> 00:35:02,216
+If you look at this same API
+
+
+1008
+00:35:02,256 --> 00:35:04,176
+trace from OpenGL's perspective,
+
+
+1009
+00:35:04,176 --> 00:35:06,126
+it has to track all these
+
+
+1010
+00:35:06,126 --> 00:35:08,116
+changes on each API call.
+
+
+1011
+00:35:08,276 --> 00:35:10,596
+And then when a draw call
+
+
+1012
+00:35:10,596 --> 00:35:12,276
+happens, it has to stop and
+
+
+1013
+00:35:12,276 --> 00:35:13,496
+validate to be sure that the
+
+
+1014
+00:35:13,496 --> 00:35:14,916
+previous changes to primitive
+
+
+1015
+00:35:14,916 --> 00:35:16,476
+assembly, depth state,
+
+
+1016
+00:35:16,556 --> 00:35:18,566
+rasterizer, and programmable
+
+
+1017
+00:35:18,566 --> 00:35:20,036
+stages are all compatible with
+
+
+1018
+00:35:20,036 --> 00:35:20,846
+each other.
+
+
+1019
+00:35:21,436 --> 00:35:23,966
+This validation can be super
+
+
+1020
+00:35:23,966 --> 00:35:24,526
+expensive.
+
+
+1021
+00:35:24,526 --> 00:35:26,296
+And while OpenGL does try to
+
+
+1022
+00:35:26,296 --> 00:35:27,676
+minimize its negative impact,
+
+
+1023
+00:35:28,066 --> 00:35:29,436
+there's limited opportunity to
+
+
+1024
+00:35:29,496 --> 00:35:30,356
+do so.
+
+
+1025
+00:35:31,366 --> 00:35:33,496
+It is worth noting that the open
+
+
+1026
+00:35:33,496 --> 00:35:35,036
+OpenGL state objects were ahead
+
+
+1027
+00:35:35,036 --> 00:35:35,856
+of the curve when they were
+
+
+1028
+00:35:35,856 --> 00:35:36,556
+first introduced.
+
+
+1029
+00:35:37,946 --> 00:35:39,616
+Framebuffer objects combine
+
+
+1030
+00:35:39,616 --> 00:35:40,626
+attached render targets,
+
+
+1031
+00:35:41,606 --> 00:35:42,936
+programs linked fragment and
+
+
+1032
+00:35:42,936 --> 00:35:45,906
+vertex shaders together, and
+
+
+1033
+00:35:45,906 --> 00:35:47,886
+vertex array objects were larger
+
+
+1034
+00:35:47,886 --> 00:35:49,146
+objects combining some of the
+
+
+1035
+00:35:49,146 --> 00:35:50,876
+vertex attribute API's and
+
+
+1036
+00:35:50,876 --> 00:35:52,126
+vertex buffer setup.
+
+
+1037
+00:35:52,896 --> 00:35:54,546
+But even with all these changes,
+
+
+1038
+00:35:54,736 --> 00:35:55,936
+although they yielded positive
+
+
+1039
+00:35:55,936 --> 00:35:58,106
+results, OpenGL still has to
+
+
+1040
+00:35:58,106 --> 00:35:59,746
+validate many things on a draw
+
+
+1041
+00:35:59,746 --> 00:36:04,236
+call, such as will the -- can
+
+
+1042
+00:36:04,236 --> 00:36:05,666
+the ColorMask help optimize the
+
+
+1043
+00:36:05,666 --> 00:36:06,276
+fragment shader?
+
+
+1044
+00:36:06,776 --> 00:36:09,016
+Is the fragment shader output
+
+
+1045
+00:36:09,016 --> 00:36:10,246
+compatible with the attached
+
+
+1046
+00:36:10,246 --> 00:36:10,716
+frame buffer?
+
+
+1047
+00:36:11,276 --> 00:36:14,156
+Is the vertex layout compatible
+
+
+1048
+00:36:14,156 --> 00:36:15,136
+with the bound program?
+
+
+1049
+00:36:16,406 --> 00:36:17,526
+Or are the attached render
+
+
+1050
+00:36:17,526 --> 00:36:18,346
+targets blendable?
+
+
+1051
+00:36:18,896 --> 00:36:22,036
+So as we redesigned the graphic
+
+
+1052
+00:36:22,086 --> 00:36:24,206
+state management for Metal, we
+
+
+1053
+00:36:24,316 --> 00:36:25,846
+took the program shaders
+
+
+1054
+00:36:26,206 --> 00:36:27,966
+combined with the vertex input
+
+
+1055
+00:36:27,966 --> 00:36:29,556
+layouts from the VertexArray
+
+
+1056
+00:36:29,556 --> 00:36:31,906
+objects and added the
+
+
+1057
+00:36:31,906 --> 00:36:33,256
+information about attachment
+
+
+1058
+00:36:33,256 --> 00:36:35,486
+pixelFormat and blend state, and
+
+
+1059
+00:36:35,486 --> 00:36:38,486
+we combined them into one object
+
+
+1060
+00:36:38,536 --> 00:36:40,686
+called the PipelineDescriptor.
+
+
+1061
+00:36:41,556 --> 00:36:43,176
+This structure describes all the
+
+
+1062
+00:36:43,176 --> 00:36:45,156
+relevant states in the graphics
+
+
+1063
+00:36:45,196 --> 00:36:45,596
+pipeline.
+
+
+1064
+00:36:46,836 --> 00:36:48,716
+To set up the descriptor, first
+
+
+1065
+00:36:49,106 --> 00:36:49,796
+you initialize it.
+
+
+1066
+00:36:50,466 --> 00:36:52,146
+And then you set all the state
+
+
+1067
+00:36:52,146 --> 00:36:53,486
+we just talked about, like
+
+
+1068
+00:36:53,556 --> 00:36:54,796
+vertex and fragment shaders,
+
+
+1069
+00:36:55,686 --> 00:36:57,336
+vertex information, pixel
+
+
+1070
+00:36:57,336 --> 00:36:58,526
+formats, and blend state.
+
+
+1071
+00:36:58,626 --> 00:37:01,836
+And then you take that
+
+
+1072
+00:37:01,836 --> 00:37:03,286
+descriptor and you create what
+
+
+1073
+00:37:03,286 --> 00:37:04,426
+is called a pipeline state
+
+
+1074
+00:37:04,426 --> 00:37:05,766
+object or PSO.
+
+
+1075
+00:37:06,636 --> 00:37:08,406
+This immutable object fully
+
+
+1076
+00:37:08,406 --> 00:37:09,796
+describes the render state.
+
+
+1077
+00:37:09,796 --> 00:37:11,226
+And what's great about it is
+
+
+1078
+00:37:11,226 --> 00:37:12,846
+that you create it once, have it
+
+
+1079
+00:37:12,846 --> 00:37:14,386
+validated for correctness, and
+
+
+1080
+00:37:14,386 --> 00:37:15,326
+then use it throughout your
+
+
+1081
+00:37:15,326 --> 00:37:15,696
+program.
+
+
+1082
+00:37:16,276 --> 00:37:19,866
+In a similar way, we combined
+
+
+1083
+00:37:19,866 --> 00:37:20,556
+all the depth and
+
+
+1084
+00:37:20,556 --> 00:37:22,206
+stencil-related settings into a
+
+
+1085
+00:37:22,206 --> 00:37:23,526
+depth/stencil state descriptor.
+
+
+1086
+00:37:24,326 --> 00:37:26,896
+And, again, it is a collection
+
+
+1087
+00:37:26,896 --> 00:37:28,266
+of all the depth/stencil state.
+
+
+1088
+00:37:28,326 --> 00:37:30,186
+And you take this descriptor and
+
+
+1089
+00:37:30,186 --> 00:37:32,086
+you create what's called a
+
+
+1090
+00:37:32,086 --> 00:37:33,306
+depth/stensil state object.
+
+
+1091
+00:37:34,496 --> 00:37:35,996
+This object is also immutable
+
+
+1092
+00:37:36,096 --> 00:37:36,966
+and used throughout your
+
+
+1093
+00:37:36,966 --> 00:37:37,876
+program.
+
+
+1094
+00:37:38,876 --> 00:37:40,756
+So the render loop we were
+
+
+1095
+00:37:40,756 --> 00:37:43,136
+looking at in OpenGL now looks
+
+
+1096
+00:37:43,136 --> 00:37:44,026
+like this in Metal.
+
+
+1097
+00:37:44,836 --> 00:37:46,176
+With all of the prevalidated
+
+
+1098
+00:37:46,246 --> 00:37:47,906
+state objects, there's no longer
+
+
+1099
+00:37:47,906 --> 00:37:49,966
+any state validation or
+
+
+1100
+00:37:49,966 --> 00:37:50,396
+tracking.
+
+
+1101
+00:37:51,606 --> 00:37:53,306
+Let's look through the
+
+
+1102
+00:37:55,236 --> 00:37:55,566
+comparison.
+
+
+1103
+00:37:55,566 --> 00:37:57,436
+In Metal, the render encoder is
+
+
+1104
+00:37:57,436 --> 00:37:58,716
+the start of a render pass,
+
+
+1105
+00:37:59,166 --> 00:38:00,166
+similar to binding your frame
+
+
+1106
+00:38:00,166 --> 00:38:00,446
+buffer.
+
+
+1107
+00:38:01,006 --> 00:38:03,196
+Now that your depth state is
+
+
+1108
+00:38:03,346 --> 00:38:05,016
+prebaked into an object, you
+
+
+1109
+00:38:05,016 --> 00:38:05,966
+simply set it on the
+
+
+1110
+00:38:05,966 --> 00:38:06,616
+renderEncoder.
+
+
+1111
+00:38:07,176 --> 00:38:10,056
+The PipelineState object
+
+
+1112
+00:38:10,056 --> 00:38:11,766
+represents and combination of
+
+
+1113
+00:38:11,846 --> 00:38:13,986
+program shaders, VertexArray
+
+
+1114
+00:38:13,986 --> 00:38:15,716
+properties, and a pixelFormat.
+
+
+1115
+00:38:15,716 --> 00:38:17,786
+And it's also set on the
+
+
+1116
+00:38:17,786 --> 00:38:18,406
+renderEncoder.
+
+
+1117
+00:38:18,406 --> 00:38:21,346
+And now the renderEncoder
+
+
+1118
+00:38:21,346 --> 00:38:22,846
+manages your rasterizer state
+
+
+1119
+00:38:22,846 --> 00:38:23,316
+directly.
+
+
+1120
+00:38:24,296 --> 00:38:25,746
+And it's important to note here
+
+
+1121
+00:38:25,746 --> 00:38:27,296
+that there is still flexibility
+
+
+1122
+00:38:27,296 --> 00:38:28,596
+in your pipeline, as not
+
+
+1123
+00:38:28,596 --> 00:38:30,046
+everything is prebaked into your
+
+
+1124
+00:38:30,046 --> 00:38:30,936
+PipelineState object.
+
+
+1125
+00:38:31,356 --> 00:38:34,156
+Here's the list of state that
+
+
+1126
+00:38:34,156 --> 00:38:35,336
+we've just been discussing that
+
+
+1127
+00:38:35,336 --> 00:38:37,596
+you prebake into your PSO: State
+
+
+1128
+00:38:37,596 --> 00:38:38,586
+like vertex and fragment
+
+
+1129
+00:38:38,586 --> 00:38:39,816
+functions and pixel formats,
+
+
+1130
+00:38:39,856 --> 00:38:40,156
+etc.
+
+
+1131
+00:38:41,356 --> 00:38:42,956
+On the other hand, here's all
+
+
+1132
+00:38:42,956 --> 00:38:44,106
+the state that you still set
+
+
+1133
+00:38:44,106 --> 00:38:45,686
+while drawing -- state like
+
+
+1134
+00:38:46,746 --> 00:38:47,736
+primitive culling mode and
+
+
+1135
+00:38:47,736 --> 00:38:49,136
+direction, fill mode.
+
+
+1136
+00:38:49,736 --> 00:38:51,216
+Scissor and viewport areas are
+
+
+1137
+00:38:51,216 --> 00:38:53,156
+still set just like in OpenGL.
+
+
+1138
+00:38:53,156 --> 00:38:56,906
+And ultimately, the draw calls
+
+
+1139
+00:38:56,906 --> 00:38:57,446
+remain the same.
+
+
+1140
+00:38:58,216 --> 00:38:59,706
+The main difference here is that
+
+
+1141
+00:38:59,706 --> 00:39:01,236
+instead of enabling new state,
+
+
+1142
+00:39:01,396 --> 00:39:02,366
+which could incur hidden
+
+
+1143
+00:39:02,366 --> 00:39:04,366
+validation costs, you simply
+
+
+1144
+00:39:04,446 --> 00:39:06,186
+swap out a new PipelineState
+
+
+1145
+00:39:06,186 --> 00:39:07,826
+object that had blending enabled
+
+
+1146
+00:39:07,906 --> 00:39:08,516
+in its descriptor.
+
+
+1147
+00:39:11,186 --> 00:39:12,556
+I want to discuss one more
+
+
+1148
+00:39:12,556 --> 00:39:13,876
+possible optimization that you
+
+
+1149
+00:39:13,876 --> 00:39:15,916
+may have used in OpenGL in order
+
+
+1150
+00:39:15,916 --> 00:39:17,636
+to hide certain expensive
+
+
+1151
+00:39:18,006 --> 00:39:18,666
+operations.
+
+
+1152
+00:39:19,996 --> 00:39:21,836
+As an OpenGL developer, you may
+
+
+1153
+00:39:21,836 --> 00:39:23,226
+have seen that your render loop
+
+
+1154
+00:39:23,296 --> 00:39:25,256
+has an unexpected hiccup on the
+
+
+1155
+00:39:25,306 --> 00:39:27,316
+first draw call after making a
+
+
+1156
+00:39:27,316 --> 00:39:28,206
+bunch of state changes.
+
+
+1157
+00:39:29,096 --> 00:39:30,596
+And if this is the case, you
+
+
+1158
+00:39:30,596 --> 00:39:32,216
+probably use an optimization to
+
+
+1159
+00:39:32,216 --> 00:39:33,616
+hide that called shader
+
+
+1160
+00:39:33,616 --> 00:39:34,126
+pre-warming.
+
+
+1161
+00:39:35,546 --> 00:39:36,726
+In shader pre-warming, an
+
+
+1162
+00:39:36,806 --> 00:39:38,346
+application uses dummy draw
+
+
+1163
+00:39:38,346 --> 00:39:39,666
+calls for the most common GL
+
+
+1164
+00:39:39,666 --> 00:39:42,276
+programs in order to have OpenGL
+
+
+1165
+00:39:42,606 --> 00:39:43,676
+create all the state that's
+
+
+1166
+00:39:43,676 --> 00:39:44,846
+necessary ahead of time.
+
+
+1167
+00:39:45,856 --> 00:39:47,246
+If you were doing this in your
+
+
+1168
+00:39:47,406 --> 00:39:48,706
+engine already, then it's going
+
+
+1169
+00:39:48,706 --> 00:39:50,326
+to be very easy for you to
+
+
+1170
+00:39:50,326 --> 00:39:54,286
+replace it with PSO creation.
+
+
+1171
+00:39:54,386 --> 00:39:55,966
+Now shader pre-warming in Metal
+
+
+1172
+00:39:56,296 --> 00:39:58,196
+is accomplished through creating
+
+
+1173
+00:39:58,196 --> 00:39:59,476
+separate PSO objects with
+
+
+1174
+00:39:59,516 --> 00:40:00,396
+different state enabled.
+
+
+1175
+00:40:00,876 --> 00:40:03,326
+First, you create your
+
+
+1176
+00:40:03,326 --> 00:40:05,436
+descriptor, and then you set all
+
+
+1177
+00:40:05,436 --> 00:40:06,776
+of the state up until the first
+
+
+1178
+00:40:06,776 --> 00:40:08,316
+draw call and create your first
+
+
+1179
+00:40:08,316 --> 00:40:09,276
+PipelineState object.
+
+
+1180
+00:40:10,036 --> 00:40:11,596
+Then you can take that same
+
+
+1181
+00:40:11,596 --> 00:40:13,146
+descriptor, change a bit of
+
+
+1182
+00:40:13,206 --> 00:40:14,306
+state on it -- like here we're
+
+
+1183
+00:40:14,306 --> 00:40:15,886
+enabling blending -- and you
+
+
+1184
+00:40:15,886 --> 00:40:17,316
+create a second PipelineState
+
+
+1185
+00:40:17,316 --> 00:40:17,706
+object.
+
+
+1186
+00:40:18,966 --> 00:40:20,506
+Both of these are prevalidated
+
+
+1187
+00:40:20,726 --> 00:40:22,736
+so that during draw time you can
+
+
+1188
+00:40:22,736 --> 00:40:24,206
+just swap them out between draw
+
+
+1189
+00:40:24,206 --> 00:40:24,466
+calls.
+
+
+1190
+00:40:25,806 --> 00:40:27,036
+Hopefully if you're porting from
+
+
+1191
+00:40:27,036 --> 00:40:28,826
+OpenGL to Metal, this is a
+
+
+1192
+00:40:28,826 --> 00:40:29,796
+straightforward change.
+
+
+1193
+00:40:29,796 --> 00:40:33,666
+Now, as we conclude the setup
+
+
+1194
+00:40:33,666 --> 00:40:35,896
+stage of our application, I'd
+
+
+1195
+00:40:35,896 --> 00:40:37,146
+like to bring up one of the main
+
+
+1196
+00:40:37,146 --> 00:40:38,486
+benefits of porting your app
+
+
+1197
+00:40:38,516 --> 00:40:40,446
+from OpenGL to Metal, and it is
+
+
+1198
+00:40:40,446 --> 00:40:41,856
+that it will start doing
+
+
+1199
+00:40:41,946 --> 00:40:43,896
+expensive operations less often.
+
+
+1200
+00:40:44,456 --> 00:40:47,656
+In OpenGL, your application
+
+
+1201
+00:40:47,656 --> 00:40:48,846
+would have to wait until draw
+
+
+1202
+00:40:48,916 --> 00:40:50,686
+time in order to do things like
+
+
+1203
+00:40:50,826 --> 00:40:52,146
+compile and link shaders or
+
+
+1204
+00:40:52,146 --> 00:40:54,346
+validate states, which means
+
+
+1205
+00:40:54,346 --> 00:40:55,846
+that these expensive operations
+
+
+1206
+00:40:55,846 --> 00:40:57,396
+happen many times per frame.
+
+
+1207
+00:40:57,976 --> 00:41:00,626
+Once you port your app to Metal,
+
+
+1208
+00:41:01,276 --> 00:41:02,506
+your application moves these
+
+
+1209
+00:41:02,506 --> 00:41:04,106
+operations to different stages
+
+
+1210
+00:41:04,106 --> 00:41:04,876
+of its lifetime.
+
+
+1211
+00:41:05,876 --> 00:41:07,516
+With precompiled shaders, shader
+
+
+1212
+00:41:07,516 --> 00:41:09,166
+compilation has moved out of
+
+
+1213
+00:41:09,166 --> 00:41:10,556
+initialization and into build
+
+
+1214
+00:41:10,616 --> 00:41:11,656
+time so it's only done once.
+
+
+1215
+00:41:13,046 --> 00:41:14,426
+Then with PSO's, state
+
+
+1216
+00:41:14,426 --> 00:41:16,486
+definition is moved to content
+
+
+1217
+00:41:16,486 --> 00:41:16,806
+loading.
+
+
+1218
+00:41:17,046 --> 00:41:18,256
+So that leaves your draw time
+
+
+1219
+00:41:18,316 --> 00:41:19,556
+free to actually make draw
+
+
+1220
+00:41:19,556 --> 00:41:19,806
+calls.
+
+
+1221
+00:41:19,806 --> 00:41:23,936
+So now that we've completed the
+
+
+1222
+00:41:23,936 --> 00:41:25,516
+setup stage of your application,
+
+
+1223
+00:41:25,976 --> 00:41:27,416
+let's talk about using all these
+
+
+1224
+00:41:27,956 --> 00:41:30,386
+resources, shaders, and objects
+
+
+1225
+00:41:30,426 --> 00:41:31,006
+to render frames.
+
+
+1226
+00:41:33,396 --> 00:41:35,006
+In order to draw a single frame,
+
+
+1227
+00:41:35,306 --> 00:41:36,916
+your application needs to first
+
+
+1228
+00:41:37,136 --> 00:41:38,586
+update textures and buffers,
+
+
+1229
+00:41:39,486 --> 00:41:40,786
+then establish a render target
+
+
+1230
+00:41:40,786 --> 00:41:42,506
+to render to, and then make
+
+
+1231
+00:41:42,506 --> 00:41:43,836
+several render passes before
+
+
+1232
+00:41:43,836 --> 00:41:45,006
+finally presenting your work.
+
+
+1233
+00:41:46,236 --> 00:41:47,656
+Let's talk about updating
+
+
+1234
+00:41:47,656 --> 00:41:48,096
+resources.
+
+
+1235
+00:41:49,316 --> 00:41:50,796
+Typically, at least some
+
+
+1236
+00:41:50,796 --> 00:41:52,506
+resources have to be updated
+
+
+1237
+00:41:52,506 --> 00:41:53,596
+continuously throughout your
+
+
+1238
+00:41:53,596 --> 00:41:54,606
+render loop.
+
+
+1239
+00:41:55,916 --> 00:41:57,536
+Such examples are shader
+
+
+1240
+00:41:57,536 --> 00:41:59,116
+constants, vertex and index
+
+
+1241
+00:41:59,146 --> 00:42:00,436
+buffers, and textures.
+
+
+1242
+00:42:00,436 --> 00:42:04,096
+And these modifications can be
+
+
+1243
+00:42:04,096 --> 00:42:05,476
+accomplished between frames
+
+
+1244
+00:42:05,806 --> 00:42:07,506
+through synchronization between
+
+
+1245
+00:42:07,506 --> 00:42:08,586
+the GPU and the CPU.
+
+
+1246
+00:42:08,586 --> 00:42:11,836
+A typical GL resource update can
+
+
+1247
+00:42:12,096 --> 00:42:13,866
+be any combination of the
+
+
+1248
+00:42:13,866 --> 00:42:17,126
+following calls: A buffer can be
+
+
+1249
+00:42:17,126 --> 00:42:20,236
+updated by the CPU; or you can
+
+
+1250
+00:42:20,236 --> 00:42:21,886
+update a buffer through the GPU
+
+
+1251
+00:42:21,886 --> 00:42:23,126
+via buffer-to-buffer copy.
+
+
+1252
+00:42:24,436 --> 00:42:26,416
+Similarly, a texture can be
+
+
+1253
+00:42:26,416 --> 00:42:29,576
+updated by the CPU or it can be
+
+
+1254
+00:42:29,576 --> 00:42:31,006
+updated via texture-to-texture
+
+
+1255
+00:42:31,006 --> 00:42:32,076
+copy on the GPU.
+
+
+1256
+00:42:32,536 --> 00:42:35,916
+At a glance, Metal offers
+
+
+1257
+00:42:35,916 --> 00:42:36,966
+similar functionality.
+
+
+1258
+00:42:37,386 --> 00:42:38,886
+But as Lionel mentioned earlier,
+
+
+1259
+00:42:39,226 --> 00:42:40,466
+the containers for buffers and
+
+
+1260
+00:42:40,466 --> 00:42:42,426
+textures are immutable and are
+
+
+1261
+00:42:42,426 --> 00:42:43,826
+created during initialization;
+
+
+1262
+00:42:44,326 --> 00:42:45,736
+however, their contents can be
+
+
+1263
+00:42:45,736 --> 00:42:47,496
+modified through any combination
+
+
+1264
+00:42:47,496 --> 00:42:48,096
+of the following.
+
+
+1265
+00:42:48,686 --> 00:42:52,306
+A buffer with shared or managed
+
+
+1266
+00:42:52,306 --> 00:42:54,086
+storage mode can be updated
+
+
+1267
+00:42:54,456 --> 00:42:56,766
+through its contents property on
+
+
+1268
+00:42:56,766 --> 00:42:57,246
+the CPU.
+
+
+1269
+00:42:58,006 --> 00:43:00,786
+And on the GPU, the blitEncoder
+
+
+1270
+00:43:00,786 --> 00:43:02,426
+is in charge of doing all data
+
+
+1271
+00:43:02,426 --> 00:43:02,946
+copying.
+
+
+1272
+00:43:03,506 --> 00:43:05,226
+And so you can update a buffer
+
+
+1273
+00:43:05,226 --> 00:43:06,996
+from the GPU via the
+
+
+1274
+00:43:07,036 --> 00:43:08,916
+copyFromBuffer methods on the
+
+
+1275
+00:43:08,916 --> 00:43:09,436
+blitEncoder.
+
+
+1276
+00:43:10,896 --> 00:43:12,766
+Similarly, a texture with shared
+
+
+1277
+00:43:12,766 --> 00:43:14,296
+or managed storage mode can be
+
+
+1278
+00:43:14,296 --> 00:43:16,056
+updated on the CPU through its
+
+
+1279
+00:43:16,056 --> 00:43:17,056
+replaceRegion method.
+
+
+1280
+00:43:18,246 --> 00:43:20,436
+Or on the GPU, you can update a
+
+
+1281
+00:43:20,436 --> 00:43:21,416
+texture through the
+
+
+1282
+00:43:21,706 --> 00:43:23,186
+copyFromTexture methods on the
+
+
+1283
+00:43:23,186 --> 00:43:23,716
+blitEncoder.
+
+
+1284
+00:43:24,246 --> 00:43:27,646
+Note that storage mode matters
+
+
+1285
+00:43:27,726 --> 00:43:28,746
+here when it comes to these
+
+
+1286
+00:43:28,746 --> 00:43:31,236
+updates as only buffers and
+
+
+1287
+00:43:31,236 --> 00:43:32,506
+textures with shared or managed
+
+
+1288
+00:43:32,506 --> 00:43:33,976
+storage modes can be updated by
+
+
+1289
+00:43:34,216 --> 00:43:35,000
+the CPU.
+
+
+1290
+00:43:37,326 --> 00:43:38,406
+OpenGL managed the
+
+
+1291
+00:43:38,406 --> 00:43:39,906
+synchronization between the GPU
+
+
+1292
+00:43:39,906 --> 00:43:41,156
+and CPU for you, though
+
+
+1293
+00:43:41,226 --> 00:43:42,886
+sometimes at exorbitant costs to
+
+
+1294
+00:43:42,886 --> 00:43:44,156
+your application as it waited
+
+
+1295
+00:43:44,156 --> 00:43:45,446
+for one or the other to be done.
+
+
+1296
+00:43:46,736 --> 00:43:48,336
+In Metal, because you control
+
+
+1297
+00:43:48,396 --> 00:43:49,936
+how the memory is stored, you
+
+
+1298
+00:43:49,936 --> 00:43:51,746
+also control how and when the
+
+
+1299
+00:43:51,746 --> 00:43:52,606
+data is synchronized.
+
+
+1300
+00:43:53,156 --> 00:43:54,076
+And this is true for both
+
+
+1301
+00:43:54,076 --> 00:43:54,926
+buffers and textures.
+
+
+1302
+00:43:55,656 --> 00:43:59,676
+If you port your GL app to Metal
+
+
+1303
+00:43:59,676 --> 00:44:01,956
+and only use a single buffer for
+
+
+1304
+00:44:01,956 --> 00:44:03,806
+your resource updates, the flow
+
+
+1305
+00:44:03,806 --> 00:44:06,306
+will look like this.
+
+
+1306
+00:44:06,506 --> 00:44:08,176
+First, your CPU will update your
+
+
+1307
+00:44:08,176 --> 00:44:09,706
+resources during the setup of a
+
+
+1308
+00:44:09,706 --> 00:44:10,106
+render pass.
+
+
+1309
+00:44:10,846 --> 00:44:12,046
+And then once complete, the
+
+
+1310
+00:44:12,046 --> 00:44:13,346
+buffer will be available for the
+
+
+1311
+00:44:13,346 --> 00:44:15,006
+GPU to consume during the
+
+
+1312
+00:44:15,006 --> 00:44:16,326
+execution of that render pass.
+
+
+1313
+00:44:17,086 --> 00:44:18,886
+However, while the GPU is
+
+
+1314
+00:44:18,886 --> 00:44:20,056
+reading from this buffer, the
+
+
+1315
+00:44:20,056 --> 00:44:21,736
+CPU may begin setting up for the
+
+
+1316
+00:44:21,736 --> 00:44:22,826
+following render pass and will
+
+
+1317
+00:44:22,826 --> 00:44:24,126
+need to update the same buffer,
+
+
+1318
+00:44:25,056 --> 00:44:26,666
+which is a clear race condition.
+
+
+1319
+00:44:27,646 --> 00:44:28,886
+So let's look at one approach to
+
+
+1320
+00:44:28,886 --> 00:44:29,606
+solve this problem.
+
+
+1321
+00:44:30,186 --> 00:44:32,436
+A simple solution would be to
+
+
+1322
+00:44:32,436 --> 00:44:34,466
+commit this resource to the GPU
+
+
+1323
+00:44:34,766 --> 00:44:36,906
+with the waitUntilCompleted call
+
+
+1324
+00:44:37,026 --> 00:44:38,246
+on the commandBuffer it is used
+
+
+1325
+00:44:38,246 --> 00:44:38,426
+in.
+
+
+1326
+00:44:39,466 --> 00:44:40,766
+As we discussed earlier, this is
+
+
+1327
+00:44:40,816 --> 00:44:43,456
+similar to glFinish and it
+
+
+1328
+00:44:43,456 --> 00:44:45,456
+places a semaphore on all CPU
+
+
+1329
+00:44:45,456 --> 00:44:47,176
+work until the GPU is done
+
+
+1330
+00:44:47,346 --> 00:44:49,256
+executing the render pass that
+
+
+1331
+00:44:49,256 --> 00:44:49,926
+uses that buffer.
+
+
+1332
+00:44:49,986 --> 00:44:52,506
+After the execution is
+
+
+1333
+00:44:52,506 --> 00:44:54,336
+completed, a call back is
+
+
+1334
+00:44:54,336 --> 00:44:56,476
+received from the GPU, and this
+
+
+1335
+00:44:56,476 --> 00:44:58,046
+way you can ensure that your
+
+
+1336
+00:44:58,046 --> 00:44:59,466
+single buffer will not be
+
+
+1337
+00:44:59,466 --> 00:45:01,476
+stomped on by the CPU or the
+
+
+1338
+00:45:01,476 --> 00:45:02,006
+GPU.
+
+
+1339
+00:45:03,536 --> 00:45:07,416
+However, as you can see, the CPU
+
+
+1340
+00:45:07,416 --> 00:45:09,016
+is idle while the GPU is
+
+
+1341
+00:45:09,016 --> 00:45:10,996
+executing, and the GPU is
+
+
+1342
+00:45:10,996 --> 00:45:12,476
+starved waiting for the CPU to
+
+
+1343
+00:45:12,476 --> 00:45:12,946
+commit work.
+
+
+1344
+00:45:13,786 --> 00:45:15,266
+So while this can be helpful for
+
+
+1345
+00:45:15,266 --> 00:45:16,506
+you at the beginning while
+
+
+1346
+00:45:16,506 --> 00:45:18,036
+you're working out these race
+
+
+1347
+00:45:18,036 --> 00:45:19,426
+conditions, it is not
+
+
+1348
+00:45:19,426 --> 00:45:20,446
+recommended to use
+
+
+1349
+00:45:20,446 --> 00:45:21,766
+waitUntilCompleted as it
+
+
+1350
+00:45:21,766 --> 00:45:23,126
+introduces latency into your
+
+
+1351
+00:45:23,126 --> 00:45:24,146
+program.
+
+
+1352
+00:45:25,136 --> 00:45:27,646
+Instead, an efficient way to
+
+
+1353
+00:45:27,716 --> 00:45:29,526
+synchronize your updates is to
+
+
+1354
+00:45:29,526 --> 00:45:30,826
+use two or more buffers
+
+
+1355
+00:45:31,796 --> 00:45:32,986
+depending on your application's
+
+
+1356
+00:45:32,986 --> 00:45:34,776
+needs so that the CPU can write
+
+
+1357
+00:45:34,876 --> 00:45:36,616
+to one while the GPU reads from
+
+
+1358
+00:45:36,616 --> 00:45:36,946
+another.
+
+
+1359
+00:45:38,126 --> 00:45:39,406
+Let's look at a simple triple
+
+
+1360
+00:45:39,406 --> 00:45:40,286
+buffering example.
+
+
+1361
+00:45:40,756 --> 00:45:43,736
+So here we start with the first
+
+
+1362
+00:45:43,736 --> 00:45:45,596
+resource ready to go for the --
+
+
+1363
+00:45:45,956 --> 00:45:48,006
+to be consumed by the GPU.
+
+
+1364
+00:45:48,856 --> 00:45:49,566
+But instead of
+
+
+1365
+00:45:49,636 --> 00:45:51,346
+waitUntilCompleted, we just add
+
+
+1366
+00:45:51,346 --> 00:45:53,826
+a completion handler so that
+
+
+1367
+00:45:53,826 --> 00:45:55,196
+once the corresponding frame is
+
+
+1368
+00:45:55,196 --> 00:45:57,006
+finished on the GPU, it can let
+
+
+1369
+00:45:57,006 --> 00:46:00,156
+the CPU know that it is done.
+
+
+1370
+00:46:00,236 --> 00:46:01,466
+But now we don't have to wait
+
+
+1371
+00:46:01,666 --> 00:46:02,456
+for it to be done.
+
+
+1372
+00:46:03,546 --> 00:46:04,976
+While the GPU is executing, with
+
+
+1373
+00:46:04,976 --> 00:46:06,286
+triple buffering the CPU can
+
+
+1374
+00:46:06,286 --> 00:46:08,686
+jump two updates ahead because
+
+
+1375
+00:46:08,686 --> 00:46:09,656
+it's in different buffers.
+
+
+1376
+00:46:11,046 --> 00:46:12,906
+So here we are with the -- with
+
+
+1377
+00:46:12,906 --> 00:46:15,036
+the frame done executing on the
+
+
+1378
+00:46:15,036 --> 00:46:17,106
+GPU, and this is where the
+
+
+1379
+00:46:17,106 --> 00:46:18,176
+completion handler comes in.
+
+
+1380
+00:46:19,106 --> 00:46:20,606
+It notifies that GPU work is
+
+
+1381
+00:46:20,606 --> 00:46:22,016
+done and then returns the buffer
+
+
+1382
+00:46:22,016 --> 00:46:24,676
+to the buffer pool so that it
+
+
+1383
+00:46:24,676 --> 00:46:26,796
+can be used by the CPU in the
+
+
+1384
+00:46:26,796 --> 00:46:28,096
+next frame while the GPU
+
+
+1385
+00:46:28,096 --> 00:46:29,166
+continues execution.
+
+
+1386
+00:46:29,636 --> 00:46:31,586
+I think most developers will
+
+
+1387
+00:46:31,586 --> 00:46:32,456
+find that they'll need to
+
+
+1388
+00:46:32,456 --> 00:46:33,876
+implement triple buffering to
+
+
+1389
+00:46:33,876 --> 00:46:35,056
+achieve optimal performance.
+
+
+1390
+00:46:35,536 --> 00:46:38,996
+As for implementation, for
+
+
+1391
+00:46:38,996 --> 00:46:40,106
+triple buffering, of course, you
+
+
+1392
+00:46:40,106 --> 00:46:41,116
+need to start with a queue of
+
+
+1393
+00:46:41,266 --> 00:46:41,856
+three buffers.
+
+
+1394
+00:46:43,706 --> 00:46:45,266
+You also need to initialize your
+
+
+1395
+00:46:45,306 --> 00:46:46,726
+frameBoundarySemaphore with a
+
+
+1396
+00:46:46,726 --> 00:46:47,676
+starting value of three.
+
+
+1397
+00:46:47,676 --> 00:46:49,616
+And this semaphore will be
+
+
+1398
+00:46:49,616 --> 00:46:51,616
+signaled at each frame boundary
+
+
+1399
+00:46:51,616 --> 00:46:53,166
+when the GPU is done executing,
+
+
+1400
+00:46:54,016 --> 00:46:55,336
+letting the CPU know that it is
+
+
+1401
+00:46:55,336 --> 00:46:56,596
+safe to override that buffer.
+
+
+1402
+00:46:57,026 --> 00:46:59,466
+And finally, we need to
+
+
+1403
+00:46:59,466 --> 00:47:01,016
+initialize the buffer index to
+
+
+1404
+00:47:01,016 --> 00:47:03,146
+point at the current frame's
+
+
+1405
+00:47:03,996 --> 00:47:04,136
+buffer.
+
+
+1406
+00:47:04,316 --> 00:47:06,696
+Inside the render loop, before
+
+
+1407
+00:47:06,696 --> 00:47:08,026
+we write to a buffer, we need to
+
+
+1408
+00:47:08,026 --> 00:47:09,456
+ensure that the GPU is
+
+
+1409
+00:47:09,546 --> 00:47:11,506
+completely done executing the
+
+
+1410
+00:47:11,506 --> 00:47:12,446
+corresponding frame.
+
+
+1411
+00:47:13,666 --> 00:47:15,086
+So at the beginning of each
+
+
+1412
+00:47:15,536 --> 00:47:17,746
+render pass, we need to wait on
+
+
+1413
+00:47:17,746 --> 00:47:18,976
+our frameBoundarySemaphore.
+
+
+1414
+00:47:18,976 --> 00:47:20,966
+And then once the signal has
+
+
+1415
+00:47:20,996 --> 00:47:23,316
+been received, we know that it's
+
+
+1416
+00:47:23,376 --> 00:47:24,536
+safe to grab its buffer and
+
+
+1417
+00:47:24,536 --> 00:47:25,626
+reuse it for new frame data.
+
+
+1418
+00:47:26,216 --> 00:47:29,946
+And now we encode commands and
+
+
+1419
+00:47:29,946 --> 00:47:31,806
+bind this resource to the GPU to
+
+
+1420
+00:47:31,806 --> 00:47:33,466
+be used in the next frame.
+
+
+1421
+00:47:34,556 --> 00:47:36,026
+But before we commit it, we have
+
+
+1422
+00:47:36,026 --> 00:47:37,386
+to add our completion handler to
+
+
+1423
+00:47:37,386 --> 00:47:39,876
+the commandBuffer and then we
+
+
+1424
+00:47:39,876 --> 00:47:40,906
+commit it.
+
+
+1425
+00:47:41,636 --> 00:47:43,116
+And once the GPU has finished
+
+
+1426
+00:47:43,116 --> 00:47:44,446
+executing, our completion
+
+
+1427
+00:47:44,486 --> 00:47:46,006
+handler will signal our frame
+
+
+1428
+00:47:46,066 --> 00:47:48,436
+semaphore, allowing the CPU to
+
+
+1429
+00:47:48,436 --> 00:47:49,766
+know that it is done and it can
+
+
+1430
+00:47:49,766 --> 00:47:50,936
+reuse the buffer for the next
+
+
+1431
+00:47:50,936 --> 00:47:51,596
+frame's encoding.
+
+
+1432
+00:47:52,146 --> 00:47:54,816
+And this is a simple triple
+
+
+1433
+00:47:54,816 --> 00:47:56,886
+buffer implementation that you
+
+
+1434
+00:47:56,886 --> 00:47:58,446
+can adopt for any dynamic
+
+
+1435
+00:47:58,536 --> 00:47:59,256
+resource updates.
+
+
+1436
+00:47:59,796 --> 00:47:59,896
+Okay.
+
+
+1437
+00:48:01,176 --> 00:48:04,186
+So now we have our resources
+
+
+1438
+00:48:04,186 --> 00:48:06,146
+updated, so let's talk about
+
+
+1439
+00:48:06,146 --> 00:48:07,026
+render targets.
+
+
+1440
+00:48:08,196 --> 00:48:10,456
+In OpenGL, framebuffer objects
+
+
+1441
+00:48:10,456 --> 00:48:11,716
+are the destination for
+
+
+1442
+00:48:11,716 --> 00:48:12,386
+rendering commands.
+
+
+1443
+00:48:13,416 --> 00:48:14,896
+An FBO collects a number of
+
+
+1444
+00:48:14,946 --> 00:48:16,136
+textures and render buffer
+
+
+1445
+00:48:16,136 --> 00:48:17,596
+objects under one umbrella and
+
+
+1446
+00:48:17,596 --> 00:48:19,516
+facilitates rendering into them.
+
+
+1447
+00:48:20,076 --> 00:48:21,576
+The state of a framebuffer is
+
+
+1448
+00:48:21,576 --> 00:48:23,736
+mutable, and the render pass is
+
+
+1449
+00:48:23,736 --> 00:48:25,116
+loosely outlined by binding a
+
+
+1450
+00:48:25,176 --> 00:48:26,346
+framebuffer and ultimately
+
+
+1451
+00:48:26,416 --> 00:48:27,306
+swapping them for display.
+
+
+1452
+00:48:27,406 --> 00:48:30,756
+This is a typical OpenGL
+
+
+1453
+00:48:30,756 --> 00:48:32,066
+workflow with framebuffers.
+
+
+1454
+00:48:33,566 --> 00:48:34,506
+During the application's
+
+
+1455
+00:48:34,506 --> 00:48:36,036
+initialization stage, a
+
+
+1456
+00:48:36,036 --> 00:48:37,126
+framebuffer is created.
+
+
+1457
+00:48:37,386 --> 00:48:38,836
+And then you make it current by
+
+
+1458
+00:48:38,836 --> 00:48:39,206
+binding it.
+
+
+1459
+00:48:39,206 --> 00:48:41,546
+And then you attach resources
+
+
+1460
+00:48:41,546 --> 00:48:43,106
+like textures and then check the
+
+
+1461
+00:48:43,106 --> 00:48:44,336
+framebuffer status to make sure
+
+
+1462
+00:48:44,336 --> 00:48:45,706
+it's valid to use.
+
+
+1463
+00:48:46,976 --> 00:48:49,056
+During draw time, you make a
+
+
+1464
+00:48:49,056 --> 00:48:50,246
+framebuffer current by binding
+
+
+1465
+00:48:50,246 --> 00:48:51,956
+it, which is implicit start to a
+
+
+1466
+00:48:51,956 --> 00:48:52,466
+render pass.
+
+
+1467
+00:48:53,236 --> 00:48:54,566
+And then you have to clear it
+
+
+1468
+00:48:55,286 --> 00:48:56,746
+before you make any draw calls
+
+
+1469
+00:48:56,826 --> 00:48:57,086
+to it.
+
+
+1470
+00:48:57,086 --> 00:48:59,796
+And then at the end you can
+
+
+1471
+00:48:59,886 --> 00:49:01,296
+signal that certain attachments
+
+
+1472
+00:49:01,296 --> 00:49:03,276
+can be discarded to let OpenGL
+
+
+1473
+00:49:03,276 --> 00:49:04,606
+know that it's not necessary to
+
+
+1474
+00:49:04,606 --> 00:49:05,596
+store these contents into
+
+
+1475
+00:49:05,596 --> 00:49:05,976
+memory.
+
+
+1476
+00:49:06,796 --> 00:49:08,396
+These discard events can serve
+
+
+1477
+00:49:09,146 --> 00:49:11,036
+as hints to end the render pass,
+
+
+1478
+00:49:11,416 --> 00:49:12,506
+but it's not a guarantee.
+
+
+1479
+00:49:15,536 --> 00:49:17,286
+In Metal, the render command
+
+
+1480
+00:49:17,286 --> 00:49:18,886
+encoder is the destination for
+
+
+1481
+00:49:18,886 --> 00:49:19,546
+rendering commands.
+
+
+1482
+00:49:20,506 --> 00:49:21,686
+A render command encoder is
+
+
+1483
+00:49:21,686 --> 00:49:22,776
+created from a render pass
+
+
+1484
+00:49:22,776 --> 00:49:24,826
+descriptor, which, similar to an
+
+
+1485
+00:49:24,996 --> 00:49:26,496
+FBO, collects a number of
+
+
+1486
+00:49:26,546 --> 00:49:27,746
+rendering destinations for a
+
+
+1487
+00:49:27,746 --> 00:49:28,976
+render pass and facilitates
+
+
+1488
+00:49:28,976 --> 00:49:29,616
+rendering into them.
+
+
+1489
+00:49:30,966 --> 00:49:32,116
+A render command encoder is
+
+
+1490
+00:49:32,116 --> 00:49:33,346
+directly responsible for
+
+
+1491
+00:49:33,376 --> 00:49:34,666
+generating the hardware commands
+
+
+1492
+00:49:34,666 --> 00:49:36,736
+for your GPU, and a render pass
+
+
+1493
+00:49:36,736 --> 00:49:38,496
+is explicitly delineated by the
+
+
+1494
+00:49:38,556 --> 00:49:39,926
+starting and ending of encoders.
+
+
+1495
+00:49:40,496 --> 00:49:43,296
+Here's a render pass in Metal.
+
+
+1496
+00:49:44,356 --> 00:49:45,426
+You start by creating your
+
+
+1497
+00:49:45,426 --> 00:49:46,306
+renderPassDescriptor.
+
+
+1498
+00:49:46,306 --> 00:49:48,686
+And the renderPassDescriptor
+
+
+1499
+00:49:48,686 --> 00:49:49,986
+describes all the attached
+
+
+1500
+00:49:50,176 --> 00:49:52,936
+resources and also specifies the
+
+
+1501
+00:49:52,936 --> 00:49:54,076
+operations that happen at the
+
+
+1502
+00:49:54,076 --> 00:49:55,316
+beginning and end of a render
+
+
+1503
+00:49:55,316 --> 00:49:57,266
+pass -- these are called load
+
+
+1504
+00:49:57,266 --> 00:49:58,176
+and store actions.
+
+
+1505
+00:49:59,086 --> 00:50:01,736
+In contrast to GL, in Metal you
+
+
+1506
+00:50:01,736 --> 00:50:03,146
+do not clear a resource
+
+
+1507
+00:50:03,216 --> 00:50:06,106
+directly; instead, you specify a
+
+
+1508
+00:50:06,106 --> 00:50:07,996
+load action to clear it and also
+
+
+1509
+00:50:07,996 --> 00:50:08,406
+the color.
+
+
+1510
+00:50:08,936 --> 00:50:11,756
+Here, it is black.
+
+
+1511
+00:50:11,756 --> 00:50:13,586
+The store action here is don't
+
+
+1512
+00:50:13,626 --> 00:50:16,296
+care, which is similar to GL
+
+
+1513
+00:50:16,296 --> 00:50:17,876
+discard framebuffer in our GL
+
+
+1514
+00:50:17,876 --> 00:50:18,306
+example.
+
+
+1515
+00:50:19,646 --> 00:50:21,016
+If you want to store the results
+
+
+1516
+00:50:21,016 --> 00:50:21,946
+to memory, you would use the
+
+
+1517
+00:50:21,946 --> 00:50:23,146
+store action here instead.
+
+
+1518
+00:50:23,686 --> 00:50:27,266
+And at render time, you use your
+
+
+1519
+00:50:27,266 --> 00:50:28,306
+descriptor to create your
+
+
+1520
+00:50:28,306 --> 00:50:31,016
+encoder so the state is set.
+
+
+1521
+00:50:31,226 --> 00:50:33,136
+You make all your draw calls and
+
+
+1522
+00:50:33,136 --> 00:50:34,956
+then explicitly end encoding.
+
+
+1523
+00:50:35,436 --> 00:50:37,436
+But before discarding
+
+
+1524
+00:50:37,436 --> 00:50:39,336
+framebuffers or ending encoding,
+
+
+1525
+00:50:39,676 --> 00:50:40,976
+let's actually draw something.
+
+
+1526
+00:50:41,986 --> 00:50:44,366
+A series of render commands is
+
+
+1527
+00:50:44,366 --> 00:50:45,546
+often referred to as a render
+
+
+1528
+00:50:45,546 --> 00:50:45,706
+pass.
+
+
+1529
+00:50:46,866 --> 00:50:48,336
+Inside the render pass, you set
+
+
+1530
+00:50:48,336 --> 00:50:49,596
+up state and draw call inputs
+
+
+1531
+00:50:49,596 --> 00:50:51,186
+like textures and buffers and
+
+
+1532
+00:50:51,186 --> 00:50:52,916
+then issue your draw commands.
+
+
+1533
+00:50:54,016 --> 00:50:56,176
+This is a typical OpenGL draw
+
+
+1534
+00:50:56,246 --> 00:50:56,536
+sequence.
+
+
+1535
+00:50:57,706 --> 00:50:59,606
+A well-behaved OpenGL app tries
+
+
+1536
+00:50:59,606 --> 00:51:00,856
+to set all of its state ahead of
+
+
+1537
+00:51:00,896 --> 00:51:03,236
+time, and then it binds its
+
+
+1538
+00:51:03,566 --> 00:51:07,476
+target and a GL program to link
+
+
+1539
+00:51:07,476 --> 00:51:07,826
+shaders.
+
+
+1540
+00:51:08,446 --> 00:51:11,166
+Then it will bind resources such
+
+
+1541
+00:51:11,166 --> 00:51:13,086
+as vertex buffers, uniforms, and
+
+
+1542
+00:51:13,086 --> 00:51:14,696
+textures to different stages in
+
+
+1543
+00:51:14,696 --> 00:51:15,216
+the program.
+
+
+1544
+00:51:16,576 --> 00:51:17,846
+And finally, it will draw.
+
+
+1545
+00:51:21,356 --> 00:51:22,806
+As we've discussed a few moments
+
+
+1546
+00:51:22,806 --> 00:51:25,216
+ago, OpenGL state changes can
+
+
+1547
+00:51:25,216 --> 00:51:26,336
+cause hidden validation checks.
+
+
+1548
+00:51:26,336 --> 00:51:28,266
+And if you're already grouping
+
+
+1549
+00:51:28,266 --> 00:51:29,896
+your state changes together in
+
+
+1550
+00:51:29,896 --> 00:51:31,146
+OpenGL to avoid these
+
+
+1551
+00:51:31,196 --> 00:51:32,596
+performance hits, then you'll
+
+
+1552
+00:51:32,596 --> 00:51:33,916
+get the most out of Metal's
+
+
+1553
+00:51:34,186 --> 00:51:35,456
+pre-validated state objects.
+
+
+1554
+00:51:36,846 --> 00:51:38,636
+In Metal, because validation
+
+
+1555
+00:51:38,636 --> 00:51:39,776
+only happens when you create
+
+
+1556
+00:51:39,776 --> 00:51:41,376
+your PipelineState object and
+
+
+1557
+00:51:41,376 --> 00:51:42,926
+because shaders are precompiled,
+
+
+1558
+00:51:43,296 --> 00:51:44,696
+your render loop becomes much
+
+
+1559
+00:51:44,926 --> 00:51:45,276
+smaller.
+
+
+1560
+00:51:45,866 --> 00:51:48,446
+But for a programmer, there's
+
+
+1561
+00:51:48,476 --> 00:51:49,706
+not that many changes to do.
+
+
+1562
+00:51:50,866 --> 00:51:52,326
+Here is the same code that we
+
+
+1563
+00:51:52,326 --> 00:51:53,576
+looked at in OpenGL but now in
+
+
+1564
+00:51:53,576 --> 00:51:53,846
+Metal.
+
+
+1565
+00:51:55,586 --> 00:51:57,006
+You start with your render
+
+
+1566
+00:51:57,006 --> 00:51:58,776
+command encoder, which is an
+
+
+1567
+00:51:58,776 --> 00:51:59,946
+equivalent to setting the GL
+
+
+1568
+00:51:59,946 --> 00:52:00,486
+framebuffer.
+
+
+1569
+00:52:00,486 --> 00:52:03,696
+And then you set your prebuilt
+
+
+1570
+00:52:03,696 --> 00:52:05,026
+PipelineState object, which is
+
+
+1571
+00:52:05,026 --> 00:52:06,466
+equivalent to GL use program.
+
+
+1572
+00:52:06,656 --> 00:52:09,356
+And after that, we assign
+
+
+1573
+00:52:09,356 --> 00:52:10,776
+resources for our Metal program,
+
+
+1574
+00:52:10,966 --> 00:52:12,196
+starting with the VertexBuffer
+
+
+1575
+00:52:12,696 --> 00:52:13,346
+and uniforms.
+
+
+1576
+00:52:13,946 --> 00:52:15,366
+And you can note here that you
+
+
+1577
+00:52:15,366 --> 00:52:16,986
+have to set your uniforms per
+
+
+1578
+00:52:17,506 --> 00:52:20,326
+shader stage instead of like in
+
+
+1579
+00:52:20,326 --> 00:52:22,116
+GL you set it for the GL
+
+
+1580
+00:52:22,116 --> 00:52:22,586
+program.
+
+
+1581
+00:52:23,726 --> 00:52:24,936
+And here, because we ported it
+
+
+1582
+00:52:24,936 --> 00:52:26,256
+directly from OpenGL, we're
+
+
+1583
+00:52:26,256 --> 00:52:27,216
+sending the same set of
+
+
+1584
+00:52:27,216 --> 00:52:29,726
+uniforms; but in Metal you can
+
+
+1585
+00:52:29,726 --> 00:52:30,876
+send different ones if you want.
+
+
+1586
+00:52:31,236 --> 00:52:33,506
+And then you set your textures
+
+
+1587
+00:52:33,506 --> 00:52:35,306
+and issue the draw call.
+
+
+1588
+00:52:35,366 --> 00:52:36,816
+And finally, once you've done
+
+
+1589
+00:52:36,876 --> 00:52:38,376
+all the draw calls, you can end
+
+
+1590
+00:52:38,376 --> 00:52:39,626
+your render pass.
+
+
+1591
+00:52:41,776 --> 00:52:43,146
+And now, once the work is
+
+
+1592
+00:52:43,196 --> 00:52:44,586
+submitted, there's still the
+
+
+1593
+00:52:44,586 --> 00:52:45,526
+matter of presenting.
+
+
+1594
+00:52:46,156 --> 00:52:49,716
+As the GPU renders the scene, it
+
+
+1595
+00:52:49,716 --> 00:52:50,796
+writes out to a framebuffer to
+
+
+1596
+00:52:50,796 --> 00:52:51,136
+display.
+
+
+1597
+00:52:52,236 --> 00:52:54,516
+In OpenGL, in order to present a
+
+
+1598
+00:52:54,516 --> 00:52:56,746
+rendered frame, when you return
+
+
+1599
+00:52:56,746 --> 00:52:58,386
+from drawInRect, the context
+
+
+1600
+00:52:58,746 --> 00:53:00,536
+calls the presetRenderBuffer for
+
+
+1601
+00:53:00,536 --> 00:53:00,706
+you.
+
+
+1602
+00:53:01,906 --> 00:53:03,136
+Metal, on the other hand,
+
+
+1603
+00:53:03,136 --> 00:53:04,596
+accomplishes this directly
+
+
+1604
+00:53:04,656 --> 00:53:06,046
+through Core Animations pool of
+
+
+1605
+00:53:06,046 --> 00:53:06,486
+drawables.
+
+
+1606
+00:53:07,296 --> 00:53:08,796
+And drawables are textures for
+
+
+1607
+00:53:08,796 --> 00:53:09,646
+on-screen display.
+
+
+1608
+00:53:10,206 --> 00:53:13,036
+And you can encode a render pass
+
+
+1609
+00:53:13,086 --> 00:53:14,076
+to encode to drawables.
+
+
+1610
+00:53:15,126 --> 00:53:16,376
+You fetch the current drawable,
+
+
+1611
+00:53:16,376 --> 00:53:17,726
+and then after your render loop
+
+
+1612
+00:53:18,036 --> 00:53:19,216
+tell the command buffer to
+
+
+1613
+00:53:19,216 --> 00:53:22,146
+present it.
+
+
+1614
+00:53:22,346 --> 00:53:24,126
+Remember our code from the very,
+
+
+1615
+00:53:24,126 --> 00:53:26,296
+very beginning of this talk when
+
+
+1616
+00:53:26,296 --> 00:53:27,306
+we were talking about the
+
+
+1617
+00:53:27,306 --> 00:53:28,156
+windows subsystem.
+
+
+1618
+00:53:29,006 --> 00:53:30,396
+Here we're going to dive into
+
+
+1619
+00:53:30,396 --> 00:53:33,856
+glkView and drawInMTKView to see
+
+
+1620
+00:53:33,916 --> 00:53:34,916
+how you can present what you've
+
+
+1621
+00:53:34,916 --> 00:53:35,196
+rendered.
+
+
+1622
+00:53:35,806 --> 00:53:37,956
+So here it is.
+
+
+1623
+00:53:38,706 --> 00:53:40,396
+In glkView you bind your
+
+
+1624
+00:53:40,396 --> 00:53:42,336
+framebuffer; perform your render
+
+
+1625
+00:53:42,336 --> 00:53:43,986
+commands; and then when you
+
+
+1626
+00:53:43,986 --> 00:53:45,466
+return from drawInRect, the
+
+
+1627
+00:53:45,466 --> 00:53:46,546
+present is managed for you.
+
+
+1628
+00:53:47,996 --> 00:53:49,926
+In Metal it's much the same: You
+
+
+1629
+00:53:49,926 --> 00:53:51,186
+create your commandBuffer,
+
+
+1630
+00:53:51,586 --> 00:53:52,916
+perform your render commands by
+
+
+1631
+00:53:52,916 --> 00:53:55,456
+creating ending encoders, and
+
+
+1632
+00:53:55,456 --> 00:53:56,796
+then the one extra step you have
+
+
+1633
+00:53:56,836 --> 00:53:58,966
+to take is to call
+
+
+1634
+00:53:58,966 --> 00:54:00,926
+presentDrawable yourself before
+
+
+1635
+00:54:00,926 --> 00:54:01,766
+finally committing your
+
+
+1636
+00:54:02,096 --> 00:54:02,726
+commandBuffer.
+
+
+1637
+00:54:02,776 --> 00:54:05,416
+And if your render loop is very
+
+
+1638
+00:54:05,416 --> 00:54:06,806
+simple with a single encoder,
+
+
+1639
+00:54:07,126 --> 00:54:08,296
+then this is all you have to do;
+
+
+1640
+00:54:09,066 --> 00:54:10,446
+however, if you do have a more
+
+
+1641
+00:54:10,446 --> 00:54:12,106
+complex app, you may want to
+
+
+1642
+00:54:12,106 --> 00:54:13,416
+check out the talk we have on
+
+
+1643
+00:54:13,416 --> 00:54:14,956
+delivering optimized Metal apps
+
+
+1644
+00:54:14,956 --> 00:54:16,716
+and games for how to handle your
+
+
+1645
+00:54:16,716 --> 00:54:17,166
+drawables.
+
+
+1646
+00:54:17,166 --> 00:54:20,346
+And that concludes our frame.
+
+
+1647
+00:54:20,706 --> 00:54:21,776
+So we've shown how the window
+
+
+1648
+00:54:21,776 --> 00:54:23,156
+subsystem can be migrated
+
+
+1649
+00:54:23,156 --> 00:54:23,626
+easily.
+
+
+1650
+00:54:24,446 --> 00:54:25,706
+We've gone over the resource
+
+
+1651
+00:54:25,706 --> 00:54:26,406
+creation steps.
+
+
+1652
+00:54:26,956 --> 00:54:28,456
+We've ported our shaders and
+
+
+1653
+00:54:28,456 --> 00:54:29,916
+used the great tools to quickly
+
+
+1654
+00:54:29,916 --> 00:54:30,586
+find issues.
+
+
+1655
+00:54:31,136 --> 00:54:33,596
+We created our render command
+
+
+1656
+00:54:33,656 --> 00:54:34,946
+queue, command buffers, and
+
+
+1657
+00:54:34,946 --> 00:54:36,516
+command encoders to set up our
+
+
+1658
+00:54:36,516 --> 00:54:37,266
+render passes.
+
+
+1659
+00:54:37,516 --> 00:54:39,036
+And we created our prevalidated
+
+
+1660
+00:54:39,036 --> 00:54:39,726
+state objects.
+
+
+1661
+00:54:40,166 --> 00:54:42,496
+Then to render each frame, we
+
+
+1662
+00:54:42,496 --> 00:54:43,866
+used triple buffering to update
+
+
+1663
+00:54:43,866 --> 00:54:44,626
+our resources.
+
+
+1664
+00:54:45,576 --> 00:54:46,536
+We used the render command
+
+
+1665
+00:54:46,536 --> 00:54:47,936
+encoders for our command -- for
+
+
+1666
+00:54:47,936 --> 00:54:49,706
+our render passes where we drew
+
+
+1667
+00:54:49,706 --> 00:54:51,776
+our geometry before ultimately
+
+
+1668
+00:54:51,816 --> 00:54:53,156
+presenting the rendered frame.
+
+
+1669
+00:54:53,696 --> 00:54:56,106
+We've walked through the life of
+
+
+1670
+00:54:56,106 --> 00:54:57,516
+a graphics app and showed how
+
+
+1671
+00:54:57,516 --> 00:54:59,066
+Metal is a natural evolution.
+
+
+1672
+00:54:59,906 --> 00:55:01,936
+Many of OpenGL's established
+
+
+1673
+00:55:02,286 --> 00:55:03,866
+concepts have migrated into
+
+
+1674
+00:55:03,866 --> 00:55:05,476
+Metal to work alongside new
+
+
+1675
+00:55:05,476 --> 00:55:07,136
+concepts that we've added to
+
+
+1676
+00:55:07,136 --> 00:55:09,156
+address specific problems raised
+
+
+1677
+00:55:09,156 --> 00:55:10,066
+in the graphics community.
+
+
+1678
+00:55:11,086 --> 00:55:12,756
+If you can take one thing away
+
+
+1679
+00:55:12,756 --> 00:55:14,296
+from this session, we hope it's
+
+
+1680
+00:55:14,296 --> 00:55:15,706
+that porting your applications
+
+
+1681
+00:55:15,706 --> 00:55:17,516
+from OpenGL to Metal is not
+
+
+1682
+00:55:17,516 --> 00:55:19,246
+intimidating and that your
+
+
+1683
+00:55:19,246 --> 00:55:20,896
+application will actually
+
+
+1684
+00:55:20,896 --> 00:55:21,626
+benefit from it.
+
+
+1685
+00:55:23,006 --> 00:55:24,666
+But if you have room for two
+
+
+1686
+00:55:24,666 --> 00:55:26,596
+things, it's that Metal also
+
+
+1687
+00:55:26,596 --> 00:55:28,516
+offers an awesome set of tools
+
+
+1688
+00:55:29,626 --> 00:55:30,846
+to enhance your developing
+
+
+1689
+00:55:30,846 --> 00:55:31,326
+experience.
+
+
+1690
+00:55:32,226 --> 00:55:34,736
+Max already demoed Xcode's
+
+
+1691
+00:55:34,736 --> 00:55:35,836
+built-in frame capture and
+
+
+1692
+00:55:35,836 --> 00:55:38,756
+shader debugger to offer deeper
+
+
+1693
+00:55:38,756 --> 00:55:40,166
+insight into subtle issues
+
+
+1694
+00:55:40,166 --> 00:55:40,866
+within your code.
+
+
+1695
+00:55:41,366 --> 00:55:43,456
+But Xcode also offers the new
+
+
+1696
+00:55:43,456 --> 00:55:46,076
+GPU memory viewer to understand
+
+
+1697
+00:55:46,076 --> 00:55:47,796
+and optimize how to use memory
+
+
+1698
+00:55:47,796 --> 00:55:48,566
+in your application.
+
+
+1699
+00:55:50,026 --> 00:55:51,406
+In instruments we have a game
+
+
+1700
+00:55:51,406 --> 00:55:52,456
+performance template that
+
+
+1701
+00:55:52,456 --> 00:55:53,826
+includes the Metal system trace
+
+
+1702
+00:55:54,256 --> 00:55:56,016
+to visualize submission issues
+
+
+1703
+00:55:56,466 --> 00:55:57,826
+which might cause frame drops.
+
+
+1704
+00:55:59,216 --> 00:56:02,246
+And new this year we also have
+
+
+1705
+00:56:02,606 --> 00:56:04,066
+support for Metal in the
+
+
+1706
+00:56:04,066 --> 00:56:04,606
+simulator.
+
+
+1707
+00:56:06,466 --> 00:56:07,476
+Yay, you can get excited.
+
+
+1708
+00:56:08,016 --> 00:56:10,436
+[laughs]
+
+
+1709
+00:56:10,936 --> 00:56:13,026
+New with Xcode 11 on macOS
+
+
+1710
+00:56:13,026 --> 00:56:15,226
+Catalina, we have full hardware
+
+
+1711
+00:56:15,226 --> 00:56:17,356
+acceleration to run your games
+
+
+1712
+00:56:17,356 --> 00:56:20,226
+and apps for iOS and tvOS
+
+
+1713
+00:56:20,646 --> 00:56:21,806
+simulator using Metal.
+
+
+1714
+00:56:23,186 --> 00:56:24,356
+The simulator supports the
+
+
+1715
+00:56:24,356 --> 00:56:26,766
+MTLGPUFamilyApple2 feature set
+
+
+1716
+00:56:26,766 --> 00:56:28,356
+and should meet the majority of
+
+
+1717
+00:56:28,406 --> 00:56:30,096
+your needs to run all of your
+
+
+1718
+00:56:30,166 --> 00:56:31,696
+apps and games in all available
+
+
+1719
+00:56:31,696 --> 00:56:32,586
+screen resolutions.
+
+
+1720
+00:56:33,086 --> 00:56:36,246
+For a deeper dive into the
+
+
+1721
+00:56:36,316 --> 00:56:37,746
+simulator and how it achieves
+
+
+1722
+00:56:37,746 --> 00:56:39,846
+hardware acceleration, please
+
+
+1723
+00:56:39,846 --> 00:56:41,026
+check out the simulator talk
+
+
+1724
+00:56:41,286 --> 00:56:41,966
+tomorrow morning.
+
+
+1725
+00:56:42,946 --> 00:56:44,016
+If you're looking to solve a
+
+
+1726
+00:56:44,016 --> 00:56:45,946
+specific issue with Metal, you
+
+
+1727
+00:56:45,946 --> 00:56:47,746
+can see our many, many sessions
+
+
+1728
+00:56:47,746 --> 00:56:48,306
+online.
+
+
+1729
+00:56:50,096 --> 00:56:52,496
+For more information, you can
+
+
+1730
+00:56:52,496 --> 00:56:54,326
+check out our documentation on
+
+
+1731
+00:56:54,326 --> 00:56:56,126
+our website or you can visit us
+
+
+1732
+00:56:56,126 --> 00:56:57,056
+in the Metal lab tomorrow
+
+
+1733
+00:56:57,056 --> 00:56:57,386
+morning.
+
+
+1734
+00:56:58,416 --> 00:57:00,136
+And with that, thank you all for
+
+
+1735
+00:57:00,136 --> 00:57:01,416
+coming, and I hope to see you at
+
+
+1736
+00:57:01,416 --> 00:57:01,956
+the bash.
+
+
+1737
+00:57:02,516 --> 00:57:05,500
+[ Applause ]
+

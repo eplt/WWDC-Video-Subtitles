@@ -1,0 +1,5634 @@
+1
+00:00:01,176 --> 00:00:04,500
+[ Music ]
+
+
+2
+00:00:11,516 --> 00:00:16,676
+[ Applause ]
+
+
+3
+00:00:17,176 --> 00:00:18,086
+>> Good afternoon.
+
+
+4
+00:00:18,366 --> 00:00:19,926
+My name is Frank Doepke and I'm
+
+
+5
+00:00:19,926 --> 00:00:21,226
+going to talk to you about Text
+
+
+6
+00:00:21,226 --> 00:00:22,546
+Recognition in the Vision
+
+
+7
+00:00:22,546 --> 00:00:22,956
+Framework.
+
+
+8
+00:00:23,506 --> 00:00:26,686
+Now, for those of you who are
+
+
+9
+00:00:26,686 --> 00:00:28,236
+familiar with Vision, you'll
+
+
+10
+00:00:28,236 --> 00:00:29,446
+know that we already had the
+
+
+11
+00:00:29,446 --> 00:00:32,735
+VNDetectRectangleRequest that
+
+
+12
+00:00:32,735 --> 00:00:34,336
+tells you where there is text in
+
+
+13
+00:00:34,336 --> 00:00:34,796
+an image.
+
+
+14
+00:00:36,176 --> 00:00:38,286
+For some mysterious reason, we
+
+
+15
+00:00:38,286 --> 00:00:40,176
+always got the question, "What
+
+
+16
+00:00:40,176 --> 00:00:41,086
+is the text?"
+
+
+17
+00:00:41,806 --> 00:00:43,496
+So, we needed a little bit of
+
+
+18
+00:00:43,696 --> 00:00:44,946
+extra code.
+
+
+19
+00:00:45,156 --> 00:00:46,776
+It arrayed over your results,
+
+
+20
+00:00:47,916 --> 00:00:50,206
+and then you need to train
+
+
+21
+00:00:50,206 --> 00:00:52,456
+basically a Core ML model that
+
+
+22
+00:00:52,456 --> 00:00:53,606
+actually can read this stuff.
+
+
+23
+00:00:55,076 --> 00:00:57,636
+Next, you run the Core ML model.
+
+
+24
+00:00:58,376 --> 00:01:00,126
+You filter out the bad
+
+
+25
+00:01:00,126 --> 00:01:01,256
+characterization.
+
+
+26
+00:01:02,086 --> 00:01:03,156
+You take all these characters,
+
+
+27
+00:01:03,156 --> 00:01:05,336
+put them into a string, and then
+
+
+28
+00:01:05,336 --> 00:01:06,646
+come up with some heuristics
+
+
+29
+00:01:07,056 --> 00:01:08,926
+that actually form the really
+
+
+30
+00:01:08,926 --> 00:01:10,536
+sentences and words out of this.
+
+
+31
+00:01:11,926 --> 00:01:12,956
+So now you know why we need a
+
+
+32
+00:01:12,956 --> 00:01:14,366
+full session to talk about Text
+
+
+33
+00:01:14,366 --> 00:01:14,906
+Recognition.
+
+
+34
+00:01:15,436 --> 00:01:18,096
+But today, I want to make this
+
+
+35
+00:01:18,096 --> 00:01:18,506
+easier.
+
+
+36
+00:01:19,756 --> 00:01:21,536
+And we have something new, and
+
+
+37
+00:01:21,536 --> 00:01:21,926
+that is the
+
+
+38
+00:01:21,926 --> 00:01:23,606
+VNRecognizedTextRequest.
+
+
+39
+00:01:24,136 --> 00:01:26,556
+And just that little bit of text
+
+
+40
+00:01:26,556 --> 00:01:30,006
+that you see here [applause],
+
+
+41
+00:01:30,886 --> 00:01:34,466
+this allows you to take you from
+
+
+42
+00:01:34,466 --> 00:01:36,136
+an image like this into
+
+
+43
+00:01:36,796 --> 00:01:37,946
+recognized text like this.
+
+
+44
+00:01:38,036 --> 00:01:40,036
+[ Applause ]
+
+
+45
+00:01:40,056 --> 00:01:41,376
+Thank you.
+
+
+46
+00:01:45,516 --> 00:01:46,436
+Okay, so what are we going to
+
+
+47
+00:01:46,436 --> 00:01:47,046
+cover today?
+
+
+48
+00:01:48,396 --> 00:01:49,256
+First we're going to talk a
+
+
+49
+00:01:49,256 --> 00:01:50,846
+little bit about how Text
+
+
+50
+00:01:50,846 --> 00:01:51,636
+Recognition works.
+
+
+51
+00:01:53,056 --> 00:01:54,266
+We have a number of example
+
+
+52
+00:01:54,266 --> 00:01:56,126
+applications and they're also
+
+
+53
+00:01:56,126 --> 00:01:57,356
+all attached to the session so
+
+
+54
+00:01:57,356 --> 00:01:58,406
+you can download the sample
+
+
+55
+00:01:58,406 --> 00:01:58,696
+code.
+
+
+56
+00:02:00,156 --> 00:02:01,076
+And last but not least, we're
+
+
+57
+00:02:01,076 --> 00:02:01,986
+going to go over some best
+
+
+58
+00:02:02,046 --> 00:02:03,756
+practices on how to use our Text
+
+
+59
+00:02:03,756 --> 00:02:04,296
+Recognition.
+
+
+60
+00:02:04,866 --> 00:02:07,136
+So, how does Text Recognition
+
+
+61
+00:02:07,136 --> 00:02:07,746
+work in Vision?
+
+
+62
+00:02:08,446 --> 00:02:10,846
+We have two paths to choose
+
+
+63
+00:02:10,846 --> 00:02:11,156
+from.
+
+
+64
+00:02:11,246 --> 00:02:15,266
+The fast path, and the accurate
+
+
+65
+00:02:15,336 --> 00:02:15,626
+path.
+
+
+66
+00:02:18,216 --> 00:02:21,446
+The fast path works just
+
+
+67
+00:02:21,446 --> 00:02:22,626
+actually on what Text Detector
+
+
+68
+00:02:22,626 --> 00:02:24,896
+did before by finding characters
+
+
+69
+00:02:25,626 --> 00:02:28,686
+and then advance a small machine
+
+
+70
+00:02:28,686 --> 00:02:30,336
+learning model to actually
+
+
+71
+00:02:30,336 --> 00:02:31,556
+recognize those characters,
+
+
+72
+00:02:31,896 --> 00:02:33,856
+character by character.
+
+
+73
+00:02:35,176 --> 00:02:36,796
+The accurate path, on the other
+
+
+74
+00:02:36,796 --> 00:02:38,716
+hand, uses a state-of-the-art
+
+
+75
+00:02:39,336 --> 00:02:41,976
+neural network to recognize text
+
+
+76
+00:02:42,466 --> 00:02:44,056
+by first finding it in terms of
+
+
+77
+00:02:44,056 --> 00:02:45,646
+strings and full lines.
+
+
+78
+00:02:46,656 --> 00:02:49,646
+And then recognizing it as words
+
+
+79
+00:02:49,866 --> 00:02:50,696
+and sentences.
+
+
+80
+00:02:52,586 --> 00:02:54,826
+So, it requires a deep learning
+
+
+81
+00:02:54,826 --> 00:02:56,966
+model which will take a little
+
+
+82
+00:02:56,966 --> 00:02:58,766
+bit more time to compute, but it
+
+
+83
+00:02:58,766 --> 00:03:00,536
+reads much more as we humans
+
+
+84
+00:03:00,576 --> 00:03:01,716
+actually read our text.
+
+
+85
+00:03:02,936 --> 00:03:04,146
+We don't read character by
+
+
+86
+00:03:04,146 --> 00:03:04,626
+character.
+
+
+87
+00:03:04,626 --> 00:03:05,456
+We look at words.
+
+
+88
+00:03:05,456 --> 00:03:08,106
+And this helps us to get about,
+
+
+89
+00:03:08,106 --> 00:03:08,836
+you know, there are certain
+
+
+90
+00:03:08,836 --> 00:03:10,156
+characters that might be a bit
+
+
+91
+00:03:10,156 --> 00:03:12,506
+like, you know, hard to read.
+
+
+92
+00:03:12,506 --> 00:03:13,726
+And this is also the same reason
+
+
+93
+00:03:13,726 --> 00:03:15,076
+when we try to proofread our
+
+
+94
+00:03:15,076 --> 00:03:17,146
+text, that we don't see typos,
+
+
+95
+00:03:17,326 --> 00:03:18,876
+because our brain interpolates
+
+
+96
+00:03:18,876 --> 00:03:20,126
+over some of these mistakes.
+
+
+97
+00:03:20,506 --> 00:03:21,646
+And we use the same kind of
+
+
+98
+00:03:21,646 --> 00:03:23,426
+technique here in the accurate
+
+
+99
+00:03:23,426 --> 00:03:24,996
+path to help us get past some of
+
+
+100
+00:03:25,036 --> 00:03:26,466
+the recognition errors.
+
+
+101
+00:03:28,056 --> 00:03:30,716
+Both stages afterwards can
+
+
+102
+00:03:30,716 --> 00:03:32,126
+actually go through a language
+
+
+103
+00:03:32,126 --> 00:03:33,786
+correction phase which helps us
+
+
+104
+00:03:33,836 --> 00:03:35,116
+to again eliminate some of the
+
+
+105
+00:03:35,116 --> 00:03:36,246
+typical misreadings.
+
+
+106
+00:03:37,536 --> 00:03:39,426
+And out we get our results.
+
+
+107
+00:03:40,066 --> 00:03:42,716
+So, this is a complex machinery,
+
+
+108
+00:03:42,716 --> 00:03:43,446
+you might think.
+
+
+109
+00:03:44,226 --> 00:03:46,686
+But all of this happens on the
+
+
+110
+00:03:46,686 --> 00:03:47,066
+device.
+
+
+111
+00:03:48,516 --> 00:03:52,500
+[ Applause ]
+
+
+112
+00:03:55,096 --> 00:03:56,286
+So, let's look at what the
+
+
+113
+00:03:56,286 --> 00:03:57,376
+difference is between fast
+
+
+114
+00:03:57,376 --> 00:03:57,976
+versus accurate.
+
+
+115
+00:04:00,296 --> 00:04:01,526
+So, I did a little screen
+
+
+116
+00:04:01,526 --> 00:04:02,796
+recording of reading this
+
+
+117
+00:04:02,796 --> 00:04:03,406
+document.
+
+
+118
+00:04:04,286 --> 00:04:05,976
+And I did this on a relatively
+
+
+119
+00:04:05,976 --> 00:04:06,816
+old MacBook Pro.
+
+
+120
+00:04:06,816 --> 00:04:07,856
+So, the times that you see are
+
+
+121
+00:04:07,856 --> 00:04:09,286
+not necessarily representative,
+
+
+122
+00:04:09,386 --> 00:04:11,466
+but I wanted to give you a feel.
+
+
+123
+00:04:11,466 --> 00:04:13,276
+So let's look first at how fast
+
+
+124
+00:04:13,276 --> 00:04:13,876
+is fast.
+
+
+125
+00:04:15,696 --> 00:04:18,206
+And we're done.
+
+
+126
+00:04:18,416 --> 00:04:19,716
+Now, let's look at how long does
+
+
+127
+00:04:19,716 --> 00:04:20,426
+accurate takes.
+
+
+128
+00:04:21,245 --> 00:04:22,856
+And you see the progress?
+
+
+129
+00:04:22,856 --> 00:04:24,766
+It took a little bit longer.
+
+
+130
+00:04:25,346 --> 00:04:26,486
+And as I said, the numbers are
+
+
+131
+00:04:26,486 --> 00:04:27,416
+not representative for
+
+
+132
+00:04:27,416 --> 00:04:28,236
+everything, but it gives you a
+
+
+133
+00:04:28,306 --> 00:04:29,196
+feel of the delta.
+
+
+134
+00:04:30,466 --> 00:04:31,846
+The other part that you see is
+
+
+135
+00:04:32,726 --> 00:04:34,356
+that accurate is actually much
+
+
+136
+00:04:34,406 --> 00:04:35,336
+better in reading the whole
+
+
+137
+00:04:35,336 --> 00:04:35,766
+text.
+
+
+138
+00:04:35,936 --> 00:04:37,246
+The fast path has a little bit
+
+
+139
+00:04:37,246 --> 00:04:39,076
+of a problem with the stylized
+
+
+140
+00:04:39,076 --> 00:04:39,836
+font on the top.
+
+
+141
+00:04:40,956 --> 00:04:42,146
+So there are some tradeoffs
+
+
+142
+00:04:42,146 --> 00:04:45,736
+between these two paths.
+
+
+143
+00:04:45,736 --> 00:04:48,686
+Let's look at these tradeoffs.
+
+
+144
+00:04:48,756 --> 00:04:50,726
+The fast path is meant for
+
+
+145
+00:04:50,726 --> 00:04:52,366
+real-time reading and it's
+
+
+146
+00:04:52,366 --> 00:04:53,366
+optimized for that.
+
+
+147
+00:04:53,366 --> 00:04:55,106
+But the accurate path is more
+
+
+148
+00:04:55,166 --> 00:04:56,676
+likely to be used in an
+
+
+149
+00:04:56,676 --> 00:04:57,656
+asynchronous fashion.
+
+
+150
+00:04:58,236 --> 00:05:01,416
+In terms of memory budget, the
+
+
+151
+00:05:01,776 --> 00:05:03,866
+fast path also uses less memory
+
+
+152
+00:05:03,866 --> 00:05:05,216
+because it doesn't need to run a
+
+
+153
+00:05:05,216 --> 00:05:05,976
+large neural network.
+
+
+154
+00:05:09,426 --> 00:05:11,236
+But when it comes to rotated
+
+
+155
+00:05:11,236 --> 00:05:13,696
+text or perspectively misaligned
+
+
+156
+00:05:13,696 --> 00:05:16,336
+text, the accurate path gives
+
+
+157
+00:05:16,336 --> 00:05:17,546
+you much broader support.
+
+
+158
+00:05:19,136 --> 00:05:21,256
+And when it comes to style or
+
+
+159
+00:05:21,336 --> 00:05:23,556
+fonts and as you saw already in
+
+
+160
+00:05:23,556 --> 00:05:25,426
+the example, when it comes to
+
+
+161
+00:05:25,426 --> 00:05:26,736
+stylized text, there's again
+
+
+162
+00:05:26,736 --> 00:05:28,026
+much broader support in the
+
+
+163
+00:05:28,026 --> 00:05:29,306
+accurate path.
+
+
+164
+00:05:30,576 --> 00:05:32,196
+And last but not least, when it
+
+
+165
+00:05:32,196 --> 00:05:34,306
+comes to the real reading of
+
+
+166
+00:05:34,306 --> 00:05:36,646
+natural language, the accurate
+
+
+167
+00:05:36,646 --> 00:05:37,816
+path is what we would recommend
+
+
+168
+00:05:37,816 --> 00:05:40,026
+because it performs best on that
+
+
+169
+00:05:41,716 --> 00:05:41,856
+part.
+
+
+170
+00:05:42,046 --> 00:05:43,376
+So, how do you choose between
+
+
+171
+00:05:43,376 --> 00:05:44,046
+those two?
+
+
+172
+00:05:45,266 --> 00:05:46,926
+The use cases that you have are
+
+
+173
+00:05:47,556 --> 00:05:48,766
+the important part that will
+
+
+174
+00:05:48,766 --> 00:05:50,256
+actually drive how you want to
+
+
+175
+00:05:50,256 --> 00:05:51,366
+use the request.
+
+
+176
+00:05:52,516 --> 00:05:53,936
+You need to think about a few
+
+
+177
+00:05:53,936 --> 00:05:54,226
+things.
+
+
+178
+00:05:54,866 --> 00:05:55,796
+So, what is my input?
+
+
+179
+00:05:56,216 --> 00:05:57,686
+Am I working off a camera or do
+
+
+180
+00:05:57,686 --> 00:06:00,096
+I already have images from my
+
+
+181
+00:06:00,096 --> 00:06:01,506
+photo library that I want to
+
+
+182
+00:06:01,506 --> 00:06:01,806
+process?
+
+
+183
+00:06:03,726 --> 00:06:04,676
+What are my processing
+
+
+184
+00:06:04,676 --> 00:06:05,376
+constraints?
+
+
+185
+00:06:05,876 --> 00:06:07,456
+So, how much time can I spend on
+
+
+186
+00:06:07,456 --> 00:06:08,076
+the request?
+
+
+187
+00:06:08,266 --> 00:06:09,566
+And how much memory do I have
+
+
+188
+00:06:09,566 --> 00:06:10,086
+available?
+
+
+189
+00:06:10,586 --> 00:06:11,966
+Some of the processes might be a
+
+
+190
+00:06:11,966 --> 00:06:13,056
+bit more memory constrained.
+
+
+191
+00:06:13,336 --> 00:06:15,216
+And last but not least, what am
+
+
+192
+00:06:15,216 --> 00:06:16,366
+I going to do with the results?
+
+
+193
+00:06:16,876 --> 00:06:18,506
+Am I using them to transcribe?
+
+
+194
+00:06:18,796 --> 00:06:19,666
+Or for search?
+
+
+195
+00:06:20,006 --> 00:06:22,156
+Or just do a, perform an action
+
+
+196
+00:06:22,156 --> 00:06:23,256
+based on what I read through the camera.
+
+
+197
+00:06:23,256 --> 00:06:26,956
+So, let's talk about the camera
+
+
+198
+00:06:26,956 --> 00:06:28,406
+capture in a few more details.
+
+
+199
+00:06:29,916 --> 00:06:31,376
+The camera capture can be used
+
+
+200
+00:06:31,376 --> 00:06:32,206
+as a live capture.
+
+
+201
+00:06:32,236 --> 00:06:33,836
+So, you actually want to use now
+
+
+202
+00:06:33,836 --> 00:06:36,146
+the string reading live and keep
+
+
+203
+00:06:36,146 --> 00:06:37,076
+up with the frame rate.
+
+
+204
+00:06:37,366 --> 00:06:38,946
+In this case, the fast path is
+
+
+205
+00:06:38,946 --> 00:06:39,966
+most likely the one that you
+
+
+206
+00:06:39,966 --> 00:06:40,446
+want to use.
+
+
+207
+00:06:40,946 --> 00:06:43,796
+But there's also the way of
+
+
+208
+00:06:43,796 --> 00:06:44,916
+opportunistic capture.
+
+
+209
+00:06:45,256 --> 00:06:46,126
+What do I mean with that?
+
+
+210
+00:06:46,126 --> 00:06:47,036
+It's like for instance you take
+
+
+211
+00:06:47,036 --> 00:06:48,486
+a photo and there's text
+
+
+212
+00:06:48,486 --> 00:06:49,366
+somewhere in the photo and you
+
+
+213
+00:06:49,366 --> 00:06:50,316
+want to process that.
+
+
+214
+00:06:50,316 --> 00:06:51,596
+So, you don't need to keep up
+
+
+215
+00:06:51,596 --> 00:06:52,586
+with the frame rate of the
+
+
+216
+00:06:52,586 --> 00:06:54,286
+camera, but you actually want to
+
+
+217
+00:06:54,286 --> 00:06:55,626
+use this to read the text and
+
+
+218
+00:06:55,626 --> 00:06:56,936
+the accurate path will most
+
+
+219
+00:06:56,936 --> 00:06:58,236
+likely give you better results.
+
+
+220
+00:06:59,856 --> 00:07:01,346
+One more thing to think about
+
+
+221
+00:07:01,346 --> 00:07:03,876
+when we talk about camera is I
+
+
+222
+00:07:03,876 --> 00:07:06,246
+need to design which resolution
+
+
+223
+00:07:06,246 --> 00:07:07,326
+do I want to use in my
+
+
+224
+00:07:07,326 --> 00:07:09,516
+application, and the text size
+
+
+225
+00:07:09,576 --> 00:07:11,626
+will actually drive this.
+
+
+226
+00:07:11,626 --> 00:07:12,846
+If for some mysterious reason
+
+
+227
+00:07:12,846 --> 00:07:14,006
+you want to read the fine print
+
+
+228
+00:07:14,006 --> 00:07:15,756
+of a legal document where you
+
+
+229
+00:07:15,756 --> 00:07:17,046
+might actually have to increase
+
+
+230
+00:07:17,046 --> 00:07:18,336
+the resolution of the camera, or
+
+
+231
+00:07:18,636 --> 00:07:20,356
+when you read a billboard with
+
+
+232
+00:07:20,356 --> 00:07:22,016
+large text, you can actually
+
+
+233
+00:07:22,016 --> 00:07:23,006
+turn down the resolution and
+
+
+234
+00:07:23,006 --> 00:07:24,256
+work with less memory it
+
+
+235
+00:07:24,256 --> 00:07:25,906
+actually will be faster as well.
+
+
+236
+00:07:28,256 --> 00:07:29,596
+Now, when it comes to post
+
+
+237
+00:07:29,596 --> 00:07:30,986
+processing, so we already have
+
+
+238
+00:07:31,036 --> 00:07:32,836
+the image in a file.
+
+
+239
+00:07:34,196 --> 00:07:35,276
+Most likely you want to favor
+
+
+240
+00:07:35,276 --> 00:07:36,796
+the accurate path, because you
+
+
+241
+00:07:36,796 --> 00:07:38,856
+can actually use the better
+
+
+242
+00:07:38,856 --> 00:07:40,706
+accuracy and speed is not as
+
+
+243
+00:07:40,706 --> 00:07:40,976
+important.
+
+
+244
+00:07:44,396 --> 00:07:45,546
+Next, let's talk a little bit
+
+
+245
+00:07:45,546 --> 00:07:46,416
+about language processing.
+
+
+246
+00:07:46,686 --> 00:07:47,946
+As I mentioned, language
+
+
+247
+00:07:47,946 --> 00:07:49,166
+processing is one of the stages
+
+
+248
+00:07:49,166 --> 00:07:50,426
+that you can use in the text
+
+
+249
+00:07:50,426 --> 00:07:51,086
+recognition.
+
+
+250
+00:07:52,576 --> 00:07:54,106
+It helps us to get past some of
+
+
+251
+00:07:54,106 --> 00:07:56,026
+the typical missed readings that
+
+
+252
+00:07:56,026 --> 00:07:57,446
+can happen when you read the
+
+
+253
+00:07:57,446 --> 00:08:00,066
+text, but it can also get in the
+
+
+254
+00:08:00,066 --> 00:08:00,456
+way.
+
+
+255
+00:08:01,216 --> 00:08:02,956
+When I want to read codes or a
+
+
+256
+00:08:02,956 --> 00:08:04,276
+serial number, think of the
+
+
+257
+00:08:04,276 --> 00:08:07,356
+serial number like C001 that can
+
+
+258
+00:08:07,356 --> 00:08:08,786
+very easily be misconstructed as
+
+
+259
+00:08:08,886 --> 00:08:08,976
+cool.
+
+
+260
+00:08:12,126 --> 00:08:13,326
+Also, this language correction
+
+
+261
+00:08:13,326 --> 00:08:14,416
+does not come for free.
+
+
+262
+00:08:14,416 --> 00:08:15,636
+It does take some processing
+
+
+263
+00:08:15,636 --> 00:08:17,126
+time and of course it uses a
+
+
+264
+00:08:17,126 --> 00:08:17,826
+little bit of memory.
+
+
+265
+00:08:20,306 --> 00:08:21,226
+So now that we have some of the
+
+
+266
+00:08:21,226 --> 00:08:22,626
+fundamentals out of the way,
+
+
+267
+00:08:22,626 --> 00:08:25,126
+let's talk actually how we can
+
+
+268
+00:08:25,126 --> 00:08:27,186
+perform Text Recognition.
+
+
+269
+00:08:28,896 --> 00:08:32,086
+Everything in Vision starts with
+
+
+270
+00:08:32,086 --> 00:08:33,226
+an image RequestHandler.
+
+
+271
+00:08:34,586 --> 00:08:35,996
+Then I create my request.
+
+
+272
+00:08:36,066 --> 00:08:39,506
+I set my completionHandler on
+
+
+273
+00:08:39,506 --> 00:08:40,746
+it; that's where actually I deal
+
+
+274
+00:08:40,746 --> 00:08:41,586
+with the results.
+
+
+275
+00:08:41,586 --> 00:08:45,266
+Then I set the recognitionLevel.
+
+
+276
+00:08:45,526 --> 00:08:47,086
+As I said, I can switch between
+
+
+277
+00:08:47,086 --> 00:08:48,976
+the fast and accurate.
+
+
+278
+00:08:51,366 --> 00:08:53,516
+Next, I would recommend that you
+
+
+279
+00:08:53,516 --> 00:08:54,576
+actually set the revision.
+
+
+280
+00:08:55,136 --> 00:08:56,356
+The revision, of course here
+
+
+281
+00:08:56,356 --> 00:08:58,736
+there is only one, but down the
+
+
+282
+00:08:58,736 --> 00:08:59,876
+line we will come up with
+
+
+283
+00:08:59,876 --> 00:09:01,666
+improved versions and you might
+
+
+284
+00:09:01,736 --> 00:09:03,436
+have tuned your algorithm to a
+
+
+285
+00:09:03,436 --> 00:09:05,576
+specific behavior that we have.
+
+
+286
+00:09:05,716 --> 00:09:06,976
+And if you otherwise don't
+
+
+287
+00:09:06,976 --> 00:09:08,256
+specify a revision, you will
+
+
+288
+00:09:08,256 --> 00:09:10,076
+always get the latest and that
+
+
+289
+00:09:10,076 --> 00:09:10,976
+might appear with some
+
+
+290
+00:09:10,976 --> 00:09:11,726
+surprises.
+
+
+291
+00:09:12,796 --> 00:09:14,686
+So, I would recommend getting to
+
+
+292
+00:09:14,686 --> 00:09:15,706
+the behavior of using a
+
+
+293
+00:09:15,706 --> 00:09:16,096
+revision.
+
+
+294
+00:09:16,506 --> 00:09:18,836
+And I can turn on and off the
+
+
+295
+00:09:18,836 --> 00:09:22,436
+language correction and last but
+
+
+296
+00:09:22,436 --> 00:09:23,926
+not least, of course, I need to
+
+
+297
+00:09:23,926 --> 00:09:25,446
+perform my request.
+
+
+298
+00:09:27,556 --> 00:09:29,006
+When we perform it, and we get
+
+
+299
+00:09:29,006 --> 00:09:29,866
+our results back.
+
+
+300
+00:09:31,146 --> 00:09:31,856
+These come back as
+
+
+301
+00:09:31,856 --> 00:09:34,076
+VNRecognizedTextObservations,
+
+
+302
+00:09:34,316 --> 00:09:35,656
+and we get them pretty much in
+
+
+303
+00:09:35,656 --> 00:09:37,096
+terms of lines and strings that
+
+
+304
+00:09:37,096 --> 00:09:37,606
+we find.
+
+
+305
+00:09:38,616 --> 00:09:39,796
+So, we need to iterate all of
+
+
+306
+00:09:39,796 --> 00:09:40,576
+these results.
+
+
+307
+00:09:40,876 --> 00:09:44,426
+And when we want to get the text
+
+
+308
+00:09:44,426 --> 00:09:46,146
+out, we actually have multiple
+
+
+309
+00:09:46,146 --> 00:09:46,656
+candidates.
+
+
+310
+00:09:46,656 --> 00:09:47,646
+We'll talk about some of the
+
+
+311
+00:09:47,646 --> 00:09:48,746
+candidates later.
+
+
+312
+00:09:49,016 --> 00:09:50,466
+Here to make it simple, I just
+
+
+313
+00:09:50,466 --> 00:09:52,016
+get my top candidate and I have
+
+
+314
+00:09:52,016 --> 00:09:52,646
+my text.
+
+
+315
+00:09:52,996 --> 00:09:55,226
+And I can get to the bounding
+
+
+316
+00:09:55,226 --> 00:09:56,536
+box which actually helps me
+
+
+317
+00:09:56,536 --> 00:09:58,326
+where all this text is on screen
+
+
+318
+00:09:58,646 --> 00:10:01,246
+or in the image, the image
+
+
+319
+00:10:01,246 --> 00:10:01,756
+onscreen.
+
+
+320
+00:10:03,616 --> 00:10:04,956
+But now when I want to use
+
+
+321
+00:10:04,956 --> 00:10:06,446
+search, and so for instance the
+
+
+322
+00:10:06,446 --> 00:10:08,676
+user types in a word that you
+
+
+323
+00:10:08,976 --> 00:10:10,126
+read in the document, and we
+
+
+324
+00:10:10,126 --> 00:10:11,796
+want to find actually where is
+
+
+325
+00:10:11,796 --> 00:10:13,706
+this again in the image, I can
+
+
+326
+00:10:13,706 --> 00:10:15,936
+actually ask the candidate for
+
+
+327
+00:10:16,116 --> 00:10:17,486
+where is the bounding box for
+
+
+328
+00:10:17,486 --> 00:10:19,156
+this string that I actually see
+
+
+329
+00:10:19,456 --> 00:10:20,796
+in my results.
+
+
+330
+00:10:24,066 --> 00:10:25,446
+Now, after all this theory,
+
+
+331
+00:10:25,446 --> 00:10:26,836
+let's go into some example, and
+
+
+332
+00:10:26,836 --> 00:10:28,046
+we want to do some real-time
+
+
+333
+00:10:28,046 --> 00:10:28,836
+Text Recognition.
+
+
+334
+00:10:29,446 --> 00:10:31,596
+So, that's when we want to use
+
+
+335
+00:10:31,596 --> 00:10:32,856
+the fast path.
+
+
+336
+00:10:33,636 --> 00:10:36,096
+The use case here is I want to
+
+
+337
+00:10:36,096 --> 00:10:37,046
+read something like a serial
+
+
+338
+00:10:37,046 --> 00:10:38,206
+number or a code.
+
+
+339
+00:10:39,096 --> 00:10:40,416
+The serial number that I'm using
+
+
+340
+00:10:40,416 --> 00:10:41,526
+here actually is a phone number
+
+
+341
+00:10:41,526 --> 00:10:42,466
+because it's the easiest for
+
+
+342
+00:10:42,466 --> 00:10:43,846
+everybody, easiest to understand
+
+
+343
+00:10:43,846 --> 00:10:44,086
+here.
+
+
+344
+00:10:44,086 --> 00:10:45,516
+And I want to read them really
+
+
+345
+00:10:45,516 --> 00:10:46,716
+just like a barcode reader.
+
+
+346
+00:10:47,126 --> 00:10:49,836
+With that, I can constrain
+
+
+347
+00:10:49,836 --> 00:10:50,986
+actually how the camera should
+
+
+348
+00:10:50,986 --> 00:10:53,756
+actually look for the text, but
+
+
+349
+00:10:53,756 --> 00:10:56,026
+interactivity is key because it
+
+
+350
+00:10:56,026 --> 00:10:56,886
+should be snappy.
+
+
+351
+00:10:56,886 --> 00:10:57,846
+It should be fast, so that the
+
+
+352
+00:10:57,846 --> 00:10:59,516
+user can be guided, and it reads
+
+
+353
+00:10:59,516 --> 00:10:59,956
+the text right away.
+
+
+354
+00:11:02,576 --> 00:11:04,756
+So, that's why I'm choosing the
+
+
+355
+00:11:04,756 --> 00:11:05,376
+fast path here.
+
+
+356
+00:11:05,376 --> 00:11:07,706
+And with that, let's look at the
+
+
+357
+00:11:07,706 --> 00:11:07,936
+demo.
+
+
+358
+00:11:16,596 --> 00:11:16,946
+All right.
+
+
+359
+00:11:17,566 --> 00:11:20,136
+The sample code that I have here
+
+
+360
+00:11:20,136 --> 00:11:21,306
+and which as I said is also
+
+
+361
+00:11:21,306 --> 00:11:24,156
+attached to this session, allows
+
+
+362
+00:11:24,156 --> 00:11:25,436
+me to read phone numbers.
+
+
+363
+00:11:25,536 --> 00:11:27,126
+So, when I'm scanning over this
+
+
+364
+00:11:27,126 --> 00:11:28,476
+text here, you see a little
+
+
+365
+00:11:28,476 --> 00:11:28,926
+white box.
+
+
+366
+00:11:28,926 --> 00:11:30,856
+That means I find text, but I'm
+
+
+367
+00:11:30,856 --> 00:11:32,456
+not reading it because it's not
+
+
+368
+00:11:32,456 --> 00:11:33,026
+a phone number.
+
+
+369
+00:11:33,026 --> 00:11:34,576
+Even the zip code here.
+
+
+370
+00:11:36,156 --> 00:11:37,336
+But the moment I find a phone
+
+
+371
+00:11:37,336 --> 00:11:38,816
+number, it reads it and stops
+
+
+372
+00:11:38,866 --> 00:11:39,346
+the scanning.
+
+
+373
+00:11:39,346 --> 00:11:41,556
+Let me show that once more.
+
+
+374
+00:11:42,516 --> 00:11:45,556
+[ Applause ]
+
+
+375
+00:11:46,056 --> 00:11:47,466
+You see it feels interactive.
+
+
+376
+00:11:47,466 --> 00:11:48,926
+It's easy for me as a user to
+
+
+377
+00:11:48,926 --> 00:11:50,176
+use this, even though my hands
+
+
+378
+00:11:50,176 --> 00:11:52,516
+are shaking here.
+
+
+379
+00:11:53,756 --> 00:11:55,376
+So, how does this look in code,
+
+
+380
+00:11:55,376 --> 00:11:56,596
+because that's what's really
+
+
+381
+00:11:56,596 --> 00:11:57,496
+interesting part here.
+
+
+382
+00:11:59,316 --> 00:12:01,246
+So, I start by creating my text
+
+
+383
+00:12:01,246 --> 00:12:01,796
+request.
+
+
+384
+00:12:04,176 --> 00:12:06,076
+And as I said, I'm going to use
+
+
+385
+00:12:06,076 --> 00:12:08,396
+the fast path here.
+
+
+386
+00:12:08,396 --> 00:12:09,296
+I disabled the language
+
+
+387
+00:12:09,326 --> 00:12:10,566
+correction because I know I'm
+
+
+388
+00:12:10,566 --> 00:12:11,346
+looking for codes.
+
+
+389
+00:12:11,346 --> 00:12:12,366
+I'm not looking for natural
+
+
+390
+00:12:12,366 --> 00:12:12,806
+text.
+
+
+391
+00:12:12,956 --> 00:12:15,576
+And then I'm using the
+
+
+392
+00:12:15,576 --> 00:12:16,466
+regionOfInterest.
+
+
+393
+00:12:16,466 --> 00:12:17,376
+Now, this is a concept
+
+
+394
+00:12:17,376 --> 00:12:18,236
+envisioned and generally
+
+
+395
+00:12:18,236 --> 00:12:18,706
+available.
+
+
+396
+00:12:19,176 --> 00:12:21,206
+You'll notice that in my app I
+
+
+397
+00:12:21,206 --> 00:12:22,476
+have this little box that kind
+
+
+398
+00:12:22,476 --> 00:12:23,866
+of guides the user of like where
+
+
+399
+00:12:23,866 --> 00:12:25,206
+he wants to frame the text, but
+
+
+400
+00:12:25,206 --> 00:12:27,386
+I also use this area as my
+
+
+401
+00:12:27,386 --> 00:12:29,546
+region of interest which crops
+
+
+402
+00:12:29,546 --> 00:12:31,126
+Vision to only work on that
+
+
+403
+00:12:31,126 --> 00:12:32,256
+specific subject.
+
+
+404
+00:12:32,356 --> 00:12:34,966
+That helps me to A, get rid of
+
+
+405
+00:12:34,966 --> 00:12:36,276
+all the noise that's surrounding
+
+
+406
+00:12:36,276 --> 00:12:38,826
+it and because it's less data
+
+
+407
+00:12:38,826 --> 00:12:39,916
+that I have to process, it
+
+
+408
+00:12:39,916 --> 00:12:41,196
+enhances the performance.
+
+
+409
+00:12:41,786 --> 00:12:44,756
+So, now I have my request and
+
+
+410
+00:12:44,756 --> 00:12:46,356
+I'm using an AVCapture session
+
+
+411
+00:12:46,356 --> 00:12:46,556
+here.
+
+
+412
+00:12:47,576 --> 00:12:48,926
+So, my capture output, all I
+
+
+413
+00:12:48,926 --> 00:12:51,186
+have to do is that I get my
+
+
+414
+00:12:51,186 --> 00:12:53,316
+image from the session, create a
+
+
+415
+00:12:53,316 --> 00:12:56,586
+RequestHandler, and perform the
+
+
+416
+00:12:56,586 --> 00:12:57,166
+request.
+
+
+417
+00:12:57,166 --> 00:12:59,656
+And then this is mostly the
+
+
+418
+00:12:59,656 --> 00:13:00,616
+drawing of the boxes.
+
+
+419
+00:13:00,616 --> 00:13:01,876
+That's not the interesting part.
+
+
+420
+00:13:03,026 --> 00:13:04,676
+The interesting part happens in
+
+
+421
+00:13:04,676 --> 00:13:05,556
+our string utils.
+
+
+422
+00:13:05,666 --> 00:13:09,116
+As I said, we turned the
+
+
+423
+00:13:09,116 --> 00:13:10,536
+language correction off.
+
+
+424
+00:13:11,256 --> 00:13:12,516
+So, I'm now left on my own to
+
+
+425
+00:13:12,516 --> 00:13:13,686
+kind of correct some of those
+
+
+426
+00:13:13,686 --> 00:13:15,556
+results, but I can do this
+
+
+427
+00:13:15,556 --> 00:13:16,766
+because I actually have
+
+
+428
+00:13:16,806 --> 00:13:18,246
+intrinsic knowledge of what I
+
+
+429
+00:13:18,246 --> 00:13:19,206
+need to solve here.
+
+
+430
+00:13:19,206 --> 00:13:22,216
+And I know I'm looking for phone
+
+
+431
+00:13:22,216 --> 00:13:24,426
+numbers, and this means I know
+
+
+432
+00:13:24,426 --> 00:13:25,256
+I'm not looking for any
+
+
+433
+00:13:25,256 --> 00:13:25,826
+characters.
+
+
+434
+00:13:25,826 --> 00:13:27,116
+I'm only looking for numeric
+
+
+435
+00:13:27,886 --> 00:13:28,266
+paths.
+
+
+436
+00:13:28,266 --> 00:13:29,826
+So, I can simply say if it reads
+
+
+437
+00:13:29,826 --> 00:13:31,936
+something like an S, which would
+
+
+438
+00:13:31,936 --> 00:13:33,926
+be a 5, or if I get an L, this
+
+
+439
+00:13:33,926 --> 00:13:35,576
+should be a 1, I'm using my
+
+
+440
+00:13:35,576 --> 00:13:36,876
+domain knowledge of kind of
+
+
+441
+00:13:36,876 --> 00:13:37,886
+correcting for some of the
+
+
+442
+00:13:37,886 --> 00:13:38,796
+typical mistakes that can
+
+
+443
+00:13:38,796 --> 00:13:38,956
+happen.
+
+
+444
+00:13:41,176 --> 00:13:42,846
+So, that's helped us to not
+
+
+445
+00:13:42,846 --> 00:13:44,556
+probably get any characters
+
+
+446
+00:13:44,606 --> 00:13:46,206
+through, but then comes the next
+
+
+447
+00:13:46,206 --> 00:13:46,436
+part.
+
+
+448
+00:13:47,506 --> 00:13:49,366
+How did I difference it between
+
+
+449
+00:13:49,366 --> 00:13:50,546
+zip code and a phone number?
+
+
+450
+00:13:50,646 --> 00:13:51,886
+Well, I knew the structure.
+
+
+451
+00:13:52,546 --> 00:13:53,646
+The structure of an American
+
+
+452
+00:13:53,646 --> 00:13:55,586
+phone number is very simple, and
+
+
+453
+00:13:55,626 --> 00:13:57,236
+I'm using that knowledge again
+
+
+454
+00:13:57,386 --> 00:13:58,636
+to filter out results that I
+
+
+455
+00:13:58,636 --> 00:13:58,976
+don't want.
+
+
+456
+00:14:00,896 --> 00:14:03,816
+Last but not least, let me find
+
+
+457
+00:14:03,816 --> 00:14:05,786
+this as well, is our string
+
+
+458
+00:14:05,786 --> 00:14:06,036
+tracker.
+
+
+459
+00:14:06,036 --> 00:14:07,516
+And now I'm using a little trick
+
+
+460
+00:14:07,626 --> 00:14:08,076
+here.
+
+
+461
+00:14:08,646 --> 00:14:09,936
+If you ever dealt with reading
+
+
+462
+00:14:09,936 --> 00:14:11,206
+something live from a camera
+
+
+463
+00:14:11,206 --> 00:14:12,656
+feed, you will realize that very
+
+
+464
+00:14:12,656 --> 00:14:14,406
+often from frame to frame you
+
+
+465
+00:14:14,406 --> 00:14:15,276
+get different results.
+
+
+466
+00:14:15,406 --> 00:14:16,816
+They slightly fluctuate because
+
+
+467
+00:14:16,816 --> 00:14:19,086
+of noise, lighting and so on.
+
+
+468
+00:14:20,036 --> 00:14:21,696
+But it would be bad if I flicker
+
+
+469
+00:14:21,696 --> 00:14:23,306
+out the wrong phone numbers.
+
+
+470
+00:14:23,776 --> 00:14:25,736
+So, what I try to avoid is to
+
+
+471
+00:14:25,736 --> 00:14:27,186
+show incorrect results.
+
+
+472
+00:14:27,856 --> 00:14:29,166
+What I'm using here is a
+
+
+473
+00:14:29,166 --> 00:14:31,056
+technique where I actually look
+
+
+474
+00:14:31,056 --> 00:14:32,596
+over multiple frames and build
+
+
+475
+00:14:32,596 --> 00:14:33,716
+evidence over time.
+
+
+476
+00:14:34,356 --> 00:14:35,526
+This building of evidence over
+
+
+477
+00:14:35,526 --> 00:14:37,136
+time means I simply store the
+
+
+478
+00:14:37,136 --> 00:14:39,656
+phone numbers and at the very
+
+
+479
+00:14:39,656 --> 00:14:41,006
+end, all that I'm doing is very
+
+
+480
+00:14:41,006 --> 00:14:41,406
+simple.
+
+
+481
+00:14:42,106 --> 00:14:43,906
+If the same number showed up in
+
+
+482
+00:14:43,906 --> 00:14:45,906
+10 consecutive frames, I know
+
+
+483
+00:14:45,906 --> 00:14:47,246
+I've read it and actually
+
+
+484
+00:14:47,286 --> 00:14:48,496
+propagated up to the user.
+
+
+485
+00:14:49,116 --> 00:14:50,746
+Now, 10 was an empiric number
+
+
+486
+00:14:50,746 --> 00:14:52,646
+that we picked, but it worked
+
+
+487
+00:14:52,646 --> 00:14:53,416
+really well for us.
+
+
+488
+00:14:53,576 --> 00:14:56,776
+And with that, I basically
+
+
+489
+00:14:56,776 --> 00:14:58,666
+filter out all the noise that I
+
+
+490
+00:14:58,666 --> 00:15:00,226
+would otherwise have.
+
+
+491
+00:15:01,016 --> 00:15:02,636
+And that is all that we needed
+
+
+492
+00:15:02,636 --> 00:15:04,446
+to do to get our demo to run.
+
+
+493
+00:15:04,446 --> 00:15:05,916
+Let's go back to the slides.
+
+
+494
+00:15:10,336 --> 00:15:11,556
+So, let's quickly recap.
+
+
+495
+00:15:11,556 --> 00:15:14,936
+I use the fast path to keep up
+
+
+496
+00:15:15,566 --> 00:15:16,876
+with the frame rate of the
+
+
+497
+00:15:16,876 --> 00:15:17,216
+camera.
+
+
+498
+00:15:17,216 --> 00:15:20,376
+I was able to guide the user how
+
+
+499
+00:15:20,376 --> 00:15:21,296
+to use the camera.
+
+
+500
+00:15:22,216 --> 00:15:23,776
+I use the region of interest to
+
+
+501
+00:15:23,776 --> 00:15:25,326
+crop down to really what I only
+
+
+502
+00:15:25,326 --> 00:15:26,756
+want to read to get rid of the
+
+
+503
+00:15:26,756 --> 00:15:29,136
+noise surrounding it and enhance
+
+
+504
+00:15:29,136 --> 00:15:29,986
+the performance.
+
+
+505
+00:15:30,736 --> 00:15:31,586
+I turned off the language
+
+
+506
+00:15:31,646 --> 00:15:32,776
+correction because I knew I'm
+
+
+507
+00:15:32,776 --> 00:15:33,916
+reading actually code.
+
+
+508
+00:15:33,916 --> 00:15:36,486
+And I use my own domain
+
+
+509
+00:15:36,486 --> 00:15:37,566
+knowledge, and this is like the
+
+
+510
+00:15:37,566 --> 00:15:38,636
+same thing as you as app
+
+
+511
+00:15:38,636 --> 00:15:40,336
+developers would do of this
+
+
+512
+00:15:40,336 --> 00:15:41,696
+phone numbers to actually read
+
+
+513
+00:15:41,696 --> 00:15:42,396
+them correctly.
+
+
+514
+00:15:42,396 --> 00:15:45,136
+And last but not least, I use
+
+
+515
+00:15:45,136 --> 00:15:46,626
+this building of evidence over
+
+
+516
+00:15:46,626 --> 00:15:48,656
+time to actually help to reduce
+
+
+517
+00:15:48,656 --> 00:15:48,976
+some of the noise.
+
+
+518
+00:15:52,386 --> 00:15:53,916
+Next, I would like to introduce
+
+
+519
+00:15:54,056 --> 00:15:55,746
+the Document Camera.
+
+
+520
+00:15:57,476 --> 00:15:59,956
+The Document Camera was already
+
+
+521
+00:15:59,956 --> 00:16:01,316
+introduced two years ago by
+
+
+522
+00:16:01,316 --> 00:16:01,786
+Notes.
+
+
+523
+00:16:02,066 --> 00:16:02,986
+And it's a really great
+
+
+524
+00:16:02,986 --> 00:16:04,686
+companion when you don't need to
+
+
+525
+00:16:04,686 --> 00:16:07,006
+use a live stream to capture.
+
+
+526
+00:16:07,696 --> 00:16:08,956
+This year, you've seen it in
+
+
+527
+00:16:08,956 --> 00:16:11,356
+Notes, Mail, Files, and
+
+
+528
+00:16:11,356 --> 00:16:11,916
+Messages.
+
+
+529
+00:16:12,296 --> 00:16:14,986
+And it already is perfect for
+
+
+530
+00:16:14,986 --> 00:16:15,836
+reading a document.
+
+
+531
+00:16:16,066 --> 00:16:17,776
+Because as you can see here, it
+
+
+532
+00:16:17,776 --> 00:16:19,826
+finds the document, crops it
+
+
+533
+00:16:19,826 --> 00:16:21,626
+out, and now I could just simply
+
+
+534
+00:16:21,626 --> 00:16:23,266
+pipe it into my text recognition
+
+
+535
+00:16:24,116 --> 00:16:24,346
+request.
+
+
+536
+00:16:25,096 --> 00:16:26,516
+This is a great companion
+
+
+537
+00:16:26,516 --> 00:16:28,716
+because what it does is already
+
+
+538
+00:16:28,716 --> 00:16:30,166
+just a prospective correction of
+
+
+539
+00:16:30,166 --> 00:16:32,226
+these scans for you and it
+
+
+540
+00:16:32,226 --> 00:16:34,136
+evenly lights also the image.
+
+
+541
+00:16:34,876 --> 00:16:36,116
+That makes it much easier to
+
+
+542
+00:16:36,116 --> 00:16:37,736
+process afterwards.
+
+
+543
+00:16:39,036 --> 00:16:42,356
+So, how does this look in code?
+
+
+544
+00:16:42,556 --> 00:16:43,746
+First, I need to bring in
+
+
+545
+00:16:43,746 --> 00:16:44,796
+VisionKit as this is a new
+
+
+546
+00:16:44,796 --> 00:16:46,506
+framework and then I create the
+
+
+547
+00:16:46,506 --> 00:16:48,386
+VNDocumentCameraView Controller.
+
+
+548
+00:16:49,366 --> 00:16:51,546
+I present it on the screen and
+
+
+549
+00:16:51,546 --> 00:16:52,536
+my camera is running.
+
+
+550
+00:16:54,046 --> 00:16:56,006
+So, once the user is done, in my
+
+
+551
+00:16:56,006 --> 00:16:58,976
+delegate I get the results back.
+
+
+552
+00:16:58,976 --> 00:16:59,926
+Now, there's one thing to keep
+
+
+553
+00:16:59,926 --> 00:17:00,436
+in mind.
+
+
+554
+00:17:01,196 --> 00:17:04,185
+We can actually scan multiple
+
+
+555
+00:17:04,185 --> 00:17:05,546
+documents at once, so they come
+
+
+556
+00:17:05,546 --> 00:17:06,396
+back as pages.
+
+
+557
+00:17:08,036 --> 00:17:09,715
+From each of them, I simply take
+
+
+558
+00:17:09,715 --> 00:17:12,256
+my CG image and pipe them into
+
+
+559
+00:17:12,256 --> 00:17:14,465
+my Vision Request, and I get my
+
+
+560
+00:17:14,465 --> 00:17:15,266
+results out of it.
+
+
+561
+00:17:15,695 --> 00:17:18,185
+And now to get to some of the
+
+
+562
+00:17:18,185 --> 00:17:19,556
+best practices, I would like to
+
+
+563
+00:17:19,556 --> 00:17:20,906
+introduce my colleague Cedric
+
+
+564
+00:17:20,906 --> 00:17:22,215
+Bray onstage, who will give you
+
+
+565
+00:17:22,215 --> 00:17:23,276
+some more information about
+
+
+566
+00:17:23,346 --> 00:17:23,476
+that.
+
+
+567
+00:17:23,606 --> 00:17:23,906
+Thank you.
+
+
+568
+00:17:24,516 --> 00:17:27,406
+[ Applause ]
+
+
+569
+00:17:27,906 --> 00:17:29,466
+>> Thank you, Frank.
+
+
+570
+00:17:30,166 --> 00:17:32,766
+I am super excited that we have
+
+
+571
+00:17:32,856 --> 00:17:34,426
+Text Recognition coming into the
+
+
+572
+00:17:34,426 --> 00:17:35,636
+Vision Framework this year.
+
+
+573
+00:17:35,636 --> 00:17:38,016
+And to help you take best
+
+
+574
+00:17:38,016 --> 00:17:39,656
+advantage of this new API, we're
+
+
+575
+00:17:39,656 --> 00:17:41,946
+going to talk about best
+
+
+576
+00:17:41,946 --> 00:17:42,526
+practices.
+
+
+577
+00:17:44,696 --> 00:17:47,346
+So, in this section, you will
+
+
+578
+00:17:47,346 --> 00:17:49,426
+learn about language knowledge,
+
+
+579
+00:17:49,506 --> 00:17:50,466
+how to leverage language
+
+
+580
+00:17:50,466 --> 00:17:51,966
+knowledge for getting the best
+
+
+581
+00:17:51,966 --> 00:17:52,416
+results.
+
+
+582
+00:17:53,016 --> 00:17:54,476
+You will learn how to tune for
+
+
+583
+00:17:54,476 --> 00:17:56,466
+better performance in your
+
+
+584
+00:17:56,466 --> 00:17:57,126
+application.
+
+
+585
+00:17:57,596 --> 00:17:59,626
+And you will learn a bit more
+
+
+586
+00:17:59,626 --> 00:18:00,946
+about how to process your
+
+
+587
+00:18:00,946 --> 00:18:02,106
+results in the most effective
+
+
+588
+00:18:02,106 --> 00:18:02,276
+way.
+
+
+589
+00:18:03,366 --> 00:18:07,746
+So, the image that you are
+
+
+590
+00:18:07,746 --> 00:18:10,146
+processing maybe are in a
+
+
+591
+00:18:10,146 --> 00:18:11,486
+language that you have
+
+
+592
+00:18:11,486 --> 00:18:12,196
+identified.
+
+
+593
+00:18:12,856 --> 00:18:14,046
+And if there are, in this
+
+
+594
+00:18:14,046 --> 00:18:15,486
+particular language, then you
+
+
+595
+00:18:15,486 --> 00:18:16,646
+want to take advantage of this
+
+
+596
+00:18:16,646 --> 00:18:17,326
+information.
+
+
+597
+00:18:17,916 --> 00:18:20,456
+To do so, you enable
+
+
+598
+00:18:20,456 --> 00:18:21,716
+language-based collection.
+
+
+599
+00:18:22,516 --> 00:18:23,786
+First you have to set the
+
+
+600
+00:18:23,786 --> 00:18:25,116
+language that you are targeting.
+
+
+601
+00:18:25,466 --> 00:18:26,866
+For this we will support
+
+
+602
+00:18:26,866 --> 00:18:27,436
+English.
+
+
+603
+00:18:28,116 --> 00:18:28,996
+And once language-based
+
+
+604
+00:18:28,996 --> 00:18:31,146
+correction is enabled, it will
+
+
+605
+00:18:31,146 --> 00:18:33,026
+improve the transcription of the
+
+
+606
+00:18:33,026 --> 00:18:35,416
+results by using on-device
+
+
+607
+00:18:35,416 --> 00:18:36,406
+language models.
+
+
+608
+00:18:36,856 --> 00:18:38,396
+On-device language models are
+
+
+609
+00:18:38,396 --> 00:18:38,656
+great.
+
+
+610
+00:18:38,656 --> 00:18:40,196
+They have large generic
+
+
+611
+00:18:40,396 --> 00:18:41,066
+coverage.
+
+
+612
+00:18:42,046 --> 00:18:44,416
+But you may have domain-specific
+
+
+613
+00:18:44,556 --> 00:18:45,786
+words, domain-specific
+
+
+614
+00:18:45,786 --> 00:18:49,456
+vocabulary like medical terms or
+
+
+615
+00:18:49,986 --> 00:18:52,026
+business-specific codes or
+
+
+616
+00:18:52,026 --> 00:18:53,556
+references that appear in the
+
+
+617
+00:18:53,556 --> 00:18:54,176
+documents.
+
+
+618
+00:18:54,626 --> 00:18:58,526
+And so we can, you can specify
+
+
+619
+00:18:58,526 --> 00:19:00,306
+this information, this
+
+
+620
+00:19:00,376 --> 00:19:03,336
+vocabulary, by passing a custom
+
+
+621
+00:19:03,736 --> 00:19:06,736
+lexicon to the Text Recognition
+
+
+622
+00:19:06,736 --> 00:19:07,206
+request.
+
+
+623
+00:19:08,486 --> 00:19:10,696
+When you do so, this custom
+
+
+624
+00:19:10,696 --> 00:19:13,166
+vocabulary will complement the
+
+
+625
+00:19:13,166 --> 00:19:14,226
+language-based correction to
+
+
+626
+00:19:14,766 --> 00:19:15,766
+give you the correct
+
+
+627
+00:19:16,006 --> 00:19:18,566
+transcription, even in cases
+
+
+628
+00:19:18,566 --> 00:19:19,756
+where the images are more
+
+
+629
+00:19:19,806 --> 00:19:20,286
+challenging.
+
+
+630
+00:19:21,596 --> 00:19:23,726
+So, let's see how this looks in
+
+
+631
+00:19:23,726 --> 00:19:23,966
+code.
+
+
+632
+00:19:25,446 --> 00:19:28,016
+First, a prerequisite, you need
+
+
+633
+00:19:28,016 --> 00:19:29,766
+to check the languages that are
+
+
+634
+00:19:29,876 --> 00:19:31,176
+supported by language-based
+
+
+635
+00:19:31,176 --> 00:19:31,586
+correction.
+
+
+636
+00:19:32,796 --> 00:19:35,186
+And so this list of supported
+
+
+637
+00:19:35,186 --> 00:19:38,546
+languages is defined for a
+
+
+638
+00:19:38,546 --> 00:19:40,956
+combination of recognition level
+
+
+639
+00:19:40,956 --> 00:19:44,596
+and for the API version that you
+
+
+640
+00:19:44,596 --> 00:19:45,116
+are targeting.
+
+
+641
+00:19:46,786 --> 00:19:47,926
+Enabling language-based
+
+
+642
+00:19:47,926 --> 00:19:49,756
+correction is simple.
+
+
+643
+00:19:50,016 --> 00:19:51,626
+Just set the corresponding
+
+
+644
+00:19:51,626 --> 00:19:53,226
+property to true on the Text
+
+
+645
+00:19:53,226 --> 00:19:54,436
+Recognition request.
+
+
+646
+00:19:55,126 --> 00:19:56,376
+Initialize custom words.
+
+
+647
+00:19:56,806 --> 00:19:58,696
+You can specify this list of
+
+
+648
+00:19:58,696 --> 00:20:01,636
+words as an array of strings
+
+
+649
+00:20:02,316 --> 00:20:03,746
+that you pass to the custom
+
+
+650
+00:20:03,746 --> 00:20:05,236
+words property on the text
+
+
+651
+00:20:05,236 --> 00:20:06,726
+recognition request.
+
+
+652
+00:20:08,696 --> 00:20:12,996
+So, this is great for optimizing
+
+
+653
+00:20:12,996 --> 00:20:15,336
+for accuracy, transcription
+
+
+654
+00:20:15,336 --> 00:20:15,826
+accuracy.
+
+
+655
+00:20:15,826 --> 00:20:17,496
+But what about performance?
+
+
+656
+00:20:17,906 --> 00:20:20,206
+And there's a very common case
+
+
+657
+00:20:20,206 --> 00:20:22,286
+where you're probably not
+
+
+658
+00:20:22,286 --> 00:20:23,656
+interested in smaller
+
+
+659
+00:20:23,656 --> 00:20:24,586
+text that is in the
+
+
+660
+00:20:24,586 --> 00:20:25,396
+image.
+
+
+661
+00:20:26,136 --> 00:20:28,876
+So for that case, we recommend
+
+
+662
+00:20:28,876 --> 00:20:29,926
+that you adjust the
+
+
+663
+00:20:29,926 --> 00:20:30,976
+minimumTextHeight.
+
+
+664
+00:20:31,466 --> 00:20:34,496
+And the way it works is that
+
+
+665
+00:20:34,496 --> 00:20:35,226
+when you set up these
+
+
+666
+00:20:35,226 --> 00:20:37,216
+minimumTextHeight, all text that
+
+
+667
+00:20:37,216 --> 00:20:39,096
+is smaller than the height that
+
+
+668
+00:20:39,096 --> 00:20:40,836
+you specify will be ignored.
+
+
+669
+00:20:40,946 --> 00:20:42,156
+It won't be processed.
+
+
+670
+00:20:42,496 --> 00:20:44,436
+It won't be part of the results.
+
+
+671
+00:20:44,986 --> 00:20:46,736
+And the input image will be
+
+
+672
+00:20:46,736 --> 00:20:50,686
+downsized, and the execution
+
+
+673
+00:20:50,686 --> 00:20:51,906
+time will be smaller.
+
+
+674
+00:20:51,906 --> 00:20:53,496
+Recognition will go faster.
+
+
+675
+00:20:53,496 --> 00:20:55,736
+And the memory usage will go
+
+
+676
+00:20:55,736 --> 00:20:55,976
+down.
+
+
+677
+00:20:57,456 --> 00:20:59,156
+One important note about this
+
+
+678
+00:20:59,706 --> 00:21:03,216
+property is that it is expressed
+
+
+679
+00:21:03,556 --> 00:21:05,756
+as a fraction of the image
+
+
+680
+00:21:06,126 --> 00:21:06,926
+height.
+
+
+681
+00:21:07,436 --> 00:21:08,736
+As you can see in this example.
+
+
+682
+00:21:08,736 --> 00:21:12,576
+If I said 0.5, it means that the
+
+
+683
+00:21:12,616 --> 00:21:15,086
+text that is bigger or same size
+
+
+684
+00:21:15,086 --> 00:21:16,886
+as half of the height of the
+
+
+685
+00:21:16,966 --> 00:21:18,886
+image will be returned.
+
+
+686
+00:21:19,626 --> 00:21:22,486
+So, this is a case when you want
+
+
+687
+00:21:22,486 --> 00:21:24,006
+to make text recognition faster.
+
+
+688
+00:21:26,256 --> 00:21:28,256
+But what if text recognition is
+
+
+689
+00:21:28,256 --> 00:21:30,086
+not the highest priority task in
+
+
+690
+00:21:30,086 --> 00:21:30,756
+your application?
+
+
+691
+00:21:31,706 --> 00:21:33,056
+Maybe you have other higher
+
+
+692
+00:21:33,056 --> 00:21:36,066
+priority tasks to run, like an
+
+
+693
+00:21:36,066 --> 00:21:38,276
+ARKit view running in foreground
+
+
+694
+00:21:38,986 --> 00:21:39,886
+might be the case for you in
+
+
+695
+00:21:39,886 --> 00:21:40,156
+your app.
+
+
+696
+00:21:41,066 --> 00:21:43,676
+Or Cam AR Frames that you are
+
+
+697
+00:21:44,056 --> 00:21:48,166
+running and processing in real
+
+
+698
+00:21:49,356 --> 00:21:49,466
+time.
+
+
+699
+00:21:49,676 --> 00:21:51,706
+So, in the case of background
+
+
+700
+00:21:51,736 --> 00:21:56,396
+task, we allow you to run text
+
+
+701
+00:21:56,396 --> 00:21:59,026
+recognition on the CPU only, so
+
+
+702
+00:21:59,026 --> 00:22:01,656
+you can leave GPU resources and
+
+
+703
+00:22:01,656 --> 00:22:03,726
+optionally the neural engine, to
+
+
+704
+00:22:03,726 --> 00:22:05,586
+higher priority tasks for your
+
+
+705
+00:22:05,626 --> 00:22:06,196
+application.
+
+
+706
+00:22:08,186 --> 00:22:09,476
+You do that using the
+
+
+707
+00:22:09,476 --> 00:22:10,996
+usesCPUOnly property.
+
+
+708
+00:22:10,996 --> 00:22:12,246
+It's a property that is
+
+
+709
+00:22:12,246 --> 00:22:14,866
+available for other VN requests,
+
+
+710
+00:22:14,866 --> 00:22:16,916
+for all other VN requests and
+
+
+711
+00:22:17,186 --> 00:22:18,486
+Text Recognition support that as
+
+
+712
+00:22:18,486 --> 00:22:18,646
+well.
+
+
+713
+00:22:19,996 --> 00:22:21,086
+So, that's the case when you
+
+
+714
+00:22:21,086 --> 00:22:22,256
+will have Text Recognition
+
+
+715
+00:22:22,256 --> 00:22:25,256
+running slower on purpose.
+
+
+716
+00:22:25,406 --> 00:22:28,166
+But there are also cases where
+
+
+717
+00:22:28,166 --> 00:22:29,796
+the image is just very big and
+
+
+718
+00:22:29,796 --> 00:22:32,206
+there's a lot of text and Text
+
+
+719
+00:22:32,206 --> 00:22:34,346
+Recognition will be, will take
+
+
+720
+00:22:34,346 --> 00:22:36,756
+longer and your user might be
+
+
+721
+00:22:36,756 --> 00:22:39,966
+confused unless you provide
+
+
+722
+00:22:40,166 --> 00:22:41,046
+progress management.
+
+
+723
+00:22:41,716 --> 00:22:44,076
+And we highly recommend that you
+
+
+724
+00:22:45,416 --> 00:22:47,226
+focus on progress management in
+
+
+725
+00:22:47,226 --> 00:22:47,946
+your application.
+
+
+726
+00:22:48,826 --> 00:22:50,846
+This is a new concept in Vision
+
+
+727
+00:22:51,576 --> 00:22:54,056
+for this year and Text
+
+
+728
+00:22:54,056 --> 00:22:55,266
+Recognition fully implement
+
+
+729
+00:22:55,266 --> 00:22:55,436
+that.
+
+
+730
+00:22:56,056 --> 00:22:57,186
+It comes in two ways.
+
+
+731
+00:22:58,086 --> 00:23:00,456
+First, you can set a
+
+
+732
+00:23:00,526 --> 00:23:02,466
+progressHandler on your request.
+
+
+733
+00:23:03,886 --> 00:23:06,326
+And when you do so, you get the
+
+
+734
+00:23:06,376 --> 00:23:08,356
+progress ratio as in true
+
+
+735
+00:23:08,356 --> 00:23:10,366
+parameter in the progress
+
+
+736
+00:23:10,426 --> 00:23:10,776
+handler.
+
+
+737
+00:23:12,336 --> 00:23:14,226
+And you can also support
+
+
+738
+00:23:14,436 --> 00:23:15,616
+cancellation in your app.
+
+
+739
+00:23:16,506 --> 00:23:17,836
+For example, if you want to
+
+
+740
+00:23:17,836 --> 00:23:19,746
+provide a button to the user so
+
+
+741
+00:23:19,746 --> 00:23:21,746
+they can cancel a Text
+
+
+742
+00:23:21,746 --> 00:23:22,816
+Recognition that's running in
+
+
+743
+00:23:22,816 --> 00:23:23,316
+front of them.
+
+
+744
+00:23:24,226 --> 00:23:26,586
+So, that's a bunch of concepts
+
+
+745
+00:23:26,586 --> 00:23:29,016
+and to illustrate them, I would
+
+
+746
+00:23:29,016 --> 00:23:32,776
+like to show you a demo of a
+
+
+747
+00:23:32,776 --> 00:23:34,166
+sample app that we're making
+
+
+748
+00:23:34,166 --> 00:23:35,626
+available with this session as
+
+
+749
+00:23:35,626 --> 00:23:35,896
+well.
+
+
+750
+00:23:36,716 --> 00:23:38,456
+It's called My First Image
+
+
+751
+00:23:38,456 --> 00:23:38,866
+Reader.
+
+
+752
+00:23:39,566 --> 00:23:42,676
+So, let me give you a tour of
+
+
+753
+00:23:42,676 --> 00:23:42,956
+this app.
+
+
+754
+00:23:51,826 --> 00:23:53,836
+So, as you will see with this
+
+
+755
+00:23:53,836 --> 00:23:56,086
+sample code, My First Image
+
+
+756
+00:23:56,086 --> 00:23:58,386
+Reader as the main window.
+
+
+757
+00:23:59,206 --> 00:24:01,396
+As you can see here.
+
+
+758
+00:24:01,786 --> 00:24:02,866
+And a transcript panel.
+
+
+759
+00:24:03,616 --> 00:24:04,836
+The main window will show the
+
+
+760
+00:24:04,926 --> 00:24:06,906
+image and the geometry of the
+
+
+761
+00:24:06,906 --> 00:24:07,346
+results.
+
+
+762
+00:24:08,016 --> 00:24:10,766
+The transcript window will show
+
+
+763
+00:24:10,906 --> 00:24:12,166
+the text.
+
+
+764
+00:24:13,036 --> 00:24:16,036
+If I take a closer look at the
+
+
+765
+00:24:17,406 --> 00:24:18,756
+top of this window, at the
+
+
+766
+00:24:18,826 --> 00:24:20,686
+toolbar, you'll see that you can
+
+
+767
+00:24:20,686 --> 00:24:22,616
+choose between accurate and
+
+
+768
+00:24:22,666 --> 00:24:23,046
+fast.
+
+
+769
+00:24:23,526 --> 00:24:24,836
+So, that's in fact a very nice,
+
+
+770
+00:24:24,886 --> 00:24:26,276
+simple app for you to experiment
+
+
+771
+00:24:26,346 --> 00:24:26,996
+with this mode.
+
+
+772
+00:24:27,476 --> 00:24:29,066
+But also with other setting that
+
+
+773
+00:24:29,066 --> 00:24:31,186
+we have just talked about.
+
+
+774
+00:24:32,086 --> 00:24:33,766
+Performance setting, minimum
+
+
+775
+00:24:33,766 --> 00:24:35,076
+text height, I'll get back to
+
+
+776
+00:24:35,076 --> 00:24:38,786
+that later, and in this view,
+
+
+777
+00:24:38,786 --> 00:24:40,696
+you also have access to the
+
+
+778
+00:24:40,746 --> 00:24:43,576
+language settings, setting,
+
+
+779
+00:24:43,796 --> 00:24:45,436
+enabling the language model,
+
+
+780
+00:24:45,436 --> 00:24:45,776
+sorry.
+
+
+781
+00:24:46,316 --> 00:24:48,106
+And the custom words.
+
+
+782
+00:24:48,796 --> 00:24:51,526
+Let me show you quickly with a
+
+
+783
+00:24:52,566 --> 00:24:54,406
+crafted example how this looks
+
+
+784
+00:24:55,146 --> 00:24:55,246
+like.
+
+
+785
+00:24:56,516 --> 00:24:59,646
+If I take one image that I
+
+
+786
+00:24:59,646 --> 00:25:02,606
+created and say that's a book
+
+
+787
+00:25:02,636 --> 00:25:04,776
+cover and happens to have very
+
+
+788
+00:25:04,826 --> 00:25:07,786
+small text and happens to be my
+
+
+789
+00:25:07,786 --> 00:25:07,876
+name.
+
+
+790
+00:25:09,466 --> 00:25:12,196
+You see that you get very small
+
+
+791
+00:25:12,236 --> 00:25:15,576
+text, my name here, located and
+
+
+792
+00:25:15,576 --> 00:25:16,166
+recognized.
+
+
+793
+00:25:16,166 --> 00:25:17,926
+And same obviously for the very
+
+
+794
+00:25:17,926 --> 00:25:18,716
+large text.
+
+
+795
+00:25:19,826 --> 00:25:21,046
+Now let's say I have a bunch of
+
+
+796
+00:25:21,046 --> 00:25:23,396
+those and I just want to index
+
+
+797
+00:25:23,706 --> 00:25:25,886
+the titles of these images.
+
+
+798
+00:25:26,386 --> 00:25:27,326
+I wouldn't care so much about
+
+
+799
+00:25:27,326 --> 00:25:28,396
+the small print, in particular
+
+
+800
+00:25:28,396 --> 00:25:29,006
+my name on it.
+
+
+801
+00:25:29,266 --> 00:25:31,346
+So, I will adjust the minimum
+
+
+802
+00:25:31,346 --> 00:25:33,486
+text height to make the
+
+
+803
+00:25:33,486 --> 00:25:34,896
+recognition run faster.
+
+
+804
+00:25:35,556 --> 00:25:39,756
+You can just set it to 0.1, so
+
+
+805
+00:25:40,436 --> 00:25:44,756
+the text has to be at least 90
+
+
+806
+00:25:44,756 --> 00:25:46,276
+percent of the image height.
+
+
+807
+00:25:47,046 --> 00:25:47,886
+And that's the case for the
+
+
+808
+00:25:47,886 --> 00:25:50,256
+large text, Desert Dunes, here.
+
+
+809
+00:25:50,946 --> 00:25:54,346
+So, setting these back to 0, let
+
+
+810
+00:25:55,626 --> 00:25:57,396
+me show you the language
+
+
+811
+00:25:57,456 --> 00:25:58,956
+settings, in particular the
+
+
+812
+00:25:59,006 --> 00:26:00,786
+impact of custom words.
+
+
+813
+00:26:03,736 --> 00:26:06,736
+If I drag this flyer here, it's
+
+
+814
+00:26:06,736 --> 00:26:08,616
+for a project called Hill Side.
+
+
+815
+00:26:08,756 --> 00:26:10,496
+It also has a probable number,
+
+
+816
+00:26:11,066 --> 00:26:12,546
+which is a reference number.
+
+
+817
+00:26:12,796 --> 00:26:16,406
+It happens to be HI11.
+
+
+818
+00:26:17,116 --> 00:26:18,566
+So, there's possible confusion
+
+
+819
+00:26:18,626 --> 00:26:18,816
+here.
+
+
+820
+00:26:18,956 --> 00:26:20,216
+So, let me show you the
+
+
+821
+00:26:20,216 --> 00:26:21,196
+transcription results.
+
+
+822
+00:26:23,066 --> 00:26:25,926
+You see that the code is in fact
+
+
+823
+00:26:26,046 --> 00:26:27,226
+misrecognized here.
+
+
+824
+00:26:28,606 --> 00:26:29,526
+So we're changing.
+
+
+825
+00:26:30,456 --> 00:26:38,106
+So if I specify HI11 as custom
+
+
+826
+00:26:38,106 --> 00:26:39,366
+word, because it's part of my
+
+
+827
+00:26:39,366 --> 00:26:42,526
+known references, then the
+
+
+828
+00:26:42,526 --> 00:26:43,936
+custom, the list of custom words
+
+
+829
+00:26:43,936 --> 00:26:45,166
+and this one in particular we
+
+
+830
+00:26:45,166 --> 00:26:46,466
+complemented by this correction
+
+
+831
+00:26:46,596 --> 00:26:48,126
+and give us the correct
+
+
+832
+00:26:48,276 --> 00:26:49,686
+transcription for that
+
+
+833
+00:26:49,686 --> 00:26:50,186
+reference.
+
+
+834
+00:26:51,606 --> 00:26:52,296
+Back to the slide.
+
+
+835
+00:26:53,016 --> 00:26:54,096
+[ Applause ]
+
+
+836
+00:26:54,096 --> 00:26:54,946
+Thank you.
+
+
+837
+00:26:55,516 --> 00:26:58,500
+[ Applause ]
+
+
+838
+00:27:01,686 --> 00:27:02,886
+So, quick recap.
+
+
+839
+00:27:05,356 --> 00:27:06,696
+You need to choose the
+
+
+840
+00:27:06,696 --> 00:27:08,996
+recognition level that is the
+
+
+841
+00:27:08,996 --> 00:27:10,536
+best fit for your use case for
+
+
+842
+00:27:10,536 --> 00:27:11,066
+your application.
+
+
+843
+00:27:11,296 --> 00:27:13,516
+Fast, accurate, it needs to be
+
+
+844
+00:27:13,516 --> 00:27:14,006
+the right one.
+
+
+845
+00:27:14,976 --> 00:27:17,276
+For the language settings, we
+
+
+846
+00:27:17,276 --> 00:27:19,616
+recommend that you check based
+
+
+847
+00:27:19,616 --> 00:27:21,376
+on the type of documents that
+
+
+848
+00:27:21,376 --> 00:27:21,686
+you have.
+
+
+849
+00:27:21,746 --> 00:27:22,806
+If there's an obvious language,
+
+
+850
+00:27:22,956 --> 00:27:24,376
+a neighbor languages correction,
+
+
+851
+00:27:24,376 --> 00:27:25,106
+and if you have a
+
+
+852
+00:27:25,106 --> 00:27:26,956
+domain-specific vocabulary,
+
+
+853
+00:27:27,546 --> 00:27:29,766
+enable custom words, specify
+
+
+854
+00:27:29,766 --> 00:27:30,526
+your custom words.
+
+
+855
+00:27:31,616 --> 00:27:33,836
+And also, very importantly, you
+
+
+856
+00:27:33,836 --> 00:27:36,156
+need to support progress update
+
+
+857
+00:27:36,156 --> 00:27:38,476
+in your app for the best user
+
+
+858
+00:27:38,476 --> 00:27:39,726
+experience.
+
+
+859
+00:27:41,086 --> 00:27:44,086
+Now, even if you follow this
+
+
+860
+00:27:44,086 --> 00:27:46,926
+recommendation, there's still
+
+
+861
+00:27:46,926 --> 00:27:49,446
+one very important aspect to be
+
+
+862
+00:27:49,446 --> 00:27:49,906
+aware of.
+
+
+863
+00:27:51,546 --> 00:27:54,876
+You need to process your results
+
+
+864
+00:27:56,136 --> 00:27:57,516
+and you need to provide a
+
+
+865
+00:27:57,516 --> 00:28:00,326
+recipe, have your own recipe for
+
+
+866
+00:28:00,356 --> 00:28:01,596
+presenting your results to your
+
+
+867
+00:28:01,596 --> 00:28:02,236
+users.
+
+
+868
+00:28:03,186 --> 00:28:04,846
+And the recipe you want to have
+
+
+869
+00:28:05,956 --> 00:28:07,776
+is probably not alphabet soup.
+
+
+870
+00:28:09,126 --> 00:28:11,346
+What I mean by that is that you
+
+
+871
+00:28:11,346 --> 00:28:13,366
+need to process your results in
+
+
+872
+00:28:13,366 --> 00:28:16,946
+the most effective way for the
+
+
+873
+00:28:16,946 --> 00:28:18,376
+best user experience.
+
+
+874
+00:28:19,376 --> 00:28:24,506
+So, let's check how to do that.
+
+
+875
+00:28:25,706 --> 00:28:27,296
+One very important statement
+
+
+876
+00:28:27,676 --> 00:28:28,306
+first.
+
+
+877
+00:28:29,236 --> 00:28:32,266
+You should expect ambiguity in
+
+
+878
+00:28:32,266 --> 00:28:32,686
+the input.
+
+
+879
+00:28:34,086 --> 00:28:35,126
+This is computer vision.
+
+
+880
+00:28:35,596 --> 00:28:36,856
+This is an open-ended problem.
+
+
+881
+00:28:37,526 --> 00:28:38,896
+And our terms of excellent
+
+
+882
+00:28:38,896 --> 00:28:40,886
+parameter that will influence
+
+
+883
+00:28:41,146 --> 00:28:43,236
+the content of the images that
+
+
+884
+00:28:43,236 --> 00:28:43,956
+you are processing.
+
+
+885
+00:28:43,986 --> 00:28:47,036
+In fact, the case of house
+
+
+886
+00:28:47,036 --> 00:28:48,306
+number is quite interesting
+
+
+887
+00:28:48,406 --> 00:28:48,576
+here.
+
+
+888
+00:28:49,606 --> 00:28:51,396
+Because some of them are very
+
+
+889
+00:28:51,396 --> 00:28:52,106
+stylized.
+
+
+890
+00:28:53,016 --> 00:28:54,036
+And when you run the generate
+
+
+891
+00:28:54,076 --> 00:28:55,786
+Text Recognizer on those, it has
+
+
+892
+00:28:55,846 --> 00:28:57,186
+no clue that they should be
+
+
+893
+00:28:57,186 --> 00:28:57,936
+numbers, right?
+
+
+894
+00:28:57,936 --> 00:29:02,156
+And instead of getting 101, you
+
+
+895
+00:29:02,856 --> 00:29:05,576
+get lol or you might get the
+
+
+896
+00:29:05,816 --> 00:29:06,586
+ASCII art for the happy 
+
+
+897
+00:29:06,586 --> 00:29:09,646
+guy raising hand, meaning this
+
+
+898
+00:29:09,776 --> 00:29:09,986
+case.
+
+
+899
+00:29:10,946 --> 00:29:14,566
+So, in that case, have you heard
+
+
+900
+00:29:14,566 --> 00:29:16,576
+it before but we're insisting on
+
+
+901
+00:29:16,806 --> 00:29:19,946
+that you need to leverage the
+
+
+902
+00:29:19,946 --> 00:29:21,826
+candidate list, the list of top
+
+
+903
+00:29:21,856 --> 00:29:23,306
+candidates that you have for,
+
+
+904
+00:29:23,936 --> 00:29:25,996
+from the observations.
+
+
+905
+00:29:26,616 --> 00:29:28,766
+So, take this candidate list and
+
+
+906
+00:29:28,766 --> 00:29:29,766
+if it makes in for your
+
+
+907
+00:29:29,766 --> 00:29:31,176
+application, take a look at this
+
+
+908
+00:29:31,346 --> 00:29:32,806
+top one, top two, top three
+
+
+909
+00:29:32,806 --> 00:29:33,806
+results or more.
+
+
+910
+00:29:33,806 --> 00:29:36,006
+There's a typical example where
+
+
+911
+00:29:36,006 --> 00:29:38,106
+you want to index the content of
+
+
+912
+00:29:38,106 --> 00:29:40,416
+the images and so if you want to
+
+
+913
+00:29:40,416 --> 00:29:42,216
+increase the recall, you can
+
+
+914
+00:29:42,216 --> 00:29:44,716
+index more candidates for each
+
+
+915
+00:29:44,716 --> 00:29:45,396
+of the results.
+
+
+916
+00:29:45,686 --> 00:29:47,326
+Of course, at the cost of
+
+
+917
+00:29:47,666 --> 00:29:48,076
+precision.
+
+
+918
+00:29:48,886 --> 00:29:52,856
+Right? So, this candidate list,
+
+
+919
+00:29:52,856 --> 00:29:54,826
+we need to dive into that, but
+
+
+920
+00:29:54,826 --> 00:29:56,286
+that's just one dimension.
+
+
+921
+00:29:56,286 --> 00:29:58,706
+That's the scale of prediction
+
+
+922
+00:29:59,516 --> 00:30:00,306
+confidence.
+
+
+923
+00:30:00,656 --> 00:30:02,156
+What about other dimensions?
+
+
+924
+00:30:02,636 --> 00:30:05,056
+What about image space?
+
+
+925
+00:30:06,046 --> 00:30:08,916
+We recommend that you evaluate
+
+
+926
+00:30:09,876 --> 00:30:12,136
+and in fact reconsider using the
+
+
+927
+00:30:12,136 --> 00:30:14,546
+geometry to map your results.
+
+
+928
+00:30:15,586 --> 00:30:17,636
+You have the salvation bonding
+
+
+929
+00:30:17,636 --> 00:30:18,126
+box.
+
+
+930
+00:30:18,576 --> 00:30:20,176
+It gives you spatial information
+
+
+931
+00:30:20,726 --> 00:30:22,056
+and you can map these results
+
+
+932
+00:30:22,056 --> 00:30:24,246
+together using the position, the
+
+
+933
+00:30:24,246 --> 00:30:26,506
+scale of the results, but also
+
+
+934
+00:30:26,506 --> 00:30:27,116
+the rotation.
+
+
+935
+00:30:27,346 --> 00:30:29,366
+And the example that we are
+
+
+936
+00:30:29,366 --> 00:30:32,006
+showing here, in case, in the
+
+
+937
+00:30:32,006 --> 00:30:34,346
+case of the receipts, you can
+
+
+938
+00:30:34,346 --> 00:30:38,326
+probably map the item name to
+
+
+939
+00:30:39,156 --> 00:30:40,746
+the price.
+
+
+940
+00:30:42,896 --> 00:30:45,146
+So, that's for the geometry.
+
+
+941
+00:30:45,816 --> 00:30:47,356
+But for each result in
+
+
+942
+00:30:47,356 --> 00:30:49,256
+isolation, you also have the
+
+
+943
+00:30:49,306 --> 00:30:52,096
+opportunity to use parsers and
+
+
+944
+00:30:52,096 --> 00:30:53,286
+try to make sense of each of
+
+
+945
+00:30:53,286 --> 00:30:54,476
+these results in isolation.
+
+
+946
+00:30:54,476 --> 00:30:58,096
+And in this case, Data Detector
+
+
+947
+00:30:58,096 --> 00:31:00,596
+is your best friend.
+
+
+948
+00:31:00,596 --> 00:31:02,536
+It's initiate NSDataDetector for
+
+
+949
+00:31:02,536 --> 00:31:03,756
+the types that you're interested
+
+
+950
+00:31:03,756 --> 00:31:03,896
+in.
+
+
+951
+00:31:04,266 --> 00:31:05,296
+As you probably know, it
+
+
+952
+00:31:05,296 --> 00:31:08,236
+supports addresses, URLs, dates,
+
+
+953
+00:31:08,336 --> 00:31:09,106
+phone numbers.
+
+
+954
+00:31:10,516 --> 00:31:11,746
+In the example of my business
+
+
+955
+00:31:11,746 --> 00:31:14,186
+card, I can use that to make
+
+
+956
+00:31:14,186 --> 00:31:15,916
+sense of some of the results.
+
+
+957
+00:31:16,526 --> 00:31:19,806
+But if that's not sufficient,
+
+
+958
+00:31:20,186 --> 00:31:22,136
+then you can obviously use your
+
+
+959
+00:31:22,866 --> 00:31:24,446
+own domain-specific features,
+
+
+960
+00:31:24,446 --> 00:31:26,316
+have your own vocabulary that
+
+
+961
+00:31:26,316 --> 00:31:27,726
+you match the strings against,
+
+
+962
+00:31:28,146 --> 00:31:29,306
+or use your own regular
+
+
+963
+00:31:29,306 --> 00:31:29,776
+expression.
+
+
+964
+00:31:32,856 --> 00:31:34,216
+So, to illustrate these
+
+
+965
+00:31:34,276 --> 00:31:36,106
+principles, we have another
+
+
+966
+00:31:36,106 --> 00:31:37,866
+sample app, an iOS app this
+
+
+967
+00:31:37,906 --> 00:31:39,946
+time, called Business Companion.
+
+
+968
+00:31:43,256 --> 00:31:45,776
+In fact, if you're sitting in
+
+
+969
+00:31:45,776 --> 00:31:47,396
+this room because you have the
+
+
+970
+00:31:47,396 --> 00:31:49,966
+idea receipt scanner.
+
+
+971
+00:31:50,506 --> 00:31:51,446
+Receipt scanner, anyone?
+
+
+972
+00:31:51,956 --> 00:31:56,136
+Maybe? Or a business card
+
+
+973
+00:31:56,136 --> 00:31:56,436
+reader?
+
+
+974
+00:31:57,226 --> 00:31:58,146
+People interested in business
+
+
+975
+00:31:58,146 --> 00:31:58,306
+card?
+
+
+976
+00:31:59,736 --> 00:32:03,356
+Then this app is something you
+
+
+977
+00:32:03,546 --> 00:32:05,476
+really take a look at, because
+
+
+978
+00:32:06,006 --> 00:32:09,036
+it mixes the two flows into the
+
+
+979
+00:32:09,136 --> 00:32:09,896
+same app flow.
+
+
+980
+00:32:09,896 --> 00:32:13,036
+Let me show you how.
+
+
+981
+00:32:14,916 --> 00:32:18,006
+First, it has document category
+
+
+982
+00:32:18,006 --> 00:32:18,346
+picker.
+
+
+983
+00:32:18,346 --> 00:32:19,866
+It gives you some - You see soon how it works,
+
+
+984
+00:32:20,126 --> 00:32:22,036
+It is just the first screen.
+
+
+985
+00:32:22,036 --> 00:32:23,106
+That way you pick the document
+
+
+986
+00:32:23,106 --> 00:32:24,166
+type you're interested in.
+
+
+987
+00:32:24,906 --> 00:32:26,116
+And from there, you go to the
+
+
+988
+00:32:26,116 --> 00:32:27,606
+Document Camera that you heard
+
+
+989
+00:32:27,606 --> 00:32:28,646
+about before.
+
+
+990
+00:32:28,646 --> 00:32:31,166
+And from the Document Camera, we
+
+
+991
+00:32:31,266 --> 00:32:34,026
+run text recognition and from
+
+
+992
+00:32:34,026 --> 00:32:35,326
+the recognized result, we
+
+
+993
+00:32:35,966 --> 00:32:37,366
+perform some analysis to make
+
+
+994
+00:32:37,366 --> 00:32:38,496
+sense of these results, and
+
+
+995
+00:32:38,496 --> 00:32:39,696
+that's what really matters here.
+
+
+996
+00:32:40,366 --> 00:32:42,476
+Because based on this analysis,
+
+
+997
+00:32:42,896 --> 00:32:44,106
+we'll be able to get some data
+
+
+998
+00:32:44,106 --> 00:32:46,246
+model for receipt business card.
+
+
+999
+00:32:46,246 --> 00:32:47,626
+In this case, we have a fall
+
+
+1000
+00:32:47,626 --> 00:32:49,406
+back on the type of documents.
+
+
+1001
+00:32:50,326 --> 00:32:52,146
+And from this results analysis,
+
+
+1002
+00:32:52,146 --> 00:32:54,076
+given that you make sense of the
+
+
+1003
+00:32:54,076 --> 00:32:57,536
+data, you can also visualize the
+
+
+1004
+00:32:57,536 --> 00:32:59,346
+result more appropriately in the
+
+
+1005
+00:32:59,346 --> 00:33:00,626
+case of the receipt which shows
+
+
+1006
+00:33:00,626 --> 00:33:01,746
+to display in a table view.
+
+
+1007
+00:33:02,216 --> 00:33:03,976
+And if we have a business card,
+
+
+1008
+00:33:04,076 --> 00:33:07,256
+we show mini contact card.
+
+
+1009
+00:33:07,456 --> 00:33:09,956
+So, let me show you this app.
+
+
+1010
+00:33:18,436 --> 00:33:20,466
+Switching to the iOS device
+
+
+1011
+00:33:20,466 --> 00:33:20,936
+here.
+
+
+1012
+00:33:22,236 --> 00:33:24,336
+So, this is Business Companion,
+
+
+1013
+00:33:24,836 --> 00:33:26,746
+and as I was telling you, we
+
+
+1014
+00:33:26,746 --> 00:33:29,136
+have here a choice between
+
+
+1015
+00:33:29,136 --> 00:33:30,756
+receipt, card, and other type of
+
+
+1016
+00:33:30,756 --> 00:33:31,216
+document.
+
+
+1017
+00:33:31,546 --> 00:33:33,386
+Let's just start with receipts.
+
+
+1018
+00:33:33,696 --> 00:33:37,556
+And first the Document Camera.
+
+
+1019
+00:33:37,556 --> 00:33:39,306
+We have some challenging light
+
+
+1020
+00:33:39,306 --> 00:33:39,736
+in here.
+
+
+1021
+00:33:45,536 --> 00:33:48,166
+As the document gets captured
+
+
+1022
+00:33:48,166 --> 00:33:53,966
+and processed, yes, our results
+
+
+1023
+00:33:54,026 --> 00:33:56,026
+structured.
+
+
+1024
+00:33:56,086 --> 00:33:57,226
+You see the item name.
+
+
+1025
+00:33:57,696 --> 00:33:59,416
+You see the category names and
+
+
+1026
+00:33:59,946 --> 00:34:01,826
+the value for each section.
+
+
+1027
+00:34:02,656 --> 00:34:07,466
+Now, if I look at a business
+
+
+1028
+00:34:07,996 --> 00:34:08,126
+card.
+
+
+1029
+00:34:14,456 --> 00:34:18,686
+Similarly I get each field of
+
+
+1030
+00:34:18,856 --> 00:34:20,206
+the business card analyzed
+
+
+1031
+00:34:20,206 --> 00:34:21,235
+[applause], and this is my mini
+
+
+1032
+00:34:21,235 --> 00:34:21,596
+business card.
+
+
+1033
+00:34:21,596 --> 00:34:22,775
+Thank you.
+
+
+1034
+00:34:26,255 --> 00:34:27,516
+Like I said, this is nice but
+
+
+1035
+00:34:27,516 --> 00:34:29,346
+look at this front screen.
+
+
+1036
+00:34:29,346 --> 00:34:30,966
+You still have to choose
+
+
+1037
+00:34:30,966 --> 00:34:33,036
+manually the document type.
+
+
+1038
+00:34:33,906 --> 00:34:34,766
+It's not really seamless.
+
+
+1039
+00:34:34,766 --> 00:34:37,065
+You can make that more seamless,
+
+
+1040
+00:34:37,286 --> 00:34:37,596
+right?
+
+
+1041
+00:34:37,775 --> 00:34:39,686
+Actually, we've done that.
+
+
+1042
+00:34:39,686 --> 00:34:42,096
+And I'm going to show you a
+
+
+1043
+00:34:42,096 --> 00:34:43,996
+better version of this app.
+
+
+1044
+00:34:43,996 --> 00:34:45,565
+It's called Better Business
+
+
+1045
+00:34:45,606 --> 00:34:46,036
+Companion.
+
+
+1046
+00:34:46,156 --> 00:34:50,775
+And what we've done, in fact, is
+
+
+1047
+00:34:50,775 --> 00:34:53,525
+that we've trained a classifier
+
+
+1048
+00:34:53,525 --> 00:34:56,446
+model using Create ML and we're
+
+
+1049
+00:34:56,446 --> 00:34:58,846
+using this classifier as a first
+
+
+1050
+00:34:58,846 --> 00:35:00,186
+step so that you don't have to
+
+
+1051
+00:35:00,186 --> 00:35:01,366
+specify the document type.
+
+
+1052
+00:35:01,956 --> 00:35:03,026
+It will be selected
+
+
+1053
+00:35:03,026 --> 00:35:04,076
+automatically.
+
+
+1054
+00:35:04,076 --> 00:35:04,466
+Enough talking.
+
+
+1055
+00:35:04,466 --> 00:35:04,976
+Let me show you.
+
+
+1056
+00:35:07,566 --> 00:35:09,716
+So, very obviously, first
+
+
+1057
+00:35:09,716 --> 00:35:11,506
+button, big button, very small
+
+
+1058
+00:35:11,506 --> 00:35:11,826
+button.
+
+
+1059
+00:35:14,516 --> 00:35:16,136
+You only have the scan button
+
+
+1060
+00:35:16,196 --> 00:35:18,096
+here and you can see that
+
+
+1061
+00:35:18,096 --> 00:35:21,856
+similarly I get my receipt here.
+
+
+1062
+00:35:26,856 --> 00:35:29,666
+Get processed as a receipt
+
+
+1063
+00:35:31,296 --> 00:35:32,256
+[applause] without having the
+
+
+1064
+00:35:32,306 --> 00:35:36,886
+user specify the document type.
+
+
+1065
+00:35:38,086 --> 00:35:39,466
+Just to show you how it works
+
+
+1066
+00:35:39,466 --> 00:35:40,536
+with business cards, with my
+
+
+1067
+00:35:40,536 --> 00:35:42,846
+business card again.
+
+
+1068
+00:35:47,506 --> 00:35:50,126
+And yes, we get the business
+
+
+1069
+00:35:50,126 --> 00:35:50,976
+card correctly processed.
+
+
+1070
+00:35:51,516 --> 00:35:54,616
+[ Applause ]
+
+
+1071
+00:35:55,116 --> 00:35:56,656
+So, I told you we integrated the
+
+
+1072
+00:35:56,656 --> 00:35:58,376
+Core ML model for this but I
+
+
+1073
+00:35:58,506 --> 00:35:59,456
+would like to show you how.
+
+
+1074
+00:36:06,156 --> 00:36:09,836
+So, let's go into Xcode here and
+
+
+1075
+00:36:10,296 --> 00:36:12,716
+this is the code, in fact this
+
+
+1076
+00:36:12,776 --> 00:36:14,566
+is the code we modified from
+
+
+1077
+00:36:14,776 --> 00:36:18,586
+Business Companion.
+
+
+1078
+00:36:18,586 --> 00:36:21,826
+And we added the insertion of a
+
+
+1079
+00:36:21,826 --> 00:36:24,026
+Core ML model that is actually
+
+
+1080
+00:36:24,986 --> 00:36:25,396
+here.
+
+
+1081
+00:36:29,376 --> 00:36:32,246
+So, we inserted this Core ML
+
+
+1082
+00:36:32,246 --> 00:36:34,826
+model to set out the request
+
+
+1083
+00:36:35,276 --> 00:36:36,776
+with a completionHandler.
+
+
+1084
+00:36:36,776 --> 00:36:40,666
+And as part of the handler, you
+
+
+1085
+00:36:40,666 --> 00:36:42,146
+see that we processed the top
+
+
+1086
+00:36:42,146 --> 00:36:46,196
+observation and date of the
+
+
+1087
+00:36:46,196 --> 00:36:47,846
+identifier, sorry, of this top
+
+
+1088
+00:36:47,846 --> 00:36:48,436
+observation.
+
+
+1089
+00:36:48,436 --> 00:36:52,266
+We set up the scan mode for the
+
+
+1090
+00:36:52,266 --> 00:36:53,966
+application that will determine
+
+
+1091
+00:36:53,966 --> 00:36:55,436
+the flow for the rest of the
+
+
+1092
+00:36:55,926 --> 00:36:56,906
+app.
+
+
+1093
+00:36:56,906 --> 00:36:58,916
+So, we encourage you to think
+
+
+1094
+00:36:58,916 --> 00:37:00,396
+about how you can improve your
+
+
+1095
+00:37:00,396 --> 00:37:02,286
+application flow using Text
+
+
+1096
+00:37:02,286 --> 00:37:03,916
+Recognition but, and processing
+
+
+1097
+00:37:03,916 --> 00:37:05,056
+the results appropriately but
+
+
+1098
+00:37:05,056 --> 00:37:09,426
+also leveraging ML models, like
+
+
+1099
+00:37:11,876 --> 00:37:12,016
+this.
+
+
+1100
+00:37:12,206 --> 00:37:12,506
+All right.
+
+
+1101
+00:37:12,506 --> 00:37:14,696
+Back to the slides.
+
+
+1102
+00:37:15,206 --> 00:37:18,306
+Just for a quick recap.
+
+
+1103
+00:37:19,796 --> 00:37:22,396
+As I mentioned, we encourage you
+
+
+1104
+00:37:22,396 --> 00:37:24,296
+to use geometry information when
+
+
+1105
+00:37:24,296 --> 00:37:25,026
+it makes sense.
+
+
+1106
+00:37:25,866 --> 00:37:27,796
+Parse your results, make sense
+
+
+1107
+00:37:27,796 --> 00:37:29,576
+of them by using Data Detectors
+
+
+1108
+00:37:29,576 --> 00:37:30,646
+or your own parsers.
+
+
+1109
+00:37:31,456 --> 00:37:33,416
+And most importantly, you know
+
+
+1110
+00:37:33,416 --> 00:37:34,266
+what you're building.
+
+
+1111
+00:37:34,456 --> 00:37:35,736
+You know what type of data that
+
+
+1112
+00:37:35,736 --> 00:37:36,966
+you have to look at.
+
+
+1113
+00:37:36,966 --> 00:37:39,326
+And so we recommend that you
+
+
+1114
+00:37:39,326 --> 00:37:40,926
+leverage your domain knowledge
+
+
+1115
+00:37:40,926 --> 00:37:42,706
+for the best user experience.
+
+
+1116
+00:37:45,676 --> 00:37:48,096
+So, we hope that gave you good
+
+
+1117
+00:37:48,096 --> 00:37:49,376
+reference point for starting
+
+
+1118
+00:37:49,376 --> 00:37:50,656
+integrating Text Recognition
+
+
+1119
+00:37:50,656 --> 00:37:51,656
+into your app.
+
+
+1120
+00:37:51,656 --> 00:37:53,336
+I can't wait to see all the
+
+
+1121
+00:37:53,696 --> 00:37:54,826
+fantastic app that you're going
+
+
+1122
+00:37:54,826 --> 00:37:56,686
+to create using this technology.
+
+
+1123
+00:37:56,896 --> 00:37:59,716
+If you have question, you can
+
+
+1124
+00:37:59,716 --> 00:38:01,056
+visit the machine learning lab.
+
+
+1125
+00:38:01,056 --> 00:38:02,326
+There's one more tomorrow.
+
+
+1126
+00:38:02,326 --> 00:38:03,976
+Thank you very much.
+
+
+1127
+00:38:04,508 --> 00:38:06,508
+[ Applause ]
+

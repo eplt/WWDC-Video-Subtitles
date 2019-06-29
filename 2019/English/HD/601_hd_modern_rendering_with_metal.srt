@@ -1,0 +1,9274 @@
+1
+00:00:00,506 --> 00:00:05,500
+[ Music ]
+
+
+2
+00:00:10,516 --> 00:00:15,926
+[ Applause ]
+
+
+3
+00:00:16,426 --> 00:00:17,156
+>> Hi, everybody.
+
+
+4
+00:00:17,836 --> 00:00:19,206
+My name is Jaap van Muijden and
+
+
+5
+00:00:19,206 --> 00:00:21,336
+welcome to this session on
+
+
+6
+00:00:21,336 --> 00:00:22,696
+Modern Rendering with Metal.
+
+
+7
+00:00:23,336 --> 00:00:25,386
+In the first part of the
+
+
+8
+00:00:25,386 --> 00:00:27,176
+session, I will go over some of
+
+
+9
+00:00:27,176 --> 00:00:28,316
+the more advanced rendering
+
+
+10
+00:00:28,316 --> 00:00:30,236
+techniques that you can use in
+
+
+11
+00:00:30,236 --> 00:00:31,106
+your apps today.
+
+
+12
+00:00:32,076 --> 00:00:34,016
+Then my colleague, Srinivas
+
+
+13
+00:00:34,096 --> 00:00:36,526
+Dasari, will talk to you about
+
+
+14
+00:00:36,526 --> 00:00:39,266
+moving your CPU render loop to a
+
+
+15
+00:00:39,266 --> 00:00:40,906
+more GPU-driven pipeline.
+
+
+16
+00:00:42,196 --> 00:00:44,426
+We'll end the session by showing
+
+
+17
+00:00:44,426 --> 00:00:46,966
+you how we can use our new GPU
+
+
+18
+00:00:46,966 --> 00:00:49,186
+families to easily write cross
+
+
+19
+00:00:49,316 --> 00:00:49,976
+spectrum code.
+
+
+20
+00:00:52,916 --> 00:00:53,716
+Whether you're starting from
+
+
+21
+00:00:53,716 --> 00:00:55,936
+scratch or you want to improve
+
+
+22
+00:00:55,936 --> 00:00:58,246
+your existing Metal app, or you
+
+
+23
+00:00:58,246 --> 00:00:59,716
+have an amazing rendering engine
+
+
+24
+00:00:59,816 --> 00:01:01,066
+that you want to move onto the
+
+
+25
+00:01:01,066 --> 00:01:03,486
+Metal platform, we'll show you
+
+
+26
+00:01:03,546 --> 00:01:05,416
+how you can make the best use of
+
+
+27
+00:01:05,416 --> 00:01:07,976
+the available hardware with the
+
+
+28
+00:01:07,976 --> 00:01:10,016
+rendering technique that fits
+
+
+29
+00:01:10,016 --> 00:01:10,616
+your needs.
+
+
+30
+00:01:11,966 --> 00:01:14,126
+We'll start by taking a look at
+
+
+31
+00:01:14,126 --> 00:01:16,856
+some of the range of rendering
+
+
+32
+00:01:16,856 --> 00:01:18,246
+techniques that are used by
+
+
+33
+00:01:18,246 --> 00:01:19,306
+games and apps today.
+
+
+34
+00:01:19,626 --> 00:01:22,926
+We'll start with basic deferred
+
+
+35
+00:01:22,926 --> 00:01:23,316
+rendering.
+
+
+36
+00:01:23,676 --> 00:01:25,356
+This is the most commonly used
+
+
+37
+00:01:25,356 --> 00:01:26,646
+rendering technique used by
+
+
+38
+00:01:26,646 --> 00:01:29,126
+games and graphical apps on all
+
+
+39
+00:01:29,126 --> 00:01:29,816
+platforms.
+
+
+40
+00:01:30,536 --> 00:01:31,946
+We'll discuss the classic
+
+
+41
+00:01:31,946 --> 00:01:32,966
+two-pass setup.
+
+
+42
+00:01:33,376 --> 00:01:34,716
+We will show you how to
+
+
+43
+00:01:34,746 --> 00:01:36,686
+implement this in Metal and how
+
+
+44
+00:01:36,686 --> 00:01:38,726
+to optimize this for the iOS
+
+
+45
+00:01:38,726 --> 00:01:39,126
+platform.
+
+
+46
+00:01:40,396 --> 00:01:41,556
+We'll then move on to tiled
+
+
+47
+00:01:41,556 --> 00:01:43,376
+deferred, which extends the
+
+
+48
+00:01:43,376 --> 00:01:44,856
+lighting pass of deferred
+
+
+49
+00:01:44,856 --> 00:01:47,206
+rendering and is perfect if your
+
+
+50
+00:01:47,206 --> 00:01:48,426
+art direction requires you to
+
+
+51
+00:01:48,426 --> 00:01:49,826
+have complex lighting setups.
+
+
+52
+00:01:51,476 --> 00:01:52,426
+We'll then take a look at
+
+
+53
+00:01:52,426 --> 00:01:53,276
+forward rendering.
+
+
+54
+00:01:53,806 --> 00:01:55,066
+That's a really good alternative
+
+
+55
+00:01:55,486 --> 00:01:57,606
+for the Metal apps that require
+
+
+56
+00:01:57,606 --> 00:01:58,686
+complex materials,
+
+
+57
+00:01:59,196 --> 00:02:01,706
+anti-aliasing, transparency, or
+
+
+58
+00:02:01,706 --> 00:02:02,456
+special performance
+
+
+59
+00:02:02,456 --> 00:02:03,276
+considerations.
+
+
+60
+00:02:04,706 --> 00:02:07,076
+Our last technique we're going
+
+
+61
+00:02:07,076 --> 00:02:08,776
+to talk about is visibility
+
+
+62
+00:02:08,776 --> 00:02:11,276
+buffer rendering, which defers
+
+
+63
+00:02:11,276 --> 00:02:12,906
+the geometry logic all the way
+
+
+64
+00:02:12,906 --> 00:02:14,606
+back to the lighting pass and
+
+
+65
+00:02:14,636 --> 00:02:16,356
+now in Metal 3, is easier to
+
+
+66
+00:02:16,356 --> 00:02:17,516
+implement than ever.
+
+
+67
+00:02:18,086 --> 00:02:19,926
+But before we get there, let's
+
+
+68
+00:02:19,926 --> 00:02:21,556
+start with deferred rendering.
+
+
+69
+00:02:23,476 --> 00:02:24,686
+Deferred rendering splits the
+
+
+70
+00:02:24,686 --> 00:02:26,086
+rendering of your scene up into
+
+
+71
+00:02:26,086 --> 00:02:26,856
+two passes.
+
+
+72
+00:02:28,246 --> 00:02:30,226
+There's the geometry pass, where
+
+
+73
+00:02:30,226 --> 00:02:31,446
+you basically render your entire
+
+
+74
+00:02:31,446 --> 00:02:33,116
+scene into an intermediate
+
+
+75
+00:02:33,116 --> 00:02:34,426
+geometry, or g-buffer.
+
+
+76
+00:02:34,526 --> 00:02:36,596
+And the textures in this buffer,
+
+
+77
+00:02:36,716 --> 00:02:39,046
+all the normal, the albedo, the
+
+
+78
+00:02:39,046 --> 00:02:41,266
+roughness, and any kind of
+
+
+79
+00:02:41,266 --> 00:02:42,446
+surface or material property
+
+
+80
+00:02:42,446 --> 00:02:43,446
+that you need in your writing
+
+
+81
+00:02:43,446 --> 00:02:45,006
+model or your postdressing
+
+
+82
+00:02:45,006 --> 00:02:45,416
+pipeline.
+
+
+83
+00:02:46,866 --> 00:02:50,206
+Then in the second pass, the
+
+
+84
+00:02:50,456 --> 00:02:51,866
+lighting pass renders the light
+
+
+85
+00:02:51,926 --> 00:02:54,026
+volumes of your scene and builds
+
+
+86
+00:02:54,026 --> 00:02:55,936
+up the final lit scene in
+
+
+87
+00:02:55,936 --> 00:02:56,886
+accumulation texture.
+
+
+88
+00:02:57,496 --> 00:02:59,716
+The deferred light shaders were
+
+
+89
+00:02:59,716 --> 00:03:01,146
+bind all the textures in your
+
+
+90
+00:03:01,146 --> 00:03:03,016
+G-buffer to calculate their
+
+
+91
+00:03:03,016 --> 00:03:04,756
+contribution to the final lit
+
+
+92
+00:03:04,756 --> 00:03:05,366
+surface color.
+
+
+93
+00:03:06,226 --> 00:03:08,466
+So, let's define the data flow
+
+
+94
+00:03:08,466 --> 00:03:09,976
+of this technique and then move
+
+
+95
+00:03:09,976 --> 00:03:11,696
+onto a Metal implementation.
+
+
+96
+00:03:13,106 --> 00:03:14,286
+So, here we have our two render
+
+
+97
+00:03:14,286 --> 00:03:15,966
+passes, and we'll be running
+
+
+98
+00:03:15,966 --> 00:03:17,666
+these two consecutively on the
+
+
+99
+00:03:17,666 --> 00:03:18,106
+GPU.
+
+
+100
+00:03:18,106 --> 00:03:21,296
+In our geometry pass, we need to
+
+
+101
+00:03:21,296 --> 00:03:22,856
+write out depth.
+
+
+102
+00:03:23,506 --> 00:03:24,646
+The depth is used to do depth
+
+
+103
+00:03:24,646 --> 00:03:25,786
+calling during your geometry
+
+
+104
+00:03:25,786 --> 00:03:27,726
+pass, but it's also used to
+
+
+105
+00:03:27,726 --> 00:03:29,786
+calculate the pixel location and
+
+
+106
+00:03:29,786 --> 00:03:31,136
+world space for your lighting
+
+
+107
+00:03:31,136 --> 00:03:31,526
+pass.
+
+
+108
+00:03:32,186 --> 00:03:34,846
+And we also output our G-buffer
+
+
+109
+00:03:34,846 --> 00:03:35,586
+textures.
+
+
+110
+00:03:35,696 --> 00:03:37,366
+In our example here, we'll use
+
+
+111
+00:03:37,366 --> 00:03:39,556
+normal, albedo, and roughness
+
+
+112
+00:03:39,556 --> 00:03:40,276
+textures.
+
+
+113
+00:03:41,236 --> 00:03:42,736
+Then in our second pass, the
+
+
+114
+00:03:42,736 --> 00:03:44,986
+lighting pass, we read back the
+
+
+115
+00:03:44,986 --> 00:03:47,236
+G-buffer textures and then we
+
+
+116
+00:03:47,236 --> 00:03:48,416
+draw light volumes and
+
+
+117
+00:03:48,416 --> 00:03:50,086
+accumulate them in our output
+
+
+118
+00:03:50,086 --> 00:03:50,466
+texture.
+
+
+119
+00:03:51,586 --> 00:03:53,166
+So, let's see how we can
+
+
+120
+00:03:53,166 --> 00:03:54,136
+construct this data flow in
+
+
+121
+00:03:54,136 --> 00:03:54,386
+Metal.
+
+
+122
+00:03:55,706 --> 00:03:57,086
+To set up a render pass in
+
+
+123
+00:03:57,086 --> 00:03:58,816
+Metal, you have to start with a
+
+
+124
+00:03:58,816 --> 00:03:59,726
+Render Pass descriptor.
+
+
+125
+00:04:01,166 --> 00:04:02,896
+The most important part of a
+
+
+126
+00:04:02,926 --> 00:04:04,196
+Render Pass descriptor are its
+
+
+127
+00:04:04,196 --> 00:04:04,806
+outputs.
+
+
+128
+00:04:05,466 --> 00:04:06,886
+In Metal, these are defined with
+
+
+129
+00:04:06,886 --> 00:04:07,536
+attachments.
+
+
+130
+00:04:08,946 --> 00:04:10,066
+Every Render Pass can have
+
+
+131
+00:04:10,066 --> 00:04:11,456
+single depth attachments and
+
+
+132
+00:04:11,636 --> 00:04:12,946
+multiple color attachments.
+
+
+133
+00:04:13,706 --> 00:04:15,486
+For every attachment, we have to
+
+
+134
+00:04:15,486 --> 00:04:17,745
+define the texture which points
+
+
+135
+00:04:17,745 --> 00:04:18,805
+to the data that stores our
+
+
+136
+00:04:18,805 --> 00:04:19,426
+attachment data.
+
+
+137
+00:04:19,786 --> 00:04:21,956
+We have to define our load
+
+
+138
+00:04:21,956 --> 00:04:23,926
+action which shows us how to
+
+
+139
+00:04:23,926 --> 00:04:25,086
+load the existing data from the
+
+
+140
+00:04:25,086 --> 00:04:27,916
+texture and the store action is
+
+
+141
+00:04:27,916 --> 00:04:29,966
+how to store the results of your
+
+
+142
+00:04:29,966 --> 00:04:32,446
+rendering back into the texture.
+
+
+143
+00:04:33,406 --> 00:04:34,546
+When you've defined these
+
+
+144
+00:04:34,546 --> 00:04:35,596
+properties of all your
+
+
+145
+00:04:35,596 --> 00:04:37,916
+attachments, you can then create
+
+
+146
+00:04:38,296 --> 00:04:40,946
+your Render command encoder that
+
+
+147
+00:04:40,946 --> 00:04:43,136
+you can then use to finally draw
+
+
+148
+00:04:43,266 --> 00:04:44,616
+your objection to your Render
+
+
+149
+00:04:45,636 --> 00:04:45,966
+Pass.
+
+
+150
+00:04:46,196 --> 00:04:47,066
+Now, let's see how we build this
+
+
+151
+00:04:47,066 --> 00:04:48,106
+in Metal, starting with our
+
+
+152
+00:04:48,106 --> 00:04:48,636
+setup code.
+
+
+153
+00:04:49,876 --> 00:04:51,926
+So, here we have our setup
+
+
+154
+00:04:51,926 --> 00:04:52,446
+function.
+
+
+155
+00:04:53,096 --> 00:04:54,406
+We'll start by creating a Render
+
+
+156
+00:04:54,406 --> 00:04:55,136
+Pass descriptor.
+
+
+157
+00:04:55,686 --> 00:04:57,086
+And now we just start filling in
+
+
+158
+00:04:57,086 --> 00:04:57,986
+all these attachments.
+
+
+159
+00:04:58,166 --> 00:04:59,006
+So, we'll start with the depth
+
+
+160
+00:04:59,006 --> 00:04:59,506
+attachment.
+
+
+161
+00:04:59,606 --> 00:05:01,226
+And since we're using the depth
+
+
+162
+00:05:01,226 --> 00:05:02,846
+attachment to do our depth
+
+
+163
+00:05:02,846 --> 00:05:03,936
+calling, we need to make sure
+
+
+164
+00:05:03,936 --> 00:05:05,056
+it's clear before we start
+
+
+165
+00:05:05,056 --> 00:05:05,896
+rendering our scene.
+
+
+166
+00:05:06,306 --> 00:05:07,896
+So, we set our load action to
+
+
+167
+00:05:07,896 --> 00:05:08,226
+clear.
+
+
+168
+00:05:08,766 --> 00:05:10,216
+Of course we want to store depth
+
+
+169
+00:05:10,526 --> 00:05:11,446
+for the second pass.
+
+
+170
+00:05:12,006 --> 00:05:13,576
+So, we set R, store action to
+
+
+171
+00:05:13,576 --> 00:05:13,966
+store.
+
+
+172
+00:05:15,206 --> 00:05:16,826
+Now, we move onto our color
+
+
+173
+00:05:16,826 --> 00:05:17,396
+attachments.
+
+
+174
+00:05:18,256 --> 00:05:19,856
+The color attachments, we need
+
+
+175
+00:05:19,856 --> 00:05:21,436
+one for every texture in our
+
+
+176
+00:05:21,436 --> 00:05:21,886
+G-buffer.
+
+
+177
+00:05:22,506 --> 00:05:23,596
+And because all these textures
+
+
+178
+00:05:23,596 --> 00:05:24,666
+are going to be handled kind of
+
+
+179
+00:05:24,666 --> 00:05:25,576
+the same way, we'll just show
+
+
+180
+00:05:25,576 --> 00:05:26,226
+you the albedo.
+
+
+181
+00:05:27,956 --> 00:05:30,506
+Because we're probably going to
+
+
+182
+00:05:30,646 --> 00:05:32,216
+be using like a skybox or a
+
+
+183
+00:05:32,216 --> 00:05:34,036
+background during rendering, so,
+
+
+184
+00:05:34,036 --> 00:05:35,866
+we're sure that we're going to
+
+
+185
+00:05:35,866 --> 00:05:37,316
+be overriding every pixel in our
+
+
+186
+00:05:37,316 --> 00:05:38,516
+frame, every frame.
+
+
+187
+00:05:38,926 --> 00:05:39,956
+Which means we don't really care
+
+
+188
+00:05:39,956 --> 00:05:42,156
+about any previous values in our
+
+
+189
+00:05:42,156 --> 00:05:43,146
+G-buffer textures.
+
+
+190
+00:05:43,196 --> 00:05:44,896
+So, we can set our load action
+
+
+191
+00:05:45,086 --> 00:05:45,686
+to dontcare.
+
+
+192
+00:05:47,196 --> 00:05:49,196
+Of course, we want to store the
+
+
+193
+00:05:49,196 --> 00:05:50,436
+results of our G-buffer, so we
+
+
+194
+00:05:50,436 --> 00:05:52,196
+set our store action to store.
+
+
+195
+00:05:53,136 --> 00:05:54,866
+Now we can start with our
+
+
+196
+00:05:54,866 --> 00:05:55,886
+lighting pass descriptor.
+
+
+197
+00:05:56,506 --> 00:05:57,526
+We create another descriptor
+
+
+198
+00:05:57,526 --> 00:06:00,096
+object, and then we defined
+
+
+199
+00:06:00,096 --> 00:06:01,546
+attachment for accumulation
+
+
+200
+00:06:01,546 --> 00:06:01,876
+buffer.
+
+
+201
+00:06:02,456 --> 00:06:03,976
+Since we're accumulating data,
+
+
+202
+00:06:03,976 --> 00:06:05,066
+we need to clear it before
+
+
+203
+00:06:05,066 --> 00:06:06,306
+starting so we put our load
+
+
+204
+00:06:06,306 --> 00:06:07,516
+action to clear.
+
+
+205
+00:06:08,576 --> 00:06:09,936
+And of course we want to save
+
+
+206
+00:06:09,936 --> 00:06:11,556
+our final image, so our store
+
+
+207
+00:06:11,556 --> 00:06:14,866
+action's going to be store.
+
+
+208
+00:06:14,866 --> 00:06:16,606
+Now, let's look at render loop
+
+
+209
+00:06:16,676 --> 00:06:17,776
+while we're using these Render
+
+
+210
+00:06:17,776 --> 00:06:19,366
+Passes to actually draw our
+
+
+211
+00:06:19,366 --> 00:06:19,706
+scene.
+
+
+212
+00:06:20,406 --> 00:06:21,896
+So, we'll start again with our
+
+
+213
+00:06:21,896 --> 00:06:22,706
+geometry pass.
+
+
+214
+00:06:23,236 --> 00:06:24,606
+We create our Render command
+
+
+215
+00:06:24,606 --> 00:06:25,956
+encoder using our descriptor.
+
+
+216
+00:06:26,406 --> 00:06:28,546
+And then we start just iterating
+
+
+217
+00:06:28,546 --> 00:06:29,436
+over all the measures in our
+
+
+218
+00:06:29,436 --> 00:06:29,826
+scene.
+
+
+219
+00:06:30,246 --> 00:06:32,116
+This is a very simple way of
+
+
+220
+00:06:32,116 --> 00:06:32,966
+rendering your scene.
+
+
+221
+00:06:34,506 --> 00:06:35,966
+And my colleague, Srinivas, will
+
+
+222
+00:06:35,966 --> 00:06:37,866
+show you in the second part of
+
+
+223
+00:06:37,866 --> 00:06:39,446
+this session how you can move
+
+
+224
+00:06:39,446 --> 00:06:42,436
+this basic CPU render loop into
+
+
+225
+00:06:42,436 --> 00:06:44,196
+a more GPU-driven pipeline with
+
+
+226
+00:06:44,196 --> 00:06:46,166
+all kinds of calling and LOD
+
+
+227
+00:06:46,166 --> 00:06:46,626
+selection.
+
+
+228
+00:06:47,466 --> 00:06:49,166
+Okay, so now we've encoded our
+
+
+229
+00:06:49,166 --> 00:06:50,396
+entire geometry buffer.
+
+
+230
+00:06:50,866 --> 00:06:52,766
+Sorry, our entire geometry pass,
+
+
+231
+00:06:53,366 --> 00:06:54,956
+and we move on to our lighting
+
+
+232
+00:06:54,956 --> 00:06:55,406
+pass.
+
+
+233
+00:06:55,456 --> 00:06:57,466
+We create another render command
+
+
+234
+00:06:57,466 --> 00:06:58,156
+encoder.
+
+
+235
+00:06:58,506 --> 00:06:59,426
+And we now we start iterating
+
+
+236
+00:06:59,426 --> 00:07:00,836
+over all the lights for our
+
+
+237
+00:07:00,836 --> 00:07:01,626
+lighting pass.
+
+
+238
+00:07:02,106 --> 00:07:03,936
+And every light, every deferred
+
+
+239
+00:07:03,936 --> 00:07:05,886
+light shader will bind those
+
+
+240
+00:07:05,886 --> 00:07:07,376
+textures from the G-buffer to
+
+
+241
+00:07:07,376 --> 00:07:08,536
+calculate its final light
+
+
+242
+00:07:08,576 --> 00:07:09,066
+colors.
+
+
+243
+00:07:10,136 --> 00:07:12,856
+Well, this two-pass system works
+
+
+244
+00:07:12,856 --> 00:07:15,716
+perfectly fine on macOS and iOS
+
+
+245
+00:07:16,056 --> 00:07:17,116
+across all platforms.
+
+
+246
+00:07:17,606 --> 00:07:18,856
+It's a really good fit for all
+
+
+247
+00:07:18,856 --> 00:07:19,656
+types of hardware.
+
+
+248
+00:07:20,186 --> 00:07:21,596
+But there are some things that
+
+
+249
+00:07:21,596 --> 00:07:23,696
+we can do to further optimize
+
+
+250
+00:07:23,696 --> 00:07:25,096
+our implementation on iOS.
+
+
+251
+00:07:25,546 --> 00:07:26,786
+So, let's step back from the
+
+
+252
+00:07:26,786 --> 00:07:29,236
+code back into our overview.
+
+
+253
+00:07:29,966 --> 00:07:32,416
+You can see there's this big
+
+
+254
+00:07:32,416 --> 00:07:34,366
+buffer between our two render
+
+
+255
+00:07:34,366 --> 00:07:34,866
+passes.
+
+
+256
+00:07:35,816 --> 00:07:37,656
+The geometry pass is storing all
+
+
+257
+00:07:37,656 --> 00:07:38,786
+its data into these G-buffer
+
+
+258
+00:07:38,786 --> 00:07:39,316
+textures.
+
+
+259
+00:07:40,186 --> 00:07:41,136
+And then the lighting pass is
+
+
+260
+00:07:41,136 --> 00:07:41,936
+bringing them all back.
+
+
+261
+00:07:42,486 --> 00:07:43,846
+And if we're having multiple
+
+
+262
+00:07:43,846 --> 00:07:44,896
+lights shining on a single
+
+
+263
+00:07:44,936 --> 00:07:47,166
+pixel, we're doing this readback
+
+
+264
+00:07:47,166 --> 00:07:48,026
+multiple times.
+
+
+265
+00:07:49,166 --> 00:07:50,666
+Using a technique called
+
+
+266
+00:07:50,696 --> 00:07:52,076
+programmable blending in Metal,
+
+
+267
+00:07:52,796 --> 00:07:53,546
+we can get rid of this
+
+
+268
+00:07:53,546 --> 00:07:55,666
+intermediate load store into
+
+
+269
+00:07:55,666 --> 00:07:58,496
+device memory by leveraging the
+
+
+270
+00:07:58,536 --> 00:07:59,936
+taut architecture of iOS
+
+
+271
+00:07:59,936 --> 00:08:00,526
+devices.
+
+
+272
+00:08:00,916 --> 00:08:02,426
+So, how do we take advantage of
+
+
+273
+00:08:02,426 --> 00:08:02,916
+this technique?
+
+
+274
+00:08:04,246 --> 00:08:05,326
+Well, to enable programmable
+
+
+275
+00:08:05,326 --> 00:08:07,656
+blending, we merge the geometry
+
+
+276
+00:08:07,706 --> 00:08:09,396
+and the lighting pass, and
+
+
+277
+00:08:09,396 --> 00:08:10,806
+create a single render encoder
+
+
+278
+00:08:11,046 --> 00:08:12,326
+for both Geometry and light
+
+
+279
+00:08:12,366 --> 00:08:12,746
+rules.
+
+
+280
+00:08:13,306 --> 00:08:15,846
+So, due to the nature of iOS
+
+
+281
+00:08:15,846 --> 00:08:18,156
+architecture, the attachments
+
+
+282
+00:08:18,376 --> 00:08:20,586
+are kept resident in tile memory
+
+
+283
+00:08:20,946 --> 00:08:22,386
+for the entire duration of our
+
+
+284
+00:08:22,386 --> 00:08:22,826
+encoder.
+
+
+285
+00:08:23,846 --> 00:08:25,886
+This means we can't only write
+
+
+286
+00:08:25,966 --> 00:08:27,036
+to our attachments but we can
+
+
+287
+00:08:27,036 --> 00:08:29,626
+actually read them back.
+
+
+288
+00:08:29,626 --> 00:08:31,046
+We can read back the values of
+
+
+289
+00:08:31,046 --> 00:08:32,395
+the same pixel we're writing,
+
+
+290
+00:08:32,395 --> 00:08:33,746
+and this is exactly what we
+
+
+291
+00:08:33,746 --> 00:08:34,076
+want.
+
+
+292
+00:08:34,076 --> 00:08:35,515
+We want, when we're calculating
+
+
+293
+00:08:36,046 --> 00:08:37,486
+the light in our lighting pass,
+
+
+294
+00:08:37,966 --> 00:08:39,876
+we want to retrieve the written
+
+
+295
+00:08:39,876 --> 00:08:41,135
+G-buffer attachments of the same
+
+
+296
+00:08:41,135 --> 00:08:41,535
+pixel.
+
+
+297
+00:08:42,556 --> 00:08:45,006
+So, let's see how this will
+
+
+298
+00:08:45,006 --> 00:08:46,216
+affect our light shaders.
+
+
+299
+00:08:47,346 --> 00:08:48,206
+So, here we have a light
+
+
+300
+00:08:48,206 --> 00:08:49,536
+fragment shader from our
+
+
+301
+00:08:49,536 --> 00:08:50,256
+lighting pass.
+
+
+302
+00:08:51,116 --> 00:08:53,516
+And as you might know, you just
+
+
+303
+00:08:53,516 --> 00:08:54,976
+start by binding all the
+
+
+304
+00:08:54,976 --> 00:08:58,296
+textures that you need to get
+
+
+305
+00:08:58,296 --> 00:08:58,996
+your G-buffer data.
+
+
+306
+00:08:58,996 --> 00:09:01,606
+And then you have to actually
+
+
+307
+00:09:01,606 --> 00:09:03,076
+read all these textures across
+
+
+308
+00:09:03,076 --> 00:09:04,556
+all your G-buffer textures to
+
+
+309
+00:09:04,556 --> 00:09:05,806
+get all the material and surface
+
+
+310
+00:09:05,806 --> 00:09:06,336
+information.
+
+
+311
+00:09:07,186 --> 00:09:09,396
+Only then can you push this into
+
+
+312
+00:09:09,396 --> 00:09:10,576
+your lighting model to get your
+
+
+313
+00:09:10,576 --> 00:09:11,686
+final vid color.
+
+
+314
+00:09:12,246 --> 00:09:13,966
+Now, let's see what happens if
+
+
+315
+00:09:13,966 --> 00:09:15,336
+we use programmable blending.
+
+
+316
+00:09:16,636 --> 00:09:17,996
+Instead of binding all the
+
+
+317
+00:09:17,996 --> 00:09:20,636
+textures, we simply bind all the
+
+
+318
+00:09:20,636 --> 00:09:21,576
+color attachments.
+
+
+319
+00:09:22,746 --> 00:09:24,526
+And now we can directly use
+
+
+320
+00:09:24,656 --> 00:09:26,276
+these values in our lighting
+
+
+321
+00:09:26,276 --> 00:09:26,606
+model.
+
+
+322
+00:09:27,816 --> 00:09:30,186
+As you can see, we've created a
+
+
+323
+00:09:30,186 --> 00:09:31,736
+new linear depth color
+
+
+324
+00:09:31,736 --> 00:09:33,186
+attachment for our G-buffer and
+
+
+325
+00:09:33,186 --> 00:09:34,326
+this is because when you're
+
+
+326
+00:09:34,326 --> 00:09:35,706
+using programmable blending, you
+
+
+327
+00:09:35,706 --> 00:09:36,836
+cannot access the depth
+
+
+328
+00:09:36,836 --> 00:09:37,396
+attachments.
+
+
+329
+00:09:39,376 --> 00:09:40,806
+So, now that we're no longer
+
+
+330
+00:09:40,806 --> 00:09:42,586
+binding or sampling any
+
+
+331
+00:09:42,586 --> 00:09:44,546
+textures, let's see how we can
+
+
+332
+00:09:44,546 --> 00:09:46,336
+use this to further optimize our
+
+
+333
+00:09:46,336 --> 00:09:46,956
+memory layout.
+
+
+334
+00:09:49,186 --> 00:09:50,266
+When using programmable
+
+
+335
+00:09:50,266 --> 00:09:51,516
+blending, we're no longer
+
+
+336
+00:09:51,516 --> 00:09:53,676
+writing or reading from the
+
+
+337
+00:09:53,676 --> 00:09:54,696
+G-buffer textures.
+
+
+338
+00:09:55,046 --> 00:09:56,516
+So, we can put the store action
+
+
+339
+00:09:56,516 --> 00:09:58,746
+of our color attachments to
+
+
+340
+00:09:58,746 --> 00:09:59,306
+dontcare.
+
+
+341
+00:10:00,816 --> 00:10:01,606
+Okay. So, this solves our
+
+
+342
+00:10:01,606 --> 00:10:03,426
+bandwith problem, but we still
+
+
+343
+00:10:03,426 --> 00:10:04,826
+have these Metal texture objects
+
+
+344
+00:10:04,826 --> 00:10:06,156
+taking up space in our device.
+
+
+345
+00:10:06,466 --> 00:10:08,436
+And we need to tell Metal that
+
+
+346
+00:10:08,586 --> 00:10:10,086
+we no longer need any physical
+
+
+347
+00:10:10,086 --> 00:10:11,456
+memory for our G-buffer
+
+
+348
+00:10:11,456 --> 00:10:12,036
+textures.
+
+
+349
+00:10:12,546 --> 00:10:14,486
+And we do this by setting the
+
+
+350
+00:10:14,486 --> 00:10:16,496
+storage mode of the texture to
+
+
+351
+00:10:16,496 --> 00:10:18,696
+memoryless and we tell Metal
+
+
+352
+00:10:18,976 --> 00:10:20,126
+that we're no longer going to
+
+
+353
+00:10:20,326 --> 00:10:21,326
+basically be performing any
+
+
+354
+00:10:21,326 --> 00:10:23,026
+store actions on it, so we don't
+
+
+355
+00:10:23,026 --> 00:10:23,956
+need to actually allocate the
+
+
+356
+00:10:23,956 --> 00:10:24,296
+memory.
+
+
+357
+00:10:25,756 --> 00:10:28,566
+With these steps, we've now end
+
+
+358
+00:10:28,566 --> 00:10:30,796
+up with an iOS implementation
+
+
+359
+00:10:31,106 --> 00:10:32,876
+that has all the benefits but
+
+
+360
+00:10:32,996 --> 00:10:34,206
+without any of the memory or
+
+
+361
+00:10:34,206 --> 00:10:36,886
+bandwith overhead of a G-buffer.
+
+
+362
+00:10:39,716 --> 00:10:40,676
+Before I move on to tile
+
+
+363
+00:10:40,676 --> 00:10:42,486
+deferred, let's summarize.
+
+
+364
+00:10:43,246 --> 00:10:45,986
+The separation of the geometry
+
+
+365
+00:10:45,986 --> 00:10:47,476
+and lighting pass makes this a
+
+
+366
+00:10:47,476 --> 00:10:48,646
+very versatile technique.
+
+
+367
+00:10:49,376 --> 00:10:50,956
+It handles both complex geometry
+
+
+368
+00:10:50,956 --> 00:10:52,056
+and lighting very well.
+
+
+369
+00:10:52,566 --> 00:10:54,956
+And a G-buffer can be used to
+
+
+370
+00:10:54,956 --> 00:10:56,566
+facilitate a really deep
+
+
+371
+00:10:56,676 --> 00:10:57,746
+postprocessing pipeline.
+
+
+372
+00:10:58,136 --> 00:10:59,796
+And an entire pipeline can be
+
+
+373
+00:10:59,796 --> 00:11:01,946
+put in line using this
+
+
+374
+00:11:01,946 --> 00:11:03,666
+programmable blending method.
+
+
+375
+00:11:04,276 --> 00:11:06,796
+On macOS, you still have to deal
+
+
+376
+00:11:07,016 --> 00:11:08,886
+with a G-buffer, memory, and
+
+
+377
+00:11:08,886 --> 00:11:09,576
+bandwith overhead.
+
+
+378
+00:11:10,456 --> 00:11:12,706
+So, now let's move on to tiled
+
+
+379
+00:11:12,706 --> 00:11:14,746
+lighting solution, which is
+
+
+380
+00:11:14,746 --> 00:11:16,216
+ideal for those of you who want
+
+
+381
+00:11:16,216 --> 00:11:17,316
+to render maximum amount of
+
+
+382
+00:11:17,316 --> 00:11:19,006
+light but you still want to
+
+
+383
+00:11:19,006 --> 00:11:21,996
+reduce your light pass overhead.
+
+
+384
+00:11:24,216 --> 00:11:26,336
+The tiled deferred rendering
+
+
+385
+00:11:26,336 --> 00:11:27,786
+technique tries to solve the
+
+
+386
+00:11:27,786 --> 00:11:29,746
+performance issues of rendering
+
+
+387
+00:11:29,746 --> 00:11:30,786
+large amounts of lights.
+
+
+388
+00:11:31,236 --> 00:11:32,916
+In classic deferred, we render
+
+
+389
+00:11:32,916 --> 00:11:34,996
+every light separately, and this
+
+
+390
+00:11:34,996 --> 00:11:36,056
+causes a lot of the G-buffer
+
+
+391
+00:11:36,056 --> 00:11:38,546
+overhead for overlapping lights.
+
+
+392
+00:11:39,216 --> 00:11:41,756
+Tile deferred rendering extends
+
+
+393
+00:11:41,756 --> 00:11:42,906
+the lighting with an additional
+
+
+394
+00:11:42,906 --> 00:11:45,226
+compute prepass that allows our
+
+
+395
+00:11:45,226 --> 00:11:46,686
+shading to happen not on a per
+
+
+396
+00:11:46,686 --> 00:11:48,446
+light level but on a per tile
+
+
+397
+00:11:48,446 --> 00:11:48,706
+level.
+
+
+398
+00:11:49,646 --> 00:11:51,796
+The prepass first divides our
+
+
+399
+00:11:51,796 --> 00:11:54,496
+screen into a 2D grid of
+
+
+400
+00:11:54,496 --> 00:11:56,786
+lighting tiles and generates a
+
+
+401
+00:11:56,786 --> 00:11:58,036
+light list per tile.
+
+
+402
+00:11:58,876 --> 00:12:00,676
+Then in a second step, the
+
+
+403
+00:12:00,676 --> 00:12:02,606
+lighting step itself, these
+
+
+404
+00:12:02,606 --> 00:12:03,936
+lights are then used to
+
+
+405
+00:12:03,996 --> 00:12:06,616
+efficiently light the tile using
+
+
+406
+00:12:06,616 --> 00:12:08,286
+a single light fragment shader,
+
+
+407
+00:12:08,506 --> 00:12:09,666
+but it's ranging over the lights
+
+
+408
+00:12:09,666 --> 00:12:10,266
+in the light list.
+
+
+409
+00:12:11,006 --> 00:12:12,616
+Before we dive into the
+
+
+410
+00:12:12,616 --> 00:12:14,386
+implementation details, let's
+
+
+411
+00:12:14,386 --> 00:12:15,816
+take a quick look at how these
+
+
+412
+00:12:15,816 --> 00:12:17,206
+light lists are being generated.
+
+
+413
+00:12:18,206 --> 00:12:20,816
+Well, we first split up our view
+
+
+414
+00:12:20,816 --> 00:12:22,076
+frustums into these small
+
+
+415
+00:12:22,076 --> 00:12:24,306
+subfrustums, one for each tile.
+
+
+416
+00:12:25,566 --> 00:12:27,116
+Then we use our compute shader
+
+
+417
+00:12:27,336 --> 00:12:28,796
+to further fit down the
+
+
+418
+00:12:28,796 --> 00:12:30,756
+subfrustums using the location
+
+
+419
+00:12:30,756 --> 00:12:32,346
+of our tile, but also the depth
+
+
+420
+00:12:32,346 --> 00:12:33,476
+bounds of the tile.
+
+
+421
+00:12:34,026 --> 00:12:35,646
+And we can do this because we've
+
+
+422
+00:12:35,646 --> 00:12:38,156
+already ran the geometry pass.
+
+
+423
+00:12:38,826 --> 00:12:39,976
+So, the depth buffer is already
+
+
+424
+00:12:39,976 --> 00:12:40,516
+populated.
+
+
+425
+00:12:41,586 --> 00:12:43,076
+So, when we fitted down these
+
+
+426
+00:12:43,076 --> 00:12:44,826
+subfrustums, we can then just
+
+
+427
+00:12:45,056 --> 00:12:46,966
+test all the frustums against
+
+
+428
+00:12:46,966 --> 00:12:49,056
+the light volumes and add any
+
+
+429
+00:12:49,056 --> 00:12:50,186
+intersections to our light list.
+
+
+430
+00:12:51,516 --> 00:12:53,766
+This entire process can be done
+
+
+431
+00:12:53,766 --> 00:12:56,126
+in parallel across al the tiles
+
+
+432
+00:12:56,126 --> 00:12:58,036
+and is a perfect fit for a
+
+
+433
+00:12:58,036 --> 00:12:59,006
+compute kernel.
+
+
+434
+00:13:00,116 --> 00:13:01,936
+So, how do we integrate this
+
+
+435
+00:13:02,096 --> 00:13:03,456
+into our deferred pipeline we
+
+
+436
+00:13:03,456 --> 00:13:04,006
+showed before?
+
+
+437
+00:13:05,396 --> 00:13:06,696
+Well, before we had this
+
+
+438
+00:13:06,696 --> 00:13:07,876
+two-pass deferred setup.
+
+
+439
+00:13:08,296 --> 00:13:11,056
+And now we've added this compute
+
+
+440
+00:13:11,056 --> 00:13:13,146
+pass to the middle of it.
+
+
+441
+00:13:14,216 --> 00:13:15,426
+And that will create in the
+
+
+442
+00:13:15,426 --> 00:13:16,626
+light list for us and we need to
+
+
+443
+00:13:16,626 --> 00:13:18,886
+store these light lists in a
+
+
+444
+00:13:18,886 --> 00:13:20,106
+light list buffer to be stored
+
+
+445
+00:13:20,106 --> 00:13:20,886
+in device memory.
+
+
+446
+00:13:21,906 --> 00:13:24,936
+So, again, this solution works
+
+
+447
+00:13:24,936 --> 00:13:26,436
+fine on all platforms and it
+
+
+448
+00:13:26,436 --> 00:13:28,676
+simply requires us to create
+
+
+449
+00:13:28,676 --> 00:13:31,966
+additional compute and to move
+
+
+450
+00:13:31,966 --> 00:13:34,796
+our lighting logic from a single
+
+
+451
+00:13:34,796 --> 00:13:36,796
+light per shader to an iterative
+
+
+452
+00:13:36,796 --> 00:13:38,686
+loop in our lighting shader.
+
+
+453
+00:13:39,726 --> 00:13:40,946
+Just like with the previous
+
+
+454
+00:13:40,946 --> 00:13:42,866
+rendering, we can now take
+
+
+455
+00:13:42,866 --> 00:13:44,236
+advantage of the hardware tiling
+
+
+456
+00:13:44,236 --> 00:13:46,226
+on iOS to further optimize this.
+
+
+457
+00:13:46,696 --> 00:13:49,106
+So, let's take a look of how
+
+
+458
+00:13:49,106 --> 00:13:50,526
+this fits in our single encoder
+
+
+459
+00:13:50,736 --> 00:13:51,696
+iOS implementation.
+
+
+460
+00:13:53,186 --> 00:13:54,586
+So, here we have our single pass
+
+
+461
+00:13:54,586 --> 00:13:56,196
+solution we showed before, and
+
+
+462
+00:13:56,196 --> 00:13:57,406
+we need to get this computer in
+
+
+463
+00:13:57,406 --> 00:13:59,216
+there, but we need to stay
+
+
+464
+00:13:59,216 --> 00:14:00,226
+within the single render command
+
+
+465
+00:14:00,226 --> 00:14:01,616
+encoder to use the programmable
+
+
+466
+00:14:01,616 --> 00:14:01,946
+blending.
+
+
+467
+00:14:03,216 --> 00:14:05,796
+Metal provides an efficient way
+
+
+468
+00:14:06,436 --> 00:14:08,306
+of using tile-based hardware
+
+
+469
+00:14:08,306 --> 00:14:09,976
+architecture to render compute
+
+
+470
+00:14:09,976 --> 00:14:12,096
+work on each tile that we're
+
+
+471
+00:14:12,096 --> 00:14:12,696
+restorizing.
+
+
+472
+00:14:13,646 --> 00:14:16,646
+For this purpose on iOS, the
+
+
+473
+00:14:16,646 --> 00:14:18,096
+render command encoder can
+
+
+474
+00:14:18,096 --> 00:14:20,436
+encode tiler shader pipelines to
+
+
+475
+00:14:20,436 --> 00:14:21,596
+run the compute functions.
+
+
+476
+00:14:22,356 --> 00:14:24,176
+And this is a perfect fit for
+
+
+477
+00:14:24,176 --> 00:14:26,146
+outside lighting because now we
+
+
+478
+00:14:26,146 --> 00:14:27,506
+can take our lighting tile
+
+
+479
+00:14:27,506 --> 00:14:29,436
+concept and map that directly on
+
+
+480
+00:14:29,436 --> 00:14:30,256
+our hardware tiles.
+
+
+481
+00:14:31,546 --> 00:14:33,516
+So, now that our light calling
+
+
+482
+00:14:33,636 --> 00:14:35,386
+prepass can be run directly on
+
+
+483
+00:14:35,386 --> 00:14:37,236
+our hardware tile, we can use a
+
+
+484
+00:14:37,236 --> 00:14:39,916
+second Metal feature called
+
+
+485
+00:14:39,916 --> 00:14:41,146
+persistent thread group memory
+
+
+486
+00:14:41,756 --> 00:14:43,166
+to store the resulting light
+
+
+487
+00:14:43,166 --> 00:14:45,506
+list alongside our attachments
+
+
+488
+00:14:45,776 --> 00:14:46,486
+in tile memory.
+
+
+489
+00:14:48,256 --> 00:14:49,506
+Which then can be read back,
+
+
+490
+00:14:49,686 --> 00:14:51,516
+similarly to the attachments but
+
+
+491
+00:14:51,516 --> 00:14:52,716
+all the draws in the render
+
+
+492
+00:14:52,716 --> 00:14:53,426
+command encoder.
+
+
+493
+00:14:54,026 --> 00:14:55,856
+Which in our case is going to be
+
+
+494
+00:14:56,056 --> 00:14:57,156
+our per light draws.
+
+
+495
+00:15:00,096 --> 00:15:01,966
+We now move our lighting back
+
+
+496
+00:15:01,966 --> 00:15:04,096
+end to execute in line with our
+
+
+497
+00:15:04,096 --> 00:15:06,576
+graphics and completely within
+
+
+498
+00:15:06,576 --> 00:15:07,076
+tile memory.
+
+
+499
+00:15:08,246 --> 00:15:09,656
+So, what does this look like in
+
+
+500
+00:15:09,656 --> 00:15:10,006
+Metal?
+
+
+501
+00:15:10,636 --> 00:15:11,926
+Let's move back to our setup
+
+
+502
+00:15:11,926 --> 00:15:12,156
+code.
+
+
+503
+00:15:14,186 --> 00:15:16,076
+Creating a tile shader is very
+
+
+504
+00:15:16,076 --> 00:15:17,946
+similar to setting up a normal
+
+
+505
+00:15:17,946 --> 00:15:18,766
+render pipeline state.
+
+
+506
+00:15:19,786 --> 00:15:20,956
+We create our descriptor.
+
+
+507
+00:15:21,906 --> 00:15:22,886
+We set up all our color
+
+
+508
+00:15:22,886 --> 00:15:23,586
+attachments.
+
+
+509
+00:15:24,616 --> 00:15:26,816
+We then set up our compute
+
+
+510
+00:15:26,816 --> 00:15:28,026
+function we want to execute.
+
+
+511
+00:15:28,566 --> 00:15:29,376
+And we simply create our
+
+
+512
+00:15:29,376 --> 00:15:29,976
+pipeline state.
+
+
+513
+00:15:30,966 --> 00:15:32,006
+Because we are using the
+
+
+514
+00:15:32,006 --> 00:15:33,176
+precision thread group memory,
+
+
+515
+00:15:33,656 --> 00:15:34,746
+we need to reserve a little bit
+
+
+516
+00:15:34,746 --> 00:15:35,786
+of memory in our tile.
+
+
+517
+00:15:36,526 --> 00:15:38,296
+So, we go back to our render
+
+
+518
+00:15:38,296 --> 00:15:40,256
+pass descriptor and then we
+
+
+519
+00:15:40,256 --> 00:15:42,306
+simply reserve just enough data
+
+
+520
+00:15:42,576 --> 00:15:44,226
+to store our light list.
+
+
+521
+00:15:45,716 --> 00:15:47,096
+Now, let's move on to the render
+
+
+522
+00:15:47,096 --> 00:15:49,226
+loop to see the dispatch size of
+
+
+523
+00:15:49,226 --> 00:15:49,756
+these things.
+
+
+524
+00:15:50,926 --> 00:15:52,116
+So, our render loop starts this
+
+
+525
+00:15:52,116 --> 00:15:53,416
+time with a single render
+
+
+526
+00:15:53,416 --> 00:15:54,106
+command encoder.
+
+
+527
+00:15:54,746 --> 00:15:56,806
+And we again loop over all the
+
+
+528
+00:15:56,806 --> 00:15:59,406
+meshes in our scene.
+
+
+529
+00:16:00,026 --> 00:16:02,226
+And then instead of directly
+
+
+530
+00:16:02,226 --> 00:16:03,276
+going to the lighting pass, we
+
+
+531
+00:16:03,276 --> 00:16:04,386
+first have to execute our tile
+
+
+532
+00:16:04,386 --> 00:16:04,696
+shader.
+
+
+533
+00:16:05,806 --> 00:16:07,756
+So, we set up our pipeline
+
+
+534
+00:16:07,756 --> 00:16:10,136
+state, we set a buffer that
+
+
+535
+00:16:10,136 --> 00:16:11,866
+holds all the lights within our
+
+
+536
+00:16:11,866 --> 00:16:13,766
+scene, and then we bind the
+
+
+537
+00:16:13,766 --> 00:16:16,756
+thread group memory buffer into
+
+
+538
+00:16:16,756 --> 00:16:17,366
+our tile memory.
+
+
+539
+00:16:17,936 --> 00:16:20,036
+And then we simply dispatch our
+
+
+540
+00:16:20,036 --> 00:16:20,516
+tile shader.
+
+
+541
+00:16:21,456 --> 00:16:24,656
+Now that we've executed our tile
+
+
+542
+00:16:24,656 --> 00:16:26,646
+shader, the thread group memory
+
+
+543
+00:16:26,646 --> 00:16:29,086
+we hold, the light list, we can
+
+
+544
+00:16:29,086 --> 00:16:31,036
+then use in the lighting draw
+
+
+545
+00:16:31,816 --> 00:16:33,606
+where we can have every pixel
+
+
+546
+00:16:33,956 --> 00:16:36,016
+having access to its tiles light
+
+
+547
+00:16:36,016 --> 00:16:37,656
+list using the persistent thread
+
+
+548
+00:16:37,656 --> 00:16:39,776
+group memory and now very
+
+
+549
+00:16:39,776 --> 00:16:40,996
+efficiently can shade its
+
+
+550
+00:16:40,996 --> 00:16:41,446
+pixels.
+
+
+551
+00:16:41,716 --> 00:16:43,916
+Now finally, after all is set
+
+
+552
+00:16:43,916 --> 00:16:45,686
+up, let's see what this looks
+
+
+553
+00:16:45,686 --> 00:16:46,856
+like in our shaders.
+
+
+554
+00:16:48,126 --> 00:16:49,586
+So, here we have two shaders.
+
+
+555
+00:16:49,586 --> 00:16:51,226
+The top one is the tile shader.
+
+
+556
+00:16:52,206 --> 00:16:54,266
+It's binding the output light
+
+
+557
+00:16:54,266 --> 00:16:55,656
+list into a persistent thread
+
+
+558
+00:16:55,656 --> 00:16:56,356
+group memory buffer.
+
+
+559
+00:16:58,036 --> 00:17:01,006
+Then it basically loops over all
+
+
+560
+00:17:01,006 --> 00:17:02,396
+the lights in some way and it
+
+
+561
+00:17:02,396 --> 00:17:04,766
+outputs the light mask into the
+
+
+562
+00:17:04,766 --> 00:17:05,816
+persistent thread group memory,
+
+
+563
+00:17:07,256 --> 00:17:08,886
+which can then be read back by
+
+
+564
+00:17:08,886 --> 00:17:10,726
+the second shader, our actual
+
+
+565
+00:17:10,726 --> 00:17:11,356
+lighting shader.
+
+
+566
+00:17:12,596 --> 00:17:14,526
+And then it's right over all the
+
+
+567
+00:17:14,526 --> 00:17:16,336
+visible lights within its tile
+
+
+568
+00:17:16,965 --> 00:17:18,516
+and shade our pixels.
+
+
+569
+00:17:19,236 --> 00:17:21,026
+Now that we've seen all these
+
+
+570
+00:17:21,026 --> 00:17:23,406
+key points of implementing the
+
+
+571
+00:17:23,486 --> 00:17:26,146
+tiled lighting technique for our
+
+
+572
+00:17:26,146 --> 00:17:28,786
+tile deferred technique, let's
+
+
+573
+00:17:28,786 --> 00:17:29,486
+see how we can use this
+
+
+574
+00:17:29,486 --> 00:17:31,826
+principle to extend our renderer
+
+
+575
+00:17:32,436 --> 00:17:34,646
+to frame additional forward pass
+
+
+576
+00:17:35,176 --> 00:17:35,726
+efficiently.
+
+
+577
+00:17:37,296 --> 00:17:38,436
+Because we've set up our light
+
+
+578
+00:17:38,436 --> 00:17:40,086
+list in a persistent thread
+
+
+579
+00:17:40,146 --> 00:17:41,906
+group memory, we can use the
+
+
+580
+00:17:41,906 --> 00:17:43,936
+same data to accelerate an
+
+
+581
+00:17:43,936 --> 00:17:46,366
+effective tiled forward pass.
+
+
+582
+00:17:47,276 --> 00:17:48,756
+Whenever we're shading our
+
+
+583
+00:17:48,756 --> 00:17:50,296
+forward geometry in our forward
+
+
+584
+00:17:50,296 --> 00:17:52,756
+pass, we can simply use that
+
+
+585
+00:17:52,756 --> 00:17:54,956
+same persistent thread group
+
+
+586
+00:17:54,956 --> 00:17:56,386
+memory to read our tile light
+
+
+587
+00:17:56,386 --> 00:17:58,466
+list and use the same light loop
+
+
+588
+00:17:58,676 --> 00:17:59,766
+that we've been using in our
+
+
+589
+00:17:59,766 --> 00:18:01,726
+deferred lighting to very
+
+
+590
+00:18:01,726 --> 00:18:03,816
+efficiently shade our forward
+
+
+591
+00:18:03,816 --> 00:18:04,236
+pixels.
+
+
+592
+00:18:05,436 --> 00:18:07,526
+This forward pass really rounds
+
+
+593
+00:18:07,526 --> 00:18:09,516
+out the capabilities and allows
+
+
+594
+00:18:09,516 --> 00:18:11,186
+for transparency, special
+
+
+595
+00:18:11,186 --> 00:18:12,586
+effects, and other complex
+
+
+596
+00:18:12,586 --> 00:18:13,766
+shading that would normally not
+
+
+597
+00:18:13,766 --> 00:18:14,976
+be possible with just deferred.
+
+
+598
+00:18:15,446 --> 00:18:17,766
+However, there's always some
+
+
+599
+00:18:17,766 --> 00:18:19,106
+limitations to a deferred
+
+
+600
+00:18:19,106 --> 00:18:19,586
+pipeline.
+
+
+601
+00:18:20,076 --> 00:18:20,936
+Anti-aliasing.
+
+
+602
+00:18:21,316 --> 00:18:23,916
+Complex material expressions are
+
+
+603
+00:18:23,916 --> 00:18:25,346
+still a problem due to the
+
+
+604
+00:18:25,346 --> 00:18:26,486
+intermediate G-buffer
+
+
+605
+00:18:26,906 --> 00:18:27,656
+representation.
+
+
+606
+00:18:28,246 --> 00:18:30,586
+What we have seen is using this
+
+
+607
+00:18:30,586 --> 00:18:31,946
+tile technique we can very
+
+
+608
+00:18:31,946 --> 00:18:34,616
+efficiently accelerate forward
+
+
+609
+00:18:34,616 --> 00:18:35,986
+rendering using the tiled
+
+
+610
+00:18:35,986 --> 00:18:36,616
+lighting technique.
+
+
+611
+00:18:37,546 --> 00:18:39,756
+So, let's take a step back and
+
+
+612
+00:18:39,756 --> 00:18:41,326
+focus purely on that forward
+
+
+613
+00:18:41,326 --> 00:18:43,476
+pass, because alongside with
+
+
+614
+00:18:43,476 --> 00:18:44,926
+tiled lighting, this becomes a
+
+
+615
+00:18:44,926 --> 00:18:46,426
+viable solution in its own
+
+
+616
+00:18:46,986 --> 00:18:47,126
+right.
+
+
+617
+00:18:48,116 --> 00:18:49,946
+To create a forward only
+
+
+618
+00:18:49,946 --> 00:18:51,986
+renderer, we simply remove the
+
+
+619
+00:18:51,986 --> 00:18:54,086
+deferred geometry and lighting
+
+
+620
+00:18:54,086 --> 00:18:54,506
+pass.
+
+
+621
+00:18:55,696 --> 00:18:57,676
+However, our light calling
+
+
+622
+00:18:57,676 --> 00:18:59,496
+technique needs that depth to
+
+
+623
+00:18:59,496 --> 00:19:00,716
+fit its subfrustums.
+
+
+624
+00:19:01,276 --> 00:19:03,966
+So, we need to replace our
+
+
+625
+00:19:03,966 --> 00:19:05,746
+geometry pass with a depth
+
+
+626
+00:19:05,776 --> 00:19:07,426
+prepass to fill this depth
+
+
+627
+00:19:07,426 --> 00:19:07,706
+buffer.
+
+
+628
+00:19:08,256 --> 00:19:10,226
+And if your engine already has
+
+
+629
+00:19:10,226 --> 00:19:12,276
+such a depth prepass, this is
+
+
+630
+00:19:12,276 --> 00:19:13,506
+the perfect solution for you.
+
+
+631
+00:19:14,896 --> 00:19:16,166
+So, if you have one beat for
+
+
+632
+00:19:16,166 --> 00:19:17,726
+overdraw, optimization,
+
+
+633
+00:19:17,726 --> 00:19:18,606
+inclusion calling, or
+
+
+634
+00:19:18,606 --> 00:19:20,276
+self-blending, this solution
+
+
+635
+00:19:20,276 --> 00:19:21,026
+will fit your needs.
+
+
+636
+00:19:22,236 --> 00:19:24,636
+However, on iOS hardware, such a
+
+
+637
+00:19:24,636 --> 00:19:26,476
+pass is often unnecessary.
+
+
+638
+00:19:26,526 --> 00:19:29,056
+And for those cases, a different
+
+
+639
+00:19:29,056 --> 00:19:30,196
+lighting solution, called
+
+
+640
+00:19:30,256 --> 00:19:31,826
+clustered lighting, might be a
+
+
+641
+00:19:31,826 --> 00:19:32,456
+better fit for you.
+
+
+642
+00:19:33,786 --> 00:19:35,696
+This clustered solution has a
+
+
+643
+00:19:35,696 --> 00:19:37,606
+different way of creating the
+
+
+644
+00:19:37,606 --> 00:19:38,956
+light lists that does not
+
+
+645
+00:19:38,956 --> 00:19:40,336
+require any depth.
+
+
+646
+00:19:41,436 --> 00:19:43,456
+Because for clustered lights, we
+
+
+647
+00:19:43,456 --> 00:19:45,316
+don't create any depth bounds
+
+
+648
+00:19:45,316 --> 00:19:47,136
+for our tiles but we simply
+
+
+649
+00:19:47,136 --> 00:19:49,236
+subdivide the frustums along the
+
+
+650
+00:19:49,236 --> 00:19:49,976
+depth axis.
+
+
+651
+00:19:50,456 --> 00:19:53,116
+And we then emit a 3D light list
+
+
+652
+00:19:53,116 --> 00:19:54,506
+map instead of a 2D light map.
+
+
+653
+00:19:55,676 --> 00:19:58,276
+It might not be as efficient as
+
+
+654
+00:19:58,276 --> 00:20:00,166
+our fitted subfrustums from our
+
+
+655
+00:20:00,166 --> 00:20:02,126
+tiled lighting but it will give
+
+
+656
+00:20:02,126 --> 00:20:03,426
+us a measurably improved
+
+
+657
+00:20:03,426 --> 00:20:05,356
+performance on lighting, where
+
+
+658
+00:20:05,356 --> 00:20:07,376
+every pixel is only shaded by a
+
+
+659
+00:20:07,376 --> 00:20:08,126
+local light list.
+
+
+660
+00:20:10,146 --> 00:20:12,396
+Using clustered calling combined
+
+
+661
+00:20:12,396 --> 00:20:14,066
+with tile shading and persistent
+
+
+662
+00:20:14,066 --> 00:20:15,676
+thread group memory, this gives
+
+
+663
+00:20:15,676 --> 00:20:17,206
+us very optimized forward
+
+
+664
+00:20:17,206 --> 00:20:17,516
+rendering.
+
+
+665
+00:20:18,116 --> 00:20:21,506
+We've seen now a few of the most
+
+
+666
+00:20:21,506 --> 00:20:23,226
+popular pipelines and how to
+
+
+667
+00:20:23,226 --> 00:20:24,066
+implement them on Metal.
+
+
+668
+00:20:24,066 --> 00:20:26,196
+Now we're going to look at the
+
+
+669
+00:20:26,196 --> 00:20:27,566
+visibility buffer rendering
+
+
+670
+00:20:27,566 --> 00:20:28,796
+technique that tackles the
+
+
+671
+00:20:28,796 --> 00:20:30,646
+G-buffer overhead in a different
+
+
+672
+00:20:30,646 --> 00:20:32,346
+way, making it more suitable for
+
+
+673
+00:20:32,346 --> 00:20:33,956
+old hardware that does not
+
+
+674
+00:20:33,956 --> 00:20:34,936
+support hardware tiling.
+
+
+675
+00:20:35,506 --> 00:20:38,626
+Let's go all the way back to our
+
+
+676
+00:20:38,626 --> 00:20:39,296
+deferred renderer.
+
+
+677
+00:20:39,836 --> 00:20:41,216
+So, most of the optimization
+
+
+678
+00:20:41,216 --> 00:20:43,146
+we've shown so far only work on
+
+
+679
+00:20:43,146 --> 00:20:44,996
+the iOS architecture.
+
+
+680
+00:20:46,556 --> 00:20:47,816
+The visibility buffer technique
+
+
+681
+00:20:48,076 --> 00:20:49,616
+tries to minimize the
+
+
+682
+00:20:49,616 --> 00:20:51,576
+intermediate buffer bottleneck
+
+
+683
+00:20:51,636 --> 00:20:53,556
+in another way, namely by
+
+
+684
+00:20:53,556 --> 00:20:55,486
+storing the absolute minimum
+
+
+685
+00:20:55,486 --> 00:20:57,116
+amount of data in that buffer.
+
+
+686
+00:20:58,176 --> 00:20:59,446
+Instead of storing all the
+
+
+687
+00:20:59,446 --> 00:21:01,096
+surface and material properties
+
+
+688
+00:21:01,546 --> 00:21:03,926
+per pixel, we only store a
+
+
+689
+00:21:03,976 --> 00:21:05,826
+primitive identifier and
+
+
+690
+00:21:05,826 --> 00:21:06,826
+barycentric coordinates.
+
+
+691
+00:21:08,996 --> 00:21:10,396
+This data cannot be used
+
+
+692
+00:21:10,396 --> 00:21:11,956
+directly to shade your entire
+
+
+693
+00:21:11,956 --> 00:21:14,486
+scene, but it can be used to
+
+
+694
+00:21:14,486 --> 00:21:16,246
+reconstruct and interpolate the
+
+
+695
+00:21:16,246 --> 00:21:18,016
+original geometry, and then
+
+
+696
+00:21:18,016 --> 00:21:20,456
+locally run your entire material
+
+
+697
+00:21:20,456 --> 00:21:21,796
+logic within the lighting
+
+
+698
+00:21:21,796 --> 00:21:22,286
+shaders.
+
+
+699
+00:21:23,006 --> 00:21:24,636
+Since this reconstruction step
+
+
+700
+00:21:24,636 --> 00:21:26,626
+is very costly, this works very
+
+
+701
+00:21:26,626 --> 00:21:28,176
+well with the tiled lighting
+
+
+702
+00:21:28,176 --> 00:21:29,366
+technique because that
+
+
+703
+00:21:29,366 --> 00:21:30,296
+guarantees we're only going to
+
+
+704
+00:21:30,296 --> 00:21:32,066
+use reconstruction step once per
+
+
+705
+00:21:32,066 --> 00:21:32,366
+pixel.
+
+
+706
+00:21:32,926 --> 00:21:35,306
+When we're implementing this
+
+
+707
+00:21:35,306 --> 00:21:36,596
+technique, the biggest problem
+
+
+708
+00:21:36,596 --> 00:21:38,786
+is usually how to create these
+
+
+709
+00:21:38,786 --> 00:21:40,316
+primitive indices and how to
+
+
+710
+00:21:40,366 --> 00:21:41,276
+create these barycentric
+
+
+711
+00:21:41,276 --> 00:21:44,316
+coordinates without a lot of
+
+
+712
+00:21:44,586 --> 00:21:45,666
+additional processing.
+
+
+713
+00:21:46,806 --> 00:21:47,856
+We're now happy to tell you that
+
+
+714
+00:21:47,856 --> 00:21:50,116
+in Metal 3, you can now retrieve
+
+
+715
+00:21:50,116 --> 00:21:51,206
+the index of your current
+
+
+716
+00:21:51,206 --> 00:21:53,016
+primitive and the barycentric
+
+
+717
+00:21:53,016 --> 00:21:54,516
+coordinate of your current pixel
+
+
+718
+00:21:54,976 --> 00:21:56,026
+within your fragment shader
+
+
+719
+00:21:56,236 --> 00:21:57,376
+using these two new attributes.
+
+
+720
+00:21:58,796 --> 00:22:00,336
+The resulting geometry shader is
+
+
+721
+00:22:00,336 --> 00:22:02,276
+now extremely simple, making
+
+
+722
+00:22:02,276 --> 00:22:03,576
+your geometry pass faster than
+
+
+723
+00:22:03,576 --> 00:22:05,976
+ever and making it easier to
+
+
+724
+00:22:05,976 --> 00:22:07,706
+implement than ever using Metal
+
+
+725
+00:22:07,706 --> 00:22:07,946
+3.
+
+
+726
+00:22:08,536 --> 00:22:11,276
+We've now gone over all these
+
+
+727
+00:22:11,276 --> 00:22:12,626
+different options that you can
+
+
+728
+00:22:12,626 --> 00:22:14,326
+use to render your scene in
+
+
+729
+00:22:14,326 --> 00:22:14,706
+Metal.
+
+
+730
+00:22:14,706 --> 00:22:16,836
+Now let's look at a little demo
+
+
+731
+00:22:16,836 --> 00:22:17,986
+that showcases some of these
+
+
+732
+00:22:17,986 --> 00:22:18,666
+rendering techniques.
+
+
+733
+00:22:19,246 --> 00:22:22,166
+So, here we have our test scene,
+
+
+734
+00:22:22,166 --> 00:22:23,576
+which has some rather complex
+
+
+735
+00:22:23,576 --> 00:22:25,926
+geometry and setup PBR materials
+
+
+736
+00:22:25,926 --> 00:22:27,166
+and array of different material
+
+
+737
+00:22:27,166 --> 00:22:27,746
+shaders.
+
+
+738
+00:22:28,226 --> 00:22:30,136
+We can use deferred or tile
+
+
+739
+00:22:30,136 --> 00:22:31,736
+deferred, or even forward to
+
+
+740
+00:22:31,736 --> 00:22:33,226
+render this scene on any of your
+
+
+741
+00:22:33,226 --> 00:22:33,766
+devices.
+
+
+742
+00:22:34,196 --> 00:22:37,076
+Let's start with the normal
+
+
+743
+00:22:37,076 --> 00:22:37,756
+deferred renderer.
+
+
+744
+00:22:38,076 --> 00:22:39,986
+The deferred renderer has two
+
+
+745
+00:22:39,986 --> 00:22:42,306
+passes, as we've shown before.
+
+
+746
+00:22:42,366 --> 00:22:43,606
+And the first pass is now
+
+
+747
+00:22:43,806 --> 00:22:44,716
+rendering everything through
+
+
+748
+00:22:44,716 --> 00:22:45,916
+these intermediate G-buffers.
+
+
+749
+00:22:46,446 --> 00:22:47,526
+Let's look at some of those
+
+
+750
+00:22:47,526 --> 00:22:48,466
+G-buffer textures now.
+
+
+751
+00:22:50,416 --> 00:22:52,186
+So, here we have the albedo.
+
+
+752
+00:22:52,236 --> 00:22:55,336
+We have the normal.
+
+
+753
+00:22:55,946 --> 00:22:59,196
+And we have the roughness
+
+
+754
+00:22:59,196 --> 00:23:00,136
+texture of our G-buffer.
+
+
+755
+00:23:00,586 --> 00:23:02,016
+If you have temporal and
+
+
+756
+00:23:02,016 --> 00:23:03,316
+aliasing, or more complex
+
+
+757
+00:23:03,316 --> 00:23:05,156
+lighting models, you'll probably
+
+
+758
+00:23:05,156 --> 00:23:06,496
+need to store more in the
+
+
+759
+00:23:06,496 --> 00:23:06,986
+G-buffer.
+
+
+760
+00:23:07,526 --> 00:23:09,256
+The scene we're seeing right now
+
+
+761
+00:23:09,256 --> 00:23:10,856
+is being lit by that second
+
+
+762
+00:23:10,856 --> 00:23:12,056
+lighting pass.
+
+
+763
+00:23:12,266 --> 00:23:13,996
+So, let's go to a night scene to
+
+
+764
+00:23:13,996 --> 00:23:15,246
+visualize our lights a little
+
+
+765
+00:23:15,806 --> 00:23:16,776
+bit better.
+
+
+766
+00:23:17,386 --> 00:23:19,006
+Now, in this scene, to get it
+
+
+767
+00:23:19,006 --> 00:23:20,326
+lit up like this, we need to
+
+
+768
+00:23:20,326 --> 00:23:21,996
+render a lot of lights, which we
+
+
+769
+00:23:21,996 --> 00:23:23,216
+are visualizing here.
+
+
+770
+00:23:24,176 --> 00:23:25,506
+In normal deferred, we should be
+
+
+771
+00:23:25,506 --> 00:23:26,426
+rendering all of these lights
+
+
+772
+00:23:26,426 --> 00:23:28,196
+one at a time, which is very
+
+
+773
+00:23:28,196 --> 00:23:28,616
+inefficient.
+
+
+774
+00:23:28,616 --> 00:23:29,596
+And you can see there's lots of
+
+
+775
+00:23:29,596 --> 00:23:30,986
+overlap between the different
+
+
+776
+00:23:30,986 --> 00:23:31,326
+lights.
+
+
+777
+00:23:31,956 --> 00:23:33,996
+So, let's move on to a tile
+
+
+778
+00:23:33,996 --> 00:23:34,666
+deferred lighting.
+
+
+779
+00:23:35,246 --> 00:23:38,876
+So, here we have the same scene
+
+
+780
+00:23:39,226 --> 00:23:41,356
+rendering using tile deferred
+
+
+781
+00:23:41,416 --> 00:23:41,976
+renderer.
+
+
+782
+00:23:45,376 --> 00:23:47,136
+What we want to show here was
+
+
+783
+00:23:47,736 --> 00:23:49,686
+all the possible visualizations
+
+
+784
+00:23:49,686 --> 00:23:51,686
+we had for how the different
+
+
+785
+00:23:51,686 --> 00:23:54,456
+tiles, show you the amount of
+
+
+786
+00:23:54,456 --> 00:23:55,566
+lights that are being rendered
+
+
+787
+00:23:55,826 --> 00:23:56,576
+in each of these different
+
+
+788
+00:23:56,576 --> 00:23:56,876
+tiles.
+
+
+789
+00:23:56,876 --> 00:23:59,486
+And you can see that it really
+
+
+790
+00:23:59,606 --> 00:24:01,106
+makes a difference in using
+
+
+791
+00:24:01,106 --> 00:24:02,396
+these tiled subdivisions,
+
+
+792
+00:24:03,146 --> 00:24:04,946
+relative to just lighting all
+
+
+793
+00:24:04,946 --> 00:24:07,146
+the pixels with all the lights
+
+
+794
+00:24:07,686 --> 00:24:08,036
+at once.
+
+
+795
+00:24:08,036 --> 00:24:09,156
+Now, we've shown you some of
+
+
+796
+00:24:09,156 --> 00:24:09,896
+these possible rendering
+
+
+797
+00:24:09,896 --> 00:24:11,656
+techniques that you can use to
+
+
+798
+00:24:11,656 --> 00:24:12,616
+render your scene.
+
+
+799
+00:24:13,146 --> 00:24:14,506
+And now my colleague Srinivas
+
+
+800
+00:24:14,886 --> 00:24:16,026
+will show you in the next part
+
+
+801
+00:24:16,316 --> 00:24:18,046
+how you can turn your CPU heavy
+
+
+802
+00:24:18,046 --> 00:24:19,746
+render loop into a GPU-driven
+
+
+803
+00:24:19,746 --> 00:24:20,156
+pipeline.
+
+
+804
+00:24:22,301 --> 00:24:24,301
+[ Applause ]
+
+
+805
+00:24:24,586 --> 00:24:25,016
+>> Thanks, Al.
+
+
+806
+00:24:28,016 --> 00:24:30,326
+With Metal 2, we introduced the
+
+
+807
+00:24:30,326 --> 00:24:31,826
+GPU-driven pipelines which
+
+
+808
+00:24:31,826 --> 00:24:33,626
+consist of augment buffers and
+
+
+809
+00:24:33,626 --> 00:24:34,606
+indirect command buffers
+
+
+810
+00:24:35,326 --> 00:24:36,936
+with which you can now move your
+
+
+811
+00:24:37,016 --> 00:24:38,446
+CPU-based rendering operations
+
+
+812
+00:24:38,446 --> 00:24:39,216
+to the GPU.
+
+
+813
+00:24:39,786 --> 00:24:41,226
+My colleague just showed you how
+
+
+814
+00:24:41,226 --> 00:24:42,786
+to implement various advanced
+
+
+815
+00:24:42,786 --> 00:24:43,936
+rendering techniques with Metal.
+
+
+816
+00:24:44,746 --> 00:24:46,056
+In this talk, I'm going to show
+
+
+817
+00:24:46,056 --> 00:24:47,506
+you how to move your entire
+
+
+818
+00:24:47,596 --> 00:24:49,156
+CPU-based render loop to the
+
+
+819
+00:24:49,156 --> 00:24:49,676
+GPU.
+
+
+820
+00:24:50,456 --> 00:24:51,496
+Now, this will not only make
+
+
+821
+00:24:51,496 --> 00:24:52,906
+your render loop more efficient
+
+
+822
+00:24:53,216 --> 00:24:54,256
+but it allows you to free up
+
+
+823
+00:24:54,256 --> 00:24:55,956
+your CPU for any other
+
+
+824
+00:24:55,956 --> 00:24:57,146
+processing that you may want to
+
+
+825
+00:24:57,146 --> 00:24:58,726
+do, like complex physics
+
+
+826
+00:24:58,726 --> 00:25:00,146
+simulations REI.
+
+
+827
+00:25:00,866 --> 00:25:02,556
+Now, before diving into details,
+
+
+828
+00:25:02,556 --> 00:25:04,416
+let's first see what operations
+
+
+829
+00:25:04,416 --> 00:25:05,686
+are usually performed in a
+
+
+830
+00:25:05,686 --> 00:25:06,346
+render loop.
+
+
+831
+00:25:07,646 --> 00:25:09,176
+Now, large scenes require
+
+
+832
+00:25:09,176 --> 00:25:10,446
+complex rendering operations.
+
+
+833
+00:25:10,616 --> 00:25:12,166
+So, usually you do a series of
+
+
+834
+00:25:12,166 --> 00:25:14,766
+operations to efficiently render
+
+
+835
+00:25:14,766 --> 00:25:15,236
+the scene.
+
+
+836
+00:25:15,756 --> 00:25:17,286
+So, the first thing that you do
+
+
+837
+00:25:17,286 --> 00:25:20,016
+is frustum culling, where you
+
+
+838
+00:25:20,016 --> 00:25:21,766
+remove the objects that fall
+
+
+839
+00:25:21,766 --> 00:25:22,796
+outside the view frustum.
+
+
+840
+00:25:23,236 --> 00:25:24,706
+We only show draw calls for
+
+
+841
+00:25:24,706 --> 00:25:25,116
+those.
+
+
+842
+00:25:25,736 --> 00:25:27,216
+Next, occlusion culling.
+
+
+843
+00:25:27,556 --> 00:25:29,146
+Here you eliminate the objects
+
+
+844
+00:25:29,456 --> 00:25:30,956
+that are occluded by other,
+
+
+845
+00:25:30,956 --> 00:25:31,746
+bigger objects.
+
+
+846
+00:25:32,546 --> 00:25:34,106
+Another thing that usually done
+
+
+847
+00:25:34,156 --> 00:25:36,456
+is level of detail selection,
+
+
+848
+00:25:36,636 --> 00:25:38,596
+where you select between a range
+
+
+849
+00:25:38,596 --> 00:25:40,146
+of levels of details of the
+
+
+850
+00:25:40,146 --> 00:25:42,066
+model based on its distance to
+
+
+851
+00:25:42,066 --> 00:25:42,496
+the camera.
+
+
+852
+00:25:43,316 --> 00:25:45,226
+So, your CPU-based render loop
+
+
+853
+00:25:45,226 --> 00:25:46,606
+with all these operations
+
+
+854
+00:25:46,726 --> 00:25:48,266
+typically looks like this.
+
+
+855
+00:25:49,556 --> 00:25:51,526
+Basically, you first encode your
+
+
+856
+00:25:51,526 --> 00:25:52,686
+occluded [draws] and
+
+
+857
+00:25:52,686 --> 00:25:55,116
+occlusion test into your command
+
+
+858
+00:25:55,186 --> 00:25:56,796
+buffer and you execute it in a
+
+
+859
+00:25:56,796 --> 00:25:59,016
+render pass on the GPU to
+
+
+860
+00:25:59,016 --> 00:26:00,276
+generate occlude data for the
+
+
+861
+00:26:00,276 --> 00:26:00,866
+next frame.
+
+
+862
+00:26:01,776 --> 00:26:03,396
+Next, you do frustum culling,
+
+
+863
+00:26:03,766 --> 00:26:05,096
+eliminate the objects that are
+
+
+864
+00:26:05,096 --> 00:26:06,166
+outside the view frustum.
+
+
+865
+00:26:06,916 --> 00:26:09,266
+And LOD selection to pick a
+
+
+866
+00:26:09,266 --> 00:26:11,716
+level of detail of the model and
+
+
+867
+00:26:11,716 --> 00:26:13,416
+occlusion culling, to eliminate
+
+
+868
+00:26:13,416 --> 00:26:16,146
+the objects that are occluded
+
+
+869
+00:26:16,146 --> 00:26:17,066
+other, bigger objects.
+
+
+870
+00:26:17,886 --> 00:26:20,306
+So finally, you enclosed the
+
+
+871
+00:26:20,306 --> 00:26:22,006
+pass for visible objects and
+
+
+872
+00:26:22,006 --> 00:26:24,366
+execute it in a render pass to
+
+
+873
+00:26:24,366 --> 00:26:25,216
+generate your scene.
+
+
+874
+00:26:25,786 --> 00:26:27,676
+Now, this works fine but there
+
+
+875
+00:26:27,676 --> 00:26:29,196
+are a couple of inefficiencies
+
+
+876
+00:26:29,196 --> 00:26:29,416
+here.
+
+
+877
+00:26:29,896 --> 00:26:31,356
+First let's take occlusion
+
+
+878
+00:26:31,356 --> 00:26:31,586
+culling.
+
+
+879
+00:26:31,586 --> 00:26:33,936
+Now, to do occlusion culling,
+
+
+880
+00:26:33,936 --> 00:26:35,526
+you need occlude data for the
+
+
+881
+00:26:35,526 --> 00:26:36,056
+current frame.
+
+
+882
+00:26:36,826 --> 00:26:38,076
+But because you don't want to
+
+
+883
+00:26:38,076 --> 00:26:39,466
+introduce any synchronizations
+
+
+884
+00:26:39,466 --> 00:26:40,396
+in the current frame, you
+
+
+885
+00:26:40,736 --> 00:26:42,306
+usually rely on the previous
+
+
+886
+00:26:42,306 --> 00:26:43,836
+frame's occluder data, which is
+
+
+887
+00:26:43,836 --> 00:26:45,846
+usually obtained at a lower
+
+
+888
+00:26:45,846 --> 00:26:46,326
+resolution.
+
+
+889
+00:26:46,996 --> 00:26:48,026
+So, it can be approximate.
+
+
+890
+00:26:48,026 --> 00:26:49,856
+It can lead to false occlusion.
+
+
+891
+00:26:50,376 --> 00:26:51,786
+And so you probably have to take
+
+
+892
+00:26:51,826 --> 00:26:52,926
+some corrective steps in your
+
+
+893
+00:26:52,926 --> 00:26:53,266
+gains.
+
+
+894
+00:26:54,156 --> 00:26:56,106
+And second, there are operations
+
+
+895
+00:26:56,106 --> 00:26:57,346
+here that are highly
+
+
+896
+00:26:57,346 --> 00:26:57,966
+paralyzable.
+
+
+897
+00:26:58,066 --> 00:27:00,076
+For example, frustum culling.
+
+
+898
+00:27:01,146 --> 00:27:03,666
+On a single CPU thread it looks
+
+
+899
+00:27:03,666 --> 00:27:05,766
+like this, where you'll be doing
+
+
+900
+00:27:05,766 --> 00:27:07,166
+frustum culling of each object,
+
+
+901
+00:27:07,166 --> 00:27:08,246
+one after the other.
+
+
+902
+00:27:08,726 --> 00:27:09,706
+Now, you can definitely
+
+
+903
+00:27:09,706 --> 00:27:10,696
+distribute this processing
+
+
+904
+00:27:10,696 --> 00:27:13,716
+across multiple CPU threads but
+
+
+905
+00:27:14,086 --> 00:27:15,436
+there are only a few CPU threads
+
+
+906
+00:27:15,436 --> 00:27:15,946
+available.
+
+
+907
+00:27:16,436 --> 00:27:17,586
+And if you include all other
+
+
+908
+00:27:17,586 --> 00:27:18,686
+operations that you want to
+
+
+909
+00:27:18,686 --> 00:27:20,356
+perform per object, you'll
+
+
+910
+00:27:20,716 --> 00:27:21,906
+probably be doing something like
+
+
+911
+00:27:21,906 --> 00:27:22,366
+this.
+
+
+912
+00:27:23,326 --> 00:27:24,776
+But are these operations highly
+
+
+913
+00:27:24,776 --> 00:27:25,386
+paralyzable?
+
+
+914
+00:27:25,606 --> 00:27:26,906
+So, if you have more threads,
+
+
+915
+00:27:27,116 --> 00:27:28,836
+you can pretty much process all
+
+
+916
+00:27:28,836 --> 00:27:30,626
+the scenes, all the objects in
+
+
+917
+00:27:30,626 --> 00:27:32,286
+our scene in parallel.
+
+
+918
+00:27:32,896 --> 00:27:33,766
+But typically, there are
+
+
+919
+00:27:33,766 --> 00:27:35,206
+thousands of objects in a scene
+
+
+920
+00:27:35,266 --> 00:27:37,096
+and so to paralyze all of them,
+
+
+921
+00:27:37,096 --> 00:27:38,776
+you need thousands of threads.
+
+
+922
+00:27:39,376 --> 00:27:40,606
+So, the perfect choice for these
+
+
+923
+00:27:40,606 --> 00:27:42,416
+operations is the GPU.
+
+
+924
+00:27:43,616 --> 00:27:45,536
+Now, GPU is a massively parallel
+
+
+925
+00:27:45,596 --> 00:27:46,986
+processor with thousands of
+
+
+926
+00:27:46,986 --> 00:27:48,426
+threads available to schedule
+
+
+927
+00:27:48,426 --> 00:27:49,196
+operations on.
+
+
+928
+00:27:49,766 --> 00:27:50,956
+So, it is possible to assign an
+
+
+929
+00:27:50,956 --> 00:27:53,436
+object to a dedicated thread and
+
+
+930
+00:27:53,436 --> 00:27:54,726
+perform all the operations that
+
+
+931
+00:27:54,726 --> 00:27:55,826
+we want to perform on that
+
+
+932
+00:27:55,826 --> 00:27:56,176
+object.
+
+
+933
+00:27:56,446 --> 00:27:57,926
+And with thousands of threads,
+
+
+934
+00:27:57,926 --> 00:27:59,116
+you can process thousands of
+
+
+935
+00:27:59,116 --> 00:27:59,996
+objects in parallel.
+
+
+936
+00:28:00,626 --> 00:28:02,146
+So, your render loop is going to
+
+
+937
+00:28:02,146 --> 00:28:03,536
+be more efficient if you move it
+
+
+938
+00:28:03,536 --> 00:28:06,666
+from CPU to GPU and as I
+
+
+939
+00:28:06,666 --> 00:28:08,416
+mentioned before, it will also
+
+
+940
+00:28:08,466 --> 00:28:10,416
+be freeing up your CPU for any
+
+
+941
+00:28:10,416 --> 00:28:12,266
+other processing you want to do.
+
+
+942
+00:28:12,546 --> 00:28:14,066
+So, how do you move all these
+
+
+943
+00:28:14,066 --> 00:28:15,256
+operations to the GPU.
+
+
+944
+00:28:16,236 --> 00:28:17,526
+You can do it with a combination
+
+
+945
+00:28:17,526 --> 00:28:19,446
+of compute and render passes on
+
+
+946
+00:28:19,446 --> 00:28:21,726
+the GPU so that we can drive the
+
+
+947
+00:28:21,726 --> 00:28:23,406
+entire render loop on the GPU
+
+
+948
+00:28:23,406 --> 00:28:25,306
+without any CPU involvement.
+
+
+949
+00:28:25,946 --> 00:28:27,006
+This idea, I mean, this is what
+
+
+950
+00:28:27,006 --> 00:28:27,556
+we need.
+
+
+951
+00:28:27,876 --> 00:28:29,366
+The entire render loop here is
+
+
+952
+00:28:29,366 --> 00:28:30,086
+on the GPU.
+
+
+953
+00:28:30,086 --> 00:28:31,506
+It's completely GPU driven.
+
+
+954
+00:28:32,416 --> 00:28:33,476
+Now, let's go through these
+
+
+955
+00:28:33,526 --> 00:28:35,306
+passes to see how this
+
+
+956
+00:28:35,346 --> 00:28:37,366
+GPU-driven render loop really
+
+
+957
+00:28:38,296 --> 00:28:38,416
+works.
+
+
+958
+00:28:38,686 --> 00:28:40,626
+Now, we need occluder data for
+
+
+959
+00:28:40,626 --> 00:28:41,286
+occlusion culling.
+
+
+960
+00:28:41,566 --> 00:28:43,046
+So first we have a compute pass
+
+
+961
+00:28:43,706 --> 00:28:45,506
+that takes a scene data, does
+
+
+962
+00:28:45,506 --> 00:28:46,846
+frustum culling of occluders,
+
+
+963
+00:28:47,216 --> 00:28:48,776
+and enclodes commands for
+
+
+964
+00:28:48,776 --> 00:28:49,676
+rendering the occluders.
+
+
+965
+00:28:50,506 --> 00:28:51,946
+Now, these encoded occluded raw
+
+
+966
+00:28:51,946 --> 00:28:53,276
+commands are executed in a
+
+
+967
+00:28:53,276 --> 00:28:55,476
+render pass, so we generate any
+
+
+968
+00:28:55,476 --> 00:28:56,556
+required occluder data.
+
+
+969
+00:28:57,246 --> 00:28:58,556
+Now, this occluder data can be
+
+
+970
+00:28:58,556 --> 00:29:00,076
+in various forms, depending on
+
+
+971
+00:29:00,076 --> 00:29:01,196
+how it gets generated.
+
+
+972
+00:29:01,666 --> 00:29:02,626
+So, you may want to further
+
+
+973
+00:29:02,626 --> 00:29:03,626
+process that data.
+
+
+974
+00:29:04,366 --> 00:29:05,706
+For that, we can have another
+
+
+975
+00:29:05,706 --> 00:29:06,436
+compute pass.
+
+
+976
+00:29:06,836 --> 00:29:08,726
+Now in this pass, the occluder
+
+
+977
+00:29:08,726 --> 00:29:10,206
+data can be converted into a
+
+
+978
+00:29:10,206 --> 00:29:11,876
+form that is more suitable for
+
+
+979
+00:29:12,176 --> 00:29:12,966
+occlusion culling.
+
+
+980
+00:29:13,936 --> 00:29:15,446
+We need one more compute pass
+
+
+981
+00:29:15,446 --> 00:29:17,196
+for the operations we talked
+
+
+982
+00:29:17,196 --> 00:29:17,636
+about.
+
+
+983
+00:29:17,636 --> 00:29:19,016
+That is, culling, a level of
+
+
+984
+00:29:19,016 --> 00:29:20,676
+detail selection and for
+
+
+985
+00:29:20,676 --> 00:29:22,196
+encoding of scene raw commands.
+
+
+986
+00:29:22,516 --> 00:29:24,206
+So, one thing to find out here
+
+
+987
+00:29:24,206 --> 00:29:25,916
+is that occlusion culling here
+
+
+988
+00:29:25,916 --> 00:29:27,736
+is no longer dependent on
+
+
+989
+00:29:27,816 --> 00:29:28,776
+previous frames' data.
+
+
+990
+00:29:29,556 --> 00:29:31,156
+Required occluder data is
+
+
+991
+00:29:31,156 --> 00:29:32,456
+generated for the current frame
+
+
+992
+00:29:32,686 --> 00:29:33,756
+in the first two passes that we
+
+
+993
+00:29:33,756 --> 00:29:34,766
+just talked about.
+
+
+994
+00:29:35,176 --> 00:29:36,206
+And also because we are
+
+
+995
+00:29:36,206 --> 00:29:37,216
+generating it for the current
+
+
+996
+00:29:37,216 --> 00:29:39,416
+frame, it's also more accurate.
+
+
+997
+00:29:39,926 --> 00:29:42,786
+And finally, we have another
+
+
+998
+00:29:42,786 --> 00:29:44,806
+render pass that executes a
+
+
+999
+00:29:44,806 --> 00:29:46,346
+scene raw commands for rendering
+
+
+1000
+00:29:46,346 --> 00:29:46,946
+the scene.
+
+
+1001
+00:29:47,636 --> 00:29:50,016
+So, in this GPU-driven render
+
+
+1002
+00:29:50,016 --> 00:29:52,126
+loop, everything's happening on
+
+
+1003
+00:29:52,126 --> 00:29:52,666
+the GPU.
+
+
+1004
+00:29:52,836 --> 00:29:54,376
+There is no CPU-GPU
+
+
+1005
+00:29:54,376 --> 00:29:55,946
+synchronization anywhere, no
+
+
+1006
+00:29:56,206 --> 00:29:57,476
+previous frame dependencies.
+
+
+1007
+00:29:58,366 --> 00:29:59,656
+So, how can we build this
+
+
+1008
+00:29:59,656 --> 00:30:00,546
+GPU-driven pipeline?
+
+
+1009
+00:30:01,526 --> 00:30:03,146
+Now, it is clear that we need at
+
+
+1010
+00:30:03,146 --> 00:30:04,436
+least two things to be able to
+
+
+1011
+00:30:04,436 --> 00:30:05,936
+build this render loop on the
+
+
+1012
+00:30:05,936 --> 00:30:06,436
+GPU.
+
+
+1013
+00:30:06,856 --> 00:30:08,726
+First, draw commands.
+
+
+1014
+00:30:09,196 --> 00:30:11,206
+We need a way to encode draw
+
+
+1015
+00:30:11,206 --> 00:30:13,546
+commands on the GPU so that the
+
+
+1016
+00:30:13,546 --> 00:30:14,846
+compute pass can encode the
+
+
+1017
+00:30:14,846 --> 00:30:15,926
+commands for the render pass.
+
+
+1018
+00:30:16,676 --> 00:30:17,626
+And the building block that
+
+
+1019
+00:30:17,626 --> 00:30:19,226
+Metal provides to support this
+
+
+1020
+00:30:19,226 --> 00:30:20,546
+is indirect command buffers.
+
+
+1021
+00:30:21,356 --> 00:30:22,976
+And we also need scene data.
+
+
+1022
+00:30:23,866 --> 00:30:25,106
+We should be able to access the
+
+
+1023
+00:30:25,106 --> 00:30:26,846
+encoded scene data on the GPU
+
+
+1024
+00:30:26,846 --> 00:30:28,806
+through the frame wherever it is
+
+
+1025
+00:30:28,806 --> 00:30:29,096
+needed.
+
+
+1026
+00:30:29,766 --> 00:30:31,136
+And with this scene data, we
+
+
+1027
+00:30:31,136 --> 00:30:32,106
+should be able to pretty much
+
+
+1028
+00:30:32,106 --> 00:30:34,176
+describe the whole scene, like
+
+
+1029
+00:30:34,176 --> 00:30:35,886
+geometry, shared arguments,
+
+
+1030
+00:30:36,016 --> 00:30:37,996
+materials, etc. So, in the
+
+
+1031
+00:30:37,996 --> 00:30:39,336
+building block that Metal
+
+
+1032
+00:30:39,336 --> 00:30:41,666
+provides to support this is
+
+
+1033
+00:30:41,666 --> 00:30:42,476
+argument buffers.
+
+
+1034
+00:30:43,436 --> 00:30:44,706
+Now, let's take a more closer
+
+
+1035
+00:30:44,706 --> 00:30:46,016
+look at these two building
+
+
+1036
+00:30:46,016 --> 00:30:46,376
+blocks.
+
+
+1037
+00:30:47,546 --> 00:30:49,556
+Now, argument buffers let you
+
+
+1038
+00:30:49,556 --> 00:30:51,986
+describe the entire scene data
+
+
+1039
+00:30:51,986 --> 00:30:53,516
+with complex data structures.
+
+
+1040
+00:30:54,036 --> 00:30:55,226
+And they let you access the
+
+
+1041
+00:30:55,316 --> 00:30:57,666
+scene data anywhere in the loop.
+
+
+1042
+00:30:58,366 --> 00:30:59,566
+And indirect command buffers
+
+
+1043
+00:30:59,566 --> 00:31:01,206
+allow you to build draw calls on
+
+
+1044
+00:31:01,206 --> 00:31:02,866
+the GPU and basically it
+
+
+1045
+00:31:02,866 --> 00:31:03,646
+supports massive parallel
+
+
+1046
+00:31:03,646 --> 00:31:05,666
+generation of commands on the
+
+
+1047
+00:31:05,666 --> 00:31:06,126
+GPU.
+
+
+1048
+00:31:06,826 --> 00:31:07,866
+Now, let's dive into these
+
+
+1049
+00:31:07,866 --> 00:31:09,656
+argument buffers a little
+
+
+1050
+00:31:09,656 --> 00:31:11,326
+further with an example scene
+
+
+1051
+00:31:11,326 --> 00:31:11,956
+object model.
+
+
+1052
+00:31:12,426 --> 00:31:14,866
+Now, the first thing that we
+
+
+1053
+00:31:14,866 --> 00:31:16,986
+need is access to scene data.
+
+
+1054
+00:31:17,766 --> 00:31:19,046
+So, what does scene data really
+
+
+1055
+00:31:19,046 --> 00:31:19,526
+consist of?
+
+
+1056
+00:31:20,066 --> 00:31:20,786
+First, meshes.
+
+
+1057
+00:31:21,336 --> 00:31:22,686
+Now, here is the meshes.
+
+
+1058
+00:31:23,186 --> 00:31:25,126
+It is an area of mesh objects,
+
+
+1059
+00:31:25,196 --> 00:31:26,986
+each describing its geometry.
+
+
+1060
+00:31:27,426 --> 00:31:30,136
+And Metal is an area of Metal
+
+
+1061
+00:31:30,136 --> 00:31:32,196
+objects each with a set of Metal
+
+
+1062
+00:31:32,196 --> 00:31:34,756
+properties, any textures it
+
+
+1063
+00:31:34,756 --> 00:31:36,106
+needs, and the pipeline steered
+
+
+1064
+00:31:36,106 --> 00:31:37,586
+object that describes the shadow
+
+
+1065
+00:31:37,586 --> 00:31:38,056
+pipeline.
+
+
+1066
+00:31:38,736 --> 00:31:40,186
+And scene also consists of an
+
+
+1067
+00:31:40,186 --> 00:31:41,146
+area of models.
+
+
+1068
+00:31:41,946 --> 00:31:44,686
+Here, each model can have an LOD
+
+
+1069
+00:31:44,686 --> 00:31:47,256
+so in this example, we have each
+
+
+1070
+00:31:47,256 --> 00:31:48,796
+model consisting of area of
+
+
+1071
+00:31:49,426 --> 00:31:52,066
+meshes and materials, one per
+
+
+1072
+00:31:52,066 --> 00:31:52,176
+LOD.
+
+
+1073
+00:31:52,176 --> 00:31:55,256
+Finally, we have a scene object
+
+
+1074
+00:31:55,256 --> 00:31:57,426
+that relates meshes, materials,
+
+
+1075
+00:31:57,426 --> 00:31:59,106
+and models that are part of our
+
+
+1076
+00:31:59,106 --> 00:31:59,596
+scene.
+
+
+1077
+00:32:00,366 --> 00:32:02,396
+So, let's see how this object
+
+
+1078
+00:32:02,396 --> 00:32:03,886
+model can be expressed with
+
+
+1079
+00:32:04,046 --> 00:32:04,936
+argument buffers.
+
+
+1080
+00:32:05,476 --> 00:32:08,436
+It is a very simple 1-to-1
+
+
+1081
+00:32:08,436 --> 00:32:10,946
+mapping from our object model to
+
+
+1082
+00:32:10,946 --> 00:32:11,666
+argument buffers.
+
+
+1083
+00:32:11,776 --> 00:32:13,756
+For example, scene argument
+
+
+1084
+00:32:13,756 --> 00:32:15,446
+buffer here simply consists of
+
+
+1085
+00:32:15,446 --> 00:32:16,666
+the objects that we just
+
+
+1086
+00:32:16,666 --> 00:32:18,366
+described in our object model.
+
+
+1087
+00:32:19,026 --> 00:32:20,856
+That is areas of meshes,
+
+
+1088
+00:32:20,956 --> 00:32:22,296
+materials, and models.
+
+
+1089
+00:32:22,836 --> 00:32:24,436
+Basically, the entire scene can
+
+
+1090
+00:32:24,436 --> 00:32:26,286
+now be described with argument
+
+
+1091
+00:32:26,286 --> 00:32:26,736
+buffers.
+
+
+1092
+00:32:27,726 --> 00:32:29,116
+Now, let's look at how this can
+
+
+1093
+00:32:29,116 --> 00:32:31,216
+be constructed and accessed in
+
+
+1094
+00:32:31,776 --> 00:32:33,916
+the shader.
+
+
+1095
+00:32:34,126 --> 00:32:35,586
+Now, each of the argument
+
+
+1096
+00:32:35,586 --> 00:32:37,046
+buffers we just discussed is
+
+
+1097
+00:32:37,046 --> 00:32:38,576
+simply represented by a
+
+
+1098
+00:32:38,576 --> 00:32:38,946
+structure.
+
+
+1099
+00:32:39,636 --> 00:32:41,196
+That now contains members that
+
+
+1100
+00:32:41,196 --> 00:32:42,526
+we have described in our object
+
+
+1101
+00:32:42,526 --> 00:32:42,896
+model.
+
+
+1102
+00:32:43,566 --> 00:32:45,696
+Since each argument buffer is a
+
+
+1103
+00:32:45,696 --> 00:32:47,396
+structure that is completely
+
+
+1104
+00:32:47,396 --> 00:32:49,376
+flexible, you can add things
+
+
+1105
+00:32:49,376 --> 00:32:51,006
+like arrays, pointers, even
+
+
+1106
+00:32:51,046 --> 00:32:52,166
+pointers to other argument
+
+
+1107
+00:32:52,166 --> 00:32:52,616
+buffers.
+
+
+1108
+00:32:52,816 --> 00:32:55,386
+For example, here's a Metal
+
+
+1109
+00:32:55,386 --> 00:32:56,436
+argument buffer.
+
+
+1110
+00:32:56,996 --> 00:32:58,456
+It can contain Metal Constants
+
+
+1111
+00:32:58,586 --> 00:33:00,496
+any textures it needs, and of
+
+
+1112
+00:33:00,526 --> 00:33:01,616
+course the pipeline straight
+
+
+1113
+00:33:01,616 --> 00:33:03,406
+objects that describe the shadow
+
+
+1114
+00:33:03,406 --> 00:33:03,856
+pipeline.
+
+
+1115
+00:33:04,496 --> 00:33:05,806
+So everything that is needed for
+
+
+1116
+00:33:05,806 --> 00:33:07,856
+a Metal is in one argument
+
+
+1117
+00:33:07,896 --> 00:33:08,036
+buffer.
+
+
+1118
+00:33:09,016 --> 00:33:10,626
+And the scene argument buffer is
+
+
+1119
+00:33:10,626 --> 00:33:12,186
+just like how we described it in
+
+
+1120
+00:33:12,186 --> 00:33:13,366
+our object model.
+
+
+1121
+00:33:13,976 --> 00:33:15,166
+So, it's just very easy to
+
+
+1122
+00:33:15,166 --> 00:33:17,136
+construct object models with
+
+
+1123
+00:33:17,136 --> 00:33:17,976
+argument buffers.
+
+
+1124
+00:33:18,866 --> 00:33:19,956
+Now, let's look at how we can
+
+
+1125
+00:33:19,956 --> 00:33:21,846
+access these argument buffers in
+
+
+1126
+00:33:21,846 --> 00:33:22,686
+the sharable.
+
+
+1127
+00:33:23,266 --> 00:33:25,986
+Now, this is a compute kernel
+
+
+1128
+00:33:25,986 --> 00:33:27,306
+that does frustum culling that
+
+
+1129
+00:33:27,306 --> 00:33:28,216
+we just talked about.
+
+
+1130
+00:33:28,646 --> 00:33:30,436
+It encodes the draw commands for
+
+
+1131
+00:33:30,436 --> 00:33:31,916
+visible objects into an indirect
+
+
+1132
+00:33:31,916 --> 00:33:32,356
+command offer.
+
+
+1133
+00:33:33,286 --> 00:33:34,746
+Each thread that executes an
+
+
+1134
+00:33:34,746 --> 00:33:36,026
+instance of this kernel
+
+
+1135
+00:33:36,486 --> 00:33:38,436
+processes one object and encodes
+
+
+1136
+00:33:38,436 --> 00:33:40,426
+a single draw call if it data
+
+
+1137
+00:33:40,426 --> 00:33:41,946
+mines that object is visible.
+
+
+1138
+00:33:42,516 --> 00:33:45,036
+So, let's see how this does it.
+
+
+1139
+00:33:45,436 --> 00:33:47,376
+Now, first we pass in our
+
+
+1140
+00:33:47,376 --> 00:33:49,246
+high-level scene argument buffer
+
+
+1141
+00:33:49,336 --> 00:33:49,796
+to the share.
+
+
+1142
+00:33:50,526 --> 00:33:51,896
+Now, once we have access to our
+
+
+1143
+00:33:51,896 --> 00:33:54,326
+shader, our scene, then it is
+
+
+1144
+00:33:54,326 --> 00:33:56,106
+very easy to access anything
+
+
+1145
+00:33:56,106 --> 00:33:56,746
+else we need.
+
+
+1146
+00:33:57,426 --> 00:33:59,546
+And command R here contains the
+
+
+1147
+00:33:59,546 --> 00:34:00,786
+reference to the indirect
+
+
+1148
+00:34:00,786 --> 00:34:02,086
+command buffer that we want to
+
+
+1149
+00:34:02,126 --> 00:34:02,706
+encode into.
+
+
+1150
+00:34:02,706 --> 00:34:06,346
+We first did the model from the
+
+
+1151
+00:34:06,346 --> 00:34:08,266
+scene based on thread ID.
+
+
+1152
+00:34:08,716 --> 00:34:10,726
+Notice that all threads of this
+
+
+1153
+00:34:10,726 --> 00:34:12,255
+compute kernel are doing this in
+
+
+1154
+00:34:12,255 --> 00:34:13,946
+parallel, each operating on a
+
+
+1155
+00:34:13,946 --> 00:34:14,755
+particular object.
+
+
+1156
+00:34:14,755 --> 00:34:17,516
+We do frustum culling to see if
+
+
+1157
+00:34:17,516 --> 00:34:18,946
+the object is falling outside
+
+
+1158
+00:34:18,946 --> 00:34:19,735
+the view frustum.
+
+
+1159
+00:34:20,436 --> 00:34:21,666
+And once we determine that
+
+
+1160
+00:34:21,666 --> 00:34:23,626
+object is visible, we calculate
+
+
+1161
+00:34:23,626 --> 00:34:26,056
+its LOD based on its distance to
+
+
+1162
+00:34:26,056 --> 00:34:26,456
+the camera.
+
+
+1163
+00:34:27,476 --> 00:34:28,966
+So once we have the LOD, it's
+
+
+1164
+00:34:28,966 --> 00:34:31,016
+very straightforward to read its
+
+
+1165
+00:34:31,016 --> 00:34:32,766
+corresponding mesh and material
+
+
+1166
+00:34:32,766 --> 00:34:34,626
+argument, argument buffers that
+
+
+1167
+00:34:34,626 --> 00:34:35,886
+apply to that LOD.
+
+
+1168
+00:34:36,616 --> 00:34:38,106
+This is straightforward mainly
+
+
+1169
+00:34:38,106 --> 00:34:39,436
+because of the way argument
+
+
+1170
+00:34:39,466 --> 00:34:41,056
+buffers lets us relate resources
+
+
+1171
+00:34:41,326 --> 00:34:42,505
+that we need in our scene.
+
+
+1172
+00:34:43,065 --> 00:34:44,606
+And we have acquired all the
+
+
+1173
+00:34:44,606 --> 00:34:45,956
+information we need; now it's
+
+
+1174
+00:34:45,956 --> 00:34:46,976
+time to encode.
+
+
+1175
+00:34:47,735 --> 00:34:49,536
+Let's just see what encoding
+
+
+1176
+00:34:49,536 --> 00:34:51,376
+into an indirect argument
+
+
+1177
+00:34:51,376 --> 00:34:53,505
+buffer, indirect command buffer
+
+
+1178
+00:34:53,505 --> 00:34:54,056
+really means.
+
+
+1179
+00:34:56,815 --> 00:34:59,446
+So, indirect command buffer is
+
+
+1180
+00:34:59,446 --> 00:35:00,746
+an area of render commands.
+
+
+1181
+00:35:01,116 --> 00:35:02,416
+Each command can have different
+
+
+1182
+00:35:02,416 --> 00:35:02,886
+properties.
+
+
+1183
+00:35:03,706 --> 00:35:05,726
+A command can include a pipeline
+
+
+1184
+00:35:05,726 --> 00:35:07,426
+straight object that describes a
+
+
+1185
+00:35:07,426 --> 00:35:09,426
+shared pipeline and any vortex
+
+
+1186
+00:35:09,426 --> 00:35:10,736
+and fragment buffers that the
+
+
+1187
+00:35:10,736 --> 00:35:11,456
+draw call needs.
+
+
+1188
+00:35:12,066 --> 00:35:13,076
+And the draw call itself.
+
+
+1189
+00:35:13,536 --> 00:35:15,336
+So, encoding basically means
+
+
+1190
+00:35:15,416 --> 00:35:16,756
+that once we determine that an
+
+
+1191
+00:35:16,756 --> 00:35:18,996
+object is visible, we read it
+
+
+1192
+00:35:18,996 --> 00:35:20,776
+with all its properties and
+
+
+1193
+00:35:20,776 --> 00:35:23,026
+encode those into the indirect
+
+
+1194
+00:35:23,026 --> 00:35:23,406
+mine buffer.
+
+
+1195
+00:35:23,876 --> 00:35:25,686
+Now, each thread that processes
+
+
+1196
+00:35:25,686 --> 00:35:27,876
+an object can encode into a
+
+
+1197
+00:35:27,876 --> 00:35:29,446
+particular slot in this indirect
+
+
+1198
+00:35:29,446 --> 00:35:29,996
+command buffer.
+
+
+1199
+00:35:30,576 --> 00:35:31,866
+And since all threads are
+
+
+1200
+00:35:31,866 --> 00:35:33,856
+running in parallel, commands
+
+
+1201
+00:35:33,856 --> 00:35:35,346
+can be encoded concurrently.
+
+
+1202
+00:35:36,386 --> 00:35:38,016
+Now, let's continue with our
+
+
+1203
+00:35:38,016 --> 00:35:39,796
+culling kernel example to see an
+
+
+1204
+00:35:39,796 --> 00:35:42,676
+actual example of the encoding.
+
+
+1205
+00:35:43,056 --> 00:35:46,796
+Now, we first need a position in
+
+
+1206
+00:35:46,796 --> 00:35:48,366
+the command buffer to encode the
+
+
+1207
+00:35:48,366 --> 00:35:48,836
+raw command.
+
+
+1208
+00:35:49,526 --> 00:35:51,456
+So, we use that raw ID to get
+
+
+1209
+00:35:51,456 --> 00:35:53,466
+ourselves a slot in the indirect
+
+
+1210
+00:35:53,466 --> 00:35:53,946
+command buffer.
+
+
+1211
+00:35:54,806 --> 00:35:56,216
+And like we discussed, we need
+
+
+1212
+00:35:56,216 --> 00:35:57,936
+to set any parameters that the
+
+
+1213
+00:35:57,936 --> 00:35:58,676
+draw call needs.
+
+
+1214
+00:35:59,376 --> 00:36:00,696
+Now, the material and mesh
+
+
+1215
+00:36:00,696 --> 00:36:01,906
+argument buffers that we just
+
+
+1216
+00:36:01,906 --> 00:36:03,196
+acquired have all the
+
+
+1217
+00:36:03,196 --> 00:36:04,606
+information we need to set the
+
+
+1218
+00:36:04,606 --> 00:36:05,026
+parameters.
+
+
+1219
+00:36:05,696 --> 00:36:07,186
+So for example for material we
+
+
+1220
+00:36:07,186 --> 00:36:08,296
+can set the pipeline straight
+
+
+1221
+00:36:08,296 --> 00:36:10,136
+object that we need to set.
+
+
+1222
+00:36:10,816 --> 00:36:12,626
+And from the mesh object, we can
+
+
+1223
+00:36:12,626 --> 00:36:14,536
+set any vortex buffer or any
+
+
+1224
+00:36:14,536 --> 00:36:15,836
+vortex uniforms that we need to
+
+
+1225
+00:36:15,836 --> 00:36:16,196
+set.
+
+
+1226
+00:36:16,936 --> 00:36:18,456
+And of course the fragment needs
+
+
+1227
+00:36:18,516 --> 00:36:19,986
+the material, so we set that.
+
+
+1228
+00:36:20,566 --> 00:36:22,006
+And finally this is how we
+
+
+1229
+00:36:22,006 --> 00:36:22,916
+encode the draw.
+
+
+1230
+00:36:23,396 --> 00:36:24,136
+So that's it.
+
+
+1231
+00:36:24,196 --> 00:36:26,026
+Encoding the draw call is very
+
+
+1232
+00:36:26,106 --> 00:36:27,716
+simple and easy.
+
+
+1233
+00:36:28,306 --> 00:36:31,096
+Now, let's see how you can set
+
+
+1234
+00:36:31,096 --> 00:36:32,966
+up your path in your game.
+
+
+1235
+00:36:33,996 --> 00:36:36,026
+Now, we first need an indirect
+
+
+1236
+00:36:36,026 --> 00:36:37,546
+command buffer to encode
+
+
+1237
+00:36:37,546 --> 00:36:38,886
+occluder draw commands, because
+
+
+1238
+00:36:38,886 --> 00:36:39,926
+that is the first thing that we
+
+
+1239
+00:36:39,926 --> 00:36:42,626
+talked about when we discussed
+
+
+1240
+00:36:42,626 --> 00:36:43,956
+our GPU-driven render loop.
+
+
+1241
+00:36:44,576 --> 00:36:46,586
+So to render the occluders, we
+
+
+1242
+00:36:46,586 --> 00:36:49,336
+start up a compute dispatch that
+
+
+1243
+00:36:49,336 --> 00:36:50,886
+does custom culling of occulders
+
+
+1244
+00:36:51,336 --> 00:36:52,676
+and encodes the occluder draw
+
+
+1245
+00:36:52,676 --> 00:36:53,146
+commands.
+
+
+1246
+00:36:53,976 --> 00:36:55,796
+And because each thread is doing
+
+
+1247
+00:36:55,796 --> 00:36:59,096
+independently encoding a draw,
+
+
+1248
+00:36:59,406 --> 00:37:01,446
+there can be multiple state
+
+
+1249
+00:37:01,446 --> 00:37:02,736
+settings, written and state
+
+
+1250
+00:37:02,736 --> 00:37:04,366
+settings in the indirect command
+
+
+1251
+00:37:04,366 --> 00:37:04,606
+buffer.
+
+
+1252
+00:37:05,376 --> 00:37:08,596
+So, optionally we optimize the
+
+
+1253
+00:37:08,596 --> 00:37:10,136
+indirect command buffer to
+
+
+1254
+00:37:10,136 --> 00:37:11,366
+remove any driven end stage
+
+
+1255
+00:37:11,366 --> 00:37:11,686
+settings.
+
+
+1256
+00:37:12,136 --> 00:37:14,386
+Now, this is a random pass that
+
+
+1257
+00:37:14,386 --> 00:37:15,946
+executes the occluder draws in
+
+
+1258
+00:37:15,946 --> 00:37:16,866
+the indirect command buffer.
+
+
+1259
+00:37:17,916 --> 00:37:19,256
+And similarly, the rest of the
+
+
+1260
+00:37:19,256 --> 00:37:20,766
+paths can be set up easily.
+
+
+1261
+00:37:21,056 --> 00:37:25,576
+For example, here is our, the
+
+
+1262
+00:37:25,686 --> 00:37:27,276
+main compute dispatch that
+
+
+1263
+00:37:27,276 --> 00:37:30,756
+launches our culling kernel that
+
+
+1264
+00:37:30,756 --> 00:37:32,326
+we just talked about that does
+
+
+1265
+00:37:32,326 --> 00:37:34,206
+culling tests, LOD selection,
+
+
+1266
+00:37:34,206 --> 00:37:35,366
+and encoding draw commands.
+
+
+1267
+00:37:35,566 --> 00:37:37,096
+Now we are ready to launch our
+
+
+1268
+00:37:37,096 --> 00:37:39,146
+final render pass that executes
+
+
+1269
+00:37:39,146 --> 00:37:40,076
+the commands in the indirect
+
+
+1270
+00:37:40,076 --> 00:37:40,506
+command buffer.
+
+
+1271
+00:37:41,086 --> 00:37:41,546
+So that's it.
+
+
+1272
+00:37:41,546 --> 00:37:43,076
+That's all it takes to draw the
+
+
+1273
+00:37:43,076 --> 00:37:43,506
+scene.
+
+
+1274
+00:37:44,236 --> 00:37:46,606
+Now, let's take a look and see
+
+
+1275
+00:37:46,606 --> 00:37:47,866
+how the indirect command buffer
+
+
+1276
+00:37:47,866 --> 00:37:49,156
+looks like after the encoding of
+
+
+1277
+00:37:49,156 --> 00:37:49,966
+draw commands.
+
+
+1278
+00:37:52,876 --> 00:37:54,486
+Now, it can be sparse with
+
+
+1279
+00:37:54,486 --> 00:37:55,006
+holes.
+
+
+1280
+00:37:55,366 --> 00:37:57,256
+This is mainly because as we
+
+
+1281
+00:37:57,256 --> 00:37:58,476
+have just seen in our culling
+
+
+1282
+00:37:58,476 --> 00:38:00,796
+kernel example, the thread that
+
+
+1283
+00:38:00,796 --> 00:38:02,376
+is processing an object doesn't
+
+
+1284
+00:38:02,376 --> 00:38:04,306
+encode the draw command if it
+
+
+1285
+00:38:04,306 --> 00:38:05,526
+finds that object is not
+
+
+1286
+00:38:05,526 --> 00:38:05,996
+visible.
+
+
+1287
+00:38:06,716 --> 00:38:08,336
+For example, objects one and
+
+
+1288
+00:38:08,336 --> 00:38:09,566
+three, in this case.
+
+
+1289
+00:38:09,956 --> 00:38:11,686
+That means those slots in the
+
+
+1290
+00:38:11,686 --> 00:38:12,626
+indirect command buffer are
+
+
+1291
+00:38:13,006 --> 00:38:13,426
+empty.
+
+
+1292
+00:38:14,036 --> 00:38:15,316
+So if you submit this command
+
+
+1293
+00:38:15,316 --> 00:38:17,256
+buffer to the GPU, it'll end up
+
+
+1294
+00:38:17,256 --> 00:38:18,656
+executing a bunch of empty
+
+
+1295
+00:38:18,656 --> 00:38:20,656
+commands, which is not really
+
+
+1296
+00:38:20,656 --> 00:38:21,046
+efficient.
+
+
+1297
+00:38:21,736 --> 00:38:23,626
+So, the ideal thing to do is to
+
+
+1298
+00:38:23,626 --> 00:38:25,496
+tightly pack the commands like
+
+
+1299
+00:38:25,496 --> 00:38:25,816
+this.
+
+
+1300
+00:38:26,486 --> 00:38:28,786
+That is, we need a way to pack
+
+
+1301
+00:38:28,786 --> 00:38:30,526
+the commands as we encode the
+
+
+1302
+00:38:30,526 --> 00:38:31,746
+draws.
+
+
+1303
+00:38:31,746 --> 00:38:33,716
+For that, we have indirect
+
+
+1304
+00:38:33,716 --> 00:38:34,216
+principle.
+
+
+1305
+00:38:35,346 --> 00:38:37,676
+With indirect ranges, you can
+
+
+1306
+00:38:37,676 --> 00:38:39,836
+tell the GPU with execute call
+
+
+1307
+00:38:40,226 --> 00:38:41,216
+where to get the range of
+
+
+1308
+00:38:41,216 --> 00:38:42,006
+commands to execute.
+
+
+1309
+00:38:42,846 --> 00:38:44,696
+Basically, you can have indirect
+
+
+1310
+00:38:44,696 --> 00:38:46,116
+range buffer that has a start
+
+
+1311
+00:38:46,116 --> 00:38:48,086
+location and number of commands
+
+
+1312
+00:38:48,086 --> 00:38:50,046
+to execute, and this buffer can
+
+
+1313
+00:38:50,046 --> 00:38:51,846
+be populated on the GPU as
+
+
+1314
+00:38:51,846 --> 00:38:53,446
+you're doing your encoding of
+
+
+1315
+00:38:53,446 --> 00:38:54,106
+draw commands.
+
+
+1316
+00:38:54,216 --> 00:38:56,096
+And the execute call will pick
+
+
+1317
+00:38:56,096 --> 00:38:57,846
+up the start location and the
+
+
+1318
+00:38:57,846 --> 00:38:59,466
+number of commands from this
+
+
+1319
+00:38:59,466 --> 00:38:59,776
+buffer.
+
+
+1320
+00:39:00,896 --> 00:39:02,256
+It can be used for both packing
+
+
+1321
+00:39:02,256 --> 00:39:02,856
+and the range.
+
+
+1322
+00:39:03,626 --> 00:39:04,926
+Now, let's go to an example and
+
+
+1323
+00:39:04,926 --> 00:39:06,866
+see how this really works.
+
+
+1324
+00:39:07,916 --> 00:39:10,106
+This is our culling kernel that
+
+
+1325
+00:39:10,456 --> 00:39:12,156
+we just discussed before,
+
+
+1326
+00:39:12,406 --> 00:39:14,316
+modified to use indirect range
+
+
+1327
+00:39:14,466 --> 00:39:15,116
+buffer.
+
+
+1328
+00:39:15,636 --> 00:39:16,916
+Let's see how this kernel packs
+
+
+1329
+00:39:16,916 --> 00:39:17,706
+the draw commands.
+
+
+1330
+00:39:18,146 --> 00:39:21,966
+We first pass in our pointer to
+
+
+1331
+00:39:21,966 --> 00:39:22,976
+the length member of the
+
+
+1332
+00:39:22,976 --> 00:39:23,786
+indirect range buffer.
+
+
+1333
+00:39:24,346 --> 00:39:25,856
+And when we are retrieving the
+
+
+1334
+00:39:26,176 --> 00:39:27,906
+command to encode, we can
+
+
+1335
+00:39:27,906 --> 00:39:29,156
+automatically increment the
+
+
+1336
+00:39:29,156 --> 00:39:29,396
+length.
+
+
+1337
+00:39:30,096 --> 00:39:31,786
+Now, each thread is atomically
+
+
+1338
+00:39:31,786 --> 00:39:33,396
+incrementing the length, and so
+
+
+1339
+00:39:33,396 --> 00:39:34,876
+when this compute work is done,
+
+
+1340
+00:39:35,306 --> 00:39:36,706
+the length is automatically set
+
+
+1341
+00:39:36,706 --> 00:39:38,036
+up in the indirect range buffer.
+
+
+1342
+00:39:38,906 --> 00:39:40,126
+At the same time, the draw
+
+
+1343
+00:39:40,126 --> 00:39:41,176
+commands have been packed.
+
+
+1344
+00:39:41,736 --> 00:39:43,386
+Because the indirect that is
+
+
+1345
+00:39:43,386 --> 00:39:44,776
+returned by this atomic
+
+
+1346
+00:39:44,776 --> 00:39:46,566
+instruction in this code is the
+
+
+1347
+00:39:46,566 --> 00:39:47,716
+previous value of the length.
+
+
+1348
+00:39:48,276 --> 00:39:50,466
+And so for example, if you start
+
+
+1349
+00:39:50,466 --> 00:39:52,006
+at zero, the thread that is
+
+
+1350
+00:39:52,006 --> 00:39:53,396
+using the zero slot is
+
+
+1351
+00:39:53,396 --> 00:39:54,676
+incrementing the length to 1.
+
+
+1352
+00:39:55,216 --> 00:39:56,336
+And the thread that is using the
+
+
+1353
+00:39:56,396 --> 00:39:57,726
+first slot is incrementing the
+
+
+1354
+00:39:57,726 --> 00:39:59,126
+length to 2 and so on.
+
+
+1355
+00:39:59,776 --> 00:40:01,106
+So, this is great because now we
+
+
+1356
+00:40:01,106 --> 00:40:02,746
+not only pack the commands; we
+
+
+1357
+00:40:02,746 --> 00:40:04,096
+also updated the range at the
+
+
+1358
+00:40:04,096 --> 00:40:04,596
+same time.
+
+
+1359
+00:40:05,596 --> 00:40:08,116
+Now, let's see how we can set up
+
+
+1360
+00:40:08,116 --> 00:40:09,736
+the indirect range buffer in the
+
+
+1361
+00:40:09,736 --> 00:40:10,146
+application.
+
+
+1362
+00:40:11,596 --> 00:40:13,766
+First, you create a range buffer
+
+
+1363
+00:40:13,766 --> 00:40:16,746
+for the compute pass to update
+
+
+1364
+00:40:16,746 --> 00:40:17,196
+the range.
+
+
+1365
+00:40:17,996 --> 00:40:19,686
+Next, you set up the range
+
+
+1366
+00:40:19,686 --> 00:40:21,576
+buffer as a kernel argument for
+
+
+1367
+00:40:21,576 --> 00:40:22,986
+the culling compute kernel.
+
+
+1368
+00:40:24,066 --> 00:40:26,056
+And then we do the compute pass
+
+
+1369
+00:40:26,096 --> 00:40:28,356
+that launches the culling kernel
+
+
+1370
+00:40:28,636 --> 00:40:30,236
+that does the object first thing
+
+
+1371
+00:40:30,346 --> 00:40:32,526
+and also updates the range
+
+
+1372
+00:40:32,856 --> 00:40:33,556
+automatically.
+
+
+1373
+00:40:34,236 --> 00:40:35,596
+And finally, you schedule the
+
+
+1374
+00:40:35,596 --> 00:40:37,376
+pass with execute commands in
+
+
+1375
+00:40:37,376 --> 00:40:39,476
+buffer with indirect range API.
+
+
+1376
+00:40:39,946 --> 00:40:42,176
+Now, this call will pick up the
+
+
+1377
+00:40:42,176 --> 00:40:43,546
+start location and the number of
+
+
+1378
+00:40:43,546 --> 00:40:45,086
+commands that is executed from
+
+
+1379
+00:40:45,086 --> 00:40:46,156
+this indirect range buffer.
+
+
+1380
+00:40:46,806 --> 00:40:48,356
+So, with indirect ranges, you
+
+
+1381
+00:40:48,356 --> 00:40:50,476
+can get more efficient execution
+
+
+1382
+00:40:50,476 --> 00:40:51,786
+of indirect command buffers.
+
+
+1383
+00:40:53,526 --> 00:40:55,876
+Now, so far in our GPU-driven
+
+
+1384
+00:40:55,876 --> 00:40:57,706
+pipeline, all these draw
+
+
+1385
+00:40:57,706 --> 00:40:58,966
+commands are built in compute
+
+
+1386
+00:40:58,966 --> 00:41:00,176
+passes on the GPU.
+
+
+1387
+00:41:00,796 --> 00:41:02,266
+And these compute passes where
+
+
+1388
+00:41:02,386 --> 00:41:04,016
+regular dispatch is happening in
+
+
+1389
+00:41:04,016 --> 00:41:04,596
+your game.
+
+
+1390
+00:41:05,126 --> 00:41:06,306
+So, one question that comes to
+
+
+1391
+00:41:06,306 --> 00:41:07,706
+mind is building compute
+
+
+1392
+00:41:07,706 --> 00:41:08,826
+dispatches on the GPU.
+
+
+1393
+00:41:08,996 --> 00:41:11,476
+Can we encode compute dispatches
+
+
+1394
+00:41:11,476 --> 00:41:12,406
+into indirect command buffer?
+
+
+1395
+00:41:12,936 --> 00:41:14,306
+So, I'm very happy to let you
+
+
+1396
+00:41:14,306 --> 00:41:16,446
+all know that a new addition we
+
+
+1397
+00:41:16,446 --> 00:41:18,286
+are now putting into Metal 3 is
+
+
+1398
+00:41:18,286 --> 00:41:19,996
+support for encoding compute
+
+
+1399
+00:41:19,996 --> 00:41:20,656
+dispatches.
+
+
+1400
+00:41:21,626 --> 00:41:22,836
+Now, you can build your compute
+
+
+1401
+00:41:22,836 --> 00:41:24,216
+dispatches on the GPU too.
+
+
+1402
+00:41:24,656 --> 00:41:25,766
+In terms of functionality,
+
+
+1403
+00:41:25,796 --> 00:41:27,206
+compute indirect command buffers
+
+
+1404
+00:41:27,746 --> 00:41:28,566
+are just like render.
+
+
+1405
+00:41:28,796 --> 00:41:30,506
+They can also be built once and
+
+
+1406
+00:41:30,506 --> 00:41:32,316
+can be reused again and again.
+
+
+1407
+00:41:32,846 --> 00:41:34,746
+So, they also help in saving CPU
+
+
+1408
+00:41:34,746 --> 00:41:35,296
+cycles.
+
+
+1409
+00:41:35,296 --> 00:41:37,336
+And the great thing is both
+
+
+1410
+00:41:37,636 --> 00:41:39,336
+render and compute can now be
+
+
+1411
+00:41:39,336 --> 00:41:41,106
+driven on the GPU.
+
+
+1412
+00:41:41,626 --> 00:41:43,426
+It's really great because now
+
+
+1413
+00:41:43,426 --> 00:41:44,976
+you can build more flexible
+
+
+1414
+00:41:44,976 --> 00:41:45,886
+GPU-driven pipelines.
+
+
+1415
+00:41:46,746 --> 00:41:48,136
+Now, let's see an example with
+
+
+1416
+00:41:48,226 --> 00:41:50,116
+this with the use case.
+
+
+1417
+00:41:50,696 --> 00:41:53,666
+Per patch tessellation factors.
+
+
+1418
+00:41:54,176 --> 00:41:55,736
+So, let's say we have a mesh
+
+
+1419
+00:41:55,736 --> 00:41:57,276
+that is made up of a bunch of
+
+
+1420
+00:41:57,276 --> 00:41:59,426
+patches and we want to generate
+
+
+1421
+00:41:59,426 --> 00:42:00,586
+tessellation patches for each
+
+
+1422
+00:42:00,586 --> 00:42:01,016
+patch.
+
+
+1423
+00:42:01,786 --> 00:42:03,176
+We can definitely do this in the
+
+
+1424
+00:42:03,276 --> 00:42:04,796
+culling compute kernel that we
+
+
+1425
+00:42:04,796 --> 00:42:06,296
+talked about that does culling
+
+
+1426
+00:42:06,296 --> 00:42:08,096
+tasks and encodes draw commands.
+
+
+1427
+00:42:08,606 --> 00:42:10,136
+That is a GPU thread that is
+
+
+1428
+00:42:10,136 --> 00:42:11,726
+processing an object can go
+
+
+1429
+00:42:11,726 --> 00:42:13,386
+through each patch of the object
+
+
+1430
+00:42:14,006 --> 00:42:15,046
+and can generate tessellation
+
+
+1431
+00:42:15,046 --> 00:42:15,516
+factors.
+
+
+1432
+00:42:16,166 --> 00:42:17,186
+But that's not really an
+
+
+1433
+00:42:17,186 --> 00:42:18,516
+efficient thing to do because
+
+
+1434
+00:42:18,816 --> 00:42:20,426
+generating tessellation factors
+
+
+1435
+00:42:20,476 --> 00:42:22,476
+is also a paralyzable operation
+
+
+1436
+00:42:22,476 --> 00:42:22,996
+by itself.
+
+
+1437
+00:42:23,786 --> 00:42:25,556
+So, the efficient thing would be
+
+
+1438
+00:42:25,556 --> 00:42:27,226
+to distribute this per operation
+
+
+1439
+00:42:27,226 --> 00:42:29,306
+across multiple threads so that
+
+
+1440
+00:42:29,306 --> 00:42:30,666
+all patches are processed in
+
+
+1441
+00:42:30,666 --> 00:42:31,036
+parallel.
+
+
+1442
+00:42:31,866 --> 00:42:33,346
+That is, each thread of the
+
+
+1443
+00:42:33,386 --> 00:42:35,186
+culling compute dispatch that is
+
+
+1444
+00:42:35,186 --> 00:42:37,226
+processing an object can encode
+
+
+1445
+00:42:37,226 --> 00:42:38,626
+compute dispatches for test
+
+
+1446
+00:42:38,626 --> 00:42:39,526
+factor generation.
+
+
+1447
+00:42:40,026 --> 00:42:41,646
+And those dispatches can be
+
+
+1448
+00:42:41,896 --> 00:42:42,986
+executed on another compute
+
+
+1449
+00:42:42,986 --> 00:42:44,956
+pass, paralyzing the operation.
+
+
+1450
+00:42:45,646 --> 00:42:47,346
+So, with GPU-driven dispatches,
+
+
+1451
+00:42:47,406 --> 00:42:48,336
+we can now do this.
+
+
+1452
+00:42:48,876 --> 00:42:50,036
+So, let's see how we can
+
+
+1453
+00:42:50,036 --> 00:42:51,866
+exchange our GPU-driven pipeline
+
+
+1454
+00:42:51,866 --> 00:42:52,976
+to accommodate this processing.
+
+
+1455
+00:42:56,416 --> 00:42:58,236
+Here is the main compute pass
+
+
+1456
+00:42:58,236 --> 00:42:59,826
+that we talked about before that
+
+
+1457
+00:42:59,826 --> 00:43:01,626
+does the culling tasks, LOD
+
+
+1458
+00:43:01,626 --> 00:43:03,346
+selection and encoding of draw
+
+
+1459
+00:43:03,346 --> 00:43:03,796
+commands.
+
+
+1460
+00:43:04,416 --> 00:43:06,346
+We can now action this pass to
+
+
+1461
+00:43:06,346 --> 00:43:08,496
+also encode dispatches for test
+
+
+1462
+00:43:08,496 --> 00:43:09,256
+factor generation.
+
+
+1463
+00:43:09,786 --> 00:43:12,146
+For example, after a thread
+
+
+1464
+00:43:12,146 --> 00:43:14,176
+determines an object is visible,
+
+
+1465
+00:43:14,366 --> 00:43:16,066
+it can encode dispatches for
+
+
+1466
+00:43:16,066 --> 00:43:17,476
+test factor generation into an
+
+
+1467
+00:43:17,476 --> 00:43:18,396
+indirect command buffer.
+
+
+1468
+00:43:19,076 --> 00:43:21,426
+And then those commands can be
+
+
+1469
+00:43:21,426 --> 00:43:23,106
+executed in another compute pass
+
+
+1470
+00:43:23,336 --> 00:43:24,866
+before the main render pass.
+
+
+1471
+00:43:25,756 --> 00:43:27,796
+So, the GPU-driven dispatches
+
+
+1472
+00:43:27,906 --> 00:43:29,716
+combined with GPU-driven draws
+
+
+1473
+00:43:30,286 --> 00:43:31,856
+lets us build more flexible
+
+
+1474
+00:43:31,856 --> 00:43:32,866
+GPU-driven pipelines.
+
+
+1475
+00:43:34,416 --> 00:43:36,296
+So, we built a sample to show
+
+
+1476
+00:43:36,296 --> 00:43:37,446
+you what we talked about in
+
+
+1477
+00:43:37,446 --> 00:43:37,976
+action.
+
+
+1478
+00:43:38,326 --> 00:43:38,976
+Let's take a look.
+
+
+1479
+00:43:41,706 --> 00:43:43,706
+Now, here is a bistro scene that
+
+
+1480
+00:43:43,706 --> 00:43:44,436
+you saw before.
+
+
+1481
+00:43:44,436 --> 00:43:47,566
+This, we are actually doing a
+
+
+1482
+00:43:47,566 --> 00:43:48,826
+fly by through the street here.
+
+
+1483
+00:43:49,326 --> 00:43:51,116
+This scene is made up of about
+
+
+1484
+00:43:51,436 --> 00:43:53,666
+2.8 million polygons and close
+
+
+1485
+00:43:53,666 --> 00:43:55,036
+to 8000 draw calls.
+
+
+1486
+00:43:55,866 --> 00:43:57,886
+And that's for one view.
+
+
+1487
+00:43:58,026 --> 00:43:59,206
+And if you consider the shadow
+
+
+1488
+00:43:59,206 --> 00:44:00,526
+cascades that have been used
+
+
+1489
+00:44:00,526 --> 00:44:03,156
+here for shadow processing, this
+
+
+1490
+00:44:03,156 --> 00:44:04,546
+render is handling about four
+
+
+1491
+00:44:04,546 --> 00:44:05,176
+such views.
+
+
+1492
+00:44:05,686 --> 00:44:07,046
+So, that is quite a few API
+
+
+1493
+00:44:07,046 --> 00:44:08,556
+calls if this scene gets
+
+
+1494
+00:44:08,556 --> 00:44:10,376
+rendered on the CPU.
+
+
+1495
+00:44:10,856 --> 00:44:12,616
+But in this sample, we are using
+
+
+1496
+00:44:12,616 --> 00:44:14,936
+indirect command buffers and so
+
+
+1497
+00:44:14,936 --> 00:44:16,466
+everything is on the GPU.
+
+
+1498
+00:44:16,466 --> 00:44:17,826
+It's completely GPU driven.
+
+
+1499
+00:44:18,246 --> 00:44:19,526
+The entire render loop is on the
+
+
+1500
+00:44:19,526 --> 00:44:22,406
+GPU, and so it's saving the CPU
+
+
+1501
+00:44:22,406 --> 00:44:24,906
+from a lot of work.
+
+
+1502
+00:44:25,166 --> 00:44:27,936
+Let's look at one more view.
+
+
+1503
+00:44:28,466 --> 00:44:29,716
+Now, we are looking at the same
+
+
+1504
+00:44:29,716 --> 00:44:31,896
+view, same fly by, but we are
+
+
+1505
+00:44:31,896 --> 00:44:33,086
+looking at the camera as it's
+
+
+1506
+00:44:33,086 --> 00:44:34,186
+passing through the street here.
+
+
+1507
+00:44:34,686 --> 00:44:36,466
+To be clear, we also are showing
+
+
+1508
+00:44:36,466 --> 00:44:38,306
+the camera that white object,
+
+
+1509
+00:44:38,306 --> 00:44:39,126
+that is the camera.
+
+
+1510
+00:44:39,256 --> 00:44:42,746
+We are showing the geometry that
+
+
+1511
+00:44:42,746 --> 00:44:45,146
+is tinted with magenta color is,
+
+
+1512
+00:44:45,836 --> 00:44:48,386
+falling, geometry that is also
+
+
+1513
+00:44:48,386 --> 00:44:49,546
+the view for some of the camera.
+
+
+1514
+00:44:50,456 --> 00:44:51,756
+So, as you can see, as the
+
+
+1515
+00:44:51,756 --> 00:44:52,856
+camera is passing through the
+
+
+1516
+00:44:52,856 --> 00:44:53,886
+street, there's quite a bit of
+
+
+1517
+00:44:53,886 --> 00:44:55,756
+geometry that is also the view
+
+
+1518
+00:44:55,756 --> 00:44:56,996
+frustum of the camera.
+
+
+1519
+00:44:57,596 --> 00:44:59,216
+And our culling compute dispatch
+
+
+1520
+00:44:59,216 --> 00:45:01,036
+that does frustum culling on the
+
+
+1521
+00:45:01,036 --> 00:45:03,946
+GPU determined this geometry,
+
+
+1522
+00:45:03,946 --> 00:45:05,196
+this tinted geometry as
+
+
+1523
+00:45:05,276 --> 00:45:05,986
+invisible.
+
+
+1524
+00:45:06,196 --> 00:45:08,526
+And so this geometry doesn't get
+
+
+1525
+00:45:08,526 --> 00:45:10,676
+processed or rendered on the
+
+
+1526
+00:45:10,676 --> 00:45:12,046
+GPU, saving significant
+
+
+1527
+00:45:12,046 --> 00:45:12,626
+rendering cost.
+
+
+1528
+00:45:13,846 --> 00:45:15,626
+Let's look at one more final
+
+
+1529
+00:45:15,626 --> 00:45:15,716
+view.
+
+
+1530
+00:45:16,186 --> 00:45:18,866
+And here is one more view.
+
+
+1531
+00:45:18,866 --> 00:45:20,646
+Here we are showing both frustum
+
+
+1532
+00:45:20,646 --> 00:45:21,766
+and occlusion culling at work.
+
+
+1533
+00:45:21,766 --> 00:45:24,996
+We are, we tinted the geometry
+
+
+1534
+00:45:24,996 --> 00:45:27,196
+that is occluded with cyan color
+
+
+1535
+00:45:27,946 --> 00:45:30,606
+and the geometry in magenta is
+
+
+1536
+00:45:30,606 --> 00:45:32,046
+outside the view frustum.
+
+
+1537
+00:45:32,346 --> 00:45:33,646
+And you can see there's quite a
+
+
+1538
+00:45:33,646 --> 00:45:34,686
+bit of geometry on the right
+
+
+1539
+00:45:34,686 --> 00:45:35,786
+here that is occluded by the
+
+
+1540
+00:45:35,786 --> 00:45:37,556
+bistro, so it is in cyan color.
+
+
+1541
+00:45:38,446 --> 00:45:39,516
+And as you can see, there's a
+
+
+1542
+00:45:39,516 --> 00:45:41,106
+lot of geometry here.
+
+
+1543
+00:45:41,106 --> 00:45:42,816
+Also the view frustum are, is
+
+
+1544
+00:45:42,816 --> 00:45:43,956
+occluded.
+
+
+1545
+00:45:44,246 --> 00:45:46,036
+And again, our culling compute
+
+
+1546
+00:45:46,036 --> 00:45:47,996
+kernel that does both frustum
+
+
+1547
+00:45:47,996 --> 00:45:49,816
+and occlusion culling on the GPU
+
+
+1548
+00:45:50,186 --> 00:45:52,546
+determined these geometry to be
+
+
+1549
+00:45:52,546 --> 00:45:53,006
+invisible.
+
+
+1550
+00:45:53,006 --> 00:45:55,406
+So, this tinted geometry doesn't
+
+
+1551
+00:45:55,406 --> 00:45:58,366
+get processed or rendered on the
+
+
+1552
+00:45:58,366 --> 00:45:59,646
+GPU, saving significant
+
+
+1553
+00:45:59,646 --> 00:46:00,936
+rendering cost and increasing
+
+
+1554
+00:46:01,006 --> 00:46:01,556
+performance.
+
+
+1555
+00:46:06,416 --> 00:46:09,556
+So, before we end this talk, I'm
+
+
+1556
+00:46:09,556 --> 00:46:10,636
+going to show you one more
+
+
+1557
+00:46:10,636 --> 00:46:11,046
+thing.
+
+
+1558
+00:46:11,046 --> 00:46:13,266
+I'm going to show you how we are
+
+
+1559
+00:46:13,266 --> 00:46:14,806
+making it easier than ever to
+
+
+1560
+00:46:14,806 --> 00:46:16,596
+write a cross ref on Metal core.
+
+
+1561
+00:46:16,706 --> 00:46:18,436
+I'm also going to show you how
+
+
+1562
+00:46:18,436 --> 00:46:20,376
+to more easily target features
+
+
+1563
+00:46:20,606 --> 00:46:23,196
+that are iOS, tvOS and macOS
+
+
+1564
+00:46:23,196 --> 00:46:23,696
+specific.
+
+
+1565
+00:46:24,346 --> 00:46:26,156
+And before we do that, let's
+
+
+1566
+00:46:26,156 --> 00:46:27,826
+take a quick look at Metal
+
+
+1567
+00:46:27,826 --> 00:46:28,926
+features that are now available
+
+
+1568
+00:46:28,926 --> 00:46:29,976
+across all our platforms.
+
+
+1569
+00:46:32,446 --> 00:46:34,046
+Now, we have several features
+
+
+1570
+00:46:34,046 --> 00:46:35,616
+new to iOS and tvOS.
+
+
+1571
+00:46:36,656 --> 00:46:38,536
+In the previous sections, we
+
+
+1572
+00:46:38,536 --> 00:46:40,136
+showed you how setting pipeline
+
+
+1573
+00:46:40,136 --> 00:46:41,536
+states in indirect command
+
+
+1574
+00:46:41,536 --> 00:46:44,286
+buffers helps you to fully
+
+
+1575
+00:46:44,286 --> 00:46:45,846
+utilize GPU-driven pipelines.
+
+
+1576
+00:46:46,626 --> 00:46:48,436
+We also showed you how indirect
+
+
+1577
+00:46:48,436 --> 00:46:51,556
+ranges allow you to more easily
+
+
+1578
+00:46:51,556 --> 00:46:53,466
+and more efficiently pack and
+
+
+1579
+00:46:53,466 --> 00:46:54,976
+execute indirect commands.
+
+
+1580
+00:46:55,666 --> 00:46:57,456
+And finally, we are bringing
+
+
+1581
+00:46:57,506 --> 00:46:59,906
+16-bit depth texture support to
+
+
+1582
+00:46:59,906 --> 00:47:01,066
+iOS and tvOS.
+
+
+1583
+00:47:04,196 --> 00:47:05,266
+This has been a popular request
+
+
+1584
+00:47:05,266 --> 00:47:06,036
+that helps to optimize shadow
+
+
+1585
+00:47:06,036 --> 00:47:06,366
+map rendering.
+
+
+1586
+00:47:07,026 --> 00:47:08,776
+We also have several important
+
+
+1587
+00:47:08,776 --> 00:47:10,126
+features new to macOS.
+
+
+1588
+00:47:11,546 --> 00:47:12,786
+We can render now without
+
+
+1589
+00:47:12,786 --> 00:47:14,586
+attachments in cases where you
+
+
+1590
+00:47:14,586 --> 00:47:16,266
+need more flexible outputs to
+
+
+1591
+00:47:16,266 --> 00:47:17,106
+memory buffers.
+
+
+1592
+00:47:17,776 --> 00:47:19,156
+You can query the time your
+
+
+1593
+00:47:19,186 --> 00:47:20,786
+command buffer takes on the GPU
+
+
+1594
+00:47:21,236 --> 00:47:22,196
+so you can adjust your
+
+
+1595
+00:47:22,196 --> 00:47:23,236
+representation intervals
+
+
+1596
+00:47:23,236 --> 00:47:24,276
+dynamically.
+
+
+1597
+00:47:24,896 --> 00:47:26,906
+And finally, macOS now supports
+
+
+1598
+00:47:26,956 --> 00:47:28,846
+casting between sRGB and
+
+
+1599
+00:47:28,846 --> 00:47:30,896
+non-sRGB views to better
+
+
+1600
+00:47:30,896 --> 00:47:32,206
+accommodate linear versus
+
+
+1601
+00:47:32,206 --> 00:47:33,176
+nonlinear lighting.
+
+
+1602
+00:47:34,506 --> 00:47:36,196
+So, now let's take a look at the
+
+
+1603
+00:47:36,196 --> 00:47:38,316
+new GPU family API.
+
+
+1604
+00:47:41,206 --> 00:47:42,856
+Now, you previously used Metal
+
+
+1605
+00:47:42,856 --> 00:47:44,156
+feature set queries to condition
+
+
+1606
+00:47:44,446 --> 00:47:46,676
+your applications based on
+
+
+1607
+00:47:46,676 --> 00:47:48,266
+available features and limits.
+
+
+1608
+00:47:48,816 --> 00:47:50,156
+But the number of features,
+
+
+1609
+00:47:50,296 --> 00:47:52,206
+feature sets has grown and they
+
+
+1610
+00:47:52,206 --> 00:47:53,996
+currently number, numbers in the
+
+
+1611
+00:47:53,996 --> 00:47:54,516
+dozens.
+
+
+1612
+00:47:55,156 --> 00:47:57,076
+The GPU family queries replace
+
+
+1613
+00:47:57,076 --> 00:47:58,986
+feature sets and makes it easier
+
+
+1614
+00:47:58,986 --> 00:48:00,426
+to query the capabilities of the
+
+
+1615
+00:48:00,426 --> 00:48:00,826
+system.
+
+
+1616
+00:48:01,396 --> 00:48:03,256
+First, we have consolidated into
+
+
+1617
+00:48:03,256 --> 00:48:05,456
+four families and organized them
+
+
+1618
+00:48:05,456 --> 00:48:07,076
+to simplify cross-platform
+
+
+1619
+00:48:07,076 --> 00:48:07,486
+development.
+
+
+1620
+00:48:08,386 --> 00:48:10,236
+Second, each family supports a
+
+
+1621
+00:48:10,236 --> 00:48:12,336
+hierarchy of features organized
+
+
+1622
+00:48:12,336 --> 00:48:13,596
+into one or more instances.
+
+
+1623
+00:48:14,066 --> 00:48:15,496
+So, support for one instance
+
+
+1624
+00:48:15,866 --> 00:48:17,686
+means all earlier instances are
+
+
+1625
+00:48:17,686 --> 00:48:18,146
+supported.
+
+
+1626
+00:48:19,096 --> 00:48:21,586
+Third, the new API separates out
+
+
+1627
+00:48:21,586 --> 00:48:23,246
+Metal software version query to
+
+
+1628
+00:48:23,246 --> 00:48:25,106
+track how to instances of a
+
+
+1629
+00:48:25,106 --> 00:48:26,996
+given family change our software
+
+
+1630
+00:48:26,996 --> 00:48:27,326
+delivers.
+
+
+1631
+00:48:28,496 --> 00:48:30,406
+And finally, a GPU family
+
+
+1632
+00:48:30,406 --> 00:48:33,226
+defines a small set of device
+
+
+1633
+00:48:33,226 --> 00:48:35,786
+queries for optional features
+
+
+1634
+00:48:35,886 --> 00:48:37,446
+that don't neatly fit into
+
+
+1635
+00:48:37,446 --> 00:48:37,926
+families.
+
+
+1636
+00:48:39,036 --> 00:48:40,406
+Now, with that said, let's take
+
+
+1637
+00:48:40,406 --> 00:48:42,106
+a closer look at the new GPU
+
+
+1638
+00:48:42,106 --> 00:48:43,196
+family definitions.
+
+
+1639
+00:48:45,356 --> 00:48:47,446
+All iOS and tvOS features are
+
+
+1640
+00:48:47,446 --> 00:48:49,016
+now organized into their family,
+
+
+1641
+00:48:49,016 --> 00:48:50,306
+a single family of five
+
+
+1642
+00:48:50,306 --> 00:48:50,896
+instances.
+
+
+1643
+00:48:51,576 --> 00:48:53,066
+With each instance supporting
+
+
+1644
+00:48:53,066 --> 00:48:54,966
+all features included within the
+
+
+1645
+00:48:54,966 --> 00:48:56,076
+earlier instances.
+
+
+1646
+00:48:56,866 --> 00:48:58,346
+So, I'm not going to enumerate
+
+
+1647
+00:48:58,346 --> 00:48:59,786
+all the features here, but the
+
+
+1648
+00:48:59,786 --> 00:49:01,756
+resource section of this talk
+
+
+1649
+00:49:01,756 --> 00:49:03,586
+will have a table that'll map
+
+
+1650
+00:49:04,006 --> 00:49:05,696
+features to families and
+
+
+1651
+00:49:05,696 --> 00:49:06,396
+instances.
+
+
+1652
+00:49:07,316 --> 00:49:08,566
+Mac features are similarly
+
+
+1653
+00:49:08,566 --> 00:49:10,156
+organized around only two
+
+
+1654
+00:49:10,156 --> 00:49:10,656
+instances.
+
+
+1655
+00:49:11,326 --> 00:49:13,476
+Again, the Mac II supports all
+
+
+1656
+00:49:13,476 --> 00:49:14,456
+the features from Mac I.
+
+
+1657
+00:49:14,456 --> 00:49:17,786
+Now querying these features,
+
+
+1658
+00:49:17,786 --> 00:49:18,886
+these families greatly
+
+
+1659
+00:49:18,886 --> 00:49:20,296
+simplifies writing flat,
+
+
+1660
+00:49:20,296 --> 00:49:21,556
+unspecific code.
+
+
+1661
+00:49:22,066 --> 00:49:23,206
+But what about when you want to
+
+
+1662
+00:49:23,206 --> 00:49:24,386
+target all of the platforms?
+
+
+1663
+00:49:25,086 --> 00:49:26,916
+For that, we have the new common
+
+
+1664
+00:49:26,916 --> 00:49:27,286
+families.
+
+
+1665
+00:49:28,546 --> 00:49:30,126
+The common family organizes
+
+
+1666
+00:49:30,356 --> 00:49:31,586
+Metal features into
+
+
+1667
+00:49:31,586 --> 00:49:32,846
+cross-platform hierarchy.
+
+
+1668
+00:49:33,576 --> 00:49:34,946
+Common 1 is universally
+
+
+1669
+00:49:34,946 --> 00:49:37,216
+supported by all Metal GPUs and
+
+
+1670
+00:49:37,216 --> 00:49:38,866
+is a great choice for apps that
+
+
+1671
+00:49:39,096 --> 00:49:40,856
+only use Metal lightly.
+
+
+1672
+00:49:41,696 --> 00:49:44,066
+Common 2 provides all the
+
+
+1673
+00:49:44,066 --> 00:49:45,716
+building blocks necessary for
+
+
+1674
+00:49:45,716 --> 00:49:47,426
+great game development such as
+
+
+1675
+00:49:48,196 --> 00:49:49,656
+indirect draw, counting
+
+
+1676
+00:49:49,656 --> 00:49:51,636
+occlusion queries, tessellation,
+
+
+1677
+00:49:51,976 --> 00:49:53,596
+and Metal performance shadow
+
+
+1678
+00:49:53,596 --> 00:49:53,966
+support.
+
+
+1679
+00:49:54,946 --> 00:49:56,816
+And common 3 provides all the
+
+
+1680
+00:49:56,866 --> 00:49:58,656
+features needed by advanced
+
+
+1681
+00:49:58,656 --> 00:50:00,486
+applications such as indirect
+
+
+1682
+00:50:00,486 --> 00:50:02,196
+command buffers, layered
+
+
+1683
+00:50:02,196 --> 00:50:04,036
+rendering, cube map arrays, and
+
+
+1684
+00:50:04,036 --> 00:50:05,176
+vortex position invariants.
+
+
+1685
+00:50:06,096 --> 00:50:08,346
+And finally, Metal 3 provides a
+
+
+1686
+00:50:08,346 --> 00:50:10,466
+special family for iPad apps
+
+
+1687
+00:50:11,156 --> 00:50:13,206
+targeting the Mac.
+
+
+1688
+00:50:13,206 --> 00:50:15,016
+That is, tuned for that
+
+
+1689
+00:50:15,016 --> 00:50:15,586
+experience.
+
+
+1690
+00:50:15,816 --> 00:50:20,726
+The two iOS mac instances
+
+
+1691
+00:50:20,726 --> 00:50:21,916
+support a combination of
+
+
+1692
+00:50:21,916 --> 00:50:23,586
+features critical for great
+
+
+1693
+00:50:23,586 --> 00:50:24,446
+performance on the Mac.
+
+
+1694
+00:50:25,266 --> 00:50:26,286
+In particular, they make
+
+
+1695
+00:50:26,286 --> 00:50:28,466
+available the Mac-specific block
+
+
+1696
+00:50:28,466 --> 00:50:30,346
+compression pixel formats and
+
+
+1697
+00:50:30,346 --> 00:50:32,246
+manage texture modes for use
+
+
+1698
+00:50:32,246 --> 00:50:33,756
+within an otherwise completely
+
+
+1699
+00:50:33,756 --> 00:50:34,646
+iOS application.
+
+
+1700
+00:50:35,366 --> 00:50:37,946
+Now, iOS Mac 1 supports all the
+
+
+1701
+00:50:37,946 --> 00:50:39,226
+features of Common 2 plus
+
+
+1702
+00:50:39,556 --> 00:50:41,356
+several features from Common 3.
+
+
+1703
+00:50:41,976 --> 00:50:44,786
+Besides the BC pixel format and
+
+
+1704
+00:50:44,786 --> 00:50:47,846
+managed textures, it supports
+
+
+1705
+00:50:47,846 --> 00:50:50,096
+cube texture arrays, read/write
+
+
+1706
+00:50:50,096 --> 00:50:51,676
+textures, layered rendering,
+
+
+1707
+00:50:51,906 --> 00:50:53,456
+multiple viewport rendering, and
+
+
+1708
+00:50:53,456 --> 00:50:54,246
+indirect tessellation.
+
+
+1709
+00:50:56,036 --> 00:50:58,086
+iOS Mac II supports all the
+
+
+1710
+00:50:58,086 --> 00:51:00,686
+features of Common 3 in addition
+
+
+1711
+00:51:00,686 --> 00:51:02,536
+to the BC pixel formats and
+
+
+1712
+00:51:02,966 --> 00:51:03,796
+managed textures.
+
+
+1713
+00:51:04,516 --> 00:51:05,566
+So, that's the four new
+
+
+1714
+00:51:05,566 --> 00:51:05,996
+families.
+
+
+1715
+00:51:06,906 --> 00:51:08,416
+Now, let's take a look at how
+
+
+1716
+00:51:08,416 --> 00:51:10,746
+you'll use the new QD API in
+
+
+1717
+00:51:10,746 --> 00:51:11,286
+practice.
+
+
+1718
+00:51:11,666 --> 00:51:14,896
+Now, in this example we'll check
+
+
+1719
+00:51:14,896 --> 00:51:16,186
+whether the Mac II features are
+
+
+1720
+00:51:16,186 --> 00:51:16,726
+available.
+
+
+1721
+00:51:17,216 --> 00:51:20,646
+We start by checking whether the
+
+
+1722
+00:51:20,646 --> 00:51:22,626
+OS supports the new family API.
+
+
+1723
+00:51:23,306 --> 00:51:25,116
+And if the new family API is
+
+
+1724
+00:51:25,116 --> 00:51:27,226
+available, then we use to check
+
+
+1725
+00:51:27,316 --> 00:51:28,666
+for Metal 3 features that are
+
+
+1726
+00:51:28,666 --> 00:51:29,086
+available.
+
+
+1727
+00:51:29,396 --> 00:51:30,986
+Since Metal 3 is new, you don't
+
+
+1728
+00:51:30,986 --> 00:51:32,396
+need to strictly check for it,
+
+
+1729
+00:51:32,396 --> 00:51:33,726
+but that's a good practice.
+
+
+1730
+00:51:33,996 --> 00:51:36,816
+And if Metal 3 is available,
+
+
+1731
+00:51:36,816 --> 00:51:39,306
+then we check for the family we
+
+
+1732
+00:51:39,306 --> 00:51:40,106
+would like to use.
+
+
+1733
+00:51:40,476 --> 00:51:42,296
+Cross-platform applications
+
+
+1734
+00:51:42,296 --> 00:51:43,426
+here, check for one of the
+
+
+1735
+00:51:43,426 --> 00:51:45,406
+common families, as well as one
+
+
+1736
+00:51:45,406 --> 00:51:47,336
+or more Apple or Mac-specific
+
+
+1737
+00:51:47,336 --> 00:51:47,696
+families.
+
+
+1738
+00:51:48,956 --> 00:51:51,086
+If either the API or the
+
+
+1739
+00:51:51,086 --> 00:51:53,066
+version are not available,
+
+
+1740
+00:51:53,066 --> 00:51:54,856
+then we fall back to the
+
+
+1741
+00:51:54,856 --> 00:51:56,186
+older feature set API on
+
+
+1742
+00:51:56,186 --> 00:51:57,556
+earlier Metal versions.
+
+
+1743
+00:51:58,716 --> 00:52:00,396
+So, now let's take a look at the
+
+
+1744
+00:52:00,396 --> 00:52:02,376
+setup option features you can
+
+
+1745
+00:52:02,376 --> 00:52:02,926
+query for.
+
+
+1746
+00:52:03,036 --> 00:52:06,676
+Now, when a family specifies a
+
+
+1747
+00:52:06,676 --> 00:52:08,516
+general behavior of GPUs in that
+
+
+1748
+00:52:08,516 --> 00:52:10,816
+family but some important
+
+
+1749
+00:52:10,816 --> 00:52:12,336
+features and limits are not
+
+
+1750
+00:52:12,336 --> 00:52:13,846
+supported uniformly across a
+
+
+1751
+00:52:13,846 --> 00:52:14,186
+family.
+
+
+1752
+00:52:14,676 --> 00:52:16,436
+Such as a depth 24 stencil 8
+
+
+1753
+00:52:16,436 --> 00:52:18,196
+pixel formats, and the number of
+
+
+1754
+00:52:18,286 --> 00:52:19,586
+MSA samples in a pixel.
+
+
+1755
+00:52:20,396 --> 00:52:22,906
+So to handle those cases, the
+
+
+1756
+00:52:22,906 --> 00:52:25,146
+Metal device provides an API to
+
+
+1757
+00:52:25,146 --> 00:52:26,766
+query for each of those features
+
+
+1758
+00:52:26,766 --> 00:52:27,216
+directly.
+
+
+1759
+00:52:27,886 --> 00:52:29,496
+But as you can see, that is not
+
+
+1760
+00:52:29,496 --> 00:52:31,376
+many features that fall into
+
+
+1761
+00:52:31,376 --> 00:52:32,056
+this category.
+
+
+1762
+00:52:33,516 --> 00:52:35,726
+So, to end this section, let's
+
+
+1763
+00:52:35,726 --> 00:52:37,106
+look at how the many techniques
+
+
+1764
+00:52:37,106 --> 00:52:38,696
+we have discussed so far are
+
+
+1765
+00:52:38,696 --> 00:52:40,236
+supported by the new GPU
+
+
+1766
+00:52:40,236 --> 00:52:40,646
+families.
+
+
+1767
+00:52:42,596 --> 00:52:44,706
+Classic deferred shading is
+
+
+1768
+00:52:44,706 --> 00:52:45,836
+supported across all our
+
+
+1769
+00:52:45,836 --> 00:52:47,786
+platforms and programmable
+
+
+1770
+00:52:47,786 --> 00:52:49,516
+blending is supported across all
+
+
+1771
+00:52:49,516 --> 00:52:51,566
+Apple GPUs, making it a good
+
+
+1772
+00:52:51,566 --> 00:52:52,826
+default choice for your games.
+
+
+1773
+00:52:53,866 --> 00:52:55,286
+Tile deferred and forward
+
+
+1774
+00:52:55,286 --> 00:52:56,646
+rendering are also broadly
+
+
+1775
+00:52:56,646 --> 00:52:58,436
+supported with Apple-specific
+
+
+1776
+00:52:58,436 --> 00:53:00,656
+optimizations requiring more
+
+
+1777
+00:53:00,656 --> 00:53:01,586
+recent hardware.
+
+
+1778
+00:53:02,396 --> 00:53:04,246
+And finally, the visibility
+
+
+1779
+00:53:04,246 --> 00:53:05,876
+buffer technique is only
+
+
+1780
+00:53:05,876 --> 00:53:07,276
+supported by the Mac family.
+
+
+1781
+00:53:07,926 --> 00:53:09,886
+It just happened to have very
+
+
+1782
+00:53:09,886 --> 00:53:10,776
+demanding resolution
+
+
+1783
+00:53:10,776 --> 00:53:11,356
+requirements.
+
+
+1784
+00:53:12,536 --> 00:53:14,666
+Now, let's end this section by
+
+
+1785
+00:53:14,666 --> 00:53:16,416
+looking at how our GPU-drive
+
+
+1786
+00:53:16,416 --> 00:53:17,876
+pipeline features are supported
+
+
+1787
+00:53:17,876 --> 00:53:18,726
+across our families.
+
+
+1788
+00:53:19,146 --> 00:53:22,816
+Now, some features require broad
+
+
+1789
+00:53:22,816 --> 00:53:25,046
+support to become a core part of
+
+
+1790
+00:53:25,046 --> 00:53:26,926
+render engines, and we believe
+
+
+1791
+00:53:26,926 --> 00:53:28,586
+that GPU-driven pipelines
+
+
+1792
+00:53:28,586 --> 00:53:29,836
+require that kind of support.
+
+
+1793
+00:53:30,556 --> 00:53:32,066
+So, we are therefore very happy
+
+
+1794
+00:53:32,066 --> 00:53:33,566
+to let you all know that
+
+
+1795
+00:53:33,566 --> 00:53:35,046
+argument buffers and indirect
+
+
+1796
+00:53:35,046 --> 00:53:36,646
+command buffers for both
+
+
+1797
+00:53:36,646 --> 00:53:38,636
+graphics and compute are now
+
+
+1798
+00:53:38,636 --> 00:53:40,946
+supported by a Common family 2
+
+
+1799
+00:53:41,446 --> 00:53:43,616
+and later.
+
+
+1800
+00:53:43,826 --> 00:53:45,576
+Now that brings us to the end of
+
+
+1801
+00:53:45,576 --> 00:53:47,146
+this session on Model Rendering
+
+
+1802
+00:53:47,146 --> 00:53:47,716
+with Metal.
+
+
+1803
+00:53:48,416 --> 00:53:50,246
+We hope you can apply all these
+
+
+1804
+00:53:50,246 --> 00:53:51,756
+techniques to your games and
+
+
+1805
+00:53:51,756 --> 00:53:52,176
+apps.
+
+
+1806
+00:53:52,326 --> 00:53:53,446
+Let's do quick recap.
+
+
+1807
+00:53:55,246 --> 00:53:56,696
+My colleague, Jaap, just showed
+
+
+1808
+00:53:56,696 --> 00:53:57,816
+you how to implement many
+
+
+1809
+00:53:57,816 --> 00:53:58,906
+advanced rendering techniques
+
+
+1810
+00:53:58,906 --> 00:54:00,646
+with Metal, techniques like
+
+
+1811
+00:54:01,006 --> 00:54:02,626
+deferred shading, tile forward
+
+
+1812
+00:54:02,626 --> 00:54:04,346
+rendering are excellent matches
+
+
+1813
+00:54:04,346 --> 00:54:06,726
+for iOS when combined with and
+
+
+1814
+00:54:06,726 --> 00:54:09,496
+optimized with programmable
+
+
+1815
+00:54:09,496 --> 00:54:10,766
+blending and tile sharing.
+
+
+1816
+00:54:11,556 --> 00:54:13,386
+On Mac, you can use the new
+
+
+1817
+00:54:13,386 --> 00:54:14,806
+barycentric coordinates and
+
+
+1818
+00:54:14,806 --> 00:54:17,186
+query LOD to implement the
+
+
+1819
+00:54:17,186 --> 00:54:18,616
+visibility buffer technique and
+
+
+1820
+00:54:18,616 --> 00:54:19,966
+render it high resolutions.
+
+
+1821
+00:54:20,956 --> 00:54:22,256
+But no matter what technique you
+
+
+1822
+00:54:22,256 --> 00:54:24,586
+choose to use, you can move your
+
+
+1823
+00:54:24,586 --> 00:54:26,566
+entire render loop to the GPU.
+
+
+1824
+00:54:27,146 --> 00:54:28,426
+Frustrum culling, occlusion
+
+
+1825
+00:54:28,426 --> 00:54:29,886
+culling, LOD selection, can all
+
+
+1826
+00:54:29,886 --> 00:54:32,726
+be done on the GPU with argument
+
+
+1827
+00:54:32,726 --> 00:54:33,556
+buffers and indirect command
+
+
+1828
+00:54:33,556 --> 00:54:34,046
+buffers.
+
+
+1829
+00:54:34,746 --> 00:54:37,326
+And now we can also encode
+
+
+1830
+00:54:37,326 --> 00:54:39,706
+compute dispatches into indirect
+
+
+1831
+00:54:39,706 --> 00:54:41,346
+command buffers on the GPU.
+
+
+1832
+00:54:42,156 --> 00:54:44,546
+Whether you want to target a
+
+
+1833
+00:54:44,546 --> 00:54:46,036
+wide range of hardware on both
+
+
+1834
+00:54:46,036 --> 00:54:48,306
+iOS or macOS, or only want to
+
+
+1835
+00:54:48,306 --> 00:54:49,966
+use a few advanced Metal
+
+
+1836
+00:54:49,966 --> 00:54:51,816
+features, you can now use the
+
+
+1837
+00:54:51,816 --> 00:54:54,126
+newly redesigned GPU family API
+
+
+1838
+00:54:54,716 --> 00:54:55,776
+to check for feature
+
+
+1839
+00:54:55,776 --> 00:54:56,976
+availability at runtime.
+
+
+1840
+00:54:59,146 --> 00:55:00,866
+Now, please visit our session
+
+
+1841
+00:55:00,866 --> 00:55:02,576
+website to learn more about
+
+
+1842
+00:55:03,016 --> 00:55:04,766
+Metal features and GPU-driven
+
+
+1843
+00:55:04,766 --> 00:55:05,236
+pipelines.
+
+
+1844
+00:55:05,816 --> 00:55:06,916
+We will be posting the sample
+
+
+1845
+00:55:06,916 --> 00:55:08,636
+app that we used in this talk.
+
+
+1846
+00:55:09,006 --> 00:55:10,276
+You can explore those techniques
+
+
+1847
+00:55:10,276 --> 00:55:11,576
+and integrate them into your
+
+
+1848
+00:55:11,576 --> 00:55:13,796
+apps and games and please join
+
+
+1849
+00:55:13,796 --> 00:55:14,536
+us in our labs.
+
+
+1850
+00:55:14,536 --> 00:55:15,596
+In fact, there is one right
+
+
+1851
+00:55:15,596 --> 00:55:16,396
+after this talk.
+
+
+1852
+00:55:17,736 --> 00:55:19,016
+Thank you, and have a great
+
+
+1853
+00:55:19,016 --> 00:55:19,456
+conference.
+
+
+1854
+00:55:19,646 --> 00:55:19,926
+Thank you.
+
+
+1855
+00:55:20,516 --> 00:55:23,500
+[ Applause ]
+

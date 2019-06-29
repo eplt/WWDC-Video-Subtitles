@@ -1,0 +1,6899 @@
+1
+00:00:00,506 --> 00:00:05,500
+[ Music ]
+
+
+2
+00:00:08,516 --> 00:00:11,546
+[ Cheering and Applause ]
+
+
+3
+00:00:12,046 --> 00:00:12,376
+>> Welcome.
+
+
+4
+00:00:15,496 --> 00:00:16,696
+My name is Steve Breen, and I'm
+
+
+5
+00:00:16,696 --> 00:00:18,256
+an engineer on the UIKit Team.
+
+
+6
+00:00:18,426 --> 00:00:19,586
+And today, I'm joined by my
+
+
+7
+00:00:19,586 --> 00:00:21,186
+colleagues, Troy Stevens from
+
+
+8
+00:00:21,186 --> 00:00:22,456
+the AppKit team, and Jacob
+
+
+9
+00:00:22,456 --> 00:00:24,336
+clapper from the App Store team.
+
+
+10
+00:00:25,366 --> 00:00:27,096
+And today, we're going to talk a
+
+
+11
+00:00:27,216 --> 00:00:29,416
+bit about UI data sources.
+
+
+12
+00:00:30,296 --> 00:00:30,986
+[Chuckles] All right, so today's
+
+
+13
+00:00:30,986 --> 00:00:32,156
+talk is going to be broken into
+
+
+14
+00:00:32,156 --> 00:00:33,006
+four segments.
+
+
+15
+00:00:33,626 --> 00:00:34,656
+First, I want to talk about the
+
+
+16
+00:00:34,656 --> 00:00:35,936
+current state-of-the-art.
+
+
+17
+00:00:36,076 --> 00:00:37,346
+How do we interact with data
+
+
+18
+00:00:37,346 --> 00:00:38,876
+sources today in the shipping
+
+
+19
+00:00:38,876 --> 00:00:39,636
+platforms?
+
+
+20
+00:00:40,636 --> 00:00:41,656
+And then we're going to talk
+
+
+21
+00:00:41,656 --> 00:00:43,196
+about a brand new approach we're
+
+
+22
+00:00:43,196 --> 00:00:45,566
+bring into iOS, tvOS, and the
+
+
+23
+00:00:45,566 --> 00:00:45,856
+Mac.
+
+
+24
+00:00:46,556 --> 00:00:48,156
+Then we're going to transition
+
+
+25
+00:00:48,156 --> 00:00:50,146
+to some demos, get some hands-on
+
+
+26
+00:00:50,146 --> 00:00:51,926
+time with this brand new API.
+
+
+27
+00:00:52,646 --> 00:00:54,236
+And then finally, we're going to
+
+
+28
+00:00:54,236 --> 00:00:55,466
+go on some more detailed
+
+
+29
+00:00:55,466 --> 00:00:56,576
+considerations of how to get the
+
+
+30
+00:00:56,706 --> 00:00:59,466
+best out of this new API.
+
+
+31
+00:01:00,256 --> 00:01:01,246
+All right, so let's talk a
+
+
+32
+00:01:01,246 --> 00:01:02,056
+little bit about the current
+
+
+33
+00:01:02,056 --> 00:01:02,636
+state-of-the-art.
+
+
+34
+00:01:02,636 --> 00:01:05,495
+How do we interact with UI data
+
+
+35
+00:01:05,495 --> 00:01:07,206
+sources today, in UITableView
+
+
+36
+00:01:07,206 --> 00:01:08,436
+and CollectionViews?
+
+
+37
+00:01:09,836 --> 00:01:12,256
+So here we see an example
+
+
+38
+00:01:12,256 --> 00:01:13,546
+implementation of the
+
+
+39
+00:01:13,546 --> 00:01:15,046
+UICollectionView data source.
+
+
+40
+00:01:15,926 --> 00:01:16,896
+Now, if you've worked with
+
+
+41
+00:01:16,896 --> 00:01:18,456
+UITableView or CollectionViews,
+
+
+42
+00:01:18,456 --> 00:01:19,346
+you've seen this before.
+
+
+43
+00:01:19,966 --> 00:01:21,886
+Here, we're providing three of
+
+
+44
+00:01:21,886 --> 00:01:24,006
+the required two methods in this
+
+
+45
+00:01:24,006 --> 00:01:24,496
+protocol.
+
+
+46
+00:01:24,496 --> 00:01:26,676
+And it's pretty straightforward,
+
+
+47
+00:01:26,676 --> 00:01:26,836
+right?
+
+
+48
+00:01:26,836 --> 00:01:28,466
+We have asked about the number
+
+
+49
+00:01:28,466 --> 00:01:29,576
+of sections and the number of
+
+
+50
+00:01:29,576 --> 00:01:30,886
+items in each of those sections.
+
+
+51
+00:01:31,096 --> 00:01:32,676
+And as content renders, we're
+
+
+52
+00:01:32,676 --> 00:01:33,796
+going to ask for cells.
+
+
+53
+00:01:34,406 --> 00:01:34,976
+Pretty straightforward.
+
+
+54
+00:01:37,056 --> 00:01:38,136
+And this has served us really
+
+
+55
+00:01:38,136 --> 00:01:39,566
+well for about ten years now,
+
+
+56
+00:01:39,796 --> 00:01:39,936
+right?
+
+
+57
+00:01:40,146 --> 00:01:41,686
+And it's got a couple things
+
+
+58
+00:01:41,686 --> 00:01:42,186
+going for it.
+
+
+59
+00:01:42,186 --> 00:01:42,946
+It's super simple.
+
+
+60
+00:01:43,356 --> 00:01:44,266
+You can reason about it right
+
+
+61
+00:01:44,266 --> 00:01:44,486
+away.
+
+
+62
+00:01:44,486 --> 00:01:46,296
+If you want to provide just two
+
+
+63
+00:01:46,296 --> 00:01:48,446
+methods, the number of items in
+
+
+64
+00:01:48,446 --> 00:01:49,126
+a section, if you have a
+
+
+65
+00:01:49,176 --> 00:01:50,426
+one-dimensional data source,
+
+
+66
+00:01:50,426 --> 00:01:51,606
+that's pretty straightforward.
+
+
+67
+00:01:52,576 --> 00:01:53,626
+And you can iterate on it pretty
+
+
+68
+00:01:53,626 --> 00:01:53,966
+quickly.
+
+
+69
+00:01:54,566 --> 00:01:56,566
+But it's also very flexible,
+
+
+70
+00:01:56,636 --> 00:01:56,886
+right?
+
+
+71
+00:01:56,936 --> 00:01:58,516
+Because you don't really have to
+
+
+72
+00:01:58,596 --> 00:02:00,586
+use any particular kind of data
+
+
+73
+00:02:00,586 --> 00:02:02,396
+structure to back your data
+
+
+74
+00:02:02,396 --> 00:02:02,896
+source.
+
+
+75
+00:02:04,116 --> 00:02:05,276
+It could be as simple as a
+
+
+76
+00:02:05,346 --> 00:02:06,386
+one-dimensional array.
+
+
+77
+00:02:07,426 --> 00:02:08,826
+And if you had a multi-itemed,
+
+
+78
+00:02:08,826 --> 00:02:10,906
+multi-sectioned data source, it
+
+
+79
+00:02:10,906 --> 00:02:11,796
+could be two-dimensional, right?
+
+
+80
+00:02:11,796 --> 00:02:12,256
+Very simple, very
+
+
+81
+00:02:12,256 --> 00:02:12,946
+straightforward.
+
+
+82
+00:02:15,606 --> 00:02:17,926
+Well, apps are often a little
+
+
+83
+00:02:17,926 --> 00:02:19,146
+more complicated than a, you
+
+
+84
+00:02:19,146 --> 00:02:19,936
+know, a one-dimensional or
+
+
+85
+00:02:19,936 --> 00:02:20,706
+two-dimensional array.
+
+
+86
+00:02:22,456 --> 00:02:23,446
+And apps get more and more
+
+
+87
+00:02:23,446 --> 00:02:24,216
+complex every year.
+
+
+88
+00:02:24,216 --> 00:02:25,166
+They do more things.
+
+
+89
+00:02:25,166 --> 00:02:26,886
+Our users demand more features.
+
+
+90
+00:02:26,886 --> 00:02:29,576
+And oftentimes, these data
+
+
+91
+00:02:29,576 --> 00:02:31,316
+sources are backed by complex
+
+
+92
+00:02:31,316 --> 00:02:32,746
+controllers inside of our app.
+
+
+93
+00:02:33,686 --> 00:02:35,326
+And these controllers can do a
+
+
+94
+00:02:35,326 --> 00:02:35,946
+variety of things.
+
+
+95
+00:02:35,946 --> 00:02:36,876
+They can interact with Core
+
+
+96
+00:02:36,876 --> 00:02:38,676
+Data, and they could talk to web
+
+
+97
+00:02:38,676 --> 00:02:39,186
+service.
+
+
+98
+00:02:39,186 --> 00:02:40,546
+They just do a number of
+
+
+99
+00:02:40,546 --> 00:02:41,426
+different things.
+
+
+100
+00:02:41,626 --> 00:02:43,486
+And I want to visualize this
+
+
+101
+00:02:43,486 --> 00:02:43,916
+real quick.
+
+
+102
+00:02:45,296 --> 00:02:46,906
+And let's show a conversation
+
+
+103
+00:02:46,906 --> 00:02:49,166
+between your UI layer and this
+
+
+104
+00:02:49,166 --> 00:02:50,166
+controller layer that's doing
+
+
+105
+00:02:50,166 --> 00:02:51,576
+all this heavy lifting to get
+
+
+106
+00:02:51,576 --> 00:02:52,516
+your data.
+
+
+107
+00:02:52,516 --> 00:02:52,786
+All right?
+
+
+108
+00:02:53,686 --> 00:02:54,906
+And the conversation starts out
+
+
+109
+00:02:54,906 --> 00:02:55,576
+very civil.
+
+
+110
+00:02:56,106 --> 00:02:56,846
+It's like, "Hey, give me a
+
+
+111
+00:02:56,846 --> 00:02:57,946
+number of items in a section, or
+
+
+112
+00:02:57,946 --> 00:02:59,456
+give me a cell as we render
+
+
+113
+00:02:59,456 --> 00:03:00,046
+content."
+
+
+114
+00:03:00,486 --> 00:03:01,456
+Very straightforward.
+
+
+115
+00:03:01,526 --> 00:03:02,956
+And so far, smooth sailing.
+
+
+116
+00:03:06,056 --> 00:03:07,276
+But things get more complicated
+
+
+117
+00:03:07,276 --> 00:03:08,016
+over time, right?
+
+
+118
+00:03:08,016 --> 00:03:09,076
+You get -- like let's say this
+
+
+119
+00:03:09,076 --> 00:03:10,516
+controller has a web service
+
+
+120
+00:03:10,516 --> 00:03:11,896
+request that it gets a response
+
+
+121
+00:03:11,896 --> 00:03:12,366
+from, right?
+
+
+122
+00:03:12,366 --> 00:03:14,196
+It's like, oh, I've got data for
+
+
+123
+00:03:14,196 --> 00:03:15,776
+your tweets or whatever, right?
+
+
+124
+00:03:16,396 --> 00:03:18,096
+Well, now this controller layer,
+
+
+125
+00:03:18,196 --> 00:03:19,716
+which is complex unto itself,
+
+
+126
+00:03:20,376 --> 00:03:21,926
+lets the world know, "Hey, I
+
+
+127
+00:03:21,926 --> 00:03:22,416
+changed.
+
+
+128
+00:03:22,416 --> 00:03:23,226
+Something changed."
+
+
+129
+00:03:23,846 --> 00:03:25,546
+All right, so here's where
+
+
+130
+00:03:25,546 --> 00:03:27,766
+things get a bit more complex,
+
+
+131
+00:03:27,796 --> 00:03:27,996
+right?
+
+
+132
+00:03:27,996 --> 00:03:31,066
+So now, it's up to the UI layer
+
+
+133
+00:03:31,066 --> 00:03:33,486
+to decide, "Hey, things changed.
+
+
+134
+00:03:33,486 --> 00:03:34,856
+Now, I need to -- can change
+
+
+135
+00:03:34,856 --> 00:03:37,096
+this into updates for our UI
+
+
+136
+00:03:37,486 --> 00:03:37,816
+layer.
+
+
+137
+00:03:38,486 --> 00:03:40,086
+And this involves all the
+
+
+138
+00:03:40,086 --> 00:03:41,426
+mutations that have to occur
+
+
+139
+00:03:41,426 --> 00:03:42,256
+against TableView and
+
+
+140
+00:03:42,256 --> 00:03:42,756
+CollectionView.
+
+
+141
+00:03:42,756 --> 00:03:44,246
+It can be a bit complex.
+
+
+142
+00:03:44,246 --> 00:03:46,076
+And we covered this complexity
+
+
+143
+00:03:46,076 --> 00:03:48,236
+last year in our talk Of Tour of
+
+
+144
+00:03:48,236 --> 00:03:49,086
+UICollectionView.
+
+
+145
+00:03:49,946 --> 00:03:51,436
+And how to construct those batch
+
+
+146
+00:03:51,436 --> 00:03:53,726
+updates properly, and mutate
+
+
+147
+00:03:53,726 --> 00:03:54,636
+your backing store, all those
+
+
+148
+00:03:54,636 --> 00:03:54,976
+kinds of things.
+
+
+149
+00:03:57,586 --> 00:03:58,596
+But sometimes, no matter how
+
+
+150
+00:03:58,596 --> 00:03:59,276
+hard you try--
+
+
+151
+00:04:00,516 --> 00:04:02,626
+[ Laughter ]
+
+
+152
+00:04:03,126 --> 00:04:04,226
+You know, things go wrong.
+
+
+153
+00:04:04,606 --> 00:04:05,586
+It's an imperfect world.
+
+
+154
+00:04:07,186 --> 00:04:08,746
+And judging by the laughter,
+
+
+155
+00:04:08,886 --> 00:04:10,006
+you've probably hit this before,
+
+
+156
+00:04:10,006 --> 00:04:10,246
+right?
+
+
+157
+00:04:11,196 --> 00:04:12,336
+It's not an uncommon thing.
+
+
+158
+00:04:12,336 --> 00:04:13,756
+And it's really frustrating,
+
+
+159
+00:04:13,756 --> 00:04:13,936
+right?
+
+
+160
+00:04:13,936 --> 00:04:14,726
+You hit this, and you're like,
+
+
+161
+00:04:14,726 --> 00:04:14,996
+"All right.
+
+
+162
+00:04:14,996 --> 00:04:15,656
+What did I do wrong?"
+
+
+163
+00:04:16,356 --> 00:04:18,875
+It's me. And as you dig through
+
+
+164
+00:04:18,875 --> 00:04:20,616
+your code, okay, fine.
+
+
+165
+00:04:20,616 --> 00:04:21,716
+You Google on Stack Overflow,
+
+
+166
+00:04:21,716 --> 00:04:22,886
+see what's going on.
+
+
+167
+00:04:23,206 --> 00:04:25,146
+And eventually, you might get
+
+
+168
+00:04:25,146 --> 00:04:26,006
+frustrated and just call
+
+
+169
+00:04:26,006 --> 00:04:26,516
+reloadData.
+
+
+170
+00:04:26,516 --> 00:04:27,806
+And we talked about this last
+
+
+171
+00:04:27,806 --> 00:04:29,506
+year, and that's fine.
+
+
+172
+00:04:29,706 --> 00:04:30,266
+That's correct.
+
+
+173
+00:04:30,386 --> 00:04:31,616
+Your app looks okay.
+
+
+174
+00:04:32,676 --> 00:04:33,736
+But when you call reloadData,
+
+
+175
+00:04:33,736 --> 00:04:35,186
+you get this non-animated
+
+
+176
+00:04:35,186 --> 00:04:35,616
+effect.
+
+
+177
+00:04:36,306 --> 00:04:37,656
+And it detracts from the user
+
+
+178
+00:04:37,656 --> 00:04:38,446
+experience.
+
+
+179
+00:04:39,836 --> 00:04:41,356
+So that's not great.
+
+
+180
+00:04:44,046 --> 00:04:44,506
+Okay, I want to get
+
+
+181
+00:04:44,506 --> 00:04:45,816
+philosophical just for one
+
+
+182
+00:04:45,816 --> 00:04:46,156
+slide.
+
+
+183
+00:04:46,156 --> 00:04:46,896
+I promise.
+
+
+184
+00:04:48,136 --> 00:04:48,716
+What's the problem?
+
+
+185
+00:04:49,636 --> 00:04:51,786
+Well, the problem here is
+
+
+186
+00:04:51,786 --> 00:04:52,456
+where's our truth?
+
+
+187
+00:04:53,786 --> 00:04:55,386
+You know? I mean, who got his?
+
+
+188
+00:04:55,386 --> 00:04:56,696
+And who has all the answers?
+
+
+189
+00:04:57,806 --> 00:04:59,256
+And the big issue here is that
+
+
+190
+00:04:59,256 --> 00:05:01,016
+our data controller -- or it's
+
+
+191
+00:05:01,016 --> 00:05:02,186
+acting as a data source -- has
+
+
+192
+00:05:02,186 --> 00:05:03,356
+its own version of the truth,
+
+
+193
+00:05:03,356 --> 00:05:04,466
+which changes over time.
+
+
+194
+00:05:04,946 --> 00:05:06,736
+And the UI has a version of the
+
+
+195
+00:05:06,736 --> 00:05:07,136
+truth.
+
+
+196
+00:05:08,336 --> 00:05:09,866
+And the UILayerCode is
+
+
+197
+00:05:09,866 --> 00:05:11,256
+responsible for mitigating that,
+
+
+198
+00:05:11,256 --> 00:05:12,446
+making sure that it's always in
+
+
+199
+00:05:12,446 --> 00:05:12,796
+sync.
+
+
+200
+00:05:13,526 --> 00:05:15,476
+As we saw, it's sometimes hard.
+
+
+201
+00:05:16,816 --> 00:05:18,576
+So our current approach is error
+
+
+202
+00:05:18,576 --> 00:05:19,036
+prone.
+
+
+203
+00:05:19,726 --> 00:05:20,626
+And primarily because there's
+
+
+204
+00:05:20,626 --> 00:05:22,856
+just no notion of a centralized
+
+
+205
+00:05:22,856 --> 00:05:22,976
+truth.
+
+
+206
+00:05:26,626 --> 00:05:27,196
+All right, so that's the
+
+
+207
+00:05:27,196 --> 00:05:27,766
+state-of-the-art.
+
+
+208
+00:05:27,766 --> 00:05:28,476
+That's where we are today.
+
+
+209
+00:05:28,476 --> 00:05:29,206
+But where are we going?
+
+
+210
+00:05:30,546 --> 00:05:31,716
+Well, I'm happy to announce that
+
+
+211
+00:05:31,716 --> 00:05:33,726
+for iOS, TVoS, and MacOS this
+
+
+212
+00:05:33,726 --> 00:05:35,116
+year, we're bringing a brand new
+
+
+213
+00:05:35,636 --> 00:05:36,326
+approach.
+
+
+214
+00:05:37,106 --> 00:05:38,046
+And we're calling this
+
+
+215
+00:05:38,496 --> 00:05:39,556
+DiffableDataSource.
+
+
+216
+00:05:40,516 --> 00:05:44,546
+[ Cheering and Applause ]
+
+
+217
+00:05:45,046 --> 00:05:45,576
+All right, so let's dig in.
+
+
+218
+00:05:45,576 --> 00:05:45,976
+What is this thing?
+
+
+219
+00:05:49,076 --> 00:05:50,126
+No performBatchUpdates.
+
+
+220
+00:05:50,126 --> 00:05:50,576
+Let's go on.
+
+
+221
+00:05:51,056 --> 00:05:52,356
+And along with it, all the
+
+
+222
+00:05:52,356 --> 00:05:53,976
+crashes, hassles, complexity,
+
+
+223
+00:05:53,976 --> 00:05:54,776
+all of the stuff that you don't
+
+
+224
+00:05:54,776 --> 00:05:56,166
+want to deal with, has been
+
+
+225
+00:05:56,166 --> 00:05:56,726
+jettisoned.
+
+
+226
+00:05:57,806 --> 00:05:59,086
+Instead, we have a single method
+
+
+227
+00:05:59,086 --> 00:05:59,986
+we call Apply.
+
+
+228
+00:06:00,546 --> 00:06:01,196
+What is Apply?
+
+
+229
+00:06:01,806 --> 00:06:03,176
+Apply is simple, automatic,
+
+
+230
+00:06:03,176 --> 00:06:04,496
+hassle-free diffing.
+
+
+231
+00:06:07,386 --> 00:06:09,136
+So we do this with a brand new
+
+
+232
+00:06:09,136 --> 00:06:10,766
+construct we call a Snapshot.
+
+
+233
+00:06:10,826 --> 00:06:12,156
+And it's a very simple idea.
+
+
+234
+00:06:12,296 --> 00:06:13,846
+It's effectively the truth of
+
+
+235
+00:06:13,846 --> 00:06:14,826
+the current UI state.
+
+
+236
+00:06:15,536 --> 00:06:18,306
+And instead of IndexPaths, it's
+
+
+237
+00:06:18,306 --> 00:06:20,076
+an association or a collection
+
+
+238
+00:06:20,346 --> 00:06:21,816
+of section identifiers that are
+
+
+239
+00:06:21,816 --> 00:06:24,066
+all unique and item identifiers.
+
+
+240
+00:06:25,336 --> 00:06:26,766
+And you update these not with
+
+
+241
+00:06:26,766 --> 00:06:28,736
+IndexPaths, with identifiers.
+
+
+242
+00:06:29,486 --> 00:06:30,226
+All right, let's look at
+
+
+243
+00:06:30,226 --> 00:06:32,086
+something visual to see what's
+
+
+244
+00:06:32,086 --> 00:06:32,666
+going on here.
+
+
+245
+00:06:34,156 --> 00:06:35,276
+Okay, I'm really creative guy.
+
+
+246
+00:06:35,276 --> 00:06:37,146
+So we've got these FOO, BAR, and
+
+
+247
+00:06:37,226 --> 00:06:38,256
+BIF onscreen, right.
+
+
+248
+00:06:38,256 --> 00:06:38,936
+And that's what we're
+
+
+249
+00:06:38,936 --> 00:06:39,486
+interacting with.
+
+
+250
+00:06:39,486 --> 00:06:41,516
+These are identifiers in our
+
+
+251
+00:06:41,516 --> 00:06:41,736
+app.
+
+
+252
+00:06:43,146 --> 00:06:44,146
+And let's say that our
+
+
+253
+00:06:44,146 --> 00:06:45,156
+controller changed.
+
+
+254
+00:06:45,156 --> 00:06:46,546
+And now we've got this brand new
+
+
+255
+00:06:46,606 --> 00:06:48,316
+Snapshot that we want to apply.
+
+
+256
+00:06:49,116 --> 00:06:49,916
+But this is our current
+
+
+257
+00:06:49,916 --> 00:06:50,316
+Snapshot.
+
+
+258
+00:06:50,316 --> 00:06:52,676
+How do we get from our new truth
+
+
+259
+00:06:53,686 --> 00:06:54,676
+to the current Snapshot?
+
+
+260
+00:06:56,686 --> 00:06:57,916
+Well, we can see here we've
+
+
+261
+00:06:57,916 --> 00:06:59,486
+configured a brand new Snapshot
+
+
+262
+00:06:59,486 --> 00:07:01,496
+with BAR, FOO, and BAZ.
+
+
+263
+00:07:01,496 --> 00:07:02,656
+And we have some items that are
+
+
+264
+00:07:02,656 --> 00:07:03,656
+coming along for the ride that
+
+
+265
+00:07:03,656 --> 00:07:05,036
+have just changed order, and
+
+
+266
+00:07:05,036 --> 00:07:06,796
+then a new item coming in.
+
+
+267
+00:07:07,516 --> 00:07:10,136
+So conceptually an Apply knows
+
+
+268
+00:07:10,136 --> 00:07:11,796
+about the current state and
+
+
+269
+00:07:11,796 --> 00:07:12,996
+knows about the new state, which
+
+
+270
+00:07:12,996 --> 00:07:14,566
+are going to apply to the UI
+
+
+271
+00:07:14,566 --> 00:07:14,976
+element.
+
+
+272
+00:07:17,356 --> 00:07:18,376
+And there's no step two.
+
+
+273
+00:07:18,376 --> 00:07:19,096
+That's just it.
+
+
+274
+00:07:19,096 --> 00:07:20,906
+Mm-hmm. All right, so how do we
+
+
+275
+00:07:20,936 --> 00:07:21,336
+do this?
+
+
+276
+00:07:21,336 --> 00:07:23,206
+Well, we have four classes
+
+
+277
+00:07:23,376 --> 00:07:24,576
+across all the platforms.
+
+
+278
+00:07:25,226 --> 00:07:26,836
+For iOS and TVoS, we have
+
+
+279
+00:07:26,836 --> 00:07:27,686
+UICollectionView
+
+
+280
+00:07:27,686 --> 00:07:29,456
+DiffableDataSource and
+
+
+281
+00:07:29,456 --> 00:07:31,666
+UITableView DiffableDataSource.
+
+
+282
+00:07:31,666 --> 00:07:33,256
+And then on the Mac, we have
+
+
+283
+00:07:33,636 --> 00:07:34,306
+NSCollectionView
+
+
+284
+00:07:34,306 --> 00:07:35,276
+DiffableDataSource.
+
+
+285
+00:07:36,046 --> 00:07:37,696
+And common for all the platforms
+
+
+286
+00:07:37,756 --> 00:07:39,796
+is this Snapshot class, which is
+
+
+287
+00:07:39,796 --> 00:07:40,856
+responsible for the current
+
+
+288
+00:07:40,856 --> 00:07:43,006
+UIState NSDiffableData
+
+
+289
+00:07:43,006 --> 00:07:43,846
+SourceSnapshot.
+
+
+290
+00:07:44,896 --> 00:07:46,456
+Okay, so enough background.
+
+
+291
+00:07:46,456 --> 00:07:48,126
+Let's go on, look at some code.
+
+
+292
+00:07:48,186 --> 00:07:49,376
+And for that, I'm going to bring
+
+
+293
+00:07:49,376 --> 00:07:51,536
+up my colleague, Troy Stevens.
+
+
+294
+00:07:51,766 --> 00:07:51,976
+Troy?
+
+
+295
+00:07:52,266 --> 00:07:54,266
+[ Applause ]
+
+
+296
+00:07:54,516 --> 00:07:55,456
+>> Thanks very much, Steve.
+
+
+297
+00:07:56,116 --> 00:07:57,706
+I am delighted to get to walk
+
+
+298
+00:07:57,706 --> 00:07:59,266
+you all through some examples of
+
+
+299
+00:07:59,266 --> 00:08:00,746
+using this powerful, yet
+
+
+300
+00:08:00,746 --> 00:08:02,446
+beautifully simple new API
+
+
+301
+00:08:02,446 --> 00:08:02,956
+today.
+
+
+302
+00:08:03,286 --> 00:08:04,526
+So make sure to download the
+
+
+303
+00:08:04,526 --> 00:08:06,086
+sample project for this talk if
+
+
+304
+00:08:06,086 --> 00:08:06,886
+you haven't already.
+
+
+305
+00:08:07,336 --> 00:08:08,746
+That way, you can follow along,
+
+
+306
+00:08:08,966 --> 00:08:10,116
+study it at your leisure.
+
+
+307
+00:08:10,466 --> 00:08:12,616
+And most importantly, use that
+
+
+308
+00:08:12,616 --> 00:08:14,946
+example to really grasp the
+
+
+309
+00:08:14,946 --> 00:08:16,216
+mechanics of how all of this
+
+
+310
+00:08:16,216 --> 00:08:16,616
+works.
+
+
+311
+00:08:16,776 --> 00:08:17,776
+It's not a lot of code.
+
+
+312
+00:08:18,066 --> 00:08:19,186
+It's really simple.
+
+
+313
+00:08:19,556 --> 00:08:20,956
+Now, when you look at that
+
+
+314
+00:08:20,956 --> 00:08:22,076
+example project, you're going to
+
+
+315
+00:08:22,076 --> 00:08:23,416
+notice that in addition to the
+
+
+316
+00:08:23,416 --> 00:08:24,796
+three examples of
+
+
+317
+00:08:24,846 --> 00:08:26,336
+DiffableDataSource usage that
+
+
+318
+00:08:26,336 --> 00:08:27,406
+we're going to look at today,
+
+
+319
+00:08:27,926 --> 00:08:29,816
+the same project also contains
+
+
+320
+00:08:29,816 --> 00:08:31,266
+illustrations of the powerful,
+
+
+321
+00:08:31,266 --> 00:08:32,645
+new compositional layout API
+
+
+322
+00:08:32,645 --> 00:08:34,596
+that we introduced in Session
+
+
+323
+00:08:34,596 --> 00:08:35,645
+215.
+
+
+324
+00:08:36,046 --> 00:08:37,626
+Those examples just happened to
+
+
+325
+00:08:37,626 --> 00:08:39,905
+use DiffableDataSource as a
+
+
+326
+00:08:40,006 --> 00:08:41,905
+really easy way to just populate
+
+
+327
+00:08:41,905 --> 00:08:42,936
+their CollectionViews with
+
+
+328
+00:08:42,936 --> 00:08:43,746
+sample content.
+
+
+329
+00:08:44,256 --> 00:08:45,636
+So let's go to our demo machines
+
+
+330
+00:08:45,636 --> 00:08:45,976
+and take a look.
+
+
+331
+00:08:49,416 --> 00:08:50,746
+So I've got our demo app up
+
+
+332
+00:08:50,746 --> 00:08:51,116
+here.
+
+
+333
+00:08:51,496 --> 00:08:52,926
+And as we walk through our
+
+
+334
+00:08:52,926 --> 00:08:54,496
+different examples today, we're
+
+
+335
+00:08:54,776 --> 00:08:56,216
+going to notice a repeating
+
+
+336
+00:08:56,216 --> 00:08:56,566
+pattern.
+
+
+337
+00:08:56,566 --> 00:08:57,956
+It's a simple three-step
+
+
+338
+00:08:57,956 --> 00:08:58,676
+process.
+
+
+339
+00:08:59,186 --> 00:09:00,986
+So anytime you want to put a new
+
+
+340
+00:09:00,986 --> 00:09:02,186
+set of changes, a new set of
+
+
+341
+00:09:02,186 --> 00:09:04,296
+data into a Collection View or
+
+
+342
+00:09:04,296 --> 00:09:05,776
+UITableView with the full data
+
+
+343
+00:09:05,776 --> 00:09:07,976
+source, all you do is you create
+
+
+344
+00:09:07,976 --> 00:09:08,676
+a Snapshot.
+
+
+345
+00:09:09,306 --> 00:09:10,846
+You populate that Snapshot with
+
+
+346
+00:09:10,846 --> 00:09:12,296
+the description of the items you
+
+
+347
+00:09:12,296 --> 00:09:13,476
+want to display in that update
+
+
+348
+00:09:13,476 --> 00:09:13,856
+cycle.
+
+
+349
+00:09:13,906 --> 00:09:15,756
+And then you apply the Snapshot
+
+
+350
+00:09:16,116 --> 00:09:17,376
+to automatically commit the
+
+
+351
+00:09:17,376 --> 00:09:19,356
+changes to your UI.
+
+
+352
+00:09:19,356 --> 00:09:20,786
+DiffableDataSource takes care of
+
+
+353
+00:09:20,786 --> 00:09:22,386
+all the diffing and issuing the
+
+
+354
+00:09:22,386 --> 00:09:23,556
+changes to the UI element.
+
+
+355
+00:09:24,426 --> 00:09:25,466
+So let's look at a concrete
+
+
+356
+00:09:25,466 --> 00:09:25,946
+example.
+
+
+357
+00:09:25,946 --> 00:09:27,376
+I'm going to open up Mountain
+
+
+358
+00:09:27,376 --> 00:09:27,946
+Search.
+
+
+359
+00:09:29,046 --> 00:09:30,526
+And this is a fairly typical
+
+
+360
+00:09:30,526 --> 00:09:31,236
+search UI, right?
+
+
+361
+00:09:31,236 --> 00:09:33,086
+We can all look at it and reason
+
+
+362
+00:09:33,086 --> 00:09:33,966
+about what it does.
+
+
+363
+00:09:34,216 --> 00:09:35,826
+You might see this in a Contacts
+
+
+364
+00:09:35,826 --> 00:09:37,006
+app, for example, but in this
+
+
+365
+00:09:37,006 --> 00:09:38,736
+case, we're looking at mountain
+
+
+366
+00:09:38,736 --> 00:09:39,776
+peaks around the world.
+
+
+367
+00:09:40,626 --> 00:09:42,666
+So as you can imagine, there's a
+
+
+368
+00:09:42,666 --> 00:09:43,626
+search field at the top.
+
+
+369
+00:09:43,626 --> 00:09:45,046
+As I start typing in that search
+
+
+370
+00:09:45,046 --> 00:09:46,666
+field, we would expect to see
+
+
+371
+00:09:46,666 --> 00:09:48,556
+the list automatically filtered
+
+
+372
+00:09:48,556 --> 00:09:49,606
+to just the matches.
+
+
+373
+00:09:49,676 --> 00:09:51,426
+And we'll see that if I start
+
+
+374
+00:09:51,426 --> 00:09:54,176
+typing, we can do just that.
+
+
+375
+00:09:54,506 --> 00:09:55,456
+And it all happens very
+
+
+376
+00:09:55,456 --> 00:09:57,456
+automatically and with nice
+
+
+377
+00:09:57,546 --> 00:09:58,356
+animations.
+
+
+378
+00:09:59,656 --> 00:10:01,626
+This is all incredibly easy to
+
+
+379
+00:10:01,626 --> 00:10:03,896
+do with extraordinarily little
+
+
+380
+00:10:03,976 --> 00:10:05,336
+code using DiffableDataSource.
+
+
+381
+00:10:05,336 --> 00:10:06,306
+So let's take a look at how it
+
+
+382
+00:10:06,306 --> 00:10:06,696
+works.
+
+
+383
+00:10:08,336 --> 00:10:09,976
+For this example, look at the
+
+
+384
+00:10:09,976 --> 00:10:11,456
+MountainsView ControllerSource
+
+
+385
+00:10:11,456 --> 00:10:11,746
+file.
+
+
+386
+00:10:13,486 --> 00:10:15,386
+And all the action starts when
+
+
+387
+00:10:15,386 --> 00:10:16,586
+the user types in the search
+
+
+388
+00:10:16,586 --> 00:10:17,136
+bar, right?
+
+
+389
+00:10:17,936 --> 00:10:19,256
+So we have our callback here,
+
+
+390
+00:10:19,256 --> 00:10:20,876
+searchBarTextDidChange.
+
+
+391
+00:10:20,876 --> 00:10:22,276
+It's going to be sent to our
+
+
+392
+00:10:22,276 --> 00:10:22,826
+controller.
+
+
+393
+00:10:24,316 --> 00:10:25,796
+And from there, we just call out
+
+
+394
+00:10:25,836 --> 00:10:27,556
+to our own performQuery function
+
+
+395
+00:10:27,736 --> 00:10:29,466
+passing it, the search text that
+
+
+396
+00:10:29,466 --> 00:10:30,926
+we got from that search bar.
+
+
+397
+00:10:31,306 --> 00:10:33,096
+Now performQuery itself is
+
+
+398
+00:10:33,096 --> 00:10:34,116
+remarkably simple.
+
+
+399
+00:10:34,676 --> 00:10:37,236
+All we do is call out to our
+
+
+400
+00:10:37,236 --> 00:10:38,106
+MountainsController.
+
+
+401
+00:10:38,106 --> 00:10:39,566
+That's our model layer object.
+
+
+402
+00:10:40,186 --> 00:10:42,106
+And we ask it for a filtered
+
+
+403
+00:10:42,106 --> 00:10:44,266
+sorted list of the mountains
+
+
+404
+00:10:44,266 --> 00:10:45,636
+that match our search term.
+
+
+405
+00:10:46,356 --> 00:10:47,566
+So now we've got that list of
+
+
+406
+00:10:47,566 --> 00:10:48,126
+mountains.
+
+
+407
+00:10:49,616 --> 00:10:51,046
+We go through that three-step
+
+
+408
+00:10:51,046 --> 00:10:52,156
+process that I mentioned.
+
+
+409
+00:10:52,196 --> 00:10:54,546
+We create a new NSDiffableData
+
+
+410
+00:10:54,546 --> 00:10:55,536
+SourceSnapshot.
+
+
+411
+00:10:56,476 --> 00:10:58,266
+Now this Snapshot is initially
+
+
+412
+00:10:58,266 --> 00:10:58,556
+empty.
+
+
+413
+00:10:58,556 --> 00:10:59,456
+It contains nothing.
+
+
+414
+00:10:59,456 --> 00:11:01,136
+So it's up to us to populate it
+
+
+415
+00:11:01,136 --> 00:11:02,766
+with the sections and items that
+
+
+416
+00:11:02,766 --> 00:11:03,466
+we want.
+
+
+417
+00:11:04,296 --> 00:11:05,246
+In this case, we only have a
+
+
+418
+00:11:05,246 --> 00:11:06,646
+single section to display.
+
+
+419
+00:11:07,216 --> 00:11:08,436
+So we're just going to append
+
+
+420
+00:11:08,716 --> 00:11:09,896
+one section, and we're just
+
+
+421
+00:11:09,896 --> 00:11:11,376
+going to arbitrarily call it the
+
+
+422
+00:11:11,376 --> 00:11:11,976
+main section.
+
+
+423
+00:11:14,336 --> 00:11:17,356
+Next, we append the identifiers
+
+
+424
+00:11:17,356 --> 00:11:18,796
+of the items that we want to
+
+
+425
+00:11:18,796 --> 00:11:20,386
+display in this update.
+
+
+426
+00:11:21,156 --> 00:11:22,376
+Now formally speaking, we
+
+
+427
+00:11:22,376 --> 00:11:23,446
+usually pass an array of
+
+
+428
+00:11:23,446 --> 00:11:24,386
+identifiers here.
+
+
+429
+00:11:24,896 --> 00:11:27,126
+But in Swift, you can also make
+
+
+430
+00:11:27,126 --> 00:11:29,196
+things a lot more elegant by
+
+
+431
+00:11:29,366 --> 00:11:31,036
+working with your own native
+
+
+432
+00:11:31,036 --> 00:11:31,646
+types here.
+
+
+433
+00:11:31,646 --> 00:11:32,916
+So if you have a native type,
+
+
+434
+00:11:32,916 --> 00:11:34,456
+and it can even be a value type,
+
+
+435
+00:11:34,456 --> 00:11:36,486
+such as a struct or an enum, if
+
+
+436
+00:11:36,796 --> 00:11:38,396
+you make that type hashable,
+
+
+437
+00:11:38,506 --> 00:11:39,756
+then you can just pass your own
+
+
+438
+00:11:39,756 --> 00:11:41,076
+native objects in terms of the
+
+
+439
+00:11:41,076 --> 00:11:42,226
+Swift syntax of what you're
+
+
+440
+00:11:42,226 --> 00:11:42,716
+doing.
+
+
+441
+00:11:42,716 --> 00:11:43,796
+And we'll look at the
+
+
+442
+00:11:43,796 --> 00:11:45,106
+implications of how that works
+
+
+443
+00:11:45,106 --> 00:11:46,166
+in just a little bit.
+
+
+444
+00:11:46,526 --> 00:11:47,766
+So now, we've constructed our
+
+
+445
+00:11:47,766 --> 00:11:48,286
+Snapshot.
+
+
+446
+00:11:48,286 --> 00:11:49,036
+It's ready to go.
+
+
+447
+00:11:49,796 --> 00:11:51,876
+All we have to do is call to our
+
+
+448
+00:11:51,876 --> 00:11:53,126
+DiffableDataSource, ask it to
+
+
+449
+00:11:53,126 --> 00:11:54,766
+please apply that Snapshot,
+
+
+450
+00:11:55,196 --> 00:11:56,196
+animating the differences.
+
+
+451
+00:11:56,196 --> 00:11:57,776
+DiffableDataSource goes off and
+
+
+452
+00:11:57,776 --> 00:11:59,606
+automatically figures out what's
+
+
+453
+00:11:59,606 --> 00:12:00,906
+changed between the previous
+
+
+454
+00:12:00,906 --> 00:12:01,866
+update and the next.
+
+
+455
+00:12:02,276 --> 00:12:03,496
+Notice that there's no code at
+
+
+456
+00:12:03,496 --> 00:12:05,296
+all here, where we had to stop
+
+
+457
+00:12:05,296 --> 00:12:07,186
+and figure out -- reason about
+
+
+458
+00:12:07,186 --> 00:12:08,286
+what we were displaying in the
+
+
+459
+00:12:08,286 --> 00:12:09,786
+previous update cycle before the
+
+
+460
+00:12:09,786 --> 00:12:10,306
+user type.
+
+
+461
+00:12:10,346 --> 00:12:12,206
+That one more character, it all
+
+
+462
+00:12:12,206 --> 00:12:13,176
+happens automatically.
+
+
+463
+00:12:13,176 --> 00:12:14,226
+There's nothing to worry about.
+
+
+464
+00:12:14,226 --> 00:12:14,926
+We're not dealing with
+
+
+465
+00:12:14,926 --> 00:12:16,976
+IndexPaths, which are fragile
+
+
+466
+00:12:16,976 --> 00:12:18,046
+and ephemeral, right?
+
+
+467
+00:12:18,086 --> 00:12:19,426
+They refer to a certain
+
+
+468
+00:12:19,616 --> 00:12:20,856
+particular update, and have a
+
+
+469
+00:12:20,856 --> 00:12:21,536
+different meaning and a
+
+
+470
+00:12:21,536 --> 00:12:22,306
+different update.
+
+
+471
+00:12:22,716 --> 00:12:24,166
+We're dealing with identifiers
+
+
+472
+00:12:24,166 --> 00:12:26,446
+that are robust and enduring.
+
+
+473
+00:12:26,566 --> 00:12:28,456
+So everything is just really
+
+
+474
+00:12:28,456 --> 00:12:29,236
+simple to do here.
+
+
+475
+00:12:30,636 --> 00:12:31,686
+Before we leave this bit of
+
+
+476
+00:12:31,686 --> 00:12:32,726
+code, I want you to notice
+
+
+477
+00:12:32,726 --> 00:12:34,376
+something about Snapshot, which
+
+
+478
+00:12:34,376 --> 00:12:35,326
+you may have already noticed.
+
+
+479
+00:12:35,326 --> 00:12:37,816
+It is a generic class in Swift,
+
+
+480
+00:12:37,816 --> 00:12:39,916
+so it's parameterized by the
+
+
+481
+00:12:39,916 --> 00:12:42,126
+SectionIdentifierType and the
+
+
+482
+00:12:42,126 --> 00:12:43,846
+ItemIdentifierType that we've
+
+
+483
+00:12:43,846 --> 00:12:44,696
+decided to use.
+
+
+484
+00:12:45,246 --> 00:12:46,536
+So let's look first at our
+
+
+485
+00:12:46,536 --> 00:12:48,226
+SectionIdentifierType, which is
+
+
+486
+00:12:48,226 --> 00:12:48,816
+pretty trivial.
+
+
+487
+00:12:48,816 --> 00:12:50,146
+This is a really handy technique
+
+
+488
+00:12:50,576 --> 00:12:51,906
+for the common case, where you
+
+
+489
+00:12:51,906 --> 00:12:52,906
+just have a single section,
+
+
+490
+00:12:52,906 --> 00:12:53,136
+right?
+
+
+491
+00:12:53,436 --> 00:12:54,936
+You can just declare an enum
+
+
+492
+00:12:54,936 --> 00:12:55,606
+type for this.
+
+
+493
+00:12:56,166 --> 00:12:57,436
+And one nice thing about enums
+
+
+494
+00:12:57,436 --> 00:12:58,376
+in Swift is that they're
+
+
+495
+00:12:58,446 --> 00:12:59,796
+automatically hashable.
+
+
+496
+00:12:59,796 --> 00:13:01,376
+Hashability is synthesized for
+
+
+497
+00:13:01,376 --> 00:13:01,536
+them.
+
+
+498
+00:13:01,976 --> 00:13:03,246
+So here, we just have a trivial
+
+
+499
+00:13:03,246 --> 00:13:05,196
+case of an enum with one case,
+
+
+500
+00:13:05,196 --> 00:13:05,886
+and there's nothing more to do
+
+
+501
+00:13:05,886 --> 00:13:05,976
+there.
+
+
+502
+00:13:09,046 --> 00:13:10,076
+For our mountain type, we'll
+
+
+503
+00:13:10,076 --> 00:13:10,866
+look at our Mountains
+
+
+504
+00:13:10,866 --> 00:13:13,566
+Controller, which is again, our
+
+
+505
+00:13:13,566 --> 00:13:14,276
+model layer.
+
+
+506
+00:13:14,866 --> 00:13:16,586
+And here, we see that we've
+
+
+507
+00:13:16,586 --> 00:13:18,176
+declared mountain as a Swift
+
+
+508
+00:13:18,176 --> 00:13:18,746
+struct.
+
+
+509
+00:13:19,296 --> 00:13:21,066
+And we declared that struct type
+
+
+510
+00:13:21,066 --> 00:13:23,076
+as hashable so that we can use
+
+
+511
+00:13:23,076 --> 00:13:24,186
+it with DiffableDataSource
+
+
+512
+00:13:24,186 --> 00:13:25,586
+natively rather than explicitly
+
+
+513
+00:13:25,586 --> 00:13:26,966
+have to pass an identifier.
+
+
+514
+00:13:27,356 --> 00:13:28,816
+And the important requirement
+
+
+515
+00:13:28,816 --> 00:13:31,186
+there is just that each mountain
+
+
+516
+00:13:31,246 --> 00:13:32,906
+be uniquely identifiable by its
+
+
+517
+00:13:32,906 --> 00:13:33,516
+hash value.
+
+
+518
+00:13:34,086 --> 00:13:36,866
+So we achieve this by giving
+
+
+519
+00:13:36,866 --> 00:13:38,726
+each mountain an automatically
+
+
+520
+00:13:38,726 --> 00:13:40,786
+generated unique identifier.
+
+
+521
+00:13:43,016 --> 00:13:44,366
+And here, where we implement
+
+
+522
+00:13:44,366 --> 00:13:45,966
+that hashability conformance
+
+
+523
+00:13:45,966 --> 00:13:48,606
+that we promised, we use just
+
+
+524
+00:13:48,606 --> 00:13:50,916
+that identifier to provide the
+
+
+525
+00:13:50,916 --> 00:13:51,666
+hash value.
+
+
+526
+00:13:52,246 --> 00:13:53,156
+So in this way, we're going to
+
+
+527
+00:13:53,156 --> 00:13:54,496
+have each mountain, even though
+
+
+528
+00:13:54,636 --> 00:13:55,866
+mountains, again, are value
+
+
+529
+00:13:55,866 --> 00:13:56,206
+types.
+
+
+530
+00:13:56,206 --> 00:13:57,476
+They just get passed around by
+
+
+531
+00:13:57,476 --> 00:13:58,096
+copying.
+
+
+532
+00:13:58,356 --> 00:13:59,316
+There's no pointer you can
+
+
+533
+00:13:59,316 --> 00:13:59,746
+reference.
+
+
+534
+00:14:00,026 --> 00:14:01,766
+But the identifier and the hash
+
+
+535
+00:14:01,766 --> 00:14:02,886
+value specifically of that
+
+
+536
+00:14:02,886 --> 00:14:04,716
+identifier makes them unique
+
+
+537
+00:14:04,716 --> 00:14:06,056
+enough for DiffableDataSource to
+
+
+538
+00:14:06,056 --> 00:14:07,376
+track them from what -- one
+
+
+539
+00:14:07,376 --> 00:14:08,296
+update to the next.
+
+
+540
+00:14:08,506 --> 00:14:09,926
+And as part of hashability,
+
+
+541
+00:14:09,926 --> 00:14:11,486
+we're implementing equality
+
+
+542
+00:14:11,486 --> 00:14:12,466
+tests here, too.
+
+
+543
+00:14:12,946 --> 00:14:14,826
+So we've looked at how you issue
+
+
+544
+00:14:14,826 --> 00:14:16,216
+changes to DiffableDataSource.
+
+
+545
+00:14:16,216 --> 00:14:17,566
+What about how we set one up to
+
+
+546
+00:14:17,566 --> 00:14:18,056
+use?
+
+
+547
+00:14:19,146 --> 00:14:20,166
+Let's go back to our
+
+
+548
+00:14:20,166 --> 00:14:21,176
+MountainsViewController.
+
+
+549
+00:14:23,936 --> 00:14:25,636
+And conveniently enough, we've
+
+
+550
+00:14:25,636 --> 00:14:26,766
+created a function called
+
+
+551
+00:14:26,906 --> 00:14:28,066
+ConfigureDataSource, where we
+
+
+552
+00:14:28,066 --> 00:14:29,376
+configure our data source.
+
+
+553
+00:14:29,726 --> 00:14:30,806
+And it's really just a little
+
+
+554
+00:14:30,806 --> 00:14:31,516
+bit of code here.
+
+
+555
+00:14:33,106 --> 00:14:34,146
+So in this case, we're working
+
+
+556
+00:14:34,146 --> 00:14:35,666
+with a UICollectionView.
+
+
+557
+00:14:35,666 --> 00:14:36,666
+So we instantiate a
+
+
+558
+00:14:36,666 --> 00:14:37,876
+UICollectionView
+
+
+559
+00:14:37,876 --> 00:14:38,966
+DiffableDataSource.
+
+
+560
+00:14:39,446 --> 00:14:41,886
+We parameterize it with our
+
+
+561
+00:14:41,886 --> 00:14:43,696
+section and item types.
+
+
+562
+00:14:44,656 --> 00:14:45,866
+Pass it a pointer to the
+
+
+563
+00:14:45,866 --> 00:14:46,886
+CollectionView that we want to
+
+
+564
+00:14:46,886 --> 00:14:47,286
+work with.
+
+
+565
+00:14:47,956 --> 00:14:49,236
+Now DiffableDataSource will take
+
+
+566
+00:14:49,236 --> 00:14:50,546
+that pointer and automatically
+
+
+567
+00:14:50,546 --> 00:14:52,586
+wire itself up as the data
+
+
+568
+00:14:52,586 --> 00:14:53,746
+source of that CollectionView.
+
+
+569
+00:14:53,746 --> 00:14:54,766
+So there's nothing else for us
+
+
+570
+00:14:54,766 --> 00:14:54,906
+to do.
+
+
+571
+00:14:57,406 --> 00:14:59,226
+Lastly, we have this trailing
+
+
+572
+00:14:59,226 --> 00:15:00,586
+closure parameter, the
+
+
+573
+00:15:00,586 --> 00:15:01,526
+DiffableDataSource to the
+
+
+574
+00:15:01,526 --> 00:15:02,226
+initializer.
+
+
+575
+00:15:02,746 --> 00:15:04,366
+And all this is, is the code
+
+
+576
+00:15:04,366 --> 00:15:05,406
+that you would normally have to
+
+
+577
+00:15:05,406 --> 00:15:06,256
+write if you were implementing
+
+
+578
+00:15:06,256 --> 00:15:07,726
+your own data source from
+
+
+579
+00:15:07,726 --> 00:15:09,396
+scratch, you would implement the
+
+
+580
+00:15:09,396 --> 00:15:11,766
+cellForItemAt IndexPath method.
+
+
+581
+00:15:12,156 --> 00:15:13,896
+That's data source callback
+
+
+582
+00:15:13,896 --> 00:15:15,426
+method, where you're expected to
+
+
+583
+00:15:15,426 --> 00:15:16,806
+do exactly what we do here.
+
+
+584
+00:15:17,236 --> 00:15:18,946
+We call back to our
+
+
+585
+00:15:18,946 --> 00:15:22,226
+CollectionView and ask it for a
+
+
+586
+00:15:22,226 --> 00:15:24,246
+cell of the appropriate type to
+
+
+587
+00:15:24,246 --> 00:15:25,766
+display the data we want to.
+
+
+588
+00:15:25,766 --> 00:15:28,296
+And we populate that cell with
+
+
+589
+00:15:28,296 --> 00:15:29,276
+what we want to show, and then
+
+
+590
+00:15:29,276 --> 00:15:30,386
+we return it back.
+
+
+591
+00:15:30,526 --> 00:15:31,786
+So this is just taking that
+
+
+592
+00:15:31,786 --> 00:15:34,116
+cellForItemAt IndexPath code and
+
+
+593
+00:15:34,256 --> 00:15:35,526
+conveniently transplanting it
+
+
+594
+00:15:35,526 --> 00:15:36,906
+into a nice closure
+
+
+595
+00:15:36,906 --> 00:15:38,646
+encapsulation that we pass when
+
+
+596
+00:15:38,646 --> 00:15:40,046
+we instantiate the data source.
+
+
+597
+00:15:40,726 --> 00:15:41,766
+One thing that's nice and
+
+
+598
+00:15:41,766 --> 00:15:42,786
+convenient and different here is
+
+
+599
+00:15:42,786 --> 00:15:44,346
+that in addition to being given
+
+
+600
+00:15:44,346 --> 00:15:46,186
+the IndexPath of the item that
+
+
+601
+00:15:46,186 --> 00:15:47,866
+we're being asked for, we're
+
+
+602
+00:15:47,866 --> 00:15:49,846
+also given its identifier, or in
+
+
+603
+00:15:49,846 --> 00:15:52,486
+this case, the native Swift
+
+
+604
+00:15:52,546 --> 00:15:54,376
+value type that we -- that
+
+
+605
+00:15:54,536 --> 00:15:55,686
+corresponds to that particular
+
+
+606
+00:15:55,686 --> 00:15:56,566
+item we want to show.
+
+
+607
+00:15:57,506 --> 00:15:59,636
+So we get our mountain passed
+
+
+608
+00:15:59,636 --> 00:16:00,746
+in, there's no more work to do.
+
+
+609
+00:16:00,746 --> 00:16:02,086
+We don't have to go take that
+
+
+610
+00:16:02,086 --> 00:16:04,326
+IndexPath and go look up which
+
+
+611
+00:16:04,326 --> 00:16:06,306
+of our model layer objects it
+
+
+612
+00:16:06,436 --> 00:16:07,146
+pertains to.
+
+
+613
+00:16:07,456 --> 00:16:08,696
+We just have our mountain passed
+
+
+614
+00:16:08,846 --> 00:16:09,436
+in for us.
+
+
+615
+00:16:09,436 --> 00:16:10,756
+So we just can get the name of
+
+
+616
+00:16:10,756 --> 00:16:13,096
+the mountain and set it as the
+
+
+617
+00:16:13,096 --> 00:16:14,676
+label text of that cell.
+
+
+618
+00:16:15,676 --> 00:16:17,096
+And that's all there is to it.
+
+
+619
+00:16:17,416 --> 00:16:18,916
+Everything else about how you
+
+
+620
+00:16:18,916 --> 00:16:20,196
+set up and configure your
+
+
+621
+00:16:20,196 --> 00:16:22,006
+Collection View is the same as
+
+
+622
+00:16:22,066 --> 00:16:22,636
+before.
+
+
+623
+00:16:22,906 --> 00:16:24,666
+There's no performBatchUpdates
+
+
+624
+00:16:24,666 --> 00:16:25,826
+code hiding anywhere in this
+
+
+625
+00:16:25,826 --> 00:16:26,556
+sample code.
+
+
+626
+00:16:26,966 --> 00:16:27,916
+That's all there is to it.
+
+
+627
+00:16:27,916 --> 00:16:28,996
+It's very easy.
+
+
+628
+00:16:29,196 --> 00:16:29,976
+Let's look at another example.
+
+
+629
+00:16:34,066 --> 00:16:36,536
+So here, we have a mockup of the
+
+
+630
+00:16:36,536 --> 00:16:39,116
+familiar Wi-Fi Settings UI from
+
+
+631
+00:16:39,116 --> 00:16:39,526
+iOS.
+
+
+632
+00:16:39,526 --> 00:16:41,266
+And this one's only going to be
+
+
+633
+00:16:41,266 --> 00:16:42,626
+slightly more complicated than
+
+
+634
+00:16:42,626 --> 00:16:43,936
+the last because we have two
+
+
+635
+00:16:43,936 --> 00:16:45,176
+different sections that we're
+
+
+636
+00:16:45,176 --> 00:16:46,006
+working with here.
+
+
+637
+00:16:46,396 --> 00:16:47,906
+We have what we call the Config
+
+
+638
+00:16:47,906 --> 00:16:49,466
+section at the top, where we
+
+
+639
+00:16:49,466 --> 00:16:51,216
+have the Wi-Fi enable/disable
+
+
+640
+00:16:51,216 --> 00:16:51,686
+switch.
+
+
+641
+00:16:52,056 --> 00:16:53,966
+And the display of the current
+
+
+642
+00:16:53,966 --> 00:16:55,646
+network that we're connected to.
+
+
+643
+00:16:55,816 --> 00:16:57,286
+And then below that, we have
+
+
+644
+00:16:57,286 --> 00:16:58,136
+another section that's
+
+
+645
+00:16:58,136 --> 00:17:00,386
+dynamically updating that shows
+
+
+646
+00:17:00,386 --> 00:17:02,446
+us a list of detected networks
+
+
+647
+00:17:02,476 --> 00:17:03,386
+that we could potentially
+
+
+648
+00:17:03,386 --> 00:17:03,986
+connect to.
+
+
+649
+00:17:05,205 --> 00:17:06,386
+And another thing to notice
+
+
+650
+00:17:06,386 --> 00:17:07,626
+here, if we tap the Wi-Fi
+
+
+651
+00:17:07,626 --> 00:17:10,286
+disabled switch, or toggle it
+
+
+652
+00:17:10,286 --> 00:17:11,646
+back on, we get a nice,
+
+
+653
+00:17:12,556 --> 00:17:15,546
+animated, collapse or reexpand
+
+
+654
+00:17:15,546 --> 00:17:16,136
+of our UI.
+
+
+655
+00:17:16,136 --> 00:17:17,846
+And that all comes for free with
+
+
+656
+00:17:17,846 --> 00:17:18,826
+DiffableDataSource.
+
+
+657
+00:17:18,965 --> 00:17:20,746
+So let's take a look at how this
+
+
+658
+00:17:20,746 --> 00:17:22,356
+dynamic UI is implemented.
+
+
+659
+00:17:23,626 --> 00:17:24,205
+Going to our
+
+
+660
+00:17:24,205 --> 00:17:25,906
+WiFiSettingsViewController,
+
+
+661
+00:17:28,036 --> 00:17:29,876
+we're going to look at the
+
+
+662
+00:17:29,876 --> 00:17:31,186
+updateUI function, which is just
+
+
+663
+00:17:31,186 --> 00:17:32,586
+a function we've named updateUI.
+
+
+664
+00:17:32,586 --> 00:17:34,046
+And we've taken care to make
+
+
+665
+00:17:34,046 --> 00:17:35,286
+sure that this gets called
+
+
+666
+00:17:35,626 --> 00:17:37,596
+anytime there's a change in what
+
+
+667
+00:17:37,596 --> 00:17:38,486
+we need to display.
+
+
+668
+00:17:38,936 --> 00:17:39,896
+Now most of the time, that might
+
+
+669
+00:17:39,896 --> 00:17:41,436
+be because we've detected a
+
+
+670
+00:17:41,436 --> 00:17:42,576
+different set of networks that's
+
+
+671
+00:17:42,576 --> 00:17:43,186
+now available.
+
+
+672
+00:17:43,186 --> 00:17:44,406
+But it could also be because the
+
+
+673
+00:17:44,406 --> 00:17:46,056
+user has toggled that Wi-Fi
+
+
+674
+00:17:46,056 --> 00:17:47,096
+enable/disable button.
+
+
+675
+00:17:47,366 --> 00:17:48,566
+Anything that changes our UI,
+
+
+676
+00:17:48,566 --> 00:17:49,936
+we've ensured that this will be
+
+
+677
+00:17:49,936 --> 00:17:50,386
+called.
+
+
+678
+00:17:51,786 --> 00:17:53,456
+So we still have here that same
+
+
+679
+00:17:53,456 --> 00:17:54,806
+three-step process.
+
+
+680
+00:17:55,316 --> 00:17:57,266
+After getting the data that we
+
+
+681
+00:17:57,266 --> 00:17:58,776
+want to display, we start with
+
+
+682
+00:17:58,776 --> 00:18:00,106
+just getting those config items,
+
+
+683
+00:18:00,106 --> 00:18:01,006
+because we're usually going to
+
+
+684
+00:18:01,006 --> 00:18:01,606
+want those.
+
+
+685
+00:18:02,206 --> 00:18:03,536
+We go ahead and create a
+
+
+686
+00:18:03,536 --> 00:18:04,146
+Snapshot.
+
+
+687
+00:18:04,736 --> 00:18:05,876
+And this Snapshot again is
+
+
+688
+00:18:05,876 --> 00:18:06,726
+initially empty.
+
+
+689
+00:18:06,726 --> 00:18:07,566
+So let's populate it with what
+
+
+690
+00:18:07,566 --> 00:18:07,976
+we want to show.
+
+
+691
+00:18:10,776 --> 00:18:12,366
+We append the first section, our
+
+
+692
+00:18:12,366 --> 00:18:13,626
+config section, that appears at
+
+
+693
+00:18:13,626 --> 00:18:14,016
+the top.
+
+
+694
+00:18:15,046 --> 00:18:16,386
+And we append its items.
+
+
+695
+00:18:16,386 --> 00:18:17,286
+So there's going to be one or
+
+
+696
+00:18:17,286 --> 00:18:18,376
+two items depending whether
+
+
+697
+00:18:18,376 --> 00:18:19,326
+Wi-Fi is enabled.
+
+
+698
+00:18:21,476 --> 00:18:23,076
+Now if Wi-Fi is enabled, we also
+
+
+699
+00:18:23,076 --> 00:18:25,026
+want to talk to our backend, to
+
+
+700
+00:18:25,026 --> 00:18:25,716
+our model layer.
+
+
+701
+00:18:25,716 --> 00:18:27,316
+Ask it for lists, the current
+
+
+702
+00:18:27,316 --> 00:18:28,836
+list of available networks.
+
+
+703
+00:18:29,396 --> 00:18:31,806
+And we're going to wrap that
+
+
+704
+00:18:31,806 --> 00:18:34,226
+list in some item types that
+
+
+705
+00:18:34,226 --> 00:18:35,546
+we're going to look at in just a
+
+
+706
+00:18:35,546 --> 00:18:35,946
+moment.
+
+
+707
+00:18:38,256 --> 00:18:39,916
+We append this section for that
+
+
+708
+00:18:39,916 --> 00:18:40,886
+list of networks.
+
+
+709
+00:18:41,316 --> 00:18:43,326
+And then we're going to append
+
+
+710
+00:18:43,326 --> 00:18:44,456
+the items that go in that
+
+
+711
+00:18:44,456 --> 00:18:44,876
+section.
+
+
+712
+00:18:45,396 --> 00:18:46,246
+And notice that because we're
+
+
+713
+00:18:46,246 --> 00:18:47,296
+working with two different
+
+
+714
+00:18:47,396 --> 00:18:49,266
+sections here, we can be
+
+
+715
+00:18:49,266 --> 00:18:50,866
+explicit about which section
+
+
+716
+00:18:51,026 --> 00:18:51,916
+were appending each set of items
+
+
+717
+00:18:51,916 --> 00:18:51,983
+to.
+
+
+718
+00:18:55,056 --> 00:18:55,746
+That's it.
+
+
+719
+00:18:55,746 --> 00:18:56,316
+We're ready to go.
+
+
+720
+00:18:56,316 --> 00:18:57,346
+We've described everything we
+
+
+721
+00:18:57,346 --> 00:18:58,086
+want to display.
+
+
+722
+00:18:58,336 --> 00:18:59,266
+So we just ask our
+
+
+723
+00:18:59,266 --> 00:19:00,756
+DiffableDataSource to apply
+
+
+724
+00:19:00,756 --> 00:19:02,636
+those changes, optionally
+
+
+725
+00:19:02,666 --> 00:19:03,796
+animating the differences.
+
+
+726
+00:19:04,236 --> 00:19:05,596
+Now there may be times where you
+
+
+727
+00:19:05,596 --> 00:19:06,816
+want to choose not to animate
+
+
+728
+00:19:06,816 --> 00:19:07,386
+the differences.
+
+
+729
+00:19:07,386 --> 00:19:08,626
+For example, when you're first
+
+
+730
+00:19:08,626 --> 00:19:09,776
+bringing up your UI, and you're
+
+
+731
+00:19:09,776 --> 00:19:11,306
+showing the initial set of data,
+
+
+732
+00:19:11,626 --> 00:19:12,596
+you might or might not want it
+
+
+733
+00:19:12,596 --> 00:19:13,116
+to animate.
+
+
+734
+00:19:13,396 --> 00:19:14,416
+Oftentimes, you want it to be
+
+
+735
+00:19:14,416 --> 00:19:15,306
+instantaneous.
+
+
+736
+00:19:15,536 --> 00:19:16,506
+So you'll pass false for
+
+
+737
+00:19:16,636 --> 00:19:17,516
+animating differences, as we do
+
+
+738
+00:19:17,516 --> 00:19:17,976
+in this example.
+
+
+739
+00:19:22,436 --> 00:19:23,826
+Looking at our types that we're
+
+
+740
+00:19:23,826 --> 00:19:24,596
+working with here, we've got a
+
+
+741
+00:19:24,596 --> 00:19:26,166
+section type and then item type
+
+
+742
+00:19:26,166 --> 00:19:27,466
+that parameterize the
+
+
+743
+00:19:27,466 --> 00:19:28,426
+DiffableDataSource.
+
+
+744
+00:19:29,226 --> 00:19:30,606
+Looking back at the top, we can
+
+
+745
+00:19:30,606 --> 00:19:31,646
+see, as we might imagine, that
+
+
+746
+00:19:31,646 --> 00:19:33,066
+section is still an enum type.
+
+
+747
+00:19:33,066 --> 00:19:34,286
+We just need two different
+
+
+748
+00:19:34,286 --> 00:19:35,666
+sections to work with here.
+
+
+749
+00:19:37,106 --> 00:19:39,586
+And again, section as enum type
+
+
+750
+00:19:39,586 --> 00:19:40,836
+is automatically hashable in
+
+
+751
+00:19:40,836 --> 00:19:41,886
+Swift, so we're good to go with
+
+
+752
+00:19:41,886 --> 00:19:41,976
+that.
+
+
+753
+00:19:44,206 --> 00:19:45,316
+And then here we've declared an
+
+
+754
+00:19:45,316 --> 00:19:45,796
+item type.
+
+
+755
+00:19:45,866 --> 00:19:47,306
+This is a struct type again, as
+
+
+756
+00:19:47,306 --> 00:19:47,966
+with the mountains.
+
+
+757
+00:19:48,296 --> 00:19:49,496
+And we've declared it as
+
+
+758
+00:19:49,496 --> 00:19:50,046
+hashable.
+
+
+759
+00:19:50,756 --> 00:19:52,226
+And the reason for declaring
+
+
+760
+00:19:52,226 --> 00:19:53,536
+this type is that when we look
+
+
+761
+00:19:53,536 --> 00:19:55,416
+at our list, it mostly contains
+
+
+762
+00:19:55,416 --> 00:19:57,736
+lists -- network items in it.
+
+
+763
+00:19:57,736 --> 00:19:58,766
+But in addition to that, it's
+
+
+764
+00:19:58,766 --> 00:20:00,026
+got this oddball item at the
+
+
+765
+00:20:00,026 --> 00:20:00,406
+top.
+
+
+766
+00:20:00,406 --> 00:20:01,836
+It's the Wi-Fi enable/disable
+
+
+767
+00:20:01,836 --> 00:20:02,136
+switch.
+
+
+768
+00:20:02,136 --> 00:20:03,236
+That's not a network items.
+
+
+769
+00:20:03,236 --> 00:20:04,586
+So we have a heterogeneous list
+
+
+770
+00:20:04,586 --> 00:20:04,826
+here.
+
+
+771
+00:20:05,126 --> 00:20:06,266
+And all we're doing is
+
+
+772
+00:20:06,266 --> 00:20:08,336
+encapsulating each item in this
+
+
+773
+00:20:08,336 --> 00:20:09,586
+generic wrapper type.
+
+
+774
+00:20:10,446 --> 00:20:11,946
+But that wrapper type, since
+
+
+775
+00:20:11,946 --> 00:20:12,946
+that's the type of item we're
+
+
+776
+00:20:12,946 --> 00:20:13,556
+going to hand off the
+
+
+777
+00:20:13,556 --> 00:20:14,666
+DiffableDataSource, we have to
+
+
+778
+00:20:14,666 --> 00:20:16,236
+take care to make sure that it
+
+
+779
+00:20:16,236 --> 00:20:17,696
+conforms to hashable and that
+
+
+780
+00:20:17,696 --> 00:20:18,686
+the items are uniquely
+
+
+781
+00:20:18,686 --> 00:20:20,186
+identified by their hash value.
+
+
+782
+00:20:21,026 --> 00:20:23,796
+So for the network items, we can
+
+
+783
+00:20:23,796 --> 00:20:25,866
+just get that unique identifier
+
+
+784
+00:20:25,866 --> 00:20:26,816
+from the network item and
+
+
+785
+00:20:26,816 --> 00:20:28,716
+transplant it into the capital
+
+
+786
+00:20:28,716 --> 00:20:29,306
+item.
+
+
+787
+00:20:30,786 --> 00:20:32,146
+And for the config items, we
+
+
+788
+00:20:32,146 --> 00:20:33,606
+just dynamically generate a
+
+
+789
+00:20:33,606 --> 00:20:34,426
+UUID.
+
+
+790
+00:20:36,866 --> 00:20:38,026
+Looking down here at our hash
+
+
+791
+00:20:38,026 --> 00:20:40,296
+function, again, it's just
+
+
+792
+00:20:40,366 --> 00:20:42,176
+computing a hash based on that
+
+
+793
+00:20:42,176 --> 00:20:43,406
+unique identifier value.
+
+
+794
+00:20:43,406 --> 00:20:44,616
+And that's all it takes for
+
+
+795
+00:20:44,616 --> 00:20:45,916
+DiffableDataSource to be able to
+
+
+796
+00:20:45,916 --> 00:20:47,516
+identify the items that are the
+
+
+797
+00:20:47,516 --> 00:20:49,716
+same from one update cycle to
+
+
+798
+00:20:49,716 --> 00:20:50,176
+the next.
+
+
+799
+00:20:51,616 --> 00:20:52,816
+Let's look at where we configure
+
+
+800
+00:20:52,816 --> 00:20:53,696
+our data source.
+
+
+801
+00:20:55,616 --> 00:20:57,486
+This is really very similar to
+
+
+802
+00:20:57,486 --> 00:20:59,256
+before, except this time, we're
+
+
+803
+00:20:59,256 --> 00:20:59,946
+actually working with the
+
+
+804
+00:20:59,946 --> 00:21:00,886
+UITableView.
+
+
+805
+00:21:01,306 --> 00:21:02,696
+And from the perspective of
+
+
+806
+00:21:02,766 --> 00:21:04,886
+creating and committing
+
+
+807
+00:21:04,886 --> 00:21:06,336
+Snapshots, it really doesn't
+
+
+808
+00:21:06,336 --> 00:21:07,396
+matter, the API is very similar.
+
+
+809
+00:21:07,396 --> 00:21:08,986
+But for the setup, we've got to
+
+
+810
+00:21:08,986 --> 00:21:10,236
+instantiate the right type of
+
+
+811
+00:21:10,266 --> 00:21:11,186
+DiffableDataSource.
+
+
+812
+00:21:11,286 --> 00:21:12,456
+So we got a UITableView
+
+
+813
+00:21:12,456 --> 00:21:13,496
+DiffableDataSource.
+
+
+814
+00:21:14,406 --> 00:21:16,066
+We parameterize that class name
+
+
+815
+00:21:16,066 --> 00:21:17,366
+with the section and item types
+
+
+816
+00:21:17,366 --> 00:21:18,506
+that we're going to use.
+
+
+817
+00:21:18,506 --> 00:21:19,486
+And we pass a pointer to the
+
+
+818
+00:21:19,486 --> 00:21:20,996
+table view, which again, gets
+
+
+819
+00:21:21,066 --> 00:21:24,056
+automatically wired up with this
+
+
+820
+00:21:24,056 --> 00:21:25,696
+DiffableDataSource as its data
+
+
+821
+00:21:25,696 --> 00:21:26,196
+source.
+
+
+822
+00:21:27,646 --> 00:21:29,326
+Lastly, we've got that trailing
+
+
+823
+00:21:29,356 --> 00:21:30,526
+item provider closure.
+
+
+824
+00:21:30,696 --> 00:21:32,926
+And this looks more complex at
+
+
+825
+00:21:32,926 --> 00:21:35,126
+first glance, but really, it's
+
+
+826
+00:21:35,126 --> 00:21:36,386
+only that way because we have a
+
+
+827
+00:21:36,386 --> 00:21:37,616
+variety of different types of
+
+
+828
+00:21:37,616 --> 00:21:37,896
+items.
+
+
+829
+00:21:37,896 --> 00:21:38,846
+We have those heterogeneous
+
+
+830
+00:21:38,846 --> 00:21:39,606
+items to display.
+
+
+831
+00:21:39,606 --> 00:21:41,056
+Basically three types of items,
+
+
+832
+00:21:41,396 --> 00:21:42,176
+and we're handling them
+
+
+833
+00:21:42,176 --> 00:21:42,646
+differently.
+
+
+834
+00:21:43,696 --> 00:21:44,626
+But this code, even if we
+
+
+835
+00:21:44,626 --> 00:21:45,036
+weren't using
+
+
+836
+00:21:45,036 --> 00:21:46,106
+DiffableDataSource, it would be
+
+
+837
+00:21:46,106 --> 00:21:46,366
+there.
+
+
+838
+00:21:46,366 --> 00:21:47,886
+It would just be in your cell
+
+
+839
+00:21:47,966 --> 00:21:49,486
+for ItemIndexPath method.
+
+
+840
+00:21:50,166 --> 00:21:52,416
+So again, very simple to set up
+
+
+841
+00:21:52,416 --> 00:21:52,846
+this UI.
+
+
+842
+00:21:52,846 --> 00:21:54,346
+And even configuring the
+
+
+843
+00:21:54,346 --> 00:21:55,726
+DiffableDataSource is not that
+
+
+844
+00:21:55,726 --> 00:21:55,976
+hard.
+
+
+845
+00:21:57,416 --> 00:22:00,166
+So our last example is maybe the
+
+
+846
+00:22:00,166 --> 00:22:01,226
+most fun to watch.
+
+
+847
+00:22:01,556 --> 00:22:02,566
+Here we've got a
+
+
+848
+00:22:02,566 --> 00:22:05,036
+UICollectionView again that is
+
+
+849
+00:22:05,036 --> 00:22:06,286
+displaying items that are
+
+
+850
+00:22:06,286 --> 00:22:08,276
+represented as color swatches.
+
+
+851
+00:22:08,746 --> 00:22:09,786
+And they're initially in a
+
+
+852
+00:22:09,786 --> 00:22:12,036
+randomized order, color wise.
+
+
+853
+00:22:12,626 --> 00:22:14,916
+If I tap the Sort button, we can
+
+
+854
+00:22:14,916 --> 00:22:16,666
+watch them be iteratively sorted
+
+
+855
+00:22:16,806 --> 00:22:18,426
+into spectral order.
+
+
+856
+00:22:19,316 --> 00:22:20,976
+So in addition to being really
+
+
+857
+00:22:20,976 --> 00:22:21,976
+mesmerizing and fun to watch
+
+
+858
+00:22:21,976 --> 00:22:22,043
+[chuckles] --
+
+
+859
+00:22:22,543 --> 00:22:25,576
+[ Applause ]
+
+
+860
+00:22:26,076 --> 00:22:27,516
+Credit to Steve on this one.
+
+
+861
+00:22:28,666 --> 00:22:29,806
+In addition to being really
+
+
+862
+00:22:29,806 --> 00:22:31,466
+mesmerizing, and fun to watch,
+
+
+863
+00:22:31,726 --> 00:22:33,256
+this example is just a little
+
+
+864
+00:22:33,256 --> 00:22:34,776
+bit different than the others in
+
+
+865
+00:22:34,776 --> 00:22:36,706
+the way that we construct and
+
+
+866
+00:22:36,706 --> 00:22:38,346
+commit the updates.
+
+
+867
+00:22:39,036 --> 00:22:41,786
+So if we wanted to, if we were
+
+
+868
+00:22:41,786 --> 00:22:42,976
+just -- if our goal was just to
+
+
+869
+00:22:42,976 --> 00:22:44,396
+sort everything and jump to the
+
+
+870
+00:22:44,396 --> 00:22:45,616
+end state, we could do that
+
+
+871
+00:22:45,616 --> 00:22:46,116
+here, right?
+
+
+872
+00:22:46,386 --> 00:22:48,296
+This demo is set up so that we
+
+
+873
+00:22:48,296 --> 00:22:51,006
+can watch the sort progress
+
+
+874
+00:22:51,046 --> 00:22:52,296
+iteratively through each
+
+
+875
+00:22:52,326 --> 00:22:53,536
+intermediate stage.
+
+
+876
+00:22:54,136 --> 00:22:55,586
+So in order to do that, we've
+
+
+877
+00:22:55,586 --> 00:22:57,146
+got our sword implementation
+
+
+878
+00:22:57,146 --> 00:22:58,176
+that goes through the stages and
+
+
+879
+00:22:58,176 --> 00:22:59,646
+gives them to us one at a time.
+
+
+880
+00:22:59,646 --> 00:23:01,366
+It gives us each successive new
+
+
+881
+00:23:01,366 --> 00:23:03,356
+state, and we create a Snapshot
+
+
+882
+00:23:03,356 --> 00:23:05,286
+and apply a Snapshot each time
+
+
+883
+00:23:05,286 --> 00:23:06,536
+that happens, each time we do an
+
+
+884
+00:23:06,536 --> 00:23:07,146
+update cycle.
+
+
+885
+00:23:07,146 --> 00:23:08,286
+And that gives us this nice,
+
+
+886
+00:23:08,336 --> 00:23:09,876
+fun, animated view.
+
+
+887
+00:23:10,936 --> 00:23:11,786
+So let's look at how we
+
+
+888
+00:23:11,786 --> 00:23:12,686
+implement this and how it's
+
+
+889
+00:23:12,686 --> 00:23:12,976
+different.
+
+
+890
+00:23:16,996 --> 00:23:17,776
+We're going to look at the
+
+
+891
+00:23:17,776 --> 00:23:19,226
+InsertionSortViewController
+
+
+892
+00:23:19,226 --> 00:23:19,496
+here.
+
+
+893
+00:23:21,576 --> 00:23:23,126
+And all the interesting action
+
+
+894
+00:23:23,126 --> 00:23:25,246
+happens in this PerformSortStep
+
+
+895
+00:23:25,246 --> 00:23:25,666
+function.
+
+
+896
+00:23:26,876 --> 00:23:29,006
+So as I said, we always have
+
+
+897
+00:23:29,006 --> 00:23:30,266
+that three-step cycle.
+
+
+898
+00:23:30,266 --> 00:23:31,356
+We're going to get a Snapshot,
+
+
+899
+00:23:31,356 --> 00:23:33,506
+populate it, and then apply it.
+
+
+900
+00:23:33,626 --> 00:23:36,916
+But in this case, instead of
+
+
+901
+00:23:36,916 --> 00:23:38,166
+asking for a new, empty
+
+
+902
+00:23:38,166 --> 00:23:39,736
+Snapshot, we're going to take
+
+
+903
+00:23:39,736 --> 00:23:41,016
+advantage of the ability to ask
+
+
+904
+00:23:41,436 --> 00:23:43,006
+our DiffableDataSource for its
+
+
+905
+00:23:43,006 --> 00:23:43,986
+current Snapshot.
+
+
+906
+00:23:44,386 --> 00:23:46,046
+Now this Snapshot is
+
+
+907
+00:23:46,076 --> 00:23:47,766
+prepopulated with the current
+
+
+908
+00:23:47,856 --> 00:23:49,376
+truth of what's being shown in
+
+
+909
+00:23:49,376 --> 00:23:50,596
+that UICollectionView as the
+
+
+910
+00:23:50,596 --> 00:23:51,526
+CollectionView sees it.
+
+
+911
+00:23:52,576 --> 00:23:53,876
+So we don't have to start over
+
+
+912
+00:23:53,876 --> 00:23:54,626
+from scratch.
+
+
+913
+00:23:54,776 --> 00:23:56,306
+We can start from that state and
+
+
+914
+00:23:56,306 --> 00:23:58,096
+compute the next intermediate
+
+
+915
+00:23:58,556 --> 00:23:58,686
+state.
+
+
+916
+00:24:00,286 --> 00:24:01,496
+Down here, where we populate our
+
+
+917
+00:24:01,496 --> 00:24:02,786
+Snapshot, we'll see that
+
+
+918
+00:24:02,786 --> 00:24:05,156
+familiar AppendItems function
+
+
+919
+00:24:05,156 --> 00:24:05,726
+being called.
+
+
+920
+00:24:05,726 --> 00:24:07,346
+But we also have a DeleteItems
+
+
+921
+00:24:07,346 --> 00:24:07,936
+function here.
+
+
+922
+00:24:08,236 --> 00:24:09,576
+And when you look at the
+
+
+923
+00:24:09,576 --> 00:24:10,986
+Snapshot API, you're going to
+
+
+924
+00:24:10,986 --> 00:24:12,296
+see there are whole variety of
+
+
+925
+00:24:12,296 --> 00:24:13,596
+functions for modifying an
+
+
+926
+00:24:13,596 --> 00:24:14,756
+existing Snapshot for when
+
+
+927
+00:24:14,756 --> 00:24:15,786
+you're doing this kind of usage.
+
+
+928
+00:24:15,786 --> 00:24:17,356
+You can move items from one
+
+
+929
+00:24:17,356 --> 00:24:18,816
+place to another, and so on.
+
+
+930
+00:24:19,656 --> 00:24:20,656
+But in other respects, this is
+
+
+931
+00:24:20,706 --> 00:24:21,666
+pretty much the same thing.
+
+
+932
+00:24:21,666 --> 00:24:22,736
+We're just trying to set up the
+
+
+933
+00:24:22,736 --> 00:24:24,376
+new final state of what we want
+
+
+934
+00:24:24,376 --> 00:24:24,996
+to display.
+
+
+935
+00:24:24,996 --> 00:24:27,066
+And we're just working with
+
+
+936
+00:24:27,066 --> 00:24:28,866
+identifiers and not IndexPaths,
+
+
+937
+00:24:28,866 --> 00:24:29,776
+which is really nice.
+
+
+938
+00:24:30,566 --> 00:24:33,386
+So lastly, when we're done, all
+
+
+939
+00:24:33,386 --> 00:24:35,176
+we have to do is apply that
+
+
+940
+00:24:35,176 --> 00:24:36,706
+Snapshot to our
+
+
+941
+00:24:36,706 --> 00:24:37,726
+DiffableDataSource.
+
+
+942
+00:24:38,556 --> 00:24:39,756
+And we get this nice,
+
+
+943
+00:24:40,446 --> 00:24:41,486
+progressive sorting.
+
+
+944
+00:24:42,146 --> 00:24:42,976
+So pretty cool.
+
+
+945
+00:24:43,041 --> 00:24:45,041
+[ Applause ]
+
+
+946
+00:24:45,066 --> 00:24:45,336
+Thank you.
+
+
+947
+00:24:46,516 --> 00:24:49,556
+[ Applause ]
+
+
+948
+00:24:50,056 --> 00:24:51,286
+And here's where we set up our
+
+
+949
+00:24:51,286 --> 00:24:52,226
+DiffableDataSource.
+
+
+950
+00:24:52,226 --> 00:24:52,806
+Again, it's for a
+
+
+951
+00:24:52,806 --> 00:24:54,246
+UICollectionView.
+
+
+952
+00:24:54,606 --> 00:24:56,436
+We specify the types that we're
+
+
+953
+00:24:56,436 --> 00:24:58,546
+using, the CollectionView, and
+
+
+954
+00:24:58,546 --> 00:25:00,026
+then we have our item provider
+
+
+955
+00:25:00,026 --> 00:25:01,596
+closure, which is real simple,
+
+
+956
+00:25:01,596 --> 00:25:02,636
+because we're just displaying
+
+
+957
+00:25:02,636 --> 00:25:03,716
+these color swatches.
+
+
+958
+00:25:04,926 --> 00:25:06,196
+So we've seen, through these
+
+
+959
+00:25:06,196 --> 00:25:08,866
+three examples, how easy it is,
+
+
+960
+00:25:08,866 --> 00:25:11,306
+and how little code it takes to
+
+
+961
+00:25:11,306 --> 00:25:13,046
+create these dynamic UIs that
+
+
+962
+00:25:13,536 --> 00:25:15,396
+are also really robust to
+
+
+963
+00:25:15,396 --> 00:25:15,986
+changes.
+
+
+964
+00:25:15,986 --> 00:25:17,586
+We can make changes without fear
+
+
+965
+00:25:17,586 --> 00:25:18,826
+of hitting these weird
+
+
+966
+00:25:18,826 --> 00:25:20,086
+exceptions in our code.
+
+
+967
+00:25:20,086 --> 00:25:21,096
+It's all very robust.
+
+
+968
+00:25:21,096 --> 00:25:23,086
+It's baked into the API how that
+
+
+969
+00:25:23,086 --> 00:25:23,496
+works.
+
+
+970
+00:25:24,166 --> 00:25:25,256
+Now, we did touch on some
+
+
+971
+00:25:25,286 --> 00:25:27,066
+interesting nuances, and the
+
+
+972
+00:25:27,066 --> 00:25:29,096
+importance in particular of
+
+
+973
+00:25:29,096 --> 00:25:30,266
+uniquely identifying your
+
+
+974
+00:25:30,266 --> 00:25:30,826
+objects.
+
+
+975
+00:25:30,826 --> 00:25:31,946
+And if you're working with Swift
+
+
+976
+00:25:31,946 --> 00:25:34,276
+types, what those Swift types
+
+
+977
+00:25:34,276 --> 00:25:35,456
+need to conform to and so on,
+
+
+978
+00:25:35,456 --> 00:25:36,646
+that they need to be hashable.
+
+
+979
+00:25:37,096 --> 00:25:38,886
+To take us on a deeper dive and
+
+
+980
+00:25:38,886 --> 00:25:40,286
+bring these issues into clear
+
+
+981
+00:25:40,286 --> 00:25:40,836
+focus.
+
+
+982
+00:25:40,926 --> 00:25:41,966
+I'm going to invite my
+
+
+983
+00:25:41,966 --> 00:25:43,656
+colleague, Steve, back on stage.
+
+
+984
+00:25:43,656 --> 00:25:43,866
+Thank you.
+
+
+985
+00:25:44,516 --> 00:25:47,626
+[ Applause ]
+
+
+986
+00:25:48,126 --> 00:25:50,356
+>> And so I kind of have a sense
+
+
+987
+00:25:50,436 --> 00:25:52,836
+for how this UI works walking
+
+
+988
+00:25:52,836 --> 00:25:53,816
+through all these demos.
+
+
+989
+00:25:54,156 --> 00:25:56,046
+I want to go through some more
+
+
+990
+00:25:56,046 --> 00:25:57,276
+detailed considerations of how
+
+
+991
+00:25:57,276 --> 00:25:58,976
+to get the best out of this API.
+
+
+992
+00:26:02,656 --> 00:26:02,946
+All right.
+
+
+993
+00:26:03,056 --> 00:26:04,346
+First, as we've seen all
+
+
+994
+00:26:04,346 --> 00:26:05,236
+throughout the demos, there's
+
+
+995
+00:26:05,236 --> 00:26:06,396
+basically just three steps.
+
+
+996
+00:26:06,666 --> 00:26:07,856
+You want to create a Snapshot,
+
+
+997
+00:26:08,906 --> 00:26:10,246
+configure it as you need it, and
+
+
+998
+00:26:10,246 --> 00:26:10,946
+apply it.
+
+
+999
+00:26:11,446 --> 00:26:13,096
+So you always want to call the
+
+
+1000
+00:26:13,096 --> 00:26:13,806
+apply method.
+
+
+1001
+00:26:14,256 --> 00:26:15,576
+Now conversely, you don't call
+
+
+1002
+00:26:15,576 --> 00:26:16,766
+performBatchUpdates anymore.
+
+
+1003
+00:26:16,986 --> 00:26:17,646
+That's old and dead.
+
+
+1004
+00:26:17,946 --> 00:26:19,356
+Called insertItems, none of
+
+
+1005
+00:26:19,676 --> 00:26:19,766
+that.
+
+
+1006
+00:26:19,946 --> 00:26:21,266
+If you call these, the framework
+
+
+1007
+00:26:21,266 --> 00:26:22,066
+will complain.
+
+
+1008
+00:26:22,296 --> 00:26:23,846
+And, you know, you will see
+
+
+1009
+00:26:23,846 --> 00:26:23,936
+that.
+
+
+1010
+00:26:27,046 --> 00:26:28,306
+Okay, there are two ways to
+
+
+1011
+00:26:28,306 --> 00:26:29,706
+create Snapshots.
+
+
+1012
+00:26:29,766 --> 00:26:31,276
+And the most common way is to
+
+
+1013
+00:26:31,276 --> 00:26:32,486
+create an empty Snapshot.
+
+
+1014
+00:26:32,706 --> 00:26:33,816
+And here we see, we construct
+
+
+1015
+00:26:33,816 --> 00:26:35,206
+the Snapshot with the types for
+
+
+1016
+00:26:35,206 --> 00:26:36,996
+the sections and items.
+
+
+1017
+00:26:38,376 --> 00:26:39,736
+And you can also create one,
+
+
+1018
+00:26:39,736 --> 00:26:40,696
+like we saw in the last demo,
+
+
+1019
+00:26:40,696 --> 00:26:41,896
+from the current state.
+
+
+1020
+00:26:41,896 --> 00:26:42,766
+And this is very useful
+
+
+1021
+00:26:42,766 --> 00:26:44,196
+sometimes when a certain action
+
+
+1022
+00:26:44,196 --> 00:26:45,326
+occurs where you need to modify
+
+
+1023
+00:26:45,326 --> 00:26:45,976
+just one little thing.
+
+
+1024
+00:26:48,516 --> 00:26:50,036
+Now when you create this, you're
+
+
+1025
+00:26:50,036 --> 00:26:50,936
+going to get a copy back.
+
+
+1026
+00:26:51,056 --> 00:26:52,696
+So you can mutate that at will,
+
+
+1027
+00:26:52,696 --> 00:26:54,066
+and it will not affect this --
+
+
+1028
+00:26:54,206 --> 00:26:55,746
+the data source that it came
+
+
+1029
+00:26:55,746 --> 00:26:55,976
+from.
+
+
+1030
+00:26:58,186 --> 00:26:59,456
+Now once you have that Snapshot,
+
+
+1031
+00:26:59,456 --> 00:27:00,836
+if you did ask some questions,
+
+
+1032
+00:27:00,836 --> 00:27:01,686
+like, you know, "How many items
+
+
+1033
+00:27:01,686 --> 00:27:01,856
+you got?
+
+
+1034
+00:27:01,856 --> 00:27:02,746
+How many sections you got?
+
+
+1035
+00:27:02,846 --> 00:27:03,946
+Identify the identifiers."
+
+
+1036
+00:27:04,286 --> 00:27:04,846
+You can do that.
+
+
+1037
+00:27:04,846 --> 00:27:06,296
+And there's a lot of API you can
+
+
+1038
+00:27:06,296 --> 00:27:07,146
+check out in the SDK.
+
+
+1039
+00:27:07,146 --> 00:27:07,976
+But here's a few of those.
+
+
+1040
+00:27:11,156 --> 00:27:12,296
+All right, so I promise you no
+
+
+1041
+00:27:12,296 --> 00:27:13,146
+more IndexPath.
+
+
+1042
+00:27:13,146 --> 00:27:14,456
+So when we configured these
+
+
+1043
+00:27:14,456 --> 00:27:16,496
+Snapshots, you'll never see an
+
+
+1044
+00:27:16,496 --> 00:27:18,666
+IndexPath in this API, through
+
+
+1045
+00:27:18,666 --> 00:27:20,516
+explicit API.
+
+
+1046
+00:27:21,066 --> 00:27:22,506
+So, so far, we've seen a very
+
+
+1047
+00:27:22,506 --> 00:27:23,846
+common pattern of appending
+
+
+1048
+00:27:23,846 --> 00:27:25,226
+items and appending sections,
+
+
+1049
+00:27:25,226 --> 00:27:26,026
+all those kinds of things.
+
+
+1050
+00:27:26,026 --> 00:27:27,026
+But you can also do things like
+
+
+1051
+00:27:27,026 --> 00:27:28,456
+insert and move and delete.
+
+
+1052
+00:27:29,246 --> 00:27:31,226
+And all of these API's take in
+
+
+1053
+00:27:31,456 --> 00:27:34,276
+other relative identifiers to
+
+
+1054
+00:27:34,276 --> 00:27:35,596
+tell you where things go.
+
+
+1055
+00:27:35,596 --> 00:27:37,426
+So if I want to insert 20 new
+
+
+1056
+00:27:37,426 --> 00:27:38,746
+identifiers that are all unique,
+
+
+1057
+00:27:39,686 --> 00:27:40,776
+before or after another
+
+
+1058
+00:27:40,776 --> 00:27:42,736
+identifier, we have explicit API
+
+
+1059
+00:27:42,736 --> 00:27:43,336
+for that.
+
+
+1060
+00:27:43,336 --> 00:27:44,256
+So you'll say, "Insert these
+
+
+1061
+00:27:44,256 --> 00:27:45,566
+identifiers before this
+
+
+1062
+00:27:45,566 --> 00:27:46,236
+identifier."
+
+
+1063
+00:27:47,056 --> 00:27:49,246
+Now, if you don't have anything
+
+
+1064
+00:27:49,246 --> 00:27:50,316
+in that particular section,
+
+
+1065
+00:27:50,316 --> 00:27:51,536
+there's no identifier to anchor
+
+
+1066
+00:27:51,536 --> 00:27:53,086
+that insertion or move with,
+
+
+1067
+00:27:53,696 --> 00:27:54,986
+that's why we have the append
+
+
+1068
+00:27:55,096 --> 00:27:55,356
+APIs.
+
+
+1069
+00:27:55,356 --> 00:27:57,066
+You can append items and
+
+
+1070
+00:27:57,066 --> 00:27:57,586
+sections.
+
+
+1071
+00:27:58,836 --> 00:28:00,316
+Now, in that familiar path,
+
+
+1072
+00:28:00,316 --> 00:28:01,106
+where you have a number of
+
+
+1073
+00:28:01,106 --> 00:28:01,766
+sections, where you're
+
+
+1074
+00:28:01,766 --> 00:28:03,386
+configuring your Snapshot, you
+
+
+1075
+00:28:03,386 --> 00:28:04,646
+might loop through your section
+
+
+1076
+00:28:04,646 --> 00:28:04,866
+data.
+
+
+1077
+00:28:04,866 --> 00:28:05,996
+And in that instance, you can
+
+
+1078
+00:28:05,996 --> 00:28:07,846
+append items without specifying
+
+
+1079
+00:28:07,876 --> 00:28:08,316
+the section.
+
+
+1080
+00:28:08,316 --> 00:28:09,456
+There's a default parameter in
+
+
+1081
+00:28:09,456 --> 00:28:11,426
+Swift that specifies to null.
+
+
+1082
+00:28:11,666 --> 00:28:13,246
+In this instance, we'll just
+
+
+1083
+00:28:13,246 --> 00:28:14,456
+append to the last-known
+
+
+1084
+00:28:14,456 --> 00:28:14,966
+section.
+
+
+1085
+00:28:14,966 --> 00:28:15,736
+So it makes that code very
+
+
+1086
+00:28:15,736 --> 00:28:15,976
+pretty.
+
+
+1087
+00:28:19,066 --> 00:28:19,956
+All right, so let's talk a bit
+
+
+1088
+00:28:19,956 --> 00:28:21,246
+about identifiers.
+
+
+1089
+00:28:21,986 --> 00:28:22,896
+These have to be unique.
+
+
+1090
+00:28:23,386 --> 00:28:25,726
+And this isn't a big problem,
+
+
+1091
+00:28:25,726 --> 00:28:26,896
+because most apps have some kind
+
+
+1092
+00:28:26,896 --> 00:28:28,616
+of notion of identity in their
+
+
+1093
+00:28:28,616 --> 00:28:29,426
+model objects.
+
+
+1094
+00:28:29,916 --> 00:28:31,456
+So it's a very natural step to
+
+
+1095
+00:28:31,456 --> 00:28:32,976
+just use that unique identifier.
+
+
+1096
+00:28:35,046 --> 00:28:35,936
+Now in Swift, this needs to
+
+
+1097
+00:28:35,936 --> 00:28:37,096
+conform to hashable.
+
+
+1098
+00:28:37,526 --> 00:28:38,976
+And conveniently enough, many
+
+
+1099
+00:28:38,976 --> 00:28:39,926
+things in Swift do this
+
+
+1100
+00:28:39,926 --> 00:28:40,536
+automatically.
+
+
+1101
+00:28:40,536 --> 00:28:42,356
+We saw auto synthesis for this
+
+
+1102
+00:28:42,356 --> 00:28:42,976
+in the enum types.
+
+
+1103
+00:28:45,646 --> 00:28:47,466
+And we have string, and integer,
+
+
+1104
+00:28:47,466 --> 00:28:48,956
+and UUID, all these great things
+
+
+1105
+00:28:48,956 --> 00:28:50,456
+that are available for use for
+
+
+1106
+00:28:50,456 --> 00:28:51,286
+DiffableDataSource.
+
+
+1107
+00:28:52,746 --> 00:28:54,636
+Now, we also saw that you can
+
+
+1108
+00:28:54,636 --> 00:28:56,266
+bring in some model data into
+
+
+1109
+00:28:56,266 --> 00:28:57,396
+these identifiers.
+
+
+1110
+00:28:57,496 --> 00:28:58,626
+And this is really convenient.
+
+
+1111
+00:28:58,996 --> 00:29:00,266
+Now your identity needs to come
+
+
+1112
+00:29:00,266 --> 00:29:01,506
+from some unique identifier.
+
+
+1113
+00:29:01,856 --> 00:29:02,976
+But you can also bring in other
+
+
+1114
+00:29:03,126 --> 00:29:03,816
+attributes.
+
+
+1115
+00:29:03,816 --> 00:29:05,536
+When we saw like the name and
+
+
+1116
+00:29:05,536 --> 00:29:07,156
+the mountains, you can control
+
+
+1117
+00:29:07,156 --> 00:29:07,666
+our example.
+
+
+1118
+00:29:08,536 --> 00:29:09,426
+And this is really handy,
+
+
+1119
+00:29:09,426 --> 00:29:10,656
+because when you configure your
+
+
+1120
+00:29:10,656 --> 00:29:11,866
+cell, you have everything you
+
+
+1121
+00:29:11,866 --> 00:29:12,966
+need right there in line.
+
+
+1122
+00:29:12,966 --> 00:29:13,926
+No looking it up somewhere else.
+
+
+1123
+00:29:18,056 --> 00:29:18,746
+All right, here's a little,
+
+
+1124
+00:29:18,786 --> 00:29:19,816
+quick template that we see
+
+
+1125
+00:29:19,816 --> 00:29:20,886
+throughout the examples that
+
+
+1126
+00:29:20,886 --> 00:29:22,086
+talks about how to create a
+
+
+1127
+00:29:22,086 --> 00:29:23,986
+hashable thing in Swift where
+
+
+1128
+00:29:23,986 --> 00:29:24,706
+they're using a struct.
+
+
+1129
+00:29:26,206 --> 00:29:26,966
+Pretty straightforward stuff.
+
+
+1130
+00:29:30,506 --> 00:29:31,246
+All right, so what about
+
+
+1131
+00:29:31,466 --> 00:29:32,636
+IndexPath-based APIs?
+
+
+1132
+00:29:32,636 --> 00:29:34,306
+Okay, so we have CollectionView
+
+
+1133
+00:29:34,306 --> 00:29:34,926
+and TableView.
+
+
+1134
+00:29:34,926 --> 00:29:35,606
+They have tons of
+
+
+1135
+00:29:35,606 --> 00:29:36,656
+IndexPath-based APIs.
+
+
+1136
+00:29:36,656 --> 00:29:37,856
+A lot of them in the Delegate
+
+
+1137
+00:29:37,896 --> 00:29:38,276
+methods.
+
+
+1138
+00:29:38,276 --> 00:29:40,176
+So if a user interacts with the
+
+
+1139
+00:29:40,176 --> 00:29:41,776
+content and taps on an item,
+
+
+1140
+00:29:42,476 --> 00:29:43,356
+you'll get this familiar
+
+
+1141
+00:29:43,356 --> 00:29:45,376
+Delegate message didSelectItemAt
+
+
+1142
+00:29:45,376 --> 00:29:46,006
+IndexPath.
+
+
+1143
+00:29:47,126 --> 00:29:48,536
+But we've moved into this great
+
+
+1144
+00:29:48,536 --> 00:29:49,636
+new identifier-based world.
+
+
+1145
+00:29:49,636 --> 00:29:50,236
+What are we going to do with
+
+
+1146
+00:29:50,236 --> 00:29:51,066
+this IndexPath?
+
+
+1147
+00:29:51,066 --> 00:29:51,906
+You know, that's old school.
+
+
+1148
+00:29:51,906 --> 00:29:54,236
+So here we have new API's.
+
+
+1149
+00:29:54,296 --> 00:29:55,356
+Let you translate between
+
+
+1150
+00:29:55,356 --> 00:29:57,716
+identifiers, IndexPaths, and
+
+
+1151
+00:29:57,716 --> 00:29:59,196
+then back from IndexPaths to
+
+
+1152
+00:29:59,196 --> 00:29:59,926
+identifiers.
+
+
+1153
+00:29:59,926 --> 00:30:01,046
+So here, we see an example.
+
+
+1154
+00:30:01,556 --> 00:30:02,796
+We're taking that identifier,
+
+
+1155
+00:30:02,916 --> 00:30:04,606
+that IndexPath that's past, and
+
+
+1156
+00:30:04,606 --> 00:30:06,256
+converting it back to an
+
+
+1157
+00:30:06,256 --> 00:30:06,746
+identifier.
+
+
+1158
+00:30:06,746 --> 00:30:07,736
+And this is constant time.
+
+
+1159
+00:30:07,846 --> 00:30:08,976
+This is super, super fast.
+
+
+1160
+00:30:12,426 --> 00:30:13,256
+All right, so speaking of
+
+
+1161
+00:30:13,256 --> 00:30:13,886
+performance.
+
+
+1162
+00:30:14,906 --> 00:30:17,406
+So we've done a ton of work to
+
+
+1163
+00:30:17,406 --> 00:30:19,516
+make this as fast as possible.
+
+
+1164
+00:30:19,656 --> 00:30:20,606
+And there's a lot of really
+
+
+1165
+00:30:20,606 --> 00:30:21,796
+great low-level stuff that just
+
+
+1166
+00:30:21,796 --> 00:30:21,976
+blazes.
+
+
+1167
+00:30:25,266 --> 00:30:26,646
+Now, if you've ever studied in
+
+
+1168
+00:30:26,646 --> 00:30:27,746
+the computer science, the whole
+
+
+1169
+00:30:27,746 --> 00:30:29,176
+notion of how diffs occur, you
+
+
+1170
+00:30:29,176 --> 00:30:30,516
+know that this is a linear
+
+
+1171
+00:30:30,516 --> 00:30:31,606
+operation, O of N.
+
+
+1172
+00:30:31,606 --> 00:30:34,236
+And in simple terms, all it just
+
+
+1173
+00:30:34,236 --> 00:30:35,276
+means is the more items you
+
+
+1174
+00:30:35,276 --> 00:30:36,836
+have, the longer your diff
+
+
+1175
+00:30:36,836 --> 00:30:36,976
+takes.
+
+
+1176
+00:30:39,106 --> 00:30:40,236
+So during development, it's
+
+
+1177
+00:30:40,236 --> 00:30:41,736
+super important to measure your
+
+
+1178
+00:30:41,736 --> 00:30:42,006
+apps.
+
+
+1179
+00:30:42,006 --> 00:30:42,506
+We all know this.
+
+
+1180
+00:30:42,506 --> 00:30:43,836
+We want to make sure that the
+
+
+1181
+00:30:43,836 --> 00:30:46,076
+main queue is always as free as
+
+
+1182
+00:30:46,106 --> 00:30:47,906
+possible to be real responsive
+
+
+1183
+00:30:47,906 --> 00:30:48,766
+to user events.
+
+
+1184
+00:30:48,766 --> 00:30:49,926
+And we render everything really
+
+
+1185
+00:30:49,926 --> 00:30:50,376
+quickly.
+
+
+1186
+00:30:50,896 --> 00:30:52,746
+So as you're measuring your app
+
+
+1187
+00:30:52,796 --> 00:30:53,536
+-- you all measure your apps --
+
+
+1188
+00:30:53,906 --> 00:30:55,066
+during development, especially
+
+
+1189
+00:30:55,066 --> 00:30:55,566
+towards the end.
+
+
+1190
+00:30:55,746 --> 00:30:56,596
+I want to make sure that
+
+
+1191
+00:30:56,596 --> 00:30:58,106
+everything's really free on that
+
+
+1192
+00:30:58,106 --> 00:30:58,776
+main queue.
+
+
+1193
+00:30:59,906 --> 00:31:01,036
+Well, if you find that you have
+
+
+1194
+00:31:01,036 --> 00:31:02,426
+a large number of items in that
+
+
+1195
+00:31:02,426 --> 00:31:03,526
+linear diffs taking that little
+
+
+1196
+00:31:03,526 --> 00:31:05,656
+extra time, it is safe to call
+
+
+1197
+00:31:05,656 --> 00:31:06,596
+the Apply method from a
+
+
+1198
+00:31:06,596 --> 00:31:06,966
+background queue.
+
+
+1199
+00:31:07,516 --> 00:31:14,336
+[ Applause ]
+
+
+1200
+00:31:14,836 --> 00:31:15,926
+Now, what's really cool about
+
+
+1201
+00:31:15,986 --> 00:31:17,286
+this is the amount of API we
+
+
+1202
+00:31:17,286 --> 00:31:18,486
+have to support this.
+
+
+1203
+00:31:18,486 --> 00:31:19,376
+There's no API.
+
+
+1204
+00:31:20,016 --> 00:31:21,046
+[ Laughter ]
+
+
+1205
+00:31:21,046 --> 00:31:21,976
+Which is the best API.
+
+
+1206
+00:31:22,031 --> 00:31:24,031
+[ Cheering and Applause ]
+
+
+1207
+00:31:24,046 --> 00:31:24,176
+Right?
+
+
+1208
+00:31:26,916 --> 00:31:28,046
+All right, so what happens if
+
+
+1209
+00:31:28,046 --> 00:31:28,956
+you call Apply from the
+
+
+1210
+00:31:28,956 --> 00:31:29,586
+background queue?
+
+
+1211
+00:31:29,586 --> 00:31:30,886
+Well effectively, the framework
+
+
+1212
+00:31:30,886 --> 00:31:31,966
+is smart enough to know, "Hey,
+
+
+1213
+00:31:31,966 --> 00:31:32,856
+I'm on the main queue."
+
+
+1214
+00:31:32,856 --> 00:31:34,056
+And it says, "Let's just keep
+
+
+1215
+00:31:34,056 --> 00:31:35,076
+doing this diff right here."
+
+
+1216
+00:31:36,126 --> 00:31:37,716
+And once that diff is computed,
+
+
+1217
+00:31:37,956 --> 00:31:39,086
+we jump back to the main queue,
+
+
+1218
+00:31:39,086 --> 00:31:40,926
+apply the results from our diff,
+
+
+1219
+00:31:40,926 --> 00:31:41,966
+and life goes on, like normal.
+
+
+1220
+00:31:45,256 --> 00:31:46,706
+All right, so just one caveat,
+
+
+1221
+00:31:46,706 --> 00:31:47,696
+and I promise, just one.
+
+
+1222
+00:31:48,406 --> 00:31:51,136
+If you choose this model to call
+
+
+1223
+00:31:51,136 --> 00:31:52,466
+Apply from the background queue,
+
+
+1224
+00:31:52,606 --> 00:31:53,226
+be consistent.
+
+
+1225
+00:31:53,626 --> 00:31:54,646
+Just always call it from the
+
+
+1226
+00:31:54,646 --> 00:31:55,236
+background queue.
+
+
+1227
+00:31:55,286 --> 00:31:56,486
+You never want to mix and match
+
+
+1228
+00:31:56,526 --> 00:31:58,226
+calling it from a background
+
+
+1229
+00:31:58,326 --> 00:31:59,406
+queue or the main queue.
+
+
+1230
+00:31:59,676 --> 00:32:00,786
+Just always do it the same way.
+
+
+1231
+00:32:02,496 --> 00:32:03,566
+And we're good citizens.
+
+
+1232
+00:32:03,566 --> 00:32:05,266
+We'll complain about this if you
+
+
+1233
+00:32:05,266 --> 00:32:05,656
+get it wrong.
+
+
+1234
+00:32:06,536 --> 00:32:08,016
+All right, so at Apple
+
+
+1235
+00:32:08,216 --> 00:32:09,716
+collaboration is a big part.
+
+
+1236
+00:32:09,716 --> 00:32:11,166
+It's the main strength of our
+
+
+1237
+00:32:11,166 --> 00:32:12,666
+organization, the way we talk to
+
+
+1238
+00:32:12,666 --> 00:32:14,156
+each other and solve problems
+
+
+1239
+00:32:14,196 --> 00:32:14,616
+together.
+
+
+1240
+00:32:15,286 --> 00:32:16,976
+And part of this as the
+
+
+1241
+00:32:16,976 --> 00:32:18,146
+frameworks authors is to make
+
+
+1242
+00:32:18,146 --> 00:32:19,456
+sure that all of your clients,
+
+
+1243
+00:32:19,456 --> 00:32:20,796
+or who you talk to on a regular
+
+
+1244
+00:32:20,796 --> 00:32:21,526
+basis, and find out what they're
+
+
+1245
+00:32:21,526 --> 00:32:22,366
+struggling with.
+
+
+1246
+00:32:22,756 --> 00:32:23,806
+And this clearly is one of the
+
+
+1247
+00:32:23,806 --> 00:32:24,536
+things they're struggling with.
+
+
+1248
+00:32:25,106 --> 00:32:26,726
+So during this, we chatted with
+
+
+1249
+00:32:26,726 --> 00:32:27,636
+the folks who are working on the
+
+
+1250
+00:32:27,636 --> 00:32:29,146
+Share Sheet, this new,
+
+
+1251
+00:32:29,146 --> 00:32:30,966
+redesigned Share Sheet in iOS
+
+
+1252
+00:32:30,966 --> 00:32:33,116
+13, with the great airdrop
+
+
+1253
+00:32:33,166 --> 00:32:33,786
+extensions.
+
+
+1254
+00:32:34,776 --> 00:32:36,076
+And they found out about it kind
+
+
+1255
+00:32:36,076 --> 00:32:36,816
+of late in the game when they
+
+
+1256
+00:32:36,816 --> 00:32:38,026
+had this brand new design.
+
+
+1257
+00:32:38,026 --> 00:32:38,886
+And they said, "Oh, this looks
+
+
+1258
+00:32:38,886 --> 00:32:39,216
+great.
+
+
+1259
+00:32:39,216 --> 00:32:39,856
+We need this."
+
+
+1260
+00:32:39,986 --> 00:32:40,976
+And indeed they did.
+
+
+1261
+00:32:41,016 --> 00:32:42,996
+So I want to bring up one of my
+
+
+1262
+00:32:42,996 --> 00:32:44,526
+colleagues from the Share Sheet
+
+
+1263
+00:32:44,526 --> 00:32:46,876
+team, Jacob Clapper, to walk us
+
+
+1264
+00:32:46,876 --> 00:32:48,136
+through that adoption.
+
+
+1265
+00:32:48,256 --> 00:32:48,546
+Jacob?
+
+
+1266
+00:32:49,516 --> 00:32:54,426
+[ Applause ]
+
+
+1267
+00:32:54,926 --> 00:32:55,606
+>> Hi, everyone.
+
+
+1268
+00:32:56,316 --> 00:32:57,596
+I'm really excited to show you
+
+
+1269
+00:32:57,596 --> 00:32:58,586
+how the Share Sheet has been
+
+
+1270
+00:32:58,586 --> 00:32:59,966
+able to take advantage of the
+
+
+1271
+00:32:59,966 --> 00:33:02,186
+great new CollectionView APIs in
+
+
+1272
+00:33:02,316 --> 00:33:02,976
+iOS 13.
+
+
+1273
+00:33:05,046 --> 00:33:06,066
+All right, so here we are in the
+
+
+1274
+00:33:06,066 --> 00:33:07,126
+brand new Share Sheet.
+
+
+1275
+00:33:07,816 --> 00:33:08,786
+And this Share Sheet actually
+
+
+1276
+00:33:08,786 --> 00:33:10,306
+takes advantage of the new
+
+
+1277
+00:33:10,306 --> 00:33:12,086
+compositional layout API's and
+
+
+1278
+00:33:12,086 --> 00:33:13,406
+DiffableDataSource.
+
+
+1279
+00:33:13,406 --> 00:33:14,646
+But where DiffableDataSource
+
+
+1280
+00:33:14,646 --> 00:33:16,126
+really shines is in the brand
+
+
+1281
+00:33:16,126 --> 00:33:17,446
+new airdrop extension.
+
+
+1282
+00:33:18,696 --> 00:33:21,176
+So the airdrop extension has a
+
+
+1283
+00:33:21,176 --> 00:33:22,256
+browser that's browsing for
+
+
+1284
+00:33:22,256 --> 00:33:22,846
+devices.
+
+
+1285
+00:33:23,156 --> 00:33:24,576
+And we actually already use
+
+
+1286
+00:33:24,576 --> 00:33:26,606
+UUIDs to uniquely identify each
+
+
+1287
+00:33:26,606 --> 00:33:27,656
+device that's discovered.
+
+
+1288
+00:33:28,166 --> 00:33:30,206
+So as new devices are
+
+
+1289
+00:33:30,206 --> 00:33:31,876
+discovered, we are able to
+
+
+1290
+00:33:31,876 --> 00:33:34,036
+create an empty Snapshot, append
+
+
+1291
+00:33:34,036 --> 00:33:35,506
+our sections and items, and
+
+
+1292
+00:33:35,506 --> 00:33:36,536
+Apply the differences.
+
+
+1293
+00:33:36,876 --> 00:33:38,566
+DiffableDataSource takes care of
+
+
+1294
+00:33:38,566 --> 00:33:39,056
+the rest.
+
+
+1295
+00:33:39,056 --> 00:33:40,056
+And the animations are
+
+
+1296
+00:33:40,056 --> 00:33:41,826
+beautiful, no matter how many
+
+
+1297
+00:33:41,826 --> 00:33:43,736
+items are removed or deleted.
+
+
+1298
+00:33:44,276 --> 00:33:46,196
+DiffableDataSource has been a
+
+
+1299
+00:33:46,196 --> 00:33:47,316
+game changer for us.
+
+
+1300
+00:33:47,626 --> 00:33:48,986
+And we can't wait to see what
+
+
+1301
+00:33:48,986 --> 00:33:50,566
+you do with it in your apps.
+
+
+1302
+00:33:50,646 --> 00:33:51,866
+I'm going to hand it back over
+
+
+1303
+00:33:51,866 --> 00:33:53,486
+to Troy for some final thoughts.
+
+
+1304
+00:33:55,516 --> 00:33:57,556
+[ Applause ]
+
+
+1305
+00:33:58,056 --> 00:33:59,426
+>> Boy, it's so exciting to me
+
+
+1306
+00:33:59,426 --> 00:34:00,456
+to hear how much
+
+
+1307
+00:34:00,456 --> 00:34:02,146
+DiffableDataSource is already
+
+
+1308
+00:34:02,196 --> 00:34:03,566
+making a difference in the
+
+
+1309
+00:34:03,566 --> 00:34:05,106
+development of our own apps.
+
+
+1310
+00:34:05,106 --> 00:34:06,526
+And we couldn't be more thrilled
+
+
+1311
+00:34:06,526 --> 00:34:08,606
+to make this same API that we've
+
+
+1312
+00:34:08,606 --> 00:34:09,866
+been adopting internally
+
+
+1313
+00:34:10,146 --> 00:34:11,806
+available to use for developers
+
+
+1314
+00:34:11,906 --> 00:34:12,976
+across our platforms.
+
+
+1315
+00:34:21,045 --> 00:34:22,505
+So as we've seen today,
+
+
+1316
+00:34:22,505 --> 00:34:24,485
+DiffableDataSource dramatically
+
+
+1317
+00:34:24,485 --> 00:34:26,416
+simplifies the work that you
+
+
+1318
+00:34:26,416 --> 00:34:28,485
+have to do to get model data
+
+
+1319
+00:34:28,485 --> 00:34:30,606
+into your CollectionViews and
+
+
+1320
+00:34:30,606 --> 00:34:31,676
+your UITableViews.
+
+
+1321
+00:34:31,976 --> 00:34:33,326
+We think it's really a game
+
+
+1322
+00:34:33,326 --> 00:34:33,596
+changer.
+
+
+1323
+00:34:33,596 --> 00:34:35,646
+It makes it incredibly simple
+
+
+1324
+00:34:35,876 --> 00:34:36,476
+and robust.
+
+
+1325
+00:34:36,755 --> 00:34:38,516
+There's no more puzzling
+
+
+1326
+00:34:38,696 --> 00:34:40,126
+exceptions to debug and
+
+
+1327
+00:34:40,186 --> 00:34:42,216
+hard-to-write batch update code.
+
+
+1328
+00:34:42,216 --> 00:34:44,025
+You can really just focus on
+
+
+1329
+00:34:44,025 --> 00:34:44,916
+what you want to do with your
+
+
+1330
+00:34:44,916 --> 00:34:46,496
+app and leave the rest to the
+
+
+1331
+00:34:46,496 --> 00:34:46,936
+framework.
+
+
+1332
+00:34:47,856 --> 00:34:49,315
+DiffableDataSource is available
+
+
+1333
+00:34:49,426 --> 00:34:53,186
+for you to use today on iOS,
+
+
+1334
+00:34:53,186 --> 00:34:54,606
+TVoS, and MacOS.
+
+
+1335
+00:34:55,176 --> 00:34:57,016
+In addition to providing-- to
+
+
+1336
+00:34:57,016 --> 00:34:58,676
+figuring out the diffs for you,
+
+
+1337
+00:34:58,906 --> 00:35:00,236
+and automatically committing
+
+
+1338
+00:35:00,236 --> 00:35:01,936
+them to your UI, you get these
+
+
+1339
+00:35:01,936 --> 00:35:03,946
+nice animated changes, right?
+
+
+1340
+00:35:03,946 --> 00:35:05,516
+And there's no additional work
+
+
+1341
+00:35:05,516 --> 00:35:07,476
+for you to do to get that nice,
+
+
+1342
+00:35:07,786 --> 00:35:09,056
+pleasing user interaction
+
+
+1343
+00:35:09,056 --> 00:35:09,316
+effect.
+
+
+1344
+00:35:10,126 --> 00:35:12,566
+The built-in diff is fast.
+
+
+1345
+00:35:12,566 --> 00:35:14,096
+It has been heavily stress
+
+
+1346
+00:35:14,136 --> 00:35:14,556
+tested.
+
+
+1347
+00:35:14,906 --> 00:35:17,296
+DiffableDataSource is a robust
+
+
+1348
+00:35:17,296 --> 00:35:19,086
+API that is ready for you to
+
+
+1349
+00:35:19,086 --> 00:35:20,186
+take and run with it.
+
+
+1350
+00:35:20,656 --> 00:35:22,686
+So go out there and take it.
+
+
+1351
+00:35:22,946 --> 00:35:24,526
+Adapt to your apps to use
+
+
+1352
+00:35:24,526 --> 00:35:25,656
+DiffableDataSource.
+
+
+1353
+00:35:25,986 --> 00:35:27,266
+We can't wait to see the burden
+
+
+1354
+00:35:27,266 --> 00:35:28,356
+this is going to take off your
+
+
+1355
+00:35:28,356 --> 00:35:29,616
+shoulders and the delightful
+
+
+1356
+00:35:29,616 --> 00:35:31,176
+user experiences that you're
+
+
+1357
+00:35:31,176 --> 00:35:32,206
+going to be able to create with
+
+
+1358
+00:35:32,206 --> 00:35:33,586
+it with much less time, much
+
+
+1359
+00:35:33,586 --> 00:35:34,176
+fewer headaches.
+
+
+1360
+00:35:36,636 --> 00:35:37,896
+If you found this talk
+
+
+1361
+00:35:37,896 --> 00:35:39,256
+interesting, and you work with
+
+
+1362
+00:35:39,256 --> 00:35:40,426
+CollectionViews, we've got
+
+
+1363
+00:35:40,426 --> 00:35:41,246
+another one that you're really
+
+
+1364
+00:35:41,246 --> 00:35:43,166
+going to love in Advances in
+
+
+1365
+00:35:43,166 --> 00:35:44,616
+Collection View Layout.
+
+
+1366
+00:35:44,976 --> 00:35:47,176
+We describe an entirely new
+
+
+1367
+00:35:47,176 --> 00:35:48,706
+layout system, a way to just
+
+
+1368
+00:35:48,706 --> 00:35:50,276
+simply describe any custom
+
+
+1369
+00:35:50,276 --> 00:35:51,736
+layout that you want to have in
+
+
+1370
+00:35:51,736 --> 00:35:52,666
+your CollectionView.
+
+
+1371
+00:35:52,986 --> 00:35:53,906
+And be able to see it
+
+
+1372
+00:35:53,906 --> 00:35:55,356
+implemented without any sub
+
+
+1373
+00:35:55,356 --> 00:35:57,206
+classing with highly performant
+
+
+1374
+00:35:57,206 --> 00:35:57,666
+results.
+
+
+1375
+00:35:57,666 --> 00:35:58,506
+So we think you're really going
+
+
+1376
+00:35:58,506 --> 00:35:58,916
+to love this.
+
+
+1377
+00:35:58,916 --> 00:36:00,346
+Make sure to catch that session.
+
+
+1378
+00:36:01,316 --> 00:36:02,686
+And thank you so much for
+
+
+1379
+00:36:02,686 --> 00:36:02,976
+watching today.
+
+
+1380
+00:36:03,516 --> 00:36:08,500
+[ Applause ]
+
